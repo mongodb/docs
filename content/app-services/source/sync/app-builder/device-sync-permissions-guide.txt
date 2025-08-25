@@ -1,0 +1,807 @@
+.. meta::
+   :robots: nosnippet
+
+.. _flexible-sync-permissions-guide:
+
+=============================
+Device Sync Permissions Guide
+=============================
+
+.. meta:: 
+  :description: Learn how to configure the different permissions available to your users using Device Sync.
+  :keywords: code example
+
+.. facet::
+   :name: programming_language
+   :values: javascript/typescript
+   
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page shows how to set up your Device Sync app's permissions for the
+following common use cases:
+
+- :ref:`read-write-own-data`
+- :ref:`write-own-data-read-all-data`
+- :ref:`admin-privileges`
+- :ref:`restricted-news-feed`
+- :ref:`dynamic-collaboration`
+- :ref:`tiered-privileges`
+
+
+Using the Template Apps
+-----------------------
+
+You can get some of these permissions models up and running quickly with our
+Device Sync Permissions Guide template apps. Each template app comes with a
+backend and a Node.js demo client. The backend has all functions, permissions,
+and triggers set up as described here. The demo client connects to the backend
+and runs through a simple script to demonstrate how the backend works.
+
+You need an authenticated {+cli+} to use these templates.
+
+.. include:: /includes/install-appservices-cli.rst
+
+See :ref:`the CLI reference page <cli-auth-with-api-token>` for login
+instructions.
+
+Once logged in, you can use the ``apps create`` command with the ``--template``
+flag to instantiate a template. 
+
+.. code-block:: bash
+
+   {+cli-bin+} apps create --template=TEMPLATE_NAME
+
+``TEMPLATE_NAME`` can be one of the following:
+
+- ``flex-sync-guides.add-collaborators`` (corresponding to :ref:`dynamic-collaboration`)
+- ``flex-sync-guides.restricted-feed`` (corresponding to :ref:`restricted-news-feed`)
+- ``flex-sync-guides.tiered`` (corresponding to :ref:`tiered-privileges`)
+
+
+.. button:: Deploy a Template App
+   :uri: https://www.mongodb.com/realm/register?tck=docs_CTA_realm_fs_guides
+
+About These Examples
+--------------------
+
+The examples here use **default roles**. This means the same permissions rules
+apply to all collections in your app. As your app grows in complexity, you might
+need collection-specific roles that only apply to some collections and not
+others. In particular, if a rule expression in a default role uses a "queryable
+field" that doesn't exist on objects in a certain collection, you can override
+the rules for that collection by providing a collection-specific role. See
+:ref:`roles` for more information.
+
+.. _read-write-own-data:
+
+Read & Write Own Data
+---------------------
+
+In this case, users may read or write their own data, but not other users' data. 
+Consider a notes app where the user wants to persist and share notes across 
+their own devices but keep them  private to their user account.
+
+This strategy permits a user to create and edit a document if and only if that
+document's ``owner_id`` field equals the user's ID.
+
+To set up the "Read & Write Own Data" strategy, follow the general steps:
+
+.. include:: /includes/use-flex-sync-templates.rst
+
+Now you need to configure the permissions. Navigate to the :guilabel:`Rules`
+page. Click the :guilabel:`Default Roles and Filters` button to edit the default
+roles. Use the template dropdown to select the template called "Users can only
+read and write their own data".
+
+This populates the rule expression box with the following:
+
+.. code-block:: json
+    :emphasize-lines: 5-6
+
+    {
+      "name": "owner-read-write", 
+      "apply_when": {},
+      "document_filters": {
+        "read": { "owner_id": "%%user.id" },
+        "write": { "owner_id": "%%user.id" }
+      },
+      "read": true,
+      "write": true
+    }
+
+Note that the ``document_filters.read`` and ``document_filters.write``
+expressions use the ``owner_id`` field we marked as "queryable" above. It also
+uses the ``%%user`` :ref:`expansion <expansions>` to read the requesting user's
+id. App Services replaces (or "expands") the expansion at evaluation time with
+the corresponding value -- in this case, the user object.
+
+When evaluating permissions on a given document, App Services checks
+``document_filters.read`` and ``document_filters.write`` before the
+corresponding top-level ``read`` or ``write`` expressions. For example, if
+``document_filters.write`` evaluates to false, write access is denied; no
+subsequent rules are checked. However, if ``document_filters.write`` evaluates
+to true, App Services checks the top-level ``write`` expression. In this case,
+``write`` is ``true``, so write access is granted on the whole document. For
+more information, see :ref:`device-sync-compatibility`.
+
+.. _write-own-data-read-all-data:
+
+Write Own Data, Read All Data
+-----------------------------
+
+In this case, users can read all data, but write only their own data. Consider a
+recipe app where users can read all recipes and add new recipes. The recipes
+they add can be viewed by everyone using the app. Users may update or delete
+only the recipes they contributed.
+
+To set up the "Write Own Data, Read All Data" strategy, follow these general 
+steps:
+
+.. include:: /includes/use-flex-sync-templates.rst
+
+Now you need to configure the permissions. Navigate to the :guilabel:`Rules`
+page. Click the :guilabel:`Default Roles and Filters` button to edit the default
+roles. Use the template dropdown to select the template called "Users can read
+all data but only write their own data".
+
+This populates the rule expression box with the following:
+
+.. code-block:: json
+    :emphasize-lines: 5-6
+
+    {
+      "name": "owner-write", 
+      "apply_when": {},
+      "document_filters": {
+        "read": true,
+        "write": { "owner_id": "%%user.id" }
+      },
+      "read": true,
+      "write": true
+    }
+
+Note that the ``document_filters.read`` expression is set to ``true``,
+indicating that no matter which user is authenticated, they can read all of the
+data. The ``document_filters.write`` expression uses the ``owner_id`` field we
+marked as "queryable" above and uses the ``%%user`` :ref:`expansion
+<expansions>` to match against the requesting user's id. App Services replaces
+("expands") the expansion at evaluation time with the corresponding value -- in
+this case, the user object.
+
+If and only if ``document_filters.write`` evaluates to true will App Services
+check the top-level ``write`` expression. When ``document_filters.write``
+evaluates to false, write access is denied regardless of what the top-level
+``write`` expression says. For more information, see
+:ref:`device-sync-compatibility`.
+
+.. _admin-privileges:
+
+Administrator Privileges
+------------------------
+
+In this permission strategy, users with a specific "administrator" role can read
+and write any document. Users who do not have the specified role can only read
+and write their own data. To make this strategy work, you first need to define
+which users have administrator permissions.
+
+Atlas Apps allow you to associate custom user data in your cluster with
+application users. Using this feature, you can create a document with a
+field that indicates whether the user has administrative privileges.
+While there are many ways to set this up, one approach is to add a
+boolean property called ``isGlobalAdmin``, which is set to ``true`` for
+those users with the elevated permissions. Another is to create a string
+field called ``role``, in which one of the expected values might be
+"admin".
+
+In the following example, the custom user object we'll create has an ``_id``
+field, which corresponds to the user's ID, and 3 additional fields:
+``firstName``, ``lastName``, and ``isGlobalAdmin``:
+
+.. code-block:: json
+
+   {
+      "_id" : "1234",
+      "firstName": "Lily",
+      "lastName": "Realmster",
+      "isGlobalAdmin": true
+   }
+
+.. include:: /includes/note-custom-user-data-and-permissions.rst
+
+Enable & Configure Custom User Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Atlas App Services stores MongoDB documents that correspond to custom user data
+in a linked MongoDB Atlas cluster. When you configure custom user data for your 
+application, you specify the cluster, database, collection, and finally a 
+User ID field, which maps a custom user data document to an 
+authenticated user's ID.
+
+.. include:: /includes/define-custom-user-data.rst
+
+.. seealso::
+
+   :ref:`custom-user-data`
+
+Set Up Admin Privileges
+~~~~~~~~~~~~~~~~~~~~~~~
+After you have custom user data enabled, you can implement the Admin Privileges 
+strategy. To do so, follow these general steps:
+
+.. include:: /includes/use-flex-sync-templates.rst
+
+Now you need to configure the permissions. Navigate to the :guilabel:`Rules`
+page. Click the :guilabel:`Default Roles and Filters` button to edit the default
+roles. Use the template dropdown to select the template called "Users can read
+and write their own data, admins can read and write all data".
+
+This populates the rule expression box with the following:
+
+.. code-block:: json
+
+   [
+      {
+        "name": "admin", 
+        "apply_when": { 
+          "%%user.custom_data.isGlobalAdmin": true 
+        },
+        "document_filters": {
+          "read": true,
+          "write": true
+        },
+        "read": true,
+        "write": true
+      },
+      {
+        "name": "user", 
+        "apply_when": {},
+        "document_filters": {
+          "read": { "owner_id": "%%user.id" },
+          "write": { "owner_id": "%%user.id" }
+        },
+        "read": true,
+        "write": true
+      }
+   ]
+
+.. note:: Change the default settings
+
+   This configuration has two default roles. The first defines the permissions
+   for an administrator. Note that the auto-generated expression assumes there
+   is a boolean field in the custom user data document named ``isGlobalAdmin``.
+   Depending on how you defined your custom user data document, you might need
+   to change this. 
+   
+   The second default role specifies the rules for all other users. The default
+   is to restrict user access to read and write only their own data. You can
+   change either or both of these fields to ``true``, enabling users to read
+   and/or write all data. See the previous sections to learn more about these
+   strategies.
+
+.. _restricted-news-feed:
+
+Restricted News Feed
+--------------------
+
+.. note:: Template Available!
+
+   To use the backend template and get the demo client, run the following command:
+
+   .. code-block:: bash
+
+      {+cli-bin+} apps create --name=restricted-feed --template=flex-sync-guides.restricted-feed
+  
+   .. include:: /includes/template-app-custom-user-data-workaround.rst
+
+   Next, in your terminal, go into the client directory, install the
+   dependencies, and run the demo:
+
+   .. code-block::
+
+      cd restricted-feed/frontend/flex-sync-guides.restricted-feed/
+      npm install
+      npm run demo
+
+   Read the output on your console to see what the demo is doing.
+
+
+In this permission strategy, users can create their own content and subscribe 
+to other creators' content. As with the Admin Privileges scenario, we will 
+make use of a Custom User Data collection to define which authors' content 
+a user is subscribed to read.
+
+Flexible Device Sync supports querying arrays, so we will create an array 
+within a user data object. This array contains IDs of the authors that this user 
+is authorized to "follow". We then set up a subscription that says, in essence, 
+"Give me all documents where I am the author, or the author's ID is in the array  
+of authors in my custom user data."
+
+.. important:: 
+
+   When a user subscribes or unsubscribes from an author, we update the array 
+   in the custom user data, but the changes don't take effect until the current 
+   session is closed and a new session is started.
+
+.. note:: Size Limitations
+
+   In this example, we are creating an array in the Custom User Data. The 
+   size of this array is not limited by App Services, but because the data is 
+   included in each request, we recommend keeping the size under 16KB, which 
+   is enough space for 1000 128-bit GUID-style user IDs.
+
+.. include:: /includes/note-custom-user-data-and-permissions.rst
+
+Enable & Configure Custom User Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/define-custom-user-data.rst
+
+.. seealso::
+
+   :ref:`custom-user-data`
+
+Create Authentication Trigger Function
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We need to create a authentication trigger function that creates a custom user 
+object when a user authenticates for the first time. To do so, follow these steps:  
+
+.. include:: /includes/create-auth-trigger.rst
+
+Set Up Restricted Permissions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the custom user data object, create an array that holds the _id values of 
+each author the user is following. In this example, we'll call it "subscriptions". 
+Our user data object looks like the following, where Lily Realmster 
+(``"_id": "1234"``) is subscribed to all documents written by users "456" 
+and "789":
+
+.. code-block:: json
+
+   {
+      "_id" : "1234",
+      "firstName": "Lily",
+      "lastName": "Realmster",
+      "user.custom_data.subscribedTo": [
+        "456",
+        "789"
+      ]
+   }
+
+You can now implement the Restricted Privileges strategy. To do so, follow these 
+general steps:
+
+.. include:: /includes/use-flex-sync-templates.rst
+
+Now you need to configure the permissions. Navigate to the :guilabel:`Rules`
+page. Click the :guilabel:`Default Roles and Filters` button to edit the default
+roles. Use the template dropdown to select the template called "Users can only
+read and write their own data". This populates the rule expression box with the
+following, which is not *exactly what we want*, but provides most of the logic
+for us:
+
+.. code-block:: json
+
+  {
+    "name": "owner-read-write", 
+    "apply_when": {},
+    "document_filters": {
+      "read": { "owner_id": "%%user.id" },
+      "write": { "owner_id": "%%user.id" }
+    },
+    "read": true,
+    "write": true
+  }
+
+Note that a user can currently read only their own documents (``"read":
+{"owner_id": "%%user.id"}``). We can change this to include documents whose
+authors have IDs in the user's "subscribedTo" array. To do so, we use the
+``$in`` operator. The expression looks like this:
+
+.. code-block:: json
+
+  {
+    "name": "owner-read-write", 
+    "apply_when": {},
+    "document_filters": {
+      "read": {
+        "owner_id": {
+          "$in": "%%user.custom_data.subscribedTo"
+        }
+      },
+      "write": { "owner_id": "%%user.id" }
+    },
+    "read": true,
+    "write": true
+  }
+
+Update the rule expression box with this new logic and save the changes.
+
+Note: we changed the ``document_filters.read`` expression to only mention the
+authors in the subscribedTo array, but users still have "read" access to their
+own documents because of the ``document_filters.read`` expression. Whenever
+write access is granted, read access is implicitly granted.
+
+Create subscribeToUser Function
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We need a function that subscribes one user to another. Our permissions are set
+up to consider a subscriber "subscribed" to an author if the author's user ID is
+in the subscriber's custom user data "subscribedTo" array. The "subscribeToUser"
+function takes a user's email address, finds the corresponding user ID in the
+custom user data collection, and adds the ID to the requesting user's
+"subscribedTo" array.
+
+Note that this function will run under System authentication and writes to the
+custom user data. When using custom user data for permissions, clients must
+never be allowed to directly edit custom user data. Otherwise, any user could
+grant themselves any permissions. Instead, modify user data on the backend with
+a System function. The function should do whatever checks are necessary to ensure
+the user's request for permissions is valid.
+
+To create the function, follow these steps:
+
+1. Log in to the Realm UI, and then click :guilabel:`Functions` in the 
+   left hand panel.
+
+#. Click the :guilabel:`Create New Function` button.
+
+#. Specify the following values:
+
+   - :guilabel:`Name`: "subscribeToUser"
+   
+   - :guilabel:`Authentication`: "System"
+  
+#. Switch to the :guilabel:`Function Editor` tab and replace the 
+   placeholder text with the following code: 
+
+   .. code-block:: javascript
+
+      exports = async function(email) {
+        const collection = context.services.get("mongodb-atlas").db("Item").collection("User");
+        
+        // Look up the author object to get the user id from an email
+        const author = await collection.findOne({email});
+        if (author == null) {
+          return {error: `Author ${email} not found`};
+        }
+        
+        // Whoever called this function is the would-be subscriber
+        const subscriber = context.user;
+
+        try {
+          return await collection.updateOne(
+            {_id: subscriber.id},
+            {$addToSet: {
+                subscribedTo: author._id,
+              }
+            });
+        } catch (error) {
+          return {error: error.toString()};
+        }
+      };
+
+
+.. _dynamic-collaboration:
+
+Dynamic Collaboration
+---------------------
+
+.. note:: Template Available!
+
+   To use the backend template and get the demo client, run the following command:
+
+   .. code-block:: bash
+
+      {+cli-bin+} apps create --name=add-collaborators --template=flex-sync-guides.add-collaborators
+  
+   Next, go into the client directory, install the dependencies, and run the demo:
+
+   .. code-block::
+
+      cd add-collaborators/frontend/flex-sync-guides.add-collaborators/
+      npm install
+      npm run demo
+
+   Read the output on your console to see what the demo is doing.
+
+
+In the Dynamic Collaboration strategy, users can create documents and add other
+users as editors of that document.
+
+Like the Read & Write Own Data strategy, this strategy permits a user to create
+and edit a document if that document's ``owner_id`` field equals the user's ID.
+Additionally, a user may edit the document if the document's ``collaborators``
+array field contains their ID.
+
+Set Up Permissions
+~~~~~~~~~~~~~~~~~~
+
+To implement this strategy, follow these general steps:
+
+.. include:: /includes/use-flex-sync-templates.rst
+
+In the :guilabel:`Select Queryable Fields` field, type in ``collaborators`` as 
+well. This will be the field that stores the IDs of users who may also read and 
+write the document.
+
+Now you need to configure the permissions. Under :guilabel:`Define Permissions`, 
+use the template dropdown to select the "Custom (start from scratch)". Paste the 
+following into the rule expression box: 
+
+.. code-block:: json
+
+    {
+      "name": "collaborator",
+      "apply_when": {},
+      "document_filters": {
+        "read": {
+          "$or": [
+            {
+              "owner_id": "%%user.id"
+            },
+            {
+              "collaborators": "%%user.id"
+            }
+          ]
+        },
+        "write": {
+          "$or": [
+            {
+              "owner_id": "%%user.id"
+            },
+            {
+              "collaborators": "%%user.id"
+            }
+          ]
+        }
+      },
+      "read": true,
+      "write": true
+    }
+  
+The "write" and "read" expressions are identical. Take a look at one of them.
+``$or`` takes an array of options. We have two possible conditions where a user
+may write the document:
+
+- The ``owner_id`` field of the document equals the user's ID
+- The ``collaborators`` array field of the document contains the user's ID.
+
+Generally speaking, when a user is granted write permission, that user
+automatically gets read permission. However, we can't omit the
+``document_filters.read`` expression because App Services requires both
+``document_filters.read`` and ``document_filters.write`` to be defined for the
+role to be :ref:`Sync compatible <sync-compatible-roles>`.
+
+
+Adding a Collaborator
+~~~~~~~~~~~~~~~~~~~~~
+
+A user can grant write access on their document to another user by adding that
+user's ID to the ``collaborators`` array field on their document. This can be
+done on the client side.
+
+Security
+~~~~~~~~
+
+We don't recommend using this model for highly sensitive data.
+
+This model uses the permissions system to keep documents private between the
+document creator and the collaborators they add to the document. However, if a
+user has write access to a document, they may write to any field of the
+document. Consequently, this strategy **allows collaborators to add other
+collaborators**. It would also allow a collaborator to edit the ``owner_id``
+field. Field-level permissions have to be boolean literals for :ref:`sync
+compatibility <sync-compatible-roles>`, so we can't limit writes to these fields
+to specific users.
+
+User Search
+~~~~~~~~~~~
+
+How exactly to get the other user's ID depends on the details of your app. For
+example, when a user wants to add another user to a document, you might have a
+search box that accepts an email address. If the given email address corresponds
+to another user, the client can add that user's ID to the document's
+``collaborators`` array.
+
+Realm has no built-in way to search users. Generally, the flow for searching
+users is as follows:
+
+- Set up an authentication trigger to create a user document when a user
+  registers. The user document contains information you'll use to look up later,
+  such as the user's email address.
+- Create a function that queries the user data collection for a user.
+- Call the function from the client side when the user wants to find another user.
+
+To create an authentication trigger, follow these steps:
+
+.. include:: /includes/create-auth-trigger.rst
+
+Next, create a system function called ``findUser``:
+
+.. include:: /includes/create-a-system-function.rst
+
+In the :guilabel:`Function Editor`, paste the following code and save:
+
+.. code-block:: javascript
+
+   exports = async function(email) { 
+     const collection = context.services.get("mongodb-atlas")
+       .db("Item").collection("User");
+     const filter = {
+       email,
+     };
+     // Search for the user by email
+     const result = await collection.findOne(filter);
+     // Return corresponding user id or null
+     return result != null ? result._id : null;
+   };
+
+From your client, you can now call this function. The function's only argument
+is an email address string. If the email corresponds to a user, the function
+returns the user's ID. Otherwise, it returns null.
+
+.. _tiered-privileges:
+
+Tiered Privileges
+-----------------
+
+.. note:: Template Available!
+
+   To use the backend template and get the demo client, run the following command:
+
+   .. code-block:: bash
+
+      {+cli-bin+} apps create --name=tiered --template=flex-sync-guides.tiered
+  
+   .. include:: /includes/template-app-custom-user-data-workaround.rst
+
+   Next, in your terminal, go into the client directory, install the
+   dependencies, and run the demo:
+
+   .. code-block::
+
+      cd tiered/frontend/flex-sync-guides.tiered/
+      npm install
+      npm run demo
+
+   Read the output on your console to see what the demo is doing.
+
+In this permission strategy, we'll add special **roles** as well as rules. There
+are two roles: **a team member** and **a team administrator**. The rules are as
+follows:
+
+- Each user is a member of a team. 
+- A user can read and write their own documents.
+- All members of the team can read all documents created by team members. 
+- Each team has a team administrator, who has read & write permissions on every 
+  team document.
+
+To make this work, we need to do the following:
+
+- Enable custom user data
+- Create a trigger function to create a new custom user data object for each 
+  new user
+- Create a function to add a user to a team
+- Define the permissions
+
+.. include:: /includes/note-custom-user-data-and-permissions.rst
+
+Enable & Configure Custom User Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/define-custom-user-data.rst
+
+Create Authentication Trigger Function
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We need to create a authentication trigger function that creates a custom user 
+object when a user authenticates for the first time. To do so, follow these steps:  
+
+.. include:: /includes/create-auth-trigger.rst
+
+
+Create joinTeam Function
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We now need a function that adds a user to a team. Note that this function 
+will run under System authentication and writes to the custom user data. It 
+does not perform an upsert because the user custom data was created when the user 
+successfully authenticated for the first time.
+
+To create the function, follow these steps:
+
+1. Log in to the Realm UI, and then click :guilabel:`Functions` in the 
+   left hand panel.
+
+#. Click the :guilabel:`Create New Function` button.
+
+#. Specify the following values:
+
+   - :guilabel:`Name`: "joinTeam"
+   
+   - :guilabel:`Authentication`: "System"
+  
+#. Switch to the :guilabel:`Function Editor` tab and replace the 
+   placeholder text with the following code: 
+
+   .. code-block:: javascript
+
+      exports = async function(userId, teamName) {
+        const collection = context.services.get("mongodb-atlas")
+          .db("Item").collection("User");
+
+        const filter = { _id: userId };
+        const update = { $set: { team: teamName }};
+        const options = { upsert: false };
+
+        return collection.updateOne(filter, update, options);
+      };
+
+
+Define Permissions
+~~~~~~~~~~~~~~~~~~
+
+The following permissions specify two roles:
+
+- **teamAdmin** applies only when the user's custom data has 
+  ``isTeamAdmin: true``. If so, the user can read and write all documents where 
+  the document's ``team`` value matches the user's ``team`` value.
+- **teamMember** applies to every user. The user can write their own 
+  documents and read all documents where the document's ``team`` value matches 
+  the user's ``team`` value.
+
+.. code-block:: json
+
+   [
+      {
+        "name": "admin",
+        "apply_when": {
+          "%%user.custom_data.isTeamAdmin": true
+        },
+        "document_filter": {
+          "read": {
+            "team": "%%user.custom_data.team"
+          },
+          "write": {
+            "team": "%%user.custom_data.team"
+          }
+        },
+        "read": true,
+        "write": true
+      },
+      {
+        "name": "user",
+        "apply_when": {},
+        "document_filters": {
+          "read": {
+            "team": "%%user.custom_data.team"
+          },
+          "write": {
+            "owner_id": "%%user.id"
+          }
+        },
+        "read": true,
+        "write": true
+      }
+   ]
+
+.. note:: Take It Further
+
+   This strategy can be expanded to support a "globalAdmin" role. The global 
+   admin would have read & read permissions on any doc created in any team. 
+
+.. seealso:: Authentication Triggers
+
+   - :ref:`<authentication-triggers>`
+
+   - :ref:`<custom-user-data>`

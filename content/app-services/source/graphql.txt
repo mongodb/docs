@@ -1,0 +1,246 @@
+.. meta::
+   :robots: nosnippet
+
+.. _graphql-api:
+.. _intro-web-graphql:
+
+==============================
+Atlas GraphQL API [Deprecated]
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   Expose Data in a Collection </graphql/expose-data>
+   Authenticate GraphQL Requests </graphql/authenticate>
+   GraphQL Types, Resolvers, and Operators </graphql/types-and-resolvers>
+   Define a Custom Resolver </graphql/custom-resolvers>
+   Connect with Apollo Client (React) <https://www.mongodb.com/docs/realm/web/graphql-apollo-react/>
+   Run GraphQL Operations from a CLI </graphql/cli>
+   Migrate to Hasura </graphql/migrate-hasura>
+   Migrate to Apollo </graphql/migrate-apollo>
+   Migrate to WunderGraph </graphql/migrate-wundergraph>
+   Migrate to Neurelo </graphql/migrate-neurelo>
+   Migrate to Render </graphql/migrate-render>
+
+.. banner::
+   :variant:  warning
+
+   GraphQL is deprecated. :ref:`Learn More <migrate-hosting-graphql>`.
+
+Overview
+--------
+
+The Atlas :graphql:`GraphQL <>` API allows client applications to access
+data stored in a linked MongoDB Atlas cluster using any standard GraphQL client.
+
+Atlas App Services automatically creates GraphQL types for every linked
+collection that has a defined :ref:`schema <schemas>` and evaluates
+:ref:`role-based permissions <define-roles-and-permissions>` for all GraphQL requests.
+To learn how to make data available through the GraphQL API,
+see :ref:`Expose Data in a Collection <graphql-expose-data>`.
+
+To learn about the generated types and operations that you can use with the Atlas
+GraphQL API, see :ref:`GraphQL Types & Resolvers <graphql-types-and-resolvers>`.
+
+To extend the generated GraphQL API's functionality with custom queries and mutations,
+see :ref:`Define a Custom Resolver <graphql-custom-resolvers>`.
+
+
+.. note:: Create an Atlas Cluster for Free
+
+   The GraphQL API lets you access data that you have stored in a
+   `MongoDB Atlas
+   <https://www.mongodb.com/docs/atlas?tck=docs_realm>`__ cluster or
+   {+adf-instance+}. To get started, create a free cluster and :ref:`link it to
+   your App <link-a-data-source>`.
+
+   If you don't have any data yet but you still want to explore the
+   GraphQL API, consider adding a :atlas:`sample data set
+   </sample-data>` to your cluster.
+
+Why GraphQL?
+------------
+
+GraphQL is a declarative, strongly-typed query language for client
+applications. Clients define the exact data shape and contents that they
+need in a single request which eliminates over-fetching problems and
+circumvents the need for multiple costly round trips to the server.
+
+To learn more about GraphQL, check out the :graphql:`official GraphQL
+tutorial <learn>`.
+
+How App Services Creates GraphQL Schemas
+----------------------------------------
+
+Using App Services, you generate the GraphQL schema and resolvers from JSON schemas
+for MongoDB collections. This differs from the traditional code-first and schema-first approaches
+to GraphQL schema development.
+
+To define your GraphQL schema with App Services:
+
+#. :ref:`Define a JSON schema <schemas>` for a MongoDB collection in your MongoDB Atlas cluster.
+   You can :ref:`enforce the shape of the collection schema <enforce-a-schema>`
+   based on custom definitions or use a generated schema based on the documents in the collection.
+#. :ref:`Generate the GraphQL schema and resolvers
+   <graphql-expose-data>` based on your collection JSON schema. 
+#. Optionally extend the functionality of your generated GraphQL schema with
+   :ref:`custom resolvers <graphql-custom-resolvers>`.
+
+GraphQL Operations
+------------------
+
+App Services automatically generates types and resolvers for data that you
+:ref:`expose to the GraphQL API <graphql-expose-data>`. The generated
+types and operations are all named after the base type name for each
+exposed collection. If you don't define a type name, App Services uses the
+collection name instead.
+
+For more information on how to expose a collection and name its data
+type, see :ref:`Expose Data in a Collection <graphql-expose-data>`.
+
+.. note::
+   
+   GraphQL mutation and custom resolver requests use MongoDB
+   transactions to ensure correctness across multiple database
+   operations. If any operation in a request fails, then the entire
+   transaction fails and no operations are committed to the database.
+
+Queries
+~~~~~~~
+
+A GraphQL **query** is a read operation that requests specific fields from one
+or more types. App Services automatically generates query types for
+documents in each collection that has a defined :ref:`schema <schemas>`.
+
+For more information and examples, including a list of all automatically
+generated query types, see :ref:`Query Resolvers
+<graphql-query-resolvers>`.
+
+.. code-block:: graphql
+
+   # Find a single movie by name
+   query {
+     movie(query: { title: "The Matrix" }) {
+       _id
+       title
+       year
+       runtime
+     }
+   }
+
+   # Find all movies from the year 2000
+   query {
+     movies(query: { year: 2000 }) {
+       _id
+       title
+       year
+       runtime
+     }
+   }
+
+   # Find the ten longest movies from the year 2000
+   query {
+     movies(
+       query: { year: 2000 }
+       sortBy: RUNTIME_DESC
+       limit: 10
+     ) {
+       _id
+       title
+       year
+       runtime
+     }
+   }
+
+Mutations
+~~~~~~~~~
+
+A GraphQL **mutation** is a write operation that creates, modifies, or deletes
+one or more documents. App Services automatically generates mutation types
+for documents in each collection that has a defined :ref:`schema <schemas>`.
+App Services uses transactions to ensure safe writes via mutations.
+
+For more information and examples, including a list of all automatically
+generated mutation types, see :ref:`Mutation Resolvers
+<graphql-mutation-resolvers>`.
+
+.. code-block:: graphql
+
+   # Insert a new movie
+   mutation {
+     insertOneMovie(data: {
+       title: "Little Women"
+       director: "Greta Gerwig"
+       year: 2019
+       runtime: 135
+     }) {
+       _id
+       title
+     }
+   }
+
+   # Update the year of a movie
+   mutation {
+     updateOneMovie(
+       query: { title: "The Matrix" }
+       set: { year: 1999 }
+     ) {
+       _id
+       title
+     }
+   }
+
+   # Delete a movie
+   mutation {
+     deleteOneMovie(query: { title: "The Room" }) {
+       _id
+       title
+     }
+   }
+
+   # Delete multiple movies
+   mutation {
+     deleteManyMovies(query: { director: "Tommy Wiseau" }) {
+       _id
+       title
+     }
+   }
+
+Limitations
+-----------
+
+- The GraphQL API can process a maximum of {+max-graphql-resolvers+}
+  resolvers for a given query or mutation. If an operation specifies
+  more than {+max-graphql-resolvers+} resolvers, the entire operation
+  fails with the error message ``"max number of queries reached"``.
+
+- The GraphQL API can resolve :ref:`relationships <relationships>` to a
+  maximum depth of {+max-graphql-relationship-depth+} for a given query
+  or mutation. If an operation specifies a relationship deeper than
+  {+max-graphql-relationship-depth+} resolvers, the entire operation
+  fails with the error message ``"max relationship depth exceeded"``.
+
+- The GraphQL API expects collection schemas to have unique titles and
+  raises a warning if your data model contains duplicate titles.
+
+  You can safely ignore this warning if:
+
+  - The title conflicts only involve embedded objects.
+
+  - Every schema with a given title uses an identical definition,
+    including relationships.
+
+- The GraphQL API does not currently support relationships for fields
+  inside arrays of embedded objects. You can use a :ref:`custom resolver
+  <graphql-custom-resolvers>` to manually look up and resolve embedded
+  object array relationships.

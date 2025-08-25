@@ -1,0 +1,252 @@
+.. meta::
+   :robots: nosnippet
+
+.. _create-schema-for-backend-realm-app:
+.. _create-sync-schema:
+
+===================
+Create a Data Model
+===================
+
+.. meta:: 
+  :description: Learn how to create a data model to use Device Sync with Atlas Device SDK.
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+The Device Sync data model consists of two consistent schemas: the Realm Object
+Schema used in Atlas Device SDK and the App Services Schema. 
+
+You can create the data model for your App through the Realm Object Schema first or
+through the App Services Schema first:
+
+- :ref:`Create an App Services Schema from a Realm Object Schema <create-schema-from-rom>`:
+  If you are developing mobile-first and do not already have
+  data in your Atlas cluster, you can translate your Realm Object Schema into
+  an App Services Schema. 
+- :ref:`Create a Realm Object Schema from an App Services Schema <create-rom-from-schema>`: 
+  If you have data in your 
+  `MongoDB Atlas <https://www.mongodb.com/docs/atlas?tck=docs_realm>`_ 
+  cluster already, MongoDB generates a schema by sampling your data.
+  Atlas App Services can then translate that schema into a Realm Object Schema
+  to use in your mobile application with the Atlas Device SDK.
+
+Regardless of the approach that you take,
+when you configure both your Atlas cluster and mobile application to use
+the respective data model, changes to the data model between the server
+and client are automatically updated.
+
+Prerequisites
+-------------
+
+Your App must have at least one :ref:`linked data source
+<data-sources>` in order to create a schema.
+
+However, it *cannot* be a :ref:`serverless instance
+<serverless-caveats>` or :ref:`{+adf-instance+} <data-federation-caveats>`.
+
+.. _create-schema-from-rom:
+
+Create an App Services Schema from a Realm Object Model
+-------------------------------------------------------
+
+You can alter or define a Realm Object Schema through your mobile client SDK.
+Changes to your Realm Object Schema are only allowed when 
+:ref:`Development Mode <development-mode>` is enabled.
+App Services will
+reflect any changes to your Realm Object Schema in your App Services Schema. 
+
+Refer to the Atlas Device SDK-specific documentation for creating Realm Object Schemas.
+
+- :ref:`Realm C++ SDK <cpp-object-models>`
+- :ref:`Realm Flutter SDK <flutter-define-realm-object-schema>`
+- :ref:`Realm Java SDK <java-define-a-realm-object-schema>`
+- :ref:`Realm Kotlin SDK <kotlin-supported-types>`
+- :ref:`Realm .NET SDK <dotnet-sync-changes-between-devices>`
+- :ref:`Realm Node.js SDK <node-define-a-realm-object-schema>`
+- :ref:`Realm React Native SDK <react-native-define-a-realm-object-schema>`
+- :ref:`Realm Swift SDK <swift-object-models>`
+
+.. procedure::
+
+   .. step:: Enable Development Mode Sync
+
+      Development Mode is set in the App Services UI. 
+
+      To enable Development Mode, click the slider to the right of 
+      :guilabel:`Development Mode`.
+
+      .. figure:: /images/turn-on-dev-mode.png
+         :alt: The UI to enable Development Mode
+         :lightbox:
+
+   .. step:: Edit Your Realm Object Schema
+
+      As you continue to develop your application, you will need to modify
+      your data model with it to enforce different data validation rules
+      based on those changes. While :guilabel:`Development Mode` is on, you
+      can edit your Realm Object Schema in your client code. Data Validation
+      occurs when :guilabel:`Development Mode` is off, so App Services does
+      not accept changes to your Realm Object Schema while
+      :guilabel:`Development Mode` is not on.
+
+      .. important:: Primary Key _id Required
+
+         To work with Atlas Device Sync, your data model **must** have a primary key field
+         called ``_id``. ``_id`` can be of type ``string``, ``int``, or
+         ``objectId``.
+
+      .. example::
+
+         A group is developing a social media application. When the group
+         first developed their application, a user's birthday was a required
+         field of the User's data model. However, due to privacy concerns
+         over the amount of user data that is stored, management creates a
+         new requirement to make the user's birthday field an optional
+         field. Application developers turn on :guilabel:`Development Mode`
+         in the App Services UI and then edit their user model within
+         their client code.
+
+         .. code-block:: javascript
+
+           const realmObjectModel = {
+             name: 'User',
+             properties: {
+               _id: 'objectId',
+               _partition: 'string',
+               name: 'string',
+               // developers set optional: true to adhere to the new requirement
+               birthday: {type: 'date', optional: true},
+             },
+             primaryKey: '_id'
+           };
+
+           Realm.open({schema: realmObjectModel, sync: {/*...*/}})
+             .then(realm => {
+               // ... use the realm instance to read and modify data
+             })
+
+
+
+   .. step:: Update Your App Services Schema with the Realm Object Schema Changes
+
+      While :guilabel:`Development Mode` is on, App Services doesn't validate
+      writes against your data model, allowing you to freely update your Realm
+      Object Model. When you turn off :guilabel:`Development Mode`, MongoDB
+      App Services automatically updates your App Services Schema and starts to 
+      enforce data validation for your Atlas cluster based on it.
+
+      In the :guilabel:`Sync` screen, turn off :guilabel:`Development Mode` by 
+      clicking the slider next to :guilabel:`Development Mode`. The UI indicates 
+      that Development Mode has been turned off.
+
+      .. figure:: /images/turn-off-dev-mode.png
+         :alt: The UI that shows Development Mode is disabled
+         :lightbox:
+
+      .. note::
+
+        To make future data model updates from your mobile client code, you
+        can follow this procedure again.
+
+.. _create-rom-from-schema:
+
+Create a Realm Object Schema from an App Services Schema
+--------------------------------------------------------
+
+.. procedure::
+
+   .. step:: Define an App Services Schema
+
+      To get started, ensure you have an App Services Schema defined. App Services
+      will translate this App Services Schema into a Realm Object Schema to be
+      configured and utilized in your mobile application.
+
+      Note the following requirements: 
+
+      - The App Services Schema *must* have a primary key field called ``_id``.
+        ``_id`` can be of type ``string``, ``int``, or ``objectId``.
+      - Your schema object :ref:`type names <sync-type-name>` 
+        cannot exceed {+name-char-limit+} UTF-8 characters.
+
+   .. step:: View the Realm Object Schema
+
+      The Realm Object Schema defines and validates your data in your mobile
+      client application. To view your Realm Object Schema, navigate to the
+      :guilabel:`Atlas Device SDKs` page, then click the :guilabel:`Realm Object Models` 
+      tab. On this page, you can view your App Services Schema as a
+      generated Realm Object Schema in your language of choice.
+
+      .. figure:: /images/translate-jsonschema-into-realm-data-model.png
+         :alt: The generated Realm Object Models and associated warnings in the UI
+         :width: 750px
+         :lightbox:
+
+   
+   .. step:: Open a Realm with the Realm Object Schema
+
+      You can use the generated Realm Object Schema in your
+      client application. In order to begin enforcing data validation with
+      your data model, you can open a realm with the Realm Object Schema.
+      This will prevent improper data from entering your database from your
+      mobile client. 
+      
+      Click :guilabel:`Copy` on the right-hand side of the
+      Realm Object Schema for the Object Model you want to integrate into
+      your mobile application code. This will copy the Realm Object Schema
+      code for the SDK of your choice into your clipboard. 
+      
+      Open your mobile
+      application code in your IDE and paste the Realm Object Schema code in.
+
+      .. tabs-realm-languages::
+
+        .. tab::
+            :tabid: javascript
+
+            .. code-block:: javascript
+
+              const UserSchema = { // your copied and pasted Realm Object Schema
+                name: 'User',
+                properties: {
+                  _id: 'objectId',
+                  _partition: 'string',
+                  name: 'string',
+                  birthday: 'date'
+                },
+                primaryKey: '_id'
+              };
+              // Initialize a realm with your Realm Object Schema
+              Realm.open({schema: UserSchema, sync: { /* ... */ }})
+                .then(realm => {
+                  // ... use the realm instance to read and modify data
+                })
+
+Refer to the Atlas Device SDK-specific documentation to use the generated Realm Object Schema.
+
+- :ref:`Realm Flutter SDK <flutter-sync>`
+- :ref:`Realm Java SDK <java-sync-data>`
+- :ref:`Realm Kotlin SDK <kotlin-sync-overview>`
+- :ref:`Realm .NET SDK <dotnet-sync-changes-between-devices>`
+- :ref:`Realm Node.js SDK <node-sync-changes-between-devices>`
+- :ref:`Realm React Native SDK <react-native-realm-sync>`
+- :ref:`Realm Swift SDK <ios-sync-changes-between-devices>`
+
+Further Reading
+---------------
+
+- To learn more about how these schemas map to each other,
+  refer to :ref:`Data Model Mapping <sync-data-model-mapping>`.
+- To update an existing Sync data model, refer to :ref:`Update Your Data Model
+  <synced-schema-overview>`.
+-  To learn how to define a schema for a collection in your synced cluster, see :ref:`enforce-a-schema`.

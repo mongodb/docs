@@ -1,0 +1,213 @@
+.. meta::
+   :robots: nosnippet
+
+.. _users-and-authentication:
+
+===========================
+Authenticate & Manage Users
+===========================
+
+.. toctree::
+   :hidden:
+
+   Create a User </users/create>
+   Define User Metadata </users/custom-metadata>
+   Read User Metadata </users/read-metadata>
+   Manage User Accounts </users/manage>
+   Manage User Sessions </users/sessions>
+   Authentication Providers </authentication>
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Introduction
+------------
+
+Atlas App Services manages authentication for your application's end users. 
+App Services:
+
+- Uses role-based :ref:`data access rules <mongodb-rules>` to determine 
+  read & write permissions.
+- Associates every request with an authenticated user
+- Evaluates permissions for every object included the request. 
+
+Through user accounts, you can store and access metadata and custom 
+data for each user. 
+
+Users log in through :ref:`authentication providers 
+<authentication-providers>`. Each provider represents a specific method 
+of authentication. 
+
+App Services includes built-in providers for common use cases, such as Facebook 
+and Google. Custom providers allow you to integrate any external 
+authentication system.
+
+The following diagram shows how your client app, Atlas App Services, and 
+authentication provides interact to authenticate users:
+
+.. figure:: /images/auth-overview.png
+    :alt: An overview of the auth process.
+    :width: 350px
+
+Concepts
+--------
+
+.. _auth-providers:
+
+Authentication Providers
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+In App Services, an **authentication provider** is a modular service.
+These services provide identity verification, and maintain information 
+about app users.
+
+Users authenticate themselves by providing a set of credentials to an 
+authentication provider. With valid credentials, the provider returns a 
+unique identity associated with the user. App Services logs them in as 
+the :ref:`active user <active-user>`.
+
+App Services includes built-in authentication providers for common use cases. 
+This includes:
+
+- :ref:`Anonymous users <anonymous-authentication>`
+- :ref:`Email/password combinations <email-password-authentication>`
+- :ref:`API keys <api-key-authentication>`
+- OAuth 2.0 through :ref:`Facebook <facebook-authentication>`, :ref:`Google 
+  <google-authentication>`, and :ref:`Apple ID <apple-id-authentication>`
+
+You can configure custom providers to integrate external authentication 
+systems. 
+
+- :ref:`Custom JWT <custom-jwt-authentication>`: provider accepts JSON 
+  web tokens signed by the external system. 
+- :ref:`Custom Function <custom-function-authentication>`: provider allows 
+  you to define custom login logic in an Atlas Function.
+
+.. important:: Apps Require User Authentication
+   
+   Every application must have at least one authentication provider 
+   configured and enabled. Without at least one provider, no client 
+   application can connect. To learn how to configure and enable 
+   authentication providers, see: :ref:`Authentication Providers 
+   <authentication-providers>`.
+
+.. _user-accounts:
+
+User Accounts
+~~~~~~~~~~~~~
+
+A **user account** represents a single, distinct user of
+your application. App Services creates the user when an authentication provider 
+validates a unique identity. You can source user metadata, such as email 
+or birthday, from authentication providers. You can associate each user 
+with :ref:`custom data <custom-user-data>`.
+
+.. include:: /includes/apple-account-deletion-requirements.rst
+
+.. _authentication-provider-identities:
+
+Authentication Provider Identities
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+App Services stores login metadata for a user in an
+**authentication provider identity**. App Services uses this metadata to 
+authenticate the user. 
+
+Upon first login with an authentication provider, App Services creates an 
+identity object. Each object contains a unique ID, and 
+:ref:`provider-specific metadata <user-metadata>` about the user. On later 
+logins, App Services refreshes the existing identity data.
+
+A single user account can have more than one identity. Realm SDKs 
+enable you to link identities to existing user accounts. This allows users 
+to log in to a single account with more than one provider. For more 
+information, see the documentation on linking identities for your 
+client SDK.
+
+.. _active-user:
+
+Active User
+~~~~~~~~~~~
+
+In the Realm SDKs, you can log in more than one user, but only one account 
+can be **active** at any given time. The **active user** is a user account 
+associated with an application request. 
+
+App Services executes requests from client applications as the active user.
+App Services replaces dynamic references to the user - e.g. :json-expansion:`%%user` 
+in a JSON expression - with the active user.
+
+You can use a specific active user, or the system user, to execute 
+Functions.
+
+.. _system-user:
+
+System User
+~~~~~~~~~~~
+
+The **system user** is an internal user that has advanced privileges.
+The system user bypasses all rules. You can execute :ref:`functions
+<functions>` as a system user instead of the user making a request.
+Triggers run in the context of the system user.
+
+The system user is useful for administrative tasks. This includes:
+
+- Tasks that need to circumvent rules and queries
+- Tasks that need :ref:`unrestricted access 
+  <mongodb-service-limitations-version-requirements>` to MongoDB CRUD 
+  and aggregation operations
+
+.. important:: Security Warning
+
+   Rules do not apply to the system user. Functions run as the system 
+   user can become a security liability. Ensure that you do not expose 
+   these functions to unauthorized users.
+
+   For example, use :ref:`function context <context-user>` to check if 
+   the active user can call the system function. Define a condition to 
+   determine whether the user has the appropriate permissions, e.g.:
+
+   .. code-block:: javascript
+      
+      exports = function() {
+        const activeUser = context.user
+        const adminUserId = context.values.get("adminUserId");
+        if(activeUser.id == adminUserId) {
+          // The user can only execute code here if they're an admin.
+        } else {
+          throw Error("This user is not allowed to execute the system function")
+        }
+      }
+
+.. _user-sessions:
+
+User Sessions
+~~~~~~~~~~~~~
+
+A **user session** represents a period of time when an authenticated
+user can interact with your app. User sessions begin when a user logs in
+through an SDK or authenticates over HTTPS. A session ends after
+{+user-session-expiration-time+} unless an SDK or API request refreshes
+the session.
+
+To learn how to create, work with, and revoke user sessions, see
+:ref:`Manage User Sessions <manage-user-sessions>`.
+
+Summary
+-------
+
+- App Services supports authentication and user accounts through a variety of 
+  :ref:`authentication providers <authentication-providers>`. You can 
+  associate users with more than one authentication provider.
+
+- App Services supports having more than one user logged in at the same
+  time. There is only one **active user** at a time.
+
+- The **system user** is a special user that bypasses 
+  all rules.
+
+- Realm SDKs manage the access and refresh tokens that comprise a 
+  **user session**.

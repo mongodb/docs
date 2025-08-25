@@ -1,0 +1,130 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+:orphan:
+
+.. _appconfig-v20210101-functions:
+
+============================
+Function Configuration Files
+============================
+
+.. default-domain:: mongodb
+
+.. include:: /reference/config/v20210101/note-old-version.rst
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. code-block:: none
+   
+   app/
+   └── functions/
+       ├── config.json
+       └── <function>.js
+
+Function Manifest
+-----------------
+
+Every :ref:`function <functions>` in your app has a corresponding metadata entry
+in the function manifest file: ``/functions/config.json``.
+
+.. tip::
+   
+   Atlas App Services automatically adds functions to the manifest on import if
+   they don't already have a configuration defined. If you're okay with the
+   default settings, you can skip defining the configuration for a function and
+   let App Services do it for you. The manifest will include the generated
+   configurations the next time you export or pull your app.
+
+.. code-block:: json
+   :caption: functions/config.json
+   
+   [
+     {
+       "name": "<Function Name>",
+       "private": <Boolean>,
+       "can_evaluate": { <JSON Expression> },
+       "disable_arg_logs": <Boolean>,
+       "run_as_system": <Boolean>,
+       "run_as_user_id": "<App Services User ID>",
+       "run_as_user_id_script_source": "<Function Source Code>"
+     },
+     ...
+   ]
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30
+
+   * - Field
+     - Description
+    
+   * - | ``name``
+       | String
+     - The name of the function. The name must match the file name of a
+       :ref:`source code file <function-source-code-file>` and be unique among
+       all functions in your application.
+   
+   * - | ``private``
+       | Boolean
+     - If ``true``, this function may only be called from other functions or in
+       :json-operator:`%function` rule expressions. You cannot call a private
+       function directly from a client application or with an SDK.
+   
+   * - | ``can_evaluate``
+       | JSON Expression (default: ``true``)
+     - A :ref:`JSON expression <expressions>` that evaluates to ``true`` if the
+       function is allowed to execute. App Services evaluates this
+       expression for every incoming request.
+   
+   * - | ``disable_arg_logs``
+       | Boolean
+     - If ``true``, App Services omits the arguments provided to the
+       function from the :ref:`function execution log entry <logs-function>`.
+   
+   * - | ``run_as_system``
+       | Boolean
+     - If ``true``, this function :ref:`runs as the system user
+       <system-functions>`. This overrides any values defined for
+       ``run_as_user_id`` and ``run_as_user_id_script_source``.
+   
+   * - | ``run_as_user_id``
+       | String
+     - The unique ID of a :doc:`App Services User </users>` that the
+       function always executes as. Cannot be used with
+       ``run_as_user_id_script_source``.
+   
+   * - | ``run_as_user_id_script_source``
+       | String
+     - A stringified :doc:`function </functions>` that runs whenever the
+       function is called and returns the unique ID of a :doc:`App Services
+       User </users>` that the function executes as. Cannot be used with
+       ``run_as_user_id``.
+
+.. _function-source-code-file:
+
+Function Source Code
+--------------------
+
+You define a function's source code in a ``.js`` file within the ``/functions``
+directory that uses the function name as its file name. Each file must export
+the main function that runs whenever a request calls the function.
+
+.. important::
+   
+   All of your function source code files must be in the ``/functions``
+   directory. 
+
+.. code-block:: javascript
+   :caption: /functions/<function name>.js
+
+   exports = function addOne(input) {
+     if(typeof input !== "number") {
+       throw new Error("You must call addOne() with a number");
+     }
+     return input + 1;
+   };

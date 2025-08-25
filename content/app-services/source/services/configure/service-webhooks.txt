@@ -1,0 +1,660 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _configure-webhooks:
+
+=======================================
+Configure Service Webhooks [Deprecated]
+=======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/note-third-party-services-deprecation.rst
+
+Overview
+--------
+
+Some external services allow you to create :ref:`incoming webhooks
+<service-webhooks>` that external clients can call over HTTP. You can create
+webhooks for these services from the App Services UI or with {+cli+}. Select the tab
+below that corresponds to the method you want to use.
+
+Procedure
+---------
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      .. procedure::
+
+         .. step:: Set Up a New Webhook
+
+            Incoming webhooks are scoped to individual :doc:`services
+            </reference/services>`. You can create and manage a webhook from its associated
+            service page in the App Services UI.
+
+            To create an incoming webhook:
+
+            1. Click :guilabel:`Services` in the left navigation menu.
+
+            2. Click the Service for which you want to add an incoming webhook.
+
+            3. Select the :guilabel:`Incoming Webhooks` tab for the service.
+
+            4. Click :guilabel:`Add Incoming Webhook`. App Services will redirect you to
+               the :guilabel:`Settings` screen for the new webhook.
+
+
+         .. step:: Name the New Webhook
+
+            Enter a unique, identifying name for the webhook in the
+            :guilabel:`Webhook Name` field. This name must be distinct from any
+            other webhooks that you've created for the service.
+
+
+         .. step:: Configure User Authentication
+
+            Atlas Functions, including webhooks, always execute in
+            the context of a specific application user or as the
+            :ref:`system user <system-user>`, which bypasses rules. To
+            configure the webhook's execution user, specify the type
+            of authentication that App Services should use for the webhook.
+
+            .. list-table::
+               :widths: 20 80
+               :header-rows: 1
+
+               * - Authentication Type
+                 - Description
+
+               * - Application Authentication
+                 - This type of authentication configures a webhook to run in the
+                   context of an existing application user specified by each
+                   incoming request. Incoming requests must include the user's
+                   :ref:`authentication provider <authentication-providers>`
+                   credentials in either the request body or the request headers.
+
+                   The following examples demonstrate the field names and values
+                   for each supported authentication provider:
+
+                   .. tabs-realm-auth-providers::
+
+                      .. tab::
+                         :tabid: local-userpass
+
+                         .. code-block:: json
+
+                            {
+                              "email": "<User's Email Address>",
+                              "password": "<User's Password>"
+                            }
+
+                      .. tab::
+                         :tabid: api-key
+
+                         .. code-block:: json
+
+                            {
+                              "api-key": "<User's API Key>"
+                            }
+
+                      .. tab::
+                         :tabid: custom-token
+
+                         .. code-block:: json
+
+                            {
+                              "jwtTokenString": "<User's JWT Token>"
+                            }
+
+                   .. important:: Do Not Use Both Headers and Body Fields
+
+                      If a request includes credentials in both the request
+                      headers and the request body, then App Services throws an error
+                      and does not execute the function.
+
+                   .. note:: Application Users
+
+                      You can configure a webhook that uses application authentication to
+                      perform additional user-related work for each request:
+
+                      - If you enable :guilabel:`Fetch Custom User Data`,
+                        App Services queries the requesting user's :ref:`custom user
+                        data <custom-user-data>` and, if it exists, exposes the data as an
+                        object on the ``context.user.custom_data`` property.
+
+                      - If you enable :guilabel:`Create User Upon Authentication`,
+                        App Services automatically creates a new user based on the
+                        provided user credentials if they don't match an already existing
+                        user. The authentication provider that corresponds to the
+                        credentials must be enabled at the time of the request to create a
+                        new user.
+
+               * - System
+                 - This type of authentication configures a webhook to run as the
+                   :ref:`system user <system-user>`, which has full
+                   access to MongoDB CRUD and Aggregation APIs and is
+                   not affected by any rules, roles, or permissions.
+
+               * - User ID
+                 - This type of authentication configures a webhook to always run
+                   as a specific application user.
+
+               * - Script
+                 - This type of authentication configures a webhook to run as a
+                   specific application user determined by the result of a
+                   custom :doc:`function </functions>` that you define. The
+                   function must return a specific user's ``id`` string or can
+                   specify a system user by returning ``{ "runAsSystem": true }``.
+
+            .. figure:: /images/webhook-authentication-realm-ui.png
+               :alt: The user authentication type input in the UI
+               :lightbox:
+
+
+         .. step:: Select the Webhook's HTTP Method
+
+            You can require that incoming requests use a specific :mdn:`HTTP
+            method <Web/HTTP/Methods>` or you can accept all HTTP methods and
+            handle each one individually in the webhook function by inspecting the
+            ``httpMethod`` property on the :ref:`context.request
+            <context-request>` object, as in the following example function:
+
+            .. include:: /services/examples/webhook-http-method-handler.rst
+
+            .. figure:: /images/webhook-http-method-dropdown.png
+               :alt: The HTTP method dropdown input in the UI
+
+
+         .. step:: Configure the Webhook Response
+
+            You can send a configurable :mdn:`HTTP Response
+            <Web/HTTP/Messages#HTTP_Responses>` to external services that call the
+            webhook.
+
+            If you enable :guilabel:`Respond With Result`, the webhook will
+            respond to incoming requests with a basic :mdn:`HTTP 200
+            <Web/HTTP/Status/200>` response that includes the webhook function
+            return value as its ``body`` field. You can configure a custom HTTP
+            response from within the webhook function using the ``response``
+            object that App Services automatically passes as the second argument.
+
+            .. figure:: /images/webhook-respond-with-result-realm-ui.png
+               :alt: The respond with result toggle in the UI
+               :lightbox:
+
+
+         .. step:: Specify an Authorization Expression
+
+            You can dynamically authorize requests based on the contents of each request
+            by defining a :guilabel:`Can Evaluate` :ref:`expression <expressions>`. App Services
+            evaluates the expression for every incoming request that the webhook receives.
+            If you do not specify an expression then App Services automatically authorizes all
+            authenticated incoming requests.
+
+            The expression can expand standard :ref:`expression variables <expressions>`,
+            including the :json-expansion:`%%request` expansion.
+
+            .. figure:: /images/function-can-evaluate-realm-ui.png
+               :alt: The webhook's Can Evaluate JSON expression input in the UI
+               :lightbox:
+
+
+         .. step:: Specify the Request Validation Method
+
+            To validate that a webhook request was sent from a trusted source,
+            some external services require that incoming requests incorporate a
+            secret string in one of several prescribed manners. Other services,
+            like the :doc:`HTTP service </services/http>`, allow you to optionally
+            require request validation.
+
+            If your webhook requires request validation:
+
+            1. Select the :ref:`request validation method <webhook-request-validation>`.
+
+            2. Enter a :guilabel:`Secret` string to use in the request validation
+               process.
+
+            .. figure:: /images/webhook-request-validation-realm-ui.png
+               :alt: The request validation secret input in the UI
+               :lightbox:
+
+
+         .. step:: Write the Webhook Function
+
+            Once you've configured the webhook, all that's left is to write the
+            function that executes when someone calls the webhook. App Services
+            automatically passes two objects as the webhook function's arguments:
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 10 30
+
+               * - Argument
+                 - Description
+
+               * - ``payload``
+                 - An EJSON representation of the incoming request payload. The
+                   contents of the payload document will vary depending on the
+                   service and event that caused a webhook to fire. For a
+                   description of the ``payload`` object for a specific service,
+                   see that service's reference page.
+
+               * - ``response``
+                 - An :ref:`HTTP response object <webhook-response-object>` that
+                   configures the response to the client that called the
+                   webhook. The object has methods that allow you to set the
+                   response's headers, body, and status code. Calling any of these
+                   methods overrides the default response behavior.
+
+            You can use the following webhook function as a base for your own webhook:
+
+            .. literalinclude:: /includes/webhook-function-example.js
+               :language: javascript
+               :emphasize-lines: 3, 10-11, 14-15
+
+            .. note::
+
+               If you want to debug a webhook function response from the function
+               editor, you must manually provide the HTTP response object when you
+               run the function.
+
+               .. code-block:: javascript
+
+                  exports(
+                    { body: "This document is the webhook payload" },
+                    new HTTPResponse()
+                  )
+
+
+         .. step:: Save the Webhook
+
+            You must save changes to your webhook before they take effect. To do
+            so, click :guilabel:`Save` from either the :guilabel:`Settings` screen
+            or the :guilabel:`Function Editor`.
+
+   
+   .. tab::
+      :tabid: cli
+      
+      .. important:: Check your CLI version
+
+         This procedure uses version 2 of the Realm CLI [deprecated].
+         If you have an older version of ``realm-cli``, upgrade to the latest
+         version or use the ``--help`` flag for a list of commands supported
+         in your version.
+      
+      .. procedure::
+
+         .. step:: Pull the Latest Version of Your App
+
+            To define an incoming webhook with ``realm-cli``, you need a local copy of your
+            application's configuration files.
+
+            To pull a local copy of the latest version of your app, run the following:
+
+            .. code-block:: bash
+
+               realm-cli pull --remote="<Your App ID>"
+
+            .. tip::
+
+               You can also download a copy of your application's configuration files from
+               the :guilabel:`Deploy > Export App` screen in the App Services UI.
+
+
+         .. step:: Add a Webhook Configuration Directory
+
+            Create a new subdirectory with the same name as the webhook in
+            ``/http_endpoints/<service>/incoming_webhooks/``:
+
+            .. code-block:: shell
+
+               mkdir -p http_endpoints/<service>/incoming_webhooks/<webhook name>
+
+
+         .. step:: Add a Webhook Configuration File
+
+            Add an :ref:`incoming webhook configuration file
+            <config-v20210101-incoming-webhooks>` named ``config.json``
+            to the new webhook directory.
+
+            The configuration file should have the following form:
+
+            .. code-block:: json
+               :caption: http_endpoints/<Service Name>/incoming_webhooks/<Webhook Name>/config.json
+
+               {
+                 "name": "<Webhook Name>",
+                 "can_evaluate": { <JSON Expression> },
+                 "run_as_authed_user": <Boolean>,
+                 "run_as_user_id": "<App Services User ID>",
+                 "run_as_user_id_script_source": "<Function Source Code>",
+                 "respond_result": <Boolean>,
+                 "fetch_custom_user_data": <Boolean>,
+                 "create_user_on_auth": <Boolean>,
+                 "options": {
+                   "httpMethod": "<HTTP Method>",
+                   "validationMethod": "<Webhook Validation Method>",
+                   "secret": "<Webhook Secret>"
+                 }
+               }
+
+
+         .. step:: Name the New Webhook
+
+            Enter a name for the webhook in the configuration file's ``name``
+            field. This name must be distinct from any other webhooks that you've
+            created for the service.
+
+            .. code-block:: json
+
+               {
+                 "name": "<Unique Webhook Name>"
+               }
+
+
+         .. step:: Configure User Authentication
+
+            Specify the type of authentication that App Services should use for the
+            webhook. App Services supports the following webhook authentication methods:
+
+            .. list-table::
+               :widths: 20 80
+               :header-rows: 1
+
+               * - Authentication Method
+                 - Description
+
+               * - Application Authentication
+                 - This type of authentication configures a webhook to run in the
+                   context of an existing application user specified by each
+                   incoming request. Incoming requests must include the user's
+                   :ref:`authentication provider <authentication-providers>`
+                   credentials in either the request body or the request headers.
+
+                   To configure a webhook to use application authentication, set
+                   the value of ``run_as_authed_user`` to ``true``:
+
+                   .. code-block:: json
+
+                      {
+                        "run_as_authed_user": true,
+                        "run_as_user_id": "",
+                        "run_as_user_id_script_source": "",
+                      }
+
+                   .. example::
+
+                      The following examples demonstrate the field names and
+                      values that incoming requests should include as body or
+                      header fields for each supported authentication provider:
+
+                      .. tabs-realm-auth-providers::
+
+                         .. tab::
+                            :tabid: local-userpass
+
+                            .. code-block:: json
+
+                               {
+                                 "email": "<User's Email Address>",
+                                 "password": "<User's Password>"
+                               }
+
+                         .. tab::
+                            :tabid: api-key
+
+                            .. code-block:: json
+
+                               {
+                                 "api-key": "<User's API Key>"
+                               }
+
+                         .. tab::
+                            :tabid: custom-token
+
+                            .. code-block:: json
+
+                               {
+                                 "jwtTokenString": "<User's JWT Token>"
+                               }
+
+                      .. important:: Do Not Use Both Headers and Body Fields
+
+                         If a request includes credentials in both the request
+                         headers and the request body, then App Services throws an error
+                         and does not execute the function.
+
+               * - System
+                 - This type of authentication configures a webhook to run as the
+                   :ref:`system user <system-user>`, which has full
+                   access to MongoDB CRUD and Aggregation APIs and is
+                   not affected by any rules, roles, or permissions.
+
+                   To configure a webhook to run as a system user, do not set any
+                   other authentication fields:
+
+                   .. code-block:: json
+
+                      {
+                        "run_as_authed_user": false,
+                        "run_as_user_id": "",
+                        "run_as_user_id_script_source": "",
+                      }
+
+               * - User ID
+                 - This type of authentication configures a webhook to always run
+                   as a specific application user.
+
+                   To configure a webhook to always run as a specific user, set
+                   ``run_as_user_id`` to the user's id:
+
+                   .. code-block:: json
+
+                      {
+                        "run_as_authed_user": false,
+                        "run_as_user_id": "<App Services User ID>",
+                        "run_as_user_id_script_source": "",
+                      }
+
+               * - Script
+                 - This type of authentication configures a webhook to run as a
+                   specific application user determined based on the result of a
+                   custom :doc:`function </functions>` that you define. The
+                   function must return a specific user's ``id`` string or can
+                   specify a system user by returning ``{ "runAsSystem":
+                   true}``.
+
+                   To configure a webhook to run as a user determined by a
+                   function, set ``run_as_user_id_script_source`` to the
+                   stringified function code:
+
+                   .. code-block:: json
+
+                      {
+                        "run_as_authed_user": false,
+                        "run_as_user_id": "",
+                        "run_as_user_id_script_source": "<Stringified Function>",
+                      }
+
+
+         .. step:: Specify the Webhook's HTTP Method
+
+            You can require that incoming requests use a specific :mdn:`HTTP
+            method <Web/HTTP/Methods>` or you can accept all HTTP methods and
+            handle each one individually in the webhook function by inspecting the
+            ``httpMethod`` property on the :ref:`context.request
+            <context-request>` object, as in the following example function:
+
+            .. include:: /services/examples/webhook-http-method-handler.rst
+
+            To specify a webhook method, set the ``options.httpMethod`` field to
+            the name of the method using all capital letters or ``"ANY"``.
+
+            .. code-block:: json
+
+               {
+                 "options": {
+                   "httpMethod": "POST"
+                 }
+               }
+
+
+         .. step:: Configure the Webhook Response
+
+            You can send a configurable :mdn:`HTTP Response
+            <Web/HTTP/Messages#HTTP_Responses>` to external services that call the
+            webhook. To configure the webhook to send a response to incoming
+            requests, set ``respond_result`` to ``true``.
+
+            If you enable :guilabel:`Respond With Result`, the webhook will
+            respond to incoming requests with a basic :mdn:`HTTP 200
+            <Web/HTTP/Status/200>` response that includes the webhook function
+            return value as its ``body`` field. You can configure a custom HTTP
+            response from within the webhook function using the ``response``
+            object that App Services automatically passes as the second argument.
+
+
+         .. step:: Specify an Authorization Expression
+
+            You can dynamically authorize requests based on the contents of each request
+            by defining a :guilabel:`Can Evaluate` :ref:`expression <expressions>`. App Services
+            evaluates the expression for every incoming request that the webhook receives.
+            The expression can expand standard :ref:`expression variables <expressions>`,
+            including the :json-expansion:`%%request` expansion.
+
+            To define an authorization expression, set the value of the
+            ``can_evaluate`` field to the expression. If you do not specify an
+            expression then App Services automatically authorizes all authenticated
+            incoming requests.
+
+            .. example::
+
+               The following expression only authorizes incoming requests if the
+               sender's IP address is not included in the list of addresses.
+
+               .. code-block:: json
+
+                  {
+                      "%%request.remoteIPAddress": {
+                          "$nin": [
+                              "248.88.57.58",
+                              "19.241.23.116",
+                              "147.64.232.1"
+                          ]
+                      }
+                  }
+
+
+         .. step:: Specify the Request Validation Method
+
+            To validate that a webhook request was sent from a trusted source,
+            some external services require that incoming requests incorporate a
+            secret string in one of several prescribed manners. Other services,
+            like the :doc:`HTTP service </services/http>`, allow you to optionally
+            require request validation.
+
+            You can configure a webhook's request authorization method in the
+            ``options`` document of the webhook configuration. App Services supports the
+            following :ref:`request validation methods
+            <webhook-request-validation>`:
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 30 70
+
+               * - Method
+                 - Description
+
+               * - No Additional Authorization
+                 - Incoming webhook requests do not require additional
+                   authorization.
+
+                   .. code-block:: json
+
+                      {
+                        "validationMethod": "NO_VALIDATION"
+                      }
+
+               * - Verify Payload Signature
+                 - Incoming webhook requests must include a hashed signature of
+                   the request body and a secret value. For details, refer to
+                   :ref:`Payload Signature Verification
+                   <webhook-verify-payload-signature>`.
+
+                   .. code-block:: json
+
+                      {
+                        "validationMethod": "VERIFY_PAYLOAD",
+                        "secret": "<Secret Value>"
+                      }
+
+               * - Require Secret
+                 - Incoming webhook requests must include a secret string value as
+                   the ``secret`` query parameter in the webhook URL. For details,
+                   refer to :ref:`Secret as a Query Parameter
+                   <webhook-secret-query-parameter>`.
+
+                   .. code-block:: json
+
+                      {
+                        "validationMethod": "SECRET_AS_QUERY_PARAM",
+                        "secret": "<Secret Value>"
+                      }
+
+
+         .. step:: Add the Webhook Function Source Code
+
+            Add a file named ``source.js`` to the new webhook directory. The file
+            should contain a valid function that will execute when the webhook is
+            called.
+
+            App Services automatically passes two objects as the webhook function's
+            arguments:
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 10 30
+
+               * - Argument
+                 - Description
+
+               * - ``payload``
+                 - An EJSON representation of the incoming request payload. The
+                   contents of the payload document will vary depending on the
+                   service and event that caused a webhook to fire. For a
+                   description of the ``payload`` object for a specific service,
+                   see that service's reference page.
+
+               * - ``response``
+                 - An :ref:`HTTP response object <webhook-response-object>` that
+                   configures the response to the client that called the
+                   webhook. The object has methods that allow you to set the
+                   response's headers, body, and status code. Calling any of these
+                   methods overrides the default response behavior.
+
+            You can use the following webhook function as a base for your own webhook:
+
+            .. literalinclude:: /includes/webhook-function-example.js
+               :language: javascript
+               :emphasize-lines: 3, 10-11, 14-15
+
+
+         .. step:: Deploy the Incoming Webhook Configuration
+
+            Once you've set the read preference for the cluster in ``config.json``, you
+            can push the config to your remote app. {+cli+} immediately deploys the
+            update on push.
+
+            .. code-block:: bash
+
+               realm-cli push --remote="<Your App ID>"

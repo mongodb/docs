@@ -1,0 +1,614 @@
+.. meta::
+   :robots: nosnippet
+
+.. _apple-id-authentication:
+
+=======================
+Apple ID Authentication
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+The Apple ID authentication provider allows users to log in with their
+Apple ID credentials through `Sign in with Apple
+<https://developer.apple.com/sign-in-with-apple/>`_. This authentication
+method uses the industry-standard `OAuth 2.0 <https://oauth.net/2/>`_
+authorization protocol.
+
+When a user successfully logs in through Sign in with Apple, Apple
+returns a credential object that includes a :jwt-io:`JSON Web Token
+<introduction>` that the Apple ID provider uses to authenticate the
+user. If the user has granted permissions to your app, the credential
+object may also include the user's name and email address.
+
+For additional information on how to implement Sign in with Apple, check
+out:
+
+- The official :apple:`Sign in with Apple documentation <sign-in-with-apple/>` 
+  on Apple's Developer Portal
+- The `Introducing Sign In with Apple <https://developer.apple.com/videos/play/wwdc2019/706>`_ 
+  session from WWDC 2019
+- The associated `reference application <https://developer.apple.com/documentation/authenticationservices/adding_the_sign_in_with_apple_flow_to_your_app>`_.
+
+.. note::
+   
+   An iOS app that uses Apple ID authentication must target iOS 13 or newer.
+
+The following diagram shows the OAuth logic flow:
+
+.. figure:: /images/auth-oauth-flow.png
+    :alt: OAuth flow diagram
+    :width: 350px
+
+.. _apple-auth-prerequisites:
+
+What You'll Need
+----------------
+
+Before you can implement Apple ID authentication you will need the
+following:
+
+- An active `Apple Developer Program
+  <https://developer.apple.com/programs/>`_ account.
+
+- `Xcode 11 <https://developer.apple.com/xcode/>`_ or newer.
+
+.. _configure-apple-auth:
+.. _config-oauth2-apple:
+
+Configure Apple ID Authentication
+---------------------------------
+
+When using Sign-in with Apple with Atlas App Services, you can configure 
+the Apple authentication provider for *either* a mobile application or a 
+web application. 
+
+If you would like to use Sign in with Apple for both, you could set up your 
+own manual Sign in with Apple flow for either the web or mobile app. Then, 
+use the JWT that returns with the :ref:`Custom JWT authentication provider 
+<custom-jwt-authentication>`. In the :ref:`Realm SDKs <realm-sdks>`, you 
+can then link the user identities for each authentication provider to a 
+single user.
+
+To use Sign in with Apple exclusively with either a web or a mobile application, choose your application type and follow this guide.
+
+.. tabs::
+
+   .. tab:: Mobile Application
+      :tabid: mobile
+
+      .. procedure::
+
+         .. step:: Add Sign-in With Apple to Your App
+
+            Your app must have the **Sign-in with Apple** entitlement in 
+            order to use this capability. 
+
+            1. Select your app target in Xcode. 
+            
+            #. Go to the :guilabel:`Signing & Capabilities` tab, and 
+               select :guilabel:`+ Capability`.
+
+            #. Search for the **Sign in with Apple** capability, and select it.
+            
+            Then, confirm it is enabled in the Apple Developer Portal.
+
+            1. Navigate to the :guilabel:`Certificates, Identifiers and Profiles`
+               page of the `Apple Developer Portal
+               <https://developer.apple.com/account>`_.
+
+            #. Select the identifier for your app from the dropdown. This 
+               takes you to your :guilabel:`App ID Configuration` pane. 
+
+            #. Scroll down until you see the checkbox for :guilabel:`Sign In 
+               with Apple`. If that checkbox is not selected, select it. If
+               you've made changes, press the :guilabel:`Save` button.
+
+            Note the :guilabel:`Bundle ID` of your app. You need the Bundle 
+            ID when you create a client secret and when you configure Sign in
+            with Apple in App Services.
+
+         .. step:: Create a Private Key
+
+            The client secret for Sign in with Apple is a JSON Web Token that you
+            create and sign with a **private key**. You need to generate the
+            private key through the Apple Developer Portal.
+
+            1. Click :guilabel:`Keys` in the left navigation menu.
+
+            #. Click the blue plus icon next to :guilabel:`Keys`.
+
+            #. On the :guilabel:`Register a New Key` page, enter a descriptive
+               :guilabel:`Key Name` and then scroll down to find the
+               :guilabel:`Sign in with Apple` row. Check the checkbox to enable
+               Sign in with Apple and then click :guilabel:`Configure`.
+
+            #. On the :guilabel:`Configure Key` page, select the App ID for your
+               app as the :guilabel:`Primary App ID` and then click
+               :guilabel:`Save`.
+
+            #. Click :guilabel:`Continue` to review your key configuration. When
+               you're sure that you've configured the key correctly, click
+               :guilabel:`Register`.
+
+            #. Copy the :guilabel:`Key ID` value somewhere that you can access it
+               later and then click :guilabel:`Download` to download the key as a
+               ``.p8`` text file. You will use these to generate the client
+               secret.
+
+               .. important:: Save the Key
+
+                  You can only download the key one time. Make sure that you save
+                  the key somewhere safe in case you need it again. If you lose
+                  the key, you will need to generate a new one.
+
+
+         .. step:: Create the Client Secret JWT
+
+            You can now create the client secret JWT for the Apple ID
+            authentication provider. Make sure that you have the following
+            information:
+
+            - The :guilabel:`Bundle ID` of your app. You'll use this 
+              as the ``client_id`` in the script below.
+
+            - The :guilabel:`Key ID` of the key that you created and the ``.p8``
+              file that contains the key.
+
+            - Your Apple Team ID. You can find this in the top right of the Apple
+              Developer Portal.
+
+            Once you've confirmed that you have all the required information, you can use
+            a script to generate the JWT. You may define your own script or use the
+            script in this step.
+
+            To generate the JWT, we'll use the :rubygems:`jwt <gems/jwt>` gem. To install
+            it, run the following:
+
+            .. code-block:: shell
+
+               gem install jwt
+
+            Create a new file called ``generate_client_secret.rb`` and copy the following
+            code block into the file.
+
+            .. literalinclude:: /includes/generate_client_secret.rb
+               :language: ruby
+
+            Update the values of ``team_id``, ``client_id``, ``key_id``, and
+            ``key_file`` to match your application's information and then save
+            the file. When you're ready to generate the JWT, run the script in
+            your shell:
+
+            .. code-block:: shell
+
+               ruby generate_client_secret.rb >> client_secret.txt
+
+            .. important:: Save the JWT
+
+               The ``generate_client_secret.rb`` script outputs to stdout.
+               When we call it, we append stdout to a file called 
+               ``client_secret.txt``. You will need the JWT to configure 
+               the Apple ID provider in App Services.
+
+
+         .. step:: Configure the Provider in App Services
+
+            At this point you have configured an Apple application and generated
+            the required OAuth 2.0 credentials. You can now configure the Apple
+            ID authentication provider with the credentials to allow App Services
+            client application users to log in.
+
+            .. tabs-realm-admin-interfaces::
+
+               .. tab::
+                  :tabid: ui
+
+                  1. Click :guilabel:`Authentication` in the left navigation menu and
+                     then click :guilabel:`Apple ID`.
+
+                  #. Turn on the :guilabel:`Provider Enabled` toggle.
+
+                  #. For the App Services :guilabel:`Client ID`, enter your
+                     application's :guilabel:`Bundle ID`.
+
+                  #. For :guilabel:`Client Secret`, create a new :ref:`secret
+                     <app-secret>` with a descriptive name and set the
+                     :guilabel:`Client Secret Value` to the JWT string that you
+                     generated. Alternatively, you can select a pre-existing
+                     secret that contains the JWT.
+
+                  #. Click :guilabel:`Save` to finish configuring the provider.
+                     To make the provider available to client applications, you
+                     need to deploy your changes. Click :guilabel:`Review &
+                     Deploy Changes` and then click :guilabel:`Deploy`.
+
+               .. tab::
+                  :tabid: cli
+
+                  To enable and configure the Apple authentication provider with
+                  {+cli-bin+}, define a :ref:`configuration
+                  object <appconfig-auth>` for it in ``/auth/providers.json``.
+
+                  Apple provider configurations have the following form:
+
+                  .. code-block:: none
+                     :caption: /auth/providers.json
+
+                     {
+                       "oauth2-apple": {
+                          "name": "oauth2-apple",
+                          "type": "oauth2-apple",
+                          "disabled": <boolean>,
+                          "config": {
+                             "clientId": "<Bundle ID>"
+                          },
+                          "secret_config": {
+                             "clientSecret": "<Secret Name>"
+                          },
+                          "redirect_uris": ["<string>", ...]
+                       }
+                     }
+
+                  .. list-table::
+                     :header-rows: 1
+                     :widths: 15 30
+
+                     * - Field
+                       - Description
+
+                     * - :guilabel:`Client ID`
+
+                         | *config.clientId*
+
+                       - Required. Your application's :guilabel:`Bundle ID`.
+
+                     * - :guilabel:`Client Secret`
+
+                         | *secret_config.clientSecret*
+
+                       - Required. The name of a :ref:`Secret <app-secret>` that stores
+                         the :guilabel:`Client Secret` JWT that you generated.
+
+                     * - :guilabel:`Redirect URIs`
+
+                         | *redirect_uris*
+
+                       - Required for web applications. Not required for mobile
+                         applications.
+
+                  Once you've created the configuration file, you can make the
+                  Apple ID authentication provider available to client
+                  applications by deploying your application.
+
+                  To deploy a draft application with {+cli+}:
+
+                  .. code-block:: shell
+
+                     {+cli-bin+} push
+
+                  To deploy a draft application with automatic :ref:`GitHub deployment
+                  <deploy-github>`:
+
+                  .. code-block:: shell
+
+                     git add ./auth/providers.json
+                     git commit -m "Configure and Enable Apple ID Authentication"
+                     git push origin <branch name>
+
+   .. tab:: Web Application
+      :tabid: web
+
+      .. procedure::
+
+         .. step:: Create an App ID
+
+            An Apple **App ID** represents your application and allows you to
+            access services like Sign in with Apple. To configure the Apple ID
+            provider, you must create a new App ID.
+
+            1. Navigate to the :guilabel:`Certificates, Identifiers and Profiles`
+               page of the `Apple Developer Portal
+               <https://developer.apple.com/account>`_.
+
+            #. Click :guilabel:`Identifiers` in the left navigation menu.
+
+            #. Click the blue plus icon next to :guilabel:`Identifiers`.
+
+            #. On the :guilabel:`Register a New Identifier` page, select
+               :guilabel:`App IDs` and then click :guilabel:`Continue`.
+
+            #. On the :guilabel:`Register an App ID` page, select
+               the :guilabel:`Platform` that your app runs on and then enter a
+               brief :guilabel:`Description` and a :wikipedia:`reverse-dns
+               notation <Reverse_domain_name_notation>` :guilabel:`Bundle ID`.
+
+            #. Scroll down the :guilabel:`Register an App ID` page until you see
+               the :guilabel:`Sign in with Apple` capability. Check the checkbox
+               to enable the capability.
+
+            #. Press the :guilabel:`Continue` button at the top of the page. Complete
+               any other setup steps that apply to your app, and then press the
+               :guilabel:`Register` button.
+
+
+         .. step:: Create a Services ID
+
+            An Apple **Services ID** represents a single application and allows
+            you to configure an authorization callback URL and define a private
+            key for the application.
+
+            1. Click :guilabel:`Identifiers` in the left navigation menu.
+
+            #. Click the blue plus icon next to :guilabel:`Identifiers`.
+
+            #. On the :guilabel:`Register a New Identifier` page, select
+               :guilabel:`Services IDs` and then click :guilabel:`Continue`.
+
+            #. On the :guilabel:`Register a Services ID` page, enter a brief
+               :guilabel:`Description` and a :wikipedia:`reverse-dns notation
+               <Reverse_domain_name_notation>` :guilabel:`Identifier`.
+
+               .. important:: Save the Identifier
+
+                  The :guilabel:`Identifier` value of the Services ID is your
+                  application's :guilabel:`Client ID`. You will need this value
+                  later to configure the Apple ID provider in Atlas App Services.
+
+               Press the :guilabel:`Continue` button. Confirm the details, and
+               then press :guilabel:`Register`.
+
+            #. Click into the service you just created. Check the checkbox to enable
+               :guilabel:`Sign in with Apple` and then click :guilabel:`Configure`.
+               Select the App ID that you created as the :guilabel:`Primary App ID`.
+
+            #. Enter your domains, subdomains, and return URLs for the Services ID.
+               Press the :guilabel:`Next` button.
+
+            #. Click :guilabel:`Continue` and then click :guilabel:`Save`.
+               Confirm that you have correctly configured the Services ID and
+               then click :guilabel:`Register`.
+
+
+         .. step:: Create a Private Key
+
+            The client secret for Sign in with Apple is a JSON Web Token that you
+            create and sign with a **private key**. You need to generate the
+            private key through the Apple Developer Portal.
+
+            1. Click :guilabel:`Keys` in the left navigation menu.
+
+            #. Click the blue plus icon next to :guilabel:`Keys`.
+
+            #. On the :guilabel:`Register a New Key` page, enter a descriptive
+               :guilabel:`Key Name` and then scroll down to find the
+               :guilabel:`Sign in with Apple` row. Check the checkbox to enable
+               Sign in with Apple and then click :guilabel:`Configure`.
+
+            #. On the :guilabel:`Configure Key` page, select the App ID that you
+               created as the :guilabel:`Primary App ID` and then click
+               :guilabel:`Save`.
+
+               .. figure:: /images/apple-auth-configure-key.png
+                  :alt: The Configure Key page in the Apple Developer Portal
+
+            #. Click :guilabel:`Continue` to review your key configuration. When
+               you're sure that you've configured the key correctly, click
+               :guilabel:`Register`.
+
+            #. Copy the :guilabel:`Key ID` value somewhere that you can access it
+               later and then click :guilabel:`Download` to download the key as a
+               ``.p8`` text file. You will use these to generate the client
+               secret.
+
+               .. important:: Save the Key
+
+                  You can only download the key one time. Make sure that you save
+                  the key somewhere safe in case you need it again. If you lose
+                  the key, you will need to generate a new one.
+
+
+         .. step:: Create the Client Secret JWT
+
+            You can now create the client secret JWT for the Apple ID
+            authentication provider. Make sure that you have the following
+            information:
+
+            - The :guilabel:`Services ID` that you created. You'll use this 
+              as the ``client_id`` in the script below.
+
+            - The :guilabel:`Key ID` of the key that you created and the ``.p8``
+               file that contains the key.
+
+            - Your Apple Team ID. You can find this in the top right of the Apple
+               Developer Portal.
+
+            .. figure:: /images/apple-team-id.png
+               :alt: An Apple team ID in the Apple Developer Portal
+
+            Once you've confirmed that you have all the required information, you can use
+            a script to generate the JWT. You may define your own script or use the
+            script in this step.
+
+            To generate the JWT, we'll use the :rubygems:`jwt <gems/jwt>` gem. To install
+            it, run the following:
+
+            .. code-block:: shell
+
+               gem install jwt
+
+            Create a new file called ``generate_client_secret.rb`` and copy the following
+            code block into the file.
+
+            .. literalinclude:: /includes/generate_client_secret.rb
+               :language: ruby
+
+            Update the values of ``team_id``, ``client_id``, ``key_id``, and
+            ``key_file`` to match your application's information and then save
+            the file. When you're ready to generate the JWT, run the script in
+            your shell:
+
+            .. code-block:: shell
+
+               ruby generate_client_secret.rb >> client_secret.txt
+
+            .. important:: Save the JWT
+
+               The ``generate_client_secret.rb`` script outputs to stdout.
+               When we call it, we append stdout to a file called 
+               ``client_secret.txt``. You will need the JWT to configure 
+               the Apple ID provider in App Services.
+
+
+         .. step:: Configure the Provider in App Services
+
+            At this point you have configured an Apple application and generated
+            the required OAuth 2.0 credentials. You can now configure the Apple
+            ID authentication provider with the credentials to allow App Services
+            client application users to log in.
+
+            .. tabs-realm-admin-interfaces::
+
+               .. tab::
+                  :tabid: ui
+
+                  1. Click :guilabel:`Authentication` in the left navigation menu and
+                     then click :guilabel:`Apple ID`.
+
+                  #. Turn on the :guilabel:`Provider Enabled` toggle.
+
+                  #. For the App Services :guilabel:`Client ID`, enter the
+                     Apple :guilabel:`Services ID` you got when you created a
+                     :guilabel:`Services ID` in step 2 above.
+
+                  #. For :guilabel:`Client Secret`, create a new :ref:`secret
+                     <app-secret>` with a descriptive name and set the
+                     :guilabel:`Client Secret Value` to the JWT string that you
+                     generated. Alternatively, you can select a pre-existing
+                     secret that contains the JWT.
+
+                  #. For :guilabel:`Redirect URIs`, click :guilabel:`Add Redirect
+                     URI` and enter the URL that App Services should redirect to once
+                     the OAuth process is complete. Provide a URL for a domain
+                     that you control and then use a `universal link
+                     <https://developer.apple.com/library/content/documentation/General/Conceptual/AppSearch/UniversalLinks.html>`_
+                     to redirect the user back to your app.
+
+                  #. Click :guilabel:`Save` to finish configuring the provider.
+                     To make the provider available to client applications, you
+                     need to deploy your changes. Click :guilabel:`Review &
+                     Deploy Changes` and then click :guilabel:`Deploy`.
+
+               .. tab::
+                  :tabid: cli
+
+                  To enable and configure the Apple authentication provider with
+                  ``{+cli-bin+}``, define a :ref:`configuration
+                  object <appconfig-auth>` for it in ``/auth/providers.json``.
+
+                  Apple provider configurations have the following form:
+
+                  .. code-block:: none
+                     :caption: /auth/providers.json
+
+                     {
+                       "oauth2-apple": {
+                          "name": "oauth2-apple",
+                          "type": "oauth2-apple",
+                          "disabled": <boolean>,
+                          "config": {
+                             "clientId": "<Apple Services ID>"
+                          },
+                          "secret_config": {
+                             "clientSecret": "<Secret Name>"
+                          },
+                          "redirect_uris": ["<string>", ...]
+                       }
+                     }
+
+                  .. list-table::
+                     :header-rows: 1
+                     :widths: 15 30
+
+                     * - Field
+                       - Description
+
+                     * - :guilabel:`Client ID`
+
+                         | *config.clientId*
+
+                       - Required. The Apple :guilabel:`Services ID` that you created
+                         when you completed step 2 above.
+
+                     * - :guilabel:`Client Secret`
+
+                         | *secret_config.clientSecret*
+
+                       - Required. The name of a :ref:`Secret <app-secret>` that stores
+                         the :guilabel:`Client Secret` JWT that you generated.
+
+                     * - :guilabel:`Redirect URIs`
+
+                         | *redirect_uris*
+
+                       - Required for web applications.
+                         A list of allowed redirect :abbr:`URIs (Uniform Resource
+                         Identifiers)`.
+
+                         Once a user completes the authentication process,
+                         App Services redirects them back to either a specified redirect URI or,
+                         if no redirect URI is specified, the URL that they initiated the
+                         authentication request from. App Services will only redirect a user to
+                         a URI that exactly matches an entry in this list, including the
+                         protocol and any trailing slashes.
+
+                         Provide a URL for a domain that you control and then use
+                         a `universal link
+                         <https://developer.apple.com/library/content/documentation/General/Conceptual/AppSearch/UniversalLinks.html>`_
+                         to redirect the user back to your app.
+
+                  Once you've created the configuration file, you can make the
+                  Apple ID authentication provider available to client
+                  applications by deploying your application.
+
+                  To deploy a draft application with {+cli+}:
+
+                  .. code-block:: shell
+
+                     {+cli-bin+} push
+
+                  To deploy a draft application with automatic :ref:`GitHub deployment
+                  <deploy-github>`:
+
+                  .. code-block:: shell
+
+                     git add ./auth/providers.json
+                     git commit -m "Configure and Enable Apple ID Authentication"
+                     git push origin <branch name>
+
+.. _apple-authentication-examples:
+
+Examples
+--------
+
+For code examples that demonstrate how to register and log in using
+Apple authentication, see the documentation for the Realm SDKs:
+
+- :ref:`C++ SDK <cpp-login-apple>`
+- :ref:`Flutter SDK <flutter-login-apple>`
+- :ref:`Java SDK <java-login-apple>`
+- :ref:`Kotlin SDK <kotlin-login-apple>`
+- :ref:`.NET SDK <dotnet-login-apple>`
+- :ref:`Node SDK <node-login-apple>`
+- :ref:`React Native SDK <react-native-login-apple>`
+- :ref:`Swift SDK <ios-login-apple>`
+- :ref:`Web SDK <web-login-apple>`

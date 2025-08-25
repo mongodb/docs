@@ -1,0 +1,430 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _flutter-tutorial:
+
+=======================================
+Tutorial: Atlas Device Sync for Flutter
+=======================================
+
+.. meta::
+   :keywords: code example
+   :description: Learn how to build, modify, and run a demo Flutter application using Atlas Device SDK for Flutter and Atlas Device Sync.
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+*Estimated time to complete: 30 minutes, depending on your experience with Flutter*
+
+The Atlas Device SDK for Flutter allows you to create a multi-platform
+applications with Dart and Flutter. This tutorial is based on the
+Flutter Flexible Sync Template App, named ``flutter.todo.flex``, which illustrates
+the creation of a Todo application. This application enables users to:
+
+- Register their email as a new user account.
+- Sign in to their account with their email and password (and sign out later).
+- View, create, modify, and delete task items.
+- View all tasks, even where the user is not the owner.
+
+The template app also provides a toggle that simulates the device being in
+"Offline Mode." This toggle lets you quickly test Device Sync functionality,
+emulating the user having no internet connection.
+However, you would likely remove this toggle in a production application.
+
+This tutorial adds on to the template app. You will add a new ``priority`` field
+to the existing ``Item`` model and update the :ref:`Flexible Sync subscription
+<queryable-fields>` to only show items within a range of priorities.
+
+Learning Objectives
+-------------------
+
+This tutorial illustrates how you might adapt the
+template app for your own needs. You would not necessarily make
+this change given the current structure of the template app.
+
+In this tutorial, you will learn how to:
+
+- Update a Realm object model with a non-breaking change.
+- Update a Device Sync subscription
+- Add a queryable field to the Device Sync configuration on the server
+  to change which data is synchronized.
+
+If you prefer to get started with your own application rather than follow a
+guided tutorial, check out the :ref:`Flutter Quick Start <flutter-quick-start>`.
+It includes copyable code examples and the essential information that you
+need to set up a Flutter SDK application.
+
+Prerequisites
+-------------
+
+- You should have previous experience deploying a Flutter app
+  to an Android Emulator, iOS Simulator, and/or a physical device.
+
+.. include:: /includes/tutorial-template-prerequisite.rst
+
+.. note:: Supported Platforms
+
+   You can build this tutorial app on the following platforms:
+
+   - iOS
+   - Android
+   - macOS
+   - Windows
+   - Linux
+
+   The Flutter SDK does *not* support building web applications.
+
+Start with the Template
+-----------------------
+
+This tutorial is based on the Flutter Flexible Sync Template App named
+``flutter.todo.flex``. We start with the default app and build new features
+on it.
+
+.. include:: /includes/tutorial-learn-more-template-app.rst
+
+.. tabs::
+
+   .. tab:: App Services UI
+      :tabid: ui
+
+      Follow the procedure described in the 
+      :ref:`create-app` guide, and select
+      :guilabel:`Create App from Template`. Select the 
+      :guilabel:`Real-time Sync` template. This creates an App Services App
+      pre-configured to use with one of the Device Sync template app clients.
+
+      After you create a template app, the UI displays a modal labeled 
+      :guilabel:`Get the Front-end Code for your Template`. This modal 
+      provides instructions for downloading the template app client code 
+      as a ``.zip`` file or using {+cli+} to get the client.
+
+      After selecting the ``.zip`` or {+cli+} method, follow the on-screen
+      instructions to get the client code. For this tutorial, select the 
+      :guilabel:`Dart (Flutter)` client code.
+
+      Unzip the downloaded app, and you will see the Flutter app.
+
+      .. include:: /includes/note-windows-zip.rst
+
+   .. tab:: App Services CLI
+      :tabid: cli
+
+      The :ref:`{+cli-bin+} apps create <appservices-apps-create>`
+      command sets up the backend and creates a Flutter template
+      app for you to use as a base for this tutorial.
+
+      Run the following command in a terminal window to create an app
+      named "MyTutorialApp" that is deployed in the ``US-VA`` region
+      with its environment set to "development" (instead of production
+      or QA).
+
+      .. code-block:: shell
+
+         {+cli-bin+} app create \
+           --name MyTutorialApp \
+           --template flutter.todo.flex \
+           --deployment-model global \
+           --environment development
+
+      The command creates a new directory in your current path with the
+      same name as the value of the ``--name`` flag.
+
+   .. tab:: GitHub Repository
+      :tabid: github
+
+      You can fork and clone a GitHub repository that contains the Device 
+      Sync client code. The Flutter client code is available at
+      :github:`https://github.com/mongodb/template-app-dart-flutter-todo <mongodb/template-app-dart-flutter-todo>`.
+
+      If you use this process to get the client code, you must create a
+      template app to use with the client. Follow the instructions at 
+      :ref:`create-template-app` to use the Atlas App Services UI, {+cli+},
+      or Admin API to create a Device Sync backend template app.
+
+      Clone the repo and follow the instructions in the :file:`README` to add
+      the backend App ID to the Flutter app.
+
+Set up the Template App
+-----------------------
+
+.. procedure::
+
+   .. step:: Open the App
+
+      Open the Flutter app with your code editor.
+
+      If you downloaded the client as a ``.zip`` file or cloned the client 
+      GitHub repository, you must manually insert the App Services App ID 
+      in the appropriate place in your client. Follow the 
+      :guilabel:`Configuration` instructions in the client :file:`README.md` 
+      to learn where to insert your App ID.
+
+   .. step:: Explore the App Structure
+
+      In your code editor, take a few minutes to explore how the project is
+      organized. This is a standard multi-platform Flutter application
+      that has been modified for our specific use. Specifically, the following
+      files contain important uses of the Flutter SDK:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 35 65
+
+         * - File
+           - Purpose
+
+         * - :file:`lib/main.dart`
+           - Entry point into the app. Contains routing and state management.
+
+         * - :file:`lib/realm/schemas.dart`
+           - Defines Realm Database schema.
+
+         * - :file:`lib/realm/schemas.realm.dart`
+           - Generated Realm object class.
+
+         * - :file:`lib/realm/app_services.dart`
+           - Handles interaction with Atlas App Services.
+
+         * - :file:`lib/realm/realm_services.dart`
+           - Handles interaction with Realm Database and Atlas Device Sync.
+
+         * - :file:`lib/components/`
+           - Component parts of app featuring Flutter widgets.
+
+         * - :file:`lib/screens/`
+           - Pages of the app.
+
+   .. step:: Run the App
+
+      Without making any changes to the code, you should be able to run the app
+      in either the Android emulator, iOS Simulator, physical mobile device,
+      or desktop emulator.
+
+      First, install all dependencies by running the following in your terminal:
+
+      .. code-block:: sh
+
+         flutter pub get
+
+      Then, attach to a device and run the Flutter application.
+
+      Once the app is running, register a new user account,
+      and then add a new Item to your todo list.
+
+      .. tip::
+
+         For more information on running a Flutter app with development tools,
+         refer to the :flutter:`Flutter Test Drive documentation <get-started/test-drive>`.
+
+   .. step:: Check the Backend
+
+      Log in to `MongoDB Atlas <http://cloud.mongodb.com>`_. In the
+      :guilabel:`Data Services` tab, click on :guilabel:`Browse Collections`. In the list
+      of databases, find and expand the :guilabel:`todo` database, and then the
+      :guilabel:`Item` collection. You should see the document you created
+      in this collection.
+
+Modify the Application
+----------------------
+
+Add a New Property
+~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+
+   .. step:: Add a New Property to the Model
+
+      Now that you have confirmed everything is working as expected, we can
+      add changes. In this tutorial, we have decided that we want to add a
+      "priority" property to each Item so that we can filter Items by their
+      priorities.
+
+      To do this, follow these steps:
+
+      A. In the :file:`flutter.todo.flex` project, open the file
+         :file:`lib/realm/schemas.dart`.
+
+      #. Add the following property to the ``_Item`` class:
+
+         .. code-block:: dart
+            :caption: lib/realm/schemas.dart
+
+            late int? priority;
+
+      #. Regenerate the ``Item`` Realm object class:
+
+         .. code-block:: sh
+
+            dart run realm generate
+
+   .. step:: Set the Priority when Creating and Updating Items
+
+      A. In :file:`lib/realm/realm_services.dart`, add logic to set and update
+         ``priority``. Also add a ``PriorityLevel`` abstract class below the
+         ``RealmServices`` class to constrain the possible values.
+
+         .. include:: /examples/generated/flutter/tutorial/realm_services.snippet.realm-services.dart.rst
+
+      #. Add a new file to contain a widget to set the priority for an Item.
+         Create the file :file:`lib/components/select_priority.dart`.
+
+         .. include:: /examples/generated/flutter/tutorial/select_priority.snippet.select-priority.dart.rst
+
+      #. Now add the ``SelectPriority`` widget to the
+         ``CreateItem`` and ``ModifyItem`` widgets. You also need to add
+         some additional logic to handle setting the priority. The code you must
+         add is shown below.
+
+         Some sections of the files you are adding to are
+         replaced with comments in the below code examples to focus on the relevant
+         sections of code that are changed.
+
+         Edit the ``CreateItemForm`` widget in :file:`lib/components/create_item.dart`:
+
+         .. include:: /examples/generated/flutter/tutorial/create_item.snippet.create-item.dart.rst
+
+         Edit the ``ModifyItemForm`` widget in :file:`lib/components/modify_item.dart`:
+
+         .. include:: /examples/generated/flutter/tutorial/modify_item.snippet.modify-item.dart.rst
+
+      #. Now add a visual indicator for priority in the ``ItemCard`` widget
+         in :file:`lib/components/todo_item.dart`. Create a new widget ``_PriorityIndicator`` that gives
+         a visual indicator of the Item's priority.
+
+         Add a ``_PriorityIndicator`` widget you just created to the ``TodoItem``
+         widget.
+
+         .. include:: /examples/generated/flutter/tutorial/todo_item.snippet.todo-item.dart.rst
+
+   .. step:: Run and Test
+
+      Before you run the application again, perform a `hot restart <https://docs.flutter.dev/development/tools/hot-reload#special-cases>`__.
+      This makes sure that the sync session restarts with the new schema and prevents
+      sync errors.
+
+      Then, Log in using the account you created earlier in this tutorial.
+      You will see the one Item you previously created.
+      Add a new Item, and you will see that you can now set the priority.
+      Choose ``High`` for the priority and save the Item.
+
+      Now switch back to the Atlas data page in your browser, and refresh the
+      ``Item`` collection. You should now see the new Item with the ``priority``
+      field added and set to **1**. You will also notice that the existing Item
+      now also has a ``priority`` field, and it is set to **null**, as shown in
+      the following screenshot:
+
+      .. figure:: /images/dotnet-tutorial-two-new-items.png
+         :alt:  Two items in a collection
+         :figwidth: 300px
+
+      .. note:: Why Didn't This Break Sync?
+
+         Adding a property to a Realm object is not a breaking change and therefore
+         does not require a :ref:`client reset <client-resets>`. The template
+         app has Development Mode enabled, so changes to the client Realm object
+         are reflected in the server-side schema. For more information, see
+         :ref:`<development-mode>` and :ref:`<additive-changes-synced-schema>`.
+
+Change the Subscription
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Now that we added the priority field, we want to update the Device Sync subscription
+to only sync Items marked as a High or Severe priority.
+
+.. procedure::
+
+   .. step:: Update the subscription
+
+      In the :file:`lib/realm/realm_services.dart` file, we define the Flexible Sync
+      subscription that defines which documents we sync with the user's device
+      and account. Currently, we are syncing all all documents where
+      the ``owner`` property matches the authenticated user.
+
+      The current subscription:
+
+      .. include:: /examples/generated/flutter/tutorial/base-template-subscriptions.rst
+
+      Now we're going to change the subscription to only sync High and Severe
+      priority Items.
+      As you may recall, the priority field is of type ``int``, where the highest
+      priority ("Severe") has a value of 0, and the lowest priority ("Low") has
+      a value of 3.
+
+      We can make direct comparisons between an int and the priority property.
+      To do so, we're going to refactor the subscription query
+      to include Items where the priority is less than or equal to
+      ``PriorityLevel.high`` (or 1). We will also give the subscription the new name
+      ``"getMyHighPriorityItemsSubscription"``.
+
+      Update the subscription to delete the old subscription and add
+      a new one that uses priority:
+
+      .. include:: /examples/generated/flutter/tutorial/realm_services.snippet.update-subscription-query.dart.rst
+
+   .. step:: Run and Test
+
+      Run the application again. Log in using the account you created earlier
+      in this tutorial.
+
+      After an initial moment when Realm resyncs the document collection, you
+      *might* see an error message resembling the following:
+
+      .. code-block::
+
+         The following RangeError was thrown building StreamBuilder<RealmResultsChanges<Item>>(dirty, state:
+         _StreamBuilderBaseState<RealmResultsChanges<Item>, AsyncSnapshot<RealmResultsChanges<Item>>>#387c4):
+         RangeError (index): Invalid value: Only valid value is 0: 3
+
+      This error can occur with the ``StreamBuilder`` widget as the subscription updates.
+      In a production app, you could add error handling. But for the sake of
+      this tutorial, just perform a hot refresh and the error will go away.
+
+      Now you should see the new Item of High priority that you created.
+
+      .. include:: /includes/tip-queryable-fields-dev-mode.rst
+
+      If you want to further test the functionality, you can create Items of various
+      priorities. You will see that a new Item with a lower priority briefly
+      appears in the list of Items and then disappears.
+      Realm creates the Item locally, syncs it with the backend, and then deletes
+      the Item because it doesn't meet the subscription rules. This is called
+      a :ref:`compensating write <flutter-compensating-writes>`.
+
+      You'll note, too, that the document you initially created is not synced,
+      because it has a priority of ``null``.
+      If you want this Item to be synced,
+      you can edit the document in the Atlas UI and add a value for the priority
+      field, or you can change your subscription to include documents with null
+      values. We will also give the subscription the new name
+      ``"getUserItemsWithHighOrNoPriority"``.
+
+      .. include:: /examples/generated/flutter/tutorial/realm_services.snippet.sync-no-priority.dart.rst
+
+      Again, when a ``StreamBuilder`` error occurs the first time you open the
+      app with the new subscription, perform a hot refresh to see the expected data.
+
+Conclusion
+----------
+
+Adding a property to an existing Realm object is a non-breaking change, and
+Development Mode ensures that the schema change is reflected server-side. 
+
+What's Next?
+------------
+
+- Read our :ref:`Flutter SDK <flutter-intro>` documentation.
+- Find developer-oriented blog posts and integration tutorials on the
+  `MongoDB Developer Hub <https://developer.mongodb.com>`__.
+- Join the `MongoDB Community forum <https://developer.mongodb.com/community/forums/c/realm/9>`__
+  to learn from other MongoDB developers and technical experts.
+- Explore engineering and expert-provided `example projects <https://www.mongodb.com/docs/realm/example-projects/>`__.
+
+.. include:: /includes/tutorial-request-for-feedback-note.rst

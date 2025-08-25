@@ -1,0 +1,224 @@
+.. meta::
+   :robots: nosnippet
+
+.. _migrate-schema-partner-collection:
+.. _partner_collections:
+
+============================
+Make Breaking Schema Changes
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+Overview
+--------
+If you need to make changes to an object schema that is used in Atlas Device Sync, you 
+can make :ref:`non-breaking <additive-changes-synced-schema>` without any 
+additional work. :ref:`Breaking changes <destructive-changes-synced-schema>`, 
+however, require additional steps. A breaking or destructive change includes 
+renaming an existing field or changing a field's data type.
+
+For more information, see :ref:`<synced-schema-overview>`.
+
+If you need to make a breaking schema change, you have two choices: 
+
+- :ref:`Terminate sync <terminating-realm-sync>` in the backend and then 
+  :ref:`re-enable <enable-sync>` it from the start.
+
+- Create a :ref:`partner collection <partner_collections>`, copy the old 
+  data to this new collection, and set up triggers to ensure data 
+  consistency. 
+  
+  The remainder of this guide leads you through creating a partner collection.
+
+.. include:: /includes/warn-terminate-sync-client-reset.rst
+
+Partner Collections
+-------------------
+In the following procedure, the *initial* collection uses the JSON Schema below 
+for a ``Task`` collection. Note that the schema for the ``Task`` contains an 
+``_id`` field of type ``objectId``:
+
+.. code-block:: json
+    :caption: Task Schema
+    :emphasize-lines: 9-10
+
+    {
+        "title": "Task",
+        "bsonType": "object",
+        "required": [
+            "_id",
+            "name"
+        ],
+        "properties": {
+            "_id": {
+                "bsonType": "objectId"
+            },
+            "_partition": {
+                "bsonType": "string"
+            },
+            "name": {
+                "bsonType": "string"
+            }
+        }
+    }
+
+The *new* schema is the same, except we want the ``_id`` field to be a string:
+
+.. code-block:: json
+    :caption: Task Schema
+    :emphasize-lines: 9-10
+
+    {
+        "title": "Task",
+        "bsonType": "object",
+        "required": [
+            "_id",
+            "name"
+        ],
+        "properties": {
+            "_id": {
+                "bsonType": "string"
+            },
+            "_partition": {
+                "bsonType": "string"
+            },
+            "name": {
+                "bsonType": "string"
+            }
+        }
+    }
+
+Procedure
+---------
+
+.. procedure::
+
+   .. step:: Initialize Your Partner Collection with an Aggregation Pipeline
+
+      Since breaking changes cannot be performed directly on a synced object
+      schema, you must create a partner collection with a schema containing the
+      required changes. You must ensure that the partner collection has the same
+      data as the original collection so that newer clients can synchronize with
+      older clients.
+
+      The recommended approach to copying the data from your original collection to
+      the new partner collection is to use the :manual:`Aggregation Framework
+      </aggregation/>`.
+
+      You can create and run an aggregation pipeline from the 
+      `mongo shell <https://www.mongodb.com/docs/mongodb-shell/>`__,
+      by using the :compass:`</aggregation-pipeline-builder/>`, or with the
+      :atlas:`</data-explorer/cloud-agg-pipeline/>`.
+
+      The pipeline will have the following stages:
+
+      1. Match all the documents in the initial collection by passing
+         an empty filter to the :manual:`$match operator
+         </reference/operator/aggregation/match/>`.
+
+      2. Modify the fields of the initial collection by using an
+         :manual:`aggregation pipeline operator </reference/operator/aggregation/>`. In
+         the following example, the data is transformed using the :manual:`$addFields
+         operator </reference/operator/aggregation/addFields/>`. The ``_id`` field is
+         transformed to a ``string`` type with the :manual:`$toString operator
+         </reference/operator/aggregation/toString/>`.
+
+      3. Write the transformed data to the partner collection by using the
+         :manual:`$out operator </reference/operator/aggregation/out/>` and specifying
+         the partner collection name. In this example, we wrote the data to a new
+         collection named ``TaskV2``.
+
+      Here the same pipeline as represented in the Atlas and Compass UIs. Note that
+      both of these tools provide a preview of the changes; in this case, the
+      conversion the ``_id`` field from an ObjectId to a string:
+
+      .. figure:: /images/agg-in-atlas.png
+         :alt: Atlas UI for Aggregation Builder
+
+      The following example shows the complete aggregation pipeline as it would
+      look if you used :mongosh:`mongosh </>` to do the conversion:
+
+      .. code-block:: shell
+         :caption: Match All Documents in the Initial Collection and Output Them to the Partner Collection
+
+         use "<database-name>" // switch the current db to the db that the Task collection is stored in
+         collection = db.Task;
+         collection.aggregate([
+           { $match: {} }, // match all documents in the Task collection
+           {
+             $addFields: { // transform the data
+               _id: { $toString: "$_id" }, // change the _id field of the data to a string type
+             },
+           },
+           { $out: "TaskV2" }, // output the data to a partner collection, TaskV2
+         ]);
+
+   .. step:: Set up Database Triggers for Your Partner Collections
+
+      Once your partner collection is set up, you can use it to read existing data.
+      However, any new writes to the data of *either collection* will not be
+      in the other collection. This causes the old clients to be out of sync with the
+      new clients.
+
+      To ensure that data is reflected in both collections, you set up a
+      :ref:`database trigger <create-a-database-trigger>` on each collection. When
+      data is written to one collection, the trigger's function performs the write
+      to the partner collection.
+
+      Follow the steps in the :ref:`database trigger <create-a-database-trigger>`
+      documentation to create a trigger that copies data from the ``Task`` collection to
+      the ``TaskV2`` collection for all operation types. Repeat these steps to create
+      a second trigger that copies data from the ``TaskV2`` collection to the
+      ``Task`` collection. 
+
+   .. step:: Add Trigger Functions
+
+      Triggers require backing functions that run when the trigger fires. In this
+      case, we need to create two functions: a forward-migration function and a
+      reverse-migration function.
+
+      The forward migration trigger listens for inserts, updates, and deletes in the
+      Task collection, modifies them to reflect the TaskV2 collection's schema, and
+      then applies them to the TaskV2 collection.
+
+      To listen for changes to the TaskV2 collection and apply them to the Task
+      collection, write a reverse-migration function for the TaskV2 collection's
+      trigger. The reverse migration follows the same idea as the previous step.
+
+      In the forward-migration function, we check which operation has triggered the
+      function: if the operation type is ``Delete`` (meaning a document
+      has been deleted in the Task collection), the document is also deleted in the
+      TaskV2 collection. If the operation type is a ``Write`` (inserted or modified)
+      event, an aggregation pipeline is created. In the pipeline, the inserted or
+      modified document in the Task collection is extracted using the
+      :manual:`$match operator </reference/operator/aggregation/match/>`. The
+      extracted document is then transformed to adhere to the
+      ``TaskV2`` collection's schema. Finally, the transformed data is written to the
+      ``TaskV2`` collection by using the
+      :manual:`$merge operator </reference/operator/aggregation/merge/>`:
+
+      .. literalinclude:: /examples/generated/functions/copyTaskObjectToTaskV2.codeblock.copyTaskObject.js
+         :language: javascript
+         :caption: copyTaskObjectToTaskV2 function
+
+      The reverse-migration function goes through similar steps as the example in the
+      prior step. If a document has been deleted in one collection, the document is
+      also deleted in the other collection. If the operation type is a write event,
+      the changed document from ``TaskV2`` is extracted, transformed to match the
+      Task collection's schema, and written into the ``Task`` collection:
+
+      .. literalinclude:: /examples/generated/functions/copyTaskV2ObjectToTask.codeblock.copyTaskV2Object.js
+         :language: javascript
+         :caption: copyTaskV2ObjectToTask function
+
+Development Mode and Breaking Changes
+-------------------------------------
+
+.. include:: /includes/dev-mode-breaking-changes.rst

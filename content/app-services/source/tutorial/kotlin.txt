@@ -1,0 +1,685 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _kotlin-tutorial:
+
+======================================
+Tutorial: Atlas Device Sync for Kotlin
+======================================
+
+.. meta::
+   :keywords: code example
+   :description: Learn how to build, modify, and run a demo Kotlin application using Atlas Device SDK for Kotlin and Atlas Device Sync.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+*Estimated time to complete: 30 minutes, depending on your experience with Kotlin*
+
+Realm provides a Kotlin SDK that allows you to create an Android mobile
+application with Kotlin using :android:`Jetpack Compose </jetpack/compose/documentation>`. 
+This tutorial is based on the Kotlin Flexible Sync
+Template App, named ``kotlin.todo.flex``, which illustrates the creation of a
+To-do Item List management application. This application enables users to: 
+
+- Register their email as a new user account.
+- Sign in to their account with their email and password (and sign out later).
+- View, create, modify, and delete their own tasks.
+- View all tasks, even where the user is not the owner.
+
+The template app also provides a toggle that simulates the device being in 
+"Offline Mode." This toggle lets you quickly test Device Sync functionality 
+on the simulator, emulating the user having no internet connection. However,
+you would likely remove this toggle in a production application.
+
+This tutorial adds functionality to the Template App. You will add a new ``Priority`` field 
+to the existing ``Item`` model and update the 
+:ref:`Flexible Sync subscription <queryable-fields>` to only show items within 
+a range of priorities. This example illustrates how you might adapt the 
+template app for your own needs. 
+
+Learning Objectives
+-------------------
+
+This tutorial illustrates how you might adapt the
+template app for your own needs.
+
+In this tutorial, you will learn how to:
+
+- Update a Realm object model with a non-breaking change.
+- Update a Device Sync subscription.
+- Add a queryable field to the Device Sync configuration on the server
+  to change which data is synchronized.
+
+.. note:: Check Out the Quick Start
+   
+   If you prefer to get started with your own application rather than follow a 
+   guided tutorial, check out the :ref:`Kotlin Quick Start <kotlin-client-quick-start>`. 
+   It includes copyable code examples and the essential information that you 
+   need to set up an Atlas App Services backend.
+
+Prerequisites
+-------------
+
+- :android:`Android Studio <studio/index.html>` Bumblebee 2021.1.1 or higher.
+- JDK 11 or higher.
+- Kotlin Plugin for Android Studio, version 1.6.10 or higher.
+- An Android Virtual Device (AVD) using a supported CPU architecture.
+
+.. include:: /includes/tutorial-template-prerequisite.rst 
+
+Start with the Template
+-----------------------
+
+This tutorial is based on the Kotlin SDK Flexible Sync Template App named 
+``kotlin.todo.flex``. We start with the default app and build new features 
+on it. 
+
+.. include:: /includes/tutorial-learn-more-template-app.rst
+
+.. tabs::
+
+   .. tab:: App Services UI
+      :tabid: ui
+
+      Follow the procedure described in the :ref:`Create an App <create-app>` 
+      guide, and select :guilabel:`Create App from Template`. Select the 
+      :guilabel:`Real-time Sync` template. This creates an App Services App
+      pre-configured to use with one of the Device Sync template app clients.
+
+      After you create a template app, the UI displays a modal labeled 
+      :guilabel:`Get the Front-end Code for your Template`. This modal 
+      provides instructions for downloading the template app client code 
+      as a ``.zip`` file or using {+cli+} to get the client.
+
+      After selecting the ``.zip`` or {+cli+} method, follow the on-screen
+      instructions to get the client code. For this tutorial, select the 
+      :guilabel:`Kotlin (Android)` client code.
+
+      .. include:: /includes/note-windows-zip.rst
+
+   .. tab:: App Services CLI
+      :tabid: cli
+
+      The :ref:`{+cli-bin+} apps create <appservices-apps-create>`
+      command sets up the backend and creates a Kotlin template
+      app for you to use as a base for this tutorial.
+
+      Run the following command in a terminal window to create an app
+      named "MyTutorialApp" that is deployed in the ``US-VA`` region
+      with its environment set to "development" (instead of production
+      or QA).
+
+      .. code-block:: shell
+
+         {+cli-bin+} app create \
+           --name MyTutorialApp \
+           --template kotlin.todo.flex \
+           --deployment-model global \
+           --environment development
+
+      The command creates a new directory in your current path with the
+      same name as the value of the ``--name`` flag.
+
+   .. tab:: GitHub Repository
+      :tabid: github
+
+      You can fork and clone a GitHub repository that contains the Device 
+      Sync client code. The Kotlin client code is available at
+      :github:`https://github.com/mongodb/template-app-kotlin-todo <mongodb/template-app-kotlin-todo>`.
+
+      If you use this process to get the client code, you must create a
+      template app to use with the client. Follow the instructions at 
+      :ref:`create-template-app` to use the Atlas App Services UI, {+cli+},
+      or Admin API to create a Device Sync template app.
+
+Set up the Template App
+-----------------------
+
+.. procedure::
+
+   .. step:: Open the App
+
+      In Android Studio, open the ``kotlin.todo.flex`` folder. 
+
+      If you downloaded the client as a ``.zip`` file or cloned the client 
+      GitHub repository, you must manually insert the App Services App ID 
+      in the appropriate place in your client. Follow the 
+      :guilabel:`Configuration` instructions in the client :file:`README.md` 
+      to learn where to insert your App ID.
+
+   .. step:: Explore the App Structure
+
+      Take a few minutes to explore the project organization while Android
+      Studio indexes your project. Within the ``app/java/com.mongodb.app``
+      directory, you can see a few files worth noting:
+
+      .. cssclass:: config-table
+      .. list-table::
+         :header-rows: 1
+         :widths: 35 65
+
+         * - File
+           - Purpose
+
+         * - ComposeItemActivity.kt
+           - Activity class that defines the layout and provides 
+             functionality for opening a realm, writing Items to the realm, 
+             logging a user out, and closing a realm.
+
+         * - ComposeLoginActivity.kt
+           - Activity class that defines the layout and provides 
+             functionality for registering a user and logging a user in.
+
+         * - TemplateApp.kt
+           - Class that initializes the App Services App. 
+           
+      In this tutorial, you'll be working in the following files:
+
+      .. cssclass:: config-table
+      .. list-table::
+         :header-rows: 1
+         :widths: 35 65
+
+         * - File
+           - Purpose
+  
+         * - Item.kt
+           - Located in the ``domain`` directory. Defines the Realm object we store in the database.
+
+         * - AddItem.kt
+           - Located in the ``ui/tasks`` directory. Contains the composable function that 
+             defines the layout used when adding an item.
+
+         * - AddItemViewModel.kt
+           - Located in the ``presentation/tasks`` directory. The view model that contains 
+             business logic and manages state when adding an item.
+         
+         * - SyncRepository.kt
+           - Located in the ``data`` directory. Repository used to access Realm Sync and
+             defines the Flexible Sync subscription.
+
+         * - Strings.xml
+           - Located in the ``res/values`` directory. Defines the :android:`text string resources <guide/topics/resources/string-resource>`
+             used in the app.  
+       
+
+   .. step:: Run the App
+
+      Without making any changes to the code, you should be able to
+      :android:`run the app <studio/run>`  
+      on an Android Emulator using Android Studio or on a physical device.
+
+      Run the app, register a new user account, and then add a new Item to your 
+      todo list.
+
+   .. step:: Check the Backend
+
+      Log in to `Atlas App Services <http://cloud.mongodb.com>`_. In the 
+      :guilabel:`Data Services` tab, click on :guilabel:`Browse Collections`. In the list 
+      of databases, find and expand the :guilabel:`todo` database, and then the 
+      :guilabel:`Item` collection. You should see the document you created 
+      in this collection.
+
+Modify the Application
+----------------------
+
+Add a New Property
+~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+
+   .. step:: Add a New Property to the Model
+
+      Now that you have confirmed everything is working as expected, we can add 
+      changes. In this tutorial, we have decided that we want to add a
+      "priority" property to each Item so that we can filter Items by their
+      priority level. The priority property will be mapped to a ``PriorityLevel`` enum
+      to constrain the possible values, and we will use the ordinal of each 
+      enum to correspond to the priority integer so we can query based on a 
+      numeric priority level later.
+      
+      To do this, follow these steps:
+
+      A. Within the ``app/java/com.mongodb.app/domain`` folder, open the ``Item`` class file.
+            
+      #. Add a ``PriorityLevel`` enum to constrain the possible  
+         values. Also add a ``priority``
+         property to the ``Item`` class, which sets the default priority to 3, 
+         indicating that it is a low-priority todo item:
+         
+         .. code-block:: kotlin
+            :caption: domain/Item.kt
+            :emphasize-lines: 3-8, 16
+
+            // ... imports
+
+               enum class PriorityLevel() {
+                  Severe, // priority 0
+                  High,   // priority 1
+                  Medium, // priority 2
+                  Low     // priority 3
+               }
+
+               class Item() : RealmObject {
+                  @PrimaryKey
+                  var _id: ObjectId = ObjectId.create()
+                  var isComplete: Boolean = false
+                  var summary: String = ""
+                  var owner_id: String = ""
+                  var priority: Int = PriorityLevel.Low.ordinal
+
+                  constructor(ownerId: String = "") : this() {
+                     owner_id = ownerId
+                  }
+            
+            // ... equals() and hashCode() functions
+            
+            } 
+
+   .. step:: Set the Priority when Creating a New Item
+
+      A. From the ``ui/tasks`` folder, open the ``AddItem.kt`` file. This file defines
+         the composable functions for the UI that is displayed when a user clicks 
+         the '+' button to add a new todo item. 
+      
+      #. First, add the following imports below the ``package com.mongodb.app``:
+      
+         .. code-block:: kotlin
+            :caption: ui/tasks/AddItem.kt
+
+            import androidx.compose.foundation.layout.fillMaxWidth
+            import androidx.compose.foundation.layout.padding
+            import androidx.compose.material3.DropdownMenuItem
+            import androidx.compose.material3.ExposedDropdownMenuBox
+            import androidx.compose.ui.Modifier
+            import androidx.compose.ui.unit.dp
+            import com.mongodb.app.domain.PriorityLevel
+
+      #. Now we can add a dropdown field to the ``AddItemPrompt`` composable function
+         that will enable the user to pick a priority level 
+         from a list using the PriorityLevel enums as available values:
+   
+         .. code-block:: kotlin
+            :caption: ui/tasks/AddItem.kt
+            :emphasize-lines: 24-56
+
+            // ... imports 
+
+            @OptIn(ExperimentalMaterial3Api::class)
+            @Composable
+            fun AddItemPrompt(viewModel: AddItemViewModel) {
+               AlertDialog(
+                  containerColor = Color.White,
+                  onDismissRequest = {
+                        viewModel.closeAddTaskDialog()
+                  },
+                  title = { Text(stringResource(R.string.add_item)) },
+                  text = {
+                        Column {
+                           Text(stringResource(R.string.enter_item_name))
+                           TextField(
+                              colors = ExposedDropdownMenuDefaults.textFieldColors(containerColor = Color.White),
+                              value = viewModel.taskSummary.value,
+                              maxLines = 2,
+                              onValueChange = {
+                                    viewModel.updateTaskSummary(it)
+                              },
+                              label = { Text(stringResource(R.string.item_summary)) }
+                           )
+                           val priorities = PriorityLevel.values()
+
+                           ExposedDropdownMenuBox(
+                              modifier = Modifier.padding(16.dp),
+                              expanded = viewModel.expanded.value,
+                              onExpandedChange = { viewModel.open() },
+                           ) {
+                              TextField(
+                                    readOnly = true,
+                                    value = viewModel.taskPriority.value.name,
+                                    onValueChange = {},
+                                    label = { Text(stringResource(R.string.item_priority)) },
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = viewModel.expanded.value) },
+                                    colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                                    modifier = Modifier
+                                       .fillMaxWidth()
+                                       .menuAnchor()
+                              )
+                              ExposedDropdownMenu(
+                                    expanded = viewModel.expanded.value,
+                                    onDismissRequest = { viewModel.close() }
+                              ) {
+                                    priorities.forEach {
+                                       DropdownMenuItem(
+                                          text = { Text(it.name) },
+                                          onClick = {
+                                                viewModel.updateTaskPriority(it)
+                                                viewModel.close()
+                                          }
+                                       )
+                                    }
+                              }
+                           }
+                        }
+                  },
+                  // ... buttons
+               )
+            }
+
+         Android Studio will identify several errors. We'll correct these in the next steps 
+         by adding the related functions. 
+               
+      #. Next, we'll define the dropdown field label as a string resource.
+         Open the ``res/values/strings.xml`` file, and add the following before 
+         the closing of the 'resource' element: 
+   
+         .. code-block:: xml
+            :caption: res/values/strings.xml
+
+            <string name="item_priority">Item Priority</string>
+
+      #. Now within the ``presentation/tasks`` folder, open the ``AddItemViewModel.kt``
+         file. Here we will add the business logic related to our new dropdown field.
+
+         Add the ``PriorityLevel`` import below the ``package com.mongodb.app``, then
+         add the variables and functions to the ``AddItemViewModel`` class needed 
+         to handle the state changes within the dropdown:
+
+         .. code-block:: kotlin
+            :caption: presentation/tasks/AddItemViewModel.kt
+            :emphasize-lines: 2, 18-24, 42-52
+
+               // ... imports
+               import com.mongodb.app.domain.PriorityLevel
+
+               // ... events
+
+               class AddItemViewModel(
+                  private val repository: SyncRepository
+               ) : ViewModel() {
+
+                  private val _addItemPopupVisible: MutableState<Boolean> = mutableStateOf(false)
+                  val addItemPopupVisible: State<Boolean>
+                     get() = _addItemPopupVisible
+
+                  private val _taskSummary: MutableState<String> = mutableStateOf("")
+                  val taskSummary: State<String>
+                     get() = _taskSummary
+
+                  private val _taskPriority: MutableState<PriorityLevel> = mutableStateOf(PriorityLevel.Low)
+                  val taskPriority: State<PriorityLevel>
+                     get() = _taskPriority
+
+                  private val _expanded: MutableState<Boolean> = mutableStateOf(false)
+                  val expanded: State<Boolean>
+                     get() = _expanded
+
+                  private val _addItemEvent: MutableSharedFlow<AddItemEvent> = MutableSharedFlow()
+                  val addItemEvent: Flow<AddItemEvent>
+                     get() = _addItemEvent
+
+                  fun openAddTaskDialog() {
+                     _addItemPopupVisible.value = true
+                  }
+
+                  fun closeAddTaskDialog() {
+                     cleanUpAndClose()
+                  }
+
+                  fun updateTaskSummary(taskSummary: String) {
+                     _taskSummary.value = taskSummary
+                  }
+
+                  fun updateTaskPriority(taskPriority: PriorityLevel) {
+                     _taskPriority.value = taskPriority
+                  }
+
+                  fun open() {
+                     _expanded.value = true
+                  }
+
+                  fun close() {
+                     _expanded.value = false
+                  }
+
+                  // addTask() and cleanUpAndClose() functions 
+               }
+
+
+         Now update the ``addTask()`` and ``cleanUpAndClose()`` functions to include the new
+         ``taskPriority`` parameter, update the message with the priority information, and 
+         reset the priority field to low once the Add Item view is closed:
+
+         .. code-block:: kotlin
+            :emphasize-lines: 4, 7, 20
+
+            fun addTask() {
+               CoroutineScope(Dispatchers.IO).launch {
+                     runCatching {
+                        repository.addTask(taskSummary.value, taskPriority.value)
+                     }.onSuccess {
+                        withContext(Dispatchers.Main) {
+                           _addItemEvent.emit(AddItemEvent.Info("Task '$taskSummary' with priority '$taskPriority' added successfully."))
+                        }
+                     }.onFailure {
+                        withContext(Dispatchers.Main) {
+                           _addItemEvent.emit(AddItemEvent.Error("There was an error while adding the task '$taskSummary'", it))
+                        }
+                     }
+                     cleanUpAndClose()
+               }
+            }
+
+            private fun cleanUpAndClose() {
+               _taskSummary.value = ""
+               _taskPriority.value = PriorityLevel.Low
+               _addItemPopupVisible.value = false
+            }
+      
+      #. Finally, from the ``data`` folder, open the ``SyncRepository.kt`` file to 
+         reflect the same changes in the ``addTask()`` function, which writes the 
+         Item to the realm. 
+
+         First, add the ``PriorityLevel`` import below the ``package com.mongodb.app``,
+         then update the ``addTask()`` functions to pass the ``taskPriority`` 
+         as a parameter and write the ``priority`` field to the realm 
+         as an integer (using the enum ordinal): 
+
+         .. code-block:: kotlin
+            :caption: data/SyncRepository.kt
+            :emphasize-lines: 2, 8, 21, 25, 50
+
+            // ... imports
+            import com.mongodb.app.domain.PriorityLevel
+
+            interface SyncRepository {
+
+               // ... Sync functions
+
+               suspend fun addTask(taskSummary: String, taskPriority: PriorityLevel)
+
+               // ... Sync functions
+            }
+
+            class RealmSyncRepository(
+               onSyncError: (session: SyncSession, error: SyncException) -> Unit
+            ) : SyncRepository {
+
+               // ... variables and SyncConfiguration initializer
+               
+               // ... Sync functions
+
+               override suspend fun addTask(taskSummary: String, taskPriority: PriorityLevel) {
+                  val task = Item().apply {
+                        owner_id = currentUser.id
+                        summary = taskSummary
+                        priority = taskPriority.ordinal
+                  }
+                  realm.write {
+                        copyToRealm(task)
+                  }
+               }
+
+               override suspend fun updateSubscriptions(subscriptionType: SubscriptionType) {
+                  realm.subscriptions.update {
+                        removeAll()
+                        val query = when (subscriptionType) {
+                           SubscriptionType.MINE -> getQuery(realm, SubscriptionType.MINE)
+                           SubscriptionType.ALL -> getQuery(realm, SubscriptionType.ALL)
+                        }
+                        add(query, subscriptionType.name)
+                  }
+               }
+
+               // ... additional Sync functions
+
+            }
+
+            class MockRepository : SyncRepository {
+               override fun getTaskList(): Flow<ResultsChange<Item>> = flowOf()
+               override suspend fun toggleIsComplete(task: Item) = Unit
+               override suspend fun addTask(taskSummary: String, taskPriority: PriorityLevel) = Unit
+               override suspend fun updateSubscriptions(subscriptionType: SubscriptionType) = Unit
+               override suspend fun deleteTask(task: Item) = Unit
+               override fun getActiveSubscriptionType(realm: Realm?): SubscriptionType = SubscriptionType.ALL
+               override fun pauseSync() = Unit
+               override fun resumeSync() = Unit
+               override fun isTaskMine(task: Item): Boolean = task.owner_id == MOCK_OWNER_ID_MINE
+               override fun close() = Unit
+
+               // ... companion object
+
+            }
+
+   .. step:: Run and Test
+    
+      At this point, you can rerun the application. Log in using the account 
+      you created earlier in this tutorial. You will see the one Item you 
+      previously created. Add a new Item, and you will see that you can now 
+      set the priority. Choose ``High`` for the priority and save the Item. 
+
+      Now switch back to the Atlas data page in your browser, and refresh the 
+      ``Item`` collection. You should now see the new Item with the ``priority`` 
+      field added and set to **1**. The existing Item does not have a ``priority`` 
+      field.
+
+      .. figure:: /images/dotnet-tutorial-two-new-items.png
+         :alt:  Two items in a collection
+         :figwidth: 300px
+
+      .. note:: Why Didn't This Break Sync?
+      
+         Adding a property to a Realm object is not a breaking change and therefore 
+         does not require a :ref:`client reset <client-resets>`. The template 
+         app has Development Mode enabled, so changes to the client Realm object 
+         are reflected in the server-side schema. For more information, see 
+         :ref:`<development-mode>` and :ref:`<additive-changes-synced-schema>`.
+
+Change the Subscription
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. procedure:: Change the Subscription
+
+   .. step:: Update the subscription
+
+      Within the ``app/java/com.mongodb.app/data`` folder, open the ``SyncRepository.kt``
+      file, where we define the Flexible Sync subscription. The subscription defines
+      which documents we sync with the user's device and account. Find the
+      ``getQuery()`` function. You can see that
+      we are currently subscribing to two subscriptions: 
+      
+      - ``MINE``: All documents where the ``ownerId`` property matches the authenticated user.
+      - ``ALL``: All documents from all users.
+      
+      We want to update the ``MINE`` subscription to *only* sync Items that are marked as High or Severe priority. 
+
+      As you may recall, the ``priority`` field is of type ``int``, where the highest 
+      priority ("Severe") has a value of 0, and the lowest priority ("Low") has 
+      a value of 3. We can make direct comparisons between an integer and the 
+      priority property. To do so, edit the RQL statement to include documents 
+      where the priority is equal to or *less* than PriorityLevel.High (or 1), as 
+      shown here:
+
+      .. code-block:: kotlin
+         :caption: data/SyncRepository.kt
+         :emphasize-lines: 3
+
+         private fun getQuery(realm: Realm, subscriptionType: SubscriptionType): RealmQuery<Item> =
+            when (subscriptionType) {
+                  SubscriptionType.MINE -> realm.query("owner_id == $0 AND priority <= ${PriorityLevel.High.ordinal}", currentUser.id)
+                  SubscriptionType.ALL -> realm.query()
+            }
+      
+      We'll also force the subscription query to recalculate which documents to 
+      sync every time we open the app. 
+
+      To do this, find the ``SyncConfiguration.Builder().initialSubscriptions()`` function 
+      that our application calls on start. First add the ``reRunOnOpen`` parameter set to ``true``, 
+      then set ``updateExisting`` to ``true``, which allows the existing query to be updated. 
+
+      .. code-block:: kotlin
+         :emphasize-lines: 2, 5
+
+         config = SyncConfiguration.Builder(currentUser, setOf(Item::class))
+            .initialSubscriptions(rerunOnOpen = true) { realm ->
+                // Subscribe to the active subscriptionType - first time defaults to MINE
+                val activeSubscriptionType = getActiveSubscriptionType(realm)
+                add(getQuery(realm, activeSubscriptionType), activeSubscriptionType.name, updateExisting = true)
+            }
+            .errorHandler { session: SyncSession, error: SyncException ->
+                onSyncError.invoke(session, error)
+            }
+            .waitForInitialRemoteData()
+            .build()
+
+   .. step:: Run and Test
+    
+      Run the application again. 
+      Log in using the account you created earlier in
+      this tutorial. 
+      
+      After an initial moment when Realm re-syncs the 
+      document collection, you will see the new Item of High priority that you created.
+
+      .. include:: /includes/tip-queryable-fields-dev-mode.rst
+      
+      If you want to test the functionality further, you can create Items of various 
+      priorities. You'll note that if you try to add an Item with a priority lower than High, you will 
+      get a Toast message indicating you do not have permission. And if you check your
+      :android:`logs using Logcat <studio/debug/am-logcat>`, you will see a message 
+      indicating the item was "added successfully", followed by a sync error:      
+
+      .. code-block:: sh
+         :copyable: false
+
+         ERROR "Client attempted a write that is outside of permissions or query 
+         filters; it has been reverted"   
+      
+      That's because, in this scenario, Realm creates the Item locally, syncs it with the 
+      backend, and then reverts the write because it doesn't meet the 
+      subscription rules.
+
+      You'll note, too, that the document you initially created is not synced, 
+      because it has a priority of ``null``. If you want this Item to be synced, 
+      you can edit the document in the Atlas UI and add a value for the priority 
+      field.
+
+Conclusion
+----------
+Adding a property to an existing Realm object is a non-breaking change, and 
+Development Mode ensures that the schema change is reflected server-side. 
+
+What's Next?
+------------
+
+- Read our :ref:`Kotlin SDK <kotlin-intro>` documentation.
+- Find developer-oriented blog posts and integration tutorials on the 
+  `MongoDB Developer Hub <https://developer.mongodb.com>`__.
+- Join the `MongoDB Community forum <https://developer.mongodb.com/community/forums/c/realm/9>`__ 
+  to learn from other MongoDB developers and technical experts.
+- Explore engineering and expert-provided `example projects <https://www.mongodb.com/docs/realm/example-projects/>`__.
+
+.. include:: /includes/tutorial-request-for-feedback-note.rst

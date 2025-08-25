@@ -1,0 +1,823 @@
+.. meta::
+   :robots: nosnippet
+
+.. _custom-metadata:
+
+===========================
+Define Custom User Metadata
+===========================
+
+.. meta::
+   :description: Learn how to define custom user metadata and read user metadata from authentication providers.
+   :keywords: code example
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: json, javascript/typescript
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can associate custom metadata with each user of your App. For
+example, you might store a user's preferred language, date of birth, or
+any other information that you want to associate with the user.
+
+You can source the metadata for a user from two sources:
+
+- A collection in MongoDB Atlas that stores custom user data. You can
+  associate each user with a document in the collection by their user
+  ID. You can store arbitrary data in each document.
+
+- An authentication provider. If the provider uses JSON Web Tokens, such
+  as Google, Facebook, or a custom provider, you can define metadata
+  fields in the provider configuration that associate data from the
+  user's JWT with their user account.
+
+.. _custom-user-data:
+
+Custom User Data
+----------------
+
+You can store arbitrary data about your application users in a MongoDB
+collection. Your App maps each user to a document in the collection by
+querying a specific field for the user's ID. When a user authenticates,
+your App looks up the user's data and includes it in their access token.
+
+Consider a user with the ID ``"63ed2dbe5960df2af7fd216e"``. If your
+custom user data collection was set up to store the user's ID in the
+``userId`` field, the user would map to the following document:
+
+.. code-block:: json
+   :emphasize-lines: 3
+
+   {
+     "_id": "63ed2e4fb7f367c92578e526",
+     "user_id": "63ed2dbe5960df2af7fd216e",
+     "preferences": {
+       "preferDarkMode": true
+     },
+     "dateOfBirth": "1989-03-11T00:00:00.000Z"
+   }
+
+When you use custom user data, keep the following things in mind:
+
+- **Store One Document Per User**: Documents that contain user data must
+  include the user's ID in a specific field. If multiple documents
+  specify the same user's ID, App Services only exposes the data from
+  the document that was inserted first.
+
+- **Keep Custom User Data Small**: The user's full custom user document
+  is included in their access token. In general, aim to keep custom user
+  data documents small (say, less than 16KB). Other services might limit
+  the HTTP header size, which means that larger custom user data objects
+  can cause integration issues.
+
+- **Custom Data May Be Stale**: A user's custom data is *sourced* from a
+  MongoDB collection but is stored in and read from a user's
+  authentication access token. If a user has a valid access token when
+  the underlying document changes, their custom data in that session
+  does not update until they refresh their access token or
+  re-authenticate.
+
+Create and Manage Custom User Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You are responsible for managing documents in the custom user data
+collection. Depending on your use case, you may:
+
+- Automatically create a document for each user when they register for
+  your application using a :ref:`user creation function
+  <user-creation-function>`. This function runs before the user is
+  issued an access token, so the data you add will be in the access
+  token on their first login.
+
+- Use an :ref:`authentication trigger <authentication-triggers>` to
+  update a user's custom data when they register or log in and to delete
+  their data if their account is deleted. Triggers run asynchronously
+  and may finish after the user's access token is created.
+
+- Use a :ref:`scheduled trigger <scheduled-triggers>` to periodically
+  update or delete custom user data.
+
+- Manually create, update, and delete documents in the collection using
+  standard CRUD operations from a Function, an Atlas Device SDK, a MongoDB
+  driver, or MongoDB Compass.
+
+Secure Custom User Data
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If your App's custom user data includes personal or private user
+information, you should restrict access to the custom user data
+collection. Consider using one of the following permission models to
+restrict read and write access to privileged users only:
+
+- A user may read or write their own custom user data document. Deny
+  read and write access to all other documents.
+
+  .. example::
+
+     The following collection configuration has one role that grants a
+     user read and write access to a document if and only if their ID is
+     contained in the document's ``user_id`` field.
+
+     .. code-block:: json
+        :caption: A custom user data collection configuration
+
+        {
+          "database": "<Database Name>",
+          "collection": "<Collection Name>",
+          "roles": [
+            {
+              "name": "ThisUser",
+              "apply_when": { "user_id": "%%user.id%%" },
+              "insert": false,
+              "read": true,
+              "write": true,
+              "search": false,
+              "delete": false
+            }
+          ],
+          "filters": []
+        }
+
+- No user may read or write any custom user data documents. Instead,
+  use a system function to manage custom user data on behalf of users.
+
+.. _user-creation-function:
+
+User Creation Function
+~~~~~~~~~~~~~~~~~~~~~~
+
+You can define a Function that runs every time a new user successfully
+registers but before their new user account is created. If the function
+throws or otherwise errors, the user account creation fails. This lets
+you ensure that users always have custom data associated with them once
+created.
+
+The function receives a :ref:`user metadata object <user-objects>` as
+its only argument. You can use this to create a new custom user data
+document for the user.
+
+.. code-block:: javascript
+
+   exports = async function onUserCreation(user) {
+     const customUserDataCollection = context.services
+       .get("mongodb-atlas")
+       .db("myapp")
+       .collection("users");
+     try {
+       await customUserDataCollection.insertOne({
+         // Save the user's account ID to your configured user_id_field
+         user_account_id: user.id,
+         // Store any other user data you want
+         favorite_color: "blue",
+       });
+     } catch (e) {
+       console.error(`Failed to create custom user data document for user:${user.id}`);
+       throw e
+     }
+   }
+
+.. tip::
+
+   Once you've configured a user creation function, App Services
+   prevents you from deleting the function. If you want to delete the
+   function, first change your custom user data configuration to use a
+   different user creation function.
+
+.. _enable-custom-user-data:
+.. _enable-custom-user-data-procedure:
+
+Enable Custom User Data
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      You can configure and enable custom user data in the App Services
+      Admin UI.
+
+      .. procedure::
+
+         .. step:: Navigate to the Custom User Data Configuration Screen
+
+            Click :guilabel:`App Users` in the left navigation menu.
+            Then, select the :guilabel:`User Settings` tab and find the
+            :guilabel:`Custom User Data` section.
+
+         .. step:: Enable Custom User Data
+
+            Click the :guilabel:`Enable Custom User Data` toggle to set
+            it to :guilabel:`On`.
+
+            .. figure:: /images/enable-custom-user-data-toggle-realm-ui.png
+               :alt: The toggle button to enable custom user data in the App Services UI, set to On.
+               :width: 750px
+               :lightbox:
+
+         .. step:: Specify the Custom User Data Collection
+
+            You must store the custom data for your application's users in a
+            single collection of a linked MongoDB Atlas cluster. To configure your
+            application to read user data from this collection, you need to
+            specify the following values:
+
+            - :guilabel:`Cluster Name`: The name of a :doc:`linked MongoDB cluster
+              </mongodb>` that contains the custom user data collection.
+
+            - :guilabel:`Database Name`: The name of the MongoDB database that
+              contains the custom user data collection.
+
+            - :guilabel:`Collection Name`: The name of the MongoDB collection that
+              contains custom user data.
+
+            .. figure:: /images/custom-user-data-config-realm-ui.png
+               :alt: Input boxes for the collection and user id field in the App Services UI.
+               :width: 750px
+               :lightbox:
+
+         .. step:: Specify the User ID Field
+
+            Every document in the custom user data collection has a field that
+            maps it to a specific application user. The field must be of type
+            ``ObjectID`` or a ``string`` type that represents that ObjectID.
+            This field must be present in every document that maps to a user.
+
+            Specify the name of the field that contains each user's ID in the
+            :guilabel:`User ID Field` input.
+
+            .. note::
+
+               If two documents contain the same user ID, one stored as a string
+               and the other as an ObjectID, App Services
+               maps the document with the string type to the user.
+
+         .. step:: Define a User Creation Function (Optional)
+
+            If you want to use a :ref:`user creation Function
+            <user-creation-function>`, define it in the inline editor or
+            reference an existing function by name.
+
+         .. step:: Deploy the Updated Application
+
+            Once you have configured the custom user data collection, you can
+            make custom user data available to client applications by deploying
+            your application. To deploy a draft application from the App Services UI:
+
+            1. Click :guilabel:`Deploy` in the left navigation menu.
+
+            2. Find the draft in the deployment history table and then click
+               :guilabel:`Review & Deploy Changes`.
+
+            3. Review the diff of changes and then click :guilabel:`Deploy`.
+
+            Once the application successfully deploys, App Services begins to associate
+            custom data with users. When a user logs in, App Services automatically
+            queries the custom user data collection for a document where the
+            specified :guilabel:`User ID Field` contains the user's ID. If a
+            document matches, App Services exposes the data in the document in the
+            ``custom_data`` field of that user's :ref:`user object
+            <user-objects>`.
+
+   .. tab::
+      :tabid: cli
+
+      .. procedure::
+
+         .. step:: Pull the Latest Version of Your App
+
+            To define custom user data with {+cli-bin+}, you need a local copy of your
+            application's configuration files.
+
+            To pull a local copy of the latest version of your app, run the following:
+
+            .. code-block:: bash
+
+               {+cli-bin+} pull --remote="<Your App ID>"
+
+            .. tip::
+
+               You can also download a copy of your application's configuration files from
+               the :guilabel:`Deploy > Export App` screen in the App Services UI.
+
+         .. step:: Configure Custom User Data
+
+            You must store the custom data for your application's users in a single
+            collection of a :ref:`linked Atlas cluster <link-a-data-source>`. Every
+            document in the collection should include a specific field that contains the
+            user ID of the App Services user that it describes.
+
+            To configure your application to read user data from this collection, define a
+            :ref:`custom user data configuration document <config-custom-user-data>` in
+            the ``/auth/custom_user_data.json``:
+
+            .. code-block:: javascript
+               :caption: /auth/custom_user_data.json
+
+               {
+                 "enabled": <Boolean>,
+                 "mongo_service_name": "<MongoDB Data Source Name>",
+                 "database_name": "<Database Name>",
+                 "collection_name": "<Collection Name>",
+                 "user_id_field": "<User ID Field Name>",
+                 "on_user_creation_function_name": "<Function Name>"
+               }
+
+
+         .. step:: Deploy the Custom User Data Configuration
+
+            Once you've configured custom user data, you can push the updated config to
+            your remote app. {+cli+} immediately deploys the update on push.
+
+            .. code-block:: bash
+
+               {+cli-bin+} push --remote="<Your App ID>"
+
+   .. tab::
+      :tabid: api
+
+      .. step:: Authenticate a MongoDB Atlas User
+
+         .. include:: /includes/api-authenticate-instructions.rst
+
+      .. step:: Configure Custom User Data
+
+         Send a request to the :admin-api-endpoint:`Configure Custom
+         User Data <operation/adminSetCustomUserDataConfig>`
+         endpoint.
+
+         Make sure to include your Admin API ``access_token``, the
+         ``groupId`` of the Atlas project containing your App, and
+         the App's internal ``appId`` hex string:
+
+         .. code-block:: shell
+
+            curl --request PATCH 'https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/custom_user_data' \
+              --header 'Authorization:  Bearer <access_token>' \
+              --header 'Content-Type: application/json' \
+              --data '{
+                "mongo_service_id": "<MongoDB Data Source ID>",
+                "database_name": "<Database Name>",
+                "collection_name": "<Collection Name>",
+                "user_id_field": "<User ID Field Name>",
+                "on_user_creation_function_id": "<User Creation Function ID>",
+                "enabled": true
+              }'
+
+         If you successfully configure custom user data, App Services
+         returns a ``204`` response.
+
+Access Custom User Data from a Client Application
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For code examples that demonstrate how to access and update custom user
+data from the client application, see the documentation for the
+Atlas Device SDKs:
+
+- :ref:`C++ SDK <cpp-custom-user-data>`
+- :ref:`Flutter SDK <flutter-custom-user-data>`
+- :ref:`Java SDK <java-access-custom-user-data>`
+- :ref:`Kotlin SDK <kotlin-custom-user-data>`
+- :ref:`.NET SDK <dotnet-custom-user-data>`
+- :ref:`Node SDK <node-access-custom-user-data>`
+- :ref:`React Native SDK <react-native-access-custom-user-data>`
+- :ref:`Swift SDK <ios-custom-user-data>`
+- :ref:`Web SDK <web-access-custom-user-data>`
+
+Best Practices for Modifying Permissions in Custom User Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`Permissions <permissions>` will automatically refresh for a user when you 
+change their custom user data document. Their :ref:`user session <user-sessions>` 
+will terminate and then refresh automatically. 
+
+For user permissions to refresh automatically, the custom user data 
+documents should be stored in a normal collection and
+not in a :manual:`view </core/views/>` or :manual:`time series </core/timeseries-collections/>` collection. 
+
+For permissions to refresh automatically, don't delete a custom user data document. 
+Rather, unset all the non-ID fields in the document. 
+
+.. example::
+
+  Consider the following document where the user is assigned read and write
+  permissions: 
+
+  .. code-block:: json
+    :caption: Custom user data document
+
+    {
+      "_id": "63ed2erealobjectid78e526",
+      "user_id": "63ed2dbe5960df2af7fd216e",
+      "canRead": true,
+      "canWrite": true,
+    }
+
+  The ``canRead`` and ``canWrite`` fields can help determine the roles for this document's
+  collection. For example, the ``canRead`` field is used to determine eligibility 
+  for the following ``readAllRole`` in the ``apply_when`` expression: 
+
+  .. code-block:: json
+    :caption: Custom user data document
+
+    {
+      "name": "readAllRole"
+      "apply_when": {"%%user.custom_data.canRead": true},
+      ...
+    }
+
+  Say you would like to remove the user's document
+  because they haven't been active for an extended period of time.
+  First, you need to correctly remove the employee's permissions, by unsetting
+  the non-ID fields. The document would then look like:
+
+  .. code-block:: json
+    :caption: Correctly updated custom user data document
+
+    {
+      "_id": "63ed2erealobjectid78e526",
+      "user_id": "63ed2dbe5960df2af7fd216e"
+    } 
+
+  Unsetting the non-ID field allows App Services to automatically
+  refresh the user's permissions according to the roles. 
+  You can now safely delete the document if necessary.
+
+.. _auth-provider-metadata:
+
+Authentication Provider Metadata
+--------------------------------
+
+Atlas App Services can read user metadata from authentication providers. Then,
+App Services exposes each user's data in a field of their :ref:`user
+object <user-objects>`. For example, you might want to access a user's name,
+email, birthday, or gender.
+
+You can configure App Services to request metadata with the access token
+when users log in. You can access that data from the logged-in user's
+object with a client SDK.
+
+You can define the metadata to request when you configure authentication
+providers. Specify optional metadata fields that you want to access through
+the user's account. These metadata fields vary depending on provider.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Provider
+     - Metadata fields
+
+   * - Facebook
+     - - ``name``
+       - ``first_name``
+       - ``last_name``
+       - ``picture``
+       - ``gender``
+       - ``birthday``
+       - ``min_age``
+       - ``max_age``
+       - ``email``
+
+   * - Google
+     - - ``name``
+       - ``first_name``
+       - ``last_name``
+       - ``picture``
+       - ``email``
+
+   * - Custom JWT
+     - Any field in the JWT as specified by the Custom JWT provider's
+       :ref:`metadata fields
+       <custom-jwt-authentication-configuration-metadata-fields>`
+       configuration.
+
+.. important:: Avoid Stale Authentication Provider Metadata
+
+  If a user's metadata is updated after the access token is issued, requests
+  using the previously created access token will not have the newly
+  updated metadata. Their user metadata will update when they refresh
+  their access token or re-authenticate.
+
+.. note:: Security and Authentication Provider Metadata
+
+  Authentication provider metadata can be externally-defined by clients and
+  external authentication providers and should be regarded with caution. You should
+  not rely solely on authentication provider metadata for security-related
+  decisions, such as using this metadata in rule expressions for data access
+  permissions.
+
+.. _enable-user-metadata-procedure:
+.. _configure-user-metadata-on-the-backend:
+
+Configure Authentication Provider Metadata
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      .. procedure::
+
+         .. step:: Navigate to the Authentication Provider Configuration Screen
+
+            You can configure and enable user metadata in the App Services UI. To
+            get to the configuration page:
+
+            - Click :guilabel:`Authentication` in the left navigation menu.
+            - Select the :guilabel:`Authentication Providers` tab.
+            - Press the :guilabel:`EDIT` button for the provider whose metadata
+              you want to configure.
+
+         .. step:: Configure User Metadata
+
+            **Google or Facebook**
+
+            Select the checkboxes next to the metadata fields you want to enable.
+
+            .. figure:: /images/configure-user-metadata-google-facebook-realm-ui.png
+               :alt: The checkboxes to enable user metadata fields in the App Services UI
+               :width: 750px
+               :lightbox:
+
+            **Custom JWT Authentication**
+
+            You can specify the metadata fields that your identity provider supports.
+            After you press the :guilabel:`Add Field` button, define:
+
+            - The path
+            - The field name
+            - Whether the field is optional or required
+
+            For more details, see: :ref:`JWT metadata fields
+            <custom-jwt-authentication-configuration-metadata-fields>`.
+
+            .. figure:: /images/configure-user-metadata-custom-jwt-realm-ui.png
+               :alt: Add metadata required/optional, path, and name in the App Services UI
+               :width: 750px
+               :lightbox:
+
+            After you configure the metadata you want to access, press
+            the :guilabel:`Save Draft` button.
+
+         .. step:: Deploy the Updated Application
+
+            After you update the metadata configuration, you must deploy your
+            application. To deploy a draft application from the App Services UI:
+
+            1. Click :guilabel:`Deploy` in the left navigation menu.
+
+            2. Find the draft in the deployment history table and then click
+               :guilabel:`Review & Deploy Changes`.
+
+            3. Review the diff of changes and then click :guilabel:`Deploy`.
+
+            Once the application successfully deploys, App Services begins to associate
+            metadata with users. When a user logs in, App Services requests user
+            permission to access the requested metadata. If the user approves,
+            App Services exposes the data in that user's :ref:`user object
+            <user-objects>`.
+
+   .. tab::
+      :tabid: cli
+
+      .. procedure::
+
+         .. step:: Pull the Latest Version of Your App
+
+            To update your app with {+cli-bin+}, you need a local copy of its
+            configuration files.
+
+            To pull a local copy of the latest version of your app, run the following:
+
+            .. code-block:: bash
+
+               {+cli-bin+} pull --remote="<Your App ID>"
+
+            .. tip::
+
+               You can also download a copy of your application's configuration files from
+               the App Services UI. Go to the :guilabel:`Deploy > Export App` screen from
+               the App Dashboard.
+
+
+         .. step:: Configure Metadata Fields
+
+            You can find authentication provider :ref:`metadata_fields
+            <config-auth-providers>` for your app in ``/auth/providers.json``.
+            Update this array to request user metadata from the authentication provider.
+
+            **Google or Facebook**
+
+            This array resembles:
+
+            .. code-block:: javascript
+               :caption: /auth/providers.json
+
+               { ...other config details...
+                 "metadata_fields": [
+                   {
+                     "required": false,
+                     "name": "name"
+                   },
+                   {
+                     "required": false,
+                     "name": "gender"
+                   }
+                 ]
+               }
+
+            **Custom JWT authentication**
+
+            The metadata_fields array has an additional property, ``field_name``.
+            In custom JWT authentication, ``name`` represents the path to the field.
+            The ``field_name`` represents the name of the field.
+
+            .. code-block:: javascript
+               :caption: /auth/providers.json
+
+               { ...other config details...
+                 "metadata_fields": [
+                   {
+                     "required": true,
+                     "name": "user.name",
+                     "field_name": "name"
+                   },
+                   {
+                     "required": false,
+                     "name": "user.favoriteColor",
+                     "field_name": "favoriteColor"
+                   }
+                 ]
+               }
+
+         .. step:: Deploy the Custom User Data Configuration
+
+            Once you've configured custom user data, you can push the updated config to
+            your remote app. {+cli+} immediately deploys the update on push.
+
+            .. code-block:: bash
+
+               {+cli-bin+} push --remote="<Your App ID>"
+
+   .. tab::
+      :tabid: api
+
+      .. procedure::
+
+        .. step:: Authenticate a MongoDB Atlas User
+
+          .. include:: /includes/api-authenticate-instructions.rst
+
+        .. step:: Configure Metadata Fields
+
+          Send a request to the :admin-api-endpoint:`Update an
+          authentication provider <operation/adminUpdateAuthProvider>`
+          endpoint. In the request body, define ``metadata_fields``
+          for the provider.
+
+          Make sure to include your Admin API ``access_token``, the
+          ``groupId`` of the Atlas project containing your App, the
+          App's internal ``appId`` hex string, and the ``_id`` value
+          of the authentication provider:
+
+          .. tabs::
+
+              .. tab:: Facebook OAuth
+                :tabid: facebook
+
+                .. code-block:: shell
+                    :emphasize-lines: 15-25
+
+                    curl --request PATCH 'https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/auth_providers/{providerId}' \
+                      --header 'Authorization:  Bearer <access_token>' \
+                      --header 'Content-Type: application/json' \
+                      --data '{
+                        "_id": "<Provider ID>",
+                        "name": "oauth2-facebook",
+                        "type": "oauth2-facebook",
+                        "redirect_uris": ["https://example.com/"],
+                        "config": {
+                          "clientId": "<Facebook Client ID>"
+                        },
+                        "secret_config": {
+                          "clientSecret": "<Facebook Client Secret Name>"
+                        },
+                        "metadata_fields": [
+                          { "required": false, "name": "name" },
+                          { "required": true, "name": "first_name" },
+                          { "required": true, "name": "last_name" },
+                          { "required": false, "name": "picture" },
+                          { "required": false, "name": "gender" },
+                          { "required": false, "name": "birthday" },
+                          { "required": false, "name": "min_age" },
+                          { "required": false, "name": "max_age" },
+                          { "required": false, "name": "email" }
+                        ],
+                        "disabled": false
+                      }'
+
+              .. tab:: Google OAuth
+                :tabid: google
+
+                .. code-block:: shell
+                    :emphasize-lines: 15-25
+
+                    curl --request PATCH 'https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/auth_providers/{providerId}' \
+                      --header 'Authorization:  Bearer <access_token>' \
+                      --header 'Content-Type: application/json' \
+                      --data '{
+                        "_id": "<Provider ID>",
+                        "name": "oauth2-google",
+                        "type": "oauth2-google",
+                        "redirect_uris": ["https://example.com/"],
+                        "config": {
+                          "clientId": "<Google Client ID>"
+                        },
+                        "secret_config": {
+                          "clientSecret": "<Google Client Secret Name>"
+                        },
+                        "metadata_fields": [
+                          { "required": false, "name": "name" },
+                          { "required": true, "name": "first_name" },
+                          { "required": true, "name": "last_name" },
+                          { "required": false, "name": "picture" },
+                          { "required": false, "name": "gender" },
+                          { "required": false, "name": "birthday" },
+                          { "required": false, "name": "min_age" },
+                          { "required": false, "name": "max_age" },
+                          { "required": false, "name": "email" }
+                        ],
+                        "disabled": false
+                      }'
+
+              .. tab:: Custom JWT
+                :tabid: custom-jwt
+
+                .. code-block:: shell
+                    :emphasize-lines: 8-14
+
+                    curl --request PATCH 'https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/auth_providers/{providerId}' \
+                      --header 'Authorization:  Bearer <access_token>' \
+                      --header 'Content-Type: application/json' \
+                      --data '{
+                        "_id": "<Provider ID>",
+                      "name": "custom-token",
+                      "type": "custom-token",
+                      "metadata_fields": [
+                        {
+                          "required": true,
+                          "name": "jwt.field.path",
+                          "field_name": "metadataFieldName"
+                        }
+                      ],
+                      "config": {
+                        "audience": [],
+                        "requireAnyAudience": false,
+                        "signingAlgorithm": "HS256",
+                        "useJWKURI": false
+                      },
+                      "secret_config": {
+                        "signingKeys": [
+                          "<JWT Signing Key>"
+                        ]
+                      },
+                      "disabled": true
+                      }'
+
+          If you successfully configure the provider's metadata
+          fields, App Services returns a ``204`` response.
+
+
+
+.. note:: Tips for Users with Multiple Linked Authentication Providers
+
+  - To ensure the most up-to-date metadata, users should re-authenticate after
+    switching to a different authentication provider. Failure to do so may result
+    in outdated metadata reflected in the :guilabel:`Users` table in
+    the UI's :guilabel:`App Users` page and for requests using authentication providers.
+  - If a user switches between authentication providers, it may take up to 30 minutes
+    for metadata to propagate. The request is always guaranteed to have the
+    most up-to-date metadata associated with the authentication provider used.
+
+Access User Metadata from a Client Application
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For code examples that demonstrate how to access user metadata
+data from the client application, see the documentation for the Atlas Device SDKs:
+
+- :ref:`Flutter SDK <flutter-user-metadata>`
+- :ref:`.NET SDK <dotnet-user-metadata>`
+- :ref:`Kotlin SDK <kotlin-user-metadata>`
+- :ref:`Node SDK <node-user-metadata>`
+- :ref:`Swift SDK <ios-user-metadata>`

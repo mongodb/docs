@@ -1,0 +1,541 @@
+.. meta::
+   :robots: nosnippet
+
+.. _roles:
+.. _permissions:
+.. _flexible-sync-roles:
+.. _flexible-sync-rules-and-permissions:
+.. _sync-permissions:
+.. _sync-rules:
+
+======================
+Role-based Permissions
+======================
+
+.. default-domain:: mongodb
+
+.. meta::
+  :description: Learn how to define data access permissions using Role-based Permissions in App Services. 
+
+.. facet::
+  :name: genre 
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You secure your App's data by defining **roles** that are automatically assigned
+to incoming user requests and Device Sync sessions. Each role has fine-grained
+data access permissions and dynamic conditions that determine when the role
+applies.
+
+For examples of how you might configure permissions for common scenarios with
+Device Sync, see the :ref:`flexible-sync-permissions-guide`.
+
+What are Permissions?
+~~~~~~~~~~~~~~~~~~~~~
+
+A **permission** is a status that Atlas App Services assigns to individual users
+to control what they can and cannot do with your app's data. App Services uses
+both document-level and field-level permissions:
+
+- :ref:`Document-level permissions <document-level-permissions>` 
+  control whether a user can insert, delete, modify,
+  and search for a specific document in a MongoDB collection. 
+
+- :ref:`Field-level permissions <field-level-permissions>`
+  control whether a user can read or write the data in
+  specific fields of a document. 
+
+.. _document-level-permissions:
+
+Document-Level Permissions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A role's document-level permissions determine which actions that affect
+the entire document can be performed. These permissions always apply to the 
+entire document regardless of the content. A role can have the
+following document-level permissions:
+
+- **Insert**: You can insert new documents.
+- **Delete**: You can delete existing documents.
+- **Search**: You can search for the document using :ref:`Atlas Search <fts-top-ref>`.
+
+.. _field-level-permissions:
+
+Field-Level Permissions
+~~~~~~~~~~~~~~~~~~~~~~~
+
+A role's field-level permissions determine whether a user can read or
+write fields within the document. These permissions only affect the 
+field they apply to, so a user can have read or write access to only 
+a subset of the entire document.
+
+You can define field-level permissions for specific fields and
+default read/write permissions for any additional fields that you 
+don't explicitly define.
+
+Read Permissions Flowchart
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following diagram shows how App Services determines whether a user can
+read a given document:
+
+.. figure:: /images/rules-read.png
+   :alt: Read permissions flowchart
+   :lightbox:
+
+Write Permissions Flowchart
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following diagram shows how App Services determines whether a user can
+write a given document:
+
+.. figure:: /images/rules-write.png
+   :alt: Write permissions flowchart
+   :lightbox:
+
+Roles
+-----
+
+A **role** is a named set of permissions that a user may have for documents in a
+MongoDB collection. A role has an "apply when" :ref:`expression <expressions>`
+that determines whether App Services should assign the role to a user. Roles
+also have a set of document- and field-level permissions that a user has when
+assigned the role.
+
+App Services only commits operations that a user is authorized to do based on
+their assigned role. If a role does not have permission to read a document or
+some of its fields, App Services omits the document or fields from the results.
+
+.. example::
+
+   Consider a collection named ``employees`` where each employee has their own
+   document with all of their employment data. This collection might have two
+   roles: **Employee** and **Manager**. We're not using Device Sync, so App
+   Services selects a role on a per-document basis.
+
+   - If a user requests their own document, their role is **Employee**. An
+     employee can read and write their own data but can't create or delete their
+     own documents.
+
+   - If a user requests a document for someone whose name is listed in the
+     user's ``manages`` arrays, their role is **Manager**. A manager can read
+     and write their direct reports' data and can create and delete their
+     documents.
+
+   - If a user is neither an **Employee** nor a **Manager** for a given
+     document, then they have no role and cannot read, write, or search that
+     document.
+   
+   .. tabs::
+      
+      .. tab:: Roles
+         :tabid: roles
+         
+         .. code-block:: json
+            
+            
+            {
+              "name": "Manager",
+              "apply_when": { "email": "%%user.custom_data.manages" },
+              "insert": true,
+              "delete": true,
+              "read": true,
+              "write": true,
+              "search": true,
+              "fields": {},
+              "additional_fields": {
+                "read": true,
+                "write": true
+              }
+            }
+            {
+              "name": "Employee",
+              "apply_when": { "email": "%%user.data.email" },
+              "insert": false,
+              "delete": false,
+              "read": true,
+              "write": true,
+              "search": true,
+              "fields": {},
+              "additional_fields": {
+                "read": true,
+                "write": true
+              }
+            }
+      
+      .. tab:: Employee Documents
+         :tabid: documents
+         
+         .. code-block:: json
+            
+            {
+              "_id": ObjectId(...),
+              "employeeId": "0528",
+              "name": "Phylis Lapin",
+              "team": "sales",
+              "email": "phylis.lapin@dundermifflin.com",
+              "manages": []
+            }
+            {
+              "_id": ObjectId(...),
+              "employeeId": "0713",
+              "name": "Stanley Hudson",
+              "team": "sales",
+              "email": "stanley.hudson@dundermifflin.com",
+              "manages": []
+            }
+            {
+              "_id": ObjectId(...),
+              "employeeId": "0865",
+              "name": "Andy Bernard",
+              "team": "sales",
+              "email": "andy.bernard@dundermifflin.com",
+              "manages": [
+                "phylis.lapin@dundermifflin.com",
+                "stanley.hudson@dundermifflin.com"
+              ]
+            }
+
+How App Services Assigns Roles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+App Services assigns roles at different times depending on whether you're using
+:ref:`Device Sync (Flexible Mode) <sync>` or not.
+
+When using Device Sync, App Services assigns roles at the start of a Sync
+session for each collection to be synced. A Sync session is the period of time
+between opening and closing a Sync connection.
+
+When not using Device Sync, App Services assigns roles on a per-document,
+per-request basis.
+
+Whether using Device Sync or not, you can define a set of roles that are
+specific to collections and default roles that apply to any other unspecified
+collection. To assign a role, App Services evaluates each role's "apply when"
+expression in the order that you specified them. The first role whose "apply
+when" expression evaluates to true becomes the assigned role. If no role
+matches, access is denied.
+
+The set of evaluated roles for a given request or Sync session depends on the
+collection the user is accessing. If you defined any collection-level roles for
+the collection, the collection-level roles are evaluated. Otherwise, the data
+source's default roles, if any, are evaluated.
+
+App Services does not "fall back" to default roles if no collection-level role
+applies. If any collection-level role is defined, only collection-level roles
+are evaluated. Default roles are evaluated if and only if no collection-level
+roles were defined.
+
+.. figure:: /images/rules-role-assignment.png
+   :alt: Role Assignment Flowchart
+   :lightbox:
+
+Without Device Sync
+~~~~~~~~~~~~~~~~~~~
+
+When not using Device Sync, App Services dynamically assigns roles for every
+document. The user is assigned a separate role, or no role, for each document
+that matches the incoming query. 
+
+First, your App evaluates and applies :ref:`filters <filters>` and then runs the
+query.
+
+.. example::
+   
+   The following request causes App Services to evaluate a role for every document in the
+   ``restaurants`` collection where the ``city`` field is set to ``"Chicago"``:
+   
+   .. code-block:: javascript
+      
+      db.restaurants.updateMany(
+        { "city": "Chicago" },
+        { "$set": { "city": "Chicago, IL" } }
+      );
+
+For each document returned by the query, your App evaluates possible
+roles in :ref:`role order <role-order>` and assigns the first applicable
+role, if any. A role applies to a given document if its "apply when"
+:ref:`expression <expressions>` evaluates to ``true`` when run against
+the document.
+
+.. example::
+   
+   An employee will always be on their own team, so both the **Employee** and
+   **Teammate** roles apply to them for their own document. However, they can
+   use only one role, so we want to use **Employee** because it's more
+   specific.
+   
+   To configure this, specify **Employee** earlier than **Teammate** in the
+   collection's role definitions:
+   
+   .. tabs-realm-admin-interfaces:: 
+      
+      .. tab::
+         :tabid: ui
+         
+         .. figure:: /images/role-order.png
+            :alt: Role definitions that specify Manager first, Employee second, and Teammate third.
+      
+      .. tab::
+         :tabid: cli
+         
+         .. code-block:: json
+            
+            {
+              "database": "<Database Name>",
+              "collection": "<Collection Name>",
+              "roles": [
+                { "name": "Manager", ... },
+                { "name": "Employee", ... },
+                { "name": "Teammate", ... }
+              ]
+            }
+
+With Device Sync
+~~~~~~~~~~~~~~~~
+
+When using Device Sync, App Services assigns roles at the beginning of each
+Flexible Sync session for each synced collection. The role determines which
+permissions apply to each collection for the duration of a session.
+
+App Services assigns at most one role per collection. If you did not specify
+roles for a given synced collection, App Services uses the default roles
+instead. If no role applies for a collection, the user cannot sync (or read or
+write) any entries in that collection.
+
+A role stays assigned for the duration of the session. If something relevant to
+a user's session role changes in the middle of the user's session, the user is
+**not** assigned an updated role until they start a new session. For example, if
+the user's metadata or the role's "apply when" expression changes, the user
+continues to use the existing role for that collection until the next time they
+start a session.
+
+There are some special considerations when using Device Sync with regard to the
+permissions system. See :ref:`device-sync-compatibility`.
+
+For a guide to setting up Flexible Sync with common permissions models, see the
+:ref:`flexible-sync-permissions-guide`.
+
+
+.. _apply-when-expressions:
+
+Apply When Expressions
+~~~~~~~~~~~~~~~~~~~~~~
+
+A role's "apply when" expression is a :ref:`rule expression <expressions>` that
+determines whether the role should be assigned.
+
+You can use expression variables to make roles dynamic. For example, you can use the
+:json-expansion:`%%user` expansion to refer to the specific user that issued the
+request. This lets you customize your data access permissions on a per-user
+basis.
+
+When not using Device Sync, you can refer to the current document for which a
+role is being assigned. For example, you can use :json-expansion:`%%root`. This
+lets you customize your data access permissions on a per-document basis.
+
+.. _document-filters-expressions:
+
+Document Filters
+~~~~~~~~~~~~~~~~
+
+The role's ``document_filters`` expressions determine whether the role's
+subsequent document- and field-level permissions may be evaluated at all. This
+is required for Device Sync.
+
+Note: App Services evaluates document filters on a per-document basis. These are
+not to be confused with the top-level query :ref:`filters <filters>`.
+
+.. _role-order:
+
+Role Order
+~~~~~~~~~~
+
+The roles for a given collection each have a position that determines
+the order in which they are evaluated and applied. Each role's apply
+when expression is evaluated in role order until a role applies or no
+roles remain.
+
+A user may only have one role per document in a given query. Role order
+determines which role applies in the event that multiple roles' "apply when"
+expressions are true. Therefore, when defining roles, put the most specific
+roles first.
+
+Sync Compatibility
+~~~~~~~~~~~~~~~~~~
+
+If Device Sync (Flexible Mode) is enabled, an assigned role must be **sync
+compatible**. See :ref:`sync-compatible-roles` for details.
+
+.. _define-roles-and-permissions:
+.. _define-roles:
+
+Define Roles & Permissions
+--------------------------
+
+You can configure your app's data access rules from the App Services UI or by
+deploying configuration files with {+cli+}:
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      1. Click :guilabel:`Rules` in the left navigation menu and then select a
+         collection from the data source's collection list. You can also select
+         :guilabel:`Default roles and filters` to configure default rules for
+         the entire cluster.
+      
+         If no roles are defined yet, you'll be prompted to create a new
+         one. Otherwise you'll see an ordered list of existing roles.
+         
+      #. Click :guilabel:`Add role` to define a new role. You can use a preset
+         role as a starting point or click :guilabel:`Skip (start from
+         scratch)`.
+         
+      #. Give the role a name. The name can be anything you want but
+         must be unique within a given collection. Consider using names
+         that describe the user and/or their relationship to the data. For 
+         example, ``Admin`` or ``Owner``.
+      
+      #. Define an "apply when" expression that determines when a given user has
+         the role for a given document.
+
+      #. Define :ref:`document-level permissions <document-level-permissions>`
+         for the role.
+            
+      #. Define :ref:`document filters <document-filters-expressions>` for the
+         role. This is required for Device Sync (Flexible Mode).
+
+      #. Use the drop-down to select :ref:`field-level permissions
+         <field-level-permissions>` for the role. If you select
+         :guilabel:`Specify field-level permissions`, enter the field names you
+         wish to define permissions for. 
+         
+         For each field you name and for :guilabel:`Additional Fields`, specify
+         permissions by selecting either :guilabel:`None`, :guilabel:`Read`, or
+         :guilabel:`Read & Write`.
+      
+      #. Save the role.
+
+      #. If a collection has more than one role assigned, you can modify
+         the :ref:`role order <role-order>` by clicking the arrows on
+         each role.
+     
+   .. tab::
+      :tabid: cli
+      
+      1. Pull the latest version of your app.
+         
+         .. code-block:: bash
+
+            {+cli-bin+} pull --remote="<Your App ID>"
+      
+      2. Define :ref:`roles and filters <config-collection-rules>` for one or
+         more collections. You can also define :ref:`default roles and filters
+         <config-default-rules>` that apply to any unconfigured collection. See
+         :ref:`Rule Configuration <config-rule>` for details.
+
+         .. tabs::
+
+            .. tab:: Collection Rules
+               :tabid: collection-rules
+
+               .. code-block:: json
+                  :caption: /data_sources/<data source>/<database>/<collection>/rules.json
+                  
+                  {
+                    "database": "<Database Name>",
+                    "collection": "<Collection Name>",
+                    "roles": [
+                      {
+                        "name": "<Role Name>",
+                        "apply_when": {},
+                        "document_filters": {
+                          "read": { <Expression> },
+                          "write": { <Expression> }
+                        },
+                        "insert": true,
+                        "delete": true,
+                        "search": true,
+                        "fields": {
+                          "myField": { "read": true, "write": true }
+                        },
+                        "additional_fields": { "read": true, "write": true }
+                      }
+                    ],
+                    "filters": [
+                      {
+                        "name": "<Filter Name>",
+                        "apply_when": {},
+                        "query": {},
+                        "projection": {}
+                      }
+                    ]
+                  }
+
+            .. tab:: Default Rules
+               :tabid: default-rules
+               
+               .. code-block:: json
+                  :caption: /data_sources/<data source>/default_rule.json
+                  
+                  {
+                    "roles": [
+                      {
+                        "name": "<Role Name>",
+                        "apply_when": {},
+                        "document_filters": {
+                          "read": { <Expression> },
+                          "write": { <Expression> }
+                        },
+                        "insert": true,
+                        "delete": true,
+                        "search": true,
+                        "fields": {
+                          "myField": { "read": true, "write": true }
+                        },
+                        "additional_fields": { "read": true, "write": true }
+                     }
+                    ],
+                    "filters": [
+                      {
+                        "name": "<Filter Name>",
+                        "apply_when": {},
+                        "query": {},
+                        "projection": {}
+                      }
+                    ]
+                  }
+      
+      3. Deploy your app.
+         
+         .. code-block:: bash
+            
+            {+cli-bin+} push
+
+.. note:: Security Consideration for App Services Role-based Permissions
+
+  While Role-based Permissions and :ref:`Filters <filters>` can hide specific 
+  documents and fields within a collection there is a potential that 
+  data can be exposed if the system allows arbitrary 
+  queries to access the collection. 
+
+  For example, queries or functions that 
+  raise errors depending on the values stored in a collection (such 
+  as division-by-zero errors) may reveal information about documents, even if 
+  a role or filter prevents the querying user from viewing 
+  documents directly. Users may also make inferences about the underlying data 
+  in other ways (such as by measuring query execution time, which can be affected 
+  by the data's distribution). 
+  
+  Be aware that this is possible and audit your 
+  data access patterns where neccessary.

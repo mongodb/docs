@@ -1,0 +1,682 @@
+.. meta::
+   :robots: nosnippet
+
+.. _data-api-endpoints:
+
+===============================
+Data API Endpoints [Deprecated]
+===============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The Data API lets you securely read and write data using standard HTTPS
+requests. The API includes automatically generated endpoints that each
+represent a MongoDB operation. You can use the endpoints to create,
+read, update, delete, and aggregate documents in a MongoDB data source.
+
+For example, this :mdn:`POST <Web/HTTP/Methods/POST>` request stores a
+document in a linked cluster by calling the ``insertOne`` endpoint:
+
+.. io-code-block::
+   
+   .. input:: /data-api/snippets/generated-endpoints.snippet.hello-world.sh
+      :language: bash
+   
+   .. output::
+      :language: json
+      
+      { "insertedId": "5f1a785e1536b6e6992fd588" }
+
+For a detailed API reference of all available endpoints, see the
+:ref:`Data API OpenAPI Reference <data-api-v1>`.
+
+.. note:: 
+
+   Data API Endpoints are not supported in :ref:`private endpoints <private-endpoints>`.
+
+When to Use the Data API
+------------------------
+
+You can use the Data API to integrate with any app or service that
+supports HTTPS requests. For example, you might:
+
+- query Atlas from a mobile application
+
+- access test data and log events in a CI/CD workflow
+
+- integrate Atlas into a federated API gateway
+
+- connect from an environment not currently supported via a MongoDB
+  Driver or Realm SDK
+
+An operation called through an API endpoint will likely take longer than
+the corresponding MongoDB operation called through a connected MongoDB
+Driver. For high-load use-cases and latency sensitive applications, we
+recommend connecting directly to your database with a MongoDB driver. To
+learn more, visit the :driver:`MongoDB Drivers </>` documentation.
+
+.. _data-api-base-url:
+
+Base URL
+--------
+
+The Data API endpoints in an app share a base URL. The URL uses your App
+ID to uniquely point to your app and specifies which version of the Data
+API to call. Each endpoint has a unique URL formed by appending the
+endpoint's route to your app's base URL.
+
+Globally deployed apps use the following format:
+
+.. code-block:: none
+   :caption: Endpoint Base URL (Global Apps):
+
+   https://data.mongodb-api.com/app/<App ID>/endpoint/data/<API Version>
+   
+Endpoints in a locally deployed app use a base URL specific to the app's
+:ref:`deployment region <deployment-regions>` (e.g. ``us-east-1.aws``):
+
+.. code-block:: none
+   :caption: Endpoint Base URL (Local Apps)
+
+   https://<Region>.<Cloud>.data.mongodb-api.com/app/<App ID>/endpoint/data/<API Version>
+
+.. _data-api-setup:
+
+Set Up the Data API
+-------------------
+
+You can configure the Data API for your app from the App Services UI or by
+deploying configuration files with {+cli+}:
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      1. Click :guilabel:`HTTPS Endpoints` in the left navigation menu and then
+         select the :guilabel:`Data API` tab.
+      
+      2. Enable the Data API for your app. This generates endpoints that
+         can access any MongoDB data source linked to your app.
+      
+      3. Choose an :ref:`authentication <data-api-authentication>`
+         method and enable authentication providers.
+      
+      4. Choose a :ref:`response type <data-api-response-type>`.
+      
+      5. Save the Data API configuration.
+      
+      6. Configure :ref:`access permissions <data-api-permissions>` by
+         defining rules for collections in your linked data sources to
+         allow requests to securely read and write data.
+      
+      7. Save and deploy your app.
+     
+   .. tab::
+      :tabid: cli
+      
+      1. Pull the latest version of your app.
+         
+         .. code-block:: bash
+
+            {+cli-bin+} pull --remote="<Your App ID>"
+      
+      2. Define a Data API configuration file.
+         
+         .. code-block:: bash
+            :caption: https_endpoints/data_api_config.json
+
+            {
+              "disabled": false,
+              "versions": ["v1"],
+              "can_evaluate": {},
+              "return_type": <"JSON" | "EJSON">
+            }
+      
+      3. Deploy your app.
+         
+         .. code-block:: bash
+            
+            {+cli-bin+} push
+
+.. _data-api-authentication:
+
+Authentication
+~~~~~~~~~~~~~~
+
+Data API endpoints run in the context of a specific user, which allows
+your app to enforce rules and validate document schemas for each
+request.
+
+By default, endpoints use Application Authentication, which requires
+each request to include credentials for one of your application users,
+like an API key or JWT. You can also configure other custom
+authentication schemes to fit your application's needs.
+
+For examples of how to authenticate requests, see :ref:`Authenticate
+Data API Requests <data-api-authenticate-requests>`.
+
+.. tabs::
+
+   .. tab:: Application
+      :tabid: auth-credentials
+
+      Application authentication requires users to log in with an
+      authentication provider that you have enabled for your App.
+      Requests can either include an access token granted by the
+      authentication provider or the credentials the user would log in
+      with (e.g. their API key or email and password).
+
+   .. tab:: User ID
+      :tabid: auth-userid
+
+      User ID authentication runs all requests as a single, pre-selected
+      application user. This is useful if all requests should have the
+      same permissions regardless of who called the endpoint.
+      
+      To select the user, specify their User Account ID in your app's
+      Data API configuration.
+      
+      .. code-block:: json
+         :caption: http_endpoints/data_api_config.json
+
+         {
+           "run_as_user_id": "628e47baf4c2ac2796fc8a91"
+         }
+   
+   .. tab:: Script
+      :tabid: auth-script
+   
+      Script authentication calls a function to determine which
+      application user a request runs as. You can use this to implement
+      custom authentication and authorization schemes.
+
+      The function must return an existing application user's Account ID
+      as a string or ``{ "runAsSystem": true }`` to run the request
+      as a :ref:`system user <system-user>` that has full access to
+      MongoDB CRUD and Aggregation APIs and is not affected by any
+      rules, roles, or permissions.
+
+      To define the function, specify the source code in your app's Data
+      API configuration.
+      
+      .. code-block:: json
+         :caption: http_endpoints/data_api_config.json
+
+         [
+           {
+             ...,
+             "run_as_user_id_script_source": "exports = () => {return \"628e47baf4c2ac2796fc8a91\"}"
+           }
+         ]
+
+.. _data-api-authorization:
+
+Authorization
+~~~~~~~~~~~~~
+
+You can require authenticated users to provide additional authorization
+information in each request. You define the authorization scheme for
+all generated Data API endpoints in your Data API configuration.
+
+Endpoints natively support a set of built-in authorization schemes that
+use a secret string to prove that the request is authorized. You can
+also define a custom authorization scheme that you can use together with
+or instead of the built-in schemes.
+
+Built-In Authorization Schemes
+``````````````````````````````
+
+Endpoints support the following built-in authorization schemes:
+
+.. tabs::
+     
+   .. tab:: No Additional Authorization
+      :tabid: no-authorization
+   
+      All authenticated users are authorized to call the endpoint.
+      Authenticated requests do not need to include authorization
+      information.
+      
+   .. tab:: Secret Parameter
+      :tabid: secret-parameter
+      
+      Authenticated users must prove that they are authorized to call
+      the endpoint by including a specific string as the value of the
+      ``secret`` query parameter.
+      
+      You define the string in a :ref:`secret <app-secret>` and
+      reference the secret by name in the endpoint configuration.
+
+      .. code-block:: json
+         :caption: http_endpoints/data_api_config.json
+         
+         [
+           {
+             ...,
+             "verification_method": "SECRET_AS_QUERY_PARAM",
+             "secret_name": "secret_verification_string"
+           }
+         ]
+
+      To learn how to include the secret in a request, see :ref:`Authorize the Request <data-api-authorize>`.
+   
+   .. tab:: Payload Signature
+      :tabid: payload-signature
+   
+      Authenticated users must prove that they are authorized to call
+      the endpoint by including an ``Endpoint-Signature`` header that
+      contains a hexadecimal-encoded :abbr:`HMAC (Hash-based Message
+      Authentication Code)` SHA-256 hash generated from the request body
+      and a secret string.
+
+      You define the string in a :ref:`secret <app-secret>` and
+      reference the secret by name in the endpoint configuration.
+
+      To learn how to sign your requests, see :ref:`Authorize the Request <data-api-authorize>`.
+
+Custom Authorization Schemes
+````````````````````````````
+
+You can define a custom authorization :ref:`expression <expressions>` to
+determine if an incoming authenticated request is allowed to run. The
+expression is evaluated for each request and must evaluate to ``true``
+to allow the request. If the expression evaluates to ``false``, the
+request is not authorized and fails with an error. Requests that fail
+authorization are not counted toward your App's billed usage.
+
+Authorization expressions can use variables like
+:json-expansion:`%%user` to authorize based on the calling user's data
+or :json-expansion:`%%request` to make decisions based on the specifics
+of each incoming request.
+
+To define a custom authorization scheme, specify the expression in your
+app's Data API configuration:
+
+.. code-block:: json
+   :caption: http_endpoints/data_api_config.json
+   
+   {
+     ...,
+     "can_evaluate": {
+       "%%request.requestHeaders.x-secret-key": "my-secret"
+     }
+   }
+
+.. _data-api-response-type:
+
+Response Type
+~~~~~~~~~~~~~
+
+Endpoints can return data in one of two :ref:`data formats
+<data-api-data-formats>`, either JSON or EJSON.
+
+By default, endpoints return JSON, which is a standard data format that
+is widely supported modern langauges and platforms. However, JSON cannot
+represent every data type that you can store in MongoDB and loses type
+information for some data types.
+
+You can also configure endpoints to return EJSON, which uses structured
+JSON objects to fully represent the types that MongoDB supports. This
+preserves type information in responses but requires that your
+application understands how to parse and use EJSON.
+
+.. tip::
+   
+   The official MongoDB drivers include methods for working with EJSON.
+   You can also download a standalone parser like :npm:`bson
+   <package/bson>` on npm.
+
+.. tabs::
+
+    .. tab:: JSON
+       :tabid: json
+
+       .. code-block:: json
+          :caption: https_endpoints/data_api_config.json
+
+          {
+             "return_type": "JSON"
+          }
+
+    .. tab:: EJSON
+       :tabid: ejson
+
+       .. code-block:: json
+          :caption: https_endpoints/data_api_config.json
+
+          {
+             "return_type": "EJSON"
+          }
+
+.. _data-api-permissions:
+
+Access Permissions
+~~~~~~~~~~~~~~~~~~
+
+The Data API uses your app's :ref:`data access rules <rules>` to
+determine if a user can read and write data. To allow Data API requests
+to access a specific collection, you must first define rules for the
+collection.
+
+You can also set up an :ref:`IP Access List <ip-access-list>` for
+additional security.
+
+.. _data-api-versions:
+
+API Versions
+~~~~~~~~~~~~
+
+The Data API uses a built-in versioning scheme to upgrade endpoints over
+time while maintaining backwards compatibility. Incoming requests can
+specify which version of an endpoint to use in the request URL and the
+Data API can serve any version that you have enabled.
+
+You must enable a new version before users can call endpoints with that
+version. You can always enable the most recent Data API version.
+However, you cannot enable an older version after a newer version has
+been released.
+
+The following versions are currently supported:
+
+- ``beta``
+- ``v1``
+
+Call a Data API Endpoint
+------------------------
+
+You can call a Data API endpoint from any standard HTTP client. Each
+request can include configuration headers and arguments in the request
+body.
+
+HTTP/1.1 or greater is required when making requests.
+
+Choose an API Version
+~~~~~~~~~~~~~~~~~~~~~
+
+Data API requests specify which version of the API to use in the request
+URL. A request can specify any version that is enabled for your app.
+
+.. code-block:: bash
+
+   https://data.mongodb-api.com/app/<App ID>/endpoint/data/<API Version>
+
+Specify the Request Data Format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Data API requests must include a ``Content-Type`` header to specify the
+:ref:`data format <data-api-data-formats>` used in the request body.
+
+- Use ``Content-Type: application/json`` to represent standard JSON types in a
+  Data API request body.
+
+- Use ``Content-Type: application/ejson`` to represent standard JSON
+  types *and* additional EJSON types in a Data API request body.
+
+.. tabs::
+   
+   .. tab:: EJSON
+      :tabid: ejson
+      
+      .. io-code-block::
+         
+         .. input::
+            :language: bash
+            :emphasize-lines: 4
+            
+            curl -X GET \
+              https://data.mongodb-api.com/app/myapp-abcde/endpoint/data/v1/action/insertOne \
+              -H 'apiKey: <API Key>' \
+              -H 'Content-Type: application/ejson' \
+              -H 'Accept: application/ejson' \
+              --data-raw '{
+                  "dataSource": "mongodb-atlas",
+                  "database": "learn-data-api",
+                  "collection": "hello",
+                  "document": {
+                    "_id": { "$oid": "629971c0d71aad65bd59c595" },
+                    "greeting": "Hello, EJSON!",
+                    "date": { "$date": { "$numberLong": "1654589430998" } }
+                  }
+              }'
+         
+         .. output::
+            :language: json
+            
+            { "insertedId": { "$oid": "629971c0d71aad65bd59c595" } }
+   
+   .. tab:: JSON
+      :tabid: json
+      
+      .. io-code-block::
+         
+         .. input::
+            :language: bash
+            :emphasize-lines: 4
+            
+            curl -X POST \
+              https://data.mongodb-api.com/app/myapp-abcde/endpoint/data/v1/action/updateOne \
+              -H 'apiKey: <API Key>' \
+              -H 'Content-Type: application/json' \
+              --data-raw '{
+                 "dataSource": "mongodb-atlas",
+                 "database": "learn-data-api",
+                 "collection": "hello",
+                 "filter": { "greeting": "Hello, world!" },
+                 "update": {
+                     "$set": { "greeting": "Hello, universe!" }
+                 }
+              }'
+         
+         .. output::
+            :language: json
+            :visible: false
+            
+            { "matchedCount": 1, "modifiedCount": 1 }
+
+Choose a Response Data Format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A request can include an ``Accept`` header to request a specific data
+format for the response body, either JSON or EJSON. If a request does
+not include a valid ``Accept`` header, the response uses the data format
+specified in your :ref:`Data API configuration <data-api-response-type>`.
+
+.. tabs::
+   
+   .. tab:: EJSON
+      :tabid: ejson
+      
+      .. io-code-block::
+         
+         .. input::
+            :language: bash
+            :emphasize-lines: 5
+            
+            curl -X GET \
+              https://data.mongodb-api.com/app/myapp-abcde/endpoint/data/v1/action/findOne \
+              -H 'apiKey: <API Key>' \
+              -H 'Content-Type: application/json' \
+              -H 'Accept: application/ejson' \
+              --data-raw '{
+                 "dataSource": "mongodb-atlas",
+                 "database": "learn-data-api",
+                 "collection": "hello",
+                 "projection": { "greeting": 1, "date": 1 }
+              }'
+         
+         .. output::
+            :language: json
+            
+            {
+              "_id": { "$oid": "629971c0d71aad65bd59c545"},
+              "greeting": "Hello, Leafie!",
+              "date": { "$date": { "$numberLong": "1654589430998" } }
+            }
+   
+   .. tab:: JSON
+      :tabid: json
+      
+      .. io-code-block::
+         
+         .. input::
+            :language: bash
+            :emphasize-lines: 5
+            
+            curl -X POST \
+              https://data.mongodb-api.com/app/myapp-abcde/endpoint/data/v1/action/findOne \
+              -H 'apiKey: <API Key>' \
+              -H 'Content-Type: application/json' \
+              -H 'Accept: application/json' \
+              --data-raw '{
+                 "dataSource": "mongodb-atlas",
+                 "database": "learn-data-api",
+                 "collection": "hello",
+                 "projection": { "greeting": 1, "date": 1 }
+              }'
+         
+         .. output::
+            :language: json
+            
+            {
+              "_id": "629971c0d71aad65bd59c545",
+              "greeting": "Hello, Leafie!",
+              "date": "2022-06-07T08:10:30.998Z"
+            }
+
+.. _data-api-authenticate:
+
+Authenticate the Request
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If an endpoint is configured to use Application Authentication then you
+must include a valid user access token or login credentials with every
+request.
+
+.. include:: /includes/bearer-auth-performance.rst
+
+To use an access token, first authenticate the user through an App
+Services authentication provider. Then, get the access token returned
+from App Services and include it in the request's Authorization header
+using a Bearer token scheme. For more information on how to acquire and
+use an access token, see :ref:`Bearer Token Authentication
+<data-api-bearer-authentication>`.
+
+.. literalinclude:: /data-api/snippets/generated-endpoints.snippet.auth-bearer.sh
+   :language: bash
+   :emphasize-lines: 4
+
+Alternatively, you can include valid login credentials for the user in
+the request headers.
+
+.. tabs-realm-auth-providers::
+   
+   .. tab::
+      :tabid: local-userpass
+
+      .. literalinclude:: /data-api/snippets/generated-endpoints.snippet.auth-emailPassword.sh
+         :language: bash
+         :emphasize-lines: 4-5
+   
+   .. tab::
+      :tabid: api-key
+
+      .. literalinclude:: /data-api/snippets/generated-endpoints.snippet.auth-apiKey.sh
+         :language: bash
+         :emphasize-lines: 4
+   
+   .. tab::
+      :tabid: custom-token
+
+      .. literalinclude:: /data-api/snippets/generated-endpoints.snippet.auth-jwtTokenString.sh
+         :language: bash
+         :emphasize-lines: 4
+
+.. include:: /includes/dont-use-api-key-in-browsers.rst
+
+.. _data-api-authorize:
+
+Authorize the Request
+~~~~~~~~~~~~~~~~~~~~~
+
+Depending on your Data API :ref:`authorization configuration
+<data-api-authorization>`, your requests may need to include additional
+authorization information.
+
+.. tabs::
+     
+   .. tab:: No Additional Authorization
+      :tabid: no-authorization
+   
+      All authenticated users are authorized to call the endpoint.
+      Authenticated requests do not need to include authorization
+      information.
+      
+   .. tab:: Secret Parameter
+      :tabid: secret-parameter
+      
+      Authenticated users must prove that they are authorized to call
+      the endpoint by including the endpoint's secret string as the
+      value of the ``secret`` query parameter.
+      
+      .. example::
+         
+         The following ``curl`` request uses secret query parameter
+         validation with the secret string ``"12345"``:
+      
+         .. code-block:: bash
+            :emphasize-lines: 4
+      
+            curl -X POST \
+              https://data.mongodb-api.com/app/myapp-abcde/endpoint/data/v1/action/findOne?secret=12345 \
+              -H "Content-Type: application/json" \
+              -d '{
+                "dataSource": "mongodb-atlas",
+                "database": "learn-data-api",
+                "collection": "tasks",
+                "filter": { "text": "Do the dishes" }
+              }'
+
+   .. tab:: Payload Signature
+      :tabid: payload-signature
+   
+      Authenticated users must prove that they are authorized to call
+      the endpoint by including an ``Endpoint-Signature`` header that
+      contains a hexadecimal-encoded :abbr:`HMAC (Hash-based Message
+      Authentication Code)` SHA-256 hash generated from the request body
+      and the endpoint's secret string.
+
+      .. code-block:: none
+         
+         Endpoint-Signature: sha256=<hex encoded hash>
+      
+      You could use the following function to generate the payload
+      signature:
+      
+      .. literalinclude:: /data-api/signEndpointRequest.js
+         :language: javascript
+
+      .. example::
+         
+         The following ``curl`` includes a payload signature header
+         signed with the secret value ``12345``:
+
+         .. code-block:: bash
+            :emphasize-lines: 3
+            
+            curl -X POST \
+              https://data.mongodb-api.com/app/myapp-abcde/endpoint/data/v1/action/findOne \
+              -H "Content-Type: application/json" \
+              -H "Endpoint-Signature: sha256=769cd86855787f476afc8b0d2cf9837ab0318181fca42f45f34b6dffd086dfc7" \
+              -d '{
+                "dataSource": "mongodb-atlas",
+                "database": "learn-data-api",
+                "collection": "tasks",
+                "filter": { "text": "Do the dishes" }
+              }'

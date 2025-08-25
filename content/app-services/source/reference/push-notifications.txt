@@ -1,0 +1,415 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _push-notifications:
+
+===============================
+Push Notifications [Deprecated]
+===============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/note-third-party-services-deprecation.rst
+
+Overview
+--------
+
+Atlas App Services supports integrating mobile (Android and iOS) apps with
+the Firebase Cloud Messaging (FCM) service to provide push
+notifications. You configure and send notification messages from within
+the App Services console, while clients register with ``Firebase Cloud
+Messaging (FCM)`` for messages sent to specific topics.
+
+Management Interface
+--------------------
+
+The :guilabel:`Push Notifications` screen in the App Services UI lets you
+write notification drafts, send notifications to users, and define
+:ref:`notification rules <notification-rules>`.
+
+There are four tabs in the :guilabel:`Push Notifications` screen:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30
+
+   * - Tab Name
+     - Description
+
+   * - :guilabel:`Draft`
+     - In the Draft tab, you can view a list of the draft messages. For
+       the draft messages, you can:
+
+       - Duplicate draft messages
+
+       - Edit draft messages
+
+       - Delete draft messages
+
+   * - :guilabel:`Sent`
+   
+     - The Sent tab shows the messages that App Services has already sent to registered clients. From here, you can view a list of the sent messages. For the sent messages, you can:
+
+       - Resend sent messages.
+
+       - Duplicate sent messages.
+
+   * - :guilabel:`Config`
+     - In the Config tab, you provide the :abbr:`FCM (Firebase Cloud
+       Messaging)` credentials (Sender ID and Legacy API key).
+
+   * - :guilabel:`Rules`
+     - You can optionally specify :ref:`notification-rules` to restrict the types of push notifications that your application sends.
+
+.. _send-push-notifications:
+
+Send a Push Notification
+------------------------
+
+You can send new Push Notifications from the :guilabel:`Push
+Notifications` page. Click the :guilabel:`Send New Notification` button
+to open the :guilabel:`Send New Notification` dialog. In this dialog,
+you provide the notification message, label, and the relevant topic
+audience.
+
+.. figure:: /images/new-push-message.png
+      :alt: Sending a new Push Notification
+      :figwidth: 400px
+
+Set Up Clients to Receive Push Notifications
+--------------------------------------------
+
+.. tabs::
+
+   tabs:
+     - id: android
+       name: Java SDK
+       content: |
+         The general process of integrating Push Notifications in an Android 
+         application is as follows:
+
+         1. Add a dependency for :abbr:`FCM (Firebase Cloud Messaging)`.
+
+         #. Create an instance of :java-sdk:`Push
+            <io/realm/mongodb/push/Push.html>`.
+
+         #. Use the :java-sdk:`push.registerDevice()
+            <io/realm/mongodb/push/Push.html#registerDevice-java.lang.String->`
+            or :java-sdk:`push.registerDeviceAsync()
+            <io/realm/mongodb/push/Push.html#registerDeviceAsync-java.lang.String-io.realm.mongodb.App.Callback->`
+            methods to register the client for push notifications.
+
+         #. Use FirebaseMessaging's :fcm:`subscribeToTopic()
+            <reference/android/com/google/firebase/messaging/FirebaseMessaging>`
+            to subscribe to topics.
+
+         #. Create a class that extends the abstract
+            :fcm:`FirebaseMessagingService
+            <reference/android/com/google/firebase/messaging/FirebaseMessagingService>`
+            and implements the :fcm:`onMessageReceived()
+            <reference/android/com/google/firebase/messaging/FirebaseMessagingService.html#onMessageReceived(com.google.firebase.messaging.RemoteMessage)>`
+            method. This class handles communication with :abbr:`FCM
+            (Firebase Cloud Messaging)`.
+
+         #. Update :file:`AndroidManifest.xml` file for your Android project to
+            register your ``FirebaseMessagingService``-derived class and a receiver
+            for your application.
+
+         To see the latest information and detailed steps on FCM integration with Android Clients, see the official :fcm:`Set up a Firebase Cloud Messaging client app on Android <cloud-messaging/android/client>` guide. 
+
+     - id: ios
+       name: Swift SDK
+       content: |
+         To use FCM with App Services in an iOS app, follow these
+         general steps:
+
+         1. Create a valid Apple Push Notification service (APNs) certificate through the `Apple Developer Member center <https://developer.apple.com/membercenter/index.action>`_.
+
+         #. Copy the :fcm:`GoogleService-Info.plist <cloud-messaging/ios/client#add_firebase_to_your_app>` file to your XCode project.
+
+         #. Configure FCM and add your iOS app. When you register your app, FCM will return a registration token.
+
+         To see the latest information and detailed steps on FCM integration with iOS Clients, see the official :fcm:`Set up a Firebase Cloud Messaging client app on iOS <cloud-messaging/ios/client>` guide. 
+
+.. _gcm-rule-templates:
+
+Rule Templates
+--------------
+
+Notifications Must Have a Specific Title
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   {
+     "%%args.notification.title": "Test Notification Please Ignore"
+   }
+
+Notifications Must Be for a Specific Topic
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   {
+     "%%args.to": "%%values.validTopics"
+   }
+
+Notifications Can Only Be Sent To a Limited Set of User IDs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   {
+     "%%true": {
+       "%function": {
+         "name": "allUserIdsAreValid",
+         "arguments": [
+           "%%args.userIds"
+         ]
+       }
+     }
+   }
+
+.. note::
+
+   This template calls an example function named
+   ``allUserIdsAreValid`` that does the following:
+
+   1. Accepts the list of User IDs provided in the ``userIds`` argument
+   #. Queries MongoDB for a user document that matches the current user's id
+   #. Compares the provided phone number to the number listed in the user document
+   #. Returns the boolean result of the comparison
+
+   .. code-block:: javascript
+
+      exports = function(toPhone) {
+        const mdb = context.services.get('mongodb-atlas');
+        const users = mdb.db('demo').collection('users');
+        const user = users.findOne({ _id: context.user.id });
+        return user.phoneNumber === toPhone;
+      }
+
+.. _notification-rules:
+
+Push Notification Rules
+-----------------------
+
+To specify rules for Push Notifications, click on the :guilabel:`Rules`
+tab on the :guilabel:`Push Notifications` page.
+
+.. note::
+
+   Unlike other services in App Services, rules for push notifications
+   are optional. By default, all push notifications are allowed.
+   However, once you specify a rule, the restrictions imposed by that
+   rule will take effect.
+
+The Push Notifications rules permit the following arguments. You can
+access them with the ``"%%args"`` expansion: 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``userIds``
+
+     - Array of strings.
+
+     - The user ids of the message recipients.
+
+   * - ``to``
+
+     - String
+
+     - The recipient of the message. The value can be a device's registration
+       token, a device group's notification key, or a single topic (prefixed
+       with ``/topics/``).
+
+   * - ``registrationTokens``
+     - Array of strings.
+
+     - The list of registration tokens for the devices receiving the
+       multicast message.
+
+   * - ``priority``
+
+     - string
+
+     - The priority of the notification. Value is either ``"high"`` or
+       ``"normal"``. Corresponds to the ``priority`` option for HTTP
+       JSON messages via FCM. See :fcm:`the FCM HTTP protocol reference
+       <cloud-messaging/http-server-ref>`.
+
+   * - ``collapseKey``
+
+     - string
+
+     - The collapse key associated with collapsible messages.
+       Corresponds to the ``collapse_key`` option for HTTP JSON
+       messages via FCM. See :fcm:`the FCM HTTP protocol reference
+       <cloud-messaging/http-server-ref#table1>`.
+
+   * - ``contentAvailable``
+     - boolean
+
+     - A flag that determines whether to awake idle client apps upon
+       receipt of the message. Corresponds to the ``content_available``
+       option for HTTP JSON messages via FCM. See :fcm:`the FCM
+       HTTP protocol reference <cloud-messaging/http-server-ref>`.
+
+   * - ``mutableContent``
+
+     - boolean
+
+     - A flag that determines whether the notification content can be
+       modified before being displayed to the user. Corresponds to the
+       ``mutable_content`` option for HTTP JSON messages via FCM.
+       See :fcm:`the FCM HTTP protocol reference <cloud-messaging/http-server-ref>`.
+
+   * - ``timeToLive``
+
+     - int
+
+     - Maximum time (in milliseconds) to retain the message if the
+       device is offline. Valid value range from 0 to 2419200.
+
+       Corresponds to the ``time_to_live`` option for HTTP JSON
+       messages via FCM. See :fcm:`the FCM HTTP protocol reference
+       <cloud-messaging/http-server-ref>`.
+
+
+   * - ``data``
+     - JSON document
+
+     - Payload for data message. ``data`` document consists of custom
+       key-value pairs. Corresponds to the ``data`` option for HTTP
+       JSON messages via FCM. See :fcm:`the FCM HTTP protocol reference
+       <cloud-messaging/http-server-ref>`.
+
+
+   * - ``notification``
+
+     - JSON document
+
+     - Payload for notification. ``notification`` document consists of
+       :ref:`predefined fields <notification-fields>`. Corresponds to
+       the ``notification`` option for HTTP JSON messages via FCM.
+       See :fcm:`the FCM HTTP protocol reference <cloud-messaging/http-server-ref>`.
+
+.. _notification-fields:
+
+Notification Document Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table lists the fields of the ``notification`` document
+that is available as a permitted field for Push Notifications rules. To
+access one of these fields in a rule, use
+``"%%args.notification.<field>"``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``title``
+     - string
+
+     - The title of the notification. Corresponds to the ``title``
+       option for HTTP JSON messages via FCM. See :fcm:`the FCM
+       HTTP protocol reference <cloud-messaging/http-server-ref#notification-payload-support>`.
+
+   * - ``body``
+     - string
+
+     - The body of the notification. Corresponds to the ``body``
+       option for HTTP JSON messages via FCM. See :fcm:`the FCM
+       HTTP protocol reference <cloud-messaging/http-server-ref#notification-payload-support>`.
+
+   * - ``sound``
+     - string
+
+     - The sound to play upon receipt of the notification. Corresponds
+       to the ``sound`` option for HTTP JSON messages via FCM. See
+       :fcm:`the FCM HTTP protocol reference <cloud-messaging/http-server-ref#notification-payload-support>`.
+
+   * - ``clickAction``
+     - string
+
+     - The action to take when a user click on the notification.
+       Corresponds to the ``click_action`` option for HTTP JSON
+       messages via FCM. See :fcm:`the FCM HTTP protocol reference
+       <cloud-messaging/http-server-ref#notification-payload-support>`.
+
+   * - ``bodyLocKey``
+     - string
+
+     - The key for localization of the body string. Corresponds to the
+       ``body_loc_key`` option for HTTP JSON messages via FCM. See
+       :fcm:`the FCM HTTP protocol reference <cloud-messaging/http-server-ref#notification-payload-support>`.
+
+   * - ``bodyLocArgs``
+     - string
+
+     - The string values to replace format specifiers for localization
+       in the body string. Corresponds to the ``body_loc_args`` option
+       for HTTP JSON messages via FCM. See :fcm:`the FCM
+       HTTP protocol reference <cloud-messaging/http-server-ref#notification-payload-support>`.
+
+   * - ``titleLocKey``
+     - string
+
+     - The key for localization of the title string. Corresponds to the
+       ``title_loc_key`` option for HTTP JSON messages via FCM. See
+       :fcm:`the FCM HTTP protocol reference <cloud-messaging/http-server-ref#notification-payload-support>`.
+
+   * - ``titleLocArgs``
+     - string
+
+     - The string values to replace format specifiers for localization
+       in the title string. Corresponds to the ``title_loc_args`` option
+       for HTTP JSON messages via FCM. See :fcm:`the FCM HTTP protocol
+       reference <cloud-messaging/http-server-ref#notification-payload-support>`.
+
+   * - ``icon``
+     - string
+
+     - For Android only. The notification icon. Corresponds to the
+       ``icon`` option for HTTP JSON messages via FCM. See
+       :fcm:`the FCM HTTP protocol reference <cloud-messaging/http-server-ref#notification-payload-support>`.
+
+   * - ``color``
+     - string
+
+     - For Android only. Indicates the icon color in #rrggbb format.
+       Corresponds to the ``color`` option for HTTP JSON messages
+       via FCM. See :fcm:`the FCM HTTP protocol reference
+       <cloud-messaging/http-server-ref#notification-payload-support>`.
+
+   * - ``tag``
+     - string
+
+     - For Android only. If specified, each notification does not
+       result in a new entry but replaces an existing entry with the
+       specified tag. If unset, each notificaiton results in a new
+       entry. Corresponds to the ``tag`` option for HTTP JSON
+       messages via FCM. See :fcm:`the FCM HTTP protocol reference
+       <cloud-messaging/http-server-ref#notification-payload-support>`.
+
+   * - ``badge``
+     - string
+     - For iOS only. The badge on the gclient app home icon. Corresponds to
+       the ``badge`` option for HTTP JSON messages via FCM. See
+       :fcm:`the FCM HTTP protocol reference <cloud-messaging/http-server-ref#notification-payload-support>`.

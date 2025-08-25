@@ -1,0 +1,211 @@
+.. meta::
+   :robots: nosnippet
+
+.. _migrate-wundergraph:
+
+==============================
+Migrate GraphQL to WunderGraph
+==============================
+
+.. meta::
+  :description: Learn how to migrate your GraphQL host from Atlas App Services to WunderGraph.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. important::
+
+   Always refer to the official documentation of both MongoDB Atlas and 
+   `WunderGraph <https://docs.wundergraph.com/docs/supported-data-sources/mongodb-atlas>`__
+   for the most up-to-date and accurate information. Specific steps may vary
+   depending on the details of your project and the technologies used.
+
+`WunderGraph <https://wundergraph.com/>`__ is a comprehensive developer platform
+that comes equipped with an extensive variety of open-source tools and SDKs.
+
+One of these tools is a `Backend for Frontend (BFF) Framework 
+<https://docs.wundergraph.com/docs/use-cases/backend-for-frontend>`__. This BFF
+Framework is a robust, specification-compliant server framework that you can 
+add to production environments. This framework can integrate data from any
+source. This includes data from MongoDB Atlas. For more details, refer to the 
+`WunderGraph docs page for Atlas <https://docs.wundergraph.com/docs/supported-data-sources/mongodb-atlas>`__.
+If you plan on using GraphQL Federation, take a look at `WunderGraph Cosmo 
+<https://cosmo-docs.wundergraph.com/>`__.
+
+Migrate to WunderGraph
+----------------------
+
+The WunderGraph BFF is an open source gateway that bundles up your data
+and generates type-safe clients for your frontend framework. You can also use
+hooks to add additional business logic, or `custom GraphQL resolvers 
+<https://docs.wundergraph.com/docs/features/custom-graphql-resolvers>`__ to
+decouple the clients from the database.
+
+The following is an overview of how to migrate your GraphQL host from Atlas App
+Services to WunderGraph. Specific steps may vary depending on the details of
+your project and the technologies used.
+
+- If you are starting from scratch, follow the `MongoDB / Atlas Data Source
+  documentation <https://docs.wundergraph.com/docs/wundergraph-config-ts-reference/configure-mongodb-atlas-data-source>`__.
+  For more details, refer to the `WunderGraph docs page for Atlas 
+  <https://docs.wundergraph.com/docs/supported-data-sources/mongodb-atlas>`__.
+- If you plan on using GraphQL Federation, take a look at `WunderGraph Cosmo 
+  <https://cosmo-docs.wundergraph.com/>`__
+
+.. procedure::
+
+   .. step:: Create a WunderGraph Application
+
+      .. code-block:: shell
+         :copyable: true
+   
+         # Init a new project
+         npx create-wundergraph-app my-project --example simple
+
+         # Move to the project directory
+         cd my-project
+
+         # Install dependencies
+         npm i
+   
+   .. step:: Add npm Scripts
+
+      Add the following scripts to ``package.json``, so you can run the
+      WunderGraph server.
+
+      .. code-block:: shell
+         :copyable: true
+   
+         {
+            "scripts": {
+               "start": "wunderctl up --debug",
+               "build": "wunderctl generate"
+            }
+         }
+
+   .. step:: Start the WunderGraph Server
+
+      .. code-block:: shell
+         :copyable: true
+   
+         npm run start
+
+      After starting the server, WunderGraph does some code generation. Check
+      the server status at ``http://localhost:9991``.
+
+   .. step:: Configure MongoDB Atlas Data Source
+
+      You need to configure your MongoDB Atlas datasource. Inside your 
+      ``wundergraph.config.ts`` file add the following:
+
+      .. code-block:: shell
+         :copyable: true
+         :caption: wundergraph.config.ts
+   
+         const Atlas = introspect.mongodb({
+            apiNamespace: 'my_db',
+            databaseURL: 'YourAtlasURL',
+         });
+
+         configureWunderGraphApplication({
+            apis: [Atlas],
+         });
+
+   .. step:: Add Query Operations
+
+      To work with your Atlas data, you need to add query operations. Navigate
+      to the ``operations`` folder and create a new GraphQL file called
+      ``Users.graphql`` and add the following: 
+
+      .. code-block:: shell
+         :copyable: true
+         :caption: /operations/Users.graphql
+   
+         {
+            Mongo_findFirstusers {
+               id
+               name
+               email
+            }
+         }
+
+   .. step:: Browse Data with the GraphiQL UI
+
+      After you get your WunderGraph server running and add query operations,
+      you can use the GraphiQL user interface to explore your Atlas data through
+      a GraphQL API. This can be useful when your app is in development. For apps in production, we recommend using WunderGraph's JSON-RPC interface (see next step).
+      
+      #. With your WunderGraph server running, navigate to
+         ``http://localhost:9991/graphql``.
+      #. Add these queries to the GraphiQL user interface:
+
+         .. code-block:: shell
+            :copyable: true
+      
+            query Users {
+               db_findManyusers {
+                  id
+                  name
+                  email
+               }
+            }
+      #. Click the Play button.
+
+   .. step:: Use WunderGraph's JSON-RPC Interface for Production
+
+      GraphiQL is good for development, but in production, you should consider
+      using WunderGraph's JSON-RPC interface to interact with your Atlas data. 
+
+      In short, WunderGraph compiles your GraphQL operations into JSON-RPC endpoints that you can call.  
+      
+      After running ``wunderctl up``, WunderGraph checks the
+      ``.wundergraph/operations`` directory for ``*.graphql`` files and
+      processes them. For this to work, each file should contain exactly one
+      GraphQL Operation.
+
+      Each file will be compiled into a JSON-RPC endpoint. The name of the
+      endpoint is determined by the file name.
+
+      Here's an example JSON-RPC API query:
+
+      .. code-block:: shell
+         :copyable: true
+   
+         curl http://localhost:9991/operations/Users
+
+   .. step:: Update Client Applications
+
+      Update any client applications that interact with your GraphQL API
+      endpoints to point to the new WunderGraph endpoint URLs.
+
+   .. step:: Shut Down Atlas App Services Endpoints
+
+      Once you have verified that your GraphQL API endpoints are fully migrated
+      and operational on WunderGraph, you can delete your MongoDB Atlas App
+      Services app to avoid unnecessary costs. As a reminder, Atlas GraphQL
+      endpoints will no longer be supported beginning **September 30, 2025**.
+
+Next Steps
+----------
+
+
+WunderGraph Cosmo for GraphQL Federation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Check out the `WunderGraph Cosmo docs <https://cosmo-docs.wundergraph.com/>`__ to
+learn how to build a distributed GraphQL architecture that combines multiple
+GraphQL APIs to create a unified graph.
+
+Cosmo enables teams and Organizations to manage and scale (federated) GraphQL
+Architectures with ease. Quickly iterate without breaking anything through
+composition checks.
+
+WunderGraph Cosmo can easily run locally, on-premises, or in the cloud as a
+managed service. Cosmo is a batteries-included solution, covering everything
+from routing to analytics with the whole platform.
+
+Cosmo supports monolithic GraphQL APIs as well as Federation v1 and v2 including
+Subscriptions.

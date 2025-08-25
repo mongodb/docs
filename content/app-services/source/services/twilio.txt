@@ -1,0 +1,350 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _twilio-service:
+
+===========================
+Twilio Service [Deprecated]
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. meta::
+   :description: Atlas App Services, Atlas App Services Documentation Manual, MongoDB Backend as a Service, Integrate Atlas App Services with Twilio, Twilio Integration with Atlas App Services
+   :keywords: Atlas App Services, MongoDB, App Services, MongoDB Backend as a Service, Integrate, Twilio
+
+.. include:: /includes/note-third-party-services-deprecation.rst
+
+Overview
+--------
+
+Twilio provides messaging, voice, and chat services for web and mobile
+apps. The Atlas App Services Twilio service supports integrating Twilio's
+*Programmable SMS* service into your application.
+
+- To send an outbound text message, use the :doc:`send()
+  </services/twilio-actions/send>` action.
+
+- To handle and optionally respond to incoming text messages,
+  :doc:`create an incoming webhook
+  </services/configure/service-webhooks>` and
+  :ref:`add it to a Twilio messaging service
+  <configure-twilio-add-webhook>`. See the :ref:`incoming webhooks
+  <twilio-webhooks>` section on this page for an example.
+
+.. note::
+
+   To use Twilio with App Services, you must have a :guilabel:`Twilio Phone
+   Number` registered to a messaging service associated with your Twilio
+   account. You can create a new number from the :guilabel:`Numbers`
+   page of the Twilio dashboard, or by following Twilio's
+   :twilio:`Programmable SMS Quickstart
+   <docs/quickstart?filter-product=sms>` guide.
+
+.. _twilio-service-configuration:
+
+Configuration Parameters
+------------------------
+
+You will need to provide values for the following parameters when you
+:doc:`create a Twilio service interface </services/configure/services>`:
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+   
+   .. tab::
+      :tabid: cli
+      
+      .. code-block:: json
+         :copyable: False
+         :caption: <Service Name>/config.json
+      
+         {
+           "name": "<Service Name>",
+           "type": "twilio",
+           "config": {
+             "sid": <Twilio Account SID>
+           },
+           "secret_config": {
+             "auth_token": "<Secret Name>"
+           }
+         }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 15
+
+   * - Parameter
+     - Description
+
+   * - | :guilabel:`Service Name`
+       | *config.name*
+     
+     - The name of this Twilio service interface. This must be unique
+       from all other service interfaces in your application.
+
+   * - | :guilabel:`Twilio Account SID`
+       | *config.sid*
+     
+     - A unique identifier for your Twilio account. You can find this
+       value on your Twilio account dashboard.
+
+   * - | :guilabel:`Twilio Authorization Token`
+       | *secret_config.auth_token*
+     
+     - The name of a :ref:`Secret <app-secret>` that stores a Twilio
+       authorization token, which proves that you are the owner of a
+       Twilio account. You can find this value on your Twilio account
+       dashboard.
+
+Service Actions
+---------------
+
+The Twilio service in App Services provides the following actions which are
+available in :doc:`functions </functions>` and in the SDKs:
+
+For instructions on using a service action, see :doc:`Call a Service
+Action </services/call-a-service-action>`.
+
+.. include:: /includes/extracts/service-actions-twilio.rst
+
+.. toctree::
+   :titlesonly:
+
+   Twilio.send() </services/twilio-actions/send>
+
+.. _twilio-webhooks:
+
+Incoming Webhooks
+-----------------
+
+.. note:: Convert Twilio Webhooks to Endpoints
+
+   Twilio Service webhoooks are deprecated in favor of custom HTTPS
+   endpoints. To learn how to migrate your existing Twilio webhooks to
+   endpoints, see :ref:`Convert Webhooks to HTTPS Endpoints
+   <migrate-twilio-webhooks-to-endpoints>`.
+
+Incoming webhooks for the Twilio service enable your App
+to handle incoming text messages. Once you've created an incoming
+webhook, you can add it to a Twilio messaging service to handle incoming
+messages for that service.
+
+Configuration
+~~~~~~~~~~~~~
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      You will need to provide values for the following parameters when you
+      :doc:`create a Twilio incoming webhook
+      </services/configure/service-webhooks>`:
+   
+   .. tab::
+      :tabid: cli
+      
+      You will need to provide a configuration file of the following form when
+      you :doc:`create a Twilio incoming webhook
+      </services/configure/service-webhooks>`:
+      
+      .. code-block:: javascript
+      
+         {
+           "name": <string>,
+           "respond_result": <boolean>,
+           "run_as_user_id": <string>,
+           "run_as_user_id_script_source": <string>,
+         }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 40
+
+   * - Configuration Value
+     - Description
+
+   * - | :guilabel:`Webhook Name`
+       | *name*
+
+     - Required. The name of the webhook.
+       
+       .. note::
+          
+          Each incoming webhook in a Twilio service interface must
+          have a unique name.
+     
+   * - | :guilabel:`Respond With Result`
+       | *respond_result*
+     
+     - Required. If ``true``, App Services sends the return value of the
+       webhook function to Twilio in the response body.
+       
+       .. note::
+          
+          Twilio will automatically send a text message containing the
+          webhook response's body to the phone number that sent the
+          initial message.
+
+   * - | :guilabel:`Run Webhook As`
+       | *run_as_user_id*
+       | *run_as_user_id_script_source*
+   
+     - Optional. The id of the :doc:`App Services user </users>` that
+       executes the webhook function when the webhook is called.
+
+       .. tabs-realm-admin-interfaces::
+          :hidden: true
+          
+          .. tab::
+             :tabid: ui
+             
+             .. include:: /includes/run-webhook-as-options.rst
+          
+          .. tab::
+             :tabid: cli
+
+             You can specify the user id directly in ``run_as_user_id`` or
+             provide a stringified :doc:`Atlas Function
+             </functions>` that accepts the webhook payload and returns the user
+             id in ``run_as_user_id_script_source``. If you do not specify a
+             specific user id or a function that resolves to a user id,
+             App Services executes the webhook function as the :ref:`system
+             user <system-user>` that has full access to MongoDB CRUD and
+             Aggregation APIs and bypasses all rules and schema validation.
+
+.. _twilio-webhook-request-payload:
+
+Request Payload
+~~~~~~~~~~~~~~~
+
+App Services automatically passes a ``payload`` document as the first argument
+to incoming webhook functions. In a Twilio Service incoming webhook the
+``payload`` object represents an incoming SMS message and has the
+following form:
+
+.. code-block:: json
+
+   {
+      "From": "<Sender's Phone Number>",
+      "To":   "<Receiver's Phone Number>",
+      "Body": "<SMS Body>"
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 40
+
+   * - Field
+
+     - Description
+
+   * - ``From``
+
+     - A string that contains the :twilio:`E.164-formatted
+       <docs/glossary/what-e164>` phone number that sent the incoming
+       text message.
+
+   * - ``To``
+
+     - A string that contains the :twilio:`E.164-formatted
+       <docs/glossary/what-e164>` phone number associated with your
+       Twilio messaging service that the incoming text message was sent
+       to.
+
+   * - ``Body``
+
+     - A string that contains the content of the incoming text message.
+
+.. example::
+
+   A text message sent from the phone number ``(555)867-5309`` to the
+   Twilio phone number ``(805)716-6646`` with the message ``"Hello! How
+   are you?"`` would be represented by the following ``payload``
+   document:
+
+   .. code-block:: json
+
+      {
+        "From": "+15558675309",
+        "To": "+18057166646",
+        "Body": "Hello! How are you?"
+      }
+
+Example Webhook Function
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following webhook function stores text messages sent to a Twilio
+phone number in a MongoDB collection and sends a text message response
+to the phone number that sent the text.
+
+.. code-block:: javascript
+
+   exports = async function(payload, response) {
+     // const { To, From, Body } = payload;
+     const mongodb = context.services.get("mongodb-atlas");
+     const texts = mongodb.db("demo").collection("texts");
+
+     try {
+       // Save the text message body, to number, and from number
+       const { insertedId } = await texts.insertOne(payload);
+       // Send the user a confirmation text message
+       response.setBody(`Saved your text message with _id: ${insertedId}`);
+     } catch (error) {
+       // Send the user an error notification text message
+       response.setBody(`Failed to save your text message: ${error}`);
+     }
+   }
+
+.. _configure-twilio:
+
+Configure Twilio
+----------------
+
+.. _configure-twilio-create-messaging-service:
+
+Create a Messaging Service
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Log in to `Twilio <https://www.twilio.com/login>`_.
+
+#. Click :guilabel:`Programmable SMS` in the left navigation menu of your Twilio project.
+
+#. Click :guilabel:`SMS > Messaging Services`.
+
+#. Click :guilabel:`Create new Messaging Service`.
+
+#. Enter a :guilabel:`Friendly Name` and :guilabel:`Use Case`
+
+#. Click :guilabel:`Create`
+
+.. _configure-twilio-add-webhook:
+
+Add a Webhook to a Twilio Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Click :guilabel:`Programmable SMS` in the left navigation menu of your Twilio project.
+
+#. Click :guilabel:`SMS > Messaging Services`.
+
+#. Click the messaging service that you want to use.
+
+#. On the messaging service configuration page, check the
+   :guilabel:`PROCESS INBOUND MESSAGES` box.
+
+#. Enter the incoming webhook URL in the :guilabel:`Request URL` box.
+
+#. Click :guilabel:`Save`.
+
+Your App is now integrated with Twilio's SMS messaging
+service. Send a message to your Twilio phone number to invoke the
+incoming webhook for your App.

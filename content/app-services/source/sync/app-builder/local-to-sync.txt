@@ -1,0 +1,118 @@
+.. meta::
+   :robots: nosnippet
+
+.. _realm-sync-local-to-sync:
+
+==============================================
+Migrate a Local-Only App to a Sync-Enabled App
+==============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+If you have a mobile app that uses a local realm and you want to 
+convert the app to use Sync, there are three primary tasks: 
+
+- Create and configure an :ref:`App Services App <deploy>`
+- Modify your client code to point to this new backend app
+- Copy the local data to the new synced realm
+
+When it comes to reading and writing to a realm database, there is no difference 
+between working with a local realm and a synced realm. Once you configure sync 
+and open the realm, your existing code continues to work in the same way it did 
+before migrating.
+
+.. figure:: /images/local-to-sync.png
+   :alt: An image showing a mobile app with local data only and then with sync.
+
+.. note::
+
+   An app can have multiple realms, and you can migrate any number of them to 
+   use Sync. For example, your app can continue to use a local-only realm for 
+   device-specific information while also using a synced realm for other data.
+
+Create an App Services App
+--------------------------
+
+To sync your data between devices and MongoDB Atlas, you first create
+an App Services App. This app provides a gateway to the data with security
+in the form of user authentication, data encryption, and access control.
+
+To get started creating the backend app, follow the steps in
+:ref:`<create-app>`.
+
+Enable Authentication
+~~~~~~~~~~~~~~~~~~~~~
+
+Device Sync requires authenticated users. Atlas App Services provides
+many different :ref:`Authentication Providers <authentication-providers>` such
+as email/password and OAuth. Once you have enabled and configured authentication,
+you have full control over who has access to which data.
+
+To learn more and get started, see 
+:ref:`Authentication Providers <authentication-providers>`.
+
+Enable Sync
+~~~~~~~~~~~
+
+In your App Services App, configuring Sync is the final step. When you set up 
+Sync, you enable authenticated users to have online access to their current data.
+While offline, users can work with the most-recent data, but their changes
+won't sync until they're back online.
+
+With Flexible Sync, clients synchronize subsets of data based on queries to
+queryable fields. When configuring Flexible Sync, you decide which fields
+clients can query on. To enable Flexible Sync, follow the steps in
+:ref:`<enable-flexible-sync>`.
+
+Update the Client App
+---------------------
+
+Now that you have the backend set up for Device Sync, you need to make a few 
+changes to your client app code. Follow the steps to set up Flexible Sync in the 
+Quick Start for the language/platform you are using:
+
+- :ref:`<dotnet-client-quick-start>`
+- :ref:`<node-client-quick-start>`
+- :ref:`<react-native-client-quick-start>`
+- :ref:`<ios-client-quick-start-with-sync>`
+
+.. _copy-local-data-to-synced-realm:
+
+Copy Existing Data
+------------------
+At this point, your data still only exists in the local database. You need to 
+perform an initial copy before Realm will sync the data. To do so, follow these 
+steps and refer to the diagram:
+
+1. Check if a synced realm already exists.
+
+#. If not, create one. Open a connection to it and to the local realm.
+
+#. Read each record from the local realm and modify it to match the schema of the
+   synced realm.
+
+#. Copy the modified record to the new synced realm. Sync automatically
+   copies the record to MongoDB Atlas when connected to your App.
+
+#. Confirm that all records you want to preserve are in the new realm.
+
+#. Delete the local realm file.
+
+#. On each subsequent app load, check if the local realm has been
+   deleted.
+
+.. figure:: /images/local-to-sync-data-copy.png
+   :alt: Flow chart showing the steps to convert from local to sync
+
+.. note::
+
+   If you run into errors while configuring Sync or copying data, check the 
+   App Services App logs. The logs provide details about sync 
+   errors. In many cases, performing a :ref:`client reset <client-resets>` is 
+   helpful in solving Sync migration issues. 

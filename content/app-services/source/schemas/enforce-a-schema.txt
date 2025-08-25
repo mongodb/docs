@@ -1,0 +1,412 @@
+.. meta::
+   :robots: nosnippet
+
+.. _enforce-a-schema:
+.. _define-a-schema:
+
+=========================
+Define & Enforce a Schema
+=========================
+
+.. meta::
+   :keywords: code example
+   :description: Learn how to create and deploy an Atlas App Services Schema and define validation rules to enforce it.
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: json
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can control the shape and contents of documents in a collection by defining
+a :ref:`schema <schemas>`. Schemas let you require specific fields, control the
+type of a field's value, and validate changes before committing write
+operations.
+
+This guide shows you how to define, configure, and deploy a schema for a linked
+MongoDB Atlas collection.
+
+.. include:: /includes/adf-rules-note.rst
+
+Define a Schema
+---------------
+
+You can define a schema for a collection in the App Services UI or with the
+App Services CLI.
+
+When using the App Services UI, you can choose to:
+
+- Generate a schema from existing data in the collection, and modify as needed.
+- Define a schema manually by adding field-level schema definitions.
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      .. procedure::
+
+         .. step:: Navigate to the Schema Screen
+
+            In the left navigation menu, click :guilabel:`Schema` beneath
+            :guilabel:`Data Access` to open the schema editor. The Collections
+            configuration screen displays in the :guilabel:`Collections` tab.
+            Atlas App Services scans your linked cluster for existing
+            collections and lists them on the left side of the schema editor.
+
+            Find and select your collection from the menu to show the
+            collection configuration on the right side of the schema editor.
+
+            .. figure:: /images/schema-screen.png
+               :lightbox:
+               :alt: The Schema screen in the App Services UI
+
+         .. step:: Generate a Schema from Existing Data (Optional)
+
+            If you already have data in your collection, App Services can
+            sample a subset of the documents in the collection and generate a
+            schema for you based on the sample. If you already have a schema or
+            prefer to define one manually, skip to the next step.
+
+            You can configure the number of documents to sample and use the
+            MongoDB query language to limit the sample to specific documents. By
+            default, App Services randomly samples up to 500 documents from
+            the entire collection.
+
+            To generate a schema from existing data:
+
+            1. From the collection configuration on the right side of the schema
+               editor, click :guilabel:`Generate Schema` to open the sample configuration
+               screen.
+
+            2. Specify the sample size, up to a maximum of 50,000 documents.
+
+            3. Optionally, click :guilabel:`Advanced` and specify a query,
+               projection, and/or sort to refine the sample query. Use the query
+               and sort filters to sample a specific subset of documents and use
+               the projection filter to sample a specific subset of fields from
+               each document.
+
+            4. Click :guilabel:`Generate` to run the sample query and generate a
+               schema. The process may take up to a minute depending on the number
+               and contents of the sampled documents.
+
+            .. figure:: /images/generate-schema-sample-size.png
+               :lightbox:
+               :alt: The Generate Schema sample size input in the App Services UI
+
+
+         .. step:: Define or Modify the Schema
+
+            You can define a schema manually or modify an existing schema by adding field-level schema definitions.
+
+            You may define a single BSON schema for each collection. The root-level type
+            of each collection schema is an ``object`` schema that represents a document
+            in the collection. You can define additional schemas for document fields
+            within the root schema's ``properties`` field.
+
+            The fields available in a JSON schema object depend on the type of value that
+            the schema defines. For a list of supported types and details on how to
+            configure them, see :ref:`schema types <schema-types>`.
+
+            .. example::
+
+               A group is using App Services to run a voting app where users aged 13 or
+               older can submit a ranked list of their favorite colors. They store
+               the votes in a MongoDB collection named ``votes`` where each
+               document represents a single person's vote. Each vote must include
+               the person's name, age, and an array of their favorite colors. Each
+               color has a ``rank``, ``name``, and a ``hexCode``.
+               The following is a typical document in the ``votes`` collection:
+
+               .. code-block:: json
+
+                  {
+                    "name": "Jane Doe",
+                    "age": 42,
+                    "favoriteColors": [
+                      { "rank": 1, "name": "RebeccaPurple", "hexCode": "#663399" },
+                      { "rank": 2, "name": "DodgerBlue", "hexCode": "#1E90FF" },
+                      { "rank": 3, "name": "SeaGreen", "hexCode": "#2E8B57" },
+                    ]
+                  }
+
+               The group can use the following schema to guarantee that the listed
+               constraints are satisfied for each document in the ``votes``
+               collection:
+
+               .. code-block:: json
+
+                  {
+                    "bsonType": "object",
+                    "required": ["name", "age", "favoriteColors"],
+                    "properties": {
+                      "name": {
+                        "bsonType": "string"
+                      },
+                      "age": {
+                        "bsonType": "int",
+                        "minimum": 13,
+                        "exclusiveMinimum": false
+                      },
+                      "favoriteColors": {
+                        "bsonType": "array",
+                        "uniqueItems": true,
+                        "items": {
+                          "bsonType": "object",
+                          "properties": {
+                            "rank": { "bsonType": "int" },
+                            "name": { "bsonType": "string" },
+                            "hexCode": {
+                              "bsonType": "string",
+                              "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+
+         .. step:: Add Change Validation Expressions (Optional)
+
+            In addition to configuring the content of each field, you can validate changes
+            to documents by defining a validation :ref:`expression <expressions>` in the
+            ``validate`` field of a schema. Validation expressions can use the
+            :json-expansion:`%%prev` and :json-expansion:`%%prevRoot` expansions to access
+            a field or document's values *before* the insert or update operation occurred.
+
+            .. example::
+
+               Consider a collection where the document's ``owner_id`` field
+               represents the owner of each document. The business rules for this
+               collection specify that once a document has an owner, the value of
+               ``owner_id`` should never change. We can enforce this constraint
+               with the following validation expression that ensures that update
+               operations do not change the ``owner_id`` value unless its to
+               assign an owner where there was none previously:
+
+               .. code-block:: javascript
+
+                  "owner_id": {
+                    "validate": {
+                      "%or": [
+                        { "%%prev": { "%exists": false } },
+                        { "%%prev": "%%this" }
+                      ]
+                    }
+                  }
+
+               We could also use the :json-expansion:`%%prevRoot` expansion to
+               create the following equivalent validation expression:
+
+               .. code-block:: javascript
+
+                  "owner_id": {
+                    "validate": {
+                      "%or": [
+                        { "%%prevRoot.owner_id": { "%exists": false } },
+                        { "%%prevRoot.owner_id": "%%root.owner_id" }
+                      ]
+                    }
+                  }
+
+
+         .. step:: Save the Schema
+
+            After you have configured the schema, click :guilabel:`Save`. After
+            saving, App Services immediately begins enforcing the schema for all future
+            queries.
+
+            .. note::
+
+               Existing documents that do not match the schema are not
+               automatically updated or validated, so future changes to these
+               documents may cause schema validation failures.
+
+
+         .. step:: Validate Documents Against the Schema
+
+            Once you have saved the collection schema, you can validate that
+            existing documents in the collection conform to the schema.
+
+            App Services samples documents for validation as it does for
+            automatic schema generation.
+
+            To validate the data in a collection:
+
+            1. Click the :guilabel:`Run Validation` button to open the validation configuration window.
+
+            2. Specify the sample size, up to a maximum of 50,000 documents.
+
+            3. Optionally, click :guilabel:`Advanced` and specify a query and/or
+               sort to refine the validation to a specific subset of documents.
+
+            4. Click :guilabel:`Run Validation` to sample documents from the collection
+               and validate each document against the schema.
+
+            Once validation is complete, App Services lists any validation
+            errors from the sample in the :guilabel:`JSON Validation Errors`
+            table. Each row of the table represents a specific type of validation
+            error for a particular field and indicates the number of documents
+            that failed to validate in that way.
+
+            For each validation error, you can use the :guilabel:`Actions` menu to
+            download the raw documents that failed or copy a MongoDB query that
+            finds the failed documents.
+
+            .. figure:: /images/schema-validation-errors-table.png
+               :alt: The table that displays schema validation errors in the App Services UI
+               :lightbox:
+
+
+   .. tab::
+      :tabid: cli
+
+      .. procedure::
+
+         .. step:: Log In to MongoDB Cloud
+
+            To configure your app with {+cli-bin+}, you must log in to MongoDB Cloud using
+            an :atlas:`API key </reference/api-resources-spec/v2/>` scoped to the organization or
+            project that contains the app.
+
+            .. code-block:: bash
+
+               {+cli-bin+} login --api-key="<MongoDB Cloud Public API Key>" --private-api-key="<MongoDB Cloud Private API Key>"
+
+
+         .. step:: Pull the Latest Version of Your App
+
+            To define a document schema with ``{+cli-bin+}``, you need a local copy of your
+            application's configuration files.
+
+            To pull a local copy of the latest version of your app, run the following:
+
+            .. code-block:: bash
+
+               {+cli-bin+} pull --remote="<Your App ID>"
+
+            .. tip::
+
+               You can also download a copy of your application's configuration files from
+               the :guilabel:`Deploy > Import/Export App` screen in the App Services UI.
+
+
+         .. step:: Define the Schema
+
+            To define or modify the schema for a collection, open the ``schema.json``
+            configuration file within the collection's configuration directory.
+
+            .. tip:: Scaffold the Collection
+
+               If you haven't already defined rules or a schema for the collection, you
+               need to manually create its configuration directory and ``schema.json``:
+
+               .. code-block:: bash
+
+                  # Create the collection's configuration directory
+                  mkdir -p data_sources/<service>/<db>/<collection>
+                  # Create the collection's schema file
+                  echo '{}' >> data_sources/<service>/<db>/<collection>/schema.json
+
+            The root-level schema for every document must be of type ``object``. You can
+            use additional :ref:`schema <schemas>` to configure specific fields within the
+            ``properties`` array. At a minimum, the schema should resemble the following:
+
+            .. code-block:: javascript
+               :caption: /data_sources/<service>/<db>/<collection>/schema.json
+
+               {
+                 "bsonType": "object",
+                 "properties": {
+                   "<Field Name>": <Schema Document>,
+                   ...
+                 }
+               }
+
+
+         .. step:: Define Change Validation (Optional)
+
+            You can validate changes to documents by defining a validation
+            :ref:`expression <expressions>` in the ``validate`` field of a schema.
+            Validation expressions can use the :json-expansion:`%%prev` and
+            :json-expansion:`%%prevRoot` expansions to access a field or document's values
+            *before* the insert or update operation occurred.
+
+            .. example::
+
+               Consider a collection where the document's ``owner_id`` field represents
+               the owner of each document. The business rules for this collection specify
+               that once a document has an owner, the value of ``owner_id`` should never
+               change. We can enforce this constraint with the following validation
+               expression that ensures that update operations do not change the
+               ``owner_id`` value unless its to assign an owner where there was none
+               previously:
+
+               .. code-block:: javascript
+
+                  "owner_id": {
+                    "validate": {
+                      "%or": [
+                        { "%%prev": { "%exists": false } },
+                        { "%%prev": "%%this" }
+                      ]
+                    }
+                  }
+
+               We could also use the :json-expansion:`%%prevRoot` expansion to create the
+               following equivalent validation expression:
+
+               .. code-block:: javascript
+
+                  "owner_id": {
+                    "validate": {
+                      "%or": [
+                        { "%%prevRoot.owner_id": { "%exists": false } },
+                        { "%%prevRoot.owner_id": "%%root.owner_id" }
+                      ]
+                    }
+                  }
+
+
+         .. step:: Deploy the Updated Schema
+
+            Once you've defined and saved ``schema.json`` you can push the updated config
+            to your remote app. {+cli+} immediately deploys the new schema on push.
+
+            .. code-block:: bash
+
+               {+cli-bin+} push --remote="<Your App ID>"
+
+
+.. _validate-null-types:
+
+Validate Null Types
+-------------------
+
+App Services's default behavior is to only accept a single type for each field.
+Schema fields are not nullable by default because ``null`` is a unique
+:manual:`BSON type </reference/bson-types/>`.
+
+You can configure App Services to pass schema validation when you use ``null``
+values with optional fields.
+Enabling null type validation allows the value for a field to be persisted as
+the type in the schema or the :manual:`BSON null </reference/bson-types/>` type.
+If you do not enable null type schema validation, App Services rejects ``null``
+values passed to optional fields. Even if you enable null type validation,
+required fields are never nullable.
+
+To enable null type schema validation in the App Services UI:
+
+#. In the left navigation menu below the :guilabel:`Manage` header, select :guilabel:`App Settings`.
+#. On the :guilabel:`General` tab, navigate to the :guilabel:`Null Type Schema Validation`
+   section. Toggle the switch to :guilabel:`ON`.
+#. Click the :guilabel:`Save` button.

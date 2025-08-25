@@ -1,0 +1,323 @@
+.. meta::
+   :robots: nosnippet
+
+.. _test-functions:
+
+====================
+Test Atlas Functions
+====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes some strategies you can use to test your Atlas Functions.
+
+Due to differences between the Functions
+JavaScript runtime and the standard Node.js runtime, you must take some unique considerations
+into account when testing Functions. This page covers how to handle
+the uniqueness of Functions.
+
+Before You Begin
+----------------
+
+You will need the following to test an Atlas Function:
+
+- .. include:: /includes/prereqs/app.rst
+
+- .. include:: /includes/prereqs/code-deploy.rst
+
+.. _unit-test-functions:
+
+Unit Tests for Functions
+------------------------
+
+You can validate the functionality of your Functions with unit tests.
+Use any Node.js-compatible testing framework to test Functions.
+The examples on this page use the `Jest testing framework <https://jestjs.io/>`__.
+
+You must use :wikipedia:`CommonJS modules <CommonJS>` to write unit tests for
+Functions.
+
+.. procedure::
+
+   .. step:: Get a local copy of your App Services App
+
+      .. tabs::
+
+         .. tab:: {+cli+}
+            :tabid: cli
+
+            Pull the latest configuration of your App from the server.
+
+            .. code-block:: sh
+
+              {+cli-bin+} pull --remote <App ID>
+
+         .. tab:: Github
+            :tabid: github
+
+            Pull the latest configuration of your App from Github.
+
+            .. code-block:: sh
+
+              git pull <Remote Name> <Branch name>
+
+
+   .. step:: Create a new Function
+
+      Create a new Function. In the App's configuration files, create a new JavaScript
+      file in the ``functions`` directory for your function.
+
+      .. code-block:: sh
+
+         touch functions/hello.js
+
+
+      You also need to add configuration information for the Function to ``functions/config.json``.
+
+      .. code-block:: json
+
+          {
+              "name": "hello",
+              "private": false,
+              "run_as_system": true
+          },
+
+      .. seealso::
+
+         For more information on creating a new Function,
+         refer to :ref:`Define a Function <define-a-function>`.
+
+   .. step:: Write Function code
+
+      To make your Function code easy to test, keep it modular
+      by separating its concerns into distinct components.
+      You must keep all logic for the Function in the file you defined
+      in the previous step. You cannot perform relative imports from other files
+      in your project in a Function file.
+      You can also :ref:`import dependencies using npm <external-dependencies>`.
+
+      You must export your function by assigning it to ``exports``.
+
+      .. literalinclude:: /examples/generated/functions/hello.snippet.function.js
+         :language: js
+         :caption: hello.js
+         :emphasize-lines: 10
+
+   .. step:: Export Function for use in unit tests
+
+      To export your code to use in separate Node.js unit test files,
+      you must use CommonJS ``module.exports`` syntax.
+
+      This syntax is not compatible with the Functions runtime.
+      The Atlas Functions environment does not provide the Node.js global ``module``.
+      To export modules to your unit tests while keeping the file compatible with
+      Functions, wrap the  the ``module.exports`` statement
+      with a check to see if the global ``module`` object exists.
+
+      .. literalinclude:: /examples/generated/functions/hello.snippet.function-with-local-export.js
+         :language: js
+         :caption: functions/hello.js
+         :emphasize-lines: 12-15
+
+   .. step:: Unit test exported Function code
+
+      Now you can write unit tests for the modules that you exported from the
+      Function file. Create a test file for the Function file in
+      a separate ``test`` directory somewhere in your project.
+
+      .. code-block:: sh
+
+         mkdir -p test/unit
+         touch test/unit/hello.test.js
+
+      Import the modules you exported in the previous step and add unit tests.
+
+      .. literalinclude:: /examples/generated/functions/hello.test.snippet.greeting-test.js
+         :language: js
+         :caption: test/unit/hello.test.js
+
+.. _functions_mock_services:
+
+Mock Services
+~~~~~~~~~~~~~
+
+To write unit tests for Functions that use the :ref:`global context object <function-context>`
+or one of the :ref:`other global modules <function-global-modules>`
+that Functions expose, you must create mocks of their behavior.
+
+In this example, the Function references an :ref:`App Services Value <app-value>`
+via ``context.values.get()`` and creates an ObjectId using the global module
+:ref:`BSON  <bson>`.
+
+.. code-block:: js
+   :caption: accessAppServicesGlobals.js
+   :emphasize-lines: 2-3
+
+    function accessAppServicesGlobals() {
+      const mongodb = context.services.get("mongodb-atlas");
+      const objectId = BSON.ObjectId()
+
+      // ... do stuff with these values
+    }
+
+    exports = accessAppServicesGlobals;
+
+    if (typeof module !== "undefined") {
+      module.exports = accessAppServicesGlobals;
+    }
+
+Attach these mocks to the Node.js global namespace. This lets you call the mocks in your
+unit tests the same way you do in the Functions runtime.
+
+.. code-block:: js
+
+   global.context = {
+     // whichever global context methods you want to mock.
+     // 'services', 'functions', values, etc.
+   }
+
+   // you can also mock other Functions global modules
+   global.BSON = {
+     // mock methods
+   }
+
+You may also want to declare and remove these mocks in setup and teardown blocks
+so that they do not pollute the global namespace.
+
+.. code-block:: js
+   :emphasize-lines: 2-6, 9-11
+
+    // adds context mock to global namespace before each test
+    beforeEach(() => {
+      global.context = {
+        // your mocking services
+      };
+    });
+
+    // removes context from global namespace after each test
+    afterEach(() => {
+      delete global.context;
+    });
+
+    test("should perform operation using App Services globals", () => {
+      // test function that uses context
+    });
+
+.. example:: Mocking a Function that accesses ``context``
+
+   The function in this example accesses an App Services Value and returns it.
+
+   .. literalinclude:: /examples/generated/functions/helloWithValue.snippet.hello-with-context-value.js
+      :language: js
+      :caption: helloWithValue.js
+      :emphasize-lines: 2
+
+   Now create a test file ``helloWithValue.test.js``.
+   The test file contains the following:
+
+   - Import the function exported from ``helloWithValue.js``.
+   - A mock of ``context.values.get()``. Wrap the mock in set up and tear down blocks
+     so that it does not pollute the global namespace.
+   - A test of the imported function that uses the mock.
+
+   .. literalinclude:: /examples/generated/functions/helloWithValue.test.snippet.test-with-mocking.js
+      :language: js
+      :caption: helloWithValue.test.js
+
+.. _integration-test-functions:
+
+Integration Tests for Functions
+-------------------------------
+
+You should perform integration tests on all Functions before deploying
+them to production environments. This is especially important because
+the Atlas Function JavaScript runtime differs from the standard Node.js runtime.
+Unexpected errors can occur if you do not test functions deployed to App Services.
+
+There is no single way to write integration tests for Functions.
+As Functions can be used in a variety of different contexts for different purposes,
+each use case requires a different integration testing strategy.
+
+For example, the way you create an integration test for a Function that you
+invoke from a Device SDK client is different from the way you would test a
+Database Trigger Function.
+
+However, there are some general steps that you can take to writing integration tests
+for Functions. On a high level these steps are:
+
+#. Create a testing App with the same configuration as your production App.
+#. Write integration tests that interact with your Functions deployed
+   to a live testing environment.
+
+The remainder of this section explains how to implement integration tests for your
+App in more detail.
+
+.. seealso::
+
+   For more information on the unique aspects of the Functions JavaScript runtime,
+   refer to:
+
+   - :ref:`Function Constraints <function-constraints>`
+   - :ref:`JavaScript Support <js-support>`
+
+   For more information on the different use cases for Functions,
+   refer to :ref:`When to Use Functions <when-to-use-functions>`.
+
+.. procedure::
+
+   .. step:: Create a test App
+
+      Create an App for testing purposes that has the same configuration
+      as your production App, except using different data sources and backend
+      configuration.
+
+      For more information on how you can create multiple Apps with the
+      same configuration, see :ref:`Configure an App Environment
+      <app-environment>`.
+
+   .. step:: Test in live environment
+
+      Once you have deployed your test App, test its functionality using
+      your preferred testing language and framework.
+
+      The :ref:Realm client SDKs are useful for testing
+      Apps. These SDKs provide first-class access to App Services.
+      In your testing suite, you can connect to your testing App with a Realm SDK.
+      Test the interaction with the App using the Realm SDK.
+
+.. example:: Testing a Database Trigger Function
+
+   This example uses the Realm Node.js SDK and the Jest testing framework
+   to test a Database Trigger.
+
+   The Trigger Function creates a :wikipedia:`materialized view <Materialized_view>`
+   of total sales for a product whenever a new sale is made.
+
+   The Trigger fires every time an entry is added to the ``sales`` table.
+   It increments the ``total_sales`` field on the ``total_sales_materialized`` table
+   by one.
+
+   The Database Trigger has the following configuration:
+
+   .. literalinclude:: /examples/materialTotalSales.json
+      :language: json
+      :caption: triggers/materializeTotalSales.json
+
+   The Trigger invokes the following Function:
+
+   .. literalinclude:: /examples/generated/functions/materializeTotalSales.snippet.materialize-total-sales.js
+      :language: js
+      :caption: functions/materializeTotalSales.js
+
+   This example tests the Trigger using the :ref:`Node.js Realm SDK <node-intro>`
+   to interact with MongoDB Atlas. You can also use any :ref:`Realm SDK <realm-sdks>`
+   with the MongoDB Query API or one of the :driver:`MongoDB drivers <>`
+   to query MongoDB Atlas to test a Database Trigger.
+
+   .. literalinclude:: /examples/generated/functions/materializeTotalSales.test.snippet.materialize-total-sales-test.js
+      :language: js
+      :caption: test/integration/materializeTotalSales.test.js

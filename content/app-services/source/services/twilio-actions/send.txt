@@ -1,0 +1,166 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+=============
+twilio.send()
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: twilio.send()
+
+Sends an SMS text message with Twilio.
+
+Usage
+-----
+
+.. note::
+
+   To send or receive messages via the `Twilio API for WhatsApp <https://www.twilio.com/whatsapp>`__,
+   prepend the ``to`` or ``from`` numbers with ``whatsapp:``.
+
+   .. code-block:: javascript
+
+      to: "whatsapp:+15558675309",
+      from: "whatsapp:+15551234567",
+
+Example
+~~~~~~~
+
+.. tabs-realm-sdks::
+
+   tabs:
+     - id: functions
+       content: |
+         .. code-block:: javascript
+            :emphasize-lines: 3-7
+
+            exports = function() {
+                const twilio = context.services.get("myTwilio");
+                twilio.send({
+                    to: "+15558675309",
+                    from: "+15551234567",
+                    body: "Hello from App Services!"
+                });
+            };
+
+Parameters
+~~~~~~~~~~
+
+.. tabs-realm-sdks::
+
+   tabs:
+     - id: functions
+       content: |
+         .. list-table::
+            :header-rows: 1
+            :widths: 30 20 80
+
+            * - Parameter
+              - Type
+              - Description
+
+            * - ``args``
+              - document
+              - A document of the following form:
+
+                .. code-block:: javascript
+
+                   {
+                       "to": <string>,   // recipient phone #
+                       "from": <string>, // sender phone #
+                       "body": <string>  // message
+                   }
+
+            * - ``args.to``
+              - string
+              - The recipient's phone number in :twilio:`E.164 Format
+                <docs/glossary/what-e164>`.
+
+            * - ``args.from``
+              - string
+              - A phone number associated with your Twilio account in
+                :twilio:`E.164 Format <docs/glossary/what-e164>`.
+
+            * - ``args.body``
+              - string
+              - The message to send.
+
+Return Value
+~~~~~~~~~~~~
+
+The ``twilio.send()`` action does not return a value.
+
+.. _twilio-send-rule-templates:
+
+Rule Templates
+--------------
+
+.. _twilio-send-rule-template-from-specific-number:
+
+Users Can Send Only Messages from a Specific Phone Number
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   {
+     "%%args.from": "+15551234"
+   }
+
+Users Can Only Send Messages to a Limited Set of Phone Numbers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   {
+     "%%args.to": {
+       "$in": [
+         "+15551234",
+         "+18675309"
+       ]
+     }
+   }
+
+Users Can Only Send Messages to Themselves
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   {
+     "%%true": {
+       "%function": {
+         "name": "isCurrentUsersPhoneNumber",
+         "arguments": [
+           "%%args.to"
+         ]
+       }
+     }
+   }
+
+.. note::
+
+   This template calls an example function named
+   ``isCurrentUsersPhoneNumber`` that does the following:
+
+   1. Accepts the phone number provided in the ``to`` argument
+   2. Queries MongoDB for a user document that matches the current user's id
+   3. Compares the provided phone number to the number listed in the user document
+   4. Returns the boolean result of the comparison
+
+   .. code-block:: javascript
+
+      exports = function(toPhone) {
+        const mdb = context.services.get('mongodb-atlas');
+        const users = mdb.db('demo').collection('users');
+        const user = users.findOne({ _id: context.user.id });
+        return user.phoneNumber === toPhone;
+      }

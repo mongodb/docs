@@ -1,0 +1,474 @@
+.. meta::
+   :robots: nosnippet
+
+.. _app-services-event-library:
+
+=============
+Event Library
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+The Event Library enables developers to track what data the user 
+sees and edits while using a Device Sync-enabled mobile application. The 
+Event Library can record three types of events:
+
+- Read events
+- Write events
+- Custom events
+
+Developers can specify the read and write transactions to record.
+Additionally, you can configure custom events to record things like 
+button presses, or what the user is seeing in the frontend application.
+
+This level of detail enables auditors or other interested parties to
+assess exactly what happened, and when.
+
+.. important:: Partition-Based Sync Required
+
+   The Event Library does not support recording ``AuditEvents`` using Flexible 
+   Sync. This functionality requires a Partition-Based Sync App Services App 
+   to record ``AuditEvent`` data.
+
+Use Case
+~~~~~~~~
+
+The Event Library provides the ability to perform audits to meet compliance
+requirements in heavily-regulated industries, such as healthcare or 
+financial services.
+
+.. example::
+
+   A nurse in a healthcare facility uses an app with the Event Library 
+   enabled. The app presents the nurse with real-time vital signs, 
+   information streamed in from the medical equipment, and the patient's
+   historical treatment information. The app inherently enforces compliance,
+   because its code blocks actions that the nurse should not take based
+   on the data being viewed. The Event Library captures all the information
+   that the nurse sees within the app interface, as well as the actions 
+   that the nurse takes after viewing that information.
+   
+   At some point, this nurse provides treatment to a patient that later 
+   exposes the facility to a malpractice lawsuit. The legal department
+   must review the information that was available to the nurse during the
+   treatment. 
+   
+   The Event Library captures the digital data that the nurse 
+   viewed during treatment, as well as the actions he undertook. By 
+   reviewing this data, the legal team can assess whether the treatment was 
+   reasonable. Without this information, the legal department can't know
+   and prove whether the nurse's actions were reasonable.
+
+How It Works
+~~~~~~~~~~~~
+
+The Event Library opens a separate "event" realm on the user's device. This 
+realm has access to any user realm that the developer chooses to monitor
+with the Event Library.
+
+When developers implement the Event Library, they designate the types of 
+events they want to record, as well as any custom metadata they want to 
+append to the event recordings. When the client application runs, it records
+the designated user interactions to the "event" realm as read events, 
+write events, or custom events. 
+
+While the client device has a network connection, Atlas Device Sync synchronizes 
+this event realm data to an ``AuditEvent`` collection in the linked Atlas 
+data source.
+
+.. seealso::
+
+   For information on how to implement the Event Library in a client 
+   application, see: :ref:`Event Library - Swift SDK <swift-event-library>`.
+
+Access Event Library Data
+-------------------------
+
+The Event Library records event data in a collection called ``AuditEvent`` 
+in your linked Atlas database. When you configure the Event Library,
+use :ref:`Development Mode <development-mode>` to automatically 
+create this collection and derive a schema from synced events. Remember
+to turn Development Mode off before taking your application to production.
+
+Event Library Schema
+~~~~~~~~~~~~~~~~~~~~
+
+Your ``AuditEvent`` collection must have a schema containing the following
+fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 33 33 34
+
+   * - Field name
+     - Type
+     - Required
+
+   * - ``_id``
+     - ObjectId
+     - Required
+   
+   * - ``activity``
+     - String
+     - Required 
+
+   * - ``_partition``
+     - String
+     - Required
+
+   * - ``timestamp``
+     - Date
+     - Required
+
+   * - ``event``
+     - String
+     - Optional
+
+   * - ``data``
+     - String
+     - Optional
+
+Additionally, the schema must contain an optional string field
+for each metadata key you use. For example:
+
+.. code-block:: json
+
+   { 
+     "<Metadata Key>": { 
+       "bsonType": "string" 
+     } 
+   }
+
+.. seealso::
+
+   For information on how to add a schema to your collection, see: 
+   :ref:`enforce-a-schema`.
+
+.. example::
+
+   If you're not using any custom metadata, your schema might look like this:
+
+   .. code-block:: json
+      :caption: AuditEvent Collection Schema
+
+      {
+        "title": "AuditEvent",
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "_partition",
+          "timestamp",
+          "activity"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "_partition": {
+            "bsonType": "string"
+          },
+          "timestamp": {
+            "bsonType": "date"
+          },
+          "activity": {
+            "bsonType": "string"
+          },
+          "event": {
+            "bsonType": "string"
+          },
+          "data": {
+            "bsonType": "string"
+          }
+        }
+      }
+
+Event Types
+-----------
+
+The Event Library records three types of events:
+
+- Read events
+- Write events
+- Custom events
+
+.. _event-library-read-events:
+
+Read Events
+~~~~~~~~~~~
+
+The Event Library records data returned as the result of a query as read 
+events. Read events also record any time a Realm object is instantiated, 
+such as when following a link or looking an object up by primary key.
+
+The Event Library records read events as a JSON object with two fields:
+
+- ``type``: stores the class name
+- ``value``: stores an array of serialized objects
+
+Read events store values as follows:
+
+- *Single-object read events*: the value is an array that has a single element
+- *Objects matching a query*: the value is an array of all objects matching
+  a query, even if the objects are never used
+- *Reads that occur during a write transaction*: the value is the data that
+  the object has before the write transaction began; it does not reflect
+  any changes that occur during the write event.
+- *Objects that do not exist when a write transaction begins*: objects that
+  are created in a write transaction do not produce a read event at all.
+
+.. important::
+
+   The Event Library cannot tell if only a subset of the query displays in 
+   the client application. For example, say the client application has a 
+   list view. The Event Library's read event doesn't record scrolling 
+   information; it records the read event as the full query result. 
+   Developers must use custom events to record when a client application 
+   displays only a subset of a query result.
+
+Read Event Combining
+````````````````````
+
+A stream of every read event could produce a lot of "duplicate" events on
+the same objects that don't add information. To reduce these "duplicate" 
+events, the Event Library discards and merges some events.
+
+The Event Library discards:
+
+- Queries which match no objects
+- Queries which match only newly-created objects
+- Object reads where the object is matched by a previous query
+
+The Event Library merges:
+
+- Multiple queries on the same table into a single merged query.
+
+Read Event Format
+`````````````````
+
+A read event object has this format:
+
+.. code-block:: json
+
+   {
+     "_id": "62b396f4ebe94d2b871889bb",
+     "_partition":"events-62b396f4ebe94d2b871889ba",
+     "activity":"read object",
+     "data": "{
+         "type":"Person",
+         "value": [{
+           "_id": "62b396f4ebe94d2b871889b9",
+           "_partition":"",
+           "employeeId":1,
+           "name":"Anthony"
+         }]
+     }",
+     "event":"read",
+     "timestamp": 2022-06-23T14:54:37.756+00:00
+   }
+
+Embedded Object Read Events
+```````````````````````````
+
+The Event Library represents embedded objects by creating a link in the 
+parent object to the primary key of the embedded object. When the user
+does not follow the link, the primary key is the only representation of
+the embedded object. When the user does follow the link, the embedded 
+object resolves within the parent object.
+
+This also produces a top-level object read for the embedded object.
+
+.. example::
+
+   A ``Person`` object has an embedded object ``Office`` which contains details
+   about the location where the person works. When we do not follow the link
+   to view any of the ``office`` details, the parent ``Person`` object shows
+   only the embedded object's object ID.
+
+   .. code-block:: json
+      :caption: Parent Object's data Payload with an Unfollowed Link for office
+   
+      {
+        "type": "Person",
+        "value": [{
+          "_id": "62b47624265ff7b58e9b204e",
+          "_partition": "",
+          "employeeId": 1,
+          "name": "Michael Scott",
+          "office": "62b47624265ff7b58e9b204f"
+        }]
+      }
+
+   When we do follow the link to view details of the embedded ``Office`` object,
+   this resolves the embedded object within the parent object. It *also* 
+   produces a second top-level read of just the child object - in this case,
+   our ``Office`` object.
+
+   .. code-block:: json
+      :caption: Both Objects' data Payloads with a Followed Link for office
+
+      {
+        "type":"Person",
+        "value": [{
+          "_id": "62b47975a33224558bdf8b4d",
+          "_partition": "",
+          "employeeId": 1,
+          "name": "Michael Scott",
+          "office": {
+            "_id": "62b47975a33224558bdf8b4e",
+            "_partition": "",
+            "city": "Scranton",
+            "locationNumber": 123,
+            "name": "Dunder Mifflin"
+          }
+        }]
+      }
+
+      {
+        "type": "Office",
+        "value": [{
+          "_id": "62b47975a33224558bdf8b4e",
+          "_partition": "",
+          "city": "Scranton",
+          "locationNumber": 123,
+          "name": "Dunder Mifflin"
+        }]
+      }
+
+   .. note:: Read event combining
+
+      Read Event Combining may affect the objects you see when you query 
+      for an object and then later follow an embedded object link.
+      
+      In the example above, if you previously queried for the ``Person``, 
+      that would produce an read event where the office object 
+      is unresolved within the person object; you'd see only the ObjectID
+      in the initial read event. Then, if you later follow a link that 
+      resolves the embedded object, you'd see the separate top-level read
+      for the embedded object, but would *not* get the parent object read
+      that shows the resolved embedded object within the parent object.
+
+.. _event-library-write-events:
+
+Write Events
+~~~~~~~~~~~~
+
+The Event Library records write events when:
+
+- New objects are created
+- Existing objects are modified
+- Objects are deleted
+
+The write event records both the before and after state of the object. For
+new objects created, the before state is ``null``. For deletes, the after
+state of the object is ``null``. 
+
+For each write transaction the client commits during an event recording 
+scope, the Event Library records a single write event. This write event
+records all of the changes made during the write transaction.
+
+The payload is an object keyed on class names. Each object type which had
+any objects created, modified, or deleted has an entry.
+
+The Event Library records changes to an object type as an object with three 
+arrays:
+
+- insertions: contain the serialized objects which were inserted, using the 
+  same serialization scheme as reads
+- modifications: report both the old and new values of each property
+- deletions: contain the serialized objects which were deleted, using the 
+  same serialization scheme as reads
+
+In a modification, the ``newValue`` object only includes properties which
+are different from the ``oldValue`` object. If a write transaction assigns
+to an object but does not actually change the value of any properties, 
+
+Write Event Format
+``````````````````
+
+A write event object has this format:
+
+.. code-block:: json
+   :caption: Inserted object's data payload
+
+   {
+     "Person": {
+       "insertions": [{
+         "_id": "62b47ead6a178a314ae0eb52",
+         "_partition": "",
+         "employeeId": 1,
+         "name": "Anthony"
+       }]
+     }
+   }
+
+.. code-block:: json
+   :caption: Modified object's data payload
+   
+   {
+     "Person":{
+       "modifications": [{
+         "newValue": {
+           "name": "Tony"
+         },
+         "oldValue": {
+           "_id": "62b47d83cdac49f904c5737b",
+           "_partition": "",
+           "employeeId": 1,
+           "name": "Anthony"
+         }
+       }]
+     }
+   }
+
+.. code-block:: json
+   :caption: Deleted object's data payload
+
+   {
+     "Person":{
+       "deletions":[{
+         "_id":"62b47ead6a178a314ae0eb52",
+         "_partition":"",
+         "employeeId":1,
+         "name":"Tony",
+         "userId":"tony.stark@starkindustries.com"
+       }]
+     }
+   }
+
+.. _event-library-custom-events:
+
+Custom Events
+~~~~~~~~~~~~~
+
+Custom events can record types of events that do not read or write to the 
+database, such as:
+
+- When a specific screen displays
+- When the user clicks a button
+
+You can use custom events to give context to read and write events, such 
+as recording a custom event when the client application displays a given 
+screen. Then, you can infer that read and write events after the custom 
+event recording the app screen loading all occurred on that app screen.
+
+Custom events can store whatever data a developer desires, or no data at all.
+
+.. code-block:: json
+   :caption: Example of a custom event
+
+   {
+     "_id": "62b4804c15659310991e5e0a",
+     "_partition": "events-62b4804b15659310991e5e09",
+     "activity": "login",
+     "event": "custom event",
+     "timestamp": 2022-06-23T15:01:31.941+00:00
+   }

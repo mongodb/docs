@@ -1,0 +1,322 @@
+.. meta::
+   :robots: nosnippet
+
+.. _mongodb-service-limitations:
+
+===================
+Service Limitations
+===================
+
+.. meta:: 
+   :description: Follow these guidelines to avoid issues related to service limitations.
+
+.. facet::
+   :name: genre 
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _mongodb-service-limitations-overview:
+
+Overview
+--------
+
+Atlas App Services has several guidelines to keep in mind when architecting how
+your tools and clients interact with MongoDB through App Services.
+Keep this guidance in mind when deciding how to structure queries,
+selecting which CRUD and aggregation operations to use, and determining
+how to handle concurrent workloads.
+
+.. Please keep these sections alphabetized by section title.
+
+.. _mongodb-service-limitations-aggregation:
+
+Aggregation
+-----------
+
+App Services supports all :manual:`aggregation pipeline
+stages </reference/operator/aggregation-pipeline/>` in
+:ref:`system functions <system-functions>` except for ``$currentOp``
+and ``$indexStats``.
+
+For security reasons, only a subset of aggregation pipeline stages are
+supported in :ref:`user functions <user-functions>`.
+
+For a list of pipeline stages that are available and their allowed function
+context, see :ref:`Aggregation <mongodb-crud-and-aggregation-apis-aggregation>`.
+
+.. _mongodb-service-limitations-atlas-support:
+
+Atlas
+-----
+
+Batch Loading
+~~~~~~~~~~~~~
+
+When data is bulk/batch loaded into MongoDB Atlas, you may see a delay in
+data appearing on devices while App Services processes changes.
+
+{+adf-instance+}s
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /mongodb/adf-limitations.rst
+
+Serverless Instances
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /mongodb/limitations-serverless-instances.rst
+
+.. _sharded-sync:
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+Atlas Device Sync does not currently support sharded MongoDB Atlas clusters. However,
+you can add a sharded cluster as a data source and access it from a
+:ref:`function <functions>`.
+
+.. _time-series-limitation:
+
+Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~
+
+:manual:`Time series collections </core/timeseries-collections/>` do not
+yet support :manual:`change streams </changeStreams/>`. Therefore,
+you cannot define triggers on a time series collection.
+
+You can use time series collections with Atlas Device Sync, but only 
+:ref:`Data Ingest <stream-data-from-client-to-atlas>` is supported.
+
+.. _mongodb-service-limitations-private-endpoint:
+
+Private Endpoints
+-----------------
+
+App Services supports private endpoints for securely connecting to an
+AWS Virtual Private Cloud with AWS PrivateLink. Apps must be deployed
+locally to a region in AWS to use a private endpoint. App Services does
+not support private endpoints for Global Apps or Apps deployed to GCP or
+Azure. For more information, see :ref:`Private Endpoints
+<private-endpoints>`.
+
+.. _mongodb-service-limitations-change-streams:
+
+Change Streams
+--------------
+
+App Services limits the total number of change streams open against a given
+cluster across all Apps based on the cluster's size. The following table lists
+the limitations for each cluster size:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Cluster Size
+     - Maximum Number of Change Streams
+
+   * - Free Tier (``M0``)
+     - 5
+
+   * - Shared Clusters (``M2``/``M5``)
+     - 10
+
+   * - Small, Dedicated Clusters (``M10``/``M20``)
+     - 100
+
+   * - Standard Clusters (``M30``/``M40``)
+     - 1000
+
+   * - Standard Clusters (``M50`` - ``M90``)
+     - 1000
+
+   * - High-Power Clusters (``M100+``)
+     - 1000
+
+.. note::
+
+   App Services opens a single change stream on each collection that is
+   associated with a :ref:`Database Trigger <database-trigger>` or 
+   :ref:`Device Sync <sync>` operation.
+
+.. important:: Usage Recommendation
+
+   To minimize the number of open change streams:
+
+   - Start Sync operations only when necessary. Close any open
+     Sync streams immediately when they're no longer necessary.
+
+   - Avoid data models that require you to Sync an unbounded
+     number of collections.
+
+.. _mongodb-service-limitations-database-commmands:
+
+Database Commands
+-----------------
+
+App Services does not support any :manual:`database commands
+</reference/command>` in the Client SDKs or :doc:`Functions
+</functions>`. You can, however, call a limited subset of database
+commands when when connected to a MongoDB cluster over the :ref:`wire
+protocol <wire-protocol>`. For a list of supported commands, see
+:ref:`Database Commands
+<mongodb-crud-and-aggregation-apis-database-commands>`.
+
+.. _mongodb-service-limitations-device-sync:
+
+Device Sync
+-----------
+
+.. _mongodb-service-limitations-concurrent-workloads:
+
+Concurrent Workloads
+~~~~~~~~~~~~~~~~~~~~
+
+You can have up to {+max-concurrent-sync-connections+} concurrent Sync
+connections. See :ref:`mongodb-service-limitations-request-traffic`.
+
+Writing:
+  For improved performance, you may want to limit the number of concurrent writes
+  to a single MongoDB document. App Services has no hard limit to the number of 
+  users concurrently writing data to a MongoDB document. However, with more than 
+  30 concurrent writers, you may see delays in syncing or conflict resolution.
+
+Reading:
+  Frontend clients reading from a global realm can scale past tens
+  of thousands of concurrent users.
+
+.. _scalability:
+
+.. tip:: Scalability
+   
+   When you intend to have many concurrent writers, have each writer
+   work on a separate document. 
+
+.. _mongodb-service-limitations-sync-default-message-size-limit:
+
+Default Message Size Limit
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Device Sync has a default message size limit of {+sync-default-message-size-limit+}
+compressed for any messages sent from the client application. The message size
+depends on the compressed size of changes sent from the client device. For 
+more information about changesets and the compression that Sync uses, refer
+to :ref:`changesets`.
+
+The compressed size of a changeset is not directly equivalent to the size of 
+any document in the upload. In practice, however, the changeset size is 
+generally on the same order of magnitude of the size of documents in the 
+upload.
+
+This limit acts as a countermeasure against connections consuming too many 
+resources.
+
+You may see this limit as an error message similar to ``failed to read: read 
+limited at 20971521 bytes``.
+
+You can request a higher limit by `filing a support ticket <https://support.mongodb.com/welcome>`__.
+
+.. _mongodb-service-limitations-sync-inactive-pause:
+
+Pause Due to Inactivity
+~~~~~~~~~~~~~~~~~~~~~~~
+
+After {+sync-inactive-app-pause-time+} with no activity, Device Sync
+pauses. Refer to :ref:`resume-sync` for information about how to re-enable
+Device Sync.
+
+.. _mongodb-service-limitations-version-requirements:
+
+MongoDB Version Requirements
+----------------------------
+
+You can access most of the CRUD and Aggregation functionality of MongoDB
+version 3.6 with the :doc:`MongoDB service </mongodb>`; however, App Services
+does not support all operations and features available in standard tools
+and clients. For a list of specific MongoDB operations that
+are available when you connect to MongoDB through App Services, see
+:ref:`the CRUD & Aggregation API reference
+<mongodb-crud-and-aggregation-apis>`.
+
+Device Sync requires MongoDB Atlas clusters to run specific versions of MongoDB.
+Flexible Sync requires MongoDB 5.0.0 or greater.
+
+.. _mongodb-service-limitations-http-version-reuirements:
+
+HTTP Version Requirement
+------------------------
+
+Data API and HTTPS Endpoints require HTTP/1.1 or greater when making requests. 
+
+.. _mongodb-service-limitations-query-options:
+
+Query Options
+-------------
+
+App Services supports all query options in :ref:`system functions
+<system-functions>`. App Services does not support certain options for
+CRUD operations run from :ref:`user functions <user-functions>`. For a
+list of specific options that are available when you connect to MongoDB through
+App Services, see :ref:`Query Options
+<mongodb-crud-and-aggregation-apis-query-options>`.
+
+.. _mongodb-service-limitations-query-results:
+
+Query Results
+-------------
+
+MongoDB queries executed through App Services can return a maximum of 50,000
+documents. If you need to return more documents, consider paginating
+your query.
+
+.. _mongodb-service-limitations-request-traffic:
+
+Request Traffic
+---------------
+
+App Services limits request traffic to the following defaults:
+
+- {+max-concurrent-requests+} concurrent requests. Any requests made beyond 
+  the non-Sync concurrent request limit receive an HTTP response status 
+  code of `429 - Too Many Requests <https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429>`_.
+- {+max-concurrent-sync-connections+} concurrent Device Sync connections.
+
+App Services can handle requests many times the above limits. However, these limits are 
+put in place to ensure applications scale responsibly and to prevent DOS attacks 
+and unintended billing charges. 
+
+You can request a higher limit by `filing a support ticket <https://support.mongodb.com/welcome>`__.
+
+.. _connection_pooling:
+
+Connection Pooling
+------------------
+
+App Services uses connection pooling to reduce the overhead of frequently 
+opening and closing connections between requests and trigger executions. 
+Connections are opened as needed. Connection pooling is dependent on 
+several factors:
+
+- Cluster Tier. The higher the cluster tier, the more connections available in
+  the pool.
+
+- Deployment Mode. Global deployments use multiple servers in each region, and 
+  therefore have an overall larger connection pool. 
+
+- Services. Each service has an independent connection pool, so the number of 
+  services in your app does not impact the number of connections available. 
+
+.. _mongodb-service-limitations-static-hosting:
+
+Static Hosting
+--------------
+
+App Services enforces a 25MB maximum file size constraint on
+:doc:`static hosting </hosting/>`.
+
+.. important::
+
+   Static Hosting is deprecated. :ref:`Learn More <migrate-hosting-graphql>`.

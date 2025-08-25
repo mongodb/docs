@@ -1,0 +1,175 @@
+.. meta::
+   :robots: nosnippet
+
+.. _conflict-resolution:
+
+===================
+Conflict Resolution
+===================
+
+.. meta::
+   :description: Learn about how Atlas Device Sync automatically resolves synced data conflicts, or how to build custom conflict resolution rules.
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Conflicts arise when two or more users make changes to the same piece of
+data independently. This can happen due to latency between device and
+server or loss of connectivity. In this event, Atlas Device Sync automatically
+uses conflict resolution strategies to merge the changes. Specifically,
+Device Sync handles conflict resolution using `operational transformation
+<https://www.mongodb.com/docs/realm/sync/protocol/#operational-transformation>`__,
+a set of rules that guarantee strong eventual consistency, meaning all clients' versions
+will eventually converge to identical states. This will be true even if changes were
+made in a different order.
+
+You must be aware of the rules to ensure consistent results, but the
+upside is that by following those rules, you can have devices work
+entirely offline and still converge on meaningful results when they
+meet.
+
+This page uses the example of a dog walking app to illustrate how Device Sync
+resolves conflicts. In this app, Matt and Sarah are both dog walkers who use
+the app to track their clients' dogs and their walking schedules.
+
+.. _rules-of-conflict-resolution:
+
+Rules of Conflict Resolution
+----------------------------
+
+At a very high level, the rules are as follows:
+
+Deletes always win.
+  If one side deletes an object it will always stay deleted, even if the
+  other side has made changes to it later on.
+
+Last update wins.
+  If two sides update the same property, Device Sync will keep the value from
+  the most recent update.
+
+Inserts in lists are ordered by time.
+  If two items are inserted at the same position, the item that was
+  inserted first will end up before the other item. This means that if
+  both sides append items to the end of a list, will include both items
+  in order of insertion time.
+
+Primary keys designate object identity.
+  If two sides both create objects of the same class with identical
+  primary keys, they will be treated as instances of the same object.
+
+.. example:: Conflict Resolution Between Two Users
+
+   Matt and Sarah are working on data for their dog walking business. Matt
+   deletes data on one of their client's dogs, Doug, as they no longer need to walk him.
+   While Sarah is out without internet connection, she edits Doug's required walk time
+   data on her local, offline version, as she does not know about Matt's deletion of Doug's data.
+
+   Once Sarah regains internet connection, her change will be sent to the server. The server will
+   send her Matt's deletion operation. As deletes always win according to Device Sync's
+   conflict resolution rules, Matt's deletion is kept rather than Sarah's edit.
+   The server will not send Sarah's edits to Matt's device. The data is again in agreement across
+   Matt and Sarah's devices.
+
+.. _conflict-resolution-special-considerations:
+
+Special Considerations
+----------------------
+
+Counters
+~~~~~~~~
+
+Using integers for counting is a special case. The way that most
+programming languages would implement an increment operation (like ``v
++= 1``) is to read the value, increment the result, and then store it
+back. This will obviously not work if you have multiple parties doing
+incrementing simultaneously (they may both read 10, increment it to 11,
+and when it merged you would get a result of 11 rather than the intended
+12).
+
+To support this common case, we offer a way to express whether
+you are incrementing (or decrementing) the value, giving enough hints so
+the merge can reach the correct result. You have the choice to
+update the entire value or edit it in a way that conveys more meaning,
+allowing you to get more precise control of the conflict resolution.
+
+Nested Collections
+~~~~~~~~~~~~~~~~~~
+
+Nested collections are treated similarly to embedded objects. That is,
+they are considered child objects with a specific parent object. Any updates to
+the parent object will always win in a conflict resolution, even if it
+overwrites the child object.
+
+Updates to a nested collection are resolved as follows:
+
+- If multiple devices *update* the same existing nested collection, Device Sync uses
+  normal conflict resolution rules to incorporate both changes.
+
+- If multiple devices *create* new unique collections nested in the same
+  parent object, the "last update wins" rule applies, and Device Sync overwrites
+  all other updates with the last update made.
+
+For example, client details in Sarah and Matt's dog walking app are modeled as
+arrays nested in the parent ``client`` property. Sarah - and then later, Matt -
+each create a new details collection for the same client on their
+devices while offline. When the devices sync, Device Sync keeps the entry created
+by Matt because his update (creating a new nested details collection) was the last
+one made.
+
+Later, Sarah and Matt each make unique updates to the newly created details entry. Device Sync will merge these updates according to
+normal conflict resolution rules, inserting the new or modified items to the
+list in chronological order.
+
+Strings
+~~~~~~~
+
+Device Sync interprets the value of a string as a whole and does not merge
+conflicts on a per-character basis. For example, this means that if a character
+or substring is inserted or deleted within a string, Device Sync will treat
+this as a replacement of the entire value of the string.
+
+Dictionaries
+~~~~~~~~~~~~
+
+Device Sync considers the removal of a dictionary key to be an update, rather
+than a deletion. As a result, the "Last update wins" rule is applied instead of
+the "Deletes always win" rule.
+
+For example, the dog walking app contains an optional collection of details for
+each dog, which are entered as key-values. While both users are offline, Sarah
+deletes the entire ``favorite toy`` entry for a dog, and later Matt updates the
+same dog's favorite toy to ``tennis ball``. When both come back online, Device
+Sync considers both as updates to the ``favorite toy`` entry and applies Matt's
+updates because he made them after Sarah's deletion.
+
+.. _custom-conflict-resolution:
+
+Custom Conflict Resolution
+--------------------------
+
+Generally speaking, the conflict resolution of Device Sync should
+work for most purposes, and you should not need to customize it. That
+said, the typical way to do custom conflict resolution is to change a
+property type from string to list. Each side can then add its updates to
+the list and apply any conflict resolution rules it wants directly in
+the data model. You can use this technique to implement max, min, first
+write wins, last write wins, or any other kind of resolution you can
+think of.
+
+Summary
+-------
+
+- Device Sync implements a conflict resolution system to allow multiple offline writers to write simultaneously and still eventually converge on the same result.
+- The conflict resolution system follows four rules:
+   - Deletes always win.
+   - The last update wins.
+   - Inserts in lists are ordered by time.
+   - Primary keys designate object identity.
+- Counters, nested collections, and strings are special cases to be aware of in your client code.

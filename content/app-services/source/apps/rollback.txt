@@ -1,0 +1,164 @@
+.. meta::
+   :robots: nosnippet
+
+.. _rollback-deployments:
+
+======================
+Roll Back a Deployment
+======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You can roll back an App's configuration to a previously deployed
+version. App Services can automatically redeploy any of an App's
+{+deployment-history-size+} most recent deployments. For older
+deployments, you must manually get and deploy the configuration files
+(e.g. from source control).
+
+A redeploy rolls back your application's configuration to match the
+earlier version.
+
+Before You Begin
+----------------
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      You will need the following to rollback an App in the Atlas UI:
+
+      - .. include:: /includes/prereqs/atlas-account.rst
+
+   .. tab::
+      :tabid: api
+
+      You will need the following to rollback an App with the Admin API:
+
+      - .. include:: /includes/prereqs/atlas-account.rst
+
+      - .. include:: /includes/prereqs/atlas-admin-api-key.rst
+
+      - .. include:: /includes/prereqs/api-project-app-id.rst
+
+Procedure
+---------
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      .. procedure::
+
+         .. step:: View Your App's Deployment History
+
+            You can redeploy from your App's Deployment History page. To
+            get there, click :guilabel:`Deployment` in the left
+            navigation menu and then select the :guilabel:`History` tab.
+
+         .. step:: Redeploy a Deployment
+
+            In the deployment history list, find the deployment you want
+            to roll back to. Click the :guilabel:`Re-Deploy` button for
+            that deployment.
+
+         .. step:: Confirm Rollback Success
+
+            After the deployment completes, you'll see the deployment success banner.
+            The new deployment appears in your Deployment History.
+
+            If you have GitHub deployment enabled, it also contains a link to the
+            commit in the GitHub repository.
+
+            In the linked GitHub repository, the commit author is the
+            ``mongodb-realm`` bot.
+
+            .. figure:: /images/realm-ui-deploy-changes-in-github.png
+               :alt: Screenshot of deployment changes in GitHub
+
+   .. tab::
+      :tabid: api
+
+      .. procedure::
+
+         .. step:: Authenticate a MongoDB Atlas User
+
+            .. include:: /includes/api-authenticate-instructions.rst
+
+         .. step:: Find the Deployment ID
+
+            You need the ``_id`` of the deployment you want to redeploy.
+            To find it, call the :admin-api-endpoint:`List Deployments
+            <operation/adminListDeployments>` endpoint, which responds
+            with a list of the App's {+deployment-history-size+} most
+            recent deployments.
+
+            Find the deployment you want to redeploy in the list and
+            copy its ``_id``.
+
+            .. io-code-block::
+
+               .. input::
+                  :language: bash
+
+                  curl -X GET \
+                    https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/deployments \
+                    -H 'Authorization: Bearer <access_token>'
+
+               .. output::
+                  :language: json
+
+                  [
+                    {
+                      "_id": "638662e881ad88c37dcb7656",
+                      "app_id": "63844243ec3f52ed48923213",
+                      "draft_id": "638662d6cc4b58e348927a7a",
+                      "user_id": "59231005d323af2275135258",
+                      "deployed_at": 1669751529,
+                      "origin": "UI",
+                      "commit": "",
+                      "status": "successful",
+                      "status_error_message": "",
+                      "diff_url": "",
+                      "name": "638662e881ad88c37dcb7656",
+                      "remote_location": "US-VA"
+                    },
+                    {
+                      "_id": "638662b2fd660afffb39df01",
+                      "app_id": "63844243ec3f52ed48923213",
+                      "draft_id": "638662928d19776b743d3b30",
+                      "user_id": "593f1105d383ad2275165258",
+                      "deployed_at": 1669751475,
+                      "origin": "UI",
+                      "commit": "",
+                      "status": "successful",
+                      "status_error_message": "",
+                      "diff_url": "",
+                      "name": "638662b2fd660afffb39df01",
+                      "remote_location": "US-VA"
+                    }
+                  ]
+
+         .. step:: Redeploy the App
+
+            You can roll back to a previous deployment by calling the
+            :admin-api-endpoint:`Redeploy a Deployment
+            <operation/adminRedeployDeployment>` endpoint. Pass the
+            ``_id`` of the deployment you want to redeploy as the
+            ``deploymentId`` parameter.
+
+            .. code-block:: bash
+
+               curl -X GET \
+                 https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/deployments/{deploymentId}/redeploy \
+                 -H 'Authorization: Bearer <access_token>'

@@ -1,0 +1,763 @@
+.. meta::
+   :robots: nosnippet
+
+.. _data-api-custom-express-alternative:
+
+================================================================
+Guide: Implement an Express.js Alternative to the Atlas Data API
+================================================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+As of September 2024, the Atlas Data API has been deprecated. If you use this
+service, you must migrate to another solution before September 2025.
+
+The Atlas Data API allowed developers to directly interact with their MongoDB
+Atlas clusters using HTTP endpoints. This guide demonstrates using a
+driver-based custom API to replicate the functionality of the Data API.
+
+The API template is built with Node.js and `Express <https://expressjs.com>`__,
+and supports deployment on `Vercel <https://vercel.com>`__.
+The backend service uses the
+`MongoDB Node.js driver <https://nodejs.org/en>`__ with
+`Mongoose <https://mongoosejs.com>`__ to perform CRUD (Create, Read, Update, and
+Delete) and aggregation operations on your data, and secures access using a
+simple API key-based authorization.
+
+The project source code is available in the following GitHub repository:
+`https://github.com/abhishekmongoDB/data-api-alternative
+<https://github.com/abhishekmongoDB/data-api-alternative>`__
+
+.. important:: Not Production Ready
+
+   This template is not intended for use in a production or third-party hosting
+   environment. It is limited in scope and demonstrates basic functionality only.
+   We strongly recommend implementing additional enhancements to meet your
+   specific requirements and to follow security best practices.
+
+Project Structure
+-----------------
+
+.. code-block:: text
+   :copyable: false
+
+   data-api-alternative/
+   .
+   ├── index.js
+   ├── connection/
+   │   └── databaseManager.js
+   ├── controllers/
+   │   └── dbController.js
+   ├── models/
+   │   └── dynamicModel.js
+   ├── routes/
+   │   └── api.js
+   ├── utils/
+   │   └── logging.js
+   ├── .env
+   ├── package.json
+   └── vercel.json
+
+The main files are:
+
+- **.env:** The configuration file holding credentials, connection details, and project settings.
+- **index.js:** The main entry point for the Express server.
+- **routes/api.js:** Exposes the API endpoints mapped to their corresponding business logic.
+- **connection/databaseManager.js:** Manages and caches MongoDB database connections.
+- **models/dynamicModel.js:** Dynamically generated Mongoose models that support schemaless Atlas data.
+- **controllers/dbController.js:** The business logic for the defined CRUD and aggregation operations.
+
+These files are described in more detail below.
+
+Get Started
+-----------
+
+Prerequisites
+~~~~~~~~~~~~~
+
+- A deployed MongoDB cluster or local instance with a
+  `valid connection string <https://www.mongodb.com/docs/manual/reference/connection-string/>`__.
+- The latest stable version of `Node.js and npm (Node Package Manager) <https://nodejs.org/en>`__
+  installed.
+
+Set Up the Project
+~~~~~~~~~~~~~~~~~~
+
+Clone the repository and install the dependencies:
+
+.. code-block:: shell
+
+   git clone https://github.com/abhishekmongoDB/data-api-alternative.git
+   cd data-api-alternative
+   npm install
+
+Define Environment Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a ``.env`` file in the root directory of the project, and paste the
+following code:
+
+.. code-block:: shell
+
+   # Replace with your deployment credentials
+   MONGO_URI="<MONGO_URI>"
+   MONGO_OPTIONS="<MONGO_OPTIONS>" # Optional
+
+   # Replace with your locally defined secrets for basic proxy auth
+   API_KEY="<API_KEY>"
+   API_SECRET="<API_SECRET>"
+
+   # Project variables
+   PORT=7438
+   RATE_LIMIT_WINDOW_MS=900000 # 15 minutes in milliseconds
+   RATE_LIMIT_MAX=100 # Maximum requests per window
+   RATE_LIMIT_MESSAGE=Too many requests, please try again later.
+
+Replace the following placeholders with your credentials:
+
+- ``MONGO_URI`` Replace with the connection string for your deployment. For more information, see `Connection String Formats <https://www.mongodb.com/docs/manual/reference/connection-string/#connection-string-formats>`__.
+
+  - Local instance: ``"mongodb://[<user>:<pw>@]localhost"``
+  - Atlas cluster:
+    ``"mongodb+srv://[<user>:<pw>@]<cluster>.<projectId>.mongodb.net"``
+
+- ``MONGO_OPTIONS`` Replace with the optional query string specifying any connection-specific options. For more information, see `Connection String Options <https://www.mongodb.com/docs/manual/reference/connection-string-options/>`__.
+- ``API_KEY`` Replace with a locally defined key used to authenticate requests to your proxy server. This is not an Atlas API key.
+- ``API_SECRET`` Replace with the corresponding locally defined secret.
+
+Initialize the Server
+~~~~~~~~~~~~~~~~~~~~~
+
+The Express server is initialized in the ``index.js`` file. The server listens
+on the port specified in the ``.env`` file.
+
+The server includes middleware for the following:
+
+- API key and secret validation using ``x-api-key`` and ``x-api-secret`` headers.
+- Parsing JSON request bodies.
+- Routing requests to the controller methods based on the API endpoint.
+- Rate limiting. The rate limit options are specified in the ``.env`` file.
+- Logging using the ``winston`` library.
+
+.. code-block:: javascript
+   :caption: index.js
+
+   /**
+   * This file initializes the Express server, validates locally defined API keys,
+   * applies basic rate limiting, and routes incoming requests to API controller methods.
+   */
+   const rateLimit = require("express-rate-limit");
+   const express = require("express");
+   const apiRoutes = require("./routes/api");
+   const logger = require("./utils/logging");
+   require("dotenv").config();
+
+   // Load local shared secrets from environment variables
+   const API_KEY = process.env.API_KEY;
+   const API_SECRET = process.env.API_SECRET;
+
+   const app = express();
+
+   // Middleware for rate limiting
+   const limiter = rateLimit({
+      windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10), // 15 minutes
+      max: parseInt(process.env.RATE_LIMIT_MAX, 10), // Limit each IP to 100 requests per windowMs
+      message: { message: process.env.RATE_LIMIT_MESSAGE },
+   });
+   // Apply the rate limiter to all requests
+   app.use(limiter);
+
+   // Middleware for parsing requests
+   app.use(express.json());
+
+   // Middleware for basic API key authentication
+   // NOTE: Replace this with your preferred authentication method in production
+   app.use((req, res, next) => {
+      logger.info({
+         method: req.method,
+         url: req.originalUrl,
+         body: req.body,
+         headers: req.headers,
+      });
+      const apiKey = req.headers["x-api-key"];
+      const apiSecret = req.headers["x-api-secret"];
+      if (apiKey === API_KEY && apiSecret === API_SECRET) {
+         next(); // Authorized
+      } else {
+         res.status(403).json({ message: "Forbidden: Invalid API Key or Secret" });
+      }
+   });
+
+   // Middleware for API routing
+   app.use("/api", apiRoutes);
+
+   // Start the server
+   const PORT = process.env.PORT || 3000;
+   app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+   });
+
+
+Define the Routes
+~~~~~~~~~~~~~~~~~
+
+The ``api.js`` file defines routes for basic CRUD and aggregation operations.
+The HTTP POST requests are mapped to their corresponding controller functions.
+
+.. code-block:: javascript
+   :caption: routes/api.js
+
+    /**
+    * Defines the routes for all API endpoints and maps them to the corresponding functions in the dbController class.
+    */
+    const express = require('express');
+    const dbController = require('../controllers/dbController');
+
+    const router = express.Router();
+
+    router.post('/insertOne', dbController.insertOne);
+    router.post('/insertMany', dbController.insertMany);
+    router.post('/findOne', dbController.findOne);
+    router.post('/find', dbController.find);
+    router.post('/updateOne', dbController.updateOne);
+    router.post('/deleteOne', dbController.deleteOne);
+    router.post('/deleteMany', dbController.deleteMany);
+    router.post('/aggregate', dbController.aggregate);
+
+    module.exports = router;
+
+
+Connect to MongoDB
+~~~~~~~~~~~~~~~~~~
+
+The ``databaseManager.js`` file handles the MongoDB database connections using
+the ``mongoose`` library. Connection details are stored in the ``.env`` file.
+
+For an exhaustive list of available options, see
+:node-driver:`Connection Options <node/current/fundamentals/connection/connection-options/>`
+in the MongoDB Node.js Driver documentation.
+
+.. code-block:: javascript
+   :caption: connection/databaseManager.js
+
+   const mongoose = require("mongoose");
+   require("dotenv").config();
+   const connections = {}; // Cache for database connections
+
+   /**
+   * Manages MongoDB database connections.
+   * @param {string} database - The database name.
+   * @returns {mongoose.Connection} - Mongoose connection instance.
+   */
+   const getDatabaseConnection = (database) => {
+      const baseURI = process.env.MONGO_URI;
+      const options = process.env.MONGO_OPTIONS || "";
+      if (!baseURI) {
+         throw new Error("MONGO_URI is not defined in .env file");
+      }
+
+      // If connection does not exist, create it
+      if (!connections[database]) {
+         connections[database] = mongoose.createConnection(
+            `${baseURI}/${database}${options}`
+         );
+         // Handle connection errors
+         connections[database].on("error", (err) => {
+            console.error(`MongoDB connection error for ${database}:`, err);
+         });
+         connections[database].once("open", () => {
+            console.log(`Connected to MongoDB database: ${database}`);
+         });
+      }
+      return connections[database];
+   };
+
+   module.exports = getDatabaseConnection;
+
+
+Dynamically Generate Models
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``dynamicModel.js`` utility file generates Mongoose models dynamically for
+the specified database and collection.
+
+It also does the following:
+
+- Defines models using a flexible schema that can accept any fields.
+- Caches models to avoid redundant model definitions.
+
+.. code-block:: javascript
+   :caption: models/dynamicModel.js
+
+    // Import the mongoose library for MongoDB object modeling
+    const mongoose = require("mongoose");
+    // Import the function to get a database connection
+    const getDatabaseConnection = require("../connection/databaseManager");
+
+    // Initialize an empty object to cache models
+    // This helps in reusing models and avoiding redundant model creation
+    const modelsCache = {}; // Cache for models (database.collection -> Model)
+
+    /**
+    * Creates and retrieves a dynamic model for a given database and collection.
+    * This function ensures that the same model is reused if it has already been created.
+    *
+    * @param {string} database - The name of the database.
+    * @param {string} collection - The name of the collection.
+    * @returns {mongoose.Model} - The Mongoose model instance for the specified collection.
+    */
+    const getModel = (database, collection) => {
+      // Create a unique key for the model based on the database and collection names
+      const modelKey = `${database}.${collection}`;
+
+      // Check if the model already exists in the cache
+      // If it does, return the cached model
+      if (modelsCache[modelKey]) {
+         return modelsCache[modelKey];
+      }
+
+      // Get the database connection for the specified database
+      const dbConnection = getDatabaseConnection(database);
+
+      // Define a flexible schema with no predefined structure
+      // This allows the schema to accept any fields
+      const schema = new mongoose.Schema({}, { strict: false });
+
+      // Create the model using the database connection, collection name, and schema
+      // Cache the model for future use
+      const model = dbConnection.model(collection, schema, collection);
+      modelsCache[modelKey] = model;
+
+      // Return the newly created model
+      return model;
+    };
+
+    // Export the getModel function as a module
+    module.exports = getModel;
+
+
+Implement the Controller
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``dbController.js`` file implements the controller logic for handling CRUD
+operations and aggregations. Each method interacts with MongoDB using the
+dynamically generated Mongoose models.
+
+The API currently supports the following operations:
+
+- Insert One
+- Insert Many
+- Find One
+- Find Many
+- Update One
+- Update Many
+- Delete One
+- Delete Many
+- Aggregate
+
+
+.. code-block:: javascript
+   :caption: controllers/dbController.js
+
+    /**
+    * Contains the logic for all CRUD and aggregation operations.
+    * Each method interacts with the database and handles errors gracefully.
+    */
+    const getModel = require("../models/dynamicModel");
+
+    class DbController {
+      async insertOne(req, res) {
+         const { database, collection, document } = req.body;
+         try {
+            const Model = getModel(database, collection);
+            const result = await Model.insertOne(document);
+            if (!result) {
+               return res
+               .status(400)
+               .json({ success: false, message: "Insertion failed" });
+            }
+            res.status(201).json({ success: true, result });
+         } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+         }
+      }
+
+      async insertMany(req, res) {
+         const { database, collection, documents } = req.body;
+         try {
+            const Model = getModel(database, collection);
+            const result = await Model.insertMany(documents);
+            if (!result || result.length === 0) {
+               return res
+               .status(400)
+               .json({ success: false, message: "Insertion failed" });
+            }
+            res.status(201).json({ success: true, result });
+         } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+         }
+      }
+
+      async findOne(req, res) {
+         const { database, collection, filter, projection } = req.body;
+         try {
+            const Model = getModel(database, collection);
+            const result = await Model.findOne(filter, projection);
+            if (!result) {
+               return res
+               .status(404)
+               .json({ success: false, message: "No record found" });
+            }
+            res.status(200).json({ success: true, result });
+         } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+         }
+      }
+
+      async find(req, res) {
+         const { database, collection, filter, projection, sort, limit } = req.body;
+         try {
+            const Model = getModel(database, collection);
+            const result = await Model.find(filter, projection).sort(sort).limit(limit);
+            if (!result || result.length === 0) {
+               return res
+               .status(404)
+               .json({ success: false, message: "No records found" });
+            }
+            res.status(200).json({ success: true, result });
+         } catch (error) {
+         r  es.status(500).json({ success: false, error: error.message });
+         }
+      }
+
+      async updateOne(req, res) {
+         const { database, collection, filter, update, upsert } = req.body;
+         try {
+            const Model = getModel(database, collection);
+            const result = await Model.updateOne(filter, update, { upsert });
+            if (result.matchedCount === 0) {
+               return res
+               .status(404)
+               .json({ success: false, message: "No records updated" });
+            }
+            res.status(200).json({ success: true, result });
+         } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+         }
+      }
+
+      async updateMany(req, res) {
+         const { database, collection, filter, update } = req.body;
+         try {
+            const Model = getModel(database, collection);
+            const result = await Model.updateMany(filter, update);
+            if (result.matchedCount === 0) {
+               return res
+               .status(404)
+               .json({ success: false, message: "No records updated" });
+            }
+            res.status(200).json({ success: true, result });
+         } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+         }
+      }
+
+      async deleteOne(req, res) {
+         const { database, collection, filter } = req.body;
+         try {
+            const Model = getModel(database, collection);
+            const result = await Model.deleteOne(filter);
+            if (result.deletedCount === 0) {
+               return res
+               .status(404)
+               .json({ success: false, message: "No records deleted" });
+            }
+            res.status(200).json({ success: true, result });
+         } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+         }
+      }
+
+      async deleteMany(req, res) {
+         const { database, collection, filter } = req.body;
+         try {
+         const Model = getModel(database, collection);
+         const result = await Model.deleteMany(filter);
+         if (result.deletedCount === 0) {
+               return res
+               .status(404).json({ success: false, message: "No records deleted" });
+            }
+            res.status(200).json({ success: true, result });
+         } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+         }
+      }
+
+      async aggregate(req, res) {
+         const { database, collection, pipeline } = req.body;
+         try {
+            const Model = getModel(database, collection);
+            const result = await Model.aggregate(pipeline);
+            if (!result || result.length === 0) {
+               return res
+               .status(404)
+               .json({ success: false, message: "No aggregation results found" });
+            }
+            res.status(200).json({ success: true, result });
+         } catch (error) {
+            res.status(500).json({ success: false, error: error.message });
+         }
+      }
+    }
+
+    module.exports = new DbController();
+
+
+Example API Requests
+--------------------
+
+The following example requests demonstrate using the API with the
+:atlas:`sample_mflix.users </sample-data/sample-mflix>` sample dataset.
+If you don't already have the ``sample_mflix`` dataset available in your Atlas
+cluster, see :atlas:`Load Data into Atlas </sample-data>`.
+
+.. note:: Postman Collection Available
+
+   The APIs are also available as a `Postman collection <https://github.com/abhishekmongoDB/data-api-alternative/blob/main/postman%20collection/Data-api.postman_collection.json>`__
+   in the project repo.
+
+Start the Server
+~~~~~~~~~~~~~~~~
+
+Run the following command to start the Express server. The server automatically
+reloads every time you save changes to a project file.
+
+.. code-block:: shell
+
+   npm run dev
+
+Send Requests
+~~~~~~~~~~~~~
+
+With the server running, you can send requests using the following cURL
+commands.
+
+Before running these example commands, ensure that you update the ``<YOUR_API_KEY>`` and
+``<YOUR_API_SECRET>`` placeholders with your credentials.
+
+Insert Documents
+````````````````
+
+The following examples demonstrate inserting one or multiple documents.
+
+Insert a new user document into the ``users`` collection:
+
+.. code-block:: shell
+   :caption: Insert One
+
+   curl -X POST http://localhost:7438/api/insertOne \
+        -H "Content-Type: application/json" \
+        -H "x-api-key: <YOUR_API_KEY>" \
+        -H "x-api-secret: <YOUR_API_SECRET>" \
+        -d '{
+               "database": "sample_mflix",
+               "collection": "users",
+               "document": {
+                   "name": "Marcus Bell",
+                   "email": "marcus.bell@example.com",
+                   "password": "lucky13" }
+            }'
+
+Insert multiple user documents into the ``users`` collection:
+
+.. code-block:: shell
+   :caption: Insert Many
+
+   curl -X POST http://localhost:7438/api/insertMany \
+        -H "Content-Type: application/json" \
+        -H "x-api-key: <YOUR_API_KEY>" \
+        -H "x-api-secret: <YOUR_API_SECRET>" \
+        -d '{
+               "database": "sample_mflix",
+               "collection": "users",
+               "documents": [
+                  { "name": "Marvin Diaz",
+                    "email": "marvin.diaz@example.com",
+                    "password": "123unicorn" },
+                  { "name": "Delores Lambert",
+                    "email": "delores.lambert@example.com",
+                    "password": "cats&dogs" },
+                  { "name": "Gregor Ulrich",
+                    "email": "gregor.ulrich@example.com",
+                    "password": "securePass123" }
+               ]
+            }'
+
+Find Documents
+``````````````
+
+The following examples demonstrate finding one or multiple documents.
+
+Find a user by name and return only the email address:
+
+.. code-block:: shell
+   :caption: Find One
+
+   curl -X POST http://localhost:7438/api/findOne \
+        -H "Content-Type: application/json" \
+        -H "x-api-key: <YOUR_API_KEY>" \
+        -H "x-api-secret: <YOUR_API_SECRET>" \
+        -d '{
+               "database": "sample_mflix",
+               "collection": "users",
+               "filter": { "name": "Marvin Diaz" },
+               "projection": { "email": 1, "_id": 0 }
+            }'
+
+Find all users with email addresses ending in specified domain. Then, sort
+results by name, and return only the name and email of the first 10:
+
+.. code-block:: shell
+   :caption: Find
+
+   curl -X POST http://localhost:7438/api/find \
+        -H "Content-Type: application/json" \
+        -H "x-api-key: <YOUR_API_KEY>" \
+        -H "x-api-secret: <YOUR_API_SECRET>" \
+        -d '{
+                "database": "sample_mflix",
+                "collection": "users",
+                "filter": { "email": { "$regex": "example\\.com$" } },
+                "projection": { "name": 1, "email": 1, "_id": 0 },
+                "sort": { "name": 1 },
+                "limit": 10
+            }'
+
+Update Documents
+````````````````
+The following examples demonstrate updating one or multiple documents.
+
+Update the email address for a user with the specified email:
+
+.. code-block:: shell
+   :caption: Update One
+
+   curl -X POST http://localhost:7438/api/updateOne \
+        -H "Content-Type: application/json" \
+        -H "x-api-key: <YOUR_API_KEY>" \
+        -H "x-api-secret: <YOUR_API_SECRET>" \
+        -d '{
+                "database": "sample_mflix",
+                "collection": "users",
+                "filter": { "email": "marvin.diaz@example.com" },
+                "update": { "$set": { "password": "456pegasus" } },
+                "upsert": false
+            }'
+
+Update the email address for all users with the specified domain:
+
+.. code-block:: shell
+   :caption: Update Many
+
+   curl -X POST http://localhost:7438/api/updateMany \
+        -H "Content-Type: application/json" \
+        -H "x-api-key: <YOUR_API_KEY>" \
+        -H "x-api-secret: <YOUR_API_SECRET>" \
+        -d '{
+            "database": "sample_mflix",
+            "collection": "users",
+            "filter": { "email": { "$regex": "@example\\.com$" } },
+            "update": {
+                "$set": {
+                    "email": {
+                        "$replaceAll": {
+                            "input": "$email",
+                            "find": "@example.com",
+                            "replacement": "@example.org"
+                        }
+                    }
+                }
+            },
+            "upsert": false
+            }'
+
+Delete
+``````
+The following examples demonstrate deleting one or multiple documents.
+
+Delete document with specified name:
+
+.. code-block:: shell
+   :caption: Delete One
+
+   curl -X POST http://localhost:7438/api/deleteOne \
+        -H "Content-Type: application/json" \
+        -H "x-api-key: <YOUR_API_KEY>" \
+        -H "x-api-secret: <YOUR_API_SECRET>" \
+        -d '{
+                "database": "sample_mflix",
+                "collection": "users",
+                "filter": { "name": "Delores Lambert" }
+            }'
+
+Delete all documents with names starting with "M":
+
+.. code-block:: shell
+   :caption: Delete Many
+
+   curl -X POST http://localhost:7438/api/deleteMany \
+        -H "Content-Type: application/json" \
+        -H "x-api-key: <YOUR_API_KEY>" \
+        -H "x-api-secret: <YOUR_API_SECRET>" \
+        -d '{
+                "database": "sample_mflix",
+                "collection": "users",
+                "filter": { "name": { "$regex": "^M" } }
+            }'
+
+Aggregate Documents
+```````````````````
+
+The following example demonstrates an aggregation operation that groups users
+by email and counts the number of occurrences:
+
+.. code-block:: shell
+   :caption: Aggregate
+
+   curl -X POST http://localhost:7438/api/aggregate \
+        -H "Content-Type: application/json" \
+        -H "x-api-key: <YOUR_API_KEY>" \
+        -H "x-api-secret: <YOUR_API_SECRET>" \
+        -d '{
+                "database": "sample_mflix",
+                "collection": "users",
+                "pipeline": [
+                { "$group": { "_id": "$email", "count": { "$sum": 1 } } }
+                ]
+            }'
+
+Next Steps
+----------
+
+This guide demonstrated how to implement a custom driver-based API as an
+alternative to the deprecated Atlas Data API. The provided app is limited in
+scope and is intended only as a template that can be adapted and extended to
+meet your specific needs and requirements.
+
+We strongly recommend adding production-ready security and reliability
+features—-such as authentication, logging, error handling, and input
+validation—-before deploying.
+
+Additional Features
+~~~~~~~~~~~~~~~~~~~
+
+The following are recommended features to enhance the template app:
+
+- **Enhanced Logging:** Implement structured logging for better observability and debugging.
+- **Error Tracking:** Integrate with error tracking tools to monitor API health.
+- **Enhanced Rate Limiting:** Protect your API from abuse with more robust request limits.
+- **Security:** Harden the API against common vulnerabilities. Ensure sensitive data and secrets are protected properly before deploying, especially if hosting off-premises.

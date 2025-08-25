@@ -1,0 +1,194 @@
+.. meta::
+   :robots: nosnippet
+
+.. _migrate-hasura:
+
+===============================================
+Migrate GraphQL to Hasura Data Delivery Network
+===============================================
+
+.. meta::
+  :description: Learn how to migrate your GraphQL host from Atlas App Services to Hasura.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. important::
+
+   Always refer to the official documentation of both MongoDB Atlas and `Hasura 
+   <https://hasura.io/docs/latest/databases/mongodb/mongodb-atlas/>`__
+   for the most up-to-date and accurate information. Specific steps may vary
+   depending on the details of your project and the technologies
+   used.
+
+Hasura empowers developers to rapidly build and deploy GraphQL and `REST APIs
+on MongoDB <https://hasura.io/graphql/database/mongodb>`__ and many other 
+`data sources <https://hasura.io/docs/3.0/connectors/overview/>`__. By radically
+cutting down API development times, Hasura enables rapid access to data, reduces
+friction across teams and services, and enables enterprises to shorten time to
+market on data-powered products and features.
+
+Before You Begin
+----------------
+
+If you haven't already, Create an account on Hasura's website `cloud.hasura.io 
+<https://cloud.hasura.io/signup?utm_source=mongodb&utm_medium=blog&utm_campaign=mongodb_developer_portal>`__.
+
+Migrate to Hasura
+-----------------
+
+Migrating your GraphQL API endpoints from MongoDB Atlas App Services to Hasura
+is a multi-step process that encompasses setting up your environment in
+Hasura, configuring database connections, migrating schemas, and implementing
+authorization and authentication mechanisms. Below is an expanded guide
+detailing each step, with a focus on authorization and role-based access control
+(RBAC) within Hasura. For more information, check out the `Hasura docs 
+<https://hasura.io/docs/3.0/connectors/mongodb/>`__.
+
+To migrate to Hasura:
+
+#. :ref:`Authorize Hasura for MongoDB <hasura-authorize-mongodb>`
+#. :ref:`Create a new project and connect to Hasura <hasura-create>`
+#. :ref:`Test your GraphQL queries <hasura-test>`
+#. :ref:`Handle authorization and authentication <hasura-auth>`
+#. :ref:`Set up custom resolvers <hasura-resolvers>`
+#. :ref:`Update client applications <hasura-client>`
+#. :ref:`Shut down MongoDB Atlas App Services <hasura-shutdown>`
+
+.. _hasura-authorize-mongodb:
+
+Authorize Hasura for MongoDB
+----------------------------
+
+Hasura can connect to a new or existing MongoDB Atlas database and generate the
+GraphQL API for you.
+
+.. procedure::
+
+   .. step::
+
+      Go to ``cloud.mongodb.com`` and navigate to the Network Access page on the
+      Atlas dashboard.
+
+   .. step::
+
+      Click the :guilabel:`ADD IP ADDRESS` button and enter ``0.0.0.0/0``.
+      Describe this entry as Hasura. For a unique IP address, contact `Hasura
+      sales <https://hasura.io/contact-us>`__ about deploying on Private DDN. 
+      
+      Now, Hasura Cloud can communicate with your MongoDB Atlas instance.
+
+      .. image:: /images/migration/add-ip.png
+         :alt: Network access page.
+
+   .. step::
+
+      On the Database page, find the Atlas cluster that is connected to
+      your App Services app and click on :guilabel:`Connect`. Select the Drivers
+      option and copy the connection string.
+
+      .. image:: /images/migration/connection-string.png
+         :alt: Get Atlas clust connection string.
+
+.. _hasura-create:
+
+Create a new project and connect to Hasura
+------------------------------------------
+
+The `Hasura docs <https://hasura.io/docs/3.0/getting-started/quickstart>`__ contain
+the details to perform the following steps:
+
+#. Install CLI (Prerequisites)
+#. Log in using the CLI
+#. Initialize a new `supergraph <https://hasura.io/docs/3.0/support/glossary#supergraph>`__
+   in an empty directory
+#. Connect to data
+#. Introspect your data source
+#. Build your local supergraph
+#. Start your supergraph
+#. Create a Hasura cloud project
+#. Build and deploy your supergraph
+
+.. _hasura-test:
+
+Test Your GraphQL Queries
+-------------------------
+
+You can use the API Explorer page on the Hasura Console to test out some
+GraphQL queries.
+
+Hasura also uses the GraphiQL interface, which is similar to how you test
+queries in Atlas App Services.
+
+.. image:: /images/migration/test-queries.png
+   :alt: Use the GraphiQL interface to test queries.
+
+.. _hasura-auth:
+
+Authorization and Authentication
+--------------------------------
+
+Hasura does not directly handle authentication. Instead, it relies on session
+variables provided by an external authentication service. These session
+variables include user, role, and organization information crucial for
+determining data access rights. For details, refer to the `Hasura authentication
+docs <https://hasura.io/docs/3.0/auth/overview/>`__
+
+Data access permissions, including roles and rule expressions, can be converted
+into Hasura role-based permission rules.
+
+All Authentication methods that Atlas provides are compatible with Hasura's
+Webhook and JWT auth methods. If you are using Email/Pass, Anonymous, or API Key
+authentication, use Hasura Webhook. If you are using a Custom JWT, integrate
+directly with Hasura's JWT auth method.
+
+Hasura recommends using an external IdP for managing authentication processes
+for enhanced security and flexibility. You can integrate Hasura with any
+authentication provider of your choice, such as Auth0, Firebase Auth, AWS
+Cognito, or even a custom solution, to verify the user and set the necessary
+session variables. For configuring JWT or webhook authentication in Hasura,
+refer to the documentation at:
+
+- `JWT Authentication <https://hasura.io/docs/3.0/auth/authentication/jwt/>`__
+- `Webhook Authentication <https://hasura.io/docs/3.0/auth/authentication/webhook/>`__
+
+.. _hasura-resolvers:
+
+Set Up Custom Resolvers or Business Logic
+-----------------------------------------
+
+If your existing GraphQL API endpoints include custom resolvers or business
+logic, you'll need to implement these in Hasura. Hasura supports:
+
+- `Remote schemas <https://hasura.io/connectors/graphql>`__ through its GraphQL
+  Connector
+- `Custom queries <https://hasura.io/docs/3.0/connectors/mongodb/native-operations/native-queries>`__
+  through Native Queries for MongoDB
+- `Custom mutations <https://hasura.io/docs/3.0/connectors/mongodb/native-operations/native-mutations>`__
+  through Native Mutations for MongoDB
+- `Custom business <https://hasura.io/docs/3.0/business-logic/typescript>`__
+  logic through TypeScript
+
+.. _hasura-client:
+
+Update Client Applications
+--------------------------
+
+Update any client applications that interact with your GraphQL API endpoints to
+point to the new Hasura endpoint URLs. Any existing Apollo client will work with
+Hasura. Refactor your application GraphQL queries and mutations to align with
+Hasura syntax and schema, ensuring compatibility with the new GraphQL API
+structure.
+
+.. _hasura-shutdown:
+
+Shut down MongoDB Atlas App Services Endpoints
+----------------------------------------------
+
+Once you have verified that your GraphQL API endpoints are fully migrated
+and operational on Hasura, you can delete your MongoDB Atlas App
+Services app to avoid unnecessary costs. As a reminder, Atlas GraphQL
+endpoints will no longer be supported beginning September 30, 2025.

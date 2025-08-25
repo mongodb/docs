@@ -1,0 +1,352 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _external-dependencies:
+
+=====================
+External Dependencies
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+An **external dependency** is a library that includes code that you
+can't or don't want to implement yourself. For example, you might use an
+official library for an external service or a custom implementation of
+a data structure or algorithm.
+
+Atlas App Services automatically transpiles dependencies and also
+supports most built-in Node.js modules.
+
+.. note:: Create Your Own Modules
+   
+   Though most npm modules are written by third parties, you can also
+   create and publish your own npm modules to house logic specific to
+   your application. You can make your modules available to the Node.js
+   community or reserve them for private use. For more information,
+   check out npm's guide on `Contributing packages to the registry
+   <https://docs.npmjs.com/packages-and-modules/contributing-packages-to-the-registry>`_.
+
+.. _add-external-dependencies:
+
+Add an External Package
+-----------------------
+
+To import and use an external dependency, you first need to add the
+dependency to your application. You can either :ref:`add packages by
+name <dependencies-add-by-name>` or :ref:`upload a directory of
+dependencies <dependencies-upload-zip>`.
+
+.. important:: Override Existing Dependencies
+   
+   You can only use one method at a time to specify the external
+   packages your app can use. The most recent method that you used to
+   specify dependencies is the source of truth and overrides previous
+   specifications.
+   
+   For example, a package added by name through the UI overrides any
+   copies of the same package that you've added previously, including
+   those in an :ref:`uploaded dependency directory
+   <dependencies-upload-zip>`.
+
+.. _dependencies-add-by-name:
+
+Add Packages by Name and Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can add packages from the :npm:`npm registry <>` to your app by
+name. You can either add a specific version or use the latest version.
+
+.. tabs::
+
+   .. tab:: UI
+      :tabid: ui 
+
+      .. procedure::
+
+         .. step:: Navigate to Dependencies in the UI
+
+            #. Select :guilabel:`Functions` from the left navigation menu.
+            #. Select the :guilabel:`Dependencies` tab.
+            #. Click the :guilabel:`Add Dependency` button.
+
+
+         .. step:: Add Dependency Information
+
+            In the :guilabel:`Add Dependency` modal window that pops up from your actions
+            in the previous step, include the following information:
+
+            .. list-table::
+              :header-rows: 1
+              :widths: 20 50
+
+              * - Field
+                - Description
+
+              * - Define a Package Name
+                - The name of the npm package.
+
+              * - Package Version
+                - Optional. Specific version of the dependency to use.
+                  By default, App Services uses the latest version available.
+
+            Click the :guilabel:`Add` button to start adding the package.
+
+            You can track the status of adding the dependency in the progress tracker
+            at the bottom of the window. The progress tracker provides a message letting
+            you know if the package succeeded or failed. Failure messages contain additional
+            information about why the package could not be added.
+
+            If drafts are enabled, you will also need to click :guilabel:`Review & Deploy`
+            to apply these changes.
+
+
+         .. step:: Check Operation Success
+
+            If App Services successfully adds the dependency, you'll see it on the
+            list of dependencies in the :guilabel:`Dependencies` tab.
+
+   .. tab:: CLI
+      :tabid: cli
+
+      .. procedure::
+
+         .. step:: Pull your App
+
+            Pull your App to your device with the command:
+
+            .. code-block::
+
+               {+cli-bin+} pull
+
+
+         .. step:: Create a package.json File with Dependencies
+
+            #. Create a ``package.json`` in the ``/functions`` directory of
+               your App. You can do this by copying in an existing ``package.json`` file
+               or running ``npm init`` and following the prompts.
+            #. Add dependencies by running ``npm install <dependency-name>``.
+
+
+         .. step:: Push the Dependencies to App Services
+
+            #. Go to the root directory of your App:
+
+               .. code-block::
+
+                  cd path/to/MyRealmApp
+
+            #. Push the latest version of your app with all the dependencies in the ``package.json``:
+
+               .. code-block::
+
+                  {+cli-bin+} push --include-package-json
+
+            #. Follow the CLI prompts to confirm that you want to include the dependencies in your operation.
+               The CLI will start adding the dependencies to your App.
+
+
+         .. step:: Check Operation Success
+
+            Once it finishes adding the dependencies, the CLI tells you if all packages
+            were successfully added.
+
+            If anything fails during the installation, none of the dependencies are installed.
+            Remove the failing dependencies from the ``package.json`` file and try again.
+   
+   .. tab:: Github Auto Deploy
+      :tabid: github
+      
+      .. procedure::
+
+         .. step:: Enable Github Automatic Deployment
+
+            :ref:`Enable Github Automatic Deployments <deploy-github>` so you can redeploy
+            your App whenever you push configuration updates to a specified branch on Github.
+
+
+         .. step:: Pull your App
+
+            Pull your App to your device with the command:
+
+            .. code-block::
+
+               {+cli-bin+} pull
+
+
+         .. step:: Create a package.json File with Dependencies
+
+            #. Create a ``package.json`` in the ``/functions`` directory of
+               your App. You can do this by copying in an existing ``package.json`` file
+               or running ``npm init`` and following the prompts.
+            #. Add dependencies by running ``npm install <dependency-name>``.
+
+
+         .. step:: Push the Dependencies to Github
+
+            Git Push the latest version of your app with all the dependencies in the ``package.json``
+            to Github with a command such as:
+
+            .. code-block::
+
+               git push origin main
+
+
+         .. step:: Check Operation Success
+
+            The App Services GitHub app automatically deploys your updated
+            app configuration after you push the commit. You can check the status
+            of the deployment and confirm that all packages were successfully
+            added from the :guilabel:`Deployment` screen of the App Services UI.
+
+            If anything fails during deployment, none of the dependencies are
+            installed. Remove the failing dependencies from the ``package.json``
+            file and try again.
+
+
+.. _dependencies-upload-zip:
+
+Upload a Dependency Directory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can upload a zipped ``node_modules`` directory of packages to your
+app. Zipped dependency directories may not exceed 15MB.
+
+.. procedure::
+
+   .. step:: Locally Install External Dependencies
+
+      To upload external dependencies, you first need a local
+      ``node_modules`` folder containing at least one Node.js package. You
+      can use the following code snippet to install a dependency locally
+      you would like to upload:
+
+      .. code-block:: shell
+
+         npm install <package name>
+
+      If the ``node_modules`` folder does not already exist, this command
+      automatically creates it.
+
+      .. note:: Alternative Methods of Installation
+
+         You can also configure a ``package.json`` and run the
+         ``npm install`` command to install all packages (and their
+         dependencies) listed in your ``package.json``.
+
+         To learn more about npm and ``node_modules``, consult the
+         `npm documentation <https://docs.npmjs.com/cli/install>`_.
+
+
+   .. step:: Create a Dependency Archive
+
+      Now that you've downloaded all of your npm modules, you need to
+      package them up in an archive so you can upload them to App Services.
+      Create an archive containing the ``node_modules`` folder:
+
+      .. code-block:: shell
+
+         tar -czf node_modules.tar.gz node_modules/
+
+      .. note:: Supported Archive Formats
+
+         App Services supports ``.tar``, ``.tar.gz``, ``.tgz``, and ``.zip`` archive
+         formats.
+
+
+   .. step:: Upload the Dependency Archive
+
+      Once you've created an archive containing your dependencies, you can upload your
+      dependency archive using the App Services UI or the {+cli+}:
+
+      .. tabs-realm-admin-interfaces::
+
+         .. tab::
+            :tabid: ui
+
+            #. Select :guilabel:`Functions` from the left navigation menu.
+            #. Select the :guilabel:`Dependencies` tab.
+
+            #. Click the :guilabel:`Upload` button.
+
+            #. In the file picker, select the ``node_modules.tar.gz`` archive you
+               just created and click Open. App Services automatically uploads the
+               archive file, which may take several minutes depending on the
+               speed of your internet connection and the size of your dependency
+               archive.
+
+            #. Whether the operation succeeded or failed, App Services displays a banner
+               indicating the success or failure of the operation. If successful,
+               the :guilabel:`Dependencies` tab displays a list of the
+               dependencies that you included in your dependency archive. If
+               drafts are enabled, you will also need to click
+               :guilabel:`Review & Deploy` to apply these changes. If drafts are
+               disabled, the change will take effect within 5 to 60 seconds
+               depending on the size of your dependency archive.
+
+         .. tab::
+            :tabid: cli
+
+            #. Add the ``node_modules`` archive to your ``/functions``
+               directory:
+
+               .. code-block:: shell
+
+                  mv node_modules.tar.gz ./myapp/functions
+
+            #. Push your application with the ``--include-node-modules``
+               option:
+
+               .. code-block:: shell
+
+                  {+cli-bin+} push --include-node-modules
+
+.. _import-external-dependencies:
+
+Import a Package in a Function
+------------------------------
+
+You can import built-in modules and external packages that you've added
+to your app and then use them in your functions. To import a package,
+call ``require()`` with the package name from within the function body.
+
+.. important:: Where Do I Import Modules?
+   
+   Node.js projects commonly place ``require()`` calls in the global
+   scope of each file, but App Services does not support this
+   pattern. You *must* place App Services ``require()`` calls
+   within a function scope.
+
+Import a Full Module
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+   :emphasize-lines: 2
+
+   exports = () => {
+      const R = require("ramda");
+      return R.map(x => x*2, [1,2,3]);
+   }
+
+Import a Module Subfolder
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+   :emphasize-lines: 2
+
+   exports = function(arg){
+      const cloneDeep = require("lodash/cloneDeep");
+
+      var original = { name: "Deep" };
+      var copy = cloneDeep(original);
+      copy.name = "John";
+
+      console.log(`original: ${original.name}`);
+      console.log(`copy: ${copy.name}`);
+      return (original != copy);
+   };

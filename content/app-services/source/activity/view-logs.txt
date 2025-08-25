@@ -1,0 +1,340 @@
+.. meta::
+   :robots: nosnippet
+
+.. _view-logs:
+
+=====================
+View Application Logs
+=====================
+
+.. facet::
+   :name: programming_language
+   :values: shell, json
+
+.. facet::
+   :name: genre 
+   :values: reference
+
+.. meta:: 
+   :description: View, filter, search, and download an application's logs in the Atlas App Services UI, or access logs using the App Services CLI or App Services API.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+App Services UI
+---------------
+
+You can view, filter, search, and download an application's logs in the
+App Services UI. To see your App's logs, click :guilabel:`Logs` in the
+left navigation menu.
+
+.. figure:: /images/logs-ui.png
+   :alt: View Logs in the App Services UI
+
+Filter Logs
+~~~~~~~~~~~
+
+Drop-down menus enable filtering by predefined types of log entry, the status
+of entries. You can also specify a date range, filter by user ID, and show
+only entries associated with a specific request ID.
+
+Limit the Number of Log Entries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the text field with the placeholder text :guilabel:`Max # of Logs`, enter
+the maximum number of results you want to display on the page. If there are
+more records beyond your limit, you will see a :guilabel:`Load More` button
+at the bottom of the list of log entries.
+
+Download Logs
+~~~~~~~~~~~~~
+
+Click the download button, to the right of the :guilabel:`Apply` button,
+to download the log entries that meet your filter criteria (or all log
+entries if you haven't specified any filters). When you click this
+button, a dialog appears confirming the filters that will be applied and
+prompting you to (optionally) limit the number of results. The resulting
+collection of log entries is in a .zip file that contains a single JSON
+file.
+
+.. figure:: /images/logs-ui-download.png
+   :alt: Download Logs in the App Services UI
+
+App Services CLI
+----------------
+
+You can access an application's logs in your terminal or a shell script
+with the App Services CLI.
+
+View Recent Logs
+~~~~~~~~~~~~~~~~
+
+To return the 100 most recent log entries for your application, run ``{+cli-bin+}
+logs list``.
+
+.. code-block:: shell
+
+   {+cli-bin+} logs list
+
+Tail Logs in Real Time
+~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``--tail`` flag to open a stream that displays application logs
+as they come in.
+
+.. code-block:: shell
+
+   {+cli-bin+} logs list --tail
+
+View Error Logs
+~~~~~~~~~~~~~~~
+
+You can use the ``--errors`` flag to view only error logs. If you don't specify
+the flag, the command returns both error logs and regular logs.
+
+.. code-block:: shell
+
+   {+cli-bin+} logs list --errors
+
+Filter Logs by Type
+~~~~~~~~~~~~~~~~~~~
+
+You can use the ``--type`` flag to view logs of one or more specific types. If
+you don't specify a type, the command returns logs of all types.
+
+The following types are valid:
+
+- ``auth``
+- ``function``
+- ``push``
+- ``service``
+- ``trigger``
+- ``graphql``
+- ``sync``
+- ``schema``
+- ``trigger_error_handler``
+- ``log_forwarder``
+- ``endpoint``
+
+.. code-block:: shell
+
+   {+cli-bin+} logs list --type=function --type=trigger
+
+.. _cli-view-logs-for-date-range:
+
+View Logs for a Date Range
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``--start`` and ``--end`` flags to view logs from a range of
+dates. The flags accept ISODate strings and you can use them separately or
+together.
+
+.. code-block:: shell
+
+   {+cli-bin+} logs list --start="2021-01-01T00:00:00.000+0000" --end="2021-02-01T00:00:00.000+0000"
+
+App Services API
+----------------
+
+You can access an application's logs over HTTPS by calling the
+:admin-api-endpoint:`Admin API Logs endpoints <tag/logs>`.
+
+To use the Admin API you'll need your Project ID, App ID, and
+authentication credentials. To learn how to find these, see
+:admin-api-endpoint:`Project & Application IDs
+<section/Project-and-Application-IDs>` and :admin-api-endpoint:`Get
+Authentication Tokens <section/Get-Authentication-Tokens>`.
+
+The examples in this section use the following helper functions in a
+:doc:`Function </functions>`:
+
+.. code-block:: javascript
+
+   async function authenticate(publicApiKey, privateApiKey) {
+     const result = await context.http.post({
+       url: `${ADMIN_API_BASE_URL}/auth/providers/mongodb-cloud/login`,
+       headers: {
+         "Content-Type": ["application/json"],
+         "Accept": ["application/json"],
+       },
+       body: {
+         "username": publicApiKey,
+         "apiKey": privateApiKey,
+       },
+       encodeBodyAsJSON: true
+     })
+     return EJSON.parse(result.body.text());
+   }
+
+   function formatQueryString(queryParams) {
+     const params = Object.entries(queryParams);
+     return params.length > 0
+       ? "?" + params.map(([a, b]) => `${a}=${b}`).join("&")
+       : ""
+   }
+
+Get Recent Logs
+~~~~~~~~~~~~~~~
+
+To return the 100 most recent log entries for your application, call the
+Logging endpoint with no additional parameters:
+
+.. code-block:: javascript
+   :emphasize-lines: 20
+
+   const ADMIN_API_BASE_URL = "https://services.cloud.mongodb.com/api/admin/v3.0";
+   exports = async function() {
+     // Get values that you need for requests
+     const projectId = "<Atlas Project ID>";
+     const appId = "<App ID>";
+     const publicApiKey = "<Atlas Public API Key>";
+     const privateApiKey = "<Atlas Private API Key>";
+
+     // Authenticate with the Atlas API Key
+     const { access_token } = await authenticate(publicApiKey, privateApiKey);
+
+     // Get logs for your App
+     const logsEndpoint = `${ADMIN_API_BASE_URL}/groups/${projectId}/apps/${appId}/logs`;
+     const  request = {
+       "url": logsEndpoint,
+       "headers": {
+         "Authorization": [`Bearer ${access_token}`]
+       }
+     };
+     const result = await context.http.get(request);
+     const logs = EJSON.parse(result.body.text());
+     return logs;
+   }
+
+Get Logs for a Date Range
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To return log entries for a specific date range, call the Logging
+endpoint with either or both of the ``start_date`` and ``end_date``
+fields:
+
+.. note:: Result Pagination
+
+   If the date range that you specify includes more than 100 log
+   entries, you will need to run multiple queries to access all of the
+   entries. To learn how, see :ref:`Get Paginated Logs
+   <logging-get-paginated-logs>`.
+
+.. code-block:: javascript
+   :emphasize-lines: 16-17, 23
+
+   const ADMIN_API_BASE_URL = "https://services.cloud.mongodb.com/api/admin/v3.0";
+   exports = async function() {
+     // Get values that you need for requests
+     const projectId = "<Atlas Project ID>";
+     const appId = "<App ID>";
+     const publicApiKey = "<Atlas Public API Key>";
+     const privateApiKey = "<Atlas Private API Key>";
+
+     // Authenticate with the Atlas API Key
+     const { access_token } = await authenticate(publicApiKey, privateApiKey);
+
+     // Get logs for your App
+     const logsEndpoint = `${ADMIN_API_BASE_URL}/groups/${projectId}/apps/${appId}/logs`;
+     const  request = {
+       "url": logsEndpoint + formatQueryString({
+         start_date: "2019-07-01",
+         end_date: "2019-07-31",
+       }),
+       "headers": {
+         "Authorization": [`Bearer ${access_token}`]
+       }
+     };
+     const result = await context.http.get(request);
+     const logs = EJSON.parse(result.body.text());
+     return logs;
+   }
+
+.. _logging-get-paginated-logs:
+
+Get Paginated Logs
+~~~~~~~~~~~~~~~~~~
+
+App Services returns a maximum of 100 log entries for each request. If a
+query matches more than 100 log entries, the API returns the
+first "page" of 100 results and include additional parameters in the
+response that you can provide to get the next page(s) of up to 100
+entries.
+
+.. note:: Paginated Responses
+
+   A paginated response resembles the following document, where
+   ``nextEndDate`` and ``nextSkip`` are optional:
+
+   .. code-block:: json
+
+      {
+        logs: [<Log Entry>, ...],
+        nextEndDate: "<End date of the next page>",
+        nextSkip: <Offset of the next page>,
+      }
+
+.. code-block:: javascript
+   :emphasize-lines: 13-16, 40
+
+   const ADMIN_API_BASE_URL = "https://services.cloud.mongodb.com/api/admin/v3.0";
+   exports = async function() {
+     // Get values that you need for requests
+     const projectId = "<Atlas Project ID>";
+     const appId = "<App ID>";
+     const publicApiKey = "<Atlas Public API Key>";
+     const privateApiKey = "<Atlas Private API Key>";
+
+     // Authenticate with the Atlas API Key
+     const { access_token } = await authenticate(publicApiKey, privateApiKey);
+
+     // Get logs for your App
+     const pager = new LogPager(projectId, appId, access_token);
+     const firstPage = await pager.getNextPage();
+     const secondPage = await pager.getNextPage(firstPage);
+     const thirdPage = await pager.getNextPage(secondPage);
+     const allLogs = await pager.getAllLogs();
+   }
+
+   class LogPager {
+     constructor(projectId, appId, access_token, queryParams={}) {
+       this.logsEndpoint = `${ADMIN_API_BASE_URL}/groups/${projectId}/apps/${appId}/logs`;
+       this.queryParams = queryParams;
+       this.authHeaders = { Authorization: [`Bearer ${access_token}`] }
+     }
+
+     async getNextPage(prevPage) {
+       const { nextEndDate, nextSkip } = prevPage || {};
+       if(prevPage && !nextEndDate) {
+         throw new Error("Paginated API does not have any more pages.")
+       }
+       const request = {
+         "headers": this.authHeaders,
+         "url": this.logsEndpoint + formatQueryString({
+           ...this.queryParams,
+           end_date: nextEndDate,
+           skip: nextSkip,
+         }),
+       }
+       const result = await context.http.get(request);
+       const nextPage = EJSON.parse(result.body.text());
+       return nextPage
+     }
+
+     async getAllLogs() {
+       // Note: If your query parameters match too many logs this might time out
+       let logs = []
+       let hasNext = true;
+       let prevPage = null
+       while(hasNext) {
+         const page = await getNextPage(prevPage);
+         logs = logs.concat(page.logs);
+         hasNext = page.nextEndDate
+         prevPage = page
+       }
+       return logs;
+     }
+   }

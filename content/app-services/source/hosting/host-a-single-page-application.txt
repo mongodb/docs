@@ -1,0 +1,147 @@
+.. meta::
+   :robots: nosnippet
+
+.. _host-a-single-page-application:
+
+==============================
+Host a Single-Page Application
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Many web applications built with modern frameworks, like React, Vue, and
+Angular, are single-page applications (SPAs) that dynamically handle
+routing and rendering client-side instead of fetching each rendered page
+from the server. You can use Atlas App Services to host your SPA and serve it to
+clients.
+
+To host your app, you need to specify that it's a SPA in App Services. By
+default, App Services handles requests for a given resource by returning the
+file hosted at the specified resource path or a 404 if no file matches
+the path. However, SPAs render in a single, specific HTML file so all
+requests should return that file regardless of the requested resource
+path.
+
+This guide covers how you can configure App Services Hosting to redirect all
+resource requests to a single file to support the SPA pattern.
+
+.. include:: /hosting/spa-404-note.rst
+
+Procedure
+---------
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      .. procedure::
+
+         .. step:: Upload Your Built Application to App Services
+
+            Single-page applications render in a single, specific HTML file,
+            typically ``/index.html``. The file should include the necessary
+            JavaScript code to wire up and render your application, either inline
+            in a ``<script>`` tag or imported from an external file. You'll also
+            need to host any resources that you don't intend to access through a
+            CDN.
+
+            When you are ready to host your SPA, run your application's build
+            script and then :doc:`upload the build folder
+            </hosting/upload-content-to-app-services>` to App Services.
+
+
+         .. step:: Configure App Services to Serve Your Application
+
+            Once you've started hosting your application files, you can
+            immediately access your SPA by requesting the root HTML file directly.
+            However, a request to any path other than the root file will return a
+            404. This can break the expected behavior of a SPA that uses a
+            client-side router or otherwise relies on the URL path.
+
+            To configure App Services to serve the SPA's root page for all requests:
+
+            1. Navigate to the :guilabel:`Hosting` page in the App Services UI and then
+               click the :guilabel:`Settings` tab.
+
+            2. Ensure that you have not specified a custom 404 page. If custom 404
+               is enabled, click the trash can icon (:icon-fa5:`trash-alt`) next
+               to the specified 404 page.
+
+            3. Next to :guilabel:`Single Page Application`, click :guilabel:`Choose
+               File`. Choose the root HTML file for your SPA and then click
+               :guilabel:`Select`.
+
+            4. Click :guilabel:`Save`.
+   
+   .. tab::
+      :tabid: cli
+      
+      .. include:: /includes/enable-hosting-in-ui-note.rst
+      
+      .. procedure::
+
+         .. step:: Pull the Latest Version of Your App
+
+            To configure a single-page application with the {+cli-ref+}, you need a local copy
+            of your application's configuration files.
+
+            To pull a local copy of the latest version of your app, run the following:
+
+            .. code-block:: bash
+
+               {+cli-bin+} pull --remote="<Your App ID>"
+
+            .. tip::
+
+               You can also download a copy of your application's configuration files from
+               the :guilabel:`Deploy > Import/Export App` screen in the App Services UI.
+
+
+         .. step:: Add Your Built Application Code
+
+            Single-page applications render in a single, specific HTML file,
+            typically ``/index.html``. The file should include the necessary
+            JavaScript code to wire up and render your application, either inline
+            in a ``<script>`` tag or imported from an external file. You'll also
+            need to host any resources that you don't intend to access through a
+            CDN.
+
+            When you are ready to host your SPA, run your application's build
+            script and then copy the output build folder into the
+            ``/hosting/files`` directory of your application directory.
+
+
+         .. step:: Configure App Services to Serve Your Application
+
+            In ``hosting/config.json``, set ``default_response_code`` to ``200`` and set
+            ``default_error_path`` to the :ref:`resource path <hosting-resource-path>` of
+            your SPA's root HTML file. Make sure to save the file when you're done.
+
+            .. code-block:: json
+               :caption: hosting/config.json
+
+               {
+                 "enabled": true,
+                 "default_response_code": 200,
+                 "default_error_path": "/index.html",
+               }
+
+
+         .. step:: Deploy the Updated Hosting Configuration
+
+            Once you've updated and saved ``hosting/config.json`` you can push the updated
+            config to your remote app. {+cli+} immediately supports your SPA on push.
+
+            .. code-block:: bash
+
+               {+cli-bin+} push --remote="<Your App ID>" --include-hosting

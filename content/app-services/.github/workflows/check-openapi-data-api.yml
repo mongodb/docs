@@ -1,0 +1,40 @@
+name: Check OpenAPI Spec > Data API
+
+on:
+  pull_request:
+    paths:
+      - "openapi-data-api-v1/**"
+      - "source/data-api/openapi.txt"
+
+env:
+  DEV_SPEC_FILEPATH: "openapi-data-api-v1/openapi.yaml"
+  BUNDLED_SPEC_FILEPATH: "source/openapi-data-api-v1.bundled.yaml"
+
+jobs:
+  check-openapi-spec-data-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: Verify Bundled OpenAPI File Hash
+        run: |
+          npx -y @redocly/cli@latest bundle ${{ env.DEV_SPEC_FILEPATH }} --output=latest-bundled.yaml
+          expected_hash=$(md5sum latest-bundled.yaml | awk '{ print $1 }')
+          provided_hash=$(md5sum ${{ env.BUNDLED_SPEC_FILEPATH }} | awk '{ print $1 }')
+          echo "expected_hash $expected_hash"
+          echo "provided_hash $provided_hash"
+          if [ "$provided_hash" != "$expected_hash" ]; then
+            echo "The bundled OpenAPI definition does not match the source files. Did you forget to regenerate the bundled spec?"
+            echo "Bundled File: ${{ env.BUNDLED_SPEC_FILEPATH }} (Hash: $provided_hash)"
+            echo "Source File: ${{ env.DEV_SPEC_FILEPATH }} (Bundled hash: $expected_hash)"
+            echo "To regenerate the spec, run this command from the repo root:"
+            echo ""
+            echo "    npx @redocly/cli@latest bundle ${{ env.DEV_SPEC_FILEPATH }} --output=${{ env.BUNDLED_SPEC_FILEPATH }}"
+            echo ""
+            exit 1
+          fi
+      - name: Validate OpenAPI Spec
+        run: |
+          npx -y @redocly/cli@latest lint ${{ env.BUNDLED_SPEC_FILEPATH }} --config redocly.yaml

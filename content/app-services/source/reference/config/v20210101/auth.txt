@@ -1,0 +1,222 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+:orphan:
+
+.. _appconfig-v20210101-auth:
+
+==================================================
+User & Authentication Provider Configuration Files
+==================================================
+
+.. default-domain:: mongodb
+
+.. meta:: 
+  :description: Enable and configure authentication providers in your Atlas App Services App using the deprecated Realm CLI.
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /reference/config/v20210101/note-old-version.rst
+
+.. code-block:: none
+   
+   app/
+   └── auth/
+       ├── providers.json
+       └── custom_user_data.json
+
+.. _config-v20210101-auth-providers:
+
+Authentication Providers
+------------------------
+
+Configuration
+~~~~~~~~~~~~~
+
+You can enable and configure :ref:`authentication providers
+<authentication-providers>` in ``/auth/providers.json``.
+
+Each field of the configuration is the name of a provider type and contains a
+configuration object for that provider. Authentication provider configurations
+share a common structure but each provider type uses a unique set of
+configuration fields.
+
+.. tip::
+   
+   You can find detailed information on a specific provider's configuration on
+   that provider's reference page. For a list of all provider reference pages,
+   see :ref:`Authentication Providers <authentication-providers>`.
+
+.. code-block:: javascript
+   :caption: /auth/providers.json
+   
+   {
+     "<Provider Name>": {
+       "name": "<Provider Name>",
+       "type": "<Provider Type>",
+       "disabled": <Boolean>,
+       "config": {
+         "<Configuration Option>": "<Configuration Value>"
+       },
+       "secret_config": {
+         "<Configuration Option>": "<Secret Name>"
+       },
+       "metadata_fields": [
+         {
+           "required": <Boolean>,
+           "name": "Field Name"
+         },
+         ...
+       ],
+       "redirect_uris": ["<Application Redirect URI>", ...]
+     },
+     ...
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30
+
+   * - Field
+     - Description
+   
+   * - | ``name``
+       | String
+     - The name of the authentication provider. This will always be the same as
+       the provider's ``type``.
+   
+   * - | ``type``
+       | String
+     - The authentication provider type.
+       
+       Valid options:
+       
+       - ``"anon-user"`` for :ref:`Anonymous <anonymous-authentication>` authentication.
+       - ``"local-userpass"`` for :ref:`Email/Password <email-password-authentication>` authentication.
+       - ``"api-key"`` for :ref:`API Key <api-key-authentication>` authentication.
+       - ``"custom-token"`` for :ref:`Custom JWT <custom-jwt-authentication>` authentication.
+       - ``"custom-function"`` for :ref:`Custom Function <custom-function-authentication>` authentication.
+       - ``"oauth2-google"`` for :ref:`Google <google-authentication>` authentication.
+       - ``"oauth2-facebook"`` for :ref:`Facebook <facebook-authentication>` authentication.
+       - ``"oauth2-apple"`` for :ref:`Apple ID <apple-id-authentication>` authentication.
+   
+   * - | ``disabled``
+       | Boolean
+     - If ``true``, this authentication provider is not enabled for your
+       application. Users cannot log in using credentials for a disabled
+       provider.
+   
+   * - | ``config``
+       | Document
+     - A document that contains configuration values that are specific
+       to the authentication provider.
+       
+       The following provider configurations include ``config``:
+       
+       - :ref:`Email/Password <config-email-password>`
+       - :ref:`Custom JWT <config-custom-jwt>`
+       - :ref:`Custom Function <config-custom-function>`
+       - :ref:`Google <config-oauth2-google>`
+       - :ref:`Facebook <config-oauth2-facebook>`
+       - :ref:`Apple ID <config-oauth2-apple>`
+   
+   * - | ``secret_config``
+       | Document
+     - A document where each field name is a private configuration field
+       for the provider and the value of each field is the name of a
+       :ref:`Secret <app-secret>` that stores the configuration value.
+       
+       The following provider configurations include ``redirect_uris``:
+       
+       - :ref:`Custom JWT <config-custom-jwt>`
+       - :ref:`Google <config-oauth2-google>`
+       - :ref:`Facebook <config-oauth2-facebook>`
+       - :ref:`Apple ID <config-oauth2-apple>`
+   
+   * - | ``metadata_fields``
+       | Array<Document>
+     - An array of documents where each document defines a metadata
+       field that describes the user. The existence of this field and
+       the exact format of each metadata field document depends on the
+       provider type.
+       
+       The following provider configurations include ``metadata_fields``:
+       
+       - :ref:`Custom JWT <config-custom-jwt>`
+       - :ref:`Google <config-oauth2-google>`
+       - :ref:`Facebook <config-oauth2-facebook>`
+   
+   * - | ``redirect_uris``
+       | Array<String>
+     - A list of URLs that Atlas App Services may redirect user back to after
+       they complete an OAuth authorization.
+       
+       The following provider configurations include ``redirect_uris``:
+       
+       - :ref:`Google <config-oauth2-google>`
+       - :ref:`Facebook <config-oauth2-facebook>`
+       - :ref:`Apple ID <config-oauth2-apple>`
+
+.. _config-v20210101-custom-user-data:
+
+Custom User Data
+----------------
+
+You can configure the :ref:`custom user data <custom-user-data>`
+collection for your app in ``/auth/custom_user_data.json``.
+
+.. code-block:: javascript
+   :caption: /auth/custom_user_data.json
+   
+   {
+     "enabled": <Boolean>,
+     "mongo_service_name": "<MongoDB Data Source Name>",
+     "database_name": "<Database Name>",
+     "collection_name": "<Collection Name>",
+     "user_id_field": "<Field Name>",
+     "on_user_creation_function_name": "<Function Name>"
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30
+   
+   * - Field Name
+     - Description
+   
+   * - | ``enabled``
+       | Boolean
+     
+     - If ``true``, App Services associates each user with a document in the specified
+       collection that contains their custom data.
+   
+   * - | ``mongo_service_name``
+       | String
+     - The name of the :ref:`data source <appconfig-data_sources>` that contains
+       the custom user data collection.
+   
+   * - | ``database_name``
+       | String
+     - The name of the database that contains the custom user data collection.
+   
+   * - | ``collection_name``
+       | String
+     - The name of the collection that contains the custom user data.
+   
+   * - | ``user_id_field``
+       | String
+     - The name of the field in custom user data documents that
+       contains the user ID of the application user the document
+       describes.
+
+   * - | ``on_user_creation_function_name``
+       | String
+     - The name of the :ref:`user creation function <user-creation-function>`.

@@ -1,0 +1,220 @@
+.. meta::
+   :robots: nosnippet
+
+.. _device-sync-compatibility:
+
+==================================
+Device Sync-Compatible Permissions
+==================================
+
+.. meta:: 
+   :description: Device Sync has special considerations when using the permissions system.
+
+.. facet::
+   :name: genre 
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+When using :ref:`Device Sync (Flexible Mode) <sync>`, there are special
+considerations when using the permissions system.
+
+For a guide to setting up Flexible Sync with common permissions models, see the
+:ref:`flexible-sync-permissions-guide`.
+
+.. include:: /includes/important-sync-ignores-custom-collation.rst
+
+.. _sync-compatible-roles:
+
+Sync-Compatible Roles
+~~~~~~~~~~~~~~~~~~~~~
+
+If Device Sync (Flexible Mode) is enabled, an assigned :ref:`role <roles>` must
+be **Sync compatible**. If the role is not Sync compatible, but its "apply when"
+evaluated to true, other roles are not considered; access is denied.
+
+A role is not Sync compatible if any of the following conditions are true:
+
+- ``document_filters.read`` or ``document_filters.write`` are undefined.
+- A document filter, insert, or delete expression:
+
+  - References a field that is not a :ref:`queryable field <queryable-fields>`
+  - Uses an expansion other than ``%%true``, ``%%false``, ``%%values``, ``%%environment``, or ``%%user``
+  - Uses the ``%function`` operator
+- Top-level ``read``, top-level ``write``, or field-level permissions are not boolean literals (``true`` or ``false``).
+- Field-level permissions are specified for the ``_id`` field.
+
+
+.. _sync-compatible-expressions:
+
+Sync-Compatible Expressions
+---------------------------
+
+When Device Sync is enabled, expressions may only refer to the :ref:`queryable
+fields <queryable-fields>` of your data model. If a role refers to any other
+fields, it becomes Sync incompatible and cannot be used with Device Sync.
+
+Because a Sync-enabled App assigns roles at the start of a Sync session before
+any specific documents are queried, you can't refer to a document or its field
+values in an "apply when" expression.
+
+
+.. _sync-compatible-expansions:
+
+Sync-Compatible Expansions
+--------------------------
+
+When using Device Sync, some :ref:`expansions <expansions>` are not supported.
+The following table specifies which expansions are Sync compatible in either the
+"apply when" or rule expressions:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Expansion
+     - Can Use in "Apply When"?
+     - Can Use in Rule Expressions?
+   
+   * - :json-expansion:`%%true`, :json-expansion:`%%false`
+     - Yes
+     - Yes
+   
+   * - :json-expansion:`%%values`, :json-expansion:`%%environment`
+     - Yes
+     - Yes with an :ref:`important consideration <flex-sync-expansions-consideration>`
+   
+   * - :json-expansion:`%%request`
+     - No
+     - No
+   
+   * - :json-expansion:`%%user`
+     - Yes
+     - Yes with an :ref:`important consideration <flex-sync-expansions-consideration>`
+   
+   * - :json-expansion:`%%this`, :json-expansion:`%%prev`, :json-expansion:`%%root`,  :json-expansion:`%%prevRoot`
+     - No. These expansions refer to the document. App Services evaluates "apply when" expressions at session start, so there's no document to evaluate.
+     - No. These expansions might access non-queryable fields of the document, which is not possible.
+   
+   * - :json-expansion:`%%partition`
+     - No
+     - No
+   
+   * - :json-operator:`%stringToOid`, :json-operator:`%oidToString`
+     - Yes
+     - Yes
+   
+   * - :json-operator:`%function`
+     - Yes
+     - No. App Services expands the expansions at the start of the session, so the function would not operate on a per-document basis.
+   
+   * - :json-operator:`$exists`
+     - Yes
+     - Yes
+   
+   * - :json-operator:`$in`, :json-operator:`$nin`
+     - Yes
+     - Yes.
+   
+   * - :json-operator:`$eq`, :json-operator:`$ne`, :json-operator:`$gt`, :json-operator:`$gte`, :json-operator:`$lt`, :json-operator:`$lte`  
+     - Yes
+     - Yes
+
+.. _flex-sync-expansions-consideration:
+
+.. important::
+
+   App Services causes a :ref:`client reset <client-resets>` if anything about
+   the role changed since the previous session.
+
+   At the start of a session, App Services expands all expansions in the "apply
+   when", ``document_filters.read``, and ``document_filters.write`` expressions
+   and stores the result. This has the following implications:
+
+   - If the value changes during a session, App Services continues
+     to use the value as it was at the time of session start.
+
+   - On the next session, if the value is different from what it was at
+     the start of this session, App Services causes a client
+     reset.
+   
+   - You cannot use the :json-operator:`%function` operator in read and
+     write rules. Functions would not operate on a per-document basis.
+   
+   - You cannot store permissions information (such as "which document
+     IDs may this user access?") in the user object. Changes would not be
+     re-evaluated until the next user session, and updates would cause a 
+     client reset.
+
+
+.. _flexible-sync-permission-changes:
+
+Permission Changes
+------------------
+
+If a user's permissions have changed since the last Sync session, Sync triggers
+a :ref:`client reset <client-resets>` and re-downloads all data with the new
+permissions applied.
+
+A user's permissions might change in the following situations:
+
+- You :ref:`updated the Data Source configuration <appconfig-data_sources>` to
+  modify the rules.
+- Your rules reference :ref:`custom user data <custom-user-data>` to determine
+  permissions dynamically, and the value of that custom user data has changed
+  since the last Sync session.
+
+A client reset will **not** be triggered in the following cases: 
+
+- Adding a new collection to an App Services Schema and defining permissions for
+  the new namespace or using default roles. This will not trigger a client reset
+  because permissions have not been applied previously.
+- Configuring custom permissions for the new collection in the same :ref:`draft
+  <deploy-ui>` as the new schema. Conversely, deploying a draft with permission
+  changes after you deploy the schema will lead to a client reset, since default
+  permissions were applied in the initial deployment.
+
+.. _unified-rule-migration:
+
+Unified Rules System
+--------------------
+
+Prior to February 23, 2023, Device Sync (Flexible Mode) rules existed in the
+``permissions`` field of the :ref:`Sync configuration
+<sync-configuration-reference>`. These permissions now exist in the same
+configuration files as the non-Sync permissions.
+
+When importing an app configured for the older permissions system, App Services
+automatically migrates the permissions to the new unified rules system. You
+should not have to migrate apps manually. If you have an old app configuration,
+you can import and then :ref:`re-export <export-app>` the migrated
+configuration.
+
+For reference, the following changes take place in the migration:
+
+- Move ``permissions.defaultRoles`` to the ``default_rule.json`` file in the
+  data source configuration directory at ``data_sources/<data-source-name>/``.
+- Move any collection-specific rules to the ``rules.json`` file in the
+  respective collection configuration directories at
+  ``data_sources/<data-source-name>/<database-name>/<collection-name>/``.
+- Rename ``defaultRoles`` to ``roles``.
+- Rename ``applyWhen`` to ``apply_when``.
+- Move sync ``read`` and ``write`` into ``document_filters.read`` and
+  ``document_filters.write``. Ensure both ``document_filters.read`` and
+  ``document_filters.write`` are defined.
+- Add the following to the roles, adjusting for your use case. You can only use
+  ``true`` or ``false``. Generally, you probably want ``true``. The
+  ``document_filters`` will restrict read and write access on a per-document
+  level.
+
+  .. code-block:: json
+
+     "read": true,
+     "write": true,
+     "insert": true,
+     "delete": true,
+     "search": true

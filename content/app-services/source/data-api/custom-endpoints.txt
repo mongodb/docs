@@ -1,0 +1,785 @@
+.. meta::
+   :robots: nosnippet
+
+.. _https-endpoints:
+.. _custom-endpoints:
+
+===================================
+Custom HTTPS Endpoints [Deprecated]
+===================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can define custom HTTPS endpoints to create app-specific API routes
+or webhooks that integrate with external services. A custom endpoint
+uses a serverless function that you write to handle incoming requests
+for a specific URL and HTTP method.
+
+.. note:: 
+
+   Custom HTTPS Endpoints are not supported in 
+   :ref:`private endpoints <private-endpoints>`.
+
+Endpoints use standard, encrypted HTTPS requests, which means that you
+don't need to install any database drivers or opinionated libraries to
+call them. Instead, you send requests like this from any HTTP client:
+
+.. literalinclude:: /data-api/snippets/custom-endpoints.snippet.hello.sh
+   :language: bash
+
+Structure of an Endpoint
+------------------------
+
+An endpoint handles one or more HTTP methods sent to a specific URL.
+
+.. _endpoint-base-url:
+
+Base URL
+~~~~~~~~
+
+Endpoints in an app share a base URL. The URL uses your App ID to
+uniquely point to your app.
+
+Globally deployed apps use the following format:
+
+.. code-block:: none
+   :caption: Endpoint Base URL (Global Apps):
+
+   https://data.mongodb-api.com/app/<App ID>/endpoint
+   
+Endpoints in a locally deployed app use a base URL specific to the app's
+:ref:`deployment region <deployment-regions>` (e.g. ``us-east-1``)
+
+.. code-block:: none
+   :caption: Endpoint Base URL (Local Apps)
+
+   https://<Region>.aws.data.mongodb-api.com/app/<App ID>/endpoint
+
+.. _endpoint-route:
+
+Endpoint Routes
+~~~~~~~~~~~~~~~
+
+Every HTTPS endpoint has a route that serves as a name for the endpoint.
+An endpoint's route is arbitrary and specific to your app. However, it
+appears in the endpoint URL path and so should represent the action the
+route performs.
+
+Route names must begin with a forward slash (``/``) and may contain
+additional forward slashes to indicate a nested path.
+
+.. code-block:: none
+   :caption: An endpoint route
+   
+   /my/nested/route
+
+You call an endpoint by appending its route to your app's base URL and
+sending an HTTP request.
+
+.. code-block:: none
+   :caption: An endpoint URL
+   
+   https://data.mongodb-api.com/app/<App ID>/endpoint/my/nested/route
+
+.. _endpoint-http-method:
+
+HTTP Methods
+~~~~~~~~~~~~
+
+Each endpoint in your app handles one or more :mdn:`HTTP methods
+<Web/HTTP/Methods>` for a given route. For example, you might have a
+single route that accepts ``POST`` requests to create a new resource and
+a ``GET`` request to list existing resources.
+
+You can define multiple custom endpoints that serve the same route but
+handle different request methods. Alternatively, you can define a single
+endpoint for the route that handles all methods.
+
+Custom endpoints support the following standard HTTP methods:
+
+- :mdn:`GET <Web/HTTP/Methods/GET>`
+- :mdn:`POST <Web/HTTP/Methods/POST>`
+- :mdn:`PUT <Web/HTTP/Methods/PUT>`
+- :mdn:`PATCH <Web/HTTP/Methods/PATCH>`
+- :mdn:`DELETE <Web/HTTP/Methods/DELETE>`
+
+.. _create-custom-endpoint: 
+
+Create a Custom HTTPS Endpoint
+------------------------------
+
+You can configure the Data API for your app from the App Services UI or by
+deploying configuration files with {+cli+}:
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      1. Click :guilabel:`HTTPS Endpoints` in the left navigation menu and then
+         click :guilabel:`Add An Endpoint`.
+      
+      2. Define the endpoint :guilabel:`Route`. Route names must begin
+         with a forward slash (``/``) and may contain additional forward
+         slashes to indicate a nested path.
+      
+      3. Choose an :ref:`HTTP method <endpoint-http-method>` for the
+         endpoint from the dropdown. You can choose either a specific
+         method (e.g. ``GET`` or ``POST``) or configure the endpoint to
+         accept *any* HTTP method (i.e. ``ANY``).
+      
+      4. Choose a :ref:`response type <data-api-response-type>`, either
+         JSON or EJSON. You can enable :guilabel:`Respond With Result`
+         to automatically include the endpoint function's return value
+         as the response body.
+
+      5. Write an :ref:`endpoint function <endpoint-function>` that
+         handles requests for the endpoint. Alternatively, specify an
+         existing function by name.
+      
+      6. For additional security, you can configure :ref:`request
+         authorization <endpoint-authorization>`.
+      
+      7. Save the Data API configuration.
+      
+      8. Configure :ref:`access permissions <data-api-permissions>` to
+         allow requests to securely read and write data.
+      
+      9. Save and deploy your app.
+     
+   .. tab::
+      :tabid: cli
+      
+      1. Pull the latest version of your app.
+         
+         .. code-block:: bash
+
+            {+cli-bin+} pull --remote="<Your App ID>"
+      
+      2. Define a :ref:`configuration <appconfig-endpoints>` object for
+         the custom endpoint.
+         
+         .. code-block:: bash
+            :caption: http_endpoints/config.json
+
+            [
+              {
+                "route": "<Endpoint route name>",
+                "http_method": "<HTTP method>",
+                "function_name": "<Endpoint function name",
+                "validation_method": "<Authorization scheme>",
+                "respond_result": <boolean>,
+                "fetch_custom_user_data": <boolean>,
+                "create_user_on_auth": <boolean>,
+                "disabled": <boolean>
+              }
+            ]
+      
+      3. Define :ref:`rules <config-collection-rules>` for one or more
+         collections.
+         
+         .. code-block:: bash
+            :caption: data_sources/mongodb-atlas/<db>/<collection>/rules.json
+
+            {
+              "database": "<Database Name>",
+              "collection": "<Collection Name>",
+              "roles": [<Role>],
+              "filters": [<Filter>]
+            }
+      
+      4. Deploy your app.
+         
+         .. code-block:: bash
+            
+            {+cli-bin+} push
+
+Authentication
+~~~~~~~~~~~~~~
+
+Custom endpoints run in the context of a specific user, which allows
+your app to enforce rules and validate document schemas for each
+request.
+
+By default, endpoints use Application Authentication, which requires
+each request to include credentials for one of your application users,
+like an API key or JWT. You can also configure other custom
+authentication schemes to fit your application's needs.
+
+For examples of how to authenticate requests, see :ref:`Authenticate
+Data API Requests <data-api-authenticate-requests>`.
+
+.. tabs::
+
+   .. tab:: Application
+      :tabid: auth-credentials
+
+      Application authentication requires users to log in with an
+      authentication provider that you have enabled for your App.
+      Requests can either include an access token granted by the
+      authentication provider or the credentials the user would log in
+      with (e.g. their API key or email and password).
+   
+   .. tab:: User ID
+      :tabid: auth-userid
+
+      User ID authentication runs all requests as a single, pre-selected
+      application user. This is useful if all requests should have the
+      same permissions regardless of who called the endpoint.
+      
+      To select the user, specify their User Account ID in the endpoint
+      configuration.
+      
+      .. code-block:: json
+         :caption: functions/config.json
+         
+         [
+           {
+             ...,
+             "run_as_user_id": "628e47baf4c2ac2796fc8a91"
+           }
+         ]
+   
+   .. tab:: Script
+      :tabid: auth-script
+   
+      Script authentication calls a function to determine which
+      application user a request runs as. You can use this to implement
+      custom authentication and authorization schemes.
+
+      The function must return an existing application user's Account ID
+      as a string or ``{ "runAsSystem": true }`` to run the request
+      as a :ref:`system user <system-user>` that has full access to
+      MongoDB CRUD and Aggregation APIs and is not subject to any
+      rules, roles, or limited permissions.
+
+      To define the function, specify the source code in the endpoint
+      configuration.
+      
+      .. code-block:: json
+         :caption: functions/config.json
+         
+         [
+           {
+             ...,
+             "run_as_user_id_script_source": "exports = () => {return \"628e47baf4c2ac2796fc8a91\"}"
+           }
+         ]
+   
+   .. tab:: System
+      :tabid: auth-system
+
+      System authentication configures an endpoint to run as a
+      :ref:`system user <system-user>` that requires no credentials, has
+      full access to MongoDB CRUD and Aggregation APIs, and is not
+      subject to any rules, roles, or limited permissions.
+      
+      .. code-block:: json
+         :caption: functions/config.json
+         
+         [
+           {
+             ...,
+             "run_as_system": true
+           }
+         ]
+
+.. tip::
+   
+   New endpoints that you create in the UI use System authentication by default.
+
+.. _endpoint-authorization:
+
+Authorization
+~~~~~~~~~~~~~
+
+An endpoint can require authenticated users to provide additional
+authorization information in the request. You define the authorization
+scheme for each custom endpoint by configuring the endpoint function.
+
+Endpoints natively support a set of built-in authorization schemes that
+use a secret string to prove that the request is authorized. You can
+also define a custom authorization scheme that you can use together with
+or instead of the built-in schemes.
+
+To learn how to configure authorization for a specific function, see
+:ref:`Define a Function <define-a-function>`.
+
+Built-In Authorization Schemes
+++++++++++++++++++++++++++++++
+
+Endpoints support the following built-in authorization schemes:
+
+.. tabs::
+     
+   .. tab:: No Additional Authorization
+      :tabid: no-authorization
+   
+      All authenticated users are authorized to call the endpoint.
+      Authenticated requests do not need to include authorization
+      information.
+      
+   .. tab:: Secret Parameter
+      :tabid: secret-parameter
+      
+      Authenticated users must prove that they are authorized to call
+      the endpoint by including a specific string as the value of the
+      ``secret`` query parameter.
+      
+      You define the string in a :ref:`secret <app-secret>` and
+      reference the secret by name in the endpoint configuration.
+
+      .. code-block:: json
+         :caption: http_endpoints/config.json
+         
+         [
+           {
+              ...,
+              "verification_method": "SECRET_AS_QUERY_PARAM",
+              "secret_name": "secret_verification_string"
+           }
+         ]
+
+      To learn how to include the secret in a request, see :ref:`Authorize the Request <endpoint-authorize>`.
+   
+   .. tab:: Payload Signature
+      :tabid: payload-signature
+   
+      Authenticated users must prove that they are authorized to call
+      the endpoint by including an ``Endpoint-Signature`` header that
+      contains a hexadecimal-encoded :abbr:`HMAC (Hash-based Message
+      Authentication Code)` SHA-256 hash generated from the request body
+      and a secret string.
+
+      You define the string in a :ref:`secret <app-secret>` and
+      reference the secret by name in the endpoint configuration.
+
+      To learn how to sign your requests, see :ref:`Authorize the Request <endpoint-authorize>`.
+
+Custom Authorization Schemes
+++++++++++++++++++++++++++++
+
+You can define a custom authorization :ref:`expression <expressions>` to
+determine if an incoming authenticated request is allowed to run. The
+expression is evaluated for each request and must evaluate to ``true``
+to allow the request. If the expression evaluates to ``false``, the
+request is not authorized and fails with an error. Requests that fail
+authorization are not counted toward your App's billed usage.
+
+Authorization expressions can use variables like
+:json-expansion:`%%user` to authorize based on the calling user's data
+or :json-expansion:`%%request` to make decisions based on the specifics
+of each incoming request.
+
+To define a custom authorization scheme, specify the expression in the
+endpoint function's configuration:
+
+.. code-block:: json
+   :caption: http_endpoints/config.json
+         
+   [
+     {
+        ...,
+        "can_evaluate": {
+          "%%request.requestHeaders.x-secret-key": "my-secret"
+        }
+     }
+   ]
+
+.. _endpoint-function:
+
+Write an Endpoint Function
+--------------------------
+
+Every custom endpoint is associated with a :ref:`function <functions>`
+that runs whenever the endpoint receives an incoming request. In the
+function, you can import libraries from npm, connect to a linked MongoDB
+Atlas cluster, and call other serverless functions. 
+
+To define a new function when :ref:`creating an endpoint 
+<create-custom-endpoint>` in the App Services UI, navigate
+to the :guilabel:`Function` section and select
+:guilabel:`+ New Function` from the dropdown.
+
+Depending on your workflow, you can also define and edit endpoint 
+handler functions:
+
+- On the :guilabel:`Functions` page in the :ref:`App Services UI 
+  <define-a-function>`.
+- In the ``functions`` directory of your application using the 
+  :ref:`App Services CLI <define-a-function>`.
+- From your client using the :admin-api-endpoint:`Admin API 
+  <operation/adminCreateFunction>`.
+
+Endpoint functions always receive two arguments:
+
+- A :ref:`Request <endpoint-request-object>` object that lets you access
+  incoming request headers, query parameters, and body data.
+- A :ref:`Response <endpoint-response-object>` object that you use to
+  configure the HTTPS response sent back to the caller.
+
+For a sample function and an example request and response, see 
+:ref:`endpoint-function-example`.
+
+.. _endpoint-request-object:
+
+Access Request Data
+~~~~~~~~~~~~~~~~~~~
+
+A custom endpoint ``Request`` object represents the HTTP request that
+called the endpoint. You can access the incoming request's headers,
+query parameters, and body data.
+
+.. code-block:: json
+   :caption: Endpoint Request Object
+   
+   {
+     "headers": { "<Header>": ["<Header Value>"] },
+     "query": { "<Query Parameter>": "<Parameter Value>" },
+     "body": <BSON.Binary>
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Field
+     - Description
+   
+   * - ``query``
+     - An object where each field maps a URL query parameter to its
+       value. If a key is used multiple times in the query string, only
+       the first occurence is represented in this object. To work with
+       the full query string, use :ref:`context.request.rawQueryString
+       <context-request>`.
+       
+       .. example::
+          
+          The following ``query`` object represents the query string
+          ``?regions=na,eu&currency=USD``:
+
+          .. code-block:: json
+             
+             {
+               "regions": "na&eu",
+               "currency": "USD"
+             }
+   
+   * - ``headers``
+     - An object where each field maps a request header name to an array
+       of one or more values.
+       
+       .. example::
+          
+          .. code-block:: json
+             
+             {
+               "Content-Type": ["application/json"],
+               "Accept": ["application/json"],
+               "X-CustomHeader": ["some-value", "some-other-value"]
+             }
+   
+   * - ``body``
+     - A :ref:`BSON.Binary <bson-binary>` object that contains the
+       request body. If the request did not include a body, this value
+       is ``undefined``.
+
+       To access data in the request body, you need to serialize the
+       binary:
+
+       .. code-block:: javascript
+
+          // Convert the request body to a JSON string
+          const serialized = request.body.text();
+          // Parse the string into a usable object
+          const body = JSON.parse(serialized);
+
+.. _endpoint-response-object:
+
+Return an HTTPS Response
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+A custom endpoint ``Response`` object lets you configure the HTTPS
+response sent back to the caller. You can set the status code, customize
+headers, and include data in the response body.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Method
+     - Description
+
+   * - | ``setStatusCode(code)``
+       | - ``code: number``
+     - Set the HTTP response :mdn:`status code <Web/HTTP/Status>`.
+
+       .. example::
+
+          .. code-block:: javascript
+
+             response.setStatusCode(201);
+
+   * - | ``setBody(body)``
+       | - ``body: string | BSON.Binary``
+     - Set the HTTP response :mdn:`body <Web/HTTP/Messages#Body_2>`.
+
+       If ``body`` is a string, the endpoint automatically encodes it as
+       a ``BSON.Binary``.
+
+       .. example::
+
+          .. code-block:: javascript
+
+             response.setBody(
+               "{'message': 'Hello, World!'}"
+             );
+
+   * - | ``setHeader(name, value)``
+       | - ``name: string``
+       | - ``value: string``
+     - Set the HTTP response :mdn:`header <Web/HTTP/Headers>` specified
+       by ``name`` to the value passed in the ``value`` argument. This
+       overrides any other values that may have already been assigned to
+       that header.
+
+       .. example::
+
+          .. code-block:: javascript
+
+             response.setHeader(
+               "Content-Type",
+               "application/json"
+             );
+
+   * - | ``addHeader(name, value)``
+       | - ``name: string``
+       | - ``value: string``
+     - Set the HTTP response :mdn:`header <Web/HTTP/Headers>` specified
+       by ``name`` to the value passed in the ``value`` argument. Unlike
+       ``setHeader``, this does not override other values that have
+       already been assigned to the header.
+
+       .. example::
+
+          .. code-block:: javascript
+
+             response.addHeader(
+               "Cache-Control",
+               "max-age=600"
+             );
+
+             response.addHeader(
+               "Cache-Control",
+               "min-fresh=60"
+             )
+
+.. _endpoint-function-example:
+
+Example
+~~~~~~~
+
+Consider an endpoint function that parses the body of an incoming ``POST``
+request, stores the parsed body in a MongoDB collection, and then
+responds to the caller:
+
+.. literalinclude:: /data-api/snippets/backend/custom.snippet.custom-endpoint-function.js
+   :language: javascript
+
+The function receives the following ``POST`` request:
+
+.. io-code-block::
+
+   .. input:: /data-api/snippets/custom-endpoints.snippet.custom-function-example.sh
+      :language: bash
+   
+   .. output::
+      :language: json
+      
+      {
+        "message": "Successfully saved the request body",
+        "insertedId": "639a521bbdec9b85ba94014b"
+      }
+
+After the function verifies that the body of the incoming request 
+is defined, it stores the parsed body as a new document in a collection 
+named ``myCollection``. The resulting output displays the configured 
+response, which includes a custom message and the ``insertedId``.
+
+Call a Custom Endpoint
+----------------------
+
+You can call a custom endpoint from any standard HTTPS client.
+
+.. literalinclude:: /data-api/snippets/custom-endpoints.snippet.hello.sh
+   :language: bash
+
+HTTP/1.1 or greater is required when making requests.
+
+.. _endpoint-return-types:
+
+Choose a Response Data Format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A request can include an ``Accept`` header to request a specific data
+format for the response body, either JSON or EJSON. If a request does
+not include a valid ``Accept`` header, the response uses the default
+data format specified in the endpoint configuration.
+
+.. tabs::
+   
+   .. tab:: EJSON
+      :tabid: ejson
+      
+      .. io-code-block::
+         
+         .. input:: /data-api/snippets/custom-endpoints.snippet.hello-latest-ejson.sh
+            :language: bash
+            :emphasize-lines: 3
+         
+         .. output::
+            :language: json
+            
+            {
+              "greeting": "Hello, Leafie!",
+              "date": { "$date": { "$numberLong": "1654589430998" } }
+            }
+   
+   .. tab:: JSON
+      :tabid: json
+      
+      .. io-code-block::
+         
+         .. input:: /data-api/snippets/custom-endpoints.snippet.hello-latest-json.sh
+            :language: bash
+            :emphasize-lines: 3
+         
+         .. output::
+            :language: json
+            
+            {
+              "greeting": "Hello, Leafie!",
+              "date": "2022-06-07T08:10:30.998Z"
+            }
+
+.. _endpoint-authenticate:
+
+Authenticate the Request
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If an endpoint is configured to use Application Authentication then you
+must include a valid user access token or login credentials with every
+request.
+
+.. include:: /includes/bearer-auth-performance.rst
+
+To use an access token, first authenticate the user through an App
+Services authentication provider. Then, get the access token returned
+from App Services and include it in the request's Authorization header
+using a Bearer token scheme. For more information on how to acquire and
+use an access token, see :ref:`Bearer Token Authentication
+<data-api-bearer-authentication>`.
+
+.. code-block:: shell
+   :emphasize-lines: 2
+
+   curl -X GET \
+      -H 'Authorization: Bearer <AccessToken>' \
+      -H 'Content-Type: application/json' \
+      https://data.mongodb-api.com/app/myapp-abcde/endpoint/hello
+
+Alternatively, you can include valid login credentials for the user in
+the request headers.
+
+.. tabs-realm-auth-providers::
+   
+   .. tab::
+      :tabid: api-key
+
+      .. literalinclude:: /data-api/snippets/custom-endpoints.snippet.auth-apiKey.sh
+         :language: bash
+         :emphasize-lines: 4
+   
+   .. tab::
+      :tabid: local-userpass
+
+      .. literalinclude:: /data-api/snippets/custom-endpoints.snippet.auth-emailPassword.sh
+         :language: bash
+         :emphasize-lines: 4, 5
+   
+   .. tab::
+      :tabid: custom-token
+      
+      .. literalinclude:: /data-api/snippets/custom-endpoints.snippet.auth-jwtTokenString.sh
+         :language: bash
+         :emphasize-lines: 4
+
+.. include:: /includes/dont-use-api-key-in-browsers.rst
+
+.. _endpoint-authorize:
+
+Authorize the Request
+~~~~~~~~~~~~~~~~~~~~~
+
+Depending on the :ref:`endpoint configuration
+<endpoint-authorization>`, your requests may need to include additional
+authorization information.
+
+.. tabs::
+     
+   .. tab:: No Additional Authorization
+      :tabid: no-authorization
+   
+      All authenticated users are authorized to call the endpoint.
+      Authenticated requests do not need to include authorization
+      information.
+      
+   .. tab:: Secret Parameter
+      :tabid: secret-parameter
+      
+      Authenticated users must prove that they are authorized to call
+      the endpoint by including the endpoint's secret string as the
+      value of the ``secret`` query parameter.
+      
+      .. example::
+         
+         The following ``curl`` request uses secret query parameter
+         validation with the secret string ``"Super5ecr3tPa55w0rd"``:
+      
+         .. literalinclude:: /data-api/snippets/custom-endpoints.snippet.validation-secret-query-param.sh
+            :language: bash
+            :emphasize-lines: 1
+   
+   .. tab:: Payload Signature
+      :tabid: payload-signature
+   
+      Authenticated users must prove that they are authorized to call
+      the endpoint by including an ``Endpoint-Signature`` header that
+      contains a hexadecimal-encoded :abbr:`HMAC (Hash-based Message
+      Authentication Code)` SHA-256 hash generated from the request body
+      and the endpoint's secret string.
+
+      .. code-block:: none
+         
+         Endpoint-Signature: sha256=<hex encoded hash>
+      
+      You could use the following function to generate the payload
+      signature:
+      
+      .. literalinclude:: /data-api/snippets/backend/signEndpointRequest.snippet.signEndpointRequest.js
+         :language: javascript
+
+      .. example::
+         
+         The following ``curl`` request includes a payload signature header
+         signed with the secret value ``Super5ecr3tPa55w0rd``:
+
+         .. literalinclude:: /data-api/snippets/custom-endpoints.snippet.validation-payload-signature.sh
+            :language: bash
+            :emphasize-lines: 5

@@ -1,0 +1,266 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _services:
+.. _third-party-services:
+
+=================================
+Third-Party Services [Deprecated]
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. toctree::
+   :titlesonly:
+   :caption: Third-Party Services
+   :hidden:
+
+   Replace Services with npm Modules </services/replace-with-npm-modules>
+   Convert Webhooks to HTTPS Endpoints </services/convert-webhooks-to-endpoints>
+   Call a Service Action </services/call-a-service-action>
+   Webhook Requests & Responses </services/webhook-requests-and-responses>
+
+.. toctree::
+   :titlesonly:
+   :caption: Configure Third-Party Services
+   :hidden:
+
+   Configure Third-Party Services </services/configure/services>
+   Configure Service Webhooks </services/configure/service-webhooks>
+   Configure Service Rules </services/configure/service-rules>
+
+.. toctree::
+   :titlesonly:
+   :caption: Built-In Services
+   :hidden:
+   
+   HTTP </services/http>
+   Twilio </services/twilio>
+   AWS </services/aws>
+   GitHub </services/github>
+
+.. toctree::
+   :titlesonly:
+   :caption: Examples
+   :hidden:
+   
+   AWS S3 Service Snippets </services/snippets/s3>
+   GitHub Service Snippets </services/snippets/github>
+
+.. include:: /includes/note-third-party-services-deprecation.rst
+
+Introduction
+------------
+
+Modern applications often use multiple external services to handle complex use 
+cases, such as messaging, analytics, and data management. You can connect to 
+these services through Atlas App Services by creating and configuring service 
+interfaces.
+
+Service interfaces specify the connection details for a specific
+external service and enable you to define the scope of that service's
+capabilities with custom :ref:`service rules <service-rules>`.
+Once you've configured an interface for a service, you can instantiate a
+:ref:`service client <service-clients>` that connects to the interface
+and exposes the service's :ref:`actions <service-actions>` as methods.
+You can also create :ref:`incoming webhooks <service-webhooks>` that
+enable external services to communicate directly with your App
+over HTTP.
+
+.. note:: Built-In Service Clients
+   
+   App Services includes clients for certain external services, such
+   as :doc:`Twilio </services/twilio>` and :doc:`AWS </services/aws>`.
+   You can also use the :doc:`HTTP service </services/http>` to create a
+   custom interface for any external service that offers a REST API.
+
+Concepts
+--------
+
+.. _service-clients:
+
+Service Clients [Deprecated]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A service client is an object that connects to a service interface and
+enables you to call :ref:`actions <service-actions>` associated with
+the service. You can instantiate service clients in :doc:`functions
+</functions>` (using :ref:`function context
+<context-services>`) as well as in your client
+application code.
+
+For details on instantiating and using service clients, see :doc:`Call a
+Service Action </services/call-a-service-action>`.
+
+.. _service-actions:
+
+Service Actions [Deprecated]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A service action is a method that handles a specific use
+case for a particular service, such as :doc:`sending a text
+message </services/twilio-actions/send>` with Twilio or
+:ref:`putting an object <aws-usage-s3>` to an AWS S3 bucket.
+Actions encapsulate implementation details like request
+authentication and HTTP methods behind semantic methods that
+are specific to each service.
+
+When you :doc:`call a service action </services/call-a-service-action>`,
+App Services evaluates each :ref:`service rule <service-rules>` that
+applies to the action and prevents execution unless one of the rules
+evaluates to ``true``.
+
+.. important::
+
+  **App Services blocks all service actions by default.** You must
+  :doc:`configure a service rule
+  </services/configure/service-rules>` that enables a
+  particular action before you can call it.
+
+.. _service-rules:
+
+Service Rules [Deprecated]
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A service rule is an :ref:`expression <expressions>` that App Services evaluates
+to determine whether or not a user can execute one or more :ref:`actions
+<service-actions>` in a service.
+
+For example, you could create a :doc:`Twilio </services/twilio>` rule
+that only lets users send a text message from a specific phone number or
+an :doc:`AWS </services/aws>` rule that prevents users from putting
+objects to an S3 bucket that is not included in a list of approved
+buckets.
+
+.. note:: Expression Variables
+   
+   :ref:`Expression variables <expressions>` are variables that you can include
+   in service rules to represent dynamic information about your application and
+   an action's execution. You can configure service rules based on the
+   authenticated user that called an action (:json-expansion:`%%user`) and the
+   arguments that they provided (:json-expansion:`%%args`). You can also create
+   complex rules that :ref:`call a Function <call-function-json-expression>`
+   (:json-operator:`%function`) and evaluate based on the Function's return
+   value.
+
+.. _service-webhooks:
+.. _incoming-webhooks:
+
+Incoming Webhooks [Deprecated]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An incoming webhook is a custom handler for events that originate from
+an external service, such as when someone opens a new pull request on
+:doc:`GitHub </services/github>` or sends a text message to a
+:doc:`Twilio </services/twilio>` phone number. Get started with incoming
+webhooks by :doc:`configuring a service webhook
+</services/configure/service-webhooks>`.
+
+Incoming webhooks consist of two primary components: the webhook URL and
+the webhook Function.
+
+.. _webhook-url:
+.. _webhook-function:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30
+
+   * - Component
+     - Description
+
+   * - :guilabel:`Webhook URL`
+     - A URL that uniquely identifies the incoming webhook. External
+       services can interact with the webhook by sending an HTTP request
+       that matches the webhook's configuration to the webhook URL.
+
+       To use a webhook, provide the webhook URL to an external
+       service's HTTP request handler, which may also be referred to as
+       an outgoing webhook, callback URL, or similar.
+
+       .. note::
+
+          If an incoming webhook requires a :ref:`secret query parameter
+          <webhook-secret-query-parameter>`, make sure that you append the
+          query parameter to webhook URL before you provide it to the
+          external service.
+
+   * - :guilabel:`Webhook Function`
+     - A webhook function is an :doc:`Atlas Function </functions>` that
+       accepts an incoming HTTP request with data from the external
+       service as its argument and optionally returns an HTTP response.
+
+Guides
+------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 50
+
+   * - Guide
+     - Description
+
+   * - :doc:`Configure Third-Party Services </services/configure/services>`
+     - Learn how to create a new external service interface.
+
+   * - :doc:`Configure Service Webhooks </services/configure/service-webhooks>`
+     - Learn how to configure and execute an incoming webhook to handle
+       events in external services.
+
+   * - :doc:`Configure Service Rules </services/configure/service-rules>`
+     - Learn how to safely expose a service action for use in a function
+       or client application.
+
+   * - :doc:`Call a Service Action </services/call-a-service-action>`
+     - Learn how to call a service action from a function or client
+       application.
+
+Built-In Services
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 50
+
+   * - Subject
+     - Description
+
+   * - :doc:`Twilio Service </services/twilio>`
+     - Includes service configuration parameters, directions for adding
+       a webhook to Twilio, and additional information about Twilio
+       service actions.
+
+   * - :doc:`HTTP Service </services/http>`
+     - Includes additional information about HTTP service actions and
+       webhooks.
+
+   * - :doc:`AWS Service </services/aws>`
+     - Includes service configuration parameters, additional information
+       about specifc AWS service actions, and generic directions for
+       connecting to any AWS service.
+
+   * - :doc:`GitHub Service </services/github>`
+     - Includes service configuration parameters, directions for
+       adding a webhook to GitHub, and guidance on validating incoming
+       requests from GitHub.
+
+Reference Documentation
+-----------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 50
+
+   * - Subject
+     - Description
+
+   * - :doc:`Webhook Requests & Responses </services/webhook-requests-and-responses>`
+     - Describes how to verify incoming requests,
+       parse a request payload, and send a response in service webhook
+       functions.

@@ -1,0 +1,938 @@
+.. _database-trigger:
+
+=================
+Database Triggers
+=================
+
+.. meta:: 
+  :description: Use Database Triggers to execute server-side logic when database changes occur
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Database Triggers allow you to execute server-side logic whenever a database 
+change occurs on a linked MongoDB Atlas cluster. You can configure triggers on 
+individual collections, entire databases, and on an entire cluster.
+
+Unlike SQL data triggers, which run on the database server, triggers run
+on a serverless compute layer that scales independently of the database
+server. Triggers automatically call :ref:`Atlas Functions <functions>`
+and can forward events to external handlers through AWS EventBridge.
+
+Use database triggers to implement event-driven data interactions. For
+example, you can automatically update information in one document when a
+related document changes or send a request to an external service
+whenever a new document is inserted.
+
+Database triggers use MongoDB :manual:`change streams </changeStreams>`
+to watch for real-time changes in a collection. A change stream is a
+series of :ref:`database events <database-events>` that each
+describe an operation on a document in the collection. Your app opens a
+new change stream for each database trigger created in a collection. 
+
+.. important:: Change Stream Limitations
+   
+   There are limits on the total number of change streams you can open
+   on a cluster, depending on the cluster's size. Refer to :ref:`change
+   stream limitations <mongodb-service-limitations-change-streams>` for
+   more information.
+
+   You cannot define a database trigger on a :ref:`serverless instance
+   <serverless-caveats>` or :ref:`{+adf-instance+}
+   <data-federation-caveats>` because they do not support change streams.
+
+You control which operations cause a trigger to fire as well as what
+happens when it does. For example, you can run a function whenever a
+specific field of a document is updated. The function can access the
+entire change event, so you always know what changed. You can also pass
+the change event to :ref:`AWS EventBridge <aws-eventbridge>` to handle
+the event outside of Atlas.
+
+Triggers support :manual:`$match </reference/operator/aggregation/match>` 
+expressions to filter change events and :manual:`$project </reference/operator/aggregation/project>` 
+expressions to limit the data included in each event.
+
+.. _trigger-recursion:
+
+.. warning::
+
+   In deployment and database level triggers, it is possible to configure triggers 
+   in a way that causes other triggers to fire, resulting in recursion. 
+   Examples include a database-level trigger writing to a collection within the 
+   same database, or a cluster-level logger or log forwarder writing logs to 
+   another database in the same cluster.
+   
+.. _create-a-database-trigger:
+
+Create a Database Trigger
+-------------------------
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+      
+      To open the database trigger configuration screen in the App Services UI, click
+      :guilabel:`Triggers` in the left navigation menu, click
+      :guilabel:`Create a Trigger`, and then select the :guilabel:`Database` tab next 
+      to :guilabel:`Trigger Type`.
+         
+      Configure the trigger and then click :guilabel:`Save` at the bottom of
+      the page to add it to your current deployment draft.
+
+      .. figure:: /images/db-trigger-example-config.png
+         :alt: Example UI that configures the trigger
+   
+   .. tab::
+      :tabid: cli
+      
+      To create a database trigger with the {+cli-ref+}:
+      
+      1. Add a database trigger :ref:`configuration file
+         <config-database-trigger>` to the ``triggers`` subdirectory of a
+         local application directory.
+      
+      2. :ref:`Deploy <deploy-cli>` the trigger:
+      
+         .. code-block:: shell
+      
+            {+cli-bin+} push
+      
+      .. note::
+      
+         Atlas App Services does not enforce specific filenames for Trigger
+         configuration files. However, once imported, Atlas App Services will rename
+         each configuration file to match the name of the Trigger it defines,
+         e.g. ``mytrigger.json``.
+
+.. _database-triggers-configuration:
+
+Configuration
+-------------
+
+Database triggers have the following configuration options:
+
+Trigger Details
+~~~~~~~~~~~~~~~
+
+Within the :guilabel:`Trigger Details` section, you first select the 
+:guilabel:`Trigger Type`. Set this value to :guilabel:`Database` for database triggers.
+
+Next, you select the :guilabel:`Watch Against`, based on the level of granularity you 
+want. Your options are:
+
+- :guilabel:`Collection`, when a change occurs on a specified collection
+- :guilabel:`Database`, when a change occurs on any collection in a 
+  specified database
+- :guilabel:`Deployment`, when deployment changes occur on a specified 
+  cluster. If you select the Deployment source type, the following 
+  databases are **not watched** for changes:
+
+  - The admin databases ``admin``, ``local``, and ``config``
+  - The sync databases ``__realm_sync`` and ``__realm_sync_<app_id>``
+
+  .. important::
+
+     The deployment-level source type is only available on dedicated tiers.
+
+Depending on which source type you are using, the additional options differ. The 
+following table describes these options.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 30
+
+   * - Source Type
+     - Options
+
+   * - :guilabel:`Collection`
+     - | 
+
+       - :guilabel:`Cluster Name`. The name of the MongoDB cluster that the 
+         Trigger is associated with.
+      
+       - :guilabel:`Database Name`. The MongoDB database that contains the watched
+         collection.
+
+       - :guilabel:`Collection Name`. The MongoDB collection to watch. Optional.
+         If you leave this option blank, the Source Type changes to "Database."
+
+       - :guilabel:`Operation Type`. The :ref:`operation types 
+         <database-event-operation-types>` that cause the Trigger to fire. 
+         Select the operation types you want the trigger to respond to. Options 
+         include:
+       
+         - Insert
+         - Update 
+         - Replace
+         - Delete
+
+         .. note::
+       
+           Update operations executed from MongoDB Compass or the MongoDB Atlas
+           Data Explorer fully replace the previous document. As a result,
+           update operations from these clients will generate **Replace**
+           change events rather than **Update** events.
+       
+       - :guilabel:`Full Document`. If enabled, **Update** change events include 
+         the latest :manual:`majority-committed </reference/read-concern-majority/>`
+         version of the modified document *after* the change was applied in
+         the ``fullDocument`` field.
+       
+         .. note::
+       
+            Regardless of this setting, **Insert** and **Replace** events always 
+            include the ``fullDocument`` field. **Delete** events never include 
+            the ``fullDocument`` field.
+       
+       - :guilabel:`Document Preimage`. When enabled, change events include a 
+         copy of the modified document from immediately *before* the change was 
+         applied in the ``fullDocumentBeforeChange`` field. This has 
+         :ref:`performance considerations <pre-image-perf>`. All change events 
+         except for **Insert** events include the document preimage. 
+
+   * - :guilabel:`Database`
+     - | 
+
+       - :guilabel:`Cluster Name`. The name of the MongoDB cluster that the 
+         Trigger is associated with.
+       
+       - :guilabel:`Database Name`. The MongoDB database to watch. Optional. 
+         If you leave this option blank, the Source Type changes to "Deployment," 
+         unless you are on a shared tier, in which case App Services will not 
+         let you save the trigger.
+
+       - :guilabel:`Operation Type`. The :ref:`operation types 
+         <database-event-operation-types>` that cause the Trigger to fire. 
+         Select the operation types you want the  trigger to respond to. 
+         Options include:
+       
+         - Create Collection
+         - Modify Collection
+         - Rename Collection
+         - Drop Collection
+         - Shard Collection
+         - Reshard Collection
+         - Refine Collection Shard Key
+       
+         .. note::
+       
+           Update operations executed from MongoDB Compass or the MongoDB Atlas
+           Data Explorer fully replace the previous document. As a result,
+           update operations from these clients will generate **Replace**
+           change events rather than **Update** events.
+       
+       - :guilabel:`Full Document`. If enabled, **Update** change events include 
+         the latest :manual:`majority-committed </reference/read-concern-majority/>`
+         version of the modified document *after* the change was applied in
+         the ``fullDocument`` field.
+       
+         .. note::
+       
+            Regardless of this setting, **Insert** and **Replace** events always 
+            include the ``fullDocument`` field. **Delete** events never include 
+            the ``fullDocument`` field.
+       
+       - :guilabel:`Document Preimage`. When enabled, change events include a 
+         copy of the modified document from immediately *before* the change was 
+         applied in the ``fullDocumentBeforeChange`` field. This has 
+         :ref:`performance considerations <pre-image-perf>`. All change events 
+         except for **Insert** events include the document preimage. Disabled 
+         for Database and Deployment sources to limit unnecessary watches on the 
+         cluster for a new collection being created.
+
+   * - :guilabel:`Deployment`
+     - | 
+
+       - :guilabel:`Cluster Name`. The name of the MongoDB cluster that the 
+         Trigger is associated with.
+       
+       - :guilabel:`Operation Type`. The :ref:`operation types 
+         <database-event-operation-types>` that occur in the cluster that cause 
+         the Trigger to fire. Select the operation types you want the  trigger 
+         to respond to. Options include:
+
+         - Drop Database
+
+       - :guilabel:`Full Document`. If enabled, **Update** change events include 
+         the latest :manual:`majority-committed </reference/read-concern-majority/>`
+         version of the modified document *after* the change was applied in
+         the ``fullDocument`` field.
+       
+         .. note::
+       
+            Regardless of this setting, **Insert** and **Replace** events always 
+            include the ``fullDocument`` field. **Delete** events never include 
+            the ``fullDocument`` field.
+
+       - :guilabel:`Document Preimage`. When enabled, change events include a 
+         copy of the modified document from immediately *before* the change was 
+         applied in the ``fullDocumentBeforeChange`` field. This has 
+         :ref:`performance considerations <pre-image-perf>`. All change events 
+         except for **Insert** events include the document preimage. Disabled 
+         for Database and Deployment sources to limit unnecessary watches on the 
+         cluster for a new collection being created.
+
+.. _pre-image-perf:
+
+.. tip:: Preimages and Performance Optimization
+
+   Preimages require additional storage overhead that may affect
+   performance. If you're not using preimages on a collection,
+   you should disable preimages. To learn more, see :ref:`Disable
+   Collection-Level Preimages
+   <database-triggers-disable-collection-level-preimages>`.
+
+   Document preimages are supported on non-sharded Atlas clusters running 
+   MongoDB 4.4+, and on sharded Atlas clusters running MongoDB 5.3 and later.
+   You can upgrade a non-sharded cluster (with preimages) to a 
+   sharded cluster, as long as the cluster is running 5.3 or later.
+
+Trigger Configurations
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 30
+
+   * - Field
+     - Description
+
+   * - :guilabel:`Auto-Resume Triggers`
+
+     - .. include:: /includes/trigger-auto-resume.rst
+
+   * - :guilabel:`Event Ordering`
+     
+     - If enabled, trigger events are processed in the order in which they occur. 
+       If disabled, events can be processed in parallel, which is faster when 
+       many events occur at the same time.
+
+       .. include:: /includes/trigger-event-ordering.rst
+  
+   * - :guilabel:`Skip Events On Re-Enable`
+     
+     - Disabled by default. If enabled, any change events that occurred while this 
+       trigger was disabled will not be processed.
+
+Event Type
+~~~~~~~~
+
+Within the :guilabel:`Event Type` section, you choose what action is taken when 
+the trigger fires. You can choose to run a :ref:`function <functions>` or use 
+:ref:`AWS EventBridge <aws-eventbridge>`. 
+
+Advanced
+~~~~~~~~
+
+Within the :guilabel:`Advanced` section, the following **optional** configuration 
+options are available:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 30
+
+   * - Field
+     - Description
+
+   * - :guilabel:`Project Expression`
+
+     - .. _trigger-project-expression:
+
+       .. include:: /includes/trigger-project-expression.rst
+
+   * - :guilabel:`Match Expression`
+
+     - .. include:: /includes/trigger-match-expression.rst
+
+   * - :guilabel:`Maximum Throughput`
+
+     - .. _triggers-maximum-throughput:
+      
+       If the linked data source is a dedicated server (M10+ Tier),
+       you can increase the :ref:`maximum throughput <event_processing_throughput>`
+       beyond the default 10,000 concurrent processes.
+
+       .. important::
+
+          To enable maximum throughput, you must disable Event Ordering.
+
+       Before increasing the maximum throughput, consider whether one or more of 
+       your triggers are calling a rate-limited external API. Increasing the 
+       trigger rate might result in exceeding those limits. 
+       
+       Increasing the throughput may also add a larger workload, affecting 
+       overall cluster performance. 
+
+.. _database-events:
+
+Change Event Types
+------------------
+
+.. _database-event-operation-types:
+
+Database change events represent individual changes in a specific
+collection of your linked MongoDB Atlas cluster.
+
+Every database event has the same operation type and structure as the
+:manual:`change event </reference/change-events/>` object that was
+emitted by the underlying change stream. Change events have the
+following operation types:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 15
+
+   * - Operation Type
+     - Description
+
+   * - **Insert Document** (All trigger types)
+     - Represents a new document added to the collection.
+
+   * - **Update Document** (All trigger types)
+     - Represents a change to an existing document in the collection.
+
+   * - **Delete Document** (All trigger types)
+     - Represents a document deleted from the collection.
+
+   * - **Replace Document** (All trigger types)
+     - Represents a new document that replaced a document in the collection.
+
+   * - **Create Collection** (Database and Deployment trigger types only)
+     - Represents the creation of a new collection.
+   
+   * - **Modify Collection** (Database and Deployment trigger types only)
+     - Represents the modification collection.
+
+   * - **Rename Collection** (Database and Deployment trigger types only)
+     - Represents collection being renamed.
+
+   * - **Drop Collection** (Database and Deployment trigger types only)
+     - Represents a collection being dropped.
+
+   * - **Shard Collection** (Database and Deployment trigger types only)
+     - Represents a collection changing from unsharded to sharded.
+
+   * - **Reshard Collection** (Database and Deployment trigger types only)
+     - Represents a change to a collection's sharding.
+
+   * - **Refine Collection Shard Key** (Database and Deployment trigger types only)
+     - Represents a change in the shard key of a collection.
+   
+   * - **Create Indexes** (Database and Deployment trigger types only)
+     - Represents the creation of a new index.
+
+   * - **Drop Indexes** (Database and Deployment trigger types only)
+     - Represents an index being dropped.
+
+   * - **Drop Database** (Deployment trigger type only)
+     - Represents a database being dropped.
+
+Database change event objects have the following general form:
+
+.. code-block:: json
+
+   {
+      _id : <ObjectId>,
+      "operationType": <string>,
+      "fullDocument": <document>,
+      "fullDocumentBeforeChange": <document>,
+      "ns": {
+         "db" : <string>,
+         "coll" : <string>
+      },
+      "documentKey": {
+        "_id": <ObjectId>
+      },
+      "updateDescription": <document>,
+      "clusterTime": <Timestamp>
+   }
+
+Database Trigger Example
+------------------------
+
+An online store wants to notify its customers whenever one of their
+orders changes location. They record each order in the ``store.orders``
+collection as a document that resembles the following:
+
+.. code-block:: json
+
+   {
+     _id: ObjectId("59cf1860a95168b8f685e378"),
+     customerId: ObjectId("59cf17e1a95168b8f685e377"),
+     orderDate: ISODate("2018-06-26T16:20:42.313Z"),
+     shipDate: ISODate("2018-06-27T08:20:23.311Z"),
+     orderContents: [
+       { qty: 1, name: "Earl Grey Tea Bags - 100ct", price: NumberDecimal("10.99") }
+     ],
+     shippingLocation: [
+       { location: "Memphis", time: ISODate("2018-06-27T18:22:33.243Z") },
+     ]
+   }
+
+To automate this process, the store creates a Database Trigger that
+listens for **Update** change events in the ``store.orders`` collection.
+When the trigger observes an **Update** event, it passes the 
+:ref:`change event object <database-events>` to its associated Function,
+``textShippingUpdate``. The Function checks the change event for any
+changes to the ``shippingLocation`` field and, if it was updated, sends
+a text message to the customer with the new location of the order.
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      .. figure:: /images/db-trigger-example-config-update.png
+         :alt: Example UI that configures the trigger
+      
+   .. tab::
+      :tabid: cli
+      
+      .. code-block:: json
+         :caption: Trigger Configuration
+         
+         {
+           "type": "DATABASE",
+           "name": "shippingLocationUpdater",
+           "function_name": "textShippingUpdate",
+           "config": {
+             "service_name": "mongodb-atlas",
+             "database": "store",
+             "collection": "orders",
+             "operation_types": ["UPDATE"],
+             "unordered": false,
+             "full_document": true,
+             "match": {}
+           },
+           "disabled": false
+         }
+
+.. code-block:: javascript
+   :caption: textShippingUpdate
+
+   exports = async function (changeEvent) {
+     // Destructure out fields from the change stream event object
+     const { updateDescription, fullDocument } = changeEvent;
+
+     // Check if the shippingLocation field was updated
+     const updatedFields = Object.keys(updateDescription.updatedFields);
+     const isNewLocation = updatedFields.some(field =>
+       field.match(/shippingLocation/)
+     );
+
+     // If the location changed, text the customer the updated location.
+     if (isNewLocation) {
+       const { customerId, shippingLocation } = fullDocument;
+       const mongodb = context.services.get("mongodb-atlas");
+       const customers = mongodb.db("store").collection("customers");
+       const { location } = shippingLocation.pop();
+       const customer = await customers.findOne({ _id: customerId });
+
+       const twilio = require('twilio')(
+         // Your Account SID and Auth Token from the Twilio console:
+         context.values.get("TwilioAccountSID"),
+         context.values.get("TwilioAuthToken"),
+       );
+
+       await twilio.messages.create({
+         To: customer.phoneNumber,
+         From: context.values.get("ourPhoneNumber"),
+         Body: `Your order has moved! The new location is ${location}.`
+       })
+     }
+   };
+
+.. _suspended_triggers:
+.. _resume-a-suspended-trigger:
+
+Suspended Triggers
+------------------
+
+Database Triggers may enter a suspended state in response to an event
+that prevents the Trigger's change stream from continuing. Events that
+can suspend a Trigger include:
+
+- :manual:`invalidate events </reference/change-events/#invalidate-event>`
+  such as ``dropDatabase``, ``renameCollection``, or those caused by
+  a network disruption.
+
+- the **resume token** required to resume the change stream is no longer in the
+  cluster :manual:`oplog </core/replica-set-oplog/>`. The App logs
+  refer to this as a ``ChangeStreamHistoryLost`` error.
+
+In the event of a suspended or failed trigger, Atlas App Services sends the
+project owner an email alerting them of the issue.
+
+.. _automatically-resume-a-suspended-trigger:
+
+Automatically Resume a Suspended Trigger
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure a Trigger to automatically resume if the Trigger was suspended
+because the resume token is no longer in the oplog.
+The Trigger does not process any missed change stream events between
+when the resume token is lost and when the resume process completes.
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      When :ref:`creating or updating a Database Trigger <create-a-database-trigger>`
+      in the App Services UI, navigate to the configuration page of the Trigger
+      you want to automatically resume if suspended.
+
+      In the :guilabel:`Advanced (Optional)` section, select :guilabel:`Auto-Resume Triggers`.
+
+      Save and deploy the changes.
+
+   .. tab::
+      :tabid: cli
+
+      When :ref:`creating or updating a Database Trigger <create-a-database-trigger>`
+      with the Realm CLI, create or navigate to the configuration file for the Trigger
+      you want to automatically resume if suspended.
+
+      In the :ref:`Trigger's configuration file <appconfig-triggers>`,
+      include the following:
+
+      .. code-block:: js
+        :caption: triggers/<trigger name>.json
+        :emphasize-lines: 5
+
+        {
+          "name": "<Trigger Name>",
+          "type": "DATABASE",
+          "config": {
+            "tolerate_resume_errors": true,
+            // ...rest of Database Trigger configuration
+          },
+          // ...rest of Trigger general configuration
+        }
+
+      Deploy the changes with the following command:
+
+      .. code-block:: shell
+
+          {+cli-bin+} push --remote=<App ID>
+
+.. _manually-resume-a-suspended-trigger:
+
+Manually Resume a Suspended Trigger
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you manually resume a suspended Trigger, your App attempts to resume the Trigger
+at the next change stream event after the change stream stopped.
+If the resume token is no longer in the cluster oplog, the Trigger
+must be started without a resume token. This means the Trigger begins
+listening to new events but does not process any missed past events.
+
+You can adjust the oplog size to keep the resume token for more time after
+a suspension by :atlas:`scaling your Atlas cluster </scale-cluster/>`.
+Maintain an oplog size a few times greater than
+your cluster's peak oplog throughput (GB/hour) to reduce the risk of a
+suspended trigger's resume token dropping off the oplog
+before the trigger executes.
+View your cluster's oplog throughput in the **Oplog GB/Hour** graph in the
+:atlas:`Atlas cluster metrics </monitor-cluster-metrics/>`.
+
+You can attempt to restart a suspended Trigger from the App Services UI or by
+importing an application directory with the {+cli-ref+}.
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      .. procedure::
+
+         .. step:: Find the Suspended Trigger
+
+            On the :guilabel:`Database Triggers` tab of the :guilabel:`Triggers`
+            page, find the trigger that you want to resume in the list of
+            triggers. App Services marks suspended triggers
+            with a :guilabel:`Status` of :guilabel:`Suspended`.
+
+            .. figure:: /images/suspended-db-trigger.png
+               :alt: A database trigger that is marked Suspended in the UI
+
+
+         .. step:: Restart the Trigger
+
+            Click :guilabel:`Restart` in the trigger's :guilabel:`Actions` column.
+            You can choose to restart the trigger with a change stream
+            :manual:`resume token </changeStreams/#resume-a-change-stream>` or
+            open a new change stream. Indicate whether or not to use a resume
+            token and then click :guilabel:`Resume Database Trigger`.
+
+            .. note:: Resume Tokens
+
+               If you use a :manual:`resume token
+               </changeStreams/#resume-a-change-stream>`, App Services
+               attempts to resume the trigger's underlying change
+               stream at the event immediately following the last
+               change event it processed. If successful, the trigger
+               processes any events that occurred while it was
+               suspended. If you do not use a resume token, the
+               trigger begins listening for new events but will not
+               fire for any events that occurred while it was
+               suspended.
+
+            .. figure:: /images/resume-database-trigger-modal.png
+               :alt: The resume database trigger modal in the UI
+
+   .. tab::
+      :tabid: cli
+      
+      .. procedure::
+
+         .. step:: Pull Your App's Latest Configuration Files
+
+            .. code-block:: shell
+
+               {+cli-bin+} pull --remote=<App ID>
+
+
+         .. step:: Verify that the Trigger Configuration File Exists
+
+            If you exported a new copy of your application, it should already
+            include an up-to-date configuration file for the suspended trigger.
+            You can confirm that the configuration file exists by looking
+            in the ``/triggers`` directory for a :ref:`trigger configuration file
+            <config-database-trigger>` with the same name as the trigger.
+
+
+         .. step:: Redeploy the Trigger
+
+            After you have verified that the trigger configuration file exists,
+            push the configuration back to your app. App Services
+            automatically attempts to resume any suspended triggers included
+            in the deployment.
+
+            .. code-block:: shell
+
+               {+cli-bin+} push
+
+.. _last-cluster-time-processed:
+
+Trigger Time Reporting
+----------------------
+
+The list of Triggers in the Atlas App Services UI shows three timestamps:
+
+**Last Modified**
+
+This is the time the Trigger was created or most recently changed.
+
+**Latest Heartbeat**
+
+Atlas App Services keeps track of the last time a trigger was run. If the trigger 
+is not sending any events, the server sends a heartbeat to ensure the trigger's 
+resume token stays fresh. Whichever event is most recent is shown as the 
+:guilabel:`Latest Heartbeat`.
+
+**Last Cluster Time Processed**
+
+Atlas App Services also keeps track of the :guilabel:`Last Cluster Time Processed`, 
+which is the last time the change stream backing a Trigger emitted an event. It 
+will be older than the :guilabel:`Latest Heartbeat` if there have been no events 
+since the most recent heartbeat.
+
+
+Performance Optimization
+------------------------
+
+.. _database-triggers-disable-event-ordering:
+
+Disable Event Ordering for Burst Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider disabling event ordering if your trigger fires on a collection that
+receives short bursts of events (e.g. inserting data as part of a daily batch
+job).
+
+Ordered Triggers wait to execute a Function for a particular event until
+the Functions of previous events have finished executing. As a
+consequence, ordered Triggers are effectively rate-limited by the run
+time of each sequential Trigger function. This may cause a significant
+delay between the database event appearing on the change stream and the
+Trigger firing. In certain extreme cases, database events might fall off
+the oplog before a long-running ordered trigger processes them.
+
+Unordered Triggers execute functions in parallel if possible, which can be
+significantly faster (depending on your use case) but does not guarantee that
+multiple executions of a Trigger Function occur in event order.
+
+.. _database-triggers-disable-collection-level-preimages:
+
+Disable Collection-Level Preimages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Document preimages require your cluster to record additional data about
+each operation on a collection. Once you enable preimages for any
+trigger on a collection, your cluster stores preimages for every
+operation on the collection.
+
+The additional storage space and compute overhead may degrade trigger
+performance depending on your cluster configuration.
+
+To avoid the storage and compute overhead of preimages, you must disable
+preimages for the entire underlying MongoDB collection. This is a
+separate setting from any individual trigger's preimage setting.
+
+If you disable collection-level preimages, then no active trigger on
+that collection can use preimages. However, if you delete or disable all
+preimage triggers on a collection, then you can also disable
+collection-level preimages.
+
+To learn how, see :ref:`Disable Preimages for a Collection
+<disable-collection-preimages>`.
+
+.. _database-triggers-match-expression:
+
+Use Match Expressions to Limit Trigger Invocations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can limit the number of Trigger invocations by specifying a :manual:`$match
+</reference/operator/aggregation/match>` expression in the :guilabel:`Match
+Expression` field. App Services evaluates the match expression against the
+change event document and invokes the Trigger only if the expression evaluates
+to true for the given change event.
+
+The match expression is a JSON document that specifies the query conditions
+using the :manual:`MongoDB read query syntax </reference/operator/query/>`.
+
+We recommend only using match expressions when the volume of Trigger events
+measurably becomes a performance issue. Until then, receive all events and
+handle them individually in the Trigger function code.
+
+The exact shape of the change event document depends on the event that caused
+the trigger to fire. For details, see the reference for each event type:
+
+- :manual:`insert </reference/change-events/insert>`
+- :manual:`update </reference/change-events/update>`
+- :manual:`replace </reference/change-events/replace>`
+- :manual:`delete </reference/change-events/delete>`
+- :manual:`create </reference/change-events/create>`
+- :manual:`modify </reference/change-events/modify>`
+- :manual:`rename </reference/change-events/rename>`
+- :manual:`drop </reference/change-events/drop>`
+- :manual:`shardCollection </reference/change-events/shardCollection>`
+- :manual:`reshardCollection </reference/change-events/reshardCollection>`
+- :manual:`refineCollectionShardKey </reference/change-events/refineCollectionShardKey>`
+- :manual:`dropDatabase </reference/change-events/dropDatabase>`
+
+.. example::
+   
+   The following match expression allows the Trigger to fire
+   only if the change event object specifies that the ``status`` field in 
+   a document changed.
+   
+   ``updateDescription`` is a field of the :manual:`update Event object </reference/change-events/update>`.
+   
+   .. code-block:: javascript
+   
+      {
+        "updateDescription.updatedFields.status": {
+          "$exists": true
+        }
+      }
+
+   The following match expression allows the Trigger to fire only when a
+   document's ``needsTriggerResponse`` field is ``true``. The ``fullDocument``
+   field of the :manual:`insert </reference/change-events/insert>`,
+   :manual:`update </reference/change-events/update>`, and :manual:`replace
+   </reference/change-events/replace>` events represents a document after the
+   given operation. To receive the ``fullDocument`` field, you must enable
+   :guilabel:`Full Document` in your Trigger configuration.
+
+   .. code-block:: javascript
+     
+      {
+        "fullDocument.needsTriggerResponse": true
+      }
+
+
+Testing Match Expressions
+`````````````````````````
+
+The following procedure shows one way to test whether your match expression
+works as expected:
+
+1. Download `the MongoDB Shell (mongosh)
+   <https://www.mongodb.com/docs/mongodb-shell/>`__ and use it to
+   :atlas:`connect to your cluster </mongo-shell-connection/>`.
+#. Replacing ``DB_NAME`` with your database name, ``COLLECTION_NAME`` with your
+   collection name, and ``YOUR_MATCH_EXPRESSION`` with the match expression you
+   want to test, paste the following into mongosh to open a change stream on an
+   existing collection:
+
+   .. code-block:: js
+ 
+      db.getSiblingDB(DB_NAME).COLLECTION_NAME.watch([{$match: YOUR_MATCH_EXPRESSION}])
+      while (!watchCursor.isClosed()) {
+        if (watchCursor.hasNext()) {
+          print(tojson(watchCursor.next()));
+        }
+      }
+
+#. In another terminal window, use mongosh to make changes to some test
+   documents in the collection.
+#. Observe what the change stream filters in and out.
+
+.. _database-triggers-project-expression:
+
+Use Project Expressions to Reduce Input Data Size
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the :guilabel:`Project Expression` field, 
+limit the number of fields that the Trigger processes by using a 
+:manual:`$project </reference/operator/aggregation/project>` expression. 
+
+.. note:: Project is inclusive only
+
+  When using Triggers, a projection expression is inclusive *only*. 
+  Project does not support mixing inclusions and exclusions.
+  The project expression must be inclusive because Triggers require you 
+  to include ``operationType``. 
+  
+  If you want to exclude a single field, the projection expression must 
+  include every field *except* the one you want to exclude.
+  You can only explicitly exclude ``_id``, which is included by default.
+
+.. example::
+   
+   A trigger is configured with the following :guilabel:`Project Expression`:
+   
+   .. code-block:: json
+   
+      {
+        "_id": 0,
+        "operationType": 1,
+        "updateDescription.updatedFields.status": 1
+      }
+   
+   The change event object that App Services passes to the trigger function
+   only includes the fields specifed in the projection, as in the following
+   example:
+   
+   .. code-block:: json
+      
+      {
+        "operationType": "update",
+        "updateDescription": {
+          "updatedFields": {
+            "status": "InProgress"
+          }
+        }
+      }
+
+.. include:: /includes/triggers-examples-github.rst

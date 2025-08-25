@@ -1,0 +1,1215 @@
+.. meta::
+   :robots: nosnippet
+
+.. _graphql-types-and-resolvers:
+
+=======================================
+GraphQL Types, Resolvers, and Operators
+=======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Atlas App Services automatically generates a GraphQL schema for any collection that has a
+defined :ref:`schema <schemas>`. For each collection, App Services generates the
+following:
+
+- A :ref:`document type <graphql-document-types>` that represents a single
+  document in the collection
+
+- A set of :ref:`queries <graphql-query-resolvers>` and :ref:`mutations
+  <graphql-mutation-resolvers>` that allow you to access and manipulate
+  documents in the collection.
+
+- A set of :ref:`input types <graphql-input-types>` that allow you to filter
+  queries, modify specific fields, and sort results.
+
+.. note:: Example Collection Schema
+
+   This page includes examples that demonstrate generated values based
+   on the following schema for a ``movies`` collection:
+
+   .. code-block:: json
+      
+      {
+        "title": "Movie",
+        "required": ["title"],
+        "properties": {
+          "_id": { "bsonType": "objectId" },
+          "title": { "bsonType": "string" },
+          "year": { "bsonType": "int" },
+          "rated": { "bsonType": "string" },
+          "runtime": { "bsonType": "int" },
+          "director": { "bsonType": "string" },
+          "reviews": {
+            "bsonType": "array",
+            "items": { "bsonType": "objectId" }
+          },
+          "cast": {
+            "bsonType": "array",
+            "items": { "bsonType": "string" }
+          }
+        }
+      }
+
+.. _graphql-scalar-types:
+
+Scalar Types
+------------
+
+App Services supports all of the standard :graphql:`GraphQL scalar types
+<learn/schema/#scalar-types>` and also generates the ``ObjectId`` scalar.
+
+The following scalar types are supported:
+
+- ``ObjectId``: An :manual:`ObjectId </reference/method/ObjectId>` value serialized as a string
+- ``Boolean``: ``true`` or ``false``
+- ``String``: A UTF‐8 character sequence
+- ``Int``: A signed 32‐bit integer
+- ``Long``: A signed 64‐bit integer
+- ``Float``: A signed double-precision floating-point value
+- ``DateTime``: An :rfc:`RFC 3339 <3339>` UTC DateTime (e.g. "2020-09-01T15:38:14.918Z")
+
+.. _graphql-document-types:
+
+Document Types
+--------------
+
+App Services generates a single :graphql:`GraphQL type <learn/schema/>` for the
+documents in a collection based on the collection schema. The type uses the name
+set in the ``title`` field of the schema or the collection name if no ``title``
+is specified.
+
+.. code-block:: graphql
+   
+   type Movie {
+     _id: ObjectId
+     title: String!
+     year: Int
+     rated: String
+     runtime: Int
+     director: String
+     cast: [String]
+   }
+
+.. _graphql-field-mapping:
+
+Field Mapping
+~~~~~~~~~~~~~
+
+App Services attempts to map fields in your collection schema directly to
+fields in your GraphQL types. The `definition of valid names
+<https://spec.graphql.org/June2018/#sec-Names>`__ described in the GraphQL spec
+does not support all possible valid document field names, so App Services
+applies the following transformation rules to determine field names in generated
+GraphQL types:
+
+- strip unsupported characters
+- strip leading numbers
+- convert to camel case
+- omit fields that begin with a double underscore (e.g. ``__myField``)
+
+.. _graphql-bson-type-mapping:
+
+BSON Type Mapping
+~~~~~~~~~~~~~~~~~
+
+The GraphQL type system is similar but not identical to the BSON types that you
+can use in a :ref:`schema <schemas>`. App Services automatically attempts to map
+between the BSON types in your schema and supported GraphQL types. If a field
+type does not have a GraphQL equivalent, App Services does not include the field in the
+generated GraphQL document type.
+
+The following table lists BSON types that you can use in a schema and the
+GraphQL types that they map to:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - JSON/BSON Type
+     - GraphQL Type
+   
+   * - ``objectId``
+     - ``ObjectId``
+   
+   * - ``int``
+     - ``Int``
+   
+   * - ``long``
+     - ``Int``
+   
+   * - ``double``
+     - ``Float``
+   
+   * - ``decimal``
+     - ``Float``
+   
+   * - ``date``
+     - ``DateTime``
+   
+   * - ``timestamp``
+     - ``DateTime``
+
+.. note:: 
+   
+   JSON supports two types that represent "no value": ``undefined`` and
+   ``null``. The GraphQL spec supports ``null`` but not ``undefined``,
+   so your app converts ``undefined`` values in the following way:
+   
+   - If a document field is explicitly set to ``undefined`` then the
+     corresponding GraphQL type is an empty object, i.e. ``{}``.
+   
+   - If the field name is not defined for the document at all, or if the
+     value is explicitly set to ``null``, then the corresponding GraphQL
+     type is ``null``.
+
+.. _graphql-input-types:
+
+Input Types
+-----------
+
+GraphQL uses :graphql:`input types <learn/schema/#input-types>` to represent
+parameters that you pass to queries and mutations. This is a standard approach
+used by all GraphQL APIs to define unambiguous, type-safe user inputs.
+
+.. _input-type-query:
+
+QueryInput
+~~~~~~~~~~
+
+A ``QueryInput`` object defines a set of one or more conditions that a document
+must meet in order to be included in a query. The object may include fields from
+the document type as well as any of the *operator fields* that App Services
+automatically generates based on each field's type.
+
+- **Document Fields:** If a ``QueryInput`` field has the same name as a field in
+  the document type, then App Services matches a document if the value specified in
+  the input field and the value of the field in the document are the same.
+
+  .. example::
+     
+     The following query includes a ``QueryInput`` with two fields, ``rated``
+     and ``year``. Both of these field names are defined in the ``Movie`` document
+     type, so App Services performs an equality match for both.
+     
+     The query returns the title of all movies released in the year 2000 that
+     are rated R.
+     
+     .. code-block:: graphql
+        
+        movies(query: { rated: "R", year: 2000 }) {
+          title
+        }
+
+- **Operator Fields:** If a ``QueryInput`` field is a valid operator field for the
+  queried type, then App Services matches a document if the operator evaluates to
+  ``true``.
+
+  .. example::
+     
+     The following query includes a ``QueryInput`` with two fields, ``rated_in``
+     and ``year_gt``. Both of these are operator fields, so App Services evaluates
+     each operator to determine if a document matches.
+     
+     The query returns the title of all movies released after the year 2000 that
+     are rated either G or PG-13.
+     
+     .. code-block:: graphql
+        
+        movies(query: { rated_in: ["G", "PG-13"], year_gt: 2000 }) {
+          title
+        }
+
+Comparison Operator Fields
+``````````````````````````
+
+A comparison operator field allows you to define a condition that is more
+complex than exact equality, such as a range query. App Services generates a set of
+comparison operator fields for every field in the document type based on the
+field type. Each comparison operator typically applies to only a subset of all
+field types, so App Services only generates operator fields for valid combinations.
+
+A comparison operator field evaluates to ``true`` for a given document if the
+value of the field in the document satisfies the operator condition relative to
+the specified value.
+
+Comparison operator fields have the following form:
+
+.. code-block:: text
+   
+   <Field Name>_<Operator>: <Operator Value>
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 20 50
+
+   * - Operator
+     - Supported Field Types
+     - Operator Value Type
+     - Description
+
+   * - gt
+     - | ``Int``
+       | ``Float``
+       | ``String``
+       | ``ObjectId``
+       | ``DateTime``
+     - ``<Field Type>``
+     - Finds documents where the field is greater than the specified
+       value.
+
+       .. example::
+          
+          This query finds all movies that were released after the year 2000:
+          
+          .. code-block:: graphql
+          
+             movies(query: { year_gt: 2000 }) {
+               title
+               year
+             }
+
+   * - gte
+     - | ``Int``
+       | ``Float``
+       | ``String``
+       | ``ObjectId``
+       | ``DateTime``
+     - ``<Field Type>``
+     - Finds documents where the field is greater than or equal to the
+       specified value.
+
+       .. example::
+          
+          This query finds all movies that were released in or after the year 2000:
+          
+          .. code-block:: graphql
+          
+             movies(query: { year_gte: 2000 }) {
+               title
+               year
+             }
+
+   * - lt
+     - | ``Int``
+       | ``Float``
+       | ``String``
+       | ``ObjectId``
+       | ``DateTime``
+     - ``<Field Type>``
+     - Finds documents where the field is less than the specified value.
+
+       .. example::
+          
+          This query finds all movies that were released before the year 2000:
+          
+          .. code-block:: graphql
+          
+             movies(query: { year_lt: 2000 }) {
+               title
+               year
+             }
+
+   * - lte
+     - | ``Int``
+       | ``Float``
+       | ``String``
+       | ``ObjectId``
+       | ``DateTime``
+     - ``<Field Type>``
+     - Finds documents where the field is less than or equal to the
+       specified value.
+
+       .. example::
+          
+          This query finds all movies that were released in or before the year 2000:
+          
+          .. code-block:: graphql
+          
+             movies(query: { year_lte: 2000 }) {
+               title
+               year
+             }
+   
+   * - ne
+     - | ``Int``
+       | ``Float``
+       | ``String``
+       | ``Boolean``
+       | ``ObjectId``
+       | ``DateTime``
+     - ``<Field Type>``
+     - Finds documents where the field is not equal to the specified value.
+
+       .. example::
+          
+          This query finds all movies that were released in any year other than 2000:
+          
+          .. code-block:: graphql
+          
+             movies(query: { year_ne: 2000 }) {
+               title
+               year
+             }
+   
+   * - in
+     - | ``Int``
+       | ``Float``
+       | ``String``
+       | ``Boolean``
+       | ``ObjectId``
+       | ``DateTime``
+       | ``Array``
+     - ``[<Field Type>]``
+     - Finds documents where the field is equal to any value in the specified
+       array. If the field is an ``Array``, this finds all documents where
+       any value in the field array is also included in the specified array.
+
+       .. example::
+          
+          This query finds all movies that feature either or both of Emma Stone
+          and Ryan Gosling:
+          
+          .. code-block:: graphql
+          
+             movies(query: { cast_in: ["Emma Stone", "Ryan Gosling"] }) {
+               title
+               year
+             }
+   
+   * - nin
+     - | ``Int``
+       | ``Float``
+       | ``String``
+       | ``Boolean``
+       | ``ObjectId``
+       | ``DateTime``
+       | ``Array``
+     - ``[<Field Type>]``
+     - Finds documents where the field is not equal to any value in the
+       specified array. If the field is an ``Array``, this finds all documents
+       where any value in the field array is also in the specified
+       array.
+
+       .. example::
+          
+          This query finds all movies that are not rated either G or PG-13:
+          
+          .. code-block:: graphql
+          
+             movies(query: { rated_nin: ["G", "PG-13"] }) {
+               title
+               year
+             }
+
+Logical Operator Fields
+```````````````````````
+
+A logical operator field allows you to define logical combinations of
+independent ``QueryInput`` objects. App Services generates root-level logical operator
+fields for all ``QueryInput`` types.
+
+A logical operator field evaluates to ``true`` for a given document if the
+evaluated result of all specified ``QueryInput`` objects satisfy the operator
+condition.
+
+Logical operator fields have the following form:
+
+.. code-block:: text
+   
+   <Operator>: [<QueryInput>, ...]
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 30
+
+   * - Operator
+     - Operator Value Type
+     - Description
+
+   * - AND
+     - ``[QueryInput!]``
+     - Finds documents that match *all* of the provided ``QueryInput`` objects.
+       
+       .. example::
+          
+          This query finds all movies that are rated PG-13 *and* have a runtime
+          of less than 120 minutes:
+          
+          .. code-block:: graphql
+          
+             query {
+               movies(query: { AND: [{ rated: "PG-13" }, { runtime_lt: 120 }] }) {
+                 title
+                 year
+               }
+             }
+
+   * - OR
+     - ``[QueryInput!]``
+     - Finds documents that match *any* of the provided ``QueryInput`` objects.
+       
+       .. example::
+          
+          This query finds all movies that are rated either G or PG-13:
+          
+          .. code-block:: graphql
+          
+             query {
+               movies(query: { OR: [{ rated: "G" }, { rated: "PG-13" }] }) {
+                 title
+                 year
+               }
+             }
+
+Element Operator Fields
+```````````````````````
+
+An element operator field allows you to define a boolean condition that
+describes a field in the document. App Services generates a set of element operator
+fields for every field in the document type.
+
+An element operator field evaluates to ``true`` for a given document if the
+result of evaluating the operator condition on the field in the document matches
+the specified boolean value.
+
+Element operator fields have the following form:
+
+.. code-block:: text
+   
+   <Field Name>_<Operator>: <Operator Value>
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 20 50
+
+   * - Operator
+     - Supported Types
+     - Operator Value Type
+     - Description
+
+   * - exists
+     - Available for all types
+     - Boolean
+     - Finds documents where the field is not ``null``.
+       
+       .. example::
+          
+          This query finds all movies that do not have a value defined for the
+          ``year`` field:
+          
+          .. code-block:: graphql
+          
+             query {
+               movies(query: { year_exists: false }) {
+                 _id
+                 title
+               }
+             }
+
+.. _input-type-insert:
+
+InsertInput
+~~~~~~~~~~~
+
+An ``InsertInput`` object defines a document to insert into a collection. The
+document must conform to the GraphQL document type and include all required
+fields.
+
+.. example::
+   
+   The following mutation includes an ``InsertInput`` with several fields that
+   are all defined in the ``Movie`` document type. The ``Movie`` type requires
+   all documents to have a ``title`` field, so the ``InsertInput`` must include
+   one.
+   
+   The mutation inserts a new movie named "My Fake Film".
+   
+   .. code-block:: graphql
+      
+      insertOneMovie(input: {
+        title: "My Fake Film",
+        rated: "UNRATED",
+        year: 2020
+      }) {
+        title
+      }
+
+.. _input-type-update:
+
+UpdateInput
+~~~~~~~~~~~
+
+An ``UpdateInput`` object defines a new value for one or more fields in a
+document. The updated document includes the new field values. Any fields that
+you do not specify remain unchanged. The updated values must conform to the
+GraphQL document type.
+
+.. example::
+   
+   The following mutation includes an ``UpdateInput`` that sets the ``title``
+   field to "My Super Real Film".
+   
+   .. code-block:: graphql
+      
+      updateOneMovie(
+        query: { title: "My Fake Film" }
+        set: { title: "My Super Real Film" }
+      ) {
+        title
+      }
+
+RelationInput
+~~~~~~~~~~~~~
+
+A ``RelationInput`` defines a new set of related documents for a relationship
+field in the mutated document. You can reference documents that already exist in
+the related collection with the ``link`` field or insert new documents into the
+related collection with the ``create`` field.
+
+You cannot use both ``link`` and ``create`` at the same time. If both
+are specified, the ``create`` operation takes precedence and the
+``link`` is ignored.
+
+.. code-block:: graphql
+   
+   type RelationInput {
+     link: [ObjectId]
+     create: [InsertInput]
+   }
+
+.. example::
+   
+   The following mutation includes an ``UpdateInput`` that modifies the
+   ``reviews`` field. The field contains an array of ``_id`` values for
+   documents in a separate ``reviews`` collection for to the field has a defined
+   relationship.
+   
+   The mutation sets the relationship to point to one newly created document and
+   two existing documents in the ``reviews`` collection.
+   
+   .. code-block:: graphql
+      
+      updateOneMovie(
+        query: { title: "My Fake Film" }
+        set: {
+          reviews: {
+            link: ["", ""]
+            create: []
+          }
+        }
+      ) {
+        title
+      }
+
+
+.. _input-type-sortby:
+
+SortByInput
+~~~~~~~~~~~
+
+A ``SortByInput`` enum defines a sort order for documents returned by a query.
+You can sort in ascending and descending order by any root-level field that does
+not have a type of ``object`` or ``array``. The GraphQL API does not support
+nested sorts.
+
+App Services generates two sort enum values for each field. Each value is a
+fully-capitalized identifier that combines the field name and the sort
+direction, either ``ASC`` or ``DESC``.
+
+.. example::
+   
+   The following query returns movies sorted by the year they were released with
+   the most recent movies listed first.
+   
+   .. code-block:: graphql
+      
+      movies(sortBy: YEAR_DESC) {
+        title
+      }
+
+.. _graphql-query-resolvers:
+
+Query Resolvers
+---------------
+
+App Services generates two :ref:`GraphQL queries <graphql-query-resolvers>`
+for each collection:
+
+- A **singular** query that finds a specific document in the collection.
+
+- A **plural** query that finds all documents in the collection. You can
+  filter a plural query to include only the subset of documents in a
+  collection that match a ``QueryInput``.
+
+.. _graphql-findOne:
+
+Find a Single Document
+~~~~~~~~~~~~~~~~~~~~~~
+
+The single document query field uses the same name as the data type
+that the collection contains. It returns a single document of the
+queried type and accepts the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+   
+   * - Parameter
+     - Type
+     - Description
+   
+   * - ``query``
+     - :ref:`QueryInput <input-type-query>`
+     - Optional. An object that defines a filter for documents in the
+       collection. The object may specify one or more fields from the
+       data type and must include a value for each field. The query
+       matches all documents that include the specified field values.
+
+       If you do not specify a ``query`` parameter then the query
+       operation matches all documents.
+
+.. code-block:: graphql
+   
+   query {
+     movie(query: { title: "The Matrix" }) {
+       title
+       year
+       runtime
+       director
+     }
+   }
+
+.. _graphql-findMany:
+
+Find Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The multiple document query field uses the same name as the data type
+that the collection contains but has an additional ``"s"`` appended to
+the type name. It returns an array of documents of the queried type and
+accepts the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+   
+   * - Parameter
+     - GraphQL Type
+     - Description
+   
+   * - ``query``
+     - :ref:`QueryInput <input-type-query>`
+     - Optional. An object that defines a filter for documents in the
+       collection. The object may specify one or more fields from the
+       data type and must include a value for each field. The query
+       matches all documents that include the specified field values.
+
+       If you do not specify a ``query`` argument then the query
+       operation matches all documents.
+   
+   * - ``limit``
+     - Int
+     - Optional. Default ``100``. The maximum number of documents to
+       include in the query result set. If the query matches more than
+       the set limit then it only returns a subset of matched documents.
+   
+   * - ``sortBy``
+     - :ref:`SortByInput <input-type-sortby>`
+     - Optional. A value that defines a sort order for documents in the
+       query result set. You can sort in ascending and descending order
+       by any root-level field that does not have a type of ``object``
+       or ``array``.
+
+       The ``sortBy`` value is a fully-capitalized identifier that
+       combines the field name and the sort direction. For example:
+       
+       - to sort by title from A to Z you would use ``TITLE_ASC``
+       - to sort by rating from highest to lowest you would use ``RATING_DESC``
+
+       If you do not specify a ``sortBy`` argument then the query
+       operation does not guarantee the order of documents in the result
+       set.
+
+.. code-block:: graphql
+   
+   query {
+     movies(
+       query: { year: 2000 }
+       limit: 100
+       sortBy: TITLE_ASC
+     ) {
+       title
+       year
+       runtime
+       director
+     }
+   }
+
+.. _graphql-mutation-resolvers:
+
+Mutation Resolvers
+------------------
+
+App Services generates a set of mutations for the documents in each
+collection. These allow you insert, modify, and delete one or more
+documents.
+
+.. _graphql-insertOne:
+
+Insert a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The single document insert mutation field uses the name
+``insertOne<Type>`` where ``<Type>`` is the singular name of the data
+type that the collection contains. It returns the inserted document and
+accepts the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+   
+   * - Parameter
+     - Type
+     - Description
+   
+   * - ``data``
+     - :ref:`InsertInput! <input-type-insert>`
+     - Required. A document to insert into the collection. If the
+       collection schema marks a field as required then this document
+       must include a valid value for that field. App Services automatically
+       converts GraphQL types in the ``InsertInput`` object into their
+       respective BSON type.
+
+.. code-block:: graphql
+   
+   mutation {
+     insertOneMovie(data: {
+       title: "Little Women"
+       director: "Greta Gerwig"
+       year: 2019
+       runtime: 135
+     }) {
+       _id
+       title
+     }
+   }
+
+.. _graphql-insertMany:
+
+Insert Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The multiple document insert mutation field uses the name
+``insertMany<Type>s`` where ``<Type>`` is the singular name of the data
+type that the collection contains. It returns the inserted document and
+accepts the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+   
+   * - Parameter
+     - Type
+     - Description
+   
+   * - ``data``
+     - [:ref:`InsertInput! <input-type-insert>`]!
+     - Required. An array of documents to insert into the collection.
+       The array must contain at least one document. If the collection
+       schema marks a field as required then each document must include
+       a valid value for that field. App Services automatically converts
+       GraphQL types in the ``InsertInput`` object into their respective
+       BSON type as defined in the collection schema.
+
+.. code-block:: graphql
+   
+   mutation {
+     insertManyMovies(data: [
+       {
+         title: "Little Women"
+         director: "Greta Gerwig"
+         year: 2019
+         runtime: 135
+       },
+       {
+         title: "1917"
+         director: "Sam Mendes"
+         year: 2019
+         runtime: 119
+       }
+     ]) {
+       _id
+       title
+     }
+   }
+
+.. _graphql-updateOne:
+
+Update a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The single document update mutation field uses the name
+``updateOne<Type>`` where ``<Type>`` is the singular name of the data
+type that the collection contains. It returns the updated document and
+accepts the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+   
+   * - Parameter
+     - Type
+     - Description
+   
+   * - ``query``
+     - :ref:`QueryInput <input-type-query>`
+     - Optional. An object that configures which documents in the
+       collection to update. The object may specify one or more fields
+       from the data type and must include a value for each field. The
+       query matches all documents that include the specified field
+       values.
+       
+       If you do not specify a ``query`` argument then the mutation
+       updates the first document in the result set, which is likely but
+       not guaranteed to be the most recently inserted document.
+   
+   * - ``set``
+     - UpdateInput!
+     - Required. An object that defines a new value for one or more
+       fields in the document. The updated document will include the new
+       field values. Any fields that you do not specify remain
+       unchanged. App Services automatically converts GraphQL types in the
+       ``UpdateInput`` object into their respective BSON type.
+
+.. code-block:: graphql
+   
+   mutation {
+     updateOneMovie(
+       query: { title: "The Room" }
+       set: { runtime: 99 }
+     ) {
+       _id
+       title
+     }
+   }
+
+.. _graphql-updateMany:
+
+Update Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The multiple document update mutation field uses the name
+``updateMany<Type>s`` where ``<Type>`` is the singular name of the data
+type that the collection contains. It returns an ``UpdateManyPayload``
+document that describes the number of fields that were matched and
+modified and accepts the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+   
+   * - Parameter
+     - Type
+     - Description
+   
+   * - ``query``
+     - :ref:`QueryInput <input-type-query>`
+     - Optional. An object that configures which documents in the
+       collection to update. The object may specify one or more fields
+       from the data type and must include a value for each field. The
+       query matches all documents that include the specified field
+       values.
+
+       If you do not specify a ``query`` argument then the mutation
+       updates the first document in the result set, which is likely but
+       not guaranteed to be the most recently inserted document.
+   
+   * - ``set``
+     - :ref:`UpdateInput! <input-type-update>`
+     - Required. An object that defines a new value for one or more
+       fields in the document. The updated document will include the new
+       field values. Any fields that you do not specify remain
+       unchanged. App Services automatically converts GraphQL types in the
+       ``UpdateInput`` object into their respective BSON type.
+
+.. code-block:: graphql
+   
+   mutation {
+     updateManyMovies(
+       query: { director: "Tommy Wiseau" }
+       set: { director: "Tom Wiseau" }
+     ) {
+       matchedCount
+       modifiedCount
+     }
+   }
+
+.. _graphql-upsertOne:
+
+Upsert a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The single document upsert mutation field uses the name
+``upsertOne<Type>`` where ``<Type>`` is the singular name of the data
+type that the collection contains. This resolver updates a document that
+matches the query parameter and inserts a new document if none match the
+query. It returns the upserted document and accepts the following
+parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+   
+   * - Parameter
+     - Type
+     - Description
+   
+   * - ``query``
+     - :ref:`QueryInput <input-type-query>`
+     - Optional. An object that configures which document to update. The
+       object may specify one or more fields from the data type and must
+       include a value for each field. The query matches all documents
+       that include the specified field values.
+
+       If you do not specify a ``query`` argument or no documents match,
+       then the mutation inserts the document specified in the ``data``
+       parameter.
+   
+   * - ``data``
+     - :ref:`InsertInput! <input-type-insert>`
+     - Required. The document to insert if the ``query`` does not match
+       any existing documents. If the ``query`` does match a document
+       replaces the queried document. If the collection schema marks a
+       field as required then this document must include a valid value
+       for that field. App Services automatically converts GraphQL types in
+       the ``InsertInput`` object into their respective BSON type.
+
+.. code-block:: graphql
+   
+   mutation {
+     upsertOneMovie(
+       query: { title: "Blacksmith Scene" }
+       data: {
+         title: "Sandcastles in the Sand",
+         director: "Robin Scherbatsky"
+         runtime: 90
+         year: 2002
+       }
+     ) {
+       _id
+       title
+     }
+   }
+
+.. _graphql-replaceOne:
+
+Replace a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The single document replacement mutation field uses the name
+``replaceOne<Type>`` where ``<Type>`` is the singular name of the data
+type that the collection contains. It returns the replaced document and
+accepts the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+   
+   * - Parameter
+     - Type
+     - Description
+   
+   * - ``query``
+     - :ref:`QueryInput <input-type-query>`
+     - Optional. An object that configures which documents in the
+       collection to replace. The object may specify one or more fields
+       from the data type and must include a value for each field. The
+       query matches all documents that include the specified field
+       values.
+
+       If you do not specify a ``query`` argument then the mutation
+       replaces the first document in the result set, which is likely
+       but not guaranteed to be the most recently inserted document.
+   
+   * - ``data``
+     - :ref:`InsertInput! <input-type-insert>`
+     - Required. The document that replaces the queried document. If the
+       collection schema marks a field as required then this document
+       must include a valid value for that field. App Services automatically
+       converts GraphQL types in the ``InsertInput`` object into their
+       respective BSON type.
+
+.. code-block:: graphql
+   
+   mutation {
+     replaceOneMovie(
+       query: { title: "Blacksmith Scene" }
+       data: {
+         title: "Sandcastles in the Sand",
+         director: "Robin Scherbatsky"
+         runtime: 90
+         year: 2002
+       }
+     ) {
+       _id
+       title
+     }
+   }
+
+.. _graphql-deleteOne:
+
+Delete a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The single document delete mutation field uses the name
+``deleteOne<Type>`` where ``<Type>`` is the singular name of the data
+type that the collection contains. It returns the deleted document and
+accepts the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+   
+   * - Parameter
+     - Type
+     - Description
+   
+   * - ``query``
+     - :ref:`QueryInput <input-type-query>`
+     - Required. An object that configures which document in the
+       collection to delete. The object may specify one or more fields
+       from the data type and must include a value for each field. The
+       query matches all documents that include the specified field
+       values.
+
+       If the ``query`` matches multiple documents, the mutation deletes
+       the first document in the result set, which is likely but not
+       guaranteed to be the most recently inserted document.
+
+.. code-block:: graphql
+   
+   mutation {
+     deleteOneMovie(query: { title: "The Room" }) {
+       _id
+       title
+       year
+       runtime
+       director
+     }
+   }
+
+.. _graphql-deleteMany:
+
+Delete Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The multiple document delete mutation field uses the name
+``deleteMany<Type>s`` where ``<Type>`` is the singular name of the data
+type that the collection contains. It returns a ``DeleteManyPayload``
+document that describes the number of documents that were deleted and
+accepts the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+   
+   * - Parameter
+     - Type
+     - Description
+   
+   * - ``query``
+     - :ref:`QueryInput <input-type-query>`
+     - Optional. An object that configures which documents in the
+       collection to delete. The object may specify one or more fields
+       from the data type and must include a value for each field. The
+       query matches all documents that include the specified field
+       values.
+
+       If you do not specify a ``query`` argument then the mutation
+       deletes all documents in the collection.
+
+.. code-block:: graphql
+   
+   mutation {
+     deleteManyMovies(query: { director: "Tommy Wiseau" }) {
+       deletedCount
+     }
+   }
+
+.. _graphql-paginate:
+
+Paginate Data
+-------------
+
+You can paginate data in your queries with the types provided by the GraphQL API's
+generated schema.
+
+The Atlas GraphQL API **does not** have an ``offset`` operator, like the
+:graphql:`GraphQL documentation recommends for pagination <learn/pagination/#pagination-and-edges>`.
+
+Instead you can use the generated schema's :ref:`find multiple documents query resolvers
+<graphql-findMany>`
+with ``query``, ``limit``, and ``sortBy`` operators to paginate data.
+
+To paginate data in **ascending** order:
+
+.. code-block:: graphql
+
+   query PaginateAscending(
+     # Do not include `previousTitle` for the first query
+     # in a pagination sequence.
+     $previousTitle: String,
+     $limit: Int!,
+   ) {
+     movies(
+       query: { title_gt: $previousTitle  }
+       limit: $limit
+       sortBy: TITLE_ASC
+     ) {
+       title
+       year
+       runtime
+       director
+     }
+   }
+
+To paginate data in **descending** order:
+
+.. code-block:: graphql
+
+   query PaginateAscending(
+     # Do not include `nextTitle` for the first query
+     # in a pagination sequence.
+     $nextTitle: String,
+     $limit: Int!,
+   ) {
+     movies(
+       query: { title_lt: $nextTitle  }
+       limit: $limit
+       sortBy: TITLE_DESC
+     ) {
+       title
+       year
+       runtime
+       director
+     }
+   }
+
+For a example of this pagination pattern implemented in a client application,
+refer to :ref:`Paginate Data <graphql-apollo-paginate>` in the Realm Web SDK documentation.
+
+.. note::
+
+   This approach to pagination is similar to range queries for MongoDB drivers,
+   as described in the :manual:`MongoDB Server documentation
+   </reference/method/cursor.skip/#using-range-queries>`.

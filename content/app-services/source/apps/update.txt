@@ -1,0 +1,344 @@
+.. meta::
+   :robots: nosnippet
+
+.. _import-realm-app:
+.. _update-realm-app:
+
+=============
+Update an App
+=============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+
+Overview
+--------
+
+You can update an existing App by changing its underlying
+configuration and then deploying those changes. There are multiple
+ways you can do this:
+
+- The App Services Admin UI: a web application built into MongoDB
+  Atlas. It includes a graphical interface for anything you want to
+  configure in your App.
+
+- The {+cli+}: a command line tool that you can use to configure and
+  deploy your App locally. You work directly with your App's underlying
+  :ref:`configuration files <app-configuration>`.
+
+- The Admin API: a REST API that you can use to configure and deploy
+  your App programmatically. Admin API requests read and write your
+  App's underlying configuration files.
+
+- Automatic GitHub Deployment: a GitHub integration that syncs your App
+  configuration with a GitHub repository. You can use GitHub to manage
+  your App's configuration files and deploy your App by pushing changes
+  to the repository.
+
+.. _deploy-ui:
+.. _deploy-cli:
+.. _deploy-api:
+
+Update an Existing App
+----------------------
+
+Before You Begin
+~~~~~~~~~~~~~~~~
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      You will need the following to update an App in the Atlas UI:
+
+      - .. include:: /includes/prereqs/atlas-account.rst
+
+   .. tab::
+      :tabid: cli
+
+      You will need the following to update an App in the CLI:
+
+      - .. include:: /includes/prereqs/atlas-account.rst
+
+      - .. include:: /includes/prereqs/atlas-admin-api-key.rst
+
+      - .. include:: /includes/prereqs/appservices-cli.rst
+
+   .. tab::
+      :tabid: api
+
+      You will need the following to update an App with the Admin API:
+
+      - .. include:: /includes/prereqs/atlas-account.rst
+
+      - .. include:: /includes/prereqs/atlas-admin-api-key.rst
+
+   .. tab::
+      :tabid: github
+
+      To update an App based on configuration files in a GitHub
+      repository, you must enable :ref:`Automatic GitHub Deployment
+      <deploy-github>` for the App.
+
+Procedure
+~~~~~~~~~
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      .. procedure::
+
+         .. step:: Make Changes to Your Application
+
+            Start by making any additions, modifications, or deletions that you
+            want to include in the deployment through the App Services UI.
+            If you have drafts enabled, your changes will be saved automatically as a draft.
+
+            .. seealso::
+
+               Guide to :ref:`Disable Deployment Drafts <disable-deployment-drafts>`.
+
+            .. note::
+
+               You can only create draft changes through the App Services UI or Admin
+               API. Any changes that you make with GitHub or the {+cli+} are
+               deployed independently of draft changes. To avoid possible conflicts or
+               inconsistencies, its best to make your changes in one place at a time.
+
+
+         .. step:: Review Draft Changes
+
+            You can review all of the draft changes to your application prior to
+            deploying them.
+
+            Click :guilabel:`Deployment` in the left navigation menu to navigate to
+            your app's deployment history table. The top row of the table
+            represents all of the draft changes that you've made since the
+            previous deployment.
+
+            Click the :guilabel:`Review Draft and Deploy` button in the top row to
+            see a diff of the underlying :ref:`app configuration files
+            <app-configuration>` that represents the draft changes that you've made.
+
+            .. note::
+
+               You may want to download a draft of your changes because of merge conflicts
+               or to save the draft outside of the UI. You can do so in the
+               :guilabel:`Review Draft and Deploy` modal by clicking :guilabel:`Export State`
+               in the top right corner. You can use the download to deploy your changes in the
+               {+cli-bin+} or as a reference as you reapply changes in the UI.
+
+         .. step:: Deploy a New App Version
+
+            After you've reviewed your draft changes and confirmed that you want
+            to deploy them, click :guilabel:`Deploy`. App Services deploys a
+            new version of your application that includes the draft changes.
+            Client applications will automatically use the newest version, so make
+            sure that you also update your client code to use the new version if
+            necessary.
+
+   .. tab::
+      :tabid: cli
+
+      .. procedure::
+
+         .. step:: Authenticate a MongoDB Atlas User
+
+            .. include:: /includes/cli-login.rst
+
+         .. step:: Pull the Latest Version of Your App
+
+            .. include:: /includes/cli-pull-latest.rst
+
+         .. step:: Update Your Application
+
+            Add, delete, and modify :ref:`configuration files <app-configuration>` for
+            your application's various components.
+
+         .. step:: Deploy the Updated App
+
+            Deploy your changes by pushing the updated configuration
+            files to your remote app.
+
+            .. code-block:: bash
+
+               {+cli-bin+} push --remote="<Your App ID>"
+
+   .. tab::
+      :tabid: api
+
+      .. procedure::
+
+         .. step:: Create a New Draft (Optional)
+
+            A draft represents a group of application changes that you
+            can deploy or discard as a single unit. If you don't create
+            a draft, updates automatically deploy individually.
+
+            To create a draft, send a ``POST`` request with no body to
+            the :admin-api-endpoint:`Create a new deployment draft
+            <tag/deploy/operation/adminCreateDeploymentDraft>` endpoint:
+
+            .. code-block:: shell
+
+               curl -X POST 'https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/drafts' \
+                 -H 'Content-Type: application/json' \
+                 -H 'Authorization: Bearer <access_token>'
+
+            .. important:: One Draft Per User
+
+               Each user can only create a single draft at a time, either through
+               the UI or the Admin API. If you already have an existing draft, you
+               can discard the changes associated with it by sending a ``DELETE``
+               request to the :admin-api-endpoint:`Discard a deployment draft
+               <tag/deploy/operation/adminDiscardDraft>` endpoint:
+
+               .. code-block:: shell
+
+                  curl -X DELETE 'https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/drafts/{draftId}' \
+                    -H 'Authorization: Bearer <access_token>'
+
+         .. step:: Make Changes to Your Application
+
+            You can configure your app and add, modify, or delete
+            components by calling the Admin API endpoints for each
+            operation. For examples and detailed reference information,
+            see :ref:`Atlas App Services Admin API <admin-api>`.
+
+            If you did not create a draft, every successful Admin API
+            request immediately deploys the associated updates to the
+            App.
+
+            If you created a draft, every successful Admin API request
+            adds the associated updates to the draft. Send requests for
+            all of the changes that you want to include in the draft.
+
+         .. step:: Deploy the Draft
+
+            If you created a draft, you can deploy all changes in
+            the draft by sending a ``POST`` request with no body to the
+            :admin-api-endpoint:`Deploy a deployment draft
+            <tag/deploy/operation/adminDeployDraft>` endpoint:
+
+            .. code-block:: shell
+
+               curl -X POST \
+                 'https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/drafts/{draftId}/deployment' \
+                 --header 'Content-Type: application/json' \
+                 --header 'Authorization: Bearer <access_token>' \
+
+   .. tab::
+      :tabid: github
+
+      With Automatic GitHub Deployment enabled, your App always uses
+      configuration files from the most recent commit in your linked
+      repository. For details on how to organize and define
+      configuration files, see :ref:`app-configuration`.
+
+      Update your application by adding, modifying, and deleting
+      configuration files locally.
+
+      When you are ready to deploy your changes, commit the
+      configuration files and then push them to GitHub:
+
+      .. code-block:: sh
+
+        git add -A
+        git commit -m "<commit message>"
+        git push origin <branch name>
+
+      After you push, the GitHub integration automatically deploys an
+      updated version of your App based on the configuration files in
+      the latest commit.
+
+.. _deployment-draft:
+
+Deployment Drafts
+-----------------
+
+A deployment draft is a set of one or more updates to your App that you
+can apply or discard as a single group. Deploying a draft is useful when
+your changes include services or functions that interact with each
+other.
+
+The App Services UI uses deployment drafts by default. While enabled,
+any changes you make to your App's configuration in the App Services UI
+are added to a draft that you :ref:`manually deploy <deploy-ui>`. You
+can :ref:`disable UI drafts <disable-deployment-drafts>` if you prefer
+to deploy immediately when you save in the UI.
+
+The {+cli+} and :ref:`GitHub Deployment <deploy-github>` both
+automatically create and deploy drafts for you. When you run the CLI
+:ref:`push <appservices-push>` command or ``git push`` to your deployment
+branch, the CLI or GitHub app creates a diff of your local configuration
+files against the currently deployed configuration. Then it creates and
+deploys a draft based on the diff.
+
+The App Services Admin API allows you to manually create and deploy
+drafts. To learn how, see :admin-api-endpoint:`Deploy a Group of Changes
+<tag/deploy/Draft-and-Deploy-a-Group-of-Changes>`.
+
+Draft Conflicts
+~~~~~~~~~~~~~~~
+
+Avoid having multiple users make conflicting changes in UI or API drafts
+at the same time. If there are multiple concurrent drafts that contain
+conflicting changes, you will not be able to deploy one or more of the
+drafts.
+
+For example, if you deploy changes through the API but have an existing
+UI draft with conflicting changes, your UI draft will become invalid and
+you will not be able to deploy it.
+
+To recover from a conflict, you can download configuration files for a
+UI draft from the :guilabel:`Deployment` page. You can use these as a
+reference to reapply changes in the UI or deploy the changes directly
+with the CLI or Admin API.
+
+.. _disable-deployment-drafts:
+
+Disable UI Deployment Drafts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can disable UI drafts if you prefer to deploy immediately when you
+save in the UI. This setting does not prevent you from manually creating
+drafts with the Admin API.
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      To disable UI drafts directly from the UI:
+
+      1. Click :guilabel:`Deployment` in the left navigation menu
+
+      #. Click the :guilabel:`Configuration` tab
+
+      #. Under the :guilabel:`Disable Drafts in Atlas App Services`
+         heading, click :guilabel:`Disable Drafts` and then confirm your
+         decision in the modal window.
+
+   .. tab::
+      :tabid: api
+
+      To disable UI drafts with the Admin API, send a request to the
+      :admin-api-endpoint:`Configure Deployment
+      <tag/deploy/operation/adminConfigureDeployment>` endpoint with
+      ``ui_drafts_disabled`` set to ``true``.
+
+      .. code-block:: bash
+         :emphasize-lines: 5
+
+         curl -X PATCH https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/deploy/config \
+           -H 'Authorization: Bearer <access_token>' \
+           -H 'Content-Type: application/json' \
+           -d '{
+             "ui_drafts_disabled": true,
+             "automatic_deployment": { "enabled": false, "installationIds": [], "lastModified": 0 }
+           }'

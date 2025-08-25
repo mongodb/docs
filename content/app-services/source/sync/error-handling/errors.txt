@@ -1,0 +1,343 @@
+.. meta::
+   :robots: nosnippet
+
+.. _sync-errors:
+
+===========
+Sync Errors
+===========
+
+.. meta:: 
+   :description: Common errors encountered when using Atlas Device Sync and how to handle them. 
+
+.. facet::
+   :name: genre 
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+While you develop applications using Atlas Device Sync, you may run into errors. This
+section lists common Sync errors and describes how to handle them.
+
+.. note::
+   
+   If you encounter an error not listed on this page, you can file a `support
+   ticket <https://support.mongodb.com/welcome>`_.
+
+.. _sync-protocol-errors:
+
+Sync Protocol Errors
+--------------------
+
+The following table describes :ref:`Device Sync protocol <sync-protocol>`
+errors and how to handle them. Atlas App Services reports errors in your
+:doc:`Device Sync logs </logs>`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Error Name
+     - Description
+
+   * - ErrorBadClientFileIdent
+     - This error occurs when the client is using a realm file that the
+       server cannot access after :ref:`terminating and re-enabling
+       Device Sync <terminating-and-reenabling-sync>`.
+       
+       This error triggers a client reset. To recover from this error, 
+       perform a :ref:`client reset <client-resets>`.
+
+   * - ErrorClientFileUserMismatch
+     - This error indicates that the client attempted to synchronize a
+       realm file associated with an identity other than the specified user.
+       This may occur if Device Sync is :ref:`terminated and reenabled
+       <terminating-and-reenabling-sync>` while the user is
+       offline, which invalidates their previous identity.
+       
+       To recover from this error, delete the local realm file and then re-open
+       the realm.
+
+   * - ErrorDivergingHistories
+     - This error indicates that the client attempted to synchronize a 
+       realm file that has a different sync history than the server
+       realm. This may occur if Device Sync is :ref:`terminated and
+       reenabled <terminating-and-reenabling-sync>` while the
+       user is offline, which invalidates their previous sync history.
+       
+       This error triggers a client reset. To recover from this error, 
+       perform a :ref:`client reset <client-resets>`.
+
+   * - ErrorPermissionDenied
+     - This error occurs when a user's data access permissions are not
+       sufficient for a given request. This can occur if a user attempts to open
+       a realm without read permission or modify data without write permission.
+       
+       To troubleshoot this error, review your :ref:`rules <rules>` to make sure
+       that users have proper data access permissions.
+   
+   * - ErrorOtherError
+     - This error indicates an internal failure that is not covered by a more
+       specific error. For example, this might occur when you hit the storage
+       limit of a free tier Atlas cluster.
+
+.. _flexible-sync-errors:
+
+Flexible Sync Errors
+~~~~~~~~~~~~~~~~~~~~
+
+The following errors may occur when your App uses :ref:`Flexible Sync 
+<flexible-sync>`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Error Name
+     - Description
+
+   * - ErrorBadQuery
+     - This error indicates the client query is invalid or malformed. This 
+       error includes a message that provides details about why the query
+       is invalid.
+
+       To recover from this error, you may need to verify the :ref:`query 
+       syntax <realm-query-language>` is correct, and that you are using 
+       :ref:`query operators that are supported on the server 
+       <flexible-sync-rql-limitations>`. Additionally, confirm you are querying
+       a :ref:`queryable field <queryable-fields>` in your Flexible Sync 
+       configuration. If your query uses an indexed queryable field, ensure
+       that it meets :ref:`the requirements for valid client-side queries 
+       <fs-indexed-queryable-fields-valid-client-side-queries>` for indexed 
+       queryable fields.
+
+   * - LimitsExceeded
+     - This error indicates that the query being used has exceeded the size limit of 256
+       kB.
+
+       To recover from this error, restructure your query to ensure
+       the data in your query falls within the acceptable size limit. 
+
+   * - ErrorServerPermissionsChanged
+     - This error indicates that server permissions for the file ident have changed
+       since the last time it was used.
+
+       This error triggers a client reset. To recover from this error, 
+       perform a :ref:`client reset <client-resets>`.
+
+   * - ErrorInitialSyncNotCompleted
+     - This error indicates that the client tried to open a session before the 
+       initial sync was complete. This may occur when the app has just
+       enabled Sync, and is still in the process of building the Sync history.
+
+       The client attempts to reconnect until this process is complete. Then,
+       this error resolves and Sync begins working normally.
+    
+   * - ErrorCompensatingWrite
+     - This non-fatal error occurs when a client attempts an "illegal" write.
+       The following are considered illegal writes:
+
+       - Creating an object before opening a subscription.
+       - Creating an object that would be outside of the client's query view.
+         "Query view" includes both the client's subscriptions and the client's
+         read permissions.
+       - Modifying an object that is outside of the client's query view.
+       - Creating, deleting, or modifying an object or field that the client
+         does not have write permissions to.
+       - Modifying an object in such a way that client would no longer have
+         write permissions on that object or field after the write.
+       - Updating an existing object's :ref:`indexed queryable field <fs-indexed-queryable-fields>` 
+         value.
+         
+       Because the local realm has no concept of "illegal" writes, the write
+       will always succeed locally. Upon sync, the server will notice the
+       illegal write. The server then undoes the change. The undo operation,
+       called a "compensating write", syncs back to the client so the client's
+       realm no longer has the illegal write. The server also sends this error
+       to let the client know what has happened.
+
+       Any local writes to a given object between an illegal write to that
+       object and the corresponding compensating write will be lost. 
+
+       .. example:: 
+       
+          Consider the following pseudo-code example:
+        
+          .. code-block:: javascript
+
+             obj1.fieldA = 10 // illegal due to field-level permissions
+             obj1.fieldB = 5 // legal
+             DELETE obj1 // legal
+             DELETE obj2 // legal
+
+          Here, the user does not have permission to write to
+          ``fieldA`` but attempts to write to it anyway -- an *illegal* write.
+          The user then performs two *legal* writes to the same object and
+          another legal write to a different object. Upon receiving the
+          compensating write for the illegal write to ``obj1.fieldA``, the
+          subsequent two legal writes to that object are lost. The end result is
+          that obj1 still exists and its two field values are whatever they were
+          before the attempted modifications. Meanwhile, the deletion of obj2 is
+          unrelated to the illegal write that caused the compensating write, so
+          it stands and obj2 stays deleted.
+
+       The illegal write appears in the applog as a non-fatal error. Illegal
+       writes might indicate that your application code is doing something you
+       didn't intend.
+
+       In the following cases, you'll see ``ErrorWriteNotAllowed`` instead of
+       ``ErrorCompensatingWrite`` after an "illegal" write:
+
+       - When using older SDK versions that are linked to a realm-core version
+         before realm-core 12.1.0. In this case, the server will not undo the
+         illegal write, and you will need to perform a :ref:`manual client reset
+         <manual-client-reset>`.
+       - When modifying an object in a collection with :ref:`Data Ingest 
+         <optimize-data-ingest>` enabled. In this case, the error is
+         non-fatal and does not trigger a client reset. The server skips over
+         the illegal change and does not apply it to the synced MongoDB cluster.
+
+.. _mongodb-translator-errors:
+
+MongoDB Translator Errors
+-------------------------
+
+The following errors may occur in the translation process between Device Sync
+and MongoDB Atlas.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Error Name
+     - Description
+
+   * - MaxIntegrationAttempts
+     - When the MongoDB translator cannot integrate a changeset, it 
+       retries for a fixed number of times. This error occurs when the 
+       translator reaches the maximum number of retries and could not 
+       commit changes. This is usually caused by insufficient cluster 
+       size. This can be due to a very large transaction that exceeds 
+       the cluster's available resources. For example, a device is 
+       offline for a long time and tries to sync an atypical quantity of 
+       batched transactions. Or the cluster resources are generally
+       insufficient for the app's needs.
+       
+       You can resolve this error by upgrading the cluster tier.
+
+       To avoid this error, ensure the linked MongoDB cluster meets the 
+       needs of your app. Also, make sure your app uses best practices 
+       for reading and writing data. Refer to 
+       `Atlas Cluster Sizing and Tier Selection <https://www.mongodb.com/docs/atlas/sizing-tier-selection>`__ 
+       for more information.
+
+   * - MongoEncodingError
+     - This error occurs when a MongoDB Atlas write (i.e. not a Sync client)
+       modifies a document such that it no longer conforms to the app's schema.
+       Documents that do not match the schema cannot be synced and any local
+       updates to the object represented by such a document will not propagate.
+       
+       For more information, see :ref:`Unsynced Documents <unsynced-documents>`.
+   
+   * - TranslatorCorrectiveErasure
+     - This error occurs when a synced MongoDB cluster rejects the write
+       operation for a propagated Device Sync change. This is usually caused by
+       a duplicate key exception, which means that two objects use the same
+       primary key. To avoid this error, use an ``ObjectId`` or ``UUID`` as the
+       primary key value. Alternatively, ensure that every synced object has a
+       unique primary key, even across partitions.
+
+   * - TranslatorFatalError - ChangeStreamHistoryLost
+     - This error occurs when old entries in the :manual:`oplog
+       </core/replica-set-oplog/>` have expired before the server-side
+       "translator" process could read them. Without these entries, the
+       translator cannot bring the MongoDB cluster and the Realm object
+       server to an equivalent state.
+       
+       This can happen when:
+       
+       - Sync is paused for so long that entries fall off the oplog.
+       - You drop a collection that the translator was using.
+       - The MongoDB cluster is unreachable for too long.
+       
+       Because the free tier has a shared oplog, it is more vulnerable
+       to this error.
+       
+       To resolve this error, :ref:`terminate
+       <terminating-realm-sync>` and :ref:`re-enable Sync
+       <re-enable-realm-sync>`.
+
+MongoDB Connection Errors
+-------------------------
+
+If you enable Device Sync on a newly-created cluster, the operation may
+fail to parse the cluster URI. This happens because an SRV record for
+the cluster hasn't propagated yet. There are two possible workarounds,
+either:
+
+- Wait five minutes, then enable Atlas Device Sync.
+
+- Unlink and :ref:`re-link the cluster <link-a-data-source>`.
+
+.. _sync-client-errors:
+
+Sync Client Errors
+------------------
+
+The :ref:`sync protocol <sync-protocol>` returns an :sync-server-message:`ERROR`
+message when an error appears to have been caused by a connected client. Each
+message contains a code number and a description of the error.
+
+To see the full list of sync errors, refer to the :github:`error code list
+<realm/realm-core/blob/master/doc/protocol.md#error-codes>` in the
+Realm Database Core GitHub repository.
+
+.. _handle-and-log-sync-errors:
+
+Handle Sync Errors
+------------------
+
+Every application that uses Sync needs a sync error handler. To learn more
+about sync error handling, see your preferred SDK:
+
+- :ref:`Handle Sync Errors - C++ SDK <cpp-handle-sync-errors>`
+- :ref:`Handle Sync Errors - Flutter SDK <flutter-handle-sync-errors>`
+- :ref:`Handle Sync Errors - Java SDK <java-handle-sync-errors>`
+- :ref:`Handle Sync Errors - Kotlin SDK <kotlin-handle-sync-errors>`
+- :ref:`Handle Sync Errors - .NET SDK <dotnet-handle-sync-errors>`
+- :ref:`Handle Sync Errors - Node.js SDK <node-handle-sync-errors>`
+- :ref:`Handle Sync Errors - React Native SDK <react-native-handle-sync-errors>`
+- :ref:`Handle Sync Errors - Swift SDK <ios-handle-sync-errors>`
+
+.. _set-log-level:
+
+Set the Client Log Level
+------------------------
+
+You can specify the client log level. Setting the log level to ``trace`` or
+``debug`` can help diagnose issues while your application is is in development.
+You can log general information or details about all sync events, or log
+only warnings or errors. 
+
+.. important::
+
+   Verbose logging negatively impacts performance. For production deployment,
+   reduce the log level.
+
+For more information about available log levels, including how to set the 
+client log level, see your preferred SDK.
+
+- :ref:`Set the Client Log Level - Flutter SDK <flutter-client-log-level>`
+- :ref:`Set the Client Log Level - Java SDK <java-set-the-client-log-level>`
+- :ref:`Set the Client Log Level - Kotlin SDK <kotlin-client-log-level>`
+- :ref:`Set the Client Log Level - .NET SDK <dotnet-set-the-client-log-level>`
+- :ref:`Set the Client Log Level - Node.js SDK <node-set-the-client-log-level>`
+- :ref:`Set the Client Log Level - React Native SDK <react-native-set-the-client-log-level>`
+- :ref:`Set the Client Log Level - Swift SDK <ios-set-the-client-log-level>`

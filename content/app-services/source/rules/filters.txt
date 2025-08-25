@@ -1,0 +1,337 @@
+.. meta::
+   :robots: nosnippet
+
+.. _filters:
+.. _filter-incoming-queries:
+
+=======================
+Filter Incoming Queries
+=======================
+
+.. meta::
+  :description: Learn how to filter a query to return only a subset of matching results. 
+
+.. facet::
+  :name: genre 
+  :values: tutorial
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+A **filter** modifies an incoming MongoDB query to return only a subset of the
+results matched by the query. Adding a filter to a collection allows you to control
+the shape of queried documents and can improve query performance.
+
+Filters add additional query parameters and omit fields from query results 
+*before* Atlas App Services runs the query. Every filter has three components:
+
+- An "apply when" :ref:`expression <expressions>` that determines if the filter
+  applies to an incoming request. You can use variables like
+  :json-expansion:`%%user` and :json-expansion:`%%request` in the "apply when"
+  expression. However, you cannot use expansions that refer to a document like
+  :json-expansion:`%%root` because App Services evaluates the "apply when"
+  expression before reading any documents.
+
+- An optional query :ref:`expression <expressions>`, which merges with the
+  existing query of any request the filter applies to.
+
+- An optional projection document, which uses standard MongoDB projection syntax
+  and merges with the existing projection of any request the filter applies to.
+
+.. _filter-enforcement:
+
+How App Services Applies Filters
+--------------------------------
+
+App Services evaluates and applies filters for all MongoDB requests where rules
+apply except Device Sync requests. Examples of filterable MongoDB requests include:
+
+- A query on a collection.
+- A write to a document.
+
+A filter applies to a given request if its "apply when" :ref:`expression
+<expressions>` evaluates to true given that request's context. If a filter
+applies to a request, App Services merges the filter's query or projection into
+the requested operation's existing query and projection.
+
+Multiple filters may apply to a single request.
+
+App Services applies filters to the request *before* it sends the request to MongoDB.
+
+.. example::
+
+   A collection contains several million documents and has one role with
+   the following "apply when" expression:
+
+   .. code-block:: json
+
+      { "owner_id": "%%user.id" }
+
+   If no filter is applied, App Services will evaluate a role for each
+   document that the query matches. We know that App Services will withhold
+   any document that does not have the user's id as the value of the
+   ``owner_id`` field, so we save time and compute resources by applying
+   an additional query predicate that excludes those documents before
+   App Services evaluates any roles:
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Apply When
+        - Query
+        - Projection
+
+      * - ``{ "%%true": true }``
+        - ``{ "owner_id": "%%user.id" }``
+        - ``{}``
+
+
+.. _define-a-filter:
+
+Define Filters
+--------------
+
+You can use filters to optimize queries, minimize compute overhead, and secure
+sensitive data. Filters are most useful for cross-cutting concerns that affect
+some or all of your queries.
+
+Consider using filters if you want a centralized system to:
+
+- Restrict queries to a subset of all documents
+- Omit sensitive data or unused fields
+
+.. example::
+   
+   In a voting app where some users have agreed to anonymously share their vote,
+   you could use the following filter to constrain all queries to an anonymous
+   subset of the existing data:
+   
+   .. tabs::
+      
+      .. tab:: Filter
+         :tabid: filters
+         
+         .. code-block:: json
+            
+            {
+              "name": "AnonymizeVotes",
+              "apply_when": true,
+              "query": {
+                "shareVoteAnonymous": true
+              },
+              "project": {
+                "_id": 0,
+                "age": 1,
+                "vote": 1
+              }
+            }
+      
+      .. tab:: Unfiltered Collection
+         :tabid: unfiltered-collection
+         
+         .. code-block:: json
+            
+            { "_id": ObjectId(...), "name": "sarah", age: 42, "vote": "yes", "shareVoteAnonymous": true }
+            { "_id": ObjectId(...), "name": "andy", age: 22, "vote": "no", "shareVoteAnonymous": true }
+            { "_id": ObjectId(...), "name": "jennifer", age: 37, "vote": "yes", "shareVoteAnonymous": false }
+            { "_id": ObjectId(...), "name": "rick", age: 43, "vote": "no", "shareVoteAnonymous": true }
+            { "_id": ObjectId(...), "name": "tom", age: 64, "vote": "yes", "shareVoteAnonymous": false }
+            { "_id": ObjectId(...), "name": "bob", age: 67, "vote": "yes", "shareVoteAnonymous": true }
+      
+      .. tab:: Filtered Collection
+         :tabid: filtered-collection
+         
+         .. code-block:: json
+            
+            { age: 42, "vote": "yes" }
+            { age: 22, "vote": "no" }
+            { age: 37, "vote": "yes" }
+            { age: 43, "vote": "no" }
+            { age: 64, "vote": "yes" }
+            { age: 67, "vote": "yes" }
+
+Procedure
+~~~~~~~~~
+
+You can define filters for specific collections in your linked cluster 
+from the App Services UI or by deploying configuration files with Realm CLI:
+
+.. note::
+
+   This guide requires a linked :ref:`MongoDB Atlas data source <data-sources>`.
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      .. procedure::
+
+         .. step:: Navigate to the Rules Window
+
+            Under :guilabel:`Data Access` in the left navigation menu, 
+            click :guilabel:`Rules`. 
+
+         .. step:: Create a New Filter
+
+            Select the collection that you want to configure a filter for from
+            the :guilabel:`Rules` menu then click the :guilabel:`Filters` tab.
+            Click :guilabel:`Add a Filter` and enter a :guilabel:`Filter Name` for the new
+            filter.
+
+         .. step:: Specify the Apply When Expression
+
+            In the :guilabel:`Apply When` input box, enter a :ref:`rule expression
+            <expressions>` that defines when the filter applies to a query. If the
+            expression evaluates to ``true`` for an incoming query, App Services adds
+            the :guilabel:`Filter Query` parameters to the incoming query.
+
+            .. figure:: /images/filters-apply-when.png
+               :alt: Filter Apply When Input Screenshot
+
+            .. include:: /includes/note-filters-no-mongodb-expansions.rst
+
+         .. step:: Specify the Filter Query Predicates
+
+            In the :guilabel:`Query` input box, specify a document that contains
+            additional query predicates to merge into the incoming query when the
+            filter applies. For example, a filter that withholds documents that
+            have a ``score`` below ``20`` could use the following filter query:
+
+            .. code-block:: shell
+
+               { "score": { "$gt": 20 } }
+
+            .. figure:: /images/filters-query.png
+               :alt: Filter Query Input Screenshot
+
+         .. step:: Specify the Filter Projection
+
+            In the :guilabel:`Projection` input box, specify a document that
+            contains a :manual:`projection
+            </tutorial/project-fields-from-query-results>` document to merge into
+            the incoming query when the filter applies.
+
+            For example, a filter that withholds the ``career_stats`` and
+            ``personal`` fields from documents could use the following filter
+            projection:
+
+            .. code-block:: shell
+
+               {
+                 "career_stats": 0,
+                 "personal": 0
+               }
+
+            .. figure:: /images/filters-projection.png
+               :alt: Filter Projection Input Screenshot
+
+         .. step:: Save the Filter
+
+            After you have configured the filter, click :guilabel:`Save Draft`. After
+            saving, App Services immediately begins evaluating and applying filters to
+            incoming queries on the collection.
+   
+   .. tab::
+      :tabid: cli
+      
+      .. procedure::
+
+         .. step:: Pull the Latest Version of Your App
+
+            To define filters for a collection with {+cli-bin+}, you need a local
+            copy of your application's configuration files.
+
+            To pull a local copy of the latest version of your app, run the following:
+
+            .. code-block:: bash
+
+               {+cli-bin+} pull --remote="<Your App ID>"
+
+            .. tip::
+
+               You can also download a copy of your application's configuration files from
+               the :guilabel:`Deploy > Export App` screen in the App Services UI.
+
+
+         .. step:: Add a Rule Configuration File
+
+
+            To define or modify roles for a collection, open the ``rules.json``
+            configuration file within the collection's configuration directory.
+
+            .. tip:: Scaffold the Collection
+
+               If you haven't already defined rules or a schema for the collection, you
+               need to manually create its configuration directory and ``schema.json``:
+
+               .. code-block:: bash
+
+                  # Create the collection's configuration directory
+                  mkdir -p data_sources/<service>/<db>/<collection>
+                  # Create the collection's schema file
+                  echo '{}' >> data_sources/<service>/<db>/<collection>/rules.json
+
+            The configuration file should have the following general form:
+
+            .. code-block:: json
+
+               {
+                 "database": "<Database Name>",
+                 "collection": "<Collection Name>",
+                 "roles": [],
+                 "filters": []
+               }
+
+            .. note::
+
+               This guide focuses on creating ``filters`` for the collection. Check out
+               the other configuration guides to learn how to :ref:`define roles and
+               permissions <define-roles-and-permissions>` and :ref:`enforce
+               schemas <enforce-a-schema>`.
+
+            .. include:: /includes/adf-rules-note.rst
+
+
+         .. step:: Add One or More Filters
+
+            Add a document to the ``filters`` array for each filter that you want
+            to configure. Filter documents have the following form:
+
+            .. include:: /mongodb/tables/query-filter-params.rst
+
+
+         .. step:: Deploy the Updated Rules
+
+            Once you've defined and saved ``rules.json`` you can push the updated config
+            to your remote app. {+cli+} immediately deploys the filters on push.
+
+            .. code-block:: bash
+
+               {+cli-bin+} push --remote="<Your App ID>"
+
+.. note:: Security Consideration for App Services Filters
+
+  While :ref:`Role-based Permissions <roles>` and Filters can hide specific 
+  documents and fields within a collection there is a potential that 
+  data can be exposed if the system allows arbitrary 
+  queries to access the collection. 
+
+  For example, queries or functions that 
+  raise errors depending on the values stored in a collection (such 
+  as division-by-zero errors) may reveal information about documents, even if 
+  a role or filter prevents the querying user from viewing 
+  documents directly. Users may also make inferences about the underlying data 
+  in other ways (such as by measuring query execution time, which can be affected 
+  by the data's distribution). 
+  
+  Be aware that this is possible and audit your 
+  data access patterns where neccessary.

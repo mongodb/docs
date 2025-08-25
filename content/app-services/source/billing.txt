@@ -1,0 +1,473 @@
+.. meta::
+   :robots: nosnippet
+
+.. _billing:
+
+=======
+Billing
+=======
+
+.. facet::
+   :name: genre 
+   :values: reference
+
+.. meta:: 
+   :description: Review the billing structure for App Services Apps in MongoDB Atlas. 
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. banner::
+   :variant:  warning
+
+   GraphQL is deprecated. :ref:`Learn More <migrate-hosting-graphql>`.
+
+Atlas App Services Apps are billed according to how much they're used on a
+daily basis. There are four independently-measured usage types that determine
+how much you pay each day:
+
+- :ref:`App Services Requests <billing-requests>`, which measures the number of
+  requests that App Services sends and receives from client
+  applications and external services. Requests include function calls,
+  trigger executions, and sync updates, but exclude user authentication
+  and blocked or invalid requests.
+
+- :ref:`App Services Compute <billing-compute>`, which measures the runtime and memory
+  usage of all requests excluding sync and authentication.
+
+- :ref:`Atlas Device Sync <billing-sync>`, which measures the total amount of time in
+  which a client application is actively syncing.
+
+- :ref:`Data Transfer <billing-data-transfer>`, which measures the amount of
+  data that App Services sends to external services and client applications.
+
+.. note:: Track Your Usage
+   
+   You can track an application's usage for the current day from the
+   application dashboard in the App Services UI.
+
+Daily Free Tier
+---------------
+
+All App Services Apps in a MongoDB Atlas project share a single daily free
+tier. All usage below the free tier thresholds in a given day is not billed.
+
+Free Tier Thresholds
+~~~~~~~~~~~~~~~~~~~~
+
+App Services is free to use below the following daily free tier thresholds:
+
+- 50,000 :ref:`requests <billing-requests>`
+- 25 hours of :ref:`compute <billing-compute>`
+- 30,000 minutes of :ref:`sync <billing-sync>` runtime
+- 0.5 GB of :ref:`data transfer <billing-data-transfer>`
+
+Invoicing and Payment
+---------------------
+
+App Services is billed as part of MongoDB Atlas. Invoices are sent monthly and
+include all costs incurred from going over the daily free tier limits. 
+
+All payment methods that work with Atlas can be used to pay for App Services, 
+including prepaid Atlas Credits. Any costs associated with a linked Atlas data
+source, such as database operations and backup, are billed separately
+from App Services.
+
+See :ref:`MongoDB Atlas Billing <atlas-billing>` for more information.
+
+Usage Types
+-----------
+
+.. _billing-requests:
+
+App Services Requests
+~~~~~~~~~~~~~~~~~~~~~
+
+App Services counts the number of requests that an application
+receives and handles. Requests are billed at a set rate for each
+request.
+
+There are several types of requests:
+
+- **Function Executions**, such as when a user calls a function from a client
+  app, when a function calls an external service, or when a custom error 
+  handler is invoked by a failed EventBridge trigger. If an executing function
+  calls another function, App Services considers both executions as part of
+  the same request.
+
+- **Trigger Executions**, such as when a database trigger matches a change
+  event, a scheduled trigger is configured to fire, or an authentication
+  trigger responds to a user login. The request resulting from a trigger
+  execution also includes all operations invoked by the trigger, including
+  functions and EventBridge forwarding.
+
+- **GraphQL Requests**, such as when a client application issues a
+  GraphQL query operation or calls a custom resolver. (GraphQL is  
+  deprecated. :ref:`Learn more <migrate-hosting-graphql>`) 
+
+- **HTTPS Requests**, such as when an external service sends a notification
+  event or interaction payload to an incoming webhook or HTTPS endpoint.
+
+- **Sync Operations**, such as when a sync client uploads a :ref:`changeset
+  <changesets>`, when App Services :ref:`resolves a conflict
+  <operational-transformations>` in an uploaded changeset, or when
+  App Services sends changesets to a connected sync client.
+  
+  For more information on sync operations, see :ref:`Atlas Device Sync Protocol
+  <sync-protocol>`.
+
+All incoming requests count toward your daily usage except for the
+following:
+
+- Requests to an authentication provider
+- Requests blocked by an application's :ref:`IP Access List <manage-ip-access>`
+- Requests to an invalid HTTP endpoint
+
+.. _request-tier-pricing:
+
+**Price:** $2.00 / 1,000,000 requests ($0.000002 / request)
+
+**Formula:** (Function Executions + Trigger Executions + GraphQL/Webhook/HTTPS Endpoint Requests + Sync Updates) * $0.000002
+
+**Free Tier Threshold:** 50,000 :ref:`requests <billing-requests>`, 25 hours of
+:ref:`compute <billing-compute>`, and 30,000 minutes of :ref:`sync
+<billing-sync>` runtime 
+
+.. example:: Estimate Your Usage
+   
+   Consider answering the following questions to help estimate the number of
+   requests that your application will receive each day.
+   
+   **Triggers**
+   
+   - How many times does this trigger execute each day?
+   
+   **Functions/GraphQL**
+   
+   - How many requests do you receive each user session?
+   - How many daily active users does your app have?
+   - How many sessions does an average user open each day?
+   
+   **Atlas Device Sync Requests**
+   
+   - How many write operations do users issue each session?
+   - How many updates do users receive each session?
+   - How many devices or active users does your app have?
+
+.. _billing-compute:
+
+App Services Compute
+~~~~~~~~~~~~~~~~~~~~
+
+App Services counts the total amount of time and memory that each non-sync
+application request takes to process. Compute is billed at a set rate for each
+millisecond of runtime. For large requests, this rate is multiplied by a factor
+that reflects the amount of memory the request used.
+
+The memory multiplier begins at 1 (i.e. it does not affect your billing rate)
+and increases by 1 for every 32MB of memory that a given request uses.
+
+**Price:** $10.00 / 500 runtime hours (~$0.000000005 / ms)
+
+**Formula:** (Number of Requests) * (Runtime (ms)) * (Memory (MB) / 32MB) * $0.000000005 / ms
+
+**Free Tier Threshold:** 50,000 :ref:`requests <billing-requests>`, 25 hours of
+:ref:`compute <billing-compute>`, and 30,000 minutes of :ref:`sync
+<billing-sync>` runtime
+
+.. example:: Estimate Your Usage
+   
+   Consider answering the following questions to help estimate the amount of
+   compute time that your application will use each day.
+   
+   **Runtime**
+
+   - How many sessions does a user open each day?
+   - How many requests do you receive each session?
+   - How long does each request take?
+   - What does each request do?
+   - How many requests do you make to MongoDB Atlas or another service?
+   - Does a request handle heavy data processing? 
+   
+   **Memory Usage**
+   
+   - How much in-memory data does your application process for each request?
+   - How many MongoDB documents does a request affect?
+
+.. _billing-sync:
+
+Atlas Device Sync
+~~~~~~~~~~~~~~~~~
+
+App Services counts the total amount of time in which a client application
+user has an active connection to the sync server even if they are not 
+transferring data at the time. Sync is billed at a set rate for each 
+millisecond of sync runtime per user.
+
+**Price:** $0.08 / 1,000,000 runtime minutes ($0.00000008 / min)
+
+**Formula:** (Number of Active Users) * (Sync Time (min / user)) * ($0.00000008 / min)
+
+**Free Tier Threshold:** 50,000 :ref:`requests <billing-requests>`, 25 hours of
+:ref:`compute <billing-compute>`, and 30,000 minutes of :ref:`sync
+<billing-sync>` runtime 
+
+Device Sync pauses automatically after {+sync-inactive-app-pause-time+} 
+of inactivity.
+
+.. example:: Estimate Your Usage
+   
+   Consider answering the following questions to help estimate the amount of
+   sync time that your application will use each day.
+
+   **Sync Sessions**
+   
+   - How many daily active users does your app have?
+   - How much time is an average user online each day?
+
+.. _billing-data-transfer:
+
+Data Transfer
+~~~~~~~~~~~~~
+
+App Services measures the total amount of data that your application sends
+out to client applications and external services. Data transfer is billed at a
+set rate for each gigabyte of data egress.
+
+**Price:** $0.12 per GB
+
+**Formula:** (Data Sent to Clients/Services (GB)) * ($0.12 / GB)
+
+**Free Tier Threshold:** 10 GB
+
+.. note:: MongoDB Atlas Data Transfer
+
+  Data transfer from a linked MongoDB Atlas data source to App Services is billed as
+  an Atlas Data Egress charge. To learn more about Atlas
+  egress rates, read the :atlas:`Data Transfer </billing/data-transfer-costs/>`
+  billing documentation.
+
+.. example:: Estimate Your Usage
+   
+   Consider answering the following questions to help estimate the amount of
+   data that your application will transfer each day.
+   
+   **Data Transfer**
+   
+   - How many updates/requests does an average user issues each day? 
+   - How much data is sent to users per update/request?
+   - How often is data sent to external services?
+   - How much data might be sent in each external service call?
+
+Examples
+--------
+
+Mobile Application
+~~~~~~~~~~~~~~~~~~
+
+A group messaging application uses App Services to manage permissions and sync
+messages between users in the same group. The app has the following usage:
+
+- There are around 2,000 active group chats in any given day.
+
+- The average group chat has 4 users that each send around 20 messages each
+  day.
+
+- Messages are usually small but may contain up to 2KB of data.
+
+- The average user has the app open for about 1 hour each day.
+
+The following calculations approximate the cost of running this application for
+one day:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+   
+   * - Usage Type
+     - Calculation
+   
+   * - :ref:`App Services Requests <billing-requests>`
+     - - (2000 chats) * (4 users / chat) * (20 messages / user) = 160,000 messages
+       
+       - (160,000 messages) * ((1 write + 3 reads) / message) = 640,000 requests
+       
+       - (640,000 requests) - (50,000 free tier requests) = 590,000 requests
+
+       - (590,000 requests) * ($0.000002 / request) = **$1.18**
+   
+   * - :ref:`Atlas Device Sync <billing-sync>`
+     - - (2000 chats) * (4 users / chat) * (1 hr / user) = 8000 active hrs
+       
+       - (8000 active hrs) * (60 mins / hr)  - (30,000 free tier minutes) = 450,000 active min
+
+       - (450,000 active min) * ($0.00000008 / min) = **$0.036**
+   
+   * - :ref:`Data Transfer <billing-data-transfer>`
+     - - (160,000 messages) * (3 reads / message) = 480,000 reads
+       
+       - (480,000 reads) * (0.000002 GB / read) = 0.96 GB
+       
+       - (0.96 GB) - (0.5 free tier GB) =  0.46 GB
+
+       - (0.46 GB) * ($0.12 / GB) = **$0.0552**
+
+   * - **TOTAL**
+     - $1.18 (requests) + $0.036 (sync) + $0.0552 (data transfer) = **$1.27 for the day**
+
+.. note:: Free Tier Usage
+   
+   The way that free tier usage affects your bill depends on your consumption
+   each day. Consumption can look different on any individual day.
+   
+   The app would hit the requests, sync, and data transfer free tier thresholds.  
+   
+   The free tier would cover the following usage in each area:
+   
+   - **App Services Requests:** 50,000 requests
+   - **Atlas Device Sync:** 30,000 minutes
+   - **Data Transfer:** 0.5 GB
+
+Web Application
+~~~~~~~~~~~~~~~
+
+A hardware store uses a web application that allows customers to browse and
+order items online. The app uses Atlas Functions to fetch
+items based on a user's search, get detailed information for specific items, and
+submit orders. The app has the following usage:
+
+- There are around 3,000 visitors each day.
+
+- An average visitor performs 2 searches, looks at 10 items, and submits an
+  order 20% of the time.
+
+- Search results, item data, and order requests contain 4KB or less.
+
+The following calculations approximate the cost of running this application for
+one day:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+   
+   * - Usage Type
+     - Calculation
+
+   * - :ref:`App Services Requests <billing-requests>`
+     - - (2 searches + 10 items + 0.20 orders) / visitor = 12.2 requests / visitor
+       
+       - (12.2 requests / visitor) * (3,000 visitors) = 36,600 requests
+
+       - (36,600 requests) - (50,000 free tier requests) =  0 requests
+       
+       - (0 requests) * ($0.000002 / request) = **FREE**
+
+   * - :ref:`App Services Compute <billing-compute>`
+     - - (3,000 visitors) * ((2 searches + 10 items + 0.20 orders) / visitor) = 36,600 requests
+       
+       - (36,600 requests) * (100 ms / request) * 1 = 3,660,000 ms
+         
+         - *100 ms is a conservative runtime estimate for lightweight functions*
+         - *4KB is well under 32MB, so the memory multiplier is 1*
+       
+       - (3,660,000 ms) - (90,000,000 free tier ms) = 0 ms
+       
+       - (0 ms) * ($0.000000005 / ms) = **FREE**
+
+   * - :ref:`Data Transfer <billing-data-transfer>`
+     - - (36,600 requests) * (0.000002 GB / request) = 0.073 GB
+       
+       - (0.073 GB) - (0.50 free tier GB) = 0 GB
+       
+       - (0 GB) * ($0.12 / GB) = **FREE**
+
+   * - **TOTAL**
+     - $0 (requests) + $0 (compute) + $0 (data transfer) = **$0 for the day**
+
+.. note:: Free Tier Usage
+
+   The way that free tier usage affects your bill depends on your consumption
+   each day. Consumption can look different on any individual day.
+   
+   In this situation, the free tier covers all App Services expenses for the App.
+   The free tier would cover the following usage in each area:
+   
+   - **App Services Requests:** 36,600 requests
+   - **App Services Compute:** 1.02 hours
+   - **Data Transfer:** 0.073 GB
+
+Backend Application
+~~~~~~~~~~~~~~~~~~~
+
+An international pizza chain uses App Services to handle orders for all of its
+restaurants. The app has the following usage:
+
+- The chain has 18,000 stores, and each store gets about 400 orders each day.
+
+- The stores are in operation for 16 hours each day.
+
+- For each order, a database trigger sends the customer an email receipt.
+  Another trigger sends text message updates to the customer when their order is
+  received, when it's sent out for delivery, and when it's about to be
+  delivered.
+
+- A scheduled trigger runs every 5 minutes to monitor delivery times. If a
+  delivery is taking too long, it sends a text message update to the user. About
+  10% of all deliveries take too long.
+
+- Orders vary in size but are no larger than 4KB.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+   
+   * - Usage Type
+     - Calculation
+
+   * - :ref:`App Services Requests <billing-requests>`
+     - - (18,000 stores) * (400 orders / store) = 7,200,000 orders
+       
+       - (7,200,000 orders) * ((1 email + 3.10 texts + 3 scheduled triggers) / order) = 51,120,000 requests
+       
+       - (51,120,000 requests) - (50,000 free tier requests) = 51,070,000 requests
+
+       - (51,070,000 requests) * ($0.000002 / request) = **$102.14**
+
+   * - :ref:`App Services Compute <billing-compute>`
+     - - (51,120,000 requests) * (300 ms / request) * 1 =  15,336,000,000 ms
+         
+         - *300 ms is a runtime estimate for the trigger function. To get a
+           better estimate, create a POC function and test how long it takes to
+           connect to external services, etc.*
+         - *4KB is well under 32MB, so the memory multiplier is 1*
+       
+       - (15,336,000,000 ms) - (90,000,000 free tier ms) = 15,246,000,000 ms
+
+       - (15,246,000,000 ms) * ($0.000000005 / ms) = **$76.23**
+
+   * - :ref:`Data Transfer <billing-data-transfer>`
+     - - (51,120,000 requests) * (0.000004 GB / request) = 204.48 GB
+       
+       - (204.48 GB) - (0.50 free tier GB) = 203.98 GB
+       
+       - (203.98 GB) * ($0.12 / GB) = **$24.48**
+
+   * - **TOTAL**
+     - $102.14 (requests) + $76.23 (compute) + $24.48 (data transfer) = **$202.85 for the day**
+
+.. note:: Free Tier Usage
+
+   The way that free tier usage affects your bill depends on your consumption
+   each day. Consumption can look different on any individual day.
+   
+   This is an example of a larger app with many users and a larger workload. 
+   The app would hit the requests, compute, and data transfer free tier thresholds.
+
+   The free tier would cover the following usage in each area:
+   
+   - **App Services Requests:** 50,000 requests
+   - **App Services Compute:** 25 hours
+   - **Data Transfer:** 0.5 GB

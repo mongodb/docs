@@ -1,0 +1,417 @@
+.. meta::
+   :robots: nosnippet
+
+.. _relationships:
+
+=============
+Relationships
+=============
+
+.. meta:: 
+   :keywords: code example
+   :description: Learn about relationship types and how to define them in an Atlas App Services Schema.
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: json, shell
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+A relationship is a connection between two documents. Relationships
+allow you to reference and query related documents in read and write
+operations, even if the documents are in separate databases or
+collections.
+
+You define a relationship on a source MongoDB collection and link to
+documents in a foreign collection. Atlas App Services automatically resolves
+relationships in synced SDK data models by replacing the values in a source
+field with the foreign documents that they reference.
+
+Relationships are unidirectional and don't enforce uniqueness or other
+foreign key constraints. If you reference a non-existent foreign value in
+a source field, App Services automatically omits the reference from resolved
+relationships.
+
+.. example::
+   
+   Consider an application that has two collections:
+   
+   - The ``accounts`` collection contains documents that each describe
+     a customer account.
+     
+     .. code-block:: json
+        :caption: Account Collection Schema
+        :emphasize-lines: 5
+        
+        {
+          "title": "Account",
+          "properties": {
+            "_id": { "bsonType": "objectId" },
+            "account_id": { "bsonType": "string" },
+            "products": {
+              "bsonType": "array",
+              "items": { "bsonType": "string" }
+            },
+            ...
+          }
+        }
+   
+   - The ``customers`` collection contains documents that each describe
+     a single customer that can have one or more accounts. Every
+     document in the ``customers`` collection has an ``accounts`` field
+     that contains an array of every ``account_id`` value from the
+     ``accounts`` collection that applies to the customer.
+     
+     .. code-block:: json
+        :caption: Customer Collection Schema
+        :emphasize-lines: 5-8
+        
+        {
+          "title": "Customer",
+          "properties": {
+            "username": { "bsonType": "string" },
+            "accounts": {
+              "bsonType": "array",
+              "items": { "bsonType": "string" }
+            },
+            ...
+          }
+        }
+   
+   The app defines this relationship on the ``customers`` collection. It
+   points from the array of account id values stored in the ``accounts``
+   field to the ``account_id`` field of each document in the
+   ``accounts`` collection.
+   
+   .. code-block:: json
+      
+      {
+        "accounts": {
+          "ref": "#/relationship/mongodb-atlas/sample_analytics/accounts",
+          "foreign_key": "account_id",
+          "is_list": true
+        }
+      }
+   
+   With this relationship defined, App Services can return a customer and all
+   of their accounts in client queries. Without a relationship,
+   the queries would return a list of just ``account_id`` values instead
+   of the full ``Account`` objects.
+
+Cardinality
+-----------
+
+A relationship's cardinality determines the number of foreign documents
+that it can reference. App Services supports two relationship cardinalities:
+"to-one" and "to-many".
+
+.. _relationships-to-one:
+
+To-One
+~~~~~~
+
+A to-one relationship links each source document with either a single
+document or an array of documents from the foreign collection.
+
+To indicate that a relationship has "to-one" cardinality, set
+``is_list`` to ``false``:
+
+.. code-block:: json
+   :caption: data_sources/mongodb-atlas/example/pets/relationships.json
+   :emphasize-lines: 5
+   
+   {
+     "owner": {
+       "ref": "#/relationship/mongodb-atlas/example/people",
+       "foreign_key": "_id",
+       "is_list": false
+     }
+   }
+
+App Services automatically replaces source values with the referenced objects
+or a null value in SDK models:
+
+.. code-block:: json
+    
+    {
+      "name": "Pet",
+      "properties": {
+        "name": "string",
+        "owner": "Person"
+      }
+    }
+    {
+      "name": "Person",
+      "properties": {
+        "name": "string"
+      }
+    }
+
+.. _relationships-to-many:
+
+To-Many
+~~~~~~~
+
+A to-many relationship links each source document with a list of
+documents from the foreign collection. 
+
+To indicate that a relationship has "to-many" cardinality, set
+``is_list`` to ``true``:
+      
+.. code-block:: json
+   :caption: data_sources/mongodb-atlas/example/people/relationships.json
+   :emphasize-lines: 5
+   
+   {
+     "pets": {
+       "ref": "#/relationship/mongodb-atlas/example/pets",
+       "foreign_key": "_id",
+       "is_list": true
+     }
+   }
+
+App Services automatically replaces source values with the referenced objects
+or a null value in SDK models:
+
+.. code-block:: json
+    
+    {
+      "name": "Pet",
+      "properties": {
+        "name": "string"
+      }
+    }
+    {
+      "name": "Person",
+      "properties": {
+        "name": "string",
+        "pets": "Pet[]"
+      }
+    }
+
+.. _relationships-embedded-object:
+
+Embedded Object Relationships
+-----------------------------
+
+Embedded Objects can have relationships with foreign collections. Use 
+dot notation to access properties in embedded objects.
+
+.. _relationships-from-embedded-object-to-another-collection:
+
+Embedded Object to Another Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An embedded object can have a relationship with an object in a foreign 
+collection.
+
+.. code-block:: json
+
+   {
+     "title": "Person",
+     "properties": {
+       "_id": { "bsonType": "objectId" },
+       "pet": {
+         "bsonType":"object",
+         "properties": {
+           "favoriteToyBrand": { "bsonType": "objectId" }
+         }
+       }
+       // ...additional model properties
+     }
+   }
+
+Use dot notation to specify the embedded object property that has a 
+relationship with the foreign collection. Then, you can specify the 
+foreign collection details and foreign key field.
+
+.. code-block:: json
+
+   { "pet.favoriteToyBrand": 
+      { 
+         "ref": "#/relationship/mongodb-atlas/example/ToyBrand", 
+         "foreign_key": "_id", 
+         "is_list": false }
+   }
+
+.. _relationships-to-embedded-object-within-list:
+
+Embedded Object Within a List
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An embedded object that is within a list property can have a relationship
+with a foreign collection.
+
+.. code-block:: json
+
+   {
+     "title": "Person",
+     "properties": {
+       "_id": { "bsonType": "objectId" },
+       "pets": {
+         "bsonType":"array",
+         "items": {
+           "bsonType": "object",
+           "properties": {
+             "favoriteToyBrand": { "bsonType": "objectId" }
+           }
+         }
+       }
+      // ...additional model properties
+     }
+   }
+
+To access an embedded object property contained in a list, use 
+``field1.[].field2`` (for example, ``pets.[].favoriteToyBrand``). From there, 
+you can specify the foreign collection details and foreign key field.
+
+.. tip:: Use the same syntax with dictionaries and sets
+
+   You can use this same ``field1.[].field2`` syntax when creating relationships
+   within dictionaries and sets.
+
+.. code-block:: json
+
+   {
+     "pets.[].favoriteToyBrand": {
+       "ref": "#/relationship/mongodb-atlas/example/ToyBrand",
+       "foreign_key": "_id",
+       "is_list": false
+     }
+   }
+
+.. note:: Primitives versus lists, dictionaries, and sets in relationships
+
+   In the example above, ``is_list`` is set to false. The field at the end
+   of the relationship string here is a primitive, not a list. The embedded 
+   object is *contained* in a list, but the ``favoriteToyBrand`` property 
+   itself is not a dictionary, set, or list.
+
+.. _define-a-relationship:
+
+Define a Relationship
+---------------------
+
+When you define a relationship, keep these limitations in mind:
+
+- The reference (source) field *cannot* be ``_id``.
+- The reference (source) field *cannot*  be a ``required`` field.
+- If you are using Device Sync, the foreign key *must* be the ``_id`` field of
+  the foreign collection.
+
+
+.. procedure::
+
+  .. step:: Define Schemas
+
+      To define a relationship, you must have a schema defined for
+      both the source collection and the foreign collection. To learn how to
+      define schemas, see :ref:`enforce-a-schema`.
+
+  .. step:: Create a New Relationship
+
+      You define a relationship for collections in a linked MongoDB data
+      source alongside the schema.
+
+      .. tabs-realm-admin-interfaces::
+
+        .. tab::
+            :tabid: ui
+
+            To create a new relationship:
+            
+            1. Click :guilabel:`Schema` in the left navigation menu.
+
+            #. From the :guilabel:`Collections` tab, select the source
+               collection.
+            
+            #. Toggle the :guilabel:`View` to JSON View, and click :guilabel:`+ Add Relationship`.
+          
+        .. tab::
+            :tabid: cli
+
+            To create a new relationship, add a relationship configuration
+            object to the source collection's ``relationships.json`` file:
+
+            .. code-block:: json
+        
+              {
+                "<source field>": {
+                  "ref": "#/relationship/<data source>/<db>/<collection>",
+                  "foreign_key": "<foreign field>",
+                  "is_list": <boolean>
+                }
+              }
+
+  .. step:: Configure the Relationship
+
+      A relationship definition maps *from* a reference field in the source
+      collection's schema *to* a foreign field of the same type in the
+      foreign collection's schema.
+
+      .. tabs-realm-admin-interfaces::
+
+        .. tab::
+            :tabid: ui
+            
+            To configure the relationship:
+            
+            1. Specify the field in the source collection that the relationship
+               maps from. This is referred to as the **parent** in the UI.
+            
+            2. Specify the foreign database, collection, and field in the
+               foreign collection to map to the source field. These are referred
+               to as **linked** in the UI. If you are using Device Sync, the
+               linked field *must* be ``_id``.
+            
+            3. Click :guilabel:`Add`.
+          
+        .. tab::
+            :tabid: cli
+            
+            To configure the relationship, specify the source field name as a
+            root-level field in ``relationships.json``, then add the
+            following configuration options in the field's value:
+
+            - Specify the foreign collection in the ``ref`` field using the
+              following format:
+              
+              .. code-block:: text
+                
+                #/relationship/<data source>/<db>/<collection>
+
+            - Specify the field to match in the ``foreign_key`` field. If you
+              are using Device Synce, this *must* be ``_id``.
+
+            - If the source field contains an array, set ``is_list`` to
+              ``true``, otherwise set it to ``false``.
+
+  .. step:: Deploy the Relationship
+
+      .. tabs-realm-admin-interfaces::
+
+        .. tab::
+            :tabid: ui
+            
+            Click :guilabel:`Save`, then deploy your updated application.
+          
+        .. tab::
+            :tabid: cli
+            
+            Save the relationship configuration file, and push your changes to
+            deploy them:
+
+            .. code-block:: sh
+              
+              {+cli-bin+} push

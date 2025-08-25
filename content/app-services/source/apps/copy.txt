@@ -1,0 +1,202 @@
+.. meta::
+   :robots: nosnippet
+
+.. _copy-app:
+.. _copy-realm-app:
+
+===========
+Copy an App
+===========
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+You can make a copy of an existing App by reusing the App's
+configuration files and manually porting Secrets.
+
+You might want to copy an application if:
+
+- You use feature branches for development. Use a unique copy of the
+  App for each feature branch to avoid conflicts.
+
+- You run tests against a working version of the App. You can copy an
+  App for each test run to to ensure a consistent start state.
+
+- You deploy the same app to clusters across regions using a :ref:`local
+  deployment model <local-deployment>`. You can copy an App to serve
+  multiple regions locally.
+
+Before You Begin
+----------------
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: cli
+
+      You will need the following to copy an App in the CLI:
+
+      - .. include:: /includes/prereqs/atlas-account.rst
+
+      - .. include:: /includes/prereqs/atlas-admin-api-key.rst
+
+      - .. include:: /includes/prereqs/appservices-cli.rst
+
+   .. tab::
+      :tabid: github
+
+      To copy an App based on configuration files in a GitHub
+      repository, you must enable :ref:`Automatic GitHub Deployment
+      <deploy-github>` for the App.
+
+Procedure
+---------
+
+.. include:: /includes/warning-github-deploy-dont-use-cli.rst
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: cli
+
+      .. procedure::
+
+         .. step:: Authenticate a MongoDB Atlas User
+
+            .. include:: /includes/cli-login.rst
+
+         .. step:: Create a New App
+
+            Create a new blank App. Choose a name and set the deployment
+            model and region to be what you want the copied App to use.
+            For more information, see :ref:`Create an App
+            <create-app>`.
+
+            .. example::
+
+               .. code-block:: bash
+
+                  # Create the new App
+                  {+cli-bin+} app create \
+                    --name "myapp-copy" \
+                    --deployment-model "LOCAL" \
+                    --provider-region "aws-us-west-2"
+
+         .. step:: Migrate Secrets to the New App
+
+            .. include:: /apps/copy-app-migrate-secrets.rst
+
+         .. step:: Copy Your Configuration Files
+
+            Pull the latest version of your original App's configuration
+            files to your local filesystem. To learn how, see
+            :ref:`Export an App <export-app>`.
+
+            .. example::
+
+               .. code-block:: bash
+
+                  # Pull the config files for an existing App
+                  {+cli-bin+} pull --remote="myapp-abcde"
+
+            .. include:: /apps/copy-app-copy-config-files.rst
+
+         .. step:: Push the Copied Configuration Files
+
+            Push the configuration files you copied from your original
+            App. The new App will automatically update and deploy with
+            the copied configuration files.
+
+            .. example::
+
+               .. code-block:: bash
+
+                  # Navigate back to the new App
+                  cd myapp-copy
+                  # Push the copied configuration files to App Services
+                  {+cli-bin+} push
+
+   .. tab::
+      :tabid: github
+
+      .. procedure::
+
+         .. step:: Create a New Configuration Directory
+
+            Create a new directory to store the copied App's
+            configuration files. You can create a new repository for the
+            copied App or keep both Apps' configurations in the same
+            repository using branches or subdirectories.
+
+            .. example::
+
+               .. code-block:: bash
+
+                  # Create a new directory for the copied App
+                  mkdir myapp-copy
+
+         .. step:: Create a New App
+
+            Create a new blank App. Choose the same name as the original
+            App and set the deployment model and region to be what you
+            want the copied App to use. For more information, see
+            :ref:`Create an App <create-app>`.
+
+            Once created, save the new App's configuration files to the
+            directory you created in the previous step if they aren't
+            already.
+
+            .. example::
+
+               .. code-block:: bash
+
+                  # Navigate to the new App's directory
+                  cd myapp-copy
+                  # Create the new App. The create command saves the new
+                  # App's configuration file directory in the current directory
+                  {+cli-bin+} app create \
+                    --name "myapp-copy" \
+                    --deployment-model "LOCAL" \
+                    --provider-region "aws-us-west-2"
+                  cp -r myapp-copy/* .
+                  rm -rf myapp-copy
+                  # Navigate back to the root of the repo
+                  cd ..
+
+         .. step:: Set Up Automatic Github Deployment
+
+            In the new App, set up and enable :ref:`Automatic Github
+            Deployment <deploy-github>`. Make sure to point to the
+            repository, branch, and directory that you created for the
+            new App, not your original App.
+
+         .. step:: Migrate Secrets to the New App
+
+            .. include:: /apps/copy-app-migrate-secrets.rst
+
+         .. step:: Copy Your Configuration Files
+
+            .. include:: /apps/copy-app-copy-config-files.rst
+
+         .. step:: Push New App to Github
+
+            Commit the copied application configuration files and then
+            push them to GitHub. The new App will automatically update
+            and deploy with the copied configuration files.
+
+            .. example::
+
+               .. code-block:: bash
+
+                  # Navigate back to the new App
+                  cd myapp-copy
+                  # Push the copied configuration files to GitHub
+                  git add -A
+                  git commit -m "Copy configuration from myapp"
+                  git push origin main

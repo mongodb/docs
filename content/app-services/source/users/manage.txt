@@ -1,0 +1,321 @@
+.. meta::
+   :robots: nosnippet
+
+====================
+Manage User Accounts
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You can manage your application's user accounts with the App Services UI, 
+App Services CLI, Admin API, or Realm SDKs.
+
+.. _delete-user:
+
+Delete a User
+-------------
+
+You can completely remove a user from your application, including any
+metadata and authentication provider identities. Deleting a user also
+immediately ends any :ref:`sessions <user-sessions>` associated with
+that user.
+
+.. tip::
+   
+   If you don't want to delete the user's account, you can :ref:`disable their
+   account <disable-user>` to temporarily suspend their access.
+
+Manually Delete a User
+~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the App Services UI, CLI, or Admin API to manually remove a user account.
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      #. Select :guilabel:`App Users` from the left navigation menu.
+      
+      #. Select either :guilabel:`Confirmed` or :guilabel:`Pending`, depending
+         on the current state of the user you wish to delete.
+      
+      #. Under the :guilabel:`Users` tab, find a user in the list and click on
+         the ellipsis (``...``).
+      
+      #. Click :guilabel:`Delete User` and confirm your choice.
+   
+   .. tab::
+      :tabid: cli
+      
+      To delete a user, call ``{+cli-bin+} users delete``. The CLI will prompt you
+      for your App ID and list users in that app for you to select.
+      
+      .. code-block:: bash
+         
+         {+cli-bin+} users delete
+      
+      You can also specify the arguments when you call the program:
+      
+      .. code-block:: bash
+         
+         {+cli-bin+} users delete \
+           --app=<Your App ID> \
+           --user=<User ID>
+      
+      .. tip::
+         
+         You can delete multiple users with a single command by specifying
+         their ``id`` values as a comma-separated list.
+         
+         .. code-block:: bash
+            
+            {+cli-bin+} users delete --user=6099694d5debcbcc873ff413,60996996b78eca4a8d615d3a
+
+   .. tab::
+      :tabid: api
+
+      To delete a user, create a ``DELETE`` request 
+      in the following format. You must specify the Group, App, and User ID.
+
+      .. code-block:: sh
+
+         curl --request DELETE \
+           --header 'Authorization: Bearer <access_token>' \
+           https://services.cloud.mongodb.com/api/admin/v3.0/groups/<groupId>/apps/<appId>/users/<userId>
+      
+      If you want to delete a :ref:`pending <confirm-user>`
+      email/password user, create a request in the following format: 
+         
+      .. code-block:: sh
+
+         curl --request DELETE \
+            --header 'Authorization: Bearer <access_token>' \
+            https://services.cloud.mongodb.com/api/admin/v3.0/groups/<groupId>/apps/<appId>/user_registrations/by_email/<email>
+
+      .. seealso::
+      
+        :admin-api-endpoint:`Admin API Documentation <operation/adminDeleteUser>`
+
+.. include:: /includes/note-delete-user.rst
+   
+Delete a User in the SDK
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can give users the option to delete their own account from a client 
+application when you use the Realm SDKs to delete users.
+
+- :ref:`Delete a User - Flutter SDK <flutter-delete-user>`
+- :ref:`Delete a User - Kotlin SDK <kotlin-delete-users>`
+- :ref:`Delete a User - .NET SDK <dotnet-delete-user>`
+- :ref:`Delete a User - Node.js SDK <node-delete-user>`
+- :ref:`Delete a User - React Native SDK <react-native-delete-user>`
+- :ref:`Delete a User - Swift SDK <ios-delete-user>`
+- :ref:`Delete a User - Web SDK <web-delete-user>`
+
+Delete a User with a Custom Function
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can write a custom function to delete a user. You might want to do this if
+your SDK does not yet support the delete users API. 
+
+:ref:`Create a function <define-a-function>` similar to our example below 
+that uses :guilabel:`Application Authentication`. You might want to incorporate
+error handling in the event that the function does not successfully 
+authenticate, or it cannot delete the calling user. 
+
+For this example function, we have :ref:`created values and secrets for the 
+adminApiPublicKey and adminApiPrivateKey <values-and-secrets>`. 
+We would then add the :ref:`Project and Application IDs 
+<app-metadata>` to the ``apiUrl``.
+
+We can then :ref:`call this function from the SDK 
+<call-function-from-client-sdks>`. The example function below does not 
+take any arguments, and deletes the user who calls the function. 
+
+.. tip::
+
+   If your app uses :ref:`Email/Password Authentication 
+   <email-password-authentication>`, consider that you may want to 
+   delete pending users, which involves a second endpoint:
+
+   - :admin-api-endpoint:`Delete users <operation/adminDeleteUser>`
+   - :admin-api-endpoint:`Delete pending users <operation/adminDeletePendingEmailPasswordUser>`
+
+.. code-block:: javascript
+
+   const apiUrl = "https://services.cloud.mongodb.com/api/admin/v3.0/groups/{insert-your-project-id}/apps/{insert-your-app-id}";
+
+   exports = async function(){
+
+   // This function deletes the user who calls it. It gets this user's ID
+   // from the user in the function context. This is safer than accepting 
+   // a passed-in user ID, as the user can never delete any other user's account.
+   const callersUserId = context.user.id
+
+   async function adminLogIn() {
+      const username = context.values.get("adminApiPublicKey");
+      const apiKey = context.values.get("adminApiPrivateKey");
+      const response = await context.http.post({
+         url: "https://services.cloud.mongodb.com/api/admin/v3.0/auth/providers/mongodb-cloud/login",
+         body: {username, apiKey},
+         encodeBodyAsJSON: true,
+      });
+      const body = EJSON.parse(response.body.text());
+      return body.access_token;
+   }
+   
+   const token = await adminLogIn();
+
+   async function deleteUser(_id) {
+      await context.http.delete({
+         url: `${apiUrl}/users/${_id}`,
+         headers: {"Authorization": [`Bearer ${token}`]}
+      });
+      return _id;
+   }
+   
+   return deleteUser(callersUserId);
+
+   };
+
+.. _disable-user:
+
+Disable a User
+--------------
+
+You can temporarily disable a user, which prevents the user from logging in and
+invalidates any of the user's existing access and refresh tokens. You can
+:ref:`enable <enable-user>` a disabled user to let them log in again.
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      #. Select :guilabel:`App Users` from the left navigation menu.
+      
+      #. Select either :guilabel:`Confirmed` or :guilabel:`Pending`, depending
+         on the current state of the user you wish to disable.
+      
+      #. Under the :guilabel:`Users` tab, find a user in the list and click on
+         the ellipsis (``...``).
+      
+      #. Click :guilabel:`Disable User` and confirm your choice.
+   
+   .. tab::
+      :tabid: cli
+      
+      To disable a user, call ``{+cli-bin+} users disable``. The CLI will prompt you
+      for your App ID and list users in that app for you to select.
+      
+      .. code-block:: bash
+         
+         {+cli-bin+} users disable
+      
+      You can also specify the arguments when you call the program:
+      
+      .. code-block:: bash
+         
+         {+cli-bin+} users disable \
+           --app=<Your App ID> \
+           --user=<User ID>
+      
+      .. tip::
+         
+         You can disable multiple users with a single command by specifying
+         their ``id`` values as a comma-separated list.
+         
+         .. code-block:: bash
+            
+            {+cli-bin+} users disable --user=6099694d5debcbcc873ff413,60996996b78eca4a8d615d3a
+
+   .. tab::
+      :tabid: api
+
+      To disable a user, create a ``PUT`` request 
+      in the following format. You must specify the Group, App, and User ID.
+
+      .. code-block:: sh
+
+         curl --request PUT \
+           --header 'Authorization: Bearer <access_token>' \
+           https://services.cloud.mongodb.com/api/admin/v3.0/groups/<groupId>/apps/<appId>/users/<userId>/disable
+
+      .. seealso::
+      
+         :admin-api-endpoint:`Admin API Documentation <operation/adminDisableUser>`
+
+.. _enable-user:
+
+Enable a User
+-------------
+
+You can enable a :ref:`disabled user <disable-user>` to let them log in again.
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      #. Select :guilabel:`App Users` from the left navigation menu.
+      
+      #. Select either :guilabel:`Confirmed` or :guilabel:`Pending`, depending
+         on the current state of the user you wish to enable.
+      
+      #. Under the :guilabel:`Users` tab, find a user in the list and click on
+         the ellipsis (``...``).
+      
+      #. Click :guilabel:`Enable User` and confirm your choice.
+   
+   .. tab::
+      :tabid: cli
+      
+      To enable a user, call ``{+cli-bin+} users enable``. The CLI will prompt you
+      for your App ID and list users in that app for you to select.
+      
+      .. code-block:: bash
+         
+         {+cli-bin+} users enable
+      
+      You can also specify the arguments when you call the program:
+      
+      .. code-block:: bash
+         
+         {+cli-bin+} users enable \
+           --app=<Your App ID> \
+           --user=<User ID>
+      
+      .. tip::
+         
+         You can enable multiple users with a single command by specifying
+         their ``id`` values as a comma-separated list.
+         
+         .. code-block:: bash
+            
+            {+cli-bin+} users enable --user=6099694d5debcbcc873ff413,60996996b78eca4a8d615d3a
+
+   .. tab::
+      :tabid: api
+
+      To enable a user, create a ``PUT`` request 
+      in the following format. You must specify the Group, App, and User ID.
+
+      .. code-block:: sh
+
+         curl --request PUT \
+           --header 'Authorization: Bearer <access_token>' \
+           https://services.cloud.mongodb.com/api/admin/v3.0/groups/<groupId>/apps/<appId>/users/<userId>/enable
+
+      .. seealso::
+      
+         :admin-api-endpoint:`Admin API Documentation <operation/adminEnableUser>`

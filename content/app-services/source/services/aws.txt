@@ -1,0 +1,405 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _aws-service:
+
+========================
+AWS Service [Deprecated]
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+.. include:: /includes/note-third-party-services-deprecation.rst
+
+Overview
+--------
+
+`Amazon Web Services (AWS) <https://aws.amazon.com/>`_ provides an
+extensive collection of cloud-based services. Atlas App Services provides a
+generic AWS service that enables you to connect to many of these
+services.
+
+.. _aws-service-configuration:
+
+Configuration Parameters
+------------------------
+
+You will need to provide values for the following parameters when you
+:doc:`create an AWS service interface </services/configure/services>`:
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+   .. tab::
+      :tabid: cli
+      
+      .. code-block:: json
+         :caption: <Service Name>/config.json
+      
+         {
+           "name": "<Service Name>",
+           "type": "aws",
+           "config": {
+             "accessKeyId": <Access Key ID>,
+             "region": "us-east-1"
+           },
+           "secret_config": {
+             "secretAccessKey": "<Secret Name>"
+           }
+         }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 15
+
+   * - Parameter
+     - Description
+
+   * - | :guilabel:`Service Name`
+       | *config.name*
+
+     - A unique name for the service.
+
+   * - | :guilabel:`Access Key ID`
+       | *config.accessKeyId*
+
+     - The access key ID for an AWS IAM user. The user should have
+       programmatic access and appropriate permissions for all AWS
+       services that you plan to interact with.
+
+   * - | :guilabel:`Secret Access Key`
+       | *secret_config.secretAccessKey*
+
+     - The name of a :ref:`Secret <app-secret>` that stores a secret
+       access key for the IAM user whose ID is specified in
+       :guilabel:`Access Key ID`. You can find this value next to the
+       Access key ID when you create a new IAM user or create a new
+       access key for an existing IAM user.
+
+.. seealso::
+
+   - :aws-reference:`Managing Access Keys for Your AWS Account
+     <gr/managing-aws-access-keys.html>`
+
+   - :aws-iam:`Create IAM Users
+     <UserGuide/best-practices.html#create-iam-users>`
+
+Service Actions
+---------------
+
+Each AWS service has different actions that you can perform on that
+service. App Services uses the action names specified in the `AWS SDK
+for Go <https://docs.aws.amazon.com/sdk-for-go/api/>`_ for each service.
+
+.. note::
+   App Services uses the same names (and casing) for the AWS services
+   and actions as the AWS Go SDK.
+
+For each supported AWS service, App Services supports any action that:
+
+1. Takes a single input parameter.
+
+#. Returns one of two objects: an output object, or an error.
+
+For example, the ``S3`` service includes a :aws-go:`PutObject <s3/#S3.PutObject>`
+action. App Services supports this action because it takes a single
+input type of :aws-go:`PutObjectInput <s3/#PutObjectInput>`, and returns
+either a :aws-go:`PutObjectOutput <s3/#PutObjectOutput>` or an error.
+
+AWS Service Rules
+-----------------
+
+You must specify rules to enable the AWS services and actions. Each rule
+applies to a single service API, plus one or all actions on that service.
+As with other service rules in App Services, a rule must evaluate
+to ``true`` to enable the action.
+
+For example, the following rule enables all actions on the Kinesis
+service:
+
+.. figure:: /images/aws-kinesis-rule.png
+   :alt: AWS Kinesis rule.
+   :figwidth: 750px
+
+.. note::
+   The default value of the :guilabel:`When`
+   field contains only empty brackets, which means the rule will always
+   evaluate to ``true``, and therefore all calls to the action are valid.
+
+This rule can also be expressed as the following :ref:`rule expression
+<expressions>`. Note that in the array of ``actions``, the asterisk (``*``)
+after the service name indicates that all actions of that service are enabled:
+
+.. code-block:: javascript
+
+   {
+      "name": "kinesis",
+      "actions": [
+         "kinesis:*"
+      ]
+   }
+
+.. _aws-rule-conditions:
+
+Rule Conditions
+---------------
+
+For each service action, the rule you create may include any of the
+properties of the input object for that action as a condition for
+validating the rule. The ``%%args`` expansion provides access to these
+properties.
+
+Example
+~~~~~~~
+
+``S3 PutObject``
+````````````````
+
+The ``S3`` service includes the :aws-go:`PutObject <s3/#S3.PutObject>`
+action, which takes an input object of type of :aws-go:`PutObjectInput
+<s3/#PutObjectInput>`. You can reference any of the properties on the
+``PutObjectInput`` object in a rule's :guilabel:`When` expression with the
+:json-expansion:`%%args` expansion.
+
+Using the ``Bucket`` property of the  ``PutObjectInput`` object, you can
+create a rule that enables the ``PutObject`` action on the S3 service,
+but restricts the action to a list of approved buckets.  In this example,
+we use a user-defined constant called ``myS3Buckets`` for the list of approved
+bucket names:
+
+.. figure:: /images/aws-s3-rule.png
+   :alt: AWS S3 rule
+   :figwidth: 750px
+
+This can also be expressed as the following JSON:
+
+.. code-block:: javascript
+
+   {
+      "name": "s3",
+      "actions": [
+         "s3:PutObject"
+      ],
+      "when": {
+         "%%args.Bucket": {
+               "$in": "%%values.myS3Buckets"
+         }
+      }
+   }
+
+
+``S3 GetObject``
+````````````````
+
+The ``S3`` service includes the :aws-go:`GetObject <s3/#S3.GetObject>`
+action, which takes an input object of type of :aws-go:`GetObjectInput
+<s3/#GetObjectInput>`. You can reference any of the properties on the
+``GetObjectInput`` object in a rule's :guilabel:`When` expression with the
+:json-expansion:`%%args` expansion.
+
+In the following example, we create a rule that enables the ``GetObject``
+action on a specific bucket called ``realmReadWritableBucket``:
+
+.. figure:: /images/aws-s3-getobject-rule.png
+   :alt: AWS S3 rule
+   :figwidth: 750px
+
+This can also be expressed as the following JSON:
+
+.. code-block:: javascript
+
+   {
+      "name": "s3",
+      "actions": [
+         "s3:GetObject"
+      ],
+      "when": {
+         "%%args.Bucket": {
+               "$in": "realmReadWritableBucket"
+         }
+      }
+   }
+
+
+Usage
+-----
+You can call an AWS service from an Atlas Function and from the
+SDKs. The following sections show each of these processes.
+
+Call an AWS Service from an Atlas Function
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following examples show how to call various AWS services from within
+an Atlas Function. In each example, it is assumed the named
+service has already been created.
+
+.. _aws-usage-s3:
+
+S3 Service
+``````````
+
+``S3 PutObject``
+++++++++++++++++
+
+.. code-block:: javascript
+
+   exports = async function() {
+     const s3 = context.services.get('MyAwsService').s3("us-east-1");
+     const result = await s3.PutObject({
+       "Bucket": "my-bucket",
+       "Key": "example",
+       "Body": "hello there"
+     });
+     console.log(EJSON.stringify(result));
+     return result;
+   };
+
+``S3 GetObject``
+++++++++++++++++
+
+.. code-block:: javascript
+
+   exports = async function(arg) {
+      const s3 = context.services.get('MyAwsService').s3("us-east-1");
+      const result = await s3.GetObject({
+         "Bucket": "realmReadWritableBucket",
+         "Key": "coffee.jpeg"
+      });
+      
+      console.log(EJSON.stringify(result));
+      return result;
+   };
+
+``S3 PresignURL``
++++++++++++++++++
+
+.. code-block:: javascript
+   
+   exports = function(){
+     const s3 = context.services.get("MyAwsService").s3("us-east-1");
+     const presignedUrl = s3.PresignURL({
+      "Bucket": "my-s3-bucket-name",
+      "Key": "/some/path",
+      // HTTP method that is valid for this signed URL. Can use PUT for uploads, or GET for downloads.
+      "Method": "GET",
+      // Duration of the lifetime of the signed url, in milliseconds
+      "ExpirationMS": 30000,
+     })
+     return presignedUrl
+   };
+
+Refer to the :aws-go:`S3 API Reference <s3>` for implementation details.
+
+.. important:: Object Size Limitation
+
+   App Services supports a maximum file size of 4 Megabytes when working with
+   AWS S3 objects.
+
+.. _aws-usage-kinesis:
+
+Kinesis Service
+```````````````
+
+.. code-block:: javascript
+
+   exports = async function(event) {
+     const kinesis = context.services.get('MyAwsService').kinesis("us-east-1");
+     const result = await kinesis.PutRecord({
+       Data: JSON.stringify(event.fullDocument),
+       StreamName: "realmStream",
+       PartitionKey: "1"
+     });
+     console.log(EJSON.stringify(result));
+     return result;
+   };
+
+Refer to the :aws-go:`Kinesis API Reference <kinesis>` for implementation details.
+
+.. _aws-usage-lambda:
+
+Lambda Service
+``````````````
+
+.. code-block:: javascript
+
+   exports = async function() {
+     const lambda = context.services.get('MyAwsService').lambda("us-east-1");
+   
+     const result = await lambda.Invoke({
+       FunctionName: "myLambdaFunction",
+       Payload: context.user.id
+     });
+
+     console.log(result.Payload.text());
+     return EJSON.parse(result.Payload.text());
+   };
+
+Refer to the :aws-go:`Lambda API Reference <lambda>` for implementation details.
+
+.. _aws-usage-ses:
+
+SES Service
+```````````
+
+.. code-block:: javascript
+
+   exports = async function(){
+     const ses = context.services.get('MyAwsService').ses("us-east-1");
+     const result = await ses.SendEmail({
+       Source: "sender@example.com",
+       Destination: { ToAddresses: ["docs@mongodb.com"] },
+       Message: {
+         Body: {
+           Html: {
+             Charset: "UTF-8",
+             Data: `This is a message from user ${context.user.id}`
+           }
+         },
+         Subject: {
+           Charset: "UTF-8",
+           Data: "Test Email Please Ignore"
+         }
+       }
+     });
+     console.log(EJSON.stringify(result));
+     return result;
+   };
+
+Refer to the :aws-go:`SES API Reference <ses>` for implementation details.
+
+Supported AWS Services
+----------------------
+Your App can connect to the following AWS services:
+
+- Athena
+- Batch
+- CloudWatch
+- Comprehend
+- EC2
+- Firehose
+- Glacier
+- IOT
+- Kinesis
+- Lambda
+- Lex Runtime Service
+- Machine Learning
+- Mobile Analytics
+- Polly
+- RDS
+- Redshift
+- Rekognition
+- S3
+- SES
+- Step Functions (SFN)
+- SNS
+- SQS
+- Textract

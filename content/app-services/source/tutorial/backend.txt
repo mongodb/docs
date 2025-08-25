@@ -1,0 +1,531 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _backend-tutorial:
+
+==============================================================================================
+Tutorial: Build a Serverless GitHub Contribution Tracker using Triggers, Functions, and Values
+==============================================================================================
+
+
+.. facet::
+   :name: genre 
+   :values: tutorial
+
+.. meta::
+   :keywords: code example
+   :description: Learn how to use Atlas App Services Triggers, Functions, and Values by building a severless GitHub contribution tracker.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+*Estimated time to complete: 30 minutes*
+
+In this tutorial, you will use Atlas App Services to build a serverless
+application that monitors GitHub repositories and tracks contributions.
+
+The App Services App that you build will have several features:
+
+- Keep track of users that have contributed to your project in a MongoDB Atlas collection.
+
+- Leave a comment that welcomes new contributors when they open a pull request or file an issue.
+
+- Generate and send a weekly report that summarizes contributions to your repository.
+
+After completing this tutorial, you will know how to do the following tasks:
+
+- Write and run serverless :ref:`functions <functions>` that handle your App's logic.
+
+- Automate scheduled tasks and respond to changing data with :ref:`Atlas Triggers <triggers>`.
+
+- Store and access static data, like API keys, in :ref:`Values <values-and-secrets>`.
+
+- Connect to an external service through an API
+
+Prerequisites
+-------------
+
+You need the following before you can begin this tutorial:
+
+- A GitHub repository. The App you build will track contributions to
+  this repository. You can `create a new repository
+  <https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository>`__
+  for this tutorial or use an existing repo that you have admin access
+  to.
+
+- A MongoDB Atlas cluster. If you don't already have a cluster, `sign up
+  for MongoDB Atlas and create one for free
+  <https://account.mongodb.com/account/register?tck=docs_realm>`__.
+
+Also note that this tutorial doesn't use the :ref:`deployment draft <deployment-draft>`
+workflow. A deployment draft is a collection of App changes that you can deploy or
+discard as a single unit. Unless you disabled deployment drafts, you may need to
+save your changes to a draft and then deploy them manually.
+
+Create a New App
+----------------
+
+First, you need to create an application in App Services.
+
+To create the App:
+
+1. Open your Atlas project at `cloud.mongodb.com <https://cloud.mongodb.com?tck=docs_realm>`__.
+
+#. In the top navigation, click :guilabel:`App Services`.
+
+#. Click :guilabel:`Create a New App`.
+
+#. Name the App ``github-tracker-tutorial``.
+
+#. Select your cluster to link it to the new App.
+
+#. Click :guilabel:`Create App Service`.
+
+
+Welcome New GitHub Contributors
+-------------------------------
+
+We'll connect the app to your GitHub repository using a `GitHub
+repository webhook
+<https://docs.github.com/en/developers/webhooks-and-events/webhooks/about-webhooks>`__.
+Webhooks let your App know whenever some event, like a new commit or
+pull request, happens in your repository. Each event runs a serverless
+function where you can do something in response.
+
+For this tutorial, we'll use the `GitHub REST API
+<https://docs.github.com/en/rest>`__ to send a welcome message to
+contributors whenever they open their first pull request or issue on a
+repository.
+
+Create an Endpoint
+~~~~~~~~~~~~~~~~~~
+
+Webhooks work by sending a request about the event to a URL that your
+App controls. In your App, you'll need to expose a custom endpoint with
+a unique URL to receive and handle the webhook requests.
+
+To create the endpoint:
+
+1. In the left navigation menu, click :guilabel:`HTTPS Endpoints`.
+
+#. Click :guilabel:`Add An Endpoint`.
+
+#. Name the endpoint route ``/greetNewContributors``.
+
+#. Under :guilabel:`Operation Type`, copy the endpoint callback URL. You'll need it 
+   to set up the GitHub webhook later. 
+
+#. Leave the HTTP method set to **POST**.
+
+#. For authorization, choose :guilabel:`Require a Secret`. 
+
+#. Enter a new secret name and click :guilabel:`Create` to create a new secret. 
+   Then, enter ``tutorial`` as the secret value. This requires all incoming requests
+   to include the query parameter ``secret=tutorial`` in the request
+   URL.
+
+#. Create a new :ref:`Atlas Function <functions>` for the endpoint and name it
+   ``endpoints/greetNewContributors``.
+   
+#. For now, set up a basic handler that only responds to incoming calls
+   without doing other work. Copy the following code into the Function
+   body:
+
+   .. code-block:: javascript
+      
+      exports = async function greetNewContributors(request, response) {
+        return response
+          .setStatusCode(200)
+          .setBody("Successfully received a GitHub webhook event")
+      }
+
+#. Click :guilabel:`Save` and deploy the endpoint.
+
+.. _function-authentication-settings:
+
+Update Your Endpoint Function's Authentication Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Now that you've created the endpoint in your App, you need to change the authentication
+settings for the endpoint's Function so that the GitHub webhook is accepted.
+
+To update your Function's authentication settings:
+
+1. In the left navigation menu, click :guilabel:`Functions`.
+
+#. Find your endpoint Function and select it.
+
+#. Click :guilabel:`Settings`.
+
+#. Under :guilabel:`Authentication`, change the authentication method to :guilabel:`System`.
+
+#. Click :guilabel:`Save` to deploy the Function.
+
+Connect the Endpoint to a GitHub Webhook
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With your endpoint Function ready to go, you need to set up a webhook in your 
+GitHub repository that sends events to the endpoint.
+
+To create the webhook in your repository:
+   
+1. Open the repository's settings and select :guilabel:`Webhooks` in the
+   left navigation menu.
+
+#. `Add a new webhook <https://docs.github.com/en/developers/webhooks-and-events/webhooks/creating-webhooks#setting-up-a-webhook>`__ 
+   and set the :guilabel:`Payload URL` to the URL of the endpoint that you just created, 
+   plus a ``secret`` query parameter set to the secret value, such as: ``?secret=tutorial``. 
+   Your payload URL will look similar to the following, with some differences 
+   depending on your app's :ref:`deployment model <deployment-model>`. Note the 
+   ``?secret=tutorial`` appended to the end of the URL:
+
+   .. code-block:: text
+      :copyable: false
+      
+      https://us-west-2.aws.data.mongodb-api.com/app/<App ID>/endpoint/greetNewContributors?secret=tutorial
+
+#. Set the webhook content type to :guilabel:`application/json`.
+
+#. Leave the :guilabel:`Secret` empty. Any value entered here is ignored by the 
+   HTTPS endpoint, which is why we append the secret as a query parameter on the 
+   payload URL in the preceding steps.
+
+#. Choose to select individual events and configure the webhook to only
+   send events for :guilabel:`Issues` and :guilabel:`Pull requests`.
+
+#. Click :guilabel:`Add webhook` to save the new webhook.
+   
+To confirm that the webhook successfully calls your endpoint, check your :ref:`application logs <logs>` 
+in App Services for entries with the type ``Endpoint``. You can get there by clicking :guilabel:`Logs` 
+in the left navigation menu.
+
+You can also check the `webhook's request logs
+<https://docs.github.com/en/developers/webhooks-and-events/webhooks/testing-webhooks>`__
+in GitHub under :guilabel:`Recent Deliveries` on the webhook's settings page. Each successful 
+request has a green checkmark next to it.
+
+.. figure:: /images/github-tutorial-successful-webhook-delivery-1.png
+   :alt: A log entry in GitHub that shows the custom endpoint's response to a ping event. The response has a status code of 200 and the response body says "Successfully received a GitHub webhook event".
+
+Get a GitHub Access Token
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The webhook is now set up to send events from GitHub to your endpoint.
+However, to respond to events in the endpoint with the GitHub API you'll
+need an access token. This tutorial uses personal access tokens, but you
+could also set up a GitHub app and use that token instead.
+
+To `create a personal access token
+<https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token>`__:
+
+1. Open your GitHub user settings (not your repository settings) and
+   select :guilabel:`Developer settings` in the left navigation menu.
+
+#. In the left navigation menu, select :guilabel:`Personal access tokens` and then
+   click :guilabel:`Generate new token`.
+
+#. Configure the token with a descriptive name and a reasonable
+   expiration time. Since this is a tutorial, consider expiring the
+   token after 7 days.
+
+#. Select the ``repo`` scope.
+
+#. Click :guilabel:`Generate token`.
+
+#. Copy the token somewhere secure where you can access it again. GitHub
+   will never show you the token again after this point.
+
+Store the Token as a Value
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Back in your App, add a new Value to hold the personal access token you
+just generated. You'll be able to reference the Value from your endpoint
+without hardcoding the token into your Functions.
+
+To create the Value:
+
+1. In the left navigation menu, click :guilabel:`Values`.
+
+#. Click :guilabel:`Create New Value`.
+
+#. Name the Value ``GitHubAccessToken``.
+
+#. Leave the type set to :guilabel:`Value`.
+
+#. Paste the personal access token into the Value's input. The Value must
+   be valid JSON, so make sure you have surrounding quotation marks.
+
+#. Click :guilabel:`Save`.
+
+Install the GitHub API Client
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The endpoint will interact with GitHub's REST API to leave comments. You
+could write and send HTTP requests directly to the API using the
+built-in ``context.http`` client or an external library. However, in
+this tutorial we use GitHub's official Node.js library called
+:github:`Octokit <octokit/core.js>` that wraps the API. Once installed,
+you'll be able to import the library from any Function in your App.
+
+To add the Octokit library to your App:
+
+1. In the left navigation menu, click :guilabel:`Functions`.
+
+#. Select the :guilabel:`Dependencies` tab.
+
+#. Click :guilabel:`Add Dependency`.
+
+#. Enter the package name: ``@octokit/request``.
+
+#. Click :guilabel:`Add`.
+
+#. Wait for App Services to install the package. The installation should
+   complete in a few seconds, but may take up to a minute.
+
+Write the Endpoint Logic
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Now that you have an access token and have installed Octokit, you can
+update the endpoint Function to actually do something when it receives
+events. Specifically, the Function should:
+
+- Parse the incoming webhook event
+- Log the contribution in MongoDB
+- Add a comment through the GitHub API
+- Send an informative response back to GitHub
+
+To update the Function:
+
+1. In the left navigation menu, click :guilabel:`Functions`.
+
+#. Click :guilabel:`endpoints/greetNewContributors` to open the endpoint
+   Function editor.
+
+#. Replace the basic Function with the following code:
+   
+   .. literalinclude:: /tutorial/backend-examples/greetNewContributors.js
+      :language: javascript
+      :caption: functions/endpoints/greetNewContributors.js
+
+#. Click :guilabel:`Save` and deploy the endpoint.
+
+Test the Endpoint
+~~~~~~~~~~~~~~~~~
+
+The welcome message endpoint should now be fully set up. To test that it
+works correctly, open a new issue or pull request on the repository. The
+endpoint will add a new comment to the thread the first time you do this
+but won't add a welcome message on subsequent attempts.
+
+.. figure:: /images/github-tutorial-issue-comment.png
+   :alt: An example of the welcome comment in GitHub added by the endpoint.
+
+GitHub logs repository webhook requests, so you can also check the log
+entry in GitHub to confirm that everything is working properly. Each
+request log includes a response message from the endpoint.
+
+.. figure:: /images/github-tutorial-successful-webhook-delivery-2.png
+   :alt: A log entry in GitHub that shows the custom endpoint's response for a first-time contributor
+
+.. tip::
+   
+   If you want to reset the test, delete the document with your GitHub
+   username from ``community.contributions``. This lets the App "forget"
+   that you've contributed before and it will welcome you on your next
+   contribution.
+
+Generate a Weekly Community Report
+----------------------------------
+
+Your App is connected to GitHub, stores information about contributions,
+and welcomes new contributors. Now we'll extend it to automatically
+analyze and generate reports for your repository.
+
+Specify Which Repos Should Generate Reports
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your App needs a way to know which repositories it should generate
+reports for every week. For this tutorial, we'll hardcode the list in a
+Value.
+
+Create a new Value called ``GitHubProjects`` that contains an array of
+objects. Each object specifies the ``owner`` and ``repo`` name of a
+GitHub repository. Make sure to include an entry for your repository.
+
+.. code-block:: json
+   :caption: values/projects.json
+   
+   [
+     { "owner": "<GitHub Username>", "repo": "<Repository Name>" }
+   ]
+
+Create a Function that Generates Reports
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A report is a document that summarizes the contributions to a repository
+for some time period. We'll use a Function to create on-demand reports
+for a repo.
+
+Create a new Function named ``generateCommunityReport`` and add the
+following code:
+
+.. literalinclude:: /tutorial/backend-examples/generateCommunityReport.js
+   :language: javascript
+   :caption: functions/generateCommunityReport.js
+
+Generate And Save Reports Every Week
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Function you just created creates a report for a repository
+on-demand. However, at this point nothing calls the Function and the
+generated reports are not saved anywhere. To actually use it, we'll
+create a scheduled Atlas Trigger that calls the Function once every week and
+saves the generated reports in your linked cluster.
+
+To create the Trigger:
+
+1. In the left navigation menu, click :guilabel:`Triggers`.
+
+#. Click :guilabel:`Add a Trigger`.
+
+#. Choose :guilabel:`Scheduled` for the Trigger type.
+
+#. Name the Trigger ``generateAndSaveCommunityReports``
+
+#. Choose the :guilabel:`Advanced` schedule type
+
+#. Enter the following cron schedule to run once a week on Monday at 5
+   AM UTC:
+
+   .. code-block:: text
+
+      0 5 * * 1
+
+#. Create a new Function for the Trigger and name it
+   ``triggers/generateAndSaveCommunityReports``.
+
+#. Click :guilabel:`Add Dependency` and install ``moment``, which we use
+   to work with dates in the Function.
+
+#. Copy the following code into the Function body:
+   
+   .. literalinclude:: /tutorial/backend-examples/generateAndSaveCommunityReports.js
+      :language: javascript
+      :caption: functions/triggers/generateAndSaveCommunityReports.js
+
+#. Click :guilabel:`Save`.
+
+#. Update your new Function's :ref:`authentication settings <function-authentication-settings>` 
+   to match the new Endpoint's Function from earlier in this tutorial.
+
+Send Report Notifications
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your App will now automatically generate and save reports every week.
+However, the reports won't be very useful if nobody sees them. We'll
+create a database Trigger that listens for new reports and creates a
+formatted message that you can send to end users.
+
+To set up the messages:
+
+1. In the left navigation menu, click :guilabel:`Triggers`.
+
+#. Click :guilabel:`Add a Trigger`.
+
+#. Leave the Trigger type set to :guilabel:`Database`.
+
+#. Name the Trigger ``sendCommunityReport``.
+
+#. Add the Trigger to the ``community.reports`` collection and listen
+   for :guilabel:`Insert` events.
+
+#. Enable :guilabel:`Full Document` to include each new report document
+   in the change event passed to the Trigger Function.
+
+#. Create a new Function for the Trigger and name it
+   ``triggers/sendCommunityReport``.
+   
+#. Copy the following code into the Function body:
+   
+   .. literalinclude:: /tutorial/backend-examples/sendCommunityReport.js
+      :language: javascript
+      :caption: functions/triggers/sendCommunityReport.js
+
+#. Click :guilabel:`Save` and deploy the Trigger.
+
+Test the Report Triggers
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your App is set up to automatically generate, save, and send reports
+every week. To make sure that everything works, you can run this report
+flow manually.
+
+Open the Function editor for your scheduled Trigger,
+``triggers/generateAndSaveCommunityReports``, and then click the
+:guilabel:`Run` button. This should generate and save on-demand reports
+for every repo that you listed in the ``GitHubProjects`` Value.
+
+To confirm: 
+
+1. Check ``community.reports`` for the new report documents.
+
+2. Check your App's database Trigger logs to find the formatted
+   message for each report
+
+What's Next?
+------------
+
+Congratulations! You've succesfully set up a serverless GitHub
+contribution tracker and reached the end of this tutorial.
+
+Keep Building
+~~~~~~~~~~~~~
+
+If you want to keep developing, you can try to add some new features to
+the tracker. For example, you could:
+
+- Update the endpoint to handle more webhook event types like
+  `issue_comment
+  <https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#issue_comment>`__ or 
+  `pull_request_review
+  <https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#pull_request_review>`__.
+
+- Update the weekly reports to include more information from the GitHub
+  API.
+
+- Connect to an external service like :twilio:`Twilio <>` or `SendGrid
+  <https://sendgrid.com/>`__ to actually send the report via email or
+  SMS instead of just logging it.
+
+Explore the Documentation
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+App Services includes many services that can power your App. Check out
+the rest of the documentation to learn more about these services and how
+you can use them.
+
+- :ref:`Authenticate & Manage Users <users-and-authentication>`
+- :ref:`Data Access Rules <rules>`
+- :ref:`Schemas & Relationships <schemas>`
+- :ref:`Functions <functions>`
+- :ref:`HTTPS Endpoints <https-endpoints>`
+- :ref:`Triggers <triggers>`
+
+Give Us Feedback
+~~~~~~~~~~~~~~~~
+
+We're always working to improve our docs and tutorials. If you have a
+suggestion or had issues with this tutorial, click :guilabel:`Give
+Feedback` at the bottom of this page to rate the tutorial and send us a
+comment.
+
+Join the Community
+~~~~~~~~~~~~~~~~~~
+
+The official `MongoDB Community Forums
+<https://www.mongodb.com/community/forums/c/realm/9>`__ are a great
+place to meet other developers, ask and answer questions, and stay
+up-to-date with the latest App Services features and releases.

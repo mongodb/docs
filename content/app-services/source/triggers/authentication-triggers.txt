@@ -1,0 +1,250 @@
+.. _authentication-triggers:
+
+=======================
+Authentication Triggers
+=======================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+An authentication trigger fires when a user interacts with an 
+:ref:`authentication provider <authentication-providers>`. You can
+use authentication triggers to implement advanced user management. Some uses include: 
+
+- Storing new user data in your linked cluster
+- Maintaining data integrity upon user deletion
+- Calling a service with a user's information when they log in.
+
+.. _create-an-authentication-trigger:
+
+Create an Authentication Trigger
+--------------------------------
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      To open the authentication trigger configuration screen in the Atlas App Services UI,
+      click :guilabel:`Triggers` in the left navigation menu, click
+      :guilabel:`Create a Trigger`, and then select the :guilabel:`Authentication` tab next 
+      to :guilabel:`Trigger Type`.
+
+      Configure the trigger and then click :guilabel:`Save` at the bottom of the
+      page to add it to your current deployment draft.
+      
+      .. figure:: /images/auth-trigger-example-config.png
+         :alt: An example of a configured authentication trigger in the UI
+         :width: 750px
+         :lightbox:
+      
+   .. tab::
+      :tabid: cli
+
+      To create an authentication trigger with :doc:`{+cli+}
+      </cli>`:
+      
+      1. Add an authentication trigger :ref:`configuration file
+         <config-authentication-trigger>` to the ``triggers`` subdirectory of a
+         local application directory.
+      
+         .. note::
+            
+            App Services does not enforce specific filenames for Atlas Trigger
+            configuration files. However, once imported, App Services will
+            rename each configuration file to match the name of the
+            trigger it defines, e.g. ``mytrigger.json``.
+      
+      2. :ref:`Deploy <deploy-cli>` the trigger:
+      
+         .. code-block:: shell
+            
+            {+cli-bin+} push
+
+.. _authentication-triggers-configuration:
+
+Configuration
+-------------
+
+Authentication Triggers have the following configuration options:
+      
+.. list-table::
+   :header-rows: 1
+   :widths: 15 30
+
+   * - Field
+     - Description
+
+   * - :guilabel:`Trigger Type`
+
+     - The type of the trigger. For authentication triggers,
+       set this value to ``AUTHENTICATION``.
+
+   * - :guilabel:`Action Type`
+
+     - The :ref:`authentication operation
+       type <authentication-event-operation-types>` that causes the trigger to
+       fire.
+
+   * - :guilabel:`Providers`
+
+     - A list of one or more :ref:`authentication provider
+       <authentication-providers>` types. The trigger only listens for
+       :ref:`authentication events <authentication-events>` produced by these
+       providers.
+
+   * - :guilabel:`Event Type`
+
+     - Choose what action is taken when the trigger fires. You can choose to 
+       run a :ref:`function <functions>` or use :ref:`AWS EventBridge <aws-eventbridge>`. 
+
+   * - :guilabel:`Function`
+
+     - The name of the function that the trigger
+       executes when it fires. An :ref:`authentication
+       event object <authentication-events>` causes the trigger to fire. 
+       This object is the only argument the trigger passes to the function.
+
+   * - :guilabel:`Trigger Name`
+
+     - The name of the trigger.
+
+.. _authentication-events:
+
+Authentication Events
+---------------------
+
+.. _authentication-event-operation-types:
+
+Authentication events represent user interactions with an authentication
+provider. Each event corresponds to a single user action with one of the
+following operation types:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30
+
+   * - Operation Type
+     - Description
+
+   * - ``LOGIN``
+     - Represents a single instance of a user logging in.
+
+   * - ``CREATE``
+     - Represents the creation of a new user.
+
+   * - ``DELETE``
+     - Represents the deletion of a user.
+
+Authentication event objects have the following form:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "operationType": <string>,
+     "providers": <array of strings>,
+     "user": <user object>,
+     "time": <ISODate>
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30
+
+   * - Field
+     - Description
+   * - ``operationType``
+     - The :ref:`operation type <authentication-event-operation-types>`
+       of the authentication event.
+   * - ``providers``
+     - The :ref:`authentication providers <authentication-providers>`
+       that emitted the event.
+
+       One of the following names represents each authentication provider:
+
+       .. include:: /includes/auth-provider-internal-names.rst
+
+       .. note::
+
+          Generally, only one authentication provider emits each event.
+          However, you may need to delete a user linked to multiple providers.
+          In this case, the ``DELETE`` event for that user includes all linked providers. 
+   * - ``user``
+     - The :doc:`user object </users>` of the user that interacted with
+       the authentication provider.
+   * - ``time``
+     - The time at which the event occurred.
+
+.. _authentication-triggers-example:
+
+Example
+-------
+
+An online store wants to store custom metadata for each of its customers
+in `Atlas <https://www.mongodb.com/docs/atlas/?tck=docs_realm>`_.
+Each customer needs a document in the ``store.customers`` collection. 
+Then, the store can record and query metadata in the customer's document.
+
+The collection must represent each customer. To guarantee this, the store 
+creates an Authentication Trigger. This Trigger listens for newly created users
+in the :doc:`email/password </authentication/email-password>` authentication
+provider. Then, it passes the
+:ref:`authentication event object <authentication-events>` to its linked
+function, ``createNewUserDocument``. The function creates a new document
+which describes the user and their activity. The function then inserts the document
+into the ``store.customers`` collection.
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      .. figure:: /images/auth-trigger-example-config-em-pass.png
+         :alt: Example UI that configures the trigger
+
+   .. tab::
+      :tabid: cli
+
+      .. code-block:: json
+         :caption: Trigger Configuration
+
+         {
+           "type": "AUTHENTICATION",
+           "name": "newUserHandler",
+           "function_name": "createNewUserDocument",
+           "config": {
+             "providers": ["local-userpass"],
+             "operation_type": "CREATE"
+           },
+           "disabled": false
+         }
+
+.. code-block:: javascript
+   :caption: createNewUserDocument
+
+   exports = async function(authEvent) {
+     const mongodb = context.services.get("mongodb-atlas");
+     const customers = mongodb.db("store").collection("customers");
+
+     const { user, time } = authEvent;
+     const isLinkedUser = user.identities.length > 1;
+
+     if(isLinkedUser) {
+       const { identities } = user;
+       return users.updateOne(
+         { id: user.id },
+         { $set: { identities } }
+       )
+
+     } else {
+       return users.insertOne({ _id: user.id, ...user })
+        .catch(console.error)
+     }
+     await customers.insertOne(newUser);
+   }
+
+.. include:: /includes/triggers-examples-github.rst

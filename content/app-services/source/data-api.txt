@@ -1,0 +1,160 @@
+.. meta::
+   :robots: nosnippet
+
+.. _data-api:
+
+===========================
+Atlas Data API [Deprecated]
+===========================
+
+.. facet::
+   :name: programming_language
+   :values: shell, json
+
+.. facet::
+   :name: genre 
+   :values: tutorial
+
+.. meta:: 
+   :description: Learn about the MongoDB App Services Data API and when to use it.
+   :keywords: json web token
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+   
+   Data API and HTTPS Endpoints Deprecation </data-api/data-api-deprecation>
+   Data API Endpoints [Deprecated] </data-api/generated-endpoints>
+   Custom HTTPS Endpoints [Deprecated] </data-api/custom-endpoints>
+   Authenticate Data API Requests </data-api/authenticate>
+   Data Formats </data-api/data-formats>
+   Data API OpenAPI Reference </data-api/openapi>
+
+.. contents:: On this page
+   :depth: 2
+
+The Data API is a managed service that lets you securely work with data
+stored in Atlas using standard HTTPS requests. The Data API is not a
+direct connection to your database. Instead, the API is a fully-managed
+middleware service that sits between your cluster and the clients that
+send requests.
+
+You can use the Data API to connect to MongoDB Atlas from any platform
+that supports HTTPS, including:
+
+- Web browsers
+- Web servers
+- CI/CD pipelines
+- Mobile applications
+- Internet-Of-Things devices
+
+You don't need to install any database drivers or opinionated libraries
+to work with the Data API. Instead, you send standard HTTPS requests
+like the following:
+
+.. io-code-block::
+   
+   .. input:: /data-api/snippets/generated-endpoints.snippet.hello-world.sh
+      :language: bash
+
+   .. output::
+      :language: json
+
+      { "insertedId": "63dc56ac74ddb86ed3eb8474" }
+
+Endpoints
+---------
+
+The Data API supports two types of endpoints:
+
+- **Data API Endpoints** are automatically generated endpoints that each
+  represent a MongoDB operation. You can use the endpoints to create,
+  read, update, delete, and aggregate documents in a MongoDB data
+  source.
+
+  To learn more, including how to set up and call endpoints, see
+  :ref:`Data API Endpoints <data-api-endpoints>`.
+
+- **Custom Endpoints** are app-specific API routes handled by Atlas
+  Functions that you write. You can use custom endpoints to define
+  operations that fit your use case specifically. For example, you could
+  create an endpoint that runs a pre-defined aggregation or that
+  integrates with an external webhook service.
+
+  To learn more, including how to create and call endpoints, see
+  :ref:`Custom HTTPS Endpoints <custom-endpoints>`.
+
+How the Data API Works
+----------------------
+
+Data API requests may resemble traditional database operations, like
+``find`` or ``insertOne``, but the Data API is not a direct connection
+to your database. Instead, the Data API adds additional authentication,
+authorization, and correctness checks to ensure that your data is only
+accessed or modified in the ways you allow. This allows you to safely
+access data in Atlas from potentially vulnerable clients like web apps.
+
+For each incoming request, the Data API:
+
+1. **Authenticates the calling user.** This might involve validating an
+   access token, logging in with header credentials, or directly
+   assigning a specific runtime user based on your configuration.
+
+2. **Authorizes the request.** This ensures that the user sent a
+   well-formed request and has permission to perform the requested
+   operation based on your endpoint authorization scheme.
+
+3. **Runs the requested operation.** This might involve reading or
+   writing data in Atlas with a generated endpoint or invoke a custom
+   function that you wrote.
+
+   For requests that read or write data in Atlas, the Data API also
+   enforces the access control rules and document schemas defined in
+   your App. This means that users can only access data they're allowed
+   to read and write. Requests fail if they include an invalid write
+   operation.
+
+4. **Returns an HTTPS response to the caller.** The response includes
+   the result of a generated endpoint operation or any data that you
+   return from a custom endpoint. In the request, you can choose to receive the
+   response in either :ref:`JSON or EJSON format
+   <data-api-data-formats>`.
+
+When to Use the Data API
+------------------------
+
+For server applications, and especially for high-load and latency
+sensitive use-cases, we recommend connecting directly to Atlas with a
+MongoDB driver. Operations called through a Data API endpoint take
+longer to complete than the corresponding MongoDB operations called
+through a driver. Additionally, the drivers provide more flexibility and
+control over how your operations are executed. To learn more, visit the
+:driver:`MongoDB Drivers </>` documentation.
+
+We recommend using the Data API when:
+
+- You want to run MongoDB operations from a web application or other
+  client that you can't trust.
+
+- You can't or don't want to manage a MongoDB driver in your server-side
+  environment. For example, some edge compute environments don't support
+  database drivers or connection pooling.
+
+- You want to develop a new feature and prefer a flexible solution for
+  working on the client side first before later creating and refining
+  the API layer.
+
+- You want to integrate Atlas data access into a federated API gateway.
+
+- You want to connect to App Services from an environment not currently
+  supported by an Atlas Device SDK and don't want to use a driver to connect
+  over the :ref:`wire protocol <wire-protocol>`.
+
+
+Constraints
+-----------
+The following constraints apply to Data API requests and responses: 
+
+- Requests will time out after 300 seconds of runtime.
+
+- Data API response payloads are limited to 350 MB in size.

@@ -1,0 +1,342 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _http-service:
+
+=========================
+HTTP Service [Deprecated]
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/note-third-party-services-deprecation.rst
+
+Overview
+--------
+
+The Atlas App Services HTTP Service is a generic interface that enables you to
+communicate with any service that is available over HTTP, such as those
+that provide a REST API. This is useful when you need to use a service
+that does not have a custom service built-in to App Services.
+
+- To send an outbound HTTP request, call one of the :ref:`HTTP actions
+  <http-service-actions>`.
+
+- To handle incoming requests from an external service, :doc:`configure an
+  incoming webhook </services/configure/service-webhooks>` and provide it to
+  the service, if possible. See the :ref:`incoming webhooks
+  <http-webhooks>` section on this page for an example.
+
+.. toctree::
+   :titlesonly:
+
+   http.get() </services/http-actions/http.get>
+   http.post() </services/http-actions/http.post>
+   http.put() </services/http-actions/http.put>
+   http.patch() </services/http-actions/http.patch>
+   http.delete() </services/http-actions/http.delete>
+   http.head() </services/http-actions/http.head>
+
+.. _http-service-configuration:
+
+Configuration Parameters
+------------------------
+
+You will need to provide values for the following parameters when you
+:doc:`create an HTTP service interface </services/configure/services>`:
+
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+   .. tab::
+      :tabid: cli
+
+      .. code-block:: json
+         :caption: /http_endpoints/<Service Name>/config.json
+
+         {
+           "name": "<Service Name>",
+           "type": "http",
+           "config": {}
+         }
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Description
+
+   * - | :guilabel:`Service Name`
+       | *config.name*
+
+     - The name of this HTTP service interface. This must be unique from
+       all other service interfaces in your application.
+
+.. _http-service-actions:
+
+Service Actions
+---------------
+
+The HTTP service in App Services provides the following actions that you can
+call in :doc:`functions </functions>` and in the SDKs. Each action maps
+to a standard :mdn:`HTTP request method <Web/HTTP/Methods>`.
+
+For instructions on using an HTTP service action, see :doc:`Call a
+Service Action </services/call-a-service-action>`.
+
+.. note::
+
+   You must enable a service action in a :doc:`service rule
+   </services/configure/service-rules>` before you can call it.
+
+.. include:: /includes/extracts/service-actions-http.rst
+
+.. _http-webhooks:
+
+Incoming Webhooks
+-----------------
+
+.. note:: Convert HTTP Webhooks to Endpoints
+
+   HTTP Service webhoooks are deprecated in favor of custom HTTPS
+   endpoints. You can automatically migrate your existing webhooks to
+   endpoints in one-click. To learn how, see :ref:`Convert Webhooks to
+   HTTPS Endpoints <migrate-http-webhooks-to-endpoints>`.
+
+Configuration
+~~~~~~~~~~~~~
+
+.. tabs-realm-admin-interfaces::
+
+   tabs:
+     - id: ui
+       content: |
+         You will need to provide values for the following parameters
+         when you :doc:`configure an HTTP incoming webhook
+         </services/configure/service-webhooks>`:
+
+     - id: cli
+       content: |
+         You will need to provide a :ref:`configuration file
+         <config-v20210101-incoming-webhooks>` of the following form
+         when you :doc:`configure an HTTP incoming webhook
+         </services/configure/service-webhooks>`:
+         
+         .. code-block:: json
+            :caption: http_endpoints/<Service Name>/<Webhook Name>/config.json
+            
+            {
+              "name": "<Webhook Name>",
+              "can_evaluate": { <JSON Expression> },
+              "run_as_authed_user": <Boolean>,
+              "run_as_user_id": "<App Services User ID>",
+              "run_as_user_id_script_source": "<Function Source Code>",
+              "respond_result": <Boolean>,
+              "fetch_custom_user_data": <Boolean>,
+              "create_user_on_auth": <Boolean>,
+              "options": {
+                "httpMethod": "<HTTP Method>",
+                "validationMethod": "<Webhook Validation Method>",
+                "secret": "<Webhook Secret>"
+              }
+            }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 40
+
+   * - Configuration Value
+     - Description
+
+   * - | :guilabel:`Webhook Name`
+       | *name*
+
+     - Required. The name of the webhook.
+
+       .. note::
+
+          Each incoming webhook in an HTTP service interface must
+          have a unique name.
+
+   * - | :guilabel:`Respond With Result`
+       | *respond_result*
+
+     - Required. If ``true``, App Services sends a response to the client that
+       called the webhook. The response body will be the return value
+       of the webhook function.
+
+   * - | :guilabel:`Run Webhook As`
+       | *run_as_user_id*
+       | *run_as_user_id_script_source*
+
+     - Optional. The id of the :doc:`App Services user </users>` that
+       executes the webhook function when the webhook is called.
+
+       .. tabs-realm-admin-interfaces::
+          :hidden: true
+
+          .. tab::
+             :tabid: ui
+
+             .. include:: /includes/run-webhook-as-options.rst
+
+          .. tab::
+             :tabid: cli
+
+             You can specify the user id directly in ``run_as_user_id`` or
+             provide a stringified :doc:`Atlas Function
+             </functions>` that accepts the webhook payload and returns the user
+             id in ``run_as_user_id_script_source``. If you do not specify a
+             specific user id or a function that resolves to a user id,
+             App Services executes the webhook function as the :ref:`system
+             user <system-user>` that has full access to MongoDB CRUD and
+             Aggregation APIs and bypasses all rules and schema validation.
+
+   * - | :guilabel:`HTTP Method`
+       | *options.httpMethod*
+
+     - The :mdn:`HTTP method <Web/HTTP/Methods>` that incoming webhook
+       requests should use. You can configure a webhook to accept any
+       method or specify a specific method. The following methods are
+       supported:
+
+       - ``GET``
+       - ``POST``
+       - ``PUT``
+       - ``PATCH``
+       - ``DELETE``
+       - ``HEAD``
+       - ``ANY``
+
+   * - | :guilabel:`Request Validation`
+       | *options.validationMethod*
+
+     - The :ref:`request validation <webhook-request-validation>` method
+       incoming requests should use. The following validation types are
+       supported:
+
+       .. tabs-realm-admin-interfaces::
+          :hidden: true
+
+          .. tab::
+             :tabid: ui
+
+             - :ref:`Verify Payload Signature <webhook-verify-payload-signature>`
+             - :ref:`Require Secret as Query Param <webhook-secret-query-parameter>`
+             - No validation.
+
+          .. tab::
+             :tabid: cli
+
+             - ``VERIFY_PAYLOAD``: :ref:`Verify Payload Signature <webhook-verify-payload-signature>`
+             - ``SECRET_AS_QUERY_PARAM``: :ref:`Require Secret as Query Param <webhook-secret-query-parameter>`
+             - ``NO_VALIDATION``: No validation.
+
+
+   * - | :guilabel:`Secret`
+       | *options.secret*
+
+     - If :guilabel:`Request Validation` is enabled, this is the
+       validation secret.
+
+.. _http-webhook-request-payload:
+
+Request Payload
+~~~~~~~~~~~~~~~
+
+App Services automatically passes a ``payload`` document as the first argument
+to incoming webhook functions. In an HTTP Service incoming webhook the
+``payload`` object represents an incoming HTTP request and has the
+following form:
+
+.. code-block:: json
+
+   {
+      "query": <query parameters>,
+      "headers": <request headers>,
+      "body": <request body (BSON)>
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 40
+
+   * - Field
+
+     - Description
+
+   * - ``query``
+
+     - A document where each field corresponds to a :wikipedia:`query
+       parameter <Query_string>` that the external service included in
+       the webhook URL.
+
+       .. example::
+
+          A request sent to a webhook URL with the query parameters
+          ``someParameter=42&anotherParameter=hello`` would have the
+          following ``query`` document:
+
+          .. code-block:: json
+
+             "query": {
+               "someParameter": 42,
+               "anotherParameter": "hello"
+             }
+
+   * - ``headers``
+
+     - A document where each field corresponds to an :mdn:`HTTP header
+       <Web/HTTP/Headers>` that the external service included in the
+       webhook URL.
+
+       .. example::
+
+          A request sent to a webhook URL with a ``Content-Type:
+          application/json`` header would have the following ``headers``
+          document:
+
+          .. code-block:: json
+
+             "headers": {
+               "Content-Type": ["application/json"]
+             }
+
+   * - ``body``
+
+     - A :ref:`BSON.Binary <bson>` object encoded from the
+       request body. You can access the request body by serializing the
+       binary object to a string and then parsing the string to EJSON:
+
+       .. code-block:: javascript
+
+          const body = EJSON.parse(payload.body.text())
+
+Example Webhook Function
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following webhook function inserts incoming data into a MongoDB
+collection and returns the ``insertedId`` in the response ``body``.
+
+.. code-block:: javascript
+
+   exports = function(payload, response) {
+     const mongodb = context.services.get("mongodb-atlas");
+     const requestLogs = mongodb.db("test").collection("requestlogs");
+     requestLogs.insertOne({
+       body: EJSON.parse(payload.body.text()),
+       query: payload.query
+     }).then(result => {
+       response.setStatusCode(201);
+       response.setBody(result.insertedId);
+     })
+   };

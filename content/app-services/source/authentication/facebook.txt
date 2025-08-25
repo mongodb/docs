@@ -1,0 +1,251 @@
+.. meta::
+   :robots: nosnippet
+
+.. _facebook-authentication:
+
+=======================
+Facebook Authentication
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+The Facebook authentication provider allows users to log in
+with their existing Facebook account through a companion
+Facebook application. When a user logs in, Facebook provides
+Atlas App Services with an `OAuth 2.0 access token
+<https://www.oauth.com/oauth2-servers/access-tokens/>`_ for
+the user. App Services uses the token to identify the user and
+access approved data from the Facebook API on their behalf.
+For more information on Facebook Login, see `Facebook Login
+for Apps
+<https://developers.facebook.com/docs/facebook-login/overview>`_.
+
+
+The following diagram shows the OAuth logic flow:
+
+.. figure:: /images/auth-oauth-flow.png
+    :alt: OAuth flow diagram
+    :width: 350px
+    
+.. _auth-facebook-configuration:
+.. _config-oauth2-facebook:
+
+Configuration
+-------------
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+         
+      You can enable and configure the Facebook authentication provider from the
+      App Services UI by selecting :guilabel:`Facebook` from the
+      :guilabel:`Authentication` page.
+
+   .. tab::
+      :tabid: cli
+      
+      To enable and configure the Facebook authentication provider with
+      the {+cli-ref+}, define a :ref:`configuration 
+      object <appconfig-auth>` for it in ``/auth/providers.json``.
+
+      Facebook provider configurations have the following form:
+      
+      .. code-block:: none
+         :caption: /auth/providers.json
+         
+         {
+           "oauth2-facebook": {
+             "name": "oauth2-facebook",
+             "type": "oauth2-facebook",
+             "disabled": <boolean>,
+             "config": {
+               "clientId": <string>
+             },
+             "secret_config": {
+               "clientSecret": <string>
+             },
+             "metadata_fields": [<document>, ...],
+             "redirect_uris": [<string>, ...],
+             "domain_restrictions": [<string>, ...]
+           }
+         }
+
+The Facebook authentication provider has the following configuration
+options:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 30
+
+   * - Field
+     - Description
+
+   * - | :guilabel:`Client ID`
+       | *config.clientId*
+
+     - Required. The :guilabel:`App ID` of the Facebook app.
+
+       See :ref:`auth-facebook-app-setup` for information about setting
+       up your Facebook app and finding the :guilabel:`App ID`.
+
+   * - | :guilabel:`Client Secret`
+       | *secret_config.clientSecret*
+
+
+     - Required. The name of a :ref:`Secret <app-secret>` that stores
+       the :guilabel:`App Secret` of the Facebook app.
+
+       See :ref:`auth-facebook-app-setup` for information about setting
+       up your Facebook app and finding the :guilabel:`App Secret`.
+
+   * - | :guilabel:`Metadata Fields`
+       | *metadata_fields*
+
+     - Optional. A list of fields describing the authenticated user that
+       your application will request from the :facebook:`Facebook Graph API
+       <docs/graph-api/reference/user/>`.
+
+       All metadata fields are omitted by default and can be
+       required on a field-by-field basis. Users must
+       explicitly grant your app permission to access each
+       required field. If a metadata field is required and
+       exists for a particular user, it will be included in
+       their user object.
+       
+       To require a metadata field from an import/export
+       configuration file, add an entry for the field to
+       the ``metadata_fields`` array. Each entry should
+       be a document of the following form:
+       
+       .. code-block:: javascript
+          
+          { name: "<metadata field name>", required: "<boolean>" }
+
+   * - | :guilabel:`Redirect URIs`
+       | *redirect_uris*
+
+     - Required for web applications.
+       A list of allowed redirect :abbr:`URIs (Uniform Resource
+       Identifiers)`.
+
+       Once a user completes the authentication process on
+       Facebook, App Services redirects them back to either a
+       specified redirect URI or, if no redirect URI is
+       specified, the URL that they initiated the
+       authentication request from. App Services will only redirect
+       a user to a URI that exactly matches an entry in this
+       list, including the protocol and any trailing
+       slashes.
+
+   * - | :guilabel:`Domain Restrictions`
+       | *domain_restrictions*
+
+     - Optional. A list of approved :wikipedia:`domains <Domain_name>`
+       for user accounts.
+
+       If specified, the provider checks the domain of a
+       user's primary email address on Facebook and only
+       allows them to authenticate if the domain matches an
+       entry in this list.
+
+       For example, if ``example1.com`` and ``example2.com``
+       are listed, a Facebook user with a primary email of
+       ``joe.mango@example1.com`` would be allowed to log
+       in, while a user with a primary email of
+       ``joe.mango@example3.com`` would not be allowed to
+       log in.
+
+       .. note::
+
+          If you've specified any domain restrictions, you
+          must also require the email address field in the
+          :guilabel:`Metadata Fields` setting.
+
+.. _auth-facebook-app-setup:
+
+Set Up a Facebook App
+---------------------
+
+The Facebook authentication provider requires a `Facebook
+app <https://developers.facebook.com/docs/apps>`_ to manage
+authentication and user permissions. The following steps
+walk through creating the app, setting up Facebook Login,
+and configuring the provider to connect with the app.
+
+.. procedure::
+
+   .. step:: Create a Facebook App
+
+      Follow Facebook's `official guide
+      <https://developers.facebook.com/quickstarts/>`_ to create a new
+      Facebook app.
+
+
+   .. step:: Enable Facebook Login
+
+      From the app's :guilabel:`Dashboard` view, find the :guilabel:`Facebook
+      Login` card and click :guilabel:`Set Up`. You should see a list of
+      quickstart guides for each platform. Follow the guide for your
+      platform to enable Facebook Login.
+
+      .. note::
+
+         App Services web applications do not require you to install the Facebook
+         SDK to use the Facebook authentication provider. If you are
+         incorporating Facebook Login into a web application you can skip
+         any steps in the quickstart related to setting up the Facebook SDK
+         for JavaScript.
+
+
+   .. step:: Add App Services as a Valid OAuth Redirect URI
+
+      When a user completes the login flow for your Facebook app they need
+      to be redirected back to App Services. Facebook Login will only allow users
+      to redirect to a pre-approved list of URIs.
+
+      From the :guilabel:`Facebook Login > Settings` page, add an App Services
+      authentication callback URL that corresponds to the :ref:`deployment
+      region <deployment-region>` of your application to
+      the list of :guilabel:`Valid OAuth Redirect URIs`.
+      The following table lists the callback URL for each region:
+
+      .. include:: /includes/deployment-region-auth-callback-urls.rst
+
+
+   .. step:: Configure the Facebook Authentication Provider
+
+
+      To connect your Facebook app to App Services, find your Facebook app's
+      :guilabel:`App ID` and :guilabel:`App Secret` values on the
+      :guilabel:`Settings > Basic` page and add them to your authentication
+      provider :ref:`configuration <auth-facebook-configuration>`.
+
+
+
+.. _facebook-authentication-examples:
+
+Examples
+--------
+
+For code examples that demonstrate how to register and log in using
+Facebook authentication, see the documentation for the Realm SDKs:
+
+- :ref:`C++ SDK <cpp-login-facebook>`
+- :ref:`Flutter SDK <flutter-login-facebook>`
+- :ref:`Java SDK <java-login-facebook>`
+- :ref:`Kotlin SDK <kotlin-login-facebook>`
+- :ref:`.NET SDK <dotnet-login-facebook>`
+- :ref:`Node SDK <node-login-facebook>`
+- :ref:`React Native SDK <react-native-login-facebook>`
+- :ref:`Swift SDK <ios-login-facebook>`
+- :ref:`Web SDK <web-login-facebook>`

@@ -1,0 +1,254 @@
+.. meta::
+   :robots: nosnippet
+
+.. _ci-cd-pipeline:
+
+=======================
+Set Up a CI/CD Pipeline
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :class: singlecol
+   :backlinks: none
+   :depth: 2
+   :local:
+
+Overview
+--------
+
+Many developers use :wikipedia:`continuous integration, delivery, and deployment
+pipelines <CI/CD>` to automatically test and publish their applications whenever
+they make changes. This is most common and useful for larger apps where multiple
+people work on the codebase in parallel using a shared version control system
+like git.
+
+This guide covers the high level stages common to most CI/CD pipelines and
+describes what you might do in each stage. Further, it includes a list of common
+tasks and actions you might perform within your pipelines to configure and test
+your Atlas App Services Apps.
+
+.. tip:: See a real example with GitHub Actions
+   
+   If you'd like to see an example CI/CD pipeline that manages testing,
+   deployment, and other tasks for a real application, check out the article
+   `How to Build CI/CD Pipelines for App Services Apps Using GitHub Actions
+   <https://www.mongodb.com/developer/how-to/build-ci-cd-pipelines-realm-apps-github-actions/>`__
+   on the MongoDB Developer Hub.
+
+Pipeline Stages
+---------------
+
+At a high level most pipelines share a common pattern of moving through multiple
+stages that each handle different concerns.
+
+Development
+~~~~~~~~~~~
+
+The Development stage is the first step for creating new features and fixing
+bugs in an App. In this stage you work with your application's
+configuration files and source code to implement your desired changes. 
+
+To develop new features for an existing app:
+
+1. Fork the main app and :ref:`deploy a new development copy
+   <sdlc-create-app>`. This instance will have a different App ID than your
+   production app. You can also use :ref:`environment value templates
+   <config-expansions>` to use development data sources and other services that
+   are not linked to production.
+
+2. Develop your application. This could involve updating or adding a client app
+   screen, adding a new database trigger, or any other application features. You
+   can use :ref:`Development Mode <development-mode>` if you need to
+   make changes to your synced Realm Object Schema.
+
+1. Run automated tests locally to ensure that your code does not introduce any
+   new errors. Tests that pass locally do not guarantee that your app is free of
+   integration bugs, but increase confidence that your changes do not include any
+   regressions or unintended behavior.
+
+Staging
+~~~~~~~
+
+The Staging stage, which you might also call QA (Quality Assurance), Testing, or
+Pre-Production, is a step that simulates your development changes in an
+environment that is as similar to production as possible. This gives you a
+usable version of your app for review and can help you catch integration bugs
+with live services without affecting production data.
+
+The specifics of your staging deployment depend on your application's needs.
+However, you can use the following high level procedure to set it up:
+
+1. **Set up your staging environment.** Use separate, non-production services and
+   data sources with configurations that mirror production as closely as
+   possible. For example, you might use an Atlas cluster named ``staging`` that
+   otherwise has the same configuration as your ``production`` cluster.
+   Depending on your use case, you may have a consistent App that you
+   reuse for all staging builds or you may create a new App for each
+   staging build.
+
+2. **Create or use an existing staging build.** You can automatically create a
+   staging build as part of your CI/CD process, such as when you create a new
+   new pull request. You can :ref:`use a new app <sdlc-create-app>` for each
+   staging build or you can :ref:`reuse a prebuilt environment
+   <sdlc-update-app>` that you share across builds.
+
+3. **Verify that your app behaves as expected.** This might involve running an
+   automated test suite against your staging environment, manually checking
+   behavior, or getting approval through a user-acceptance test.
+
+Production
+~~~~~~~~~~
+
+The Production stage is the final deployment step where your modified app is
+deployed into your production environment. Ideally at this stage you have
+already tested your changes locally and in staging to confirm that they are safe
+to deploy. You can either deploy to production manually or automatically as part
+of your CI/CD workflow by :ref:`updating your production app <sdlc-update-app>`.
+
+Build Tasks
+-----------
+
+This section outlines common tasks that you will perform in your CI/CD pipeline.
+You may not always do all of these tasks depending on your use case and pipeline
+stage, but in general most pipelines will perform all of these at least once.
+
+Configure the Environment
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The configuration and code for your app should generally be similar between
+development stages. However, you'll want to change the value of certain
+configuration options depending on the environment.
+
+Determine what stage you're building and set the appropriate configuration
+values. For example, you might configure the app with the App ID of a new app in
+the Development stage or use your production App ID in the Production stage.
+
+.. code-block:: bash
+   
+   # Use the production App ID for the main branch
+   export REALM_APP_ID="myapp-abcde"
+   # Use a staging App ID for the QA branch
+   export REALM_APP_ID="myapp-staging-fghij"
+   # Use a new App ID for development branches - you'll need to create the app first!
+   export REALM_APP_ID="myapp-dev-zyxwv"
+
+.. tip:: Find Your App ID
+   
+   You might not always be able to hardcode your App ID. You can look up a
+   specific App ID with {+cli+}. For an example, see :ref:`Create an App
+   <sdlc-create-app>`.
+
+Set Up {+cli+}
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+cli+} is the easiest way to programmatically
+create, configure, and manage Atlas Apps. You should install and
+use the latest version in your deployment scripts.
+
+.. include:: /includes/install-appservices-cli.rst
+
+You'll also need a MongoDB Atlas public/private API key pair to authenticate and
+use the CLI. For more information and a walkthrough of how to get an API key,
+see :atlas:`Programmatic API Keys
+</configure-api-access/#programmatic-api-keys>`.
+
+To log in, save your API keys in a new named profile configuration and then log
+in with that profile:
+
+.. code-block:: yaml
+   :caption: ~/.config/{+cli-bin+}/<Profile Name>.yaml
+   
+   <Profile Name>:
+     public_api_key: "<MongoDB Atlas Public API Key>"
+     private_api_key: "<MongoDB Atlas Private API Key>"
+     atlas_base_url: "https://cloud.mongodb.com"
+     realm_base_url: "https://services.cloud.mongodb.com"
+     telemetry_mode: ""
+
+.. code-block:: bash
+   
+   {+cli-bin+} login --profile="<Profile Name>"
+
+.. tip::
+   
+   Make sure to use the ``--profile`` flag in all of your commands, otherwise
+   {+cli+} won't recognize that you're logged in.
+
+.. _sdlc-create-app:
+
+Create an App
+~~~~~~~~~~~~~
+
+You can use {+cli+} to create new apps to use in development and testing. If
+your pipeline is in the Development or Staging phase, you should deploy and test
+changes with an app other than your live production app.
+
+To use a new app for your development or staging branch:
+
+1. **Create a New App**
+   
+   Push a new app based on your branch of the app's :ref:`configuration
+   files<app-configuration>`:
+   
+   .. code-block:: bash
+      
+      cd path/to/realmApp
+      {+cli-bin+} push -y --project="<MongoDB Atlas Project ID>" # e.g. --project="609ea544934fe445460219a2"
+
+2. **Save the App ID**
+   
+   The new app has a unique App ID value that you'll need to identify it later
+   in your pipeline and in your client app. You should save the value to an
+   environment variable, file, or other location.
+   
+   .. code-block:: bash
+      
+      # Save to an environment variable
+      output=$({+cli-bin+} app describe)
+      app_id=$(echo $output | sed 's/^.*client_app_id": "\([^"]*\).*/\1/')
+      export REALM_APP_ID=app_id
+      # Save to a file
+      echo $REALM_APP_ID > ./clients/ios/realm-app-id.txt
+
+.. _sdlc-update-app:
+
+Update an App
+~~~~~~~~~~~~~
+
+You can use {+cli+} to update an existing app, like a shared staging app or
+your production deployment. The app already exists, so you should be able to
+look up its App ID.
+
+To update an existing app, specify its App ID in the ``--remote`` flag:
+
+.. code-block:: bash
+   
+   {+cli-bin+} push --remote=$REALM_APP_ID -y
+
+Run Tests Against the App
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your app should include automated unit and integration test suites that you can
+run to verify that everything works. The specifics of your test setup will vary
+depending upon your app, but you may need to run tests across multiple platforms
+using a variety of simulators.
+
+If you have integration tests, you could checkout previous releases and run your
+integration tests against the current version of the App to ensure
+backwards compatibility.
+
+Clean Up the Job
+~~~~~~~~~~~~~~~~
+
+At the end of a CI/CD stage or pipeline you may want to clean up resources that
+you created specifically for that test. For example, if you create a new
+Development or Staging app, you might delete the apps and any databases
+associated with them once your changes are merged. Alternatively, you would not
+want to clean up your production app or a persistent staging app if you use one.
+
+Before you clean up, consider what resources may be useful in future. For
+example, you could choose to skip deleting apps and their databases if your
+tests fail. That way you can manually investigate the issue and find any app
+settings or data that caused the failure.

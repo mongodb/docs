@@ -1,0 +1,753 @@
+.. meta::
+   :robots: nosnippet
+
+.. _wire-protocol:
+
+=============
+Wire Protocol
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Atlas App Services natively implements a subset of the MongoDB wire protocol,
+which allows you to connect to an App through one of its :ref:`linked
+MongoDB Atlas data sources <data-sources>` using standard MongoDB
+drivers and tools. Clients use a specialized :ref:`App Services
+connection string <connection-strings>` to connect and send requests.
+App Services supports most client features over the wire protocol,
+including :ref:`role-based data access rules <mongodb-rules>`,
+:doc:`functions </functions>`, and :ref:`service actions
+<service-actions>`.
+
+This is a good choice for languages that do not currently have a Realm 
+SDK. The examples here are for Python, C++11, and the Mongo Shell. Any 
+`MongoDB driver <https://www.mongodb.com/docs/drivers/>`_ that supports the 
+``appName`` connection string parameter can use the wire protocol to 
+connect to App Services.
+
+.. include:: /includes/adf-wire-protocol-note.rst
+
+Compatible Clients
+------------------
+
+You can use the following tools and drivers to communicate with App Services
+using a connection string:
+
+- Version 4.0+ of the `mongo shell <https://www.mongodb.com/docs/mongodb-shell/>`__.
+
+- Any MongoDB driver that supports the ``appName`` connection string
+  parameter. All official MongoDB drivers support this parameter in
+  their current releases.
+
+.. note::
+
+   Connections to App Services over the wire protocol have access to the full
+   functionality of the :doc:`MongoDB Service </mongodb>`. However,
+   App Services does not support all operations and features available in
+   standard tools and clients. For details, see :ref:`MongoDB Service
+   Limitations <mongodb-service-limitations>`.
+
+.. _connection-strings:
+
+Connection Strings
+------------------
+
+To connect to App Services over the wire protocol, you must construct a
+:manual:`MongoDB connection string </reference/connection-string>` that
+includes credentials for an application :doc:`user </users>` and an
+application-specific ``appName`` query parameter.
+
+.. important:: URL Encoding
+   
+   You must :wikipedia:`URL encode <Percent-encoding>` connection
+   strings before you can use them to connect to App Services. Connection
+   strings in the App Services UI are properly encoded by default.
+
+App Services connection strings have the following form:
+
+.. code-block:: shell
+
+   mongodb://<credentials>@<region>.services.cloud.mongodb.com:27020/?<parameters>
+
+.. _wire-protocol-credentials:
+
+Credentials
+~~~~~~~~~~~
+
+All operations that you issue over the wire protocol run in the context
+of a specific application user that you specify in the connection
+string. The user must be registered with one of the following
+authentication providers:
+
+- :ref:`Email/Password <email-password-authentication>`
+- :ref:`API Key <api-key-authentication>`
+- :ref:`Custom JWT <custom-jwt-authentication>`
+
+The contents of connection string credentials depend on the
+authentication provider with which the user registered:
+
+.. _wire-protocol-credentials-userpass:
+.. _wire-protocol-credentials-api-key:
+.. _wire-protocol-credentials-custom:
+
+.. tabs-realm-auth-providers::
+   
+   .. tab::
+      :tabid: local-userpass
+
+      .. list-table::
+         :stub-columns: 1
+         :widths: 10 30
+   
+         * - Format
+           - ``<email>:<password>``
+   
+         * - Fields
+           - .. list-table::
+                :stub-columns: 1
+                :widths: 10 30
+   
+                * - ``<email>``
+                  - The user's registered email address.
+   
+                * - ``<password>``
+                  - The user's password.
+   
+         * - Example
+           - .. code-block:: none
+   
+                joe.mango@company.com:SuperSecretPassword123
+      
+   .. tab::
+      :tabid: api-key
+
+      .. list-table::
+         :stub-columns: 1
+         :widths: 10 30
+   
+         * - Format
+           - ``_:<apiKey>``
+   
+         * - Fields
+           - .. list-table::
+                :stub-columns: 1
+                :widths: 10 30
+   
+                * - ``<apiKey>``
+                  - An active application :doc:`API Key
+                    </authentication/api-key>`.
+   
+         * - Example
+           - .. code-block:: none
+   
+                _:tOSJwYhLLam1qTAwP8rZ5M9BiHfn69w5xrya52dYeOv1PdTlD68i8gKOaN0Wy24z
+
+   .. tab::
+      :tabid: custom-token
+      
+      .. list-table::
+         :stub-columns: 1
+         :widths: 10 30
+   
+         * - Format
+           - ``_:<customAuthToken>``
+   
+         * - Fields
+           - .. list-table::
+                :stub-columns: 1
+                :widths: 10 30
+   
+                * - ``<customAuthToken>``
+                  - A custom authentication :ref:`JSON
+                    Web Token <json-web-tokens>`.
+   
+         * - Example
+           - .. code-block:: none
+   
+                _:eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+                  eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.
+                  SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+
+.. _wire-protocol-region:
+
+Region
+~~~~~~
+
+The connection string must specify the :ref:`deployment region
+<deployment-regions>` and cloud provider in which the App is hosted.
+
+Global Apps use the ``global`` region:
+
+.. code-block:: shell
+
+   mongodb://<credentials>@global.services.cloud.mongodb.com:27020/?<parameters>
+
+Local Apps specify the cloud provider and region name using
+``<region>.<cloud>`` format. For example, an app deployed to
+``aws-us-east-1`` would use the following connection string:
+
+.. code-block:: shell
+
+   mongodb://<credentials>@us-east-1.aws.services.cloud.mongodb.com:27020/?<parameters>
+
+.. _wire-protocol-parameters:
+
+Parameters
+~~~~~~~~~~
+
+App Services requires specific connection string options that identify
+the application you want to connect to and the authentication provider
+associated with the :ref:`credentials
+<wire-protocol-credentials-userpass>` that you provide.
+
+App Services connection strings have the following query parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 40
+
+   * - Parameter
+     - Description
+
+   * - ``authMechanism``
+     - This parameter should always be set to ``PLAIN``.
+
+   * - ``authSource``
+     - This parameter should always be set to ``$external``.
+
+   * - ``appName``
+     - Uniquely identifies the application, MongoDB service, and
+       authentication provider to which you want to connect.
+
+       The ``appName`` parameter has the following form:
+
+       .. code-block:: none
+
+          <app id>:<service>:<provider>
+
+       .. list-table::
+          :stub-columns: 1
+          :widths: 10 40
+
+          * - ``<app id>``
+            - The :guilabel:`App ID` of the App.
+
+          * - ``<service>``
+            - The name of the MongoDB Service that you want to connect
+              to. This value will always be ``mongodb-atlas``.
+
+          * - ``<provider>``
+            - The :ref:`authentication provider
+              <authentication-providers>` for which you provided
+              :ref:`credentials <wire-protocol-credentials>`.
+
+              Valid values:
+
+              - ``local-userpass``
+              - ``api-key``
+              - ``custom-token``
+
+
+Enable Wire Protocol Connections
+--------------------------------
+
+You must enable wire protocol connections for a linked clusters before
+you can connect to an App Services App with a connection string.
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      .. procedure::
+
+         .. step:: Navigate to the Data Source Configuration Screen
+
+            In the :guilabel:`Manage` section of the left navigation menu, click
+            :guilabel:`Linked Data Sources`. 
+            
+            In the list of data sources, select the cluster on
+            which you want to enable wire protocol connections.
+
+         .. step:: Enable Connection Strings for the Cluster
+
+            Set the toggle for :guilabel:`MongoDB Connection String` to
+            :guilabel:`Enabled`. In the Authentication Method section that 
+            appears, choose and configure how you want to authenticate the 
+            wire protocol connections.
+
+            .. figure:: /images/enable-wire-protocol.png
+               :alt: The enable wire protocol toggle in the UI
+
+         .. step:: Select the Authentication Method
+
+            
+
+   
+   .. tab::
+      :tabid: cli
+      
+      .. procedure::
+
+         .. step:: Pull the Latest Version of Your App
+
+            To enable MongoDB wire protocol connections with the {+cli-ref+}, you need a local
+            copy of your application's configuration files.
+
+            To pull a local copy of the latest version of your app, run the following:
+
+            .. code-block:: bash
+
+               {+cli-bin+} pull --remote="<Your App ID>"
+
+            .. tip::
+
+               You can also download a copy of your application's configuration files from
+               the :guilabel:`Deploy > Export App` screen in the App Services UI.
+
+
+         .. step:: Enable Wire Protocol for the Cluster
+
+            To enable wire protocol connections for a linked cluster, open the cluster's
+            ``config.json`` file and set the value of ``config.wireProtocolEnabled`` to
+            ``true``:
+
+            .. code-block:: json
+               :emphasize-lines: 5
+
+               {
+                 "name": "mongodb-atlas",
+                 "type": "mongodb-atlas",
+                 "config": {
+                   "wireProtocolEnabled": true,
+                   ...
+                 }
+               }
+
+            .. include:: /includes/adf-wire-protocol-note.rst
+
+
+         .. step:: Deploy the Updated Data Source Configuration
+
+            Once you've enabled wire protocol connections for the cluster in
+            ``config.json``, you can push the config to your remote app. {+cli+}
+            immediately deploys the update on push.
+
+            .. code-block:: bash
+
+               {+cli-bin+} push --remote="<Your App ID>"
+
+.. _wire-protocol-connect:
+
+Connect Over the Wire Protocol
+------------------------------
+
+Connect to App Services with a Connection String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+To connect to App Services over the wire protocol, pass a
+:wikipedia:`URL-encoded <Percent-encoding>` :ref:`App Services connection
+string <connection-strings>` when you create a client, just as you would
+with a regular :manual:`connection string
+</reference/connection-string>`.
+        
+.. tabs-drivers::
+        
+   .. tab::
+      :tabid: shell
+      
+      .. code-block:: shell
+     
+         $ mongo "mongodb://<user>:<password>@services.cloud.mongodb.com:27020/?authMechanism=PLAIN&authSource=%24external&ssl=true&appName=realm-application-abcde:mongodb-atlas:local-userpass"
+        
+   .. tab::
+      :tabid: python
+      
+      .. code-block:: python
+     
+         client = pymongo.MongoClient("mongodb://<user>:<password>@services.cloud.mongodb.com:27020/?authMechanism=PLAIN&authSource=%24external&ssl=true&appName=realm-application-abcde:mongodb-atlas:local-userpass")
+        
+   .. tab::
+      :tabid: cpp
+      
+      .. code-block:: cpp
+     
+         mongocxx::instance instance{};
+         mongocxx::uri uri("mongodb://<user>:<password>@services.cloud.mongodb.com:27020/?authMechanism=PLAIN&authSource=%24external&ssl=true&appName=realm-application-abcde:mongodb-atlas:local-userpass");
+         mongocxx::client client(uri);
+
+Read and Modify Data
+~~~~~~~~~~~~~~~~~~~~
+        
+While connected to App Services over the wire protocol you can use
+standard MongoDB CRUD operations. App Services applies :ref:`role-based data
+access rules <mongodb-rules>` to all queries in the context of the
+authenticated user specified in the connection string :ref:`credentials
+<wire-protocol-credentials>`.
+        
+.. tabs-drivers::
+        
+   .. tab::
+      :tabid: shell
+        
+      .. code-block:: javascript
+     
+         > use HR
+         > db.employees.findOne();
+         {
+           "_id": ObjectId("5ae782e48f25b9dc5c51c4a5"),
+           "employeeId": 854271626,
+           "name": {
+             "first": "Lucas",
+             "last": "Lewis"
+           },
+           "role": "PM",
+           "salary": 200000,
+           "email": "Lucas.Lewis.0271@company.com",
+           "password": "<password>",
+           "manager": {
+             "id": 328892725,
+             "email": "Daniel.Wilson.0474@company.com",
+             "name": {
+               "first": "Daniel",
+               "last": "Wilson"
+             }
+           }
+         }
+        
+        
+   .. tab::
+      :tabid: python
+      
+      .. code-block:: python
+     
+         >>> db = client["HR"]
+         >>> employee = db["employees"].find_one();
+         >>> pprint(employee)
+         {'_id': ObjectId('5ae782e48f25b9dc5c51c4a5'),
+          'email': 'Lucas.Lewis.0271@company.com',
+          'employeeId': 854271626.0,
+          'manager': {'email': 'Daniel.Wilson.0474@company.com',
+                      'id': 328892725.0,
+                      'name': {'first': 'Daniel', 'last': 'Wilson'}},
+          'name': {'first': 'Lucas', 'last': 'Lewis'},
+          'password': '<password>',
+          'role': 'PM',
+          'salary': 200000}
+        
+        
+   .. tab::
+      :tabid: cpp
+      
+      .. code-block:: cpp
+     
+         mongocxx::database db = client["HR"];
+         mongocxx::collection employees = db["employees"];
+         bsoncxx::stdx::optional<bsoncxx::document::value> result =
+             collection.find_one({});
+         if(result) {
+             std::cout << bsoncxx::to_json(result) << "\n";
+         }
+
+.. _wire-protocol-call-function:
+
+Call a Function
+~~~~~~~~~~~~~~~
+        
+You can call functions using the ``callFunction`` database command.
+        
+.. list-table::
+   :header-rows: 1
+   :widths: 10 15 15
+        
+   * - Command
+     - Description
+     - Prototype
+        
+   * - .. dbcommand:: callFunction
+     - Calls the specified :doc:`function </functions>` and returns any
+       result.
+     - .. code-block:: none
+        
+          {
+            callFunction: <function name>,
+            arguments: [<arg1>, <arg2>, ...]
+          }
+        
+.. tabs-drivers::
+        
+   .. tab::
+      :tabid: shell
+      
+      .. code-block:: shell
+     
+         > db.runCommand({
+         ...  callFunction: "getEmployeeById",
+         ...  arguments: ["5ae782e48f25b9dc5c51c4a5"]
+         ...});
+         {
+           "ok" : 1,
+           "response" : {
+             "_id": ObjectId("5ae782e48f25b9dc5c51c4a5"),
+             "employeeId": 854271626,
+             "name": {
+               "first": "Lucas",
+               "last": "Lewis"
+             },
+             "role": "PM",
+             "salary": 200000,
+             "email": "Lucas.Lewis.0271@company.com",
+             "password": "<password>",
+             "manager": {
+               "id": 328892725,
+               "email": "Daniel.Wilson.0474@company.com",
+               "name": {
+                 "first": "Daniel",
+                 "last": "Wilson"
+               }
+             }
+           }
+         }
+        
+   .. tab::
+      :tabid: python
+      
+      .. code-block:: python
+     
+         >>> function_result = db.command("callFunction", "getEmployeeById",
+         ...     arguments=["5ae782e48f25b9dc5c51c4a5"]
+         ...)
+         >>> pprint.pprint(function_result)
+         {'ok': 1,
+          'response': {'_id': ObjectId('5ae782e48f25b9dc5c51c4a5'),
+                       'email': 'Lucas.Lewis.0271@company.com',
+                       'employeeId': 854271626.0,
+                       'manager': {'email': 'Daniel.Wilson.0474@company.com',
+                                   'id': 328892725.0,
+                                   'name': {'first': 'Daniel', 'last': 'Wilson'}},
+                       'name': {'first': 'Lucas', 'last': 'Lewis'},
+                       'password': '<password>',
+                       'role': 'PM',
+                       'salary': 200000}}
+        
+   .. tab::
+      :tabid: cpp
+      
+      .. code-block:: cpp
+     
+         db.runCommand({
+           callFunction: "getEmployeeById",
+           arguments: ["5ae782e48f25b9dc5c51c4a5"]
+         });
+
+Call a Service Action [DEPRECATED]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+You can call service actions using the ``callServiceFunction`` database
+command.
+        
+.. list-table::
+   :header-rows: 1
+   :widths: 10 15 15
+        
+   * - Command
+     - Description
+     - Prototype
+        
+   * - .. dbcommand:: callServiceFunction
+     - Calls the specified :ref:`service action <service-actions>` and
+       returns any result.
+     - .. code-block:: none
+        
+          {
+            callServiceFunction: <function name>,
+            service: <service name>,
+            arguments: [<arg1>, <arg2>, ...]
+          }
+        
+.. tabs-drivers::
+        
+   .. tab::
+      :tabid: shell
+      
+      .. code-block:: javascript
+     
+         > db.runCommand({
+         ... callServiceFunction: "get",
+         ... service: "http",
+         ... arguments: [{ url: "https://jsonplaceholder.typicode.com/todos/1" }]
+         ... });
+         {
+         	"ok" : 1,
+         	"response" : {
+         		"status" : "200 OK",
+         		"statusCode" : 200,
+         		"contentLength" : NumberLong(-1),
+         		"headers" : {
+         			"Content-Type" : ["application/json; charset=utf-8"],
+         			"Connection" : ["keep-alive"],
+         			"Vary" : ["Origin, Accept-Encoding"],
+         			"X-Content-Type-Options" : ["nosniff"],
+         			"Via" : ["1.1 vegur"],
+         			"X-Powered-By" : ["Express"],
+         			"Cf-Cache-Status" : ["HIT"],
+         			"Expect-Ct" : ["max-age=604800, report-uri=\"https://example.com/cdn-cgi/beacon/expect-ct\""],
+			        "Set-Cookie" : ["__cfduid=d7f650e765d41beb7598ce2ab62d0c0191536867096; expires=Fri, 13-Sep-19 19:31:36 GMT; path=/; domain=.typicode.com; HttpOnly"],
+		         	"Access-Control-Allow-Credentials" : ["true"],
+		         	"Cache-Control" : ["public, max-age=14400"],
+		         	"Pragma" : ["no-cache"],
+		         	"Etag" : ["W/\"53-hfEnumeNh6YirfjyjaujcOPPT+s\""],
+		         	"Server" : ["example.com"],
+		         	"Cf-Ray" : ["459d08f88e1e56db-IAD"],
+		         	"Date" : ["Thu, 13 Sep 2018 19:31:36 GMT"],
+		         	"Expires" : ["Thu, 13 Sep 2018 23:31:36 GMT"]
+		         },
+		         "cookies" : {
+		         	"__cfduid" : {
+		         		"value" : "d7f650e765d41beb7598ce2ab62d0c0191536867096",
+		         		"path" : "/",
+		         		"domain" : ".typicode.com",
+		         		"expires" : "Mon, 01 Jan 0001 00:00:00 GMT",
+		         		"maxAge" : 0,
+		         		"secure" : false,
+		         		"httpOnly" : true
+		         	}
+		         },
+		         "body" : BinData(0,"ewogICJ1c2VySWQiOiAxLAogICJpZCI6IDEsCiAgInRpdGxlIjogImRlbGVjdHVzIGF1dCBhdXRlbSIsCiAgImNvbXBsZXRlZCI6IGZhbHNlCn0=")
+         	}
+         }
+        
+   .. tab::
+      :tabid: python
+      
+      .. code-block:: python
+     
+         >>> result = db.command("callServiceFunction", "get",
+         ...    service="http",
+         ...    arguments=[{"url": "https://jsonplaceholder.typicode.com/todos/1"}]
+         ...)
+         >>> pprint.pprint(result)
+         {'ok': 1,
+          'response': {'body': b'{\n  "userId": 1,\n  "id": 1,\n  "title": "delectus aut'
+                               b' autem",\n  "completed": false\n}',
+                       'contentLength': -1,
+                       'cookies': {'__cfduid': {'domain': '.typicode.com',
+                                                'expires': 'Mon, 01 Jan 0001 00:00:00 '
+                                                           'GMT',
+                                                'httpOnly': True,
+                                                'maxAge': 0,
+                                                'path': '/',
+                                                'secure': False,
+                                                'value': 'd4b10004e96ca7fee0be03dceebaf2ab71536866400'}},
+                       'headers': {'Access-Control-Allow-Credentials': ['true'],
+                                   'Cache-Control': ['public, max-age=14400'],
+                                   'Cf-Cache-Status': ['HIT'],
+                                   'Cf-Ray': ['459cf7fc7e20c1bd-IAD'],
+                                   'Connection': ['keep-alive'],
+                                   'Content-Type': ['application/json; charset=utf-8'],
+                                   'Date': ['Thu, 13 Sep 2018 19:20:00 GMT'],
+                                   'Etag': ['W/"53-hfEnumeNh6YirfjyjaujcOPPT+s"'],
+                                   'Expect-Ct': ['max-age=604800, '
+                                                 'report-uri="https://example.com/cdn-cgi/beacon/expect-ct"'],
+                       'Expires': ['Thu, 13 Sep 2018 23:20:00 GMT'],
+                       'Pragma': ['no-cache'],
+                       'Server': ['example.com'],
+                       'Set-Cookie': ['__cfduid=d4b10004e96ca7fee0be03dceebaf2ab71536866400; '
+                                      'expires=Fri, 13-Sep-19 19:20:00 GMT; '
+                                      'path=/; domain=.typicode.com; '
+                                      'HttpOnly'],
+                       'Vary': ['Origin, Accept-Encoding'],
+                       'Via': ['1.1 vegur'],
+                       'X-Content-Type-Options': ['nosniff'],
+                       'X-Powered-By': ['Express']},
+           'status': '200 OK',
+           'statusCode': 200}}
+        
+   .. tab::
+      :tabid: cpp
+      
+      .. code-block:: cpp
+     
+         db.runCommand({
+           callServiceFunction: "get",
+           service: "http",
+           arguments: [{ url: "https://jsonplaceholder.typicode.com/todos/1" }]
+         });
+
+Get the Logged In User's Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        
+You can get the :ref:`user object <user-objects>` for the authenticated
+user using the ``userProfile`` database command.
+        
+.. list-table::
+   :header-rows: 1
+   :widths: 10 15 15
+        
+   * - Command
+     - Description
+     - Prototype
+        
+   * - .. dbcommand:: userProfile
+     - Returns the :doc:`user object </users>` for the authenticated
+       user.
+     - .. code-block:: none
+        
+          {
+            userProfile: 1
+          }
+        
+.. tabs-drivers::
+        
+   .. tab::
+      :tabid: shell
+      
+      .. code-block:: javascript
+     
+         > db.runCommand({ userProfile: 1 });
+         {
+         	"ok" : 1,
+         	"profile" : {
+         		"userid" : "5ad7a79e8f25b975898d77b8",
+         		"domainid" : ObjectId("5ad7a69746224c054067c8b1"),
+         		"identities" : [
+         			{
+     
+         			}
+         		],
+         		"data" : "{\"email\":\"joe.mango@company.com\"}",
+         		"type" : "normal",
+         		"roleassignments" : [ ]
+         	}
+         }
+        
+   .. tab::
+      :tabid: python
+      
+      .. code-block:: python
+     
+         >>> result = db.command("userProfile", 1)
+         >>> pprint.pprint(result)
+         {'ok': 1,
+          'profile': {'data': '{"email":"joe.mango@company.com"}',
+                      'domainid': ObjectId('5ad7a69746224c054067c8b1'),
+                      'identities': [{}],
+                      'roleassignments': [],
+                      'type': 'normal',
+                      'userid': '5ad7a79e8f25b975898d77b8'}}
+        
+   .. tab::
+      :tabid: cpp
+      
+      .. code-block:: cpp
+     
+         db.runCommand({ userProfile: 1 });

@@ -1,0 +1,223 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _appconfig-https_endpoints:
+
+==================================
+HTTPS Endpoint Configuration Files
+==================================
+
+.. default-domain:: mongodb
+
+.. code-block:: none
+   
+   app/
+   └── https_endpoints/
+       ├── config.json
+       └── data_api_config.json
+
+.. _appconfig-endpoints:
+
+Custom HTTPS Endpoint Configuration
+-----------------------------------
+
+Define the configurations for all of your app's :ref:`custom HTTPS
+endpoints <https-endpoints>` as an array in ``https_endpoints/config.json``.
+
+.. code-block:: json
+   
+   [
+     {
+       "route": "<Endpoint Route Name>",
+       "http_method": "<HTTP method>",
+       "function_name": "<Endpoint function name",
+       "validation_method": "<Authorization scheme>",
+       "secret_name": "<Validation Secret Name>",
+       "respond_result": <boolean>,
+       "fetch_custom_user_data": <boolean>,
+       "create_user_on_auth": <boolean>,
+       "disabled": <boolean>
+     }
+   ]
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30
+
+   * - Field
+     - Description
+    
+   * - | ``route``
+       | ``string``
+     
+     - The endpoint :ref:`route <endpoint-route>`.
+    
+   * - | ``http_method``
+       | ``string``
+     
+     - The type of :mdn:`HTTP method <Web/HTTP/Methods>` that the
+       endpoint handles. Specify ``*`` to handle all methods with a
+       single endpoint.
+
+       One of:
+
+       - ``"GET"``
+       - ``"POST"``
+       - ``"PUT"``
+       - ``"PATCH"``
+       - ``"DELETE"``
+       - ``"DELETE"``
+       - ``"*"``
+    
+   * - | ``function_name``
+       | ``string``
+     
+     - The name of the :ref:`function <appconfig-functions>` associated
+       with the endpoint. The function should use the :ref:`endpoint
+       function signature <endpoint-function>`.
+    
+   * - | ``validation_method``
+       | ``string``
+     
+     - The :ref:`endpoint authorization scheme <endpoint-authorization>`
+       used to validate incoming requests.
+       
+       One of:
+
+       - ``"SECRET_AS_QUERY_PARAM"``
+       - ``"VERIFY_PAYLOAD"``
+       - ``"NO_VALIDATION"``
+   
+   * - | ``secret_name``
+       | ``string``
+     
+     - The name of a :ref:`secret <app-secret>` that contains a string.
+       If ``validation_method`` is set to ``SECRET_AS_QUERY_PARAM`` or
+       ``VERIFY_PAYLOAD``, this secret is used to authorize requests.
+   
+   * - | ``respond_result``
+       | ``boolean``
+     
+     - If ``true``, the endpoint returns a customizable HTTP response to
+       the client. You configure the response by calling the methods on
+       the :ref:`Response <endpoint-response-object>` object. If you do
+       not configure the response, the endpoint returns a ``200 - Ok``
+       response with the value returned from the endpont function as the
+       request body.
+
+       If ``false``, requests return a ``204 - No Content`` response
+       with no data in the body.
+    
+   * - | ``fetch_custom_user_data``
+       | ``boolean``
+     
+     - If ``true``, the authenticated user's :ref:`custom user data
+       <custom-user-data>` document is available via
+       ``context.user.custom_data``.
+
+       If ``false``, the user's custom data is not queried and
+       ``context.user.custom_data`` is an empty object.
+    
+   * - | ``create_user_on_auth``
+       | ``boolean``
+     
+     - If ``true``, your app automatically creates a new user
+       if the provided user credentials authenticate successfully but
+       aren't associated with an existing user.
+       
+       This setting is useful for apps that integrate with external
+       authentication system through the Custom JWT authentication
+       provider. If a request includes a valid JWT from the external system
+       that doesn't correspond to a registered user, this creates a new
+       user with the JWT as an identity.
+   
+   * - | ``disabled``
+       | ``boolean``
+     
+     - Enables (``false``) or disables (``true``) the endpoint.
+
+.. _appconfig-data-api-endpoints:
+
+Data API Configuration
+----------------------
+
+Define the configuration for your app's generated :ref:`Data API
+endpoints <data-api-endpoints>` in ``https_endpoints/data_api_config.json``.
+
+.. code-block:: json
+   
+   {
+     "disabled": <boolean>,
+     "versions": ["v1"],
+     "return_type": "EJSON" | "JSON",
+     "create_user_on_auth": <boolean>,
+     "run_as_system": <boolean>,
+     "run_as_user_id": "<User Account ID>",
+     "run_as_user_id_script_source": "<Function Source Code>"
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30
+
+   * - Field
+     - Description
+    
+   * - | ``disabled``
+       | ``boolean``
+     
+     - If ``false``, the Data API is not enabled. Generated endpoints
+       will not handle or respond to requests.
+    
+   * - | ``versions``
+       | ``string[]``
+     
+     - A list of Data API versions that your app supports. The list may
+       include a subset of all possible versions but must list the
+       versions in ascending order. You cannot enable a version other
+       than the most recent version but any previously enabled versions
+       listed here will continue to work.
+
+       Available Versions:
+
+       - ``"v1"``
+    
+   * - | ``return_type``
+       | ``string``
+     
+     - The data format to use for data returned by endpoints in HTTPS
+       response bodies.
+       
+       One of:
+       
+       - ``"EJSON"``
+       - ``"JSON"``
+       
+   * - | ``create_user_on_auth``
+       | ``boolean``
+     
+     - If ``true``, your app automatically creates a new user
+       if the provided user credentials authenticate successfully but
+       aren't associated with an existing user.
+       
+       This setting is useful for apps that integrate with external
+       authentication system through the Custom JWT authentication
+       provider. If a request includes a valid JWT from the external system
+       that doesn't correspond to a registered user, this creates a new
+       user with the JWT as an identity.
+   
+   * - | ``run_as_user_id``
+       | ``string``
+     - An application user's account ID. If defined, endpoints will
+       always run as the specified user.
+       
+       Cannot be used with ``run_as_user_id_script_source``.
+   
+   * - | ``run_as_user_id_script_source``
+       | ``string``
+     - Stringified source code for a :ref:`function <functions>` that
+       returns an application user's account ID. If defined, endpoints
+       execute the function on every request and run as the user with
+       the ID returned from the function.
+       
+       Cannot be used with ``run_as_user_id``.

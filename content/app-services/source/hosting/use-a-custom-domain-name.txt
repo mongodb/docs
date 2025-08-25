@@ -1,0 +1,300 @@
+.. meta::
+   :robots: nosnippet
+
+========================
+Use a Custom Domain Name
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You can use your own custom domain name for your hosted content. By
+default, content that you upload is available at a domain with the
+following form:
+
+.. code-block:: none
+
+   <Your App ID>.mongodbstitch.com
+
+You can configure a custom domain name for your application's hosted
+content from the App Services UI or by :ref:`importing
+<deploy-cli>` an application configuration
+directory that specifies the domain in its ``config.json`` configuration
+file. Select the tab below that corresponds to the method you want to
+use.
+
+Procedure
+---------
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+      
+      .. procedure::
+
+         .. step:: Acquire the Custom Domain Name
+
+            You must own the custom domain name that you want to serve content
+            from. If you don't already own the domain that you want to use, you
+            will need to purchase it from a domain name registrar.
+
+
+         .. step:: Specify the Custom Domain in Atlas App Services
+
+            You need to provide your custom domain name to App Services before it will
+            serve content from the domain. To specify the domain:
+
+            1. Click :guilabel:`Hosting` in the left navigation menu.
+
+            2. Click the :guilabel:`Settings` tab.
+
+            3. Under :guilabel:`Custom Domain`, set the toggle to
+               :guilabel:`Enabled`.
+
+            4. Enter your custom domain in the input box under the
+               :guilabel:`Enabled` toggle. This value should be the root domain
+               without any subdomains. For example, you should enter
+               ``example.com`` instead of ``www.example.com``.
+
+            5. Click :guilabel:`Save`.
+
+            .. note::
+
+              If an error is encountered during custom domain name validation,
+              App Services sends the project owner an email alerting them of the
+              issue.
+
+
+         .. step:: Add a Validation CNAME Record
+
+            To verify that you own the domain you must add a new :wikipedia:`CNAME
+            record <CNAME_record>` in your domain's DNS configuration. The
+            :guilabel:`Custom Domain` section will include an information box that
+            lists the host name and target value to use in the record.
+
+            Once you have added the validation record it may take some time for the
+            DNS record to propagate. App Services will periodically check the domain's
+            DNS records for the validation ``CNAME`` and will mark the domain as
+            verified if it finds the record.
+
+            .. tip:: Troubleshooting
+
+               - In the :guilabel:`Name` field of the App Services UI, App Services provides
+                 the full address for the CNAME record, ``<Subdomain>.<Your Base Domain>``.
+                 However, many hosting providers just request the ``<Subdomain>`` part
+                 to put in their UI. If you run into issues, check your hosting provider's
+                 documentation on how to add CNAME records.
+
+               - App Services may not be able to find the validation record if your DNS
+                 provider proxies requests for the domain. If App Services cannot validate
+                 your domain, ensure that you have disabled any HTTP proxies for the
+                 validation CNAME record on your DNS provider.
+
+               - If an error is encountered during custom domain name validation,
+                 App Services sends the project owner an email alerting them of the
+                 issue.
+
+
+         .. step:: Add a Redirect CNAME Record
+
+            Once App Services has verified your domain, all that's left is to add a
+            ``CNAME`` DNS record for your domain that points to the default App Services
+            domain. Use the following host name and target value:
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 10 30
+
+               * - Value
+                 - Description
+
+               * - Host Name
+                 - A subdomain such as ``www``.
+
+               * - Target
+                 - The default domain for your application. This value is listed
+                   as the :guilabel:`App Services Domain` in the :guilabel:`Settings` tab
+                   of the :guilabel:`Hosting` page. The default domain has the
+                   following form:
+
+                   .. code-block:: none
+
+                      <Your App ID>.mongodbstitch.com
+
+
+   .. tab::
+      :tabid: cli
+      
+      .. procedure::
+
+         .. step:: Acquire the Custom Domain Name
+
+            You must own the custom domain name that you want to serve content
+            from. If you don't already own the domain that you want to use, you
+            will need to purchase it from a domain name registrar.
+
+
+         .. step:: Pull the Latest Version of Your App
+
+            To configure a custom domain name with the {+cli-ref+}, you need a local copy of
+            your application's configuration files.
+
+            To pull a local copy of the latest version of your app, run the following:
+
+            .. code-block:: bash
+
+               {+cli-bin+} pull --remote="<Your App ID>"
+
+            .. tip::
+
+               You can also download a copy of your application's configuration files from
+               the :guilabel:`Deploy > Import/Export App` screen in the App Services UI.
+
+
+         .. step:: Specify the Custom Domain
+
+            In ``hosting/config.json``, set ``custom_domain`` to your custom domain name
+            then save the file.
+
+            .. code-block:: json
+               :caption: hosting/config.json
+
+               {
+                 "enabled": true,
+                 "custom_domain": "example.com"
+               }
+
+            .. note::
+
+               The value of ``custom_domain`` should be the root domain without
+               any subdomains. For example, you should enter ``example.com``
+               instead of ``www.example.com``.
+
+
+         .. step:: Import the Application Directory
+
+            Once you have specified your custom domain name, you can import the
+            application directory.
+
+            Navigate to the root of the application directory and run the
+            following command:
+
+            .. code-block:: shell
+
+               {+cli-bin+} import --include-hosting
+
+
+         .. step:: Deploy the Updated Hosting Configuration
+
+            Once you've updated and saved ``hosting/config.json`` you can push the updated
+            config to your remote app. {+cli+} immediately deploys the configuration on
+            push and App Services immediately starts trying to verify your domain name.
+
+            .. code-block:: bash
+
+               {+cli-bin+} push --remote="<Your App ID>" --include-hosting
+
+
+         .. step:: Add a Validation CNAME Record
+
+            To verify that you own the domain you must add a new :wikipedia:`CNAME
+            record <CNAME_record>` in your domain's DNS configuration. You can
+            find the host name and target value to use in the record
+            :guilabel:`Custom Domain` section of the :guilabel:`Hosting >
+            Settings` tab in the App Services UI.
+
+            Once you have added the validation record it may take some time for the
+            DNS record to propagate. App Services will periodically check the domain's
+            DNS records for the validation ``CNAME`` and will mark the domain as
+            verified if it finds the record.
+
+            .. tip:: Troubleshooting
+
+               - In the :guilabel:`Name` field of the App Services UI, App Services provides
+                 the full address for the CNAME record, ``<Subdomain>.<Your Base Domain>``.
+                 However, many hosting providers just request the ``<Subdomain>`` part
+                 to put in their UI. If you run into issues, check your hosting provider's
+                 documentation on how to add CNAME records.
+
+               - App Services may not be able to find the validation record if your DNS
+                 provider proxies requests for the domain. If App Services cannot validate
+                 your domain, ensure that you have disabled any HTTP proxies for the
+                 validation CNAME record on your DNS provider.
+
+               - If an error is encountered during custom domain name validation,
+                 App Services sends the project owner an email alerting them of the
+                 issue.
+
+
+         .. step:: Add a Redirect CNAME Record
+
+            Once App Services has verified your domain, all that's left to do is to add one or
+            more ``CNAME`` DNS records for your domain that point to the default
+            App Services domain. Use the following host name and target value:
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 10 30
+
+               * - Value
+                 - Description
+
+               * - Host Name
+                 - A subdomain such as ``www``.
+
+               * - Target
+                 - The default domain for your application. This value is listed
+                   as the :guilabel:`App Services Domain` in the :guilabel:`Settings` tab
+                   of the :guilabel:`Hosting` page. The default domain has the
+                   following form:
+
+                   .. code-block:: none
+
+                      <Your App ID>.mongodbstitch.com
+
+
+.. note:: Add App Services's AWS CAAs to Verify Your Domain
+
+   If you have trouble verifying your domain:
+   
+   - clear any unnecessary :wikipedia:`CAA <DNS_Certification_Authority_Authorization>`'s
+     from your site's records
+     
+   - add the following CAA records:
+
+     .. list-table::
+        :header-rows: 1
+        :widths: 20 20 20 20 20
+
+        * - Domain
+          - Record Type
+          - Flags
+          - Tag
+          - Value
+
+        * - ``www.example.com``
+          - ``CAA``
+          - ``0``
+          - ``issue``
+          - ``"amazon.com"``
+
+        * - ``www.example.com``
+          - ``CAA``
+          - ``0``
+          - ``issue``
+          - ``"amazontrust.com"``
+
+        * - ``www.example.com``
+          - ``CAA``
+          - ``0``
+          - ``issue``
+          - ``"awstrust.com"``

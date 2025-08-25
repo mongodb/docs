@@ -1,0 +1,244 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+===========================
+GitHub Service [Deprecated]
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/note-third-party-services-deprecation.rst
+
+Overview
+--------
+
+GitHub is a web-based development platform for hosting and reviewing
+Git repositories.
+
+The Atlas App Services GitHub service allows your application to react to events in
+a GitHub repository, such as new pull requests or issues.
+
+.. _github-service-configuration:
+
+Configuration Parameters
+------------------------
+
+You will need to provide values for the following parameters when you
+:doc:`create a GitHub service interface </services/configure/services>`:
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+   .. tab::
+      :tabid: cli
+      
+      .. code-block:: json
+         :caption: <Service Name>/config.json
+         
+         {
+           "name": "<Service Name>",
+           "type": "github",
+           "config": {}
+         }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 15
+
+   * - Parameter
+     - Description
+
+   * - | :guilabel:`Service Name`
+       | *config.name*
+
+     - The name of this GitHub service interface. This must be unique
+       from all other service interfaces in your application.
+
+.. _github-service-actions:
+
+Service Actions
+---------------
+
+GitHub Services do not provide any service actions. Use an
+:ref:`incoming webhook <github-incoming-webhooks>` to respond to events
+in your GitHub repo.
+
+.. _github-incoming-webhooks:
+
+Incoming Webhooks
+-----------------
+
+.. note:: Convert GitHub Webhooks to Endpoints
+
+   GitHub Service webhoooks are deprecated in favor of custom HTTPS
+   endpoints. To learn how to migrate your existing GitHub webhooks to
+   endpoints, see :ref:`Convert Webhooks to HTTPS Endpoints
+   <migrate-github-webhooks-to-endpoints>`.
+
+GitHub can invoke one or more webhooks whenever a particular event
+occurs in a repository. If you'd like to learn more about GitHub's
+webhook functionality, including detailed reference information about
+GitHub event types, see GitHub's :github-dev:`Webhook </webhooks>`
+documentation.
+
+Configuration
+~~~~~~~~~~~~~
+
+.. tabs-realm-admin-interfaces::
+
+   tabs:
+     - id: ui
+       content: |
+         You will need to provide values for the following parameters
+         when you :doc:`configure a GitHub incoming webhook
+         </services/configure/service-webhooks>`:
+
+     - id: cli
+       content: |
+         You will need to provide a configuration file of the following
+         form when you :doc:`configure a GitHub incoming webhook
+         </services/configure/service-webhooks>`:
+
+         .. code-block:: javascript
+
+            {
+              "name": <string>,
+              "respond_result": <boolean>,
+              "run_as_user_id": <string>,
+              "run_as_user_id_script_source": <string>,
+              "options": {
+                "secret": <string>
+              },
+            }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 40
+
+   * - Configuration Value
+     - Description
+
+   * - | :guilabel:`Webhook Name`
+       | *name*
+
+     - Required. The name of the webhook. Each incoming webhook in a
+       GitHub service interface must have a unique name.
+
+   * - | :guilabel:`Respond With Result`
+       | *respond_result*
+
+     - Required. If ``true``, App Services sends the return value of the
+       webhook function to GitHub in the response body.
+
+   * - | :guilabel:`Run Webhook As`
+       | *run_as_user_id*
+       | *run_as_user_id_script_source*
+
+     - Optional. The id of the :doc:`App Services user </users>` that
+       executes the webhook function when the webhook is called.
+
+       .. tabs-realm-admin-interfaces::
+          :hidden: true
+          
+          .. tab::
+             :tabid: ui
+             
+             .. include:: /includes/run-webhook-as-options.rst
+          
+          .. tab::
+             :tabid: cli
+
+             You can specify the user id directly in ``run_as_user_id`` or
+             provide a stringified :doc:`Atlas Function
+             </functions>` that accepts the webhook payload and returns the user
+             id in ``run_as_user_id_script_source``. If you do not specify a
+             specific user id or a function that resolves to a user id,
+             App Services executes the webhook function as the :ref:`system
+             user <system-user>` that has full access to MongoDB CRUD and
+             Aggregation APIs and bypasses all rules and schema validation.
+
+   * - | :guilabel:`Request Validation`
+       | *config.secret*
+
+     - The :guilabel:`GitHub Secret` string that GitHub includes with
+       incoming requests to prove that the requests are valid. You must
+       specify this value in the settings of your GitHub repo when you
+       provide a webhook URL.
+
+.. _github-webhook-request-payload:
+
+Request Payload
+~~~~~~~~~~~~~~~
+
+App Services automatically passes a ``payload`` document as the first argument
+to incoming webhook functions. In a GitHub Service incoming webhook the
+``payload`` object represents the GitHub event that caused GitHub to
+call the webhook.
+
+.. note::
+
+   The exact content of GitHub ``payload`` documents varies depending on
+   the event type that it represents. For a detailed description of a
+   specific event type's payload document, refer to GitHub's
+   :github-dev:`Event Types & Payloads <v3/activity/events/types>`
+   documentation.
+
+Example Webhook Function
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following webhook function inserts incoming data into a MongoDB
+collection.
+
+.. code-block:: javascript
+
+   exports = function(payload) {
+       const mongodb = context.services.get("mongodb-atlas");
+       const requestlogs = mongodb.database("test").collection("requestlogs");
+
+       return requestlogs
+         .insertOne({
+           "commits": payload.commits,
+           "pushed_by": payload.pusher,
+           "repo": payload.repository.html_url
+         })
+         .then(({ insertedId }) => `Inserted document with _id: ${insertedId}`)
+   }
+
+The ``payload`` document is passed by the GitHub service and contains
+information from the request.
+
+.. _configure-github:
+
+Configure GitHub
+----------------
+
+Add a Webhook to a GitHub Repository
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Log into :github:`GitHub <>`.
+
+2. Navigate to the repository that you want to subscribe to.
+
+3. Click the :guilabel:`Settings` tab of the repository and select
+   :guilabel:`Webhooks` from the left hand menu.
+
+4. Click :guilabel:`Add Webhook`.
+
+5. Add the webhook URL to the :guilabel:`Payload URL` field.
+
+6. Set the content type to ``application/json``.
+
+7. Enter the :guilabel:`GitHub Secret`. This should match the value you
+   provided in the webhook configuration.
+
+8. Choose the type of events that you want to subscribe to.
+
+9. Click :guilabel:`Add webhook`.

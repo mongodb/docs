@@ -1,0 +1,202 @@
+.. meta::
+   :robots: nosnippet
+
+.. _export-app:
+
+=============
+Export an App
+=============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+
+Overview
+--------
+
+You can download a directory of your App's configuration files by
+exporting them. This allows you to save your App's configuration in
+source control and to work locally with {+cli+} and your preferred
+text editor.
+
+The exported directory contains configuration files for most components
+of your App, including Data Sources, Functions, Triggers, and other
+services. For more information on the contents of an exported App, see
+:ref:`App Configuration <app-configuration>`.
+
+The export does not include any :ref:`Secrets <app-secret>`. If you
+create a new App based on exported configuration files, you must
+manually add Secrets to the new App. For more information, see
+:ref:`Copy an App <copy-app>`.
+
+Before You Begin
+----------------
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      You will need the following to export an App in the Atlas UI:
+
+      - .. include:: /includes/prereqs/atlas-account.rst
+
+   .. tab::
+      :tabid: cli
+
+      You will need the following to export an App in the CLI:
+
+      - .. include:: /includes/prereqs/atlas-account.rst
+
+      - .. include:: /includes/prereqs/atlas-admin-api-key.rst
+
+      - .. include:: /includes/prereqs/appservices-cli.rst
+
+      - .. include:: /includes/prereqs/app-id.rst
+
+   .. tab::
+      :tabid: api
+
+      You will need the following to export an App with the Admin API:
+
+      - .. include:: /includes/prereqs/atlas-account.rst
+
+      - .. include:: /includes/prereqs/atlas-admin-api-key.rst
+
+      - .. include:: /includes/prereqs/api-project-app-id.rst
+
+Procedure
+---------
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      .. procedure::
+
+         .. step:: Navigate to Your App
+
+            In the Atlas UI, click the :guilabel:`App Services` tab.
+            Then, click the tile for the App you want to export.
+
+         .. step:: Export the App
+
+            Click :guilabel:`Deployment` in the left-hand navigation.
+
+            From here, there are two ways to export your app:
+
+            - To export your App's current configuration, click the
+               :guilabel:`Export App` tab, then click the
+               :guilabel:`Export App` button.
+
+            - To export your App's configuration from a previous
+               deployment, click the :guilabel:`History` tab and find the
+               deployment you want to export.
+
+               Once you've found the deployment, click the
+               :guilabel:`Export` button at the end of the row.
+
+   .. tab::
+      :tabid: cli
+
+      .. procedure::
+
+         .. step:: Authenticate a MongoDB Atlas User
+
+            .. include:: /includes/cli-login.rst
+
+         .. step:: Run the App Export Command
+
+            The ``pull`` command downloads an application's
+            configuration files to a local directory. You choose which
+            app to export by specifying its Client App ID with the
+            ``--remote`` flag.
+
+            .. code-block:: shell
+
+               {+cli-bin+} pull --remote=<Client App ID>
+
+            By default the command pulls files into the current working
+            directory. You can configure the command to create a new
+            directory instead by specifying the directory path with the
+            ``--local`` flag.
+
+            .. code-block:: shell
+
+               {+cli-bin+} pull --remote=<App ID> --local=<Output Directory Path>
+
+            .. tip::
+
+               The directory specified by ``--local`` must not already
+               exist, otherwise the CLI throws an error and does not
+               pull the configuration files.
+
+            The command also supports :ref:`additional flags
+            <appservices-pull>` that you can optionally include to
+            customize your app. The following table lists common flags
+            you might use:
+
+            .. list-table::
+
+               * - ``--include-dependencies``
+                 - If specified, external dependencies are exported as a
+                   ``node_modules`` archive in the ``/functions``
+                   directory.
+
+               * - ``--include-hosting``
+                 - If specified, hosted static assets are exported
+                   in the ``/hosting/files`` directory.
+
+   .. tab::
+      :tabid: api
+
+      .. procedure::
+
+         .. step:: Authenticate a MongoDB Atlas User
+
+            .. include:: /includes/api-authenticate-instructions.rst
+
+         .. step:: Export Your App
+
+            To export your App, send a request to the
+            :admin-api-endpoint:`Export an App
+            <operation/adminExportApplication>` endpoint.
+
+            Make sure to include your Admin API ``access_token``, the
+            ``groupId`` of the Atlas project containing your App, and
+            the App's internal ``appId`` hex string:
+
+            .. code-block:: shell
+
+               curl -X GET \
+                 https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/export \
+                 -H 'Authorization: Bearer <access_token>' \
+                 -H 'Content-Type: application/json' \
+                 --output ./exported-app.zip
+
+            You can export the configuration for a specific deployment
+            by specifying the deployment ``_id`` as a URL query
+            parameter:
+
+            .. code-block:: text
+
+               https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/export?deployment={deploymentId}
+
+            If the request is successful, the endpoint returns a ``200``
+            response that contains a ``.zip`` directory of your
+            application's current configuration files.
+
+.. _realm_app_structure:
+
+Output
+------
+
+An exported App contains configuration files for every component of the
+App. For detailed information about each type of configuration file, see
+:ref:`app-configuration`.
+
+An exported configuration directory has the following structure:
+
+.. include:: /includes/realm-application-file-schema.rst

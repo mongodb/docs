@@ -1,0 +1,379 @@
+.. meta::
+   :robots: nosnippet
+
+.. _rule-examples:
+
+=========================
+Data Access Role Examples
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+"Apply When" Expressions
+------------------------
+
+Atlas App Services determines if a role applies by evaluating the "apply when"
+:ref:`expression <expressions>` that you define for each role.
+
+This section contains examples of "apply when" expressions for common scenarios
+where you're not using Device Sync. For guidance on common Device Sync
+scenarios, see the :ref:`flexible-sync-permissions-guide`.
+
+To add an expression to a role, find the scenario that most closely matches your
+use case and then copy and paste the provided template into the role. You may
+need to modify placeholder values (denoted by ``<angle brackets>``) in the
+template to match your collection or otherwise adapt the template to fit your
+needs.
+
+.. note::
+
+   You can also use the "apply when" expressions on this page for :doc:`external
+   services </reference/services>`.
+
+The User Is the Document Owner
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This expression evaluates to ``true`` if the active user's unique ``id`` value
+matches the value of the specified field. "Owner ID field" refers to whatever
+field in your schema represents a relationship with a user object.
+
+.. code-block:: javascript
+
+   {
+     "<Owner ID Field>": "%%user.id"
+   }
+
+An Array Field Contains the User's ID
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This expression evaluates to ``true`` if the active user's unique ``id``
+value matches one or more values in the specified array field.
+
+.. code-block:: javascript
+
+   {
+     "<Array Field>": "%%user.id"
+   }
+
+The User Has An Email Address
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This expression evaluates to ``true`` if the active user has any email
+address listed in their internal :doc:`user object </users>`.
+
+.. code-block:: javascript
+
+   {
+     "%%user.data.email": { "%exists": true }
+   }
+
+The User Has A Specific Email Address
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This expression evaluates to ``true`` if the active user's email address
+matches the specified email address.
+
+.. code-block:: javascript
+
+   {
+     "%%user.data.email": "<Email Address>"
+   }
+
+A Field Contains the User's Email Address
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This expression evaluates to ``true`` if the active user's email address
+matches the value of the specified field.
+
+.. code-block:: javascript
+
+   {
+     "%%root.email": "%%user.data.email"
+   }
+
+An Array Field Contains the User's Email Address
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This expression evaluates to ``true`` if the active user's email address
+matches one or more string values in the specified array field.
+
+.. code-block:: javascript
+
+   {
+     "<Array Field>": "%%user.data.email"
+   }
+
+A Field Satisfies a Complex Condition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This expression evaluates to ``true`` if the :doc:`Function
+</functions>` ``isAuthorizedUser`` returns ``true`` when passed the
+active user's id value.
+
+.. note::
+
+   You can call any Atlas Function from a JSON expression using the
+   :json-operator:`%function` operator.
+
+.. code-block:: javascript
+
+   {
+     "%%true": {
+       "%function": {
+         "name": "isAuthorizedUser",
+         "arguments": ["%%user.id"]
+       }
+     }
+   }
+
+.. _mongodb-crud-permissions:
+
+CRUD Permissions
+----------------
+
+App Services uses a role's permissions configuration to determine if the
+active user can insert or delete a document as well as which fields in
+the document they can read and write.
+
+This section contains templates that define roles for common scenarios. To apply
+a set of permissions to a role, find the scenario that most closely matches your
+use case. Update the Field Permissions, Document Permissions, and/or the role's permissions table 
+to match the provided screenshot or copy and paste the provided 
+template into the collection's :doc:`advanced
+mode </mongodb/configure-advanced-rules>` configuration. Make sure that you
+modify any placeholder values (denoted by ``<angle brackets>``) in the template
+to match your needs.
+
+The Role Can Read All Fields but Cannot Write
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To allow a role to read any field, set the document-level ``read`` field
+to ``true`` and ``write`` field to ``false``.
+
+.. list-table::
+   :widths: 50 50
+
+   * - .. figure:: /images/role-template-read-all.png
+          :alt: A role with permission to read all document fields
+          :width: 350px
+
+     - .. code-block:: json
+          :emphasize-lines: 7-8
+
+          {
+            "name": "<Role Name>",
+            "apply_when": {<JSON Expression>},
+            "document_filters": {<JSON Expression>},
+            "insert": <boolean>,
+            "delete": <boolean>,
+            "read": true,
+            "write": false
+          }
+
+The Role Can Read & Write All Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To allow a role to read or write any field, set the document-level
+``write`` field to ``true``. Document-level writes require read
+permission, so the role will be able to read all fields.
+
+.. list-table::
+   :widths: 50 50
+
+   * - .. figure:: /images/role-template-read-and-write-all.png
+          :alt: A role with permission to read and write all document fields
+          :width: 350px
+
+     - .. code-block:: json
+          :emphasize-lines: 7
+
+          {
+            "name": "<Role Name>",
+            "apply_when": {<JSON Expression>},
+            "document_filters": {<JSON Expression>},
+            "insert": <boolean>,
+            "delete": <boolean>,
+            "write": true,
+          }
+
+The Role Can Read All Fields & Write to Specific Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To allow a role to read all fields, set the document-level ``read``
+field to ``true`` and the ``write`` field to ``false``. To specify a field that the role can write to, set
+the ``write`` field to ``true`` in the field's configuration document,
+which is embedded in the ``fields`` document.
+
+.. list-table::
+   :widths: 50 50
+
+   * - .. figure:: /images/role-template-can-write-some-fields.png
+          :alt: A role with permission to write to specific fields
+          :width: 350px
+
+     - .. code-block:: json
+          :emphasize-lines: 7, 8, 10
+
+          {
+            "name": "<Role Name>",
+            "apply_when": {<JSON Expression>},
+            "document_filters": {<JSON Expression>},
+            "insert": <boolean>,
+            "delete": <boolean>,
+            "read": true,
+            "write": false,
+            "fields": {
+              "<Field Name>": { "write": true },
+              ...
+            }
+          }
+
+The Role Can Read & Write All Fields but Cannot Insert New Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To allow a role to read or write any field, set the document-level
+``write`` field to ``true``. Document-level writes require read
+permission, so the role will be able to read all fields.
+
+To prevent the role from inserting new documents, set the document-level
+``insert`` field to ``false``.
+
+.. list-table::
+   :widths: 50 50
+
+   * - .. figure:: /images/role-template-cannot-insert-new-docs.png
+          :alt: A role that lacks permission to insert new documents
+          :width: 350px
+
+     - .. code-block:: json
+          :emphasize-lines: 5, 7
+
+          {
+            "name": "<Role Name>",
+            "apply_when": {<JSON Expression>},
+            "document_filters": {<JSON Expression>},
+            "insert": false,
+            "delete": <boolean>,
+            "write": true,
+          }
+
+The Role Cannot Write to Specific Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To allow a role to write to any field except for those you specify, 
+set the document-level ``read`` field to ``true``. Set
+the corresponding field-level ``write`` fields to ``false`` and 
+``read`` fields to ``true`` in the
+``fields`` document. Lastly, set the ``additional_fields.write`` field to
+``true``. 
+
+.. list-table::
+   :widths: 50 50
+
+   * - .. figure:: /images/role-template-cannot-write-to-specific-fields.png
+          :alt: A role with permission to write to some but not all fields
+          :width: 350px
+
+     - .. code-block:: json
+          :emphasize-lines: 7, 10-11, 15
+
+          {
+            "name": "<Role Name>",
+            "apply_when": {<JSON Expression>},
+            "document_filters": {<JSON Expression>},
+            "insert": <boolean>,
+            "delete": <boolean>,
+            "read": true,
+            "fields": {
+              "<Field Name>": {
+                "read": true,
+                "write": false
+              },
+              ...
+            },
+            "additional_fields": { "write": true }
+          }
+
+Advanced Role Patterns
+----------------------
+
+The use cases described in this section require you to use advanced
+functionality that is not supported by the default collection rules
+editor in the App Services UI. To use this template, :doc:`convert to advanced
+mode </mongodb/configure-advanced-rules>` or import a collection rule
+configuration with :doc:`{+cli+} </cli>`.
+
+.. _role-template-insert-only:
+
+Insert-Only Roles
+~~~~~~~~~~~~~~~~~
+
+To allow a role to insert new documents but otherwise prevent them from reading
+or modifying any data, set ``insert`` to ``true`` and set the value of
+document-level ``write`` to a :ref:`rule expression <expressions>` that
+evaluates to ``true`` only if the document didn't exist prior to the operation.
+
+.. code-block:: json
+   :emphasize-lines: 5, 6-8
+
+   {
+     "name": "insertOnly",
+     "apply_when": <JSON Expression>,
+     "delete": false,
+     "insert": true,
+     "write": {
+       "%%prevRoot": { "%exists": false }
+     },
+     "additional_fields": {}
+   }
+
+.. note::
+   
+   You must specify a JSON expression for ``write`` to prevent users
+   from reading data. To insert a document a role must also have write
+   permission for all fields in the document; however, setting ``write``
+   directly to ``true`` would also give the role read permission. The
+   JSON expression ensures that the role only has read permission for
+   the initial document insert.
+
+.. _role-template-embedded-documents:
+
+Field-level Permissions for Embedded Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To allow a role to read or write some but not all fields of an embedded
+document, add embedded documents that match the path of the embedded
+field to the ``fields`` document.
+
+.. code-block:: json
+   :emphasize-lines: 7-14
+
+   {
+     "name": "canReadEmbeddedField",
+     "apply_when": {},
+     "delete": true,
+     "insert": true,
+     "fields": {
+       "someEmbeddedDocument": {
+         "fields": {
+           "someEmbeddedField": {
+             "read": true,
+             "write": true
+           }
+         }
+       }
+     },
+     "additional_fields": {}
+   }
+
+.. note::
+   
+   App Services applies any ``read`` and ``write`` permissions defined for a
+   given field to all embedded fields that the field contains regardless
+   of any permissions defined for those fields.

@@ -1,0 +1,672 @@
+.. meta::
+   :robots: nosnippet
+
+.. _sync-data-model-mapping:
+
+==================
+Data Model Mapping
+==================
+
+.. meta::
+   :keywords: code example, Realm, object model, C++ SDK, Flutter SDK, Java SDK, Kotlin SDK, .NET SDK, Node.js SDK, React Native SDK, Swift SDK
+   :description: Learn how data types in an Atlas App Services schema map to objects used by Atlas Device SDK.
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page contains information on how the App Services schema used by
+Atlas Device Sync maps to the SDK object model used by the Atlas Device SDKs.
+
+To learn how to generate these data models, refer to the following pages:
+
+- To generate SDK object models from your App Services schemas, refer to :ref:`Generate SDK Object Models <generate-sdk-object-models>`.
+- To generate App Services schemas from Atlas Device SDK client code, refer to
+  :ref:`Generate App Services schema from a SDK object model
+  <create-schema-from-rom>`.
+
+To learn more about how Device Sync uses these two data models,
+refer to the :ref:`Sync Data Model Overview <sync-schema-overview>`.
+
+.. _database-and-collection-name-mapping:
+
+Databases, Collections, and Objects
+-----------------------------------
+
+When you configure Device Sync, you :ref:`specify the data source
+<sync-config-data-source>` where you want to store data. This data source
+may contain multiple databases, and each database may contain multiple
+collections.
+
+The :ref:`App Services schema <schemas>` maps your Realm Database object
+names to collections in databases in your Device Sync data source. The
+``title`` field in an App Services schema maps to the object type name in
+Realm Database. Because the ``title`` name determines the mapping between
+client objects and the appropriate Atlas collection, this name must be
+unique among all schemas in your synced data source.
+
+The ``title`` does not need to match the collection name.
+
+.. example::
+
+   Consider an app with a database named ``Pets``. It may contain multiple
+   collections, such as ``Canine`` and ``Feline``. The App Services schema
+   for the ``Canine`` collection might resemble :ref:`the example below
+   <sync-app-services-schema-dog-example>`, where the ``title`` field of
+   the schema is ``Dog``. That would map a Realm Database object called
+   ``Dog`` to the ``Canine`` collection in the ``Pets`` database.
+
+   You could not have another schema whose ``title`` was ``Dog`` in the
+   same cluster. For example, you could not sync an object with a ``title``
+   of ``Dog`` to both a ``Debug`` and a ``Test`` database in the
+   same cluster. If you want to sync the same object to different
+   collections for app development purposes, you must use different
+   data sources - one cluster for development and a different cluster
+   for production.
+
+.. _map-realm-to-atlas-with-development-mode:
+
+Mapping with Development Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you :ref:`enable Development Mode <enable-development-mode>` in your
+Device Sync configuration, App Services can automatically create collections
+and schemas for Realm Database objects that you sync. It creates those
+collections in the :ref:`database you specify
+<sync-config-database-name>` when you enable Development Mode.
+
+With Development Mode enabled, Sync looks for a collection whose App Services
+schema has a ``title`` that matches the name of your Realm Database object
+type. This collection could be in any database in your linked data source.
+It doesn't have to be in the database you add when you configure
+Development Mode.
+
+If there is no corresponding ``title`` in any App Services schema in your
+linked data source, App Services creates a new collection for this object
+type. This collection is created in the database you specify when you enable
+Development Mode. The collection name matches the object's type, and the
+corresponding App Services schema has a ``title`` field whose value is the
+name of the object type. This creates the mapping between your Realm
+Database object and the new collection.
+
+.. example::
+
+   Consider an Atlas cluster with a database named ``Pets``. It contains a
+   ``Feline`` collection with existing data.
+
+   In your application code, you define a new ``Dog`` object. You enable
+   Development Mode, and specify the ``Pets`` database as the database
+   in which to create collections for new object types. When you sync your
+   new ``Dog`` object, App Services creates a ``Dog`` collection in the
+   ``Pets`` database and creates a schema for it. The ``title`` of the
+   object in the schema is ``Dog``.
+
+   If you later add a new ``Person`` object to your application code and
+   then sync it, App Services creates a new collection for this
+   ``Person`` object in the ``Pets`` database. If you wanted to create a
+   collection for the ``Person`` object in a different database, you
+   could :ref:`enforce-a-schema` for the ``Person`` object
+   in a different database. Or you could disable and re-enable Development
+   Mode, and select a different database in which to create new collections.
+
+.. _object-schema:
+.. _property-schema:
+
+Mappings
+--------
+
+.. _sync-type-name:
+
+Type Name
+~~~~~~~~~
+
+The ``title`` field contains the name of the object type represented by
+the schema. This is equivalent to a class or schema name in an Atlas Device SDK.
+The type name must be unique among all schemas in your synced cluster
+but is otherwise arbitrary and does not need to match the collection
+name.
+
+A conventional approach is to name each object type with a singular
+noun, like "Dog" or "Person". Schemas generated in development mode or
+by sampling existing documents use this convention.
+
+.. note::
+
+   To work with Atlas Device Sync, type names cannot exceed {+name-char-limit+} UTF-8 characters.
+
+Property Types
+~~~~~~~~~~~~~~
+
+You can configure the following constraints for a given property:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - Type
+     - String
+     - Every property in a SDK object model has a strongly defined data
+       type. A property's type can be a primitive data type or an object
+       type defined in the same SDK object model. The type also specifies whether
+       the property contains a single value or a list of values.
+
+       Realm Database supports the following property types:
+
+       - boolean
+       - integer
+       - double
+       - string
+       - date
+       - decimal128
+       - objectId
+       - uuid
+       - mixed
+       - array
+       - object
+
+       For more information on supported data types, refer to :ref:`Schema Types <schema-types>`.
+
+   * - Optional
+     - Boolean
+     - Optional properties may contain a null value or be entirely
+       omitted from an object. By default, all properties are optional
+       unless explicitly marked as required.
+
+   * - Default
+     - Boolean
+     - If a client application creates a new object that does not have a
+       value for a defined property, the object uses the default value
+       instead.
+
+       If you open a database in the client with a schema subset that doesn't
+       include a required property, the server will automatically
+       populate the value of the required property with a zero or blank
+       default value.
+
+       When you attempt to create an object that is missing a value
+       for a required field, it fails validation and does not persist
+       to the realm.
+
+   * - Indexed
+     - Boolean
+     - A property index significantly increases the speed of certain
+       read operations at the cost of additional overhead for write
+       operations. Indexes are particularly useful for equality
+       comparison, such as querying for an object based on the value of
+       a property. However, indexes consume additional storage.
+
+For SDK-specific details about data types, refer to the following:
+
+- :ref:`cpp-supported-property-types`
+- :ref:`flutter-data-types`
+- :ref:`java-data-types`
+- :ref:`kotlin-supported-types`
+- :ref:`dotnet-field-types`
+- :ref:`node-data-types`
+- :ref:`react-nativedata-types-field-types`
+- :ref:`Supported Property Types - Swift SDK <ios-supported-property-types>`
+
+Array Properties
+~~~~~~~~~~~~~~~~
+
+Both SDK object models and App Services schemas support array properties.
+
+For SDK-specific details about array properties, refer to the following:
+
+- :ref:`cpp-supported-property-types`
+- :ref:`Dart Types - Flutter SDK <flutter-dart-types>`
+- :ref:`Lists - Java SDK <java-field-relationships-lists>`
+- :ref:`kotlin-supported-types`
+- :ref:`Lists - .NET SDK <dotnet-property-lists>`
+- :ref:`Supported Property Types - Node.js SDK <node-supported-property-types>`
+- :ref:`Supported Property Types - React Native SDK <react-native-supported-property-types>`
+- :ref:`swift-supported-types`
+
+For more information on modeling array properties in an App Services schema,
+refer to :ref:`BSON Types - Array <schema-type-array>`.
+App Services schemas support certain constraints that SDK object models do not,
+such as specifying the minimum and maximum number of items.
+
+.. _mixed-properties:
+
+Mixed Properties
+~~~~~~~~~~~~~~~~
+
+Both SDK object models and App Services schemas support mixed
+type properties.
+
+A mixed field can contain any supported data type and
+functionally acts as an object or document without a pre-defined
+structure.
+
+For more information on modeling mixed properties in
+an App Services schema, refer to :ref:`Mixed - Schema Types <schema-type-mixed>`.
+
+.. _collections-in-mixed:
+
+Collections in Mixed Properties
+```````````````````````````````
+
+.. include:: /includes/note-collections-in-mixed-sync.rst
+
+You can leverage collections (arrays or dictionaries) in mixed properties to
+store data that does not fit into a pre-defined schema, such as variable JSON
+data or complex MongoDB documents. Because collections of mixed data can contain
+other collections of mixed data, you can nest data into complex structures. For
+an example, refer to the :ref:`nested-collections-data-model-example` on this page.
+
+You can store collections in mixed data types in an App Services schema or in an
+SDK object model schema.
+
+For SDK-specific details about mixed data types, refer to the following:
+
+- :ref:`Mixed - C++ SDK <cpp-supported-property-types>`
+- :ref:`RealmValue - Flutter SDK <flutter-realm-value>`
+- :ref:`RealmAny - Java SDK <java-realmany>`
+- :ref:`RealmAny - Kotlin SDK <kotlin-realmany>`
+- :ref:`RealmValue - .NET SDK <realmvalue>`
+- :ref:`Mixed - Node.js SDK <node-data-types-mixed>`
+- :ref:`Mixed - React Native <react-nativedata-types-mixed>`
+- :ref:`AnyRealmValue - Swift SDK <ios-mixed-data-type>`
+
+.. note:: New Java SDK Apps Cannot Use ``RealmAny``
+
+  New App Services Apps using Java SDK cannot synchronize data models with
+  properties of type ``RealmAny``. To use mixed data types with Device Sync
+  in your app, use the Kotlin SDK.
+
+Embedded Objects
+~~~~~~~~~~~~~~~~
+
+Embedded objects are embedded as nested data inside of a parent object.
+An embedded object inherits the lifecycle of its parent object.
+It cannot exist as an independent database object.
+
+For SDK-specific details about embedded objects, refer to the following:
+
+- :ref:`Define an Embedded Object - C++ SDK <cpp-embedded-object>`
+- :ref:`Embedded Objects - Flutter SDK <flutter-embedded-objects>`
+- :ref:`Define an Embedded Object Field - Java SDK <java-define-an-embedded-object-property>`
+- :ref:`Embedded Objects - Kotlin SDK <kotlin-embedded-objects>`
+- :ref:`dotnet-embedded-objects`
+- :ref:`Embedded Objects - Node.js SDK <node-embedded-objects>`
+- :ref:`Embedded Objects - React Native SDK <react-native-embedded-objects>`
+- :ref:`Define an Embedded Object Property - Swift SDK <ios-embedded-objects>`
+
+For more information on modeling to-one relationships in an App Services schema,
+refer to :ref:`Embedded Object Relationships <relationships-embedded-object>`.
+
+Sets
+~~~~
+
+SDK object models and App Services schemas both support the Set data type.
+A set is a collection of unique values.
+
+For SDK-specific details about sets, refer to the following:
+
+- :ref:`Set - C++ SDK <cpp-set-collections>`
+- :ref:`RealmSet - Flutter SDK <flutter-realm-set>`
+- :ref:`java-realmset`
+- :ref:`RealmSet - Kotlin SDK <kotlin-realm-set>`
+- :ref:`dotnet-client-sets`
+- :ref:`node-data-types-sets`
+- :ref:`react-native-data-types-sets`
+- :ref:`Mutable Set - Swift SDK <ios-mutableset-data-type>`
+
+For more information on modeling sets in an App Services schema,
+refer to :ref:`Set <schema-type-set>`.
+
+Dictionaries
+~~~~~~~~~~~~
+
+SDK object models and App Services schemas both support the Dictionary data type.
+A set is a collection of unique values.
+A dictionary is a collection of dynamic and unique string keys paired with values of a given type.
+A dictionary is functionally an object or document without pre-defined field names.
+
+For SDK-specific details about dictionaries, refer to the following:
+
+- :ref:`Map/Dictionary - C++ SDK <cpp-map>`
+- :ref:`RealmMap - Flutter SDK <flutter-realm-map>`
+- :ref:`java-realmdictionary`
+- :ref:`RealmDictionary - Kotlin SDK <kotlin-define-realm-dictionary-type>`
+- :ref:`dotnet-client-dictionaries`
+- :ref:`node-data-types-dictionaries`
+- :ref:`react-native-data-types-dictionaries`
+- :ref:`Map/Dictionary - Swift SDK <ios-map>`
+
+For more information on modeling dictionaries in an App Services schema,
+refer to :ref:`Dictionary <schema-type-dictionary>`.
+
+Relationships
+-------------
+
+SDK object models support the following types of relationships:
+
+- To-one relationships: A to-one relationship means that an object is related
+  in a specific way to no more than one other object.
+- To-many relationships: A to-many relationship means that an object is related
+  in a specific way to multiple objects.
+- Inverse relationships: An inverse relationship links an object back
+  to any other objects that refer to it in a defined to-one or to-many relationship.
+
+App Services schemas support to-one and to-many relationships.
+App Services schemas *do not* support inverse relationships.
+
+For SDK-specific details about relationships, refer to the following:
+
+- :ref:`cpp-relationships`
+- :ref:`Define Relationship Properties - Flutter SDK <flutter-client-relationships>`
+- :ref:`kotlin-relationships`
+- :ref:`Define a Relationship Field - Java SDK <java-relationships>`
+- :ref:`dotnet-client-relationships`
+- :ref:`Define Relationship Properties - Node.js SDK <node-define-relationship-properties>`
+- :ref:`Define Relationship Properties - React Native SDK <react-native-relationships>`
+- :ref:`swift-model-relationships`
+
+For more information on modeling relationships in an App Services schema,
+refer to :ref:`Relationships <relationships>`.
+
+.. _geospatial-data-modeling:
+
+Geospatial Data
+---------------
+
+Geospatial data describes points and other data on the Earth's surface. App
+Services does not have built-in geospatial types. Instead, you model geographic
+data using standard GeoJSON objects. For more information on geospatial data, refer to :ref:`Schema Types <schema-types>`.
+
+For SDK-specific details about geospatial data, refer to:
+
+- :ref:`Geospatial - Flutter SDK <flutter-data-types-geospatial>`
+- :ref:`Geospatial - Kotlin SDK <kotlin-geospatial>`
+- :ref:`Geospatial - .NET SDK <dotnet-geospatial>`
+- :ref:`Geospatial - Node.js SDK <node-data-types-geospatial>`
+- :ref:`Geospatial - React Native SDK <react-native-data-types-geospatial>`
+- :ref:`Geospatial - Swift SDK <swift-geospatial-data-type>`
+
+Data Model Mapping Example
+--------------------------
+
+This example shows how to model a ``Dog`` with Device Sync.
+
+.. _sync-app-services-schema-dog-example:
+
+App Services Schema
+~~~~~~~~~~~~~~~~~~~
+
+This App Services schema creates the ``Dog`` data model used by Device Sync.
+
+.. code-block:: json
+   :caption: Dog data model defined in App Services schema
+
+   {
+     "title": "Dog",
+     "bsonType": "object",
+     "required": [
+       "_id",
+       "name"
+     ],
+     "properties": {
+       "_id": {
+         "bsonType": "objectId"
+       },
+       "name": {
+         "bsonType": "string"
+       },
+       "age": {
+         "bsonType": "int"
+       }
+       "breed": {
+         "bsonType": "string"
+       }
+       "details": {
+         "bsonType": "mixed"
+       }
+     }
+   }
+
+SDK object model
+~~~~~~~~~~~~~~~~~~~
+
+The following code examples create the ``Dog`` SDK object model in each of the
+Atlas Device SDKs.
+
+.. tabs-realm-sdks::
+
+   .. tab::
+      :tabid: android
+
+      .. code-block:: java
+         :caption: Dog class defined in Java SDK data model
+
+         import io.realm.RealmObject;
+         import org.bson.types.ObjectId;
+
+         public class Dog extends RealmObject {
+             @PrimaryKey
+             @Required
+             private ObjectId _id;
+
+             private Integer age;
+             private String breed;
+
+             @Required
+             private String name;
+
+             private RealmAny details;
+
+             // Standard getters & setters
+             public ObjectId getId() { return _id; }
+             public void setId(ObjectId _id) { this._id = _id; }
+
+             public Integer getAge() { return age; }
+             public void setAge(Integer age) { this.age = age; }
+
+             public String getBreed() { return breed; }
+             public void setBreed(String breed) { this.breed = breed; }
+
+             public String getName() { return name; }
+             public void setName(String name) { this.name = name; }
+
+             public RealmAny getDetails() { return details; }
+             public void setDetails(RealmAny details) { this.details = details; }
+         }
+
+   .. tab::
+      :tabid: ios
+
+      .. code-block:: swift
+         :caption: Dog class defined in Swift SDK data model
+
+         import Foundation
+         import RealmSwift
+
+         class Dog: Object {
+             @Persisted(primaryKey: true) var _id: ObjectId
+             @Persisted var age: Int?
+             @Persisted var breed: String?
+             @Persisted var name: String = ""
+             @Persisted var details: AnyRealmValue
+         }
+
+   .. tab::
+      :tabid: node
+
+      .. code-block:: js
+         :caption: Dog class defined in Node.js SDK data model
+
+         export const DogSchema = {
+           name: 'Dog',
+           properties: {
+             _id: 'objectId',
+             age: 'int?',
+             breed: 'string?',
+             name: 'string',
+           },
+           primaryKey: '_id',
+           details: 'mixed',
+         };
+
+   .. tab::
+      :tabid: react-native
+
+      .. code-block:: typescript
+         :caption: Dog class defined in React Native SDK data model
+
+         export const DogSchema = {
+            class Dog extends Realm.Object<Dog> {
+              _id!: Realm.BSON.ObjectId;
+                age?: number;
+                breed?: string;
+                name!: string;
+                details?: Realm.Mixed;
+
+              static schema: ObjectSchema = {
+                name: 'Dog',
+                  properties: {
+                    _id: 'objectId',
+                    age: 'int?',
+                    breed: 'string?',
+                    name: 'string',
+                    details: 'mixed?',
+                  },
+                primaryKey: '_id',
+         };
+
+   .. tab::
+      :tabid: dotnet
+
+      .. code-block:: csharp
+         :caption: Dog class defined in .NET SDK data model
+
+         using System;
+         using System.Collections.Generic;
+         using Realms;
+         using MongoDB.Bson;
+
+         public class Dog : RealmObject
+         {
+             [MapTo("_id")]
+             [PrimaryKey]
+             public ObjectId Id { get; set; }
+
+             [MapTo("age")]
+             public int? Age { get; set; }
+
+             [MapTo("breed")]
+             public string Breed { get; set; }
+
+             [MapTo("name")]
+             [Required]
+             public string Name { get; set; }
+
+             [MapTo("details")]
+             public RealmValue Details { get; set; }
+         }
+
+   .. tab::
+      :tabid: flutter
+
+      .. code-block:: dart
+         :caption: Dog class defined in Flutter SDK data model
+
+         import 'package:realm/realm.dart';
+         part 'realm_models.realm.dart';
+
+         @RealmModel()
+         class _Dog {
+           @PrimaryKey()
+           @MapTo('_id')
+           late ObjectId id;
+
+           int? age;
+           String? breed;
+           late String name;
+           late RealmValue details;
+         }
+
+
+   .. tab::
+      :tabid: kotlin
+
+      .. code-block:: kotlin
+         :caption: Dog class defined in Kotlin SDK data model
+
+         import io.realm.RealmObject;
+         import org.bson.types.ObjectId;
+
+         open class Dog : RealmObject {
+             @PrimaryKey
+             var _id: ObjectId = ObjectId(),
+             var age: Int? = null,
+             var breed: String? = null,
+             var name: String = ""
+             var details: RealmValue? = null
+         }
+
+Data in Atlas
+~~~~~~~~~~~~~
+
+An application using Device Sync for the ``Dog`` data model creates MongoDB documents
+in Atlas based on the previous schemas.
+
+Example Document
+````````````````
+
+.. code-block:: js
+   :caption: Dog document created in Atlas
+
+   {
+     "_id": ObjectId('616f44305a205add93ff1081'),
+     "age": 8,
+     "breed": "Golden Retriever",
+     "name": "Jasper",
+     "details": null
+   }
+
+.. _nested-collections-data-model-example:
+
+Example Document: Nested Collections of Mixed Data
+``````````````````````````````````````````````````
+
+Nested collections of mixed data are dictionaries or arrays stored in a mixed
+data type. This can resemble the following example:
+
+.. code-block:: js
+   :caption: Dog document in MongoDB with mixed data
+   :emphasize-lines: 6-20
+
+   {
+     "_id": ObjectId('616f44305a205add93ff1081'),
+     "age": 8,
+     "breed": "Golden Retriever",
+     "name": "Jasper",
+     "details": {
+       "vaccinations": ["rabies", "distemper"],
+       "weight": 65.5,
+       "isNeutered": true,
+       "vetVisits": [
+         {
+           "date": 2002-08-18T04:56:07.000+00:00,
+           "reason": "annual checkup"
+         },
+         {
+           "date": 2003-08-18T04:56:07.000+00:00,
+           "reason": "annual checkup"
+         }
+       ]
+     }
+   }
+
+.. include:: /includes/note-collections-in-mixed-sync.rst

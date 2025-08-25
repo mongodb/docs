@@ -1,0 +1,656 @@
+.. meta::
+   :robots: nosnippet
+
+.. _schema-types:
+
+============
+Schema Types
+============
+
+.. meta::
+  :keywords: code example
+  :description: Learn about the data types supported by Atlas Device Sync to define data in an App Services Schema.
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: json
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. _schema-type-all:
+
+All Schema Types
+----------------
+
+The following fields are available for all BSON schemas regardless of type:
+
+.. code-block:: json
+
+   {
+     "bsonType": "<BSON Type>" | ["<BSON Type>", ...],
+     "type": "<JSON Type>" | ["<JSON Type>", ...],
+     "enum": [<Value 1>, <Value 2>, ...],
+     "description": "<Descriptive Text>,
+     "title": "<Short Description>"
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 40
+
+   * - Field Name
+     - Description
+
+   * - ``bsonType``
+     - The BSON type of the property the schema describes. If the
+       property's value can be of multiple types, specify an array of
+       BSON types. Cannot be used with the ``type`` field.
+
+       BSON types include all JSON types as well as additional types
+       that you can reference by name:
+
+       - ``double``
+       - ``string``
+       - ``object``
+       - ``array``
+       - ``objectId``
+       - ``date``
+       - ``bool``
+       - ``null``
+       - ``regex``
+       - ``int``
+       - ``timestamp``
+       - ``long``
+       - ``decimal``
+       - ``uuid``
+       - ``binData``
+       - ``mixed``
+
+   * - ``type``
+     - The JSON type of the property the schema describes. If the
+       property's value can be of multiple types, specify an array of
+       JSON types. Cannot be used with ``bsonType``.
+
+       .. important::
+
+          Atlas App Services supports the ``type`` field to maintain compatibility with the JSON
+          schema standard. However, we recommend that you use the ``bsonType``
+          field instead. BSON types include all JSON schema types and support even
+          more data types.
+
+       The following standard JSON types are available:
+
+       - ``object``
+       - ``array``
+       - ``number``
+       - ``boolean``
+       - ``string``
+       - ``null``
+
+       .. note::
+
+          MongoDB's JSON Schema implementation does not support the
+          ``integer`` JSON type. Instead, use the ``bsonType`` field
+          with ``int`` or ``long`` as the value.
+
+   * - ``enum``
+     - An array that includes all valid values for the data that the
+       schema describes.
+
+   * - ``title``
+     - A short title or name for the data that the schema models. This
+       field is used for metadata purposes only and has no impact on
+       schema validation.
+
+   * - ``description``
+     - A detailed description of the data that the schema models. This
+       field is used for metadata purposes only and has no impact on
+       schema validation.
+
+BSON Types
+----------
+
+.. _schema-type-array:
+
+Array
+~~~~~
+
+An ``array`` contains multiple values of a specific type. BSON ``array`` schemas
+use the standard `JSON Schema array
+<https://json-schema.org/understanding-json-schema/reference/array.html>`_
+format.
+
+.. code-block:: json
+
+   {
+     "bsonType": "array",
+     "items": <Schema Document> | [<Schema Document>, ...],
+     "additionalItems": <boolean> | <Schema Document>,
+     "maxItems": <integer>,
+     "minItems": <integer>,
+     "uniqueItems": <boolean>
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 40
+
+   * - Field Name
+     - Description
+
+   * - ``items``
+     - A schema for all array items, or an array of schemas where
+       order matters.
+
+   * - ``additionalItems``
+     - Default: ``true``.
+
+       If ``true``, the array may contain additional values that are
+       not defined in the schema. If ``false``, only values that are
+       explicitly listed in the ``items`` array may appear in the
+       array.
+
+       If the value is a schema object, any additional fields must
+       validate against the schema.
+
+       .. note::
+
+          The ``additionalItems`` field only affects array schemas
+          that have an array-valued ``items`` field. If the ``items``
+          field is a single schema object, ``additionalItems`` has no
+          effect.
+
+   * - ``maxItems``
+     - The maximum length of the array.
+
+   * - ``minItems``
+     - The minimum length of the array.
+
+   * - ``uniqueItems``
+     - Default: ``false``
+
+       If ``true``, each item in the array must be unique.
+       If ``false``, multiple array items may be identical.
+
+       .. tip:: Unique Arrays are Sets
+
+          To model a :ref:`Set <schema-type-set>`, use the ``array`` schema type
+          with ``uniqueItems`` set to ``true``.
+
+.. _schema-type-boolean:
+
+Boolean
+~~~~~~~
+
+A ``bool`` is either ``true`` or ``false``.
+
+.. code-block:: json
+
+   { "bsonType": "bool" }
+
+.. _schema-type-mixed:
+
+Mixed
+~~~~~
+
+.. include:: /includes/note-collections-in-mixed-sync.rst
+
+A ``mixed`` field may contain any schema type except for :ref:`embedded objects
+<schema-type-object>`, :ref:`sets <schema-type-set>`, or any SDK-supported :ref:`counters
+<schema-type-counter>`. App Services does not enforce a consistent type across
+documents, so two different documents may have values of different types.
+
+Mixed fields can store :ref:`arrays <schema-type-array>` and
+:ref:`dictionaries <schema-type-dictionary>` of mixed data. Sync translates
+these to MongoDB as arrays and objects, respectively. These collections of mixed
+data can also contain other
+collections of mixed data, with a :manual:`maximum depth of 100 levels
+<reference/limits>`. You can leverage this flexibility to store complex data
+structures that wouldn't otherwise fit into a pre-defined schema, such as
+variable JSON data or complex MongoDB documents.
+
+Mixed fields can also represent relationships. Sync translates these relationships
+to MongoDB as a :manual:`DBRef <reference/database-references/>` to preserve
+the database name, collection name, and primary key of the link.
+
+.. code-block:: json
+
+   { "bsonType": "mixed" }
+
+.. _schema-type-number:
+
+Number
+~~~~~~
+
+A ``number`` generically configures some type of number. BSON schemas extend
+`JSON Schema numerics
+<https://json-schema.org/understanding-json-schema/reference/numeric.html>`_
+with additional types to define integers, floats, and decimals.
+
+.. code-block:: json
+
+   {
+     "bsonType": "number" | "int" | "long" | "double" | "decimal",
+     "multipleOf": <number>,
+     "maximum": <number>,
+     "exclusiveMaximum": <boolean>,
+     "minimum": <number>,
+     "exclusiveMinimum": <boolean>
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 40
+
+   * - Field Name
+     - Description
+
+   * - ``multipleOf``
+     - An integer divisor of the field value. For example, if
+       ``multipleOf`` is set to ``3``,  ``6`` is a valid value but
+       ``7`` is not.
+
+   * - ``maximum``
+     - The maximum value of the number.
+
+   * - ``exclusiveMaximum``
+     - Default: ``false``
+
+       If ``true``, the field value must be strictly less than the
+       ``maximum`` value. If ``false``, the field value may also be
+       equal to the ``maximum`` value.
+
+   * - ``minimum``
+     - The minimum value of the number.
+
+   * - ``exclusiveMinimum``
+     - Default: ``false``
+
+       If ``true``, the field value must be strictly greater than the
+       ``minimum`` value. If ``false``, the field value may also be
+       equal to the ``minimum`` value.
+
+.. _schema-type-object:
+
+Object
+~~~~~~
+
+An ``object`` is a structured object with ``string`` keys that each have a typed
+value. Objects represent Realm objects and embedded objects in synced realms as
+well as the documents they map to in MongoDB.
+
+.. code-block:: json
+
+   {
+     "bsonType": "object",
+     "title": "<Type Name>",
+     "required": ["<Required Field Name>", ...],
+     "properties": {
+       "<Field Name>": <Schema Document>
+     },
+     "minProperties": <integer>,
+     "maxProperties": <integer>,
+     "patternProperties": {
+       "<Field Name Regex>": <Schema Document>
+     },
+     "additionalProperties": <boolean> | <Schema Document>,
+     "dependencies": {
+       "<Field Name>": <Schema Document> | ["<Field Name>", ...]
+     }
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 40
+
+   * - Field Name
+     - Description
+
+   * - ``required``
+     - An array of field names that must be included in the document.
+
+   * - ``title``
+     - A type name for the object. App Services uses this value to name
+       the document's type in the :doc:`GraphQL API </graphql>`. (GraphQL is
+       deprecated. :ref:`Learn More <migrate-hosting-graphql>`)
+
+   * - ``properties``
+     - An object where each field maps to a field in the parent
+       object by name. The value of each field is a schema document
+       that configures the value of the field.
+
+   * - ``minProperties``
+     - The minimum number of fields allowed in the object.
+
+   * - ``maxProperties``
+     - The maximum number of fields allowed in the object.
+
+   * - ``patternProperties``
+     - An object where each field is a regular expression string that
+       maps to all fields in the parent object that match. The value
+       of each field is a schema document that configures the value
+       of matched fields.
+
+   * - ``additionalProperties``
+     - Default: ``true``.
+
+       If ``true``, a document may contain additional fields that are
+       not defined in the schema. If ``false``, only fields that are
+       explicitly defined in the schema may appear in a document.
+
+       If the value is a schema object, any additional fields must
+       validate against the schema.
+
+   * - ``dependencies``
+     - Specify property and schema dependencies.
+
+.. note:: Model Dictionaries With the ``object`` Schema Type
+
+   To model :ref:`dictionaries <schema-type-dictionary>`, use
+   the ``object`` schema type with ``additionalProperties`` set to
+   the object type of the values stored in the dictionary.
+
+.. _schema-type-objectid:
+
+ObjectId
+~~~~~~~~
+
+An ``objectId`` is a 12-byte identifier for :manual:`BSON
+</reference/bson-types/>` objects. ObjectId values are most commonly used as the
+unique ``_id`` values of documents in a MongoDB collection or objects in a
+synced realm.
+
+.. code-block:: json
+
+   { "bsonType": "objectId" }
+
+.. _schema-type-string:
+
+String
+~~~~~~
+
+A ``string`` is text encoded as a series of characters. BSON ``string`` schemas
+use the standard `JSON Schema string
+<https://json-schema.org/understanding-json-schema/reference/string.html>`_
+format.
+
+.. code-block:: json
+
+   {
+     "bsonType": "string",
+     "maxLength": <integer>,
+     "minLength": <integer>,
+     "pattern": "<Regular Expression>"
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 40
+
+   * - Field Name
+     - Description
+
+   * - ``maxLength``
+     - The maximum number of characters in the string.
+
+   * - ``minLength``
+     - The minimum number of characters in the string.
+
+   * - ``pattern``
+     - A regular expression string that must match the string value.
+
+.. _schema-type-uuid:
+
+UUID
+~~~~
+
+A ``uuid`` (Universal Unique Identifier) is a :rfc:`standardized <rfc4122>`
+16-byte unique object identifier.
+
+.. code-block:: json
+
+   { "bsonType": "uuid" }
+
+.. _schema-type-bindata:
+
+Binary Data
+~~~~~~~~~~~
+
+A ``binData`` is a piece of unstructured binary data. Maps to the `binary
+BSON type <https://bsonspec.org/spec.html>`__. Always uses subtype 0.
+
+.. code-block:: json
+
+   { "bsonType": "binData" }
+
+Realm Database Types
+--------------------
+
+Realm Database types are specific to Atlas Device SDK.
+
+For more information on SDK-specific types and how to define them,
+refer to the SDK documentation:
+
+- :ref:`cpp-supported-property-types`
+- :ref:`flutter-data-types`
+- :ref:`java-data-types`
+- :ref:`kotlin-supported-types`
+- :ref:`dotnet-field-types`
+- :ref:`node-data-types`
+- :ref:`react-nativedata-types-field-types`
+- :ref:`swift-supported-types`
+
+.. _schema-type-counter:
+
+Counter
+~~~~~~~
+
+A counter is a special numerical type whose value can be incremented or
+decremented. It maps to the ``long`` :ref:`number type <schema-type-number>` in
+App Services.
+
+.. code-block:: json
+
+   { "bsonType": "long" }
+
+Counter data types are only supported in the following SDKs:
+
+- :ref:`java-counters`
+- :ref:`MutableRealmInt (Counter) - Kotlin SDK <kotlin-mutablerealmint>`
+- :ref:`realminteger`
+- :ref:`Counters - Node.js SDK <node-data-types-counters>`
+
+.. _schema-type-set:
+
+Set
+~~~
+
+A set is a collection of unique values.
+
+A set schema is an ``array`` schema where ``uniqueItems`` is set to ``true``.
+
+.. code-block:: json
+   :emphasize-lines: 3
+
+   {
+      "bsonType": "array",
+      "uniqueItems": true,
+      "items": {
+         "bsonType": "long"
+      }
+   }
+
+.. _schema-type-dictionary:
+
+Dictionary
+~~~~~~~~~~
+
+A dictionary is a collection of dynamic and unique ``string`` keys paired with
+values of a given type. A dictionary is functionally an object or document
+without pre-defined field names.
+
+A dictionary schema is an ``object`` schema where ``properties`` is not defined
+and the value of ``additionalProperties`` is a schema for the dictionary value's
+type.
+
+Dictionary of a BSON Type
+`````````````````````````
+
+To store a dictionary with values of a BSON type, set ``additionalProperties``
+to the type's schema.
+
+.. code-block:: json
+
+   {
+      "bsonType": "object",
+         "additionalProperties": {
+            "bsonType": "string"
+         }
+      }
+   }
+
+Dictionary of Mixed BSON Types
+``````````````````````````````
+
+To store a dictionary with :ref:`mixed <schema-type-mixed>` values, set
+``additionalProperties`` to ``true``:
+
+.. code-block:: json
+
+   {
+      "bsonType": "object",
+         "additionalProperties": true
+      }
+   }
+
+Alternatively, you can define a full ``mixed`` schema:
+
+.. code-block:: json
+
+   {
+      "bsonType": "object",
+         "additionalProperties": {
+            "bsonType": "mixed"
+         }
+      }
+   }
+
+Dictionary of Embedded Objects
+``````````````````````````````
+
+To store a dictionary with embedded object values, define an ``object`` schema
+with the ``title`` field set to the embedded object's type name:
+
+.. code-block:: json
+   :emphasize-lines: 5
+
+   {
+      "bsonType": "object",
+         "additionalProperties": {
+            "bsonType": "object",
+            "title": “Address”,
+            "properties": {
+              "streetNumber": { "bsonType": "string" },
+              "street": { "bsonType": "string" },
+              "city": { "bsonType": "string" },
+              "province": { "bsonType": "string" },
+              "country": { "bsonType": "string" },
+              "postalCode": { "bsonType": "string" }
+            }
+      }
+   }
+
+.. _geospatial:
+
+Geospatial Data
+---------------
+
+Geospatial data describes points and other data on the earth's surface. App
+Services does not have built-in geospatial types. Instead, you model geographic
+data using standard GeoJSON objects.
+
+GeoJSON Point
+~~~~~~~~~~~~~
+
+A GeoJSON Point (GeoPoint) is a single location on the Earth's surface. The GeoPoint
+schema must be a **required** ``type`` field, of type ``string``, which is always set
+to "Point".
+
+You must also provide a ``coordinates`` field, which is an array of doubles.
+The ``coordinates`` array must contain  at least 2 double values, and may
+contain a third:
+
+- The first double is the longitude of the point, between -180 and 180.
+- The second is the latitude, between -90 and 90.
+- The optional third value represents the elevation/altitude of the point,
+  in meters. Atlas ignores this value when performing queries.
+
+.. note::
+
+   You cannot set an array as required in a Device Sync schema, so the Sync
+   server checks that the coordinates field is present and meets the
+   requirements.
+
+If you are not using Device Sync, you can query your geospatial data with regular
+:manual:`geospatial operators </geospatial-queries>`. However, if you are
+using :ref:`Atlas Device Sync <sync>`,
+the following rules also apply to the GeoPoint object:
+
+- It must be of type ``object``.
+- It must be embedded within another type.
+- Additional values are allowed within the ``coordinates`` array, as long as
+  they are doubles.
+- Additional properties in the GeoPoint object are also allowed.
+
+The following is the Device Sync schema of an object with an embedded GeoPoint
+property named "location":
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "title": "MyObject",
+     "properties": {
+        "_id": {
+          "bsonType": "objectId"
+        },
+        "location": {
+          "bsonType": "object",
+          "required": [ "type" ],
+          "properties": {
+            "type": {
+              "bsonType": "string",
+            },
+            "coordinates": {
+              "bsonType": "array",
+              "items": {
+                "bsonType": "double"
+              }
+            }
+          }
+        }
+      }
+   }
+
+The following code block shows a document that follows the schema. It has a
+single embedded GeoPoint object named "location".
+
+.. code-block:: json
+   :copyable: false
+   :emphasize-lines: 3-6
+
+   {
+     "_id": { "$oid": "65039d09fe4e46dddee31a3f" },
+     "location": {
+       "type": "Point",
+       "coordinates": [-122.4, 48.12, 23.0]
+      }
+   }

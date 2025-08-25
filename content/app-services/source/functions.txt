@@ -1,0 +1,673 @@
+.. meta::
+   :robots: nosnippet
+
+.. _functions:
+
+===============
+Atlas Functions
+===============
+
+.. meta:: 
+  :description: Define Atlas Functions and call them manually or automatically to execute server-side JavaScript code.
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   Query MongoDB Atlas </functions/mongodb>
+   Context </functions/context>
+   Global Modules </functions/globals>
+   External Dependencies </functions/dependencies>
+   Test Functions </functions/test>
+   Handle Errors </functions/handle-errors>
+   JavaScript Support </functions/javascript-support>
+
+.. banner::
+   :variant:  warning
+
+   GraphQL is deprecated. :ref:`Learn More <migrate-hosting-graphql>`.
+
+Overview
+--------
+
+An Atlas Function is a piece of server-side JavaScript
+code that you write to define your app's behavior. You can call your
+app's functions directly from a client app or define services that
+integrate and call functions automatically.
+
+Functions can call other functions and include a built-in client for
+working with data in MongoDB Atlas clusters. They also include helpful
+global utilities, support common Node.js built-in modules, and can
+import and use external packages from the npm registry.
+
+.. code-block:: javascript
+   :caption: A basic function that returns a greeting
+   
+   exports = function(name) {
+     return `Hello, ${name ?? "stranger"}!`
+   }
+
+Functions are Serverless
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a function is called, your app routes the request to a managed app
+server that evaluates your code and returns the result. This model makes
+functions *serverless*, which means that you don't have to deploy and
+manage a server to run the code. Instead, you write the function source
+code and your app handles the execution environment.
+
+Functions have Context
+~~~~~~~~~~~~~~~~~~~~~~
+
+A function runs in a context that reflects its execution environment.
+The context includes the user that called the function, how they called
+it, and the state of your app when they called it. You can use context
+to run user-specific code and work with other parts of your app.
+
+To learn more about how to work with function context, see :ref:`Context
+<function-context>`.
+
+.. _when-to-use-functions:
+
+When To Use Functions
+~~~~~~~~~~~~~~~~~~~~~
+
+Functions can run arbitrary JavaScript code that you define, which means
+you can use them for almost anything. Common use cases include
+low-latency, short-running tasks like data movement, transformations,
+and validation. You can also use them to connect to external services
+and abstract away implementation details from your client applications.
+
+In addition to functions that you invoke directly, you also write
+functions for various services like HTTPS Endpoints, Triggers, and
+GraphQL custom resolvers (GraphQL is deprecated, :ref:`learn more <migrate-hosting-graphql>`). These services automatically call functions to
+handle specific events. For example, whenever a database trigger
+observes a change event it calls its associated function with the change
+event as an argument. In the trigger function, you can then access
+information from the change event and respond appropriately.
+
+.. seealso::
+   
+   - :ref:`HTTPS Endpoints <https-endpoints>`
+   - :ref:`Triggers <triggers>`
+   - :ref:`GraphQL Custom Resolvers <graphql-custom-resolvers>` (deprecated, :ref:`learn more <migrate-hosting-graphql>`)
+   - :ref:`Email/Password Registration <email-password-authentication>`
+
+How to Write a Function
+-----------------------
+
+The code for a function is essentially a named JavaScript source file,
+which means you can define multiple JavaScript functions in a single
+function file. The file must export a single JavaScript function to
+serve as the entrypoint for incoming calls. When you call a function by
+name, you're actually calling the JavaScript function assigned to
+``exports`` in the function's source file.
+
+For example, here's a simple function that accepts a ``name`` argument,
+adds a log message, and returns a greeting for the provided name:
+
+.. literalinclude:: /functions/examples/simple-function.js
+   :language: javascript
+
+You can use modern JavaScript syntax and import packages to define more
+complex functions:
+
+.. io-code-block::
+
+   .. input:: /functions/examples/complex-function.js
+      :language: javascript
+
+   .. output:: /functions/examples/complex-function-output
+
+Functions automatically serialize returned values to :manual:`Extended
+JSON </reference/mongodb-extended-json>`. This is useful to preserve
+type information but may not be what your application expects.
+
+For example, the values in the object returned from the following
+function are converted into structured EJSON values:
+
+.. io-code-block::
+   
+   .. input::
+      :language: javascript
+
+      exports = function() {
+        return {
+          pi: 3.14159,
+          today: new Date(),
+        }
+      }
+   
+   .. output::
+      :language: json
+      
+      {
+        "pi": {
+          "$numberDouble": "3.14159"
+        },
+        "today": {
+          "$date": {
+            "$numberLong": "1652297239913"
+          }
+        }
+      }
+     
+To return a value as standard JSON, call ``JSON.stringify()`` on the
+value and then return the stringified result:
+
+.. io-code-block::
+   
+   .. input::
+      :language: javascript
+
+      exports = function() {
+        return JSON.stringify({
+          pi: 3.14159,
+          today: new Date(),
+        })
+      }
+   
+   .. output::
+      :language: json
+      
+      "{\"pi\":3.14159,\"today\":\"2022-05-11T19:27:32.207Z\"}"
+
+.. _user-functions:
+.. _system-functions:
+
+User and System Functions
+-------------------------
+
+A function can run in two contexts depending on how they're configured
+and called:
+
+- A **user function** runs in the context of a specific :ref:`user
+  <user-accounts>` of your application. Typically this is the logged in
+  user that called the function. User functions are subject to
+  :ref:`rules <rules>` and :ref:`schema validation <schemas>`.
+
+- A **system function** runs as the :ref:`system user <system-user>`
+  instead of a specific application user. System functions have full
+  access to MongoDB CRUD and Aggregation APIs and bypass all rules and
+  schema validation.
+
+.. note:: Dynamic ``context.user`` references
+   
+   References to :ref:`context.user <context-user>` always resolve to
+   the authenticated user that called a function if there was one, even
+   if the function runs as a system function. To determine if a function
+   is running as a system function, call :method:`context.runningAsSystem()`.
+   
+   If a function executes without being called by an authenticated user,
+   such as in a trigger or webhook, then dynamic references resolve to
+   the :ref:`system user <system-user>` which has no ``id`` or other
+   associated data.
+
+.. _define-a-function:
+
+Define a Function
+-----------------
+
+You can create and manage functions in your application from the App Services UI
+or by importing the function configuration and source code with
+{+cli+} or GitHub deployment.
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      .. procedure::
+
+         .. step:: Create a New Function
+
+            To define a new server-side function from the App Services UI:
+
+            A. Click :guilabel:`Functions` in the left navigation menu.
+
+            #. Click :guilabel:`New Function` in the top right of the :guilabel:`Functions` page.
+
+
+         .. step:: Name the New Function
+
+            Enter a unique, identifying name for the function in the
+            :guilabel:`Name` field. This name must be distinct from all other
+            functions in the application.
+
+            .. tip::
+
+               You can define functions inside of nested folders. Function names
+               are slash-separated paths, so a function named ``utils/add`` maps
+               to ``functions/utils/add.js`` in the app's configuration files.
+
+         .. step:: Configure User Authentication
+
+            Functions in App Services always execute in the context of a specific
+            application user or as a :ref:`system user <system-user>` that
+            bypasses rules. To configure the function's execution user, specify
+            the type of authentication that App Services should use.
+
+            .. list-table::
+               :widths: 20 80
+               :header-rows: 1
+
+               * - Authentication Type
+                 - Description
+
+               * - Application Authentication
+                 - This type of authentication configures a function to run in
+                   the context of the existing application user that was logged in
+                   when the client application called the function. If the
+                   function was called from another function then it inherits the
+                   execution user from that function.
+
+               * - System
+                 - This type of authentication configures a function to run as a
+                   :ref:`system user <system-user>` that has full access to
+                   MongoDB CRUD and Aggregation APIs and is not affected by any
+                   rules, roles, or permissions.
+
+               * - User ID
+                 - This type of authentication configures a function to always run
+                   as a specific application user.
+
+               * - Script
+                 - This type of authentication configures a function to run as a
+                   specific application user determined based on the result of a
+                   custom :doc:`function </functions>` that you define. The
+                   function must return a specific user's ``id`` string or can
+                   specify a system user by returning ``{ "runAsSystem": true }``.
+
+            .. figure:: /images/function-authentication-realm-ui.png
+               :alt: The authentication configuration input in the UI
+               :lightbox:
+
+
+         .. step:: Configure Function Execution Logs
+
+            By default, App Services includes the arguments that a function received in
+            the :ref:`log entry <logs-function>` for each execution of the
+            function. If you want to prevent App Services from logging the arguments,
+            disable :guilabel:`Log Function Arguments`.
+
+         .. step:: Specify an Authorization Expression
+
+            You can dynamically authorize requests based on the contents of each request
+            by defining a :guilabel:`Can Evaluate` :ref:`expression <expressions>`.
+            App Services evaluates the expression whenever the function is called. If
+            you do not specify an expression then App Services automatically
+            authorizes all authenticated incoming requests.
+
+            The expression can expand standard :ref:`expression variables <expressions>`,
+            including the :json-expansion:`%%request` and :json-expansion:`%%user`
+            expansions.
+
+            .. figure:: /images/function-can-evaluate-realm-ui.png
+               :alt: The function's Can Evaluate JSON expression input in the UI
+               :lightbox:
+
+
+         .. step:: Configure the Function's Privacy Level
+
+            By default, you can call a function from client applications as well
+            as other functions in the same application. You can prevent client
+            applications from seeing or calling a function by setting
+            :guilabel:`Private` to ``true``.
+
+            You can still call a private function from :ref:`expression <expressions>` and
+            other functions, including incoming webhooks and triggers.
+
+            .. figure:: /images/private-function-toggle.png
+               :alt: The private function toggle in the UI
+               :lightbox:
+
+
+         .. step:: Write the Function Code
+
+            Once you've created and configured the new function, it's time to
+            write the JavaScript code that runs when you call the function.
+            You can write the code directly in the App Services UI using the function
+            editor.
+
+            .. note::
+
+               You can use most modern (ES6+) JavaScript features in functions,
+               including async/await, destructuring, and template literals.
+
+            From the function's :guilabel:`Settings` page:
+
+            A. Click the :guilabel:`Function Editor` tab.
+
+            #. Add javascript code to the function. At minimum, the code must
+               assign a function to ``exports``, as in the following example:
+
+               .. code-block:: javascript
+
+                  exports = function() {
+                    return "Hello, world!";
+                  };
+
+
+         .. step:: Save the Function
+
+            Once you've written the function code, click :guilabel:`Save` from
+            either the :guilabel:`Function Editor` or :guilabel:`Settings` tab.
+
+            After you save the function, you can begin using it immediately.
+
+   
+   .. tab::
+      :tabid: cli
+      
+      .. procedure::
+
+         .. step:: Pull Your App's Latest Configuration Files
+
+            .. code-block:: shell
+
+               {+cli-bin+} pull --remote=<App ID>
+
+
+         .. step:: Write the Function Source Code
+
+            Atlas Functions run standard ES6+ JavaScript functions that you export from
+            individual files. Create a ``.js`` file with the same name as the function in
+            the ``functions`` directory or one of its subdirectories.
+
+            .. code-block:: bash
+
+               touch functions/myFunction.js
+
+            .. tip::
+
+               You can define functions inside of nested folders in the
+               ``functions`` directory. Use slashes in a function name to indicate
+               its directory path.
+
+            Once you've created the function's ``.js`` file, write the function source code, e.g.:
+
+            .. code-block:: javascript
+
+               exports = async function hello(...args) {
+                 // Write your function logic here! You can...
+                 // Import dependencies
+                 const assert = require("assert")
+                 assert(typeof args[0] === "string")
+                 // Use ES6+ syntax
+                 const sayHello = (name = "world") => {
+                   console.log(`Hello, ${name}.`)
+                 }
+                 // Return values back to clients or other functions
+                 return sayHello(args[0])
+               }
+
+            .. note::
+
+               You can use most modern (ES6+) JavaScript features in functions, including
+               async/await, destructuring, and template literals. To see if App Services supports
+               a specific feature, see :ref:`JavaScript Support <js-support>`.
+
+
+         .. step:: Configure the Function
+
+            In the ``functions`` directory of your application, open the ``config.json``
+            file and add a :ref:`configuration object <appconfig-functions>` for your new
+            function to the array. The object must have the following form:
+
+            .. code-block:: json
+
+               {
+                 "name": "<Function Name>",
+                 "private": <Boolean>,
+                 "can_evaluate": { <JSON Expression> },
+                 "disable_arg_logs": <Boolean>,
+                 "run_as_system": <Boolean>,
+                 "run_as_user_id": "<App Services User ID>",
+                 "run_as_user_id_script_source": "<Function Source Code>"
+               }
+
+            .. procedure::
+
+               .. step:: Set User Authentication
+
+                  Functions in App Services always execute in the context of a specific
+                  application user or as a :ref:`system user <system-user>` (which
+                  bypasses rules). To configure the function's execution user, specify
+                  the type of authentication that App Services should use:
+
+                  - **System**
+
+                    To execute a function as a System user, use the following configuration:
+
+                    .. code-block:: json
+
+                       {
+                         "run_as_system": true,
+                         "run_as_user_id": "",
+                         "run_as_user_id_script_source": ""
+                       }
+
+                  - **User**
+
+                    To execute a function as a specific user, use the following configuration:
+
+                    .. code-block:: json
+
+                       {
+                         "run_as_system": false,
+                         "run_as_user_id": "<App Services User Id>",
+                         "run_as_user_id_script_source": ""
+                       }
+
+                  - **Script**
+
+                    The third way to execute a function is to specify another function that
+                    returns a user id. Your function will execute as this user. To do this,
+                    use the following configuration:
+
+                    .. code-block:: json
+
+                       {
+                         "run_as_system": false,
+                         "run_as_user_id": "",
+                         "run_as_user_id_script_source": "<Function Source Code>"
+                       }
+
+               .. step:: Set Execution Logging
+
+                  To include any values that the function receives as arguments in its
+                  :ref:`log entry <logs-function>`, set ``disable_arg_logs`` to
+                  ``false``.
+
+               .. step:: Specify an Authorization Expression
+
+                  You can dynamically authorize requests based on the contents of each request
+                  by defining a :guilabel:`Can Evaluate` :ref:`expression <expressions>`.
+                  App Services evaluates the expression whenever the function is called. If you
+                  do not specify an expression then App Services automatically authorizes all
+                  authenticated incoming requests.
+
+                  The expression can expand standard :ref:`expression variables <expressions>`,
+                  including the :json-expansion:`%%request` and :json-expansion:`%%user`
+                  expansions.
+
+                  .. example::
+
+                     The following expression only authorizes incoming requests if the
+                     sender's IP address is not included in the specified list of addresses.
+
+                     .. code-block:: json
+
+                        {
+                            "%%request.remoteIPAddress": {
+                                "$nin": [
+                                    "248.88.57.58",
+                                    "19.241.23.116",
+                                    "147.64.232.1"
+                                ]
+                            }
+                        }
+
+               .. step:: Configure the Function's Privacy Level
+
+                  By default, you can call a function from client applications as well
+                  as other functions in the same application. You can prevent client
+                  applications from seeing or calling a function by setting ``private``
+                  to ``true``.
+
+                  You can call a private function from a :ref:`rule expression <expressions>`
+                  or another function, including HTTPS endpoints and triggers.
+
+
+         .. step:: Deploy the Function
+
+            Push the function configuration and source code to deploy it to your app. Once
+            you have pushed the function, you can begin using it immediately.
+
+            .. code-block:: shell
+
+               {+cli-bin+} push
+
+
+Call a Function
+---------------
+
+You can call a function from other functions, from a connected client
+application, or with {+cli+}.
+
+The examples in this section demonstrate calling a simple function named
+``sum`` that takes two arguments, adds them, and returns the result:
+
+.. code-block:: javascript
+   
+   // sum: adds two numbers
+   exports = function sum(a, b) {
+     return a + b;
+   };
+
+.. _call-function-from-function:
+
+Call from a Function
+~~~~~~~~~~~~~~~~~~~~
+
+You can call a function from another function through the
+:ref:`context.functions <context-functions>` interface, which is
+available as a global variable in any function. This include HTTPS
+endpoints, triggers, and GraphQL custom resolvers (deprecated, 
+:ref:`learn more <migrate-hosting-graphql>`). The called function
+runs in the same context as the function that called it.
+
+.. code-block:: javascript
+   
+   // difference: subtracts b from a using the sum function
+   exports = function difference(a, b) {
+     return context.functions.execute("sum", a, -1 * b);
+   };
+
+.. _call-function-cli:
+
+Call from {+cli+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can call a function through {+cli+} with the :ref:`function run
+<appservices-function-run>` command. The command returns the function
+result as EJSON as well as any log or error messages.
+
+.. code-block:: sh
+   
+   {+cli-bin+} function run \
+     --name=sum \
+     --args=1 --args=2
+
+By default, functions run in the :ref:`system context
+<system-functions>`. To call a function in the context of a specific
+user, include their User ID in the ``--user`` argument.
+
+.. code-block:: sh
+   :emphasize-lines: 4
+   
+   {+cli-bin+} function run \
+     --name=sum \
+     --args=1 --args=2 \
+     --user=61a50d82532cbd0de95c7c89
+
+.. _call-function-json-expression:
+
+Call from Rule Expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can call a function from a :ref:`rule expression <expressions>` by
+using the :json-operator:`%function` operator. The operator evaluates to
+the return value of the function. If the function throws an error, the
+expression evaluates to ``false``.
+
+.. code-block:: json
+
+   {
+     "numGamesPlayed": {
+       "%function": {
+         "name": "sum",
+         "arguments": [
+           "%%root.numWins",
+           "%%root.numLosses"
+         ]
+       }
+     }
+   }
+
+.. _call-function-from-client-sdks:
+
+Call from Realm SDKs
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/important-sanitize-client-data-in-functions.rst
+
+You can call a function from client applications that are connected with
+a Realm SDK or over the wire protocol. For code examples that demonstrate 
+how to call a function from a client application, see the documentation 
+for the Realm SDKs:
+
+- :ref:`C++ SDK <cpp-call-a-function>`
+- :ref:`Flutter SDK <flutter-call-function>`
+- :ref:`Java SDK <java-call-a-function>`
+- :ref:`Kotlin SDK <kotlin-call-function>`
+- :ref:`.NET SDK <dotnet-call-a-function>`
+- :ref:`Node SDK <node-call-a-function>`
+- :ref:`React Native SDK <react-native-call-a-function>`
+- :ref:`Swift SDK <ios-call-a-function>`
+- :ref:`Web SDK <web-call-a-function>`
+
+.. _function-constraints:
+
+Constraints
+-----------
+
+- Functions are capped at {+request-timeout-time+} of runtime
+  per request, after which a function will time out and fail.
+
+- Functions may use up to 350MB of memory at any time.
+
+- Functions are limited to 1000 async operations.
+
+- Functions support most commonly used ES6+ features and Node.js
+  built-in modules. However, some features that are uncommon or unsuited
+  to serverless workloads are not supported. For more information, see
+  :ref:`JavaScript Support <js-support>`.
+
+- A function may open a maximum of 25 sockets using the :nodejs:`net
+  <docs/v10.18.1/api/net.html>` built-in module.
+
+- Incoming requests are limited to a maximum size of 18 MB. This limit
+  applies to the total size of all arguments passed to the function as
+  well as any request headers or payload if the function is called
+  through an HTTPS endpoint.

@@ -1,0 +1,211 @@
+.. meta::
+   :robots: nosnippet
+
+.. _migrate-blob:
+
+=============================
+Migrate to Your Own S3 Bucket
+=============================
+
+.. meta::
+  :description: Learn how to migrate your blob assets from Atlas App Services to your own AWS S3 bucket.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. important::
+
+   Always refer to the official documentation of both MongoDB Atlas and AWS
+   for the most up-to-date and accurate information. The specific steps may vary
+   depending on the details of your project and the technologies
+   used.
+
+
+Migrate to S3
+-------------
+
+If you are solely using the MongoDB Atlas static hosting service as a blob store
+for static content and are not hosting a client application, follow the steps
+below to migrate from using Atlas Hosting to using your own S3 bucket.
+
+.. procedure::
+
+   .. step:: Create an S3 Bucket
+
+      Set up your own S3 bucket in your AWS account if you haven't already done
+      so. Configure the bucket settings according to your requirements,
+      including access permissions and encryption options.
+
+   .. step:: Migrate Existing Data
+
+      Migrate your existing data from MongoDB Atlas Hosting to your S3 bucket.
+      Depending on the amount of data and your specific requirements, this could
+      involve exporting data from MongoDB with the :ref:`App Services CLI 
+      <appservices-pull>` (``appservices pull --include-hosting``) and then
+      uploading the data to S3 using tools like the AWS CLI or AWS SDK.
+
+   .. step:: Update Application Code
+
+      Modify your application code to interact with the S3 bucket instead of
+      MongoDB Atlas Hosting. This includes updating code that handles file
+      uploads or downloads, if you are using the App Services CLI commands to
+      do so.
+
+   .. step:: Shut Down Atlas App Services Hosting
+
+      Once you have verified that your files deploy successfully to your S3
+      bucket, delete your hosted files from your Atlas App Services app.
+      As a reminder, hosting domains on Atlas App Services will no longer run
+      starting on September 30, 2025.
+
+Access S3 Bucket from Atlas Functions
+-------------------------------------
+
+You can access static content stored in your S3 bucket from
+:ref:`Atlas Functions <functions>`. To do so, you need to:
+
+#. Integrate with Atlas Functions
+#. Write Functions to access an S3 bucket
+
+.. important:: Test and Validate
+
+   Test your Atlas Functions to ensure they can successfully access and
+   manipulate objects in the S3 bucket. Validate that the functions behave as
+   expected and handle errors gracefully.
+
+Integrate with Atlas Functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Upload to S3 using the ``@aws-sdk`` :ref:`external dependency 
+<external-dependencies>`. Atlas App Services automatically transpiles
+dependencies and also supports most default Node.js modules.
+
+To import and use an external dependency, you first need to add the dependency
+to your application. You can either :ref:`add packages by name 
+<dependencies-add-by-name>` or :ref:`upload a directory of dependencies 
+<dependencies-upload-zip>`.
+
+.. important:: AWS SDK Support
+
+   App Services does not yet support version 3 of the AWS SDK. Use the version 2
+   SDK when specifying the npm module
+
+Write Functions to Access an S3 Bucket
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Write MongoDB Atlas Functions that interact with your S3 bucket. These functions
+can perform various operations such as uploading files, downloading files,
+listing objects, and deleting objects from the S3 bucket.
+
+We'll cover some basic examples in this guide. You may want to explore other
+ways to interact with your S3 bucket by viewing the full 
+:npm:`list of client commands <package/@aws-sdk/client-s3#client-commands-operations-list>`
+for the @aws-sdk/client-s3.
+
+Authenticate AWS Requests
+`````````````````````````
+
+To authenticate AWS requests, store your Access Key ID and Secret Access Key as
+:ref:`values <values-and-secrets>`. You can then access them within functions
+and pass them to the SDK.
+
+.. code-block:: javascript
+   :copyable: true
+
+   exports = async function() {
+      // require calls must be in exports function
+      const { S3Client, PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+
+      const s3Client = new S3Client({
+         region: "us-east-1", // replace with your AWS region
+         credentials: {
+            accessKeyId: context.values.get("awsAccessKeyId"),
+            secretAccessKey: context.values.get("awsSecretAccessKey"),
+         },
+      });
+
+      const putCommand = new PutObjectCommand({
+         Bucket: "bucketName",
+         Key: "keyName",
+         Body: EJSON.stringify({ hello: "world" }),
+      });
+      const putResult = await s3Client.send(putCommand);
+
+      const getCommand = new GetObjectCommand({
+         Bucket: "bucketName",
+         Key: "keyName",
+      });
+
+      const getResult = await s3Client.send(getCommand);
+   }
+
+Fetch an Asset and Upload to S3
+```````````````````````````````
+
+Fetch static assets and upload them to S3 either by downloading static
+assets from the URL or uploading them as local files.
+
+To upload downloaded content to S3, use an HTTP library or built-in Node.js
+modules like ``http`` or ``https`` to download the static asset from the URL.
+You can then upload the downloaded content to S3.
+
+Here's an example of downloading an asset using the ``axios`` library:
+
+.. code-block:: javascript
+   :copyable: true
+
+   const axios = require('axios');
+   const stream = require('stream');
+   const { promisify } = require('util');
+
+   // Promisify pipeline function to pipe streams
+   const pipeline = promisify(stream.pipeline);
+
+   async function uploadAssetToS3() {
+      try {
+         const response = await axios.get('URL_OF_YOUR_STATIC_ASSET', { responseType: 'stream' });
+
+         const uploadParams = {
+            Bucket: 'YOUR_BUCKET_NAME',
+            Key: 'YOUR_OBJECT_KEY',
+            Body: response.data
+         };
+
+         // Upload the static asset to S3
+         await s3.upload(uploadParams).promise();
+
+         console.log('Static asset uploaded successfully');
+      } catch (error) {
+         console.error('Error uploading static asset:', error);
+      }
+   }
+
+   uploadAssetToS3();
+
+Upload Local Asset to S3
+````````````````````````
+
+To upload a local asset to S3, use the following code snippet:
+
+.. code-block:: javascript
+   :copyable: true
+
+   const uploadParams = {
+      Bucket: 'YOUR_BUCKET_NAME',
+      // Specify the name/key for the object in the bucket (usually the file name)
+      Key: 'YOUR_OBJECT_KEY',
+      // Provide the local file to be uploaded
+      Body: 'STATIC_ASSET_CONTENT',
+   };
+
+   // Upload the static asset to S3
+   s3.upload(uploadParams, (err, data) => {
+      if (err) {
+         console.error('Error uploading static asset:', err);
+      } else {
+         console.log('Static asset uploaded successfully:', data.Location);
+      }
+   });

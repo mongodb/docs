@@ -1,0 +1,195 @@
+.. meta::
+   :robots: nosnippet
+
+.. _custom-jwt-authentication-firebase:
+
+========================================
+Firebase JWT Authentication (Custom JWT)
+========================================
+
+.. contents:: On this page
+   :depth: 1
+
+You can configure the :ref:`Custom JWT authentication provider
+<custom-jwt-authentication>` to authenticate users that you manage with
+:fcm:`Firebase Authentication <auth>`.
+
+Before You Begin
+----------------
+
+You will need the following to use Firebase Authentication:
+
+- A Firebase project with Authentication configured. To learn more,
+  refer to the :fcm:`Firebase Authentication <auth>` documentation.
+
+- An App Services App that does not already use Custom JWT
+  authentication. To learn how to create a new App Services App, see
+  :ref:`Create an App <create-app>`.
+
+- If you're using the command line interface, you need {+cli-ref+} to be
+  installed and authenticated on your local system.
+
+- If you're using the Admin API, you need a MongoDB Atlas Admin API
+  :atlas:`public/private key pair
+  </configure-api-access/#std-label-atlas-prog-api-key>`. The API key
+  must have :ref:`Project Owner <project-roles>` permissions.
+
+Configure the Custom JWT authentication provider
+------------------------------------------------
+
+You can configure Custom JWT authentication from the UI or by modifying
+the underlying configuration files directly with the CLI or Admin API.
+Choose your preferred method below.
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      In the left navigation menu, click :guilabel:`Authentication`.
+      Then click the :guilabel:`Authentication Providers` tab and select
+      the :guilabel:`Custom JWT` provider.
+
+      Now you can configure the Custom JWT authentication provider to
+      work with your Firebase project.
+
+      1. Click the toggle to enable the provider.
+
+      #. Set :guilabel:`Verification Method` to :guilabel:`Use a JWK
+         URI`. Specify the following URL for :guilabel:`JWK URI`:
+
+         .. code-block::
+
+            https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com
+
+      #. Define :guilabel:`Metadata Fields` to map data from the
+         Firebase JWT to the corresponding App Services user account.
+
+         None of the metadata fields are required. However, you might
+         find them useful for getting user information from the Firebase
+         JWT into your App.
+
+         The following is a mapping from the Firebase JWT to an App
+         Services user. You can add these to the table in the UI as they
+         are or modify the mapping as you wish following the
+         :ref:`Metadata Fields documentation
+         <custom-jwt-authentication-configuration-metadata-fields>`.
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 50 50
+
+            * - Path
+
+              - Field Name
+
+            * - firebase.identities.email
+
+              - emails
+
+            * - firebase.sign_in_provider
+
+              - signInProvider
+
+            * - user_id
+
+              - userId
+
+            * - email_verified
+
+              - emailVerified
+
+            * - email
+
+              - email
+
+      #. Set :guilabel:`Audience` to your `Firebase Project ID
+         <https://firebase.google.com/docs/projects/learn-more#project-id>`__.
+
+         .. important:: You must set Audience to Firebase Project ID
+
+            You *must* set :guilabel:`Audience` to use your Firebase
+            Project ID as a Custom JWT provider even though it's labeled
+            as optional in the UI.
+
+      #. Click :guilabel:`Save` and deploy your changes
+
+   .. tab::
+      :tabid: cli
+
+      Run the following command, replacing the value of ``--remote``
+      with your App's Client App ID. This downloads a local copy of your
+      App's latest configuration files and navigates to the
+      configuration file directory, which uses the same name as your
+      App.
+
+      .. code-block:: bash
+
+         {+cli-bin+} pull --remote "myapp-abcde"
+         cd myapp
+
+      Add a new Custom JWT authentication provider to your App's
+      ``/auth/providers.json`` file. Use the following configuration as
+      a template, replacing the ``audience`` value with your Firebase
+      Project ID. You can use the provided ``metadata_fields`` as they
+      are or modify the mapping as you wish following the :ref:`Metadata
+      Fields documentation
+      <custom-jwt-authentication-configuration-metadata-fields>`.
+
+      .. literalinclude:: /authentication/custom-jwt-firebase-config-template.json
+         :language: json
+         :caption: /auth/providers.json
+         :emphasize-lines: 7
+
+      Save your changes to ``/auth/providers.json``. Then, push the
+      updated configuration file to deploy your App:
+
+      .. code-block:: bash
+
+         {+cli-bin+} push
+
+   .. tab::
+      :tabid: api
+
+      Add a new Custom JWT authentication provider to your App using the
+      :admin-api-endpoint:`Create an authentication provider
+      <tag/adminCreateAuthProvider>` endpoint.
+
+      Use the following configuration as a template. Make sure to:
+
+      - Specify your App's ``$PROJECT_ID`` and ``$APP_ID``
+      - Include an Admin API access token in the ``Authorization``
+        header.
+      - Replace the ``audience`` value in the request body with your
+        Firebase Project ID.
+
+      You can use the provided ``metadata_fields`` as they are or
+      modify the mapping as you wish following the :ref:`Metadata
+      Fields documentation
+      <custom-jwt-authentication-configuration-metadata-fields>`.
+
+      .. literalinclude:: /authentication/custom-jwt-firebase-config-admin-api-template.sh
+         :language: bash
+         :emphasize-lines: 10
+
+Log in with a Firebase JWT
+--------------------------
+
+Once you've configured the Custom JWT authentication provider to use
+Firebase Authentication, you can log in to your App Services App with a
+Firebase JWT.
+
+#. Log the user into Firebase. To learn how, see the relevant
+   :fcm:`Firebase SDK documentation <auth>` for your platform and
+   programming language.
+
+#. Get the user's Firebase JWT. To learn how, see :fcm:`Retrieve ID
+   tokens on clients
+   <auth/admin/verify-id-tokens#retrieve_id_tokens_on_clients>` in the
+   Firebase documentation.
+
+#. Use the Firebase JWT to authenticate with Atlas App Services. You can
+   :ref:`start a session over HTTP <manage-user-sessions>` or log in
+   with an SDK. To learn how, see the docs for your SDK:
+
+   .. include:: /includes/custom-jwt-authentication-sdk-examples.rst

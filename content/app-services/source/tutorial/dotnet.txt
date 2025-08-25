@@ -1,0 +1,481 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _dotnet-tutorial:
+
+==============================================
+Tutorial: Atlas Device Sync for .NET with MAUI
+==============================================
+
+.. meta::
+   :keywords: code example
+   :description: Learn how to build, modify, and run a demo .NET MAUI application using Atlas Device SDK for .NET and Atlas Device Sync.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+*Estimated time to complete: 30 minutes, depending on your experience with MAUI*
+
+Realm provides a .NET SDK for creating multi-platform applications in C# with 
+MAUI. This tutorial is based on the 
+.NET Flexible Sync Template App, named ``maui.todo.flex``, which illustrates
+the creation of a Todo application in MAUI. This application enables users to: 
+
+- Register their email as a new user account.
+- Sign in to their account with their email and password (and sign out).
+- View, create, modify, and delete tasks.
+
+In this tutorial, you will add a new ``Priority`` field 
+to the existing ``Item`` model and update the 
+:ref:`Flexible Sync subscription <queryable-fields>` to only show items within 
+a range of priorities. 
+
+.. note:: Check Out the Quick Start
+   
+   If you prefer to get started with your own application rather than follow a 
+   guided tutorial, check out the :ref:`.NET Quick Start <dotnet-client-quick-start>`. 
+   It includes copyable code examples and the essential information that you 
+   need to set up an Atlas App Services backend.
+
+
+Prerequisites
+-------------
+
+- Ensure that you have the necessary software installed. Select the tab for 
+  your development environment:
+
+  .. tabs::
+
+      .. tab:: MacOS
+         :tabid: vs-mac
+
+         - `Visual Studio for Mac <https://visualstudio.microsoft.com/downloads/>`_ 
+            2019 or newer.
+         - `Xcode <https://developer.apple.com/xcode/>`_ 10.0 or newer. Note that 
+           Xcode 10 requires macOS High Sierra (10.13) or newer.
+         - `iOS 12 SDK <https://developer.apple.com/ios/>`_.
+         - `Android 6.0 / API level 23 <https://developer.android.com/studio>`_.
+         
+      .. tab:: Windows
+         :tabid: vs-win
+
+         - Windows 7 or newer. Windows 10 recommended. 
+         - `Visual Studio <https://visualstudio.microsoft.com/downloads/>`_ 2017 
+           (Visual Studio 2019 is recommended).
+         - `Android 6.0 / API level 23 <https://developer.android.com/studio>`_.
+         - To build iOS projects on Windows, you will also need a Mac computer, 
+           network-accessible from the Windows computer, that 
+           conforms to the minimum requirements for running Xamarin on macOS.
+
+- You need previous experience deploying a MAUI or Xamarin app to an Android 
+  Emulator, iOS Simulator, and/or a physical device.
+
+.. include:: /includes/tutorial-template-prerequisite.rst 
+
+Start with the Template
+-----------------------
+
+This tutorial is based on the MAUI Flexible Sync Template App named
+``maui.todo.flex``. We start with the default app and build new features
+on it.
+
+.. include:: /includes/tutorial-learn-more-template-app.rst
+
+.. tabs::
+
+   .. tab:: App Services UI
+      :tabid: ui
+
+      Follow the procedure described in the 
+      :ref:`create-app` guide, and select
+      :guilabel:`Create App from Template`. Select the 
+      :guilabel:`Real-time Sync` template. This creates an App Services App
+      pre-configured to use with one of the Device Sync template app clients.
+
+      After you create a template app, the UI displays a modal labeled 
+      :guilabel:`Get the Front-end Code for your Template`. This modal 
+      provides instructions for downloading the template app client code 
+      as a ``.zip`` file or using {+cli+} to get the client.
+
+      After selecting the ``.zip`` or {+cli+} method, follow the on-screen
+      instructions to get the client code. For this tutorial, select the 
+      :guilabel:`C# (.NET MAUI)` client code.
+
+      .. include:: /includes/note-windows-zip.rst
+
+   .. tab:: App Services CLI
+      :tabid: cli
+
+      The :ref:`{+cli-bin+} apps create <appservices-apps-create>`
+      command sets up the backend and creates a C# (MAUI) template
+      app for you to use as a base for this tutorial.
+
+      Run the following command in a terminal window to create an app
+      named "MyTutorialApp" that is deployed in the ``US-VA`` region
+      with its environment set to "development" (instead of production
+      or QA).
+
+      .. code-block:: shell
+
+         {+cli-bin+} app create \
+           --name MyTutorialApp \
+           --template maui.todo.flex \
+           --deployment-model global \
+           --environment development
+
+      The command creates a new directory in your current path with the
+      same name as the value of the ``--name`` flag.
+
+   .. tab:: GitHub Repository
+      :tabid: github
+
+      You can fork and clone a GitHub repository that contains the Device 
+      Sync client code. The C# client code is available at
+      :github:`https://github.com/mongodb/template-app-maui-todo <mongodb/template-app-maui-todo>`.
+
+      If you use this process to get the client code, you must create an
+      App Services app to use with the client. Follow the instructions at 
+      :ref:`create-template-app` to create a template app based on 
+      the ``sync.todo`` template.
+
+Set up the Template App
+-----------------------
+
+.. procedure::
+
+   .. step:: Open the App
+
+      Navigate to the directory where the Realm CLI created the template app 
+      and open the ``realm-todo-app.sln`` solution in Visual Studio. 
+
+   .. step:: Explore the App Structure
+
+      In Visual Studio, take a few minutes to explore how the solution is
+      organized. This is a organized like a standard MAUI 
+      `MVVM <https://learn.microsoft.com/en-us/dotnet/maui/xaml/fundamentals/mvvm>`__ 
+      solution, with a single project containing the views, models, and view 
+      models. 
+      
+      The app uses a single model, ``Item``, which implements ``IRealmObject``.  
+      We have three views, one for logging in (``LoginPage``), another for 
+      viewing Items (``ItemsPage``), and a third for editing and creating new 
+      items. Each view has a corresponding view model. 
+
+      In addition to the standard MVVM structure, we have centralized all of the 
+      Realm logic into a RealmService class, which is found in the "Services" folder. 
+      This architecture ensures we are sharing the same realm throughout. 
+
+   .. step:: Run the App
+
+      Without making any changes to the code, you should be able to run the app 
+      in either the Android emulator or the iOS Simulator, or on a physical device.
+      You don't need to make any changes because, when you set up the template in 
+      the App Services UI or with the CLI, Atlas App Services also set up a new 
+      backend. If you downloaded the template app, you will need to add your App 
+      Services app's ID. To do so, open the Services/RealmService.cs file and add 
+      your ID to the ``private const string appId = "appId";`` line.
+
+      Run the app, register a new user account, and then add a new Item to your 
+      todo list.
+
+   .. step:: Check the Backend
+
+      Log in to `Atlas App Services <http://cloud.mongodb.com>`_. In the 
+      :guilabel:`Data Services` tab, click on :guilabel:`Browse Collections`. In the list 
+      of databases, find and expand the :guilabel:`todo` database, and then the 
+      :guilabel:`Item` collection. You should see the document you created 
+      in this collection.
+
+Modify the Application
+----------------------
+
+Add a New Property
+~~~~~~~~~~~~~~~~~~
+
+Now that you have confirmed everything is working as expected, we can 
+add changes. In this tutorial, we have decided that we want to add a 
+"Priority" property to each Item so that we can filter Items by their 
+priorities. The Priority property will be mapped to a PriorityLevel enum 
+to constrain the possible values.
+
+To do this, follow these steps:
+
+.. procedure::
+
+   .. step:: Add the Priority Property
+
+      A. In the ``RealmTodo`` project, expand the ``Models`` folder and open 
+         the ``Item`` class file.
+
+      #. Add the following public property:
+
+         .. code-block:: csharp
+
+            [MapTo("priority")]
+            public int? Priority { get; set; }
+            
+         Note that we have set this property as nullable, which will ensure that 
+         existing Items in our database (which do not have a Priority property) 
+         will continue to be available.
+         
+   .. step:: Set the Priority when Creating or Modifying an Item
+
+      A. The ``EditItemViewModel`` ViewModel is used to both create new items and 
+         to modify existing items. When creating or modifying an item, the user needs 
+         the UI (and code) to set the Priority of an item. 
+
+      #. Add an ObservableProperty to hold the priority:
+
+         .. code-block:: csharp
+
+            [ObservableProperty]
+            private int? priority;
+
+         .. note:: [ObservableProperty] Attribute
+         
+            The ``[ObservableProperty]`` attribute is a feature provided by the 
+            `MVVM Toolkit <https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/relaycommand>`__ 
+            to simplify data binding.
+         
+      #. The ``ApplyQueryAttributes`` method acts as a bit of a "constructor" for 
+         this view model, checking to see if an existing item is being passed to 
+         this view for editing. In here, we capture any existing values to 
+         display in the view.
+
+         If we are editing an existing item, we want to set the Priority of the 
+         existing item:
+         ``Priority = InitialItem.Priority;``.
+
+         Likewise, if we're creating a new item, set the default priority to "Medium": 
+         ``Priority = 2;``.
+
+         When complete this method should now look like the following:
+
+         .. code-block:: csharp
+            :emphasize-lines: 7,13
+
+            public void ApplyQueryAttributes(IDictionary<string, object> query)
+            {
+                  if (query.Count > 0 && query["item"] != null) // we're editing an Item
+                  {
+                     InitialItem = query["item"] as Item;
+                     Summary = InitialItem.Summary;
+                     Priority = InitialItem.Priority;
+                     PageHeader = $"Modify Item {InitialItem.Id}";
+                  }
+                  else // we're creating a new item
+                  {
+                     Summary = "";
+                     Priority = 2;
+                     PageHeader = "Create a New Item";
+                  }
+            }
+
+      #. Finally, in the ``SaveItem()`` method, we want to persist the Priority 
+         value. Since we are creating or modifying a managed object, the changes 
+         are wrapped in a ``realm.WriteAsync`` call.
+         
+         For the existing item, set the ``InitialItem.Priority`` on the existing 
+         object, and for a new item, set the property in the ``Add()`` call. Your 
+         completed ``WriteAsync`` block should look like this:
+
+         .. code-block:: csharp
+            :emphasize-lines: 6,14
+
+            await realm.WriteAsync(() =>
+            {
+               if (InitialItem != null) // editing an item
+               {
+                  InitialItem.Summary = Summary;
+                  InitialItem.Priority = Priority;
+               }
+               else // creating a new item
+               {
+                  realm.Add(new Item()
+                  {
+                        OwnerId = RealmService.CurrentUser.Id,
+                        Summary = summary,
+                        Priority = Priority
+                  });
+               }
+            });
+
+
+   .. step:: Update the UI Elements
+
+      A. The final task is to add the UI elements needed to set and show the 
+         priority. 
+         
+         First, in the ``ItemsPage.xaml``, we'll add a label to the ListView that 
+         shows the priority. Within the ViewCell, add a Label to display the 
+         item's priority:
+
+         .. code-block:: csharp
+         
+            <Label Text="{Binding Priority}"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"/>
+           
+      #. In the ``EditItemsPage.xaml``, we will add two UI elements: a 
+         Picker that enables the user to choose which priority level to set on the 
+         new Item and a label for the picker. Find the ``Entry`` element 
+         for setting the Summary and add the following elements below it:
+
+         .. code-block:: csharp
+
+            <Label Text="Priority:"/>
+            <Picker x:Name="newItemPriority" SelectedIndex="{Binding Priority}">
+               <Picker.Items>
+                     <x:String>Severe</x:String>
+                     <x:String>High</x:String>
+                     <x:String>Medium</x:String>
+                     <x:String>Low</x:String>
+               </Picker.Items>
+            </Picker>
+
+         
+   .. step:: Run and Test
+    
+      At this point, you can run the application again. Log in using the account 
+      you created earlier in this tutorial. You will see the one Item you 
+      previously created. Add a new Item, and you will see that you can now 
+      set the priority. Choose ``High`` for the priority and save the Item. 
+
+      Now switch back to the Atlas data page in your browser, and refresh the 
+      ``Item`` collection. You should now see the new Item with the ``priority`` 
+      field added and set to **1**. You will also notice that the existing Item 
+      now also has a ``priority`` field, and it is set to **null**, as shown in 
+      the following screenshot:
+
+      .. figure:: /images/dotnet-tutorial-two-new-items.png
+         :alt:  Two items in a collection
+         :figwidth: 300px
+
+      .. note:: Why Didn't This Break Sync?
+      
+         Adding a property to a Realm object is not a breaking change and therefore 
+         does not require a :ref:`client reset <client-resets>`. The template 
+         app has Development Mode enabled, so changes to the client Realm object 
+         are reflected in the server-side schema. For more information, see 
+         :ref:`<development-mode>` and :ref:`<additive-changes-synced-schema>`.
+
+Change the Subscription
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. procedure:: Change the Subscription
+
+   .. step:: Update the subscription
+
+      In the ``RealmService.cs`` file, we define two Flexible Sync subscriptions. 
+      One shows only the items created by the current user, while the other shows 
+      all items from all users. 
+
+      We're going to add a new subscription that shows the current user's 
+      items that have a priority of 0 or 1.
+
+      A. At the bottom of the ``RealmService`` class, add an entry to the 
+         ``SubscriptionType`` enum called "MyHighPriority":
+
+         .. code-block:: csharp
+
+            public enum SubscriptionType
+            {
+               Mine,
+               MyHighPriority,
+               All,
+            }
+
+      #. Scroll up to find the ``GetQueryForSubscriptionType`` method. It is here 
+         that we define the subscriptions. 
+         
+         1. Copy the first one, where ``subType == SubscriptionType.Mine``, 
+            and paste it in an ``else if`` block immediately below.
+
+         2. Set the new conditional to ``subType == SubscriptionType.MyHighPriority``.
+         
+         3. Modify this new subscription query to insert a LINQ query that still filters 
+            by OwnerId and also by Priority values less than 2. 
+
+         4. Change the name of the new query to "myHighPri". Your code will look 
+         like the following: 
+
+         .. code-block:: csharp
+            :emphasize-lines: 8-14
+
+            if (subType == SubscriptionType.Mine)
+            {
+                  query = realm.All<Item>()
+                     .Where(i => i.OwnerId == CurrentUser.Id)
+                     .Where(i => i.Priority < 2);
+                  queryName = "mine";
+            }
+            else if (subType == SubscriptionType.MyHighPriority)
+            {
+                  query = realm.All<Item>()
+                    .Where(i => i.OwnerId == CurrentUser.Id &&
+                           i.Priority < 2);
+                  queryName = "myHighPri";
+            }
+            else if (subType == SubscriptionType.All)
+            {
+                  query = realm.All<Item>();
+                  queryName = "all";
+            }
+
+      #. In the ``GetCurrentSubscriptionType`` method immediately above, add the 
+         new subscription name to the switch statement, so it looks like this:
+
+         .. code-block:: csharp
+            :emphasize-lines: 5
+
+            return activeSubscription.Name switch
+            {
+                "all" => SubscriptionType.All,
+                "mine" => SubscriptionType.Mine,
+                "myHighPri" => SubscriptionType.MyHighPriority,
+                _ => throw new InvalidOperationException("Unknown subscription type")
+            };
+
+      #. Finally, open the ``ItemsViewModel`` class and find the ``OnIsShowAllTasksChanged`` 
+         method. Rather than change the UI to enable 3 subscriptions, we'll just 
+         replace the existing "mine" subscription with the new one. Change the 
+         ``SetSubscription`` method so it looks like the following:
+         
+         .. code-block:: csharp
+            :emphasize-lines: 3
+
+            await RealmService.SetSubscription(realm, value 
+               ? SubscriptionType.All 
+               : SubscriptionType.MyHighPriority);
+
+   .. step:: Run and Test
+    
+      Run the application again. If prompted to do so, log in in using the
+      account you created earlier in this tutorial. 
+
+      You should expect to see any Items you have created that have a priority 
+      of "High" (1) or "Severe" (0). If you toggle the "Show all tasks" switch, 
+      all tasks by all users should appear.
+
+      .. include:: /includes/tip-queryable-fields-dev-mode.rst
+
+
+Conclusion
+----------
+Adding a property to an existing Realm object is a non-breaking change, and 
+Development Mode ensures that the schema change is reflected server-side. 
+
+What's Next?
+------------
+
+- Read our :ref:`.NET SDK <dotnet-intro>` documentation.
+- Find developer-oriented blog posts and integration tutorials on the 
+  `MongoDB Developer Hub <https://developer.mongodb.com>`__.
+- Join the `MongoDB Community forum <https://developer.mongodb.com/community/forums/c/realm/9>`__ 
+  to learn from other MongoDB developers and technical experts.
+- Explore engineering and expert-provided `example projects <https://www.mongodb.com/docs/realm/example-projects/>`__.
+
+.. include:: /includes/tutorial-request-for-feedback-note.rst

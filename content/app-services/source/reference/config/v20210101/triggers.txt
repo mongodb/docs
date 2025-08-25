@@ -1,0 +1,321 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+:orphan:
+
+.. _appconfig-v20210101-triggers:
+
+===========================
+Trigger Configuration Files
+===========================
+
+.. default-domain:: mongodb
+
+.. include:: /reference/config/v20210101/note-old-version.rst
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. code-block:: none
+   
+   app/
+   └── triggers/
+       └── <trigger name>.json
+
+.. _config-v20210101-trigger:
+
+General Configuration
+---------------------
+
+All triggers conform to a base schema with specific variations depending on the
+trigger type. The following fields exist in *all* trigger configuration files:
+
+.. code-block:: json
+   :caption: triggers/<trigger name>.json
+   
+   {
+     "name": "<Trigger Name>",
+     "type": "<Trigger Type>",
+     "config": {},
+     "function_name": "<Trigger Function Name>",
+     "disabled": <Boolean>
+   }
+
+.. list-table::
+   :widths: 10 30
+   :header-rows: 1
+
+   * - Field
+     - Description
+   
+   * - | ``name``
+       | String
+     - The trigger name. This may be at most 64 characters
+       long and can only contain ASCII letters, numbers, underscores,
+       and hyphens.
+   
+   * - | ``type``
+       | String
+     - The trigger type. The value of this field determines the exact
+       configuration file schema.
+       
+       Valid Options:
+       
+       - ``"DATABASE"``
+       - ``"AUTHENTICATION"``
+       - ``"SCHEDULED"``
+
+   * - | ``config``
+       | Document
+     - A document with fields that map to additional configuration options for
+       the trigger. The exact configuration fields depend on the trigger
+       ``type``:
+       
+       - :ref:`Database Triggers <config-database-trigger>`
+       - :ref:`Authentication Triggers <config-authentication-trigger>`
+       - :ref:`Scheduled Triggers <config-scheduled-trigger>`
+
+   * - | ``function_name``
+       | String
+     - The name of the :ref:`Atlas Function <functions>` that the
+       trigger executes whenever it fires.
+
+   * - | ``event_processors``
+       | Document
+     - A document that configures the trigger to send events to external event
+       processors whenever it fires. Cannot be used with ``function_name``.
+
+       For more information, see :ref:`Send Trigger Events to AWS EventBridge
+       <aws-eventbridge>`.
+
+   * - | ``disabled``
+       | Boolean
+     - If ``true``, the trigger will not listen for any events and will
+       not fire.
+
+.. _config-v20210101-database-trigger:
+
+Database Triggers
+-----------------
+
+Database trigger configurations conform to the base trigger schema with
+additional configuration options that specify which collection to watch and when
+to fire the trigger. The following fields exist in *database* trigger
+configuration files:
+
+.. code-block:: json
+   :caption: triggers/<trigger name>.json
+   
+   {
+     "name": "<Trigger Name>",
+     "type": "DATABASE",
+     "config": {
+       "service_name": "<MongoDB Service Name>",
+       "database": "<Database Name>",
+       "collection": "<Collection Name>",
+       "operation_types": ["<Operation Type>", ...],
+       "full_document": <boolean>,
+       "full_document_before_change": <boolean>,
+       "tolerate_resume_errors": <boolean>,
+       "unordered": <boolean>,
+       "match": { <Match Filter> },
+       "project": { <Projection Filter> },
+     },
+     "function_name": "<Trigger Function Name>",
+     "disabled": <Boolean>
+   }
+
+.. list-table::
+   :widths: 10 30
+   :header-rows: 1
+
+   * - Field
+     - Description
+   
+   * - | ``config.service_name``
+       | String
+     
+     - The name of the :ref:`MongoDB data source <appconfig-data_sources>`
+       that contains the watched collection. You cannot define a database
+       trigger on a :ref:`serverless instance <serverless-caveats>` or
+       :ref:`{+adf-instance+} <data-federation-caveats>`.
+   
+   * - | ``config.database``
+       | String
+     - The name of the MongoDB database that contains the watched collection.
+   
+   * - | ``config.collection``
+       | String
+     - The name of the collection that the trigger watches.
+   
+   * - | ``config.operation_types``
+       | String[]
+     - A list of one or more :ref:`database operation
+       types <database-event-operation-types>` that cause the trigger to fire.
+       
+       Valid operations types:
+       
+       - ``"INSERT"``
+       - ``"UPDATE"``
+       - ``"REPLACE"``
+       - ``"DELETE"``
+       
+       .. tip::
+          
+          Update operations executed from MongoDB Compass or the MongoDB Atlas Data
+          Explorer fully replace the previous document. As a result, update
+          operations from these clients will generate ``REPLACE`` change events
+          rather than ``UPDATE`` events.
+   
+   * - | ``config.full_document``
+       | Boolean
+     - If ``true``, ``UPDATE`` change events include the latest
+       :manual:`majority-committed </reference/read-concern-majority/>` version
+       of the modified document *after* the change was applied in the
+       ``fullDocument`` field.
+       
+       .. note::
+       
+          Regardless of this setting:
+          
+          - ``INSERT`` and ``REPLACE`` events always include the
+            ``fullDocument`` field.
+          
+          - ``DELETE`` events never include the ``fullDocument`` field.
+   
+   * - | ``config.full_document_before_change``
+       | Boolean
+     - If ``true``, change events include a copy of the modified document
+       from immediately *before* the change was applied in the
+       ``fullDocumentBeforeChange`` field. All change events except for
+       ``INSERT`` events include the document preimage.
+             
+       .. important:: Collection-Level Preimage Settings
+          
+          Document preimages use extra information stored in the oplog.
+          The extra data may have performance implications for some apps.
+          
+          Once you've enabled document preimages for any trigger on a
+          given collection, that collection will include preimage data in
+          the oplog and other triggers on the collection can use preimages
+          with no additonal overhead.
+          
+          You can disable document preimages on a per-trigger basis to
+          exclude the preimage from change events. Regardless of your
+          trigger-level settings, a collection's oplog entries will
+          continue to include preimage data unless you explicitly disable
+          preimages for the collection.
+          
+          For more information, see :ref:`preimages`.
+
+   * - | ``config.tolerate_resume_errors``
+       | Boolean
+     - If ``true``, the Trigger automatically resumes if the token
+       required to process change stream events cannot be found.
+
+       .. include:: /includes/trigger-auto-resume.rst
+
+       For more information on resuming suspended Triggers, see
+       :ref:`Suspended Triggers <suspended_triggers>`.
+
+   * - | ``config.unordered``
+       | Boolean
+     - If ``true``, indicates that event ordering is disabled for this trigger.
+       
+       .. include:: /includes/trigger-event-ordering.rst
+   
+   * - | ``config.match``
+       | Document
+     - .. include:: /includes/trigger-match-expression.rst
+   
+   * - | ``config.project``
+       | Document
+     - .. include:: /includes/trigger-project-expression.rst
+
+.. _config-v20210101-authentication-trigger:
+
+Authentication Triggers
+-----------------------
+
+Authentication trigger configurations conform to the base trigger schema with
+additional configuration options that specify which auth providers to watch and
+when to fire the trigger. The following fields exist in *authentication* trigger
+configuration files:
+
+.. code-block:: json
+   :caption: triggers/<trigger name>.json
+   
+   {
+     "name": "<Trigger Name>",
+     "type": "AUTHENTICATION",
+     "config": {
+       "operation_type": ["<Operation Type>", ...],
+       "providers": ["<Provider Type>", ...],
+     },
+     "function_name": "<Trigger Function Name>",
+     "disabled": <Boolean>
+   }
+
+.. list-table::
+   :widths: 10 30
+   :header-rows: 1
+
+   * - Field
+     - Description
+   
+   * - | ``config.operation_type``
+       | String
+     - The :ref:`authentication operation type
+       <authentication-event-operation-types>` that causes the trigger to fire.
+       
+       Valid operations types:
+       
+       - ``"LOGIN"``
+       - ``"CREATE"``
+       - ``"DELETE"``
+   
+   * - | ``config.providers``
+       | String[]
+     - A list of :ref:`authentication provider <authentication-providers>` types
+       that the trigger watches.
+       
+       Valid provider types:
+       
+       .. include:: /includes/auth-provider-internal-names.rst
+
+.. _config-v20210101-scheduled-trigger:
+
+Scheduled Triggers
+------------------
+
+Scheduled trigger configurations conform to the base trigger schema with
+additional configuration options that specify the schedule on which the trigger
+fires. The following fields exist in *scheduled* trigger configuration files:
+
+.. code-block:: json
+   :caption: triggers/<trigger name>.json
+   
+   {
+     "name": "<Trigger Name>",
+     "type": "SCHEDULED",
+     "config": {
+       "schedule": "<CRON expression>"
+     },
+     "function_name": "<Trigger Function Name>",
+     "disabled": <Boolean>
+   }
+
+.. list-table::
+   :widths: 10 30
+   :header-rows: 1
+
+   * - Field
+     - Description
+   
+   * - | ``config.schedule``
+       | String
+     - The :ref:`CRON expression <CRON-expressions>` that
+       schedules the trigger's execution.

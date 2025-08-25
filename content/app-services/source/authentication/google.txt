@@ -1,0 +1,361 @@
+.. meta::
+   :robots: nosnippet
+
+.. _google-authentication:
+
+=====================
+Google Authentication
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+The Google authentication provider allows users to log in with their
+existing Google account through `Google Sign-In
+<https://developers.google.com/identity/>`_. When a user logs in, Google
+provides Atlas App Services with an `OAuth 2.0 access token
+<https://www.oauth.com/oauth2-servers/access-tokens/>`_ for the user.
+App Services uses the token to identify the user and access approved data from
+Google APIs on their behalf.
+
+The following diagram shows the OAuth logic flow:
+
+.. figure:: /images/auth-oauth-flow.png
+    :alt: OAuth flow diagram
+    :width: 350px
+
+.. _auth-gcp-project-setup:
+
+Set Up a Project in the Google API Console
+------------------------------------------
+
+You must set up a project in the Google API Console before you :ref:`configure 
+Google Authentication in App Services <auth-google-configuration>`. Follow the
+SDK-specific steps to set up Google Authentication in the Google API Console.
+
+
+.. tabs-realm-sdks::
+
+   tabs:
+     - id: javascript
+       content: ""
+     - id: android
+       content: ""
+     - id: ios
+       content: ""
+
+The Google authentication provider requires a :gcp:`project in the Google
+API Console </>` to manage authentication and user permissions. The
+following steps walk through creating the project, generating OAuth
+credentials, and configuring the provider to connect with the project.
+
+.. procedure::
+
+   .. step:: Create a Project in the Google API Console
+
+      Follow Google's :gcp:`official guide
+      </resource-manager/docs/creating-managing-projects>` to create a new
+      GCP project.
+
+
+   .. step:: Generate OAuth Client Credentials
+
+      .. tabs-realm-sdks::
+         :hidden:
+
+         .. tab::
+            :tabid: javascript
+
+
+         .. tab::
+            :tabid: android
+
+
+         .. tab::
+            :tabid: ios
+
+            .. note::
+
+               For iOS client applications, you need to create both a Web
+               OAuth Client ID and an iOS OAuth Client ID. The former is
+               used by App Services, while the latter will be used by the app
+               itself.
+
+               Refer to the :guilabel:`Web` tab of this section for
+               instructions on creating the web application Client ID for
+               App Services.
+
+      Follow Google's support guide on `Setting up OAuth 2.0
+      <https://support.google.com/cloud/answer/6158849?hl=en>`_ for your
+      project.
+
+      .. tabs-realm-sdks::
+         :hidden:
+
+         .. tab::
+            :tabid: javascript
+
+            You will need to create a web application :guilabel:`Client ID`
+            and provide several App Services-related values.
+
+            For :guilabel:`Authorized JavaScript Origins`, enter the
+            following URL:
+
+            .. code-block:: none
+
+               https://services.cloud.mongodb.com
+
+            For :guilabel:`Authorized Redirect URIs`, enter the App Services
+            authentication callback URL that corresponds to the
+            :ref:`deployment region <deployment-region>`
+            of your application. The following table lists the callback URL
+            for each region:
+
+            .. include:: /includes/deployment-region-auth-callback-urls.rst
+
+         .. tab::
+            :tabid: android
+
+            Use the following values when configuring your Android
+            application :guilabel:`Client ID`:
+
+            .. list-table::
+
+               * - :guilabel:`Application Type`
+                 - Android
+
+               * - :guilabel:`Name`
+                 - The name you wish to associate with this :guilabel:`Client ID`.
+
+               * - :guilabel:`Signing-certificate Fingerprint`
+                 - The SHA-1 fingerprint of your application signing
+                   certificate. See :google:`Authenticating Your
+                   Client <android/guides/client-auth>` for instructions
+                   on generating this value.
+
+         .. tab::
+            :tabid: ios
+
+            Use the following values when configuring your iOS application
+            :guilabel:`Client ID`:
+
+            .. list-table::
+
+               * - :guilabel:`Application Type`
+                 - iOS
+
+               * - :guilabel:`Name`
+                 - The name you wish to associate with this :guilabel:`Client ID`.
+
+               * - :guilabel:`Bundle ID`
+                 - The Bundle ID for your iOS application. You can find
+                   this value in XCode on the :guilabel:`General` tab for
+                   the app's primary target.
+
+
+   .. step:: Configure the Google Authentication Provider
+
+      To connect your GCP project to App Services add the OAuth 2.0
+      :guilabel:`Client ID` and :guilabel:`Client Secret` you generated in
+      the previous step to your authentication provider :ref:`configuration
+      <auth-google-configuration>`.
+
+      .. tabs-realm-sdks::
+         :hidden:
+
+         .. tab::
+            :tabid: javascript
+
+
+         .. tab::
+            :tabid: android
+
+
+         .. tab::
+            :tabid: ios
+
+            .. note::
+
+               Make sure that you add the *web application* credentials
+               to the provider configuration. If you add the iOS
+               credentials instead, Google authentication will fail.
+
+.. _openIdConnect:
+.. _auth-google-configuration:
+.. _config-oauth2-google:
+
+Configure in App Services
+-------------------------
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      You can enable and configure the Google authentication provider
+      from the App Services UI by selecting :guilabel:`Google` from the
+      :guilabel:`Authentication` page.
+   
+   .. tab::
+      :tabid: cli
+      
+      To enable and configure the Google authentication provider with
+      the {+cli-ref+}, define a :ref:`configuration 
+      object <appconfig-auth>` for it in ``/auth/providers.json``.
+
+      Google provider configurations have the following form:
+      
+      .. code-block:: none
+         :caption: /auth/providers.json
+      
+         {
+           "oauth2-google": {
+             "name": "oauth2-google",
+             "type": "oauth2-google",
+             "disabled": <boolean>,
+             "config": {
+               "clientId": <string>,
+               "openId": <boolean>
+             },
+             "secret_config": {
+               "clientSecret": <string>
+             },
+             "metadata_fields": [<document>, ...],
+             "redirect_uris": [<string>, ...],
+             "domain_restrictions": [<string>, ...]
+           }
+         }
+
+The Google authentication provider has the following configuration
+options:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 30
+
+   * - Field
+     - Description
+
+   * - | :guilabel:`Client ID`
+       | *config.clientId*
+       
+     - Required. An :guilabel:`OAuth 2.0 Client ID` for your project
+       in the Google API Console.
+       
+       See :ref:`auth-gcp-project-setup` for information about setting
+       up OAuth Credentials for your GCP project.
+       
+   * - | :guilabel:`Client Secret` 
+       | *secret_config.clientSecret*
+       
+     - Required. The name of a :ref:`Secret <app-secret>` that stores
+       an :guilabel:`OAuth 2.0 Client Secret` for your project from the
+       Google API Console.
+       
+       See :ref:`auth-gcp-project-setup` for information about setting
+       up OAuth Credentials for your GCP project.
+       
+   * - | :guilabel:`Metadata Fields`
+       | *metadata_fields*
+
+     - Optional. A list of fields describing the authenticated user that
+       your application will request from the :google:`Google Identity API
+       <identity/sign-in/web/reference#googleusergetbasicprofile>`.
+
+       All metadata fields are omitted by default and can be required on
+       a field-by-field basis. Users must explicitly grant your app
+       permission to access each required field.
+       If a metadata field is required and exists for a particular user,
+       it will be included in their user object.
+       
+       To require a metadata field from an import/export
+       configuration file, add an entry for the field to the
+       ``metadata_fields`` array. Each entry should be a document of
+       the following form:
+       
+       .. code-block:: javascript
+       
+          { name: "<metadata field name>", required: "<boolean>" }
+
+   * - | :guilabel:`Redirect URIs`
+       | *redirect_uris*
+
+     - Required for web applications.
+       A list of allowed redirect :abbr:`URIs (Uniform Resource
+       Identifiers)`.
+
+       Once a user completes the authentication process on Google, App Services
+       redirects them back to either a specified redirect URI or, if no
+       redirect URI is specified, the URL that they initiated the
+       authentication request from. App Services will only redirect a user to a
+       URI that exactly matches an entry in this list, including the
+       protocol and any trailing slashes.
+
+   * - | :guilabel:`Domain Restrictions`
+       | *domain_restrictions*
+
+     - Optional. A list of approved :wikipedia:`domains <Domain_name>`
+       for user accounts.
+
+       If specified, the provider checks the domain of a user's primary
+       email address on Google and only allows them to authenticate if
+       the domain matches an entry in this list.
+
+       For example, if ``example1.com`` and ``example2.com`` are listed,
+       a Google user with a primary email of ``joe.mango@example1.com``
+       would be allowed to log in, while a user with a primary email of
+       ``joe.mango@example3.com`` would not be allowed to log in.
+
+       .. note::
+
+          If you've specified any domain restrictions, you must also
+          require the email address field in the :guilabel:`Metadata
+          Fields` setting.
+
+   * - | :guilabel:`OpenID Connect`
+       | *config.openId*
+
+     - Optional. Default ``false``.
+     
+       If ``true``, the provider uses :google:`OpenID Connect
+       <identity/protocols/oauth2/openid-connect>` to authenticate users.
+       
+       .. important:: OpenID Connect Support Varies by SDK
+
+          Refer to SDK-specific documentation about support for OpenID Connect. 
+          Not all SDK implementations of Google Authentication support OpenID Connect, 
+          while others require it. 
+
+       
+       .. note:: OpenID Connect Does Not Support Metadata Fields
+          
+          Google supports OpenID as part of their OAuth 2.0 implementation but does
+          not provide access to restricted scopes for OpenID authentication. This
+          means that App Services cannot access metadata fields for users authenticated
+          with OpenID Connect.
+
+.. _google-authentication-examples:
+
+Examples
+--------
+
+For code examples that demonstrate how to register and log in using
+Google authentication, see the documentation for the Realm SDKs:
+
+- :ref:`C++ SDK <cpp-login-google>`
+- :ref:`Flutter SDK <flutter-login-google>`
+- :ref:`Java SDK <java-login-google>`
+- :ref:`Kotlin SDK <kotlin-login-google>`
+- :ref:`.NET SDK <dotnet-login-google>`
+- :ref:`Node SDK <node-login-google>`
+- :ref:`React Native SDK <react-native-login-google>`
+- :ref:`Swift SDK <ios-login-google>`
+- :ref:`Web SDK <web-login-google>`

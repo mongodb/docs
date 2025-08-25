@@ -1,0 +1,659 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _cpp-tutorial:
+
+==============================================
+Tutorial: Atlas Device Sync for C++ with FTXUI
+==============================================
+
+.. meta::
+   :keywords: code example
+   :description: Learn how to build, modify, and run a demo terminal GUI application using Atlas Device SDK for C++ and Atlas Device Sync.
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+*Estimated time to complete: 30 minutes, depending on your experience with C++*
+
+Atlas Device SDK for C++ enables you to store and sync data across phones,
+tablets, wearables, or IoT devices. This tutorial is based on the C++ Template
+App, named ``cpp.todo.flex``, which illustrates the creation of a to-do list
+terminal GUI application built with 
+`FTXUI <https://github.com/ArthurSonzogni/FTXUI>`__. This application enables
+users to: 
+
+- Register their email as a new user account.
+- Sign in to their account with their email and password (and sign out later).
+- View, create, modify, and delete their own tasks.
+- View all tasks, even where the user is not the owner.
+
+The template app also provides a toggle that simulates the device being in 
+"Offline Mode." This toggle lets you quickly test Device Sync functionality 
+on the simulator, emulating the user having no internet connection. However,
+you would likely remove this toggle in a production application.
+
+This tutorial builds on the Template App. You will add a new ``priority`` field 
+to the existing ``Item`` model and update the 
+:ref:`Flexible Sync subscription <queryable-fields>` to only show items within 
+a range of priorities.
+
+Learning Objectives
+-------------------
+
+This tutorial illustrates how you might adapt the
+template app for your own needs. You would not necessarily make
+this change given the current structure of the template app.
+
+In this tutorial, you will learn how to:
+
+- Update a C++ object model with a non-breaking change.
+- Update a Device Sync subscription.
+- Add a queryable field to the Device Sync configuration on the server
+  to change which data is synchronized.
+
+.. tip::
+
+   If you prefer to get started with your own application rather than follow a 
+   guided tutorial, check out the :ref:`C++ Quick Start <cpp-client-quick-start-with-sync>`. 
+   It includes copyable code examples and the essential information that you 
+   need to set up an Atlas App Services backend.
+
+Prerequisites
+-------------
+
+- Ensure that you have the necessary software installed. The C++ Template App
+  assumes you have:
+  
+  - `CMake <https://cmake.org/getting-started/>`__ version 3.25 or newer.
+  - C++ 17 or newer.
+
+.. include:: /includes/tutorial-template-prerequisite.rst  
+
+Start with the Template
+-----------------------
+
+This tutorial is based on the C++ Sync Template App named 
+``cpp.todo.flex``. We start with the default app and build new features 
+on it. 
+
+.. include:: /includes/tutorial-learn-more-template-app.rst
+
+.. tabs::
+
+   .. tab:: App Services UI
+      :tabid: ui
+
+      Follow the procedure described in the 
+      :ref:`create-app` guide, and select
+      :guilabel:`Create App from Template`. Select the 
+      :guilabel:`Real-time Sync` template. This creates an App Services App
+      pre-configured to use with one of the Device Sync template app clients.
+
+      After you create a template app, the UI displays a modal labeled 
+      :guilabel:`Get the Front-end Code for your Template`. This modal 
+      provides instructions for downloading the template app client code 
+      as a ``.zip`` file or using {+cli+} to get the client.
+
+      The C++ Template App is not yet available to download in the App
+      Services UI. Use the CLI or clone the repository from GitHub to get
+      the client code.
+
+   .. tab:: App Services CLI
+      :tabid: cli
+
+      The :ref:`{+cli-bin+} apps create <appservices-apps-create>`
+      command sets up the backend and creates a C++ template app for
+      you to use as a base for this tutorial.
+
+      Run the following command in a terminal window to create an app
+      named "MyTutorialApp" that is deployed in the ``US-VA`` region
+      with its environment set to "development" (instead of production
+      or QA).
+
+      .. code-block:: shell
+
+         {+cli-bin+} app create \
+           --name MyTutorialApp \
+           --template cpp.todo.flex \
+           --deployment-model global \
+           --environment development
+
+      The command creates a new directory in your current path with the
+      same name as the value of the ``--name`` flag.
+
+   .. tab:: GitHub Repository
+      :tabid: github
+
+      You can fork and clone a GitHub repository that contains the Device 
+      Sync client code. The C++ client code is available at
+      :github:`https://github.com/mongodb/template-app-cpp-todo <mongodb/template-app-cpp-todo>`.
+
+      If you use this process to get the client code, you must create a
+      template app to use with the client. Follow the instructions at 
+      :ref:`create-template-app` to use the Atlas App Services UI, {+cli+},
+      or Admin API to create a Device Sync template app.
+
+Explore the Template App
+------------------------
+
+.. procedure::
+
+   .. step:: Open the App
+
+      Open the frontend client code in your preferred IDE. 
+      
+      If you cloned the client from a GitHub repository, you must manually
+      insert the App Services App ID in the appropriate place in your client.
+      Follow the :guilabel:`Configuration` instructions in the client 
+      :file:`README.md` to learn where to insert your App ID.
+
+   .. step:: Build the App
+
+      1. Make a directory in which to build the app. For convenience, the 
+         ``.gitignore`` packaged with the template app ignores a ``build``
+         directory within the client directory. Navigate into the build
+         directory.
+
+         .. code-block:: console
+
+            mkdir build && cd build
+
+      2. Use CMake to create the Makefile. Assuming you're building from a
+         ``build`` directory within the client directory:
+
+         .. code-block:: console
+
+            cmake ../
+
+      3. Use CMake to build the app executable. This takes a few moments as
+         it installs the dependencies and compiles the executable.
+
+         .. code-block:: console
+
+            cmake --build .
+
+   .. step:: Explore the App Structure
+
+      Take a few minutes to explore how the project is organized while 
+      CMake builds the executable.
+      
+      You won't work directly with these files during this tutorial, but they
+      contain code that demonstrates using the C++ SDK:
+
+      .. cssclass:: config-table
+      .. list-table::
+         :header-rows: 1
+         :widths: 40 60
+
+         * - File
+           - Purpose
+
+         * - ``controllers/app_controller.cpp``
+           - Use the ``nlohmann::json`` library to read values from
+             ``atlasConfig.json``. Then, use these values to initialize
+             the ``realm::App``, and save it in the app's state. The ``App``
+             is how your application communicates with the App Services 
+             backend. This provides access to authentication, and to the
+             ``realm::user`` object of the logged-in user.
+
+             To learn more about how you can customize your app configuration,
+             see: :ref:`Connect to an Atlas App Services Backend <ios-init-appclient>`.
+             
+             This code also sets up the ``AuthManager`` and the ``ErrorManager``.
+             It contains the navigation flow to send users to the 
+             ``LoginController`` or the ``HomeController`` depending on 
+             whether there is a logged-in user.
+
+         * - ``managers/auth_manager.cpp``
+           - Logic to register an email/password user, log them in or out, and
+             display an error message when authentication errors occur.
+
+      In this tutorial, you'll work in the following files:
+
+      .. cssclass:: config-table
+      .. list-table::
+         :header-rows: 1
+         :widths: 35 65
+
+         * - File
+           - Purpose
+
+         * - ``state/item.hpp``
+           - Define the ``Item`` object we store in the database.
+
+         * - ``state/home_controller_state.hpp``
+           - Manage the app state for the Home view.
+
+         * - ``controllers/home_controller.hpp``
+           - Contains important definitions for the Home view controller.
+
+         * - ``controllers/home_controller.cpp``
+           - Implements the Home view. This is the view where a logged-in user
+             can work with the app.
+
+         * - ``managers/database_manager.hpp``
+           - Contains important definitions for Device Sync and database
+             operations.
+
+         * - ``managers/database_manager.cpp``
+           - Implements some Device Sync and database operations, such as
+             creating items, changing Device Sync query subscriptions, and
+             handling Sync errors.
+
+   .. step:: Run the App
+
+      Without making any changes to the code, you should be able to run the app 
+      in the terminal. Pass the path to the ``atlasConfig.json`` as an argument
+      when you run the application:
+
+      .. code-block:: console
+         
+         ./sync_todo /path-to-file/atlasConfig.json
+
+      Run the app, register a new user account, and then add a new Item to your 
+      todo list.
+
+      .. tip:: Expand the terminal window, if needed.
+
+         The top of the home screen contains a row of buttons and a toggle to
+         hide completed tasks. If your terminal window is too small, the button
+         text labels don't display. To see the labels, make the terminal window
+         bigger, and FTXUI re-renders the content to fit the larger window.
+
+   .. step:: Check the Backend
+
+      Log in to `Atlas App Services <http://cloud.mongodb.com>`_. In the 
+      :guilabel:`Data Services` tab, click on :guilabel:`Browse Collections`. In the list 
+      of databases, find and expand the :guilabel:`todo` database, and then the 
+      :guilabel:`Item` collection. You should see the document you created 
+      in this collection.
+
+Modify the Application
+----------------------
+
+Add a New Property
+~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+
+   .. step:: Add a Property to the Model
+
+      Now that you have confirmed everything is working as expected, you can 
+      add changes. In this tutorial, you add a ``priority`` property to each
+      ``Item`` so that you can filter the items by their priorities.
+      
+      In a production app, you might add a ``PriorityLevel`` enum to constrain
+      the possible values. For this tutorial, we'll use a number property to
+      simplify working with the UI framework.
+      
+      To do this, follow these steps:
+
+      A. Open the client code in your preferred IDE. 
+
+      #. In the ``state/`` directory, ppen the ``item.hpp`` file.
+
+      #. Add the following property to the ``Item`` struct:
+
+         .. code-block:: cpp
+
+            int64_t priority;
+
+      #. Add the new ``priority`` property to the ``REALM_SCHEMA()``:
+
+         .. code-block:: cpp
+
+            REALM_SCHEMA(Item, _id, isComplete, summary, owner_id, priority)
+
+         The ``Item`` model should now resemble:
+
+         .. code-block:: cpp
+            :emphasize-lines: 8, 10
+
+            namespace realm {
+
+            struct Item {
+              realm::primary_key<realm::object_id> _id{realm::object_id::generate()};
+              bool isComplete;
+              std::string summary;
+              std::string owner_id;
+              int64_t priority;
+            };
+            REALM_SCHEMA(Item, _id, isComplete, summary, owner_id, priority)
+
+            }  // namespace realm
+         
+   .. step:: Add an Element to the UI to Set the Priority
+
+      A. In the ``state`` directory, go to ``home_controller_state.hpp``. 
+         Add a new ``int`` property under the existing ``newTaskIsComplete``
+         property. Then, add a ``static const int`` to store the default int
+         value for this property. 
+         
+         The ``HomeControllerState`` struct may now resemble:
+
+         .. code-block:: cpp
+            :emphasize-lines: 2, 7
+
+            struct HomeControllerState {
+              static const int DEFAULT_TASK_PRIORITY = 3;
+
+              // Used for creating a new task.
+              std::string newTaskSummary;
+              bool newTaskIsComplete{false};
+              int newTaskPriority{DEFAULT_TASK_PRIORITY};
+
+              ...more code here...
+            };
+
+      #. In the ``controllers`` directory, go to ``home_controller.hpp``. This
+         controller renders the main view of the app.
+         
+         Import the string and vector libraries:
+
+         .. code-block:: cpp
+
+            #include <string>
+            #include <vector>
+
+         Create an array of string labels for the new priority UI element:
+
+         .. code-block:: cpp
+
+            std::vector<std::string> priorityLevelLabels = {
+              "Severe", "High", "Medium", "Low"
+            };
+
+      #. Still in the ``controllers`` directory, go to ``home_controller.cpp``.
+         This is where we add a UI element to allow the user to set the
+         priority for the item. FTXUI offers two UI elements you could
+         use for this functionality: ``Radiobox`` or ``Dropdown``. In this
+         tutorial, we'll use ``Dropdown``, but you might prefer ``Radiobox``
+         if you don't like the way the UI reflows to render the dropdown.
+
+         Add this new UI element input after the
+         ``auto newTaskCompletionStatus`` line:
+
+         .. code-block:: cpp
+
+            auto newTaskPriorityDropdown = ftxui::Dropdown(
+              &priorityLevelLabels, 
+              &_homeControllerState.newTaskPriority
+            );
+
+         In the ``auto saveButton`` function closure, pass the task priority
+         selection to the ``_dbManager.addNew()`` function call:
+
+         .. code-block:: cpp
+
+            _dbManager.addNew(
+              _homeControllerState.newTaskIsComplete,
+              _homeControllerState.newTaskSummary,
+              _homeControllerState.newTaskPriority);
+
+         And then add a line to reset the priority selection to the default
+         value: 
+
+         .. code-block:: cpp
+
+            _homeControllerState.newTaskPriority = HomeControllerState::DEFAULT_TASK_PRIORITY;
+
+         Add the dropdown selector to the ``auto newTaskLayout`` that sets the
+         layout for the interactive elements in the item row container:
+
+         .. code-block:: cpp
+            :emphasize-lines: 2
+
+            auto newTaskLayout = ftxui::Container::Horizontal(
+              {inputNewTaskSummary, newTaskCompletionStatus, newTaskPriorityDropdown, saveButton});
+
+         This section of your code should now resemble:
+
+         .. code-block:: cpp
+            :emphasize-lines: 2-4, 10, 13, 17
+
+            auto newTaskCompletionStatus = ftxui::Checkbox("Complete", &_homeControllerState.newTaskIsComplete);
+            auto newTaskPriorityDropdown = ftxui::Dropdown(
+              &priorityLevelLabels,
+              &_homeControllerState.newTaskPriority);
+
+            auto saveButton = ftxui::Button("Save", [this] {
+              _dbManager.addNew(
+                _homeControllerState.newTaskIsComplete, 
+                _homeControllerState.newTaskSummary, 
+                _homeControllerState.newTaskPriority);
+              _homeControllerState.newTaskSummary = "";
+              _homeControllerState.newTaskIsComplete = false;
+              _homeControllerState.newTaskPriority = HomeControllerState::DEFAULT_TASK_PRIORITY;
+            });
+
+            auto newTaskLayout = ftxui::Container::Horizontal(
+              {inputNewTaskSummary, newTaskCompletionStatus, newTaskPriorityDropdown, saveButton});
+
+      #. Finally, farther down in the ``home_controller.cpp`` file, add the
+         new UI element to the ``auto itemListRenderer``:
+
+         .. code-block:: cpp
+            :emphasize-lines: 3
+
+            inputNewTaskSummary->Render() | ftxui::flex,
+            newTaskCompletionStatus->Render() | ftxui::center,
+            newTaskPriorityDropdown->Render(),
+            saveButton->Render(),
+
+         This renders the new element right before the Save button in the UI.
+
+   .. step:: Save the New Property to the Database
+
+      A. In the ``managers`` directory, go to ``database_manager.hpp``. 
+         Update the ``addNew()`` function signature to include the
+         ``int newItemPriority`` we pass in from the ``home_controller.cpp``:
+
+         .. code-block:: cpp
+            :emphasize-lines: 4
+
+            void addNew(
+              bool newItemIsComplete,
+              std::string newItemSummary,
+              int newItemPriority);
+
+      #. Now go to ``database_manager.cpp``, and update the ``addNew()``
+         implementation. Add ``int newItemProperty`` to the function arguments:
+
+         .. code-block:: cpp
+            :emphasize-lines: 4
+
+            void DatabaseManager::addNew(
+              bool newItemIsComplete,
+              std::string newItemSummary,
+              int newItemPriority) {
+              ...implementation...
+              }
+         
+         Add a new line in the function to set the value of the ``priority`` 
+         property when we save the ``Item`` to the database:
+
+         .. code-block:: cpp
+
+            .priority = newItemPriority
+
+         Your ``addNew()`` implementation should now resemble:
+
+         .. code-block:: cpp
+            :emphasize-lines: 1, 6
+
+            void DatabaseManager::addNew(bool newItemIsComplete, std::string newItemSummary, int newItemPriority) {
+              auto item = realm::Item {
+                .isComplete = newItemIsComplete,
+                .summary = std::move(newItemSummary),
+                .owner_id = _userId,
+                .priority = newItemPriority
+              };
+
+              _database->write([&]{
+                _database->add(std::move(item));
+              });
+            }
+
+   .. step:: Run and Test
+    
+      At this point, build and run the application again. In your build
+      directory, rebuild the executable with the changes you made:
+
+      .. code-block:: console
+
+         cmake --build .
+      
+      And run the app:
+
+      .. code-block:: console
+         
+         ./sync_todo /path-to-file/atlasConfig.json
+
+      Log in using the account you created earlier in this tutorial. You will
+      see the one Item you previously created. Add a new Item, and you will see
+      that you can now set the priority. Choose ``High`` for the priority and
+      save the Item. 
+
+      Now switch back to the Atlas data page in your browser, and refresh the 
+      ``Item`` collection. You should now see the new Item with the ``priority`` 
+      field added and set to **1**. The existing Item does not have a ``priority`` 
+      field.
+
+      .. figure:: /images/dotnet-tutorial-two-new-items.png
+         :alt:  Two items in a collection
+         :figwidth: 300px
+
+      .. note:: Why Didn't This Break Sync?
+      
+         Adding a property to a SDK client object is not a breaking change and
+         therefore does not require a :ref:`client reset <client-resets>`. The
+         template app has Development Mode enabled, so changes to the client 
+         object are automatically reflected in the server-side schema. For more
+         information, see :ref:`<development-mode>` and 
+         :ref:`<additive-changes-synced-schema>`.
+
+Change the Subscription
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In the ``database_manager.cpp`` file in the ``managers`` directory, we
+create the Flexible Sync subscription that defines which documents we
+sync with the user's device and account. By default, we subscribe to all
+items. You can see items that other people create, but server-side rules
+prevent you from writing to them. You can see this logic in the block
+where we create the initial subscription. If there are no subscriptions
+when the app opens, we add a subscription for all ``Item`` objects:
+
+.. code-block:: cpp
+   :copyable: false
+
+   _database->subscriptions().update([this](realm::mutable_sync_subscription_set& subs) {
+     // By default, we show all items.
+     if (!subs.find(_allItemSubscriptionName)) {
+       subs.add<realm::Item>(_allItemSubscriptionName);
+     }
+   }).get();
+      
+In the ``toggleSubscriptions()`` function, we switch the subscription,
+depending on the current subscription state. In the UI, the user can
+toggle between showing all items, or showing only their own items.
+Within this function, find the ``_myItemSubscriptionName`` logic. 
+If there isn't already a subscription for this subscription name, the app
+adds a subscription to all documents where the ``owner_id`` property
+matches the authenticated user's id. 
+
+For this tutorial, we want to maintain that, but *only* sync Items that
+are marked as "High" or "Severe" priority. 
+
+This is why we used an ``int64_t`` for the ``priority`` property, and
+labeled the priority levels in the UI from most to least important. The
+highest priority (severe) has a value of 0, and the lowest priority 
+(low) has a value of 3. We can make direct comparisons between a number
+and the priority property.
+
+.. procedure::
+
+   .. step:: Update the subscription
+      
+      To change the subscription, go to the ``managers`` directory and open the
+      ``database_manager.cpp`` file. Update the query statement to include
+      documents where the priority is equal to or *less* than 1. This should
+      only include items of "Severe" (0) or "High" (1) priority.
+
+      .. code-block:: cpp
+         :emphasize-lines: 5
+
+         if (!subs.find(_myItemSubscriptionName)) {
+           subs.add<realm::Item>(
+             _myItemSubscriptionName,
+             [&](auto &item){
+               return item.owner_id == _userId && item.priority <= 1;
+             }
+           );
+         }
+
+   .. step:: Run and Test
+    
+      Run the application again. Log in using the account you created earlier 
+      in this tutorial. In the ``Subscription`` box, press the ``Switch to 
+      Mine`` button. After an initial moment when the SDK resyncs the document
+      collection, you will only see the new Item of High priority that you
+      created. You may need to move your mouse or use the arrow key to cause
+      the UI to re-render with the new items that have been synced in the
+      background.
+
+      The Item document you initially created does not show on the device,
+      because it does not have a ``priority`` field. If you want this Item to
+      sync to the device, you can edit the document in the Atlas UI and add a
+      value for the ``priority`` field.
+
+      .. include:: /includes/tip-queryable-fields-dev-mode.rst
+      
+      If you want to further test the functionality, you can create Items of various 
+      priorities. You will see that a new Item with a lower priority briefly
+      appears in the list of Items and then disappears. The Sync error handler
+      helpfully provides a message describing this behavior:
+
+      .. code-block:: sh
+         :copyable: false
+
+         A sync error occurred. Message:
+         "Client attempted a write that is not allowed; it has been reverted"
+
+      In this scenario, the SDK creates the Item locally, syncs it with the 
+      backend, and then reverts the write because it doesn't meet the 
+      subscription rules.
+
+      .. note:: Known UI Issue
+
+         If the error modal displays, and you move your mouse over the item
+         list in the terminal prior to dismissing the error modal, the UI
+         rendering breaks. This is related to limitations with the FTXUI
+         library. If this occurs, quit the app using ``ctrl + c``, and re-run
+         it. You can avoid this issue by using the enter key to press the
+         ``Dismiss`` button in the error modal before moving the mouse.
+
+Conclusion
+----------
+
+Adding a property to an existing SDK object is a non-breaking change, and 
+Development Mode ensures that the schema change is reflected server-side.
+
+What's Next?
+------------
+
+- Read our :ref:`C++ SDK <cpp-intro>` documentation.
+- Find developer-oriented blog posts and integration tutorials on the 
+  `MongoDB Developer Hub <https://developer.mongodb.com>`__.
+- Join the `MongoDB Community forum <https://developer.mongodb.com/community/forums/c/realm/9>`__ 
+  to learn from other MongoDB developers and technical experts.
+- Explore engineering and expert-provided `example projects <https://www.mongodb.com/docs/realm/example-projects/>`__.
+
+.. include:: /includes/tutorial-request-for-feedback-note.rst

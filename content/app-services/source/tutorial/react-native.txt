@@ -1,0 +1,589 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _react-native-tutorial:
+
+============================================
+Tutorial: Atlas Device Sync for React Native
+============================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: programming_language
+   :values: javascript/typescript
+ 
+.. meta::
+   :keywords: realm/react, code example
+   :description: Learn how to build, modify, and run a demo React Native application using Atlas Device SDK for React Native and Atlas Device Sync.
+
+*Estimated time to complete: 30 minutes, depending on your experience with React Native*
+
+You can use the Realm React Native SDK and :npm:`@realm/react`
+to build a mobile application with React Native. This tutorial
+walks you through how to build your own app that uses Flexible Sync.
+
+For this tutorial, we'll start with a pre-built TypeScript template application
+to see how everything fits together. 
+
+The app is a pre-built template that includes a working React
+Native application (frontend) and its corresponding App Services App configuration 
+files (backend).
+
+The template app is a basic to-do list application that lets users do various
+things to manage their tasks:
+
+- Create email/password accounts and log in and out of the app.
+- Create, read, update, and delete their own tasks.
+- View all tasks, even if the user is not the owner.
+
+After you've got the template app running, you will add a new ``priority``
+field to the existing ``Item`` model and update the Flexible Sync
+subscription to only show items within a range of priorities. This example 
+illustrates how you might adapt the template app for your own needs. 
+You would not necessarily make this change given the current structure of 
+the template app.
+
+The template app provides a toggle that simulates the device being in 
+an offline mode. This toggle lets you quickly test Device Sync functionality,
+emulating the user having no internet connection. However,
+you would likely remove this toggle in a production application.
+
+.. note:: Check Out the Quick Start
+   
+   If you prefer to explore on your own rather than follow a guided
+   tutorial, check out the :ref:`React Native Quick Start
+   <react-native-client-quick-start>`. It includes copyable code
+   examples and the essential information that you need to set up a
+   React Native app with Atlas Device Sync.
+
+Prerequisites
+-------------
+
+- You must set up your local environment for React Native development
+  before you can begin this tutorial. For detailed instructions, see
+  `Setting up the development environment
+  <https://reactnative.dev/docs/environment-setup>`_ in the React Native
+  docs.
+
+.. include:: /includes/tutorial-template-prerequisite.rst 
+
+.. _react-native-start-app:
+
+Start with the Template App
+---------------------------
+
+This tutorial is based on the React Native SDK Flexible Sync Template App named 
+``react-native.todo.flex``. We start with the default app and build new features 
+on it. 
+
+.. include:: /includes/tutorial-learn-more-template-app.rst
+
+.. tabs::
+
+   .. tab:: App Services UI
+      :tabid: ui
+
+      Follow the procedure described in the 
+      :ref:`create-app` guide, and select
+      :guilabel:`Create App from Template`. Select the 
+      :guilabel:`Real-time Sync` template. This creates an App Services App
+      pre-configured to use with one of the Device Sync template app clients.
+
+      After you create a template app, the UI displays a modal labeled 
+      :guilabel:`Get the Front-end Code for your Template`. This modal 
+      provides instructions for downloading the template app client code 
+      as a ``.zip`` file or using {+cli+} to get the client.
+
+      After selecting the ``.zip`` or {+cli+} method, follow the on-screen
+      instructions to get the client code. For this tutorial, select the 
+      :guilabel:`JavaScript (React Native)` client code.
+
+      .. include:: /includes/note-windows-zip.rst
+
+   .. tab:: App Services CLI
+      :tabid: cli
+
+      The :ref:`{+cli-bin+} apps create <appservices-apps-create>`
+      command sets up the backend and creates a React Native template
+      app for you to use as a base for this tutorial.
+
+      Run the following command in a terminal window to create an app
+      named "MyTutorialApp" that is deployed in the ``US-VA`` region
+      with its environment set to "development" (instead of production
+      or QA).
+
+      .. code-block:: shell
+
+         {+cli-bin+} app create \
+           --name MyTutorialApp \
+           --template react-native.todo.flex \
+           --deployment-model global \
+           --environment development
+
+      The command creates a new directory in your current path with the
+      same name as the value of the ``--name`` flag.
+
+   .. tab:: GitHub Repository
+      :tabid: github
+
+      You can fork and clone a GitHub repository that contains the Device 
+      Sync client code. The React Native client code is available at
+      :github:`https://github.com/mongodb/template-app-react-native-todo <mongodb/template-app-react-native-todo>`.
+
+      If you use this process to get the client code, you must create a
+      template app to use with the client. Follow the instructions at 
+      :ref:`create-template-app` to use the Atlas App Services UI, {+cli+},
+      or Admin API to create a Device Sync template app.
+
+.. _react-native-set-up-app:
+
+Set Up the Template App
+-----------------------
+
+Use the following steps to get the template app up and running on your
+computer:
+
+.. procedure::
+   
+   .. step:: Install Dependencies
+
+      In your terminal, go to the directory that contains the client code. If you
+      created the app with the App Services CLI, go to 
+      ``MyTutorialApp/react-native.todo.flex``.
+      Otherwise, go to the root of your downloaded or cloned project. Then 
+      run following commands to navigate to install the app's dependencies:
+
+      .. code-block:: shell
+
+         npm install
+      
+      To build and run the app on an iOS device or simulator, install
+      the additional iOS dependencies with `CocoaPods
+      <https://guides.cocoapods.org/using/getting-started.html>`__.
+
+      .. code-block:: shell
+         
+         cd ios
+         npx pod-install
+
+   .. step:: Build the App
+
+      At this point, you should have a fully functional React Native app
+      that can run on iOS, Android, or both.
+
+      If you encounter an error or otherwise have issues, make sure that your
+      React Native environment is set up correctly. Refer to the official React
+      Native `development environment setup
+      <https://reactnative.dev/docs/environment-setup>`_ guide. Follow all the
+      steps for your Development OS and Target OS.
+
+      .. tabs::
+
+         .. tab:: iOS
+            :tabid: ios
+
+            To make sure that everything works on iOS, build the app and
+            run it in an iOS simulator:
+            
+            .. code-block:: shell
+
+               npm run ios
+
+         .. tab:: Android
+            :tabid: android
+            
+            To make sure that everything works on Android:
+            
+            1. Start an Android emulator. See :android:`Run apps on the
+               Android Emulator <studio/run/emulator>` for details on
+               how to do this.
+            
+            2. Build the app on the emulator:
+               
+               .. code-block:: shell
+                  
+                  npm run android
+
+               One common error is ``Error: spawn ./gradlew EACCES``. This means
+               the project file permissions aren't what they need to be. On
+               MacOS, you can fix this by entering ``chmod 755 android/gradlew``
+               in your terminal.
+
+   .. step:: Test the App
+      
+      When the build completes, you should have a functional app running
+      on your simulator. In the app, register a new account and test the features:
+
+      - Add a few to-do items to the list.
+      - Press the checkbox on one or two items to mark them as complete.
+      - Press the X on an item to delete it from the list.
+      - Toggle internet connectivity in the app to simulate offline mode.
+
+      If you connect to your Atlas Cluster and query the
+      ``todo.Item`` collection you can see your App's data. As long as the React Native 
+      app is not in offline mode, new data and changes in the app automatically 
+      sync to the ``todo.Item`` collection.
+
+      .. tip::
+
+         To learn how to connect to your Atlas Cluster, see
+         :ref:`atlas-connect-to-deployment`.
+       
+      Similarly, any changes in the collection automatically sync down
+      to the React Native app. Try changing an item's completion status
+      in your cluster - the React Native app will automatically update
+      with the new value whenever a network connection is available.
+
+      .. tip::
+
+         To learn more about updating data in your cluster, see
+         :ref:`write-op-update`.
+
+.. _react-native-get-familiar:
+
+Get Familiar With the Template App
+----------------------------------
+
+Now that you have the template app running let's dive into the code to
+see what we're working with.
+
+Atlas App Services App
+~~~~~~~~~~~~~~~~~~~~~~
+
+The template app includes a fully configured App Services App in the
+``backend`` directory. It has a unique ``appId`` value in
+``atlasConfig.json`` that client applications use to connect.
+
+It also includes the following pre-defined configurations:
+
+- A data source linked to your Atlas Cluster.
+
+- A data model for the ``todo.Item`` collection that matches the ``Item``
+  class in the React Native app.
+
+- An authentication provider that lets users register for and log in to
+  your app with an email and password.
+
+- A flexible sync configuration with a single session role that allows
+  users to read and write their own items and view other users' items.
+
+React Native App
+~~~~~~~~~~~~~~~~
+
+The React Native app is a fully-configured mobile client that can run on
+iOS and Android devices.
+
+The app uses the :npm:`@realm/react` library. The library includes React hooks
+and components that streamline working with your Atlas backend and Realm
+database.
+
+The app contains some configuration files and directories, but you can
+ignore those unless you want to customize the app. For this tutorial,
+you should be familiar with the React components in the ``source/`` directory:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - File Name
+       
+     - Description
+     
+   * - ``ItemSchema.tsx``
+       
+     - The ``Item`` class, including its object data model. We import this
+       class in ``AppWrapper.tsx`` to include it in the app's overall Realm
+       schema.
+
+   * - ``AppWrapper.tsx``
+       
+     - This is the root component for the app. It functions as a wrapper
+       component and contains all of the ``@realm/react`` providers. This is
+       where you configure your realm and your connection to your Atlas
+       backend.
+       
+     
+   * - ``App.tsx``
+       
+     - Most of the app's functionality is contained in this component and its
+       children. Because the ``@realm/react`` providers are wrapped around this
+       component, it can access an instance of your Atlas backend, user objects,
+       and interact with the Realm database.
+     
+   * - ``WelcomeView.tsx``
+       
+     - The user registration and login form that users see when they
+       first open the app.
+     
+   * - ``ItemListView.tsx``
+       
+     - The main to-do list app that users interact with after they log
+       in. It queries for ``Item`` Realm objects and displays them
+       in a list. It also includes the code to create new ``Item``
+       objects and store them in Realm.
+     
+   * - ``CreateToDoPrompt.tsx``
+       
+     - A UI form that lets us enter data for new ``Item`` objects. The
+       code that actually creates new objects is in ``ItemListView.tsx``.
+     
+   * - ``LogoutButton.tsx``
+       
+     - A reusable button that logs out an authenticated user.
+   
+   * - ``OfflineModeButton.tsx``
+       
+     - A reusable button that simulates an offline mode by pausing and resuming
+       the current Realm ``syncSession``.
+
+Add a Priority Level Field
+--------------------------
+
+Now that you're more familiar with what's already provided in the
+template app, let's write some code to implement a new feature.
+
+For this tutorial, we'll add a new ``priority`` property to the
+``Item`` objects. This will let us organize to-dos by how important they
+are and allow us to focus only on the most important ones.
+
+.. procedure::
+
+   .. step:: Define the Priority Levels
+      
+      We want to allow a small number of named priority levels, and we
+      want to easily be able sort the levels. To do this, we'll use a
+      helper function to define an ``enum`` object that maps a set of
+      ordered level names to and from an integer that represents their
+      priority.
+      
+      Add the following code directly under the import statements in
+      ``source/ItemSchema.tsx``:
+
+      .. literalinclude:: /examples/generated/react-native/ItemSchema.snippet.create-priority-enum.tsx
+        :language: javascript
+      
+      The priority levels in the ``enum`` are ordered from most important
+      to least. The corresponding index value for each level increases
+      from the most important, ``Priority[0]``, to the least important,
+      ``Priority[3]``. This means that a higher priority level (meaning more important)
+      has a lower index value.
+   
+   .. step:: Update the ``Item`` Data Model
+
+      Now we have an ``enum`` that defines the possible values of the
+      ``priority`` field. However, we still have to define the
+      ``priority`` field in the ``Item`` class.
+
+      Add the following lines to your code in ``source/ItemSchema.tsx`` to
+      add ``priority`` to the ``Item`` data model:
+
+      .. literalinclude:: /examples/generated/react-native/ItemSchema.snippet.define-item-class.tsx
+        :language: javascript
+        :caption: source/ItemSchema.tsx
+        :emphasize-lines: 6, 18-22
+      
+      .. note:: Why Didn't This Break Sync
+
+         At this point, your React Native ``Item`` model and its
+         corresponding schema in your App Services App no longer agree. That's
+         okay!
+
+         Adding a property to a Realm object is not a breaking change
+         and therefore does not require a :ref:`client reset
+         <client-resets>`. The template app has Development Mode
+         enabled, so changes to the client Realm object are reflected in
+         the server-side schema. For more information, see
+         :ref:`<development-mode>` and
+         :ref:`<additive-changes-synced-schema>`.
+
+   .. step:: Add a Priority Picker
+
+      Your app's data model now includes a ``priority`` for each ``Item``
+      object. Let's update the app UI so that you can choose a priority
+      value when you add a new to-do to the list.
+      
+      First, we'll install an external library to implement the priority
+      picker component. Run the following in your terminal inside of
+      your project root:
+      
+      .. code-block:: shell
+         
+         npm install @react-native-picker/picker
+      
+      If you're building for iOS, make sure to link the associated
+      Cocoapods after you've installed the package:
+
+      .. code-block:: shell
+
+         npx pod-install
+      
+      .. tip::
+         
+         You may need to rebuild your app after installing. To do so,
+         stop the bundler for your project and then run the build
+         command:
+
+         .. tabs::
+            
+            .. tab:: iOS
+               :tabid: ios
+   
+               .. code-block:: shell
+                  
+                  npm run ios
+            
+            .. tab:: Android
+               :tabid: android
+   
+               .. code-block:: shell
+                  
+                  npm run android
+      
+      Now that the package is fully installed, let's update the new
+      to-do creation prompt component to use the picker.
+      
+      Add the following imports to the top of ``source/CreateToDoPrompt.tsx``:
+
+      .. code-block:: javascript
+         
+         import {Picker} from '@react-native-picker/picker';
+         import {Priority} from './ItemSchema';
+   
+      Then, modify the ``CreateToDoPrompt`` component:
+      
+      - Add ``priority`` to the ``onSubmit()`` props definition
+      - Keep track of ``priority`` in a state hook
+      - Connect the state to the ``Picker`` component that you imported
+      - Pass ``priority`` to the ``onSubmit()`` handler
+
+      .. literalinclude:: /examples/generated/react-native/CreateToDoPrompt.snippet.create-todo-prompt.tsx
+        :language: javascript
+        :caption: source/CreateToDoPrompt.tsx
+        :emphasize-lines: 2, 8, 20-31, 35
+
+      In ``source/ItemListView.tsx``, modify the ``createItem()`` function
+      to accept and use ``priority``:
+
+      .. literalinclude:: /examples/generated/react-native/ItemListView.snippet.create-item.tsx
+        :language: javascript
+        :caption: source/ItemListView.tsx
+        :emphasize-lines: 2, 7
+
+      Then, modify the create to-do submission handler to accept the
+      ``priority`` level and pass it to ``createItem()``:
+
+      .. literalinclude:: /examples/generated/react-native/ItemListView.snippet.instantiate-create-todo-prompt.tsx
+        :language: javascript
+        :caption: source/ItemListView.tsx
+        :emphasize-lines: 2, 4
+
+      Finally, modify the list item template to render the to-do's ``priority``
+      before the ``summary``:
+
+      .. literalinclude:: /examples/generated/react-native/ItemListView.snippet.define-list-item.tsx
+        :language: javascript
+        :caption: source/ItemListView.tsx
+        :emphasize-lines: 7
+
+   .. step:: Run and Test the App
+
+      Your app should now allow users to set a priority level for new to-do items.
+      
+      Rebuild the app and open it. Add some new to-do items to confirm
+      that you can choose a priority level and that the list displays
+      each to-do's priority.
+      
+Update the Sync Subscription
+----------------------------
+
+The Device Sync protocol uses a flexible model where each sync client
+uses a standard RQL query to choose a subset of application data and
+then *subscribes* to the subset. This automatically pulls the latest
+version of all data in the subset to the device and syncs changes to the
+data between devices.
+
+For example, the template app you're using has the following
+built-in subscription to items that the current user owns:
+
+.. literalinclude:: /examples/generated/react-native/ItemListView.snippet.set-owner-subscription.tsx
+  :language: javascript
+  :caption: source/ItemListView.tsx
+
+You can customize the subscription during runtime to sync only the data that
+your app needs. Let's add a feature to demonstrate how.
+  
+For this tutorial, we'll add a button that lets us toggle between two
+modes: one where the app syncs all to-do items and another where it
+only syncs important ones with a ``priority`` of High or Severe.
+
+.. procedure::
+
+   .. step:: Add a Mode Toggle to the UI
+
+      First, add a ``useState()`` hook to the ``ItemListView`` component
+      to keep track of the current mode:
+
+      .. code-block:: javascript
+         :caption: ItemListView.tsx
+
+         const [showImportantOnly, setShowImportantOnly] = useState(false);
+
+      Then, add a new button that toggles the mode to the bottom of the
+      to-do list, after ``<ListItem>``:
+
+      .. literalinclude:: /examples/generated/react-native/ItemListView.snippet.important-only-button.tsx
+        :language: javascript
+        :caption: source/ItemListView.tsx
+
+   .. step:: Update the Sync Subscription
+
+      At this point, the app can switch modes in the UI, but we haven't
+      done anything else so the modes are functionally identical. Let's
+      update the sync subscription to only sync data relevant to the
+      current mode.
+
+      In the first ``useEffect`` of the ``ItemListView`` component,
+      add code that checks the current mode and appends an additional
+      ``priority`` filter to the query if the ``showImportantOnly`` mode is
+      active:
+
+      .. literalinclude:: /examples/generated/react-native/ItemListView.snippet.mutable-subs.tsx
+        :language: javascript
+        :caption: source/ItemListView.tsx
+        :emphasize-lines: 7-15, 24
+
+      .. important::
+
+         Don't forget to add ``showImportantOnly`` to the list of
+         dependencies in the second argument of ``useEffect``.
+
+   .. step:: Test the App
+
+      Your app is now set up to modify its sync subscription based on
+      the current mode. 
+      
+      Rebuild and run the app to make sure everything works. You should
+      be able to create, complete, and delete to-do items as well as toggle
+      between viewing all items and only important items.
+
+      .. include:: /includes/tip-queryable-fields-dev-mode.rst
+      
+What's Next?
+------------
+
+- Read our :ref:`React Native SDK <react-native-intro>` documentation.
+
+- Find developer-oriented blog posts and integration tutorials on the `MongoDB Developer Hub <https://developer.mongodb.com>`__.
+
+- Join the `MongoDB Community forum <https://developer.mongodb.com/community/forums/c/realm/9>`__ to learn from other MongoDB developers and technical experts.
+
+- Add a feature to the template app by :ref:`using Triggers and Atlas Search <triggers-fts-tutorial>`.
+
+- Explore engineering and expert-provided `example projects <https://www.mongodb.com/docs/realm/example-projects/>`__.
+
+.. include:: /includes/tutorial-request-for-feedback-note.rst

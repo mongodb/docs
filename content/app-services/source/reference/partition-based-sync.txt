@@ -1,0 +1,1768 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _partition-based-sync-reference:
+.. _partition-based-sync:
+.. _sync-partitions:
+
+====================
+Partition-Based Sync
+====================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Find information about the older sync mode for Atlas Device Sync, Partion-Based Sync.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+Atlas Device Sync has two sync modes: :ref:`Flexible Sync <flexible-sync>` and
+the older Partition-Based Sync. Partition-Based Sync has been deprecated and is
+disallowed for new Sync configurations.
+
+The information on this page is for users who are still using Partition-Based
+Sync.
+
+.. note:: Migrate from Partition-Based Sync to Flexible Sync
+
+  We recommend migrating Partition-Based Sync apps to
+  Flexible Sync. For more information on migration, refer to :ref:`realm-sync-migrate-modes`.
+
+Key Concepts
+------------
+
+In Partition-Based Sync, documents in a synced cluster form a "partition" by
+having the same value for a field designated as "partition key". All documents
+in a partition have the same read/write permissions for a given user.
+
+You define a partition key whose value determines
+whether the user can read or write a document. App Services evaluates a set of
+rules to determine whether users can read or write to a given partition. App
+Services directly maps a partition to individual synced ``.realm`` files. Each
+object in a synced realm has a corresponding document in the partition.
+
+.. example::
+
+   Consider an inventory management application using Partition-Based Sync. If
+   you use ``store_number`` as the partition key, each store can read and write
+   documents pertaining to its inventory.
+
+   An example of the permissions for this type of app might be:
+
+   .. code-block:: json
+
+      { "%%partition": "Store 42" }
+
+   Store employees could have read and write access to documents whose store
+   number is Store 42.
+
+   Customers, meanwhile, could have read-only access to store inventory.
+
+In the client, you pass a value for the partition key when opening a synced
+realm. App Services then syncs objects whose partition key value matches the
+value passed in from the client application.
+
+.. example::
+
+   Based on the store inventory example above, the SDK might pass in
+   ``store42`` as the ``partitionValue`` in the sync configuration.
+   This would sync any InventoryItem whose ``partitionValue`` was
+   ``store42``.
+
+   You can use :ref:`custom user data <custom-user-data>` to indicate
+   whether a logged-in user is a store employee or a customer. Store
+   employees would have read and write permission for the ``store42``
+   data set, while customers would have only read permission for the
+   same data set.
+
+   .. code-block:: javascript
+
+      const config = {
+        schema: [InventoryItem], // predefined schema
+        sync: {
+          user: app.currentUser, // already logged in user
+          partitionValue: "store42",
+        },
+      };
+      try {
+        const realm = await Realm.open(config);
+        realm.close();
+      } catch (err) {
+        console.error("failed to open realm", err.message);
+      }
+
+Device Sync requires MongoDB Atlas clusters to run specific versions of MongoDB.
+Partition-Based Sync requires MongoDB 4.4.0 or greater.
+
+Key Terms
+---------
+
+.. _partitions:
+
+Partition
+~~~~~~~~~
+
+A **partition** is a collection of objects that share the same partition key
+value.
+
+A MongoDB Atlas cluster consists of several remote servers. These servers
+provide the storage for your synced data. The Atlas cluster stores
+documents in collections. Each MongoDB collection maps to a different Realm
+object type. Each document in a collection represents a specific Realm object.
+
+A synced realm is a local file on a device. A synced realm may contain
+some or all the objects relevant to the end user. A client app
+may use more than one synced realm to access all the objects that the
+application needs.
+
+Partitions link objects in Realm Database to documents in MongoDB. When
+you initialize a synced realm file, one of its parameters is a partition
+value. Your client app creates objects in the synced realm. When those
+objects sync, the partition value becomes a field in the MongoDB documents.
+The value of this field determines which MongoDB documents the client
+can access.
+
+At a high level:
+
+- A partition maps to a subset of the documents in a synced cluster.
+- All documents in a partition have the same read/write permissions for a given user.
+- Atlas App Services maps each partition to an individual synced ``.realm`` file.
+- Each object in a synced realm has a corresponding document in the partition.
+
+.. figure:: /images/partitioning.png
+   :alt: A diagram that explains partitioning using groups of shapes and colors. MongoDB collections group by shape (equivalent to object types) while realms group by color (equivalent to partition value).
+
+   Partitions shape data in an Atlas cluster. Each shape represents an object type.
+   Partitions are determined by each shape's ``color``: red, green, or blue.
+
+
+.. _partition-key:
+
+Partition Key
+~~~~~~~~~~~~~
+
+A **partition key** is a named field that you specify when you
+:ref:`configure Atlas Device Sync <enable-sync>`. Device Sync uses this key to
+determine which partition contains a given document.
+
+Depending on your data model and the complexity of your app, your partition
+key could be either:
+
+- A property that already exists in each document and that logically
+  partitions data. For example, consider an app where every document is
+  private to a specific user. You might store the user's ID value in an
+  ``owner_id`` field and then use that as the partition key.
+- A synthetic property that you create to partition data (e.g.
+  ``_partition``). You might use this when your app does not include a
+  natural partition key.
+
+You can make the partition key required or optional on your objects.
+App Services maps any object that does not include a partition key to a default
+partition - *null partition*.
+
+Consider the following when choosing a partition key:
+
+- Partition keys must be one of these types: ``String``, ``ObjectID``,
+  ``Long``, or ``UUID``.
+- App Services clients should never modify the partition value directly. You
+  cannot use any field that clients can modify as a partition key.
+- Partition keys use the same field name in every synced document. The
+  partition key should not collide with any field name in any object's model.
+
+.. example::
+
+   The following schemas demonstrate natural and synthetic partition keys:
+
+   - The ``owner_id`` field is a natural key because it's already part of the
+     app's data model.
+
+   - The ``_partition`` field is a synthetic key because its only purpose is to
+     serve as a partition key.
+
+   An app can only specify a single partition key, but either of these fields
+   could work depending on your use case:
+
+   .. code-block:: json
+      :emphasize-lines: 12, 13, 29, 30
+
+      {
+        "title": "note",
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "_partition",
+          "owner_id",
+          "text"
+        ],
+        "properties": {
+          "_id": { "bsonType": "objectId" },
+          "_partition": { "bsonType": "string" },
+          "owner_id": { "bsonType": "string" },
+          "text": { "bsonType": "string" }
+        }
+      }
+
+      {
+        "title": "notebook",
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "_partition",
+          "owner_id",
+          "notes"
+        ],
+        "properties": {
+          "_id": { "bsonType": "objectId" },
+          "_partition": { "bsonType": "string" },
+          "owner_id": { "bsonType": "string" },
+          "notes": {
+            "bsonType": "array",
+            "items": { "bsonType": "objectId" }
+          }
+        }
+      }
+
+.. _change-partition-key:
+
+Change a Partition Key
+``````````````````````
+
+Your app's partition key is a central part of a Sync-enabled app's data
+model. When you set a partition key in your Sync configuration, you cannot
+later reassign the key's field. If you need to change a partition key, you
+must terminate sync. Then, you can enable it again with the new partition
+key. However, this requires all client applications to reset and sync data
+into new realms.
+
+.. include:: /includes/warn-terminate-sync-client-reset.rst
+
+.. _partition-value:
+
+Partition Value
+~~~~~~~~~~~~~~~
+
+A **partition value** is a value of the partition key field for a given
+document. Documents with the same partition value belong to the same
+partition. They sync to the same realm file, and share user-level data
+access permissions.
+
+A partition's value is the identifier for its corresponding synced realm.
+You specify the partition's value when you open it as a synced realm in
+the client. If you change a partition value in Atlas, App Services interprets
+the change as two operations:
+
+- A delete from the old partition.
+- An insert into the new partition.
+
+.. warning::
+
+   If you change a document's partition value, you lose client-side unsynced
+   changes to the object.
+
+.. _enable-pbs-sync:
+
+Enable Partition-Based Sync
+---------------------------
+
+Before You Begin
+~~~~~~~~~~~~~~~~
+
+You will need the following to enable Partition-Based Sync:
+
+- An App Services App. To learn how to create an App, see :ref:`Create
+  an App <create-app>`.
+
+- A linked Atlas data source. To learn how to add a data source, see
+  :ref:`Link a Data Source <link-a-data-source>`.
+
+Procedure
+~~~~~~~~~
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      .. procedure::
+
+         .. step:: Navigate to the Sync Configuration Screen
+
+            To define Device Sync rules and enable Device Sync for your application, navigate to the
+            :guilabel:`Device Sync` configuration screen through the left navigation menu.
+
+            .. note:: Sync Rules Cannot Change
+
+               You define Device Sync rules at the same time as you enable Device Sync. Once Device Sync is
+               enabled, you can't change your app's Device Sync rules unless you terminate Device Sync
+               and re-enable it with new rules.
+
+
+         .. step:: Select Development Details
+
+            You can enable Device Sync for a single linked cluster in your application.
+            Determine which cluster you want to use and then select it from the
+            :guilabel:`Select a Cluster To Sync` dropdown menu.
+
+            .. figure:: /images/define-sync-rules-select-cluster.png
+               :width: 750px
+               :alt: The cluster selection dropown menu
+
+
+         .. step:: Choose a Partition Key
+
+            The Device Sync partition key is a field in every synced document that maps
+            each document to a client-side realm. Device Sync rules apply at the partition
+            level, so it's particularly important to consider your data model and access
+            patterns. For more information on partition keys and how to choose one, see
+            :ref:`Partitions <sync-partitions>`.
+
+            .. note::
+
+              The partition key can either be required or optional. If the partition key
+              field is optional, then all MongoDB documents that either exclude the
+              partition key or have a null value for the partition key will be sent to the
+              null partition. If the partition key field is required, Device Sync
+              ignores any MongoDB documents that lack a valid value for the partition
+              key. We recommend a required partition key unless you want to Device Sync
+              pre-existing data with invalid or missing partition values from a
+              MongoDB collection.
+
+
+         .. step:: Define Read & Write Permissions
+
+            The :guilabel:`Define Permissions` section allows you to define :ref:`JSON
+            expressions <expressions>` that App Services dynamically evaluates to determine a
+            user's read and write permissions for the data in a given partition.
+
+            Device Sync rule expressions have access to :json-expansion:`%%user`, which resolves
+            to the user that opened the realm, and :json-expansion:`%%partition`, which
+            resolves to the partition key value for the realm. You can also use operators,
+            including :json-operator:`%function`, to handle more complex cases. For
+            examples, see :ref:`sync-permissions`.
+
+            Once you've determined how to decide a user's read and write permissions for a
+            given partition, define the corresponding JSON expressions in the
+            :guilabel:`Read` and :guilabel:`Write` inputs.
+
+         .. step:: Check Default Advanced Configuration Behaviors
+
+            Expand the :guilabel:`Advanced Configuration` section.
+
+            App Services Apps provide advanced optimization features
+            that are enabled by default:
+
+            - :ref:`Client Max Offline Time <client-maximum-offline-time>`
+            - :ref:`Client Recovery <recover-unsynced-changes>`
+
+            If you want to change the length of time that a client can be
+            offline, you can do so in the :guilabel:`Advanced Configuration` section.
+
+         .. step:: Turn On Sync
+
+            Now that you've configured rules for your synced cluster, all that's left to
+            do is turn on Device Sync for client applications. Click :guilabel:`Enable Sync`,
+            take note of any recommendations that appear, and then confirm your choice.
+
+
+   .. tab::
+      :tabid: cli
+
+      .. procedure::
+
+         .. step:: Authenticate a MongoDB Atlas User
+
+            .. include:: /includes/cli-login.rst
+
+         .. step:: Pull the Latest Version of Your App
+
+            .. include:: /includes/cli-pull-latest.rst
+
+         .. step:: Add a Sync Configuration
+
+            You can enable sync for a single linked cluster in your application.
+
+            The App Services App has a ``sync`` directory where you can find
+            the :ref:`sync configuration file <appconfig-sync>`. If you have not
+            yet enabled Sync, this directory is empty.
+
+            Add a ``config.json`` similar to:
+
+            .. code-block:: json
+
+               {
+                 "type": "partition",
+                 "state": <"enabled" | "disabled">,
+                 "development_mode_enabled": <Boolean>,
+                 "service_name": "<Data Source Name>",
+                 "database_name": "<Database Name>",
+                 "partition": {
+                   "key": "<Partition Key Field Name>",
+                   "type": "<Partition Key Type>",
+                   "permissions": {
+                     "read": { <Expression> },
+                     "write": { <Expression> }
+                   }
+                 },
+                 "client_max_offline_days": <Number>,
+                 "is_recovery_mode_disabled": <Boolean>
+               }
+
+         .. step:: Choose a Partition Key
+
+            The sync partition key is a field in every synced document that maps
+            each document to a client-side realm. Sync rules apply at the partition level,
+            so it's particularly important to consider your data model and access
+            patterns. For more information on partition keys and how to choose one, see
+            :ref:`Partitions <sync-partitions>`.
+
+            .. note::
+
+              The partition key can either be required or optional. If the partition key
+              field is optional, then all MongoDB documents that either exclude the
+              partition key or have a null value for the partition key will be sent to the
+              null partition. If the partition key field is required, Device Sync
+              ignores any MongoDB documents that lack a valid value for the partition
+              key. We recommend a required partition key unless you want to sync
+              pre-existing data with invalid or missing partition values from a
+              MongoDB collection.
+
+            Once you have decided which field to use, update ``sync.partition``
+            with the partition key field name in the ``key`` field and the partition key
+            type in the ``type`` field, similar to:
+
+            .. code-block:: json
+               :emphasize-lines: 4, 5
+
+               {
+                 ...
+                 "partition": {
+                   "key": "owner_id",
+                   "type": "string",
+                   "permissions": {
+                     "read": {},
+                     "write": {}
+                   }
+                 }
+                 ...
+               }
+
+         .. step:: Define Read & Write Permissions
+
+            App Services allows you to define :ref:`JSON expressions <expressions>` that it
+            dynamically evaluates whenever a user opens a realm to determine if the user
+            has read or write permissions for data in the partition.
+
+            Sync rule expressions have access to :json-expansion:`%%user`, which resolves
+            to the user that opened the realm, and :json-expansion:`%%partition`, which
+            resolves to the partition key value for the realm. You can also use operators,
+            including :json-operator:`%function`, to handle more complex cases. For
+            examples, see :ref:`Sync Permissions <sync-permissions>`.
+
+            Once you've determined how to decide a user's read and write permissions for a
+            given partition, define the corresponding JSON expressions in the
+            ``read`` and ``write`` fields of ``partition.permissions``, similar to:
+
+            .. code-block:: json
+               :emphasize-lines: 7-15
+
+               {
+                 ...
+                 "partition": {
+                   "key": "owner_id",
+                   "type": "string",
+                   "permissions": {
+                     "read": {
+                       "$or": [
+                         { "%%user.id": "%%partition" },
+                         { "%%user.custom_data.shared": "%%partition" }
+                       ]
+                     },
+                     "write": {
+                       "%%user.id": "%%partition"
+                     }
+                   }
+                 }
+                 ...
+               }
+
+         .. step:: Specify Values for Sync Optimization
+
+            Sync provides features that enable you to optimize Sync
+            performance and improve the data recovery process on the client.
+            These features are represented by additional settings:
+
+            - ``client_max_offline_days``
+            - ``is_recovery_mode_disabled``
+
+            You can set a numerical value for ``client_max_offline_days``.
+            When you enable Sync via the App Services UI, the default
+            value is ``30``, which represents 30 days.
+
+            For more information, see: :ref:`client-maximum-offline-time`.
+
+            Recovery Mode enables Sync to attempt to recover data that
+            has not yet been synced when a client reset occurs. When you
+            enable Sync via the App Services UI, Recovery Mode is enabled
+            by default. We recommend enabling Recovery Mode for automatic
+            client reset handling. If you have disabled recovery mode and
+            want to re-enable it, set ``is_recovery_mode_disabled`` to ``false``.
+
+            For more information, see: :ref:`recover-unsynced-changes`.
+
+            .. code-block:: json
+               :emphasize-lines: 10-11
+
+               {
+                 "type": "partition",
+                 "state": "enabled",
+                 "development_mode_enabled": true,
+                 "service_name": "mongodb-atlas",
+                 "database_name": "my-test-database",
+                 "partition": {
+                   ...
+                 },
+                 "client_max_offline_days": 30,
+                 "is_recovery_mode_disabled": false
+               }
+
+         .. step:: Deploy the Sync Configuration
+
+            Now that you've defined the sync configuration, including read and write
+            permissions, you can deploy your changes to start syncing data and enforcing
+            sync rules.
+
+            To deploy your changes, import your app configuration to your App Services App:
+
+            .. code-block:: shell
+
+               {+cli-bin+} push --remote="<Your App ID>"
+
+   .. tab::
+      :tabid: api
+
+      .. procedure::
+
+         .. step:: Select a Cluster to Sync
+
+            You can enable Sync for a single linked cluster in your application.
+
+            You'll need the cluster's service configuration file to configure sync. You
+            can find the configuration file by :admin-api-endpoint:`listing all services
+            through the Admin API <operation/adminListServices>`:
+
+            .. code-block:: shell
+
+               curl https://services.cloud.mongodb.com/api/admin/v3.0/groups/{GROUP_ID}/apps/{APP_ID}/services \
+                 -X GET \
+                 -h 'Authorization: Bearer <Valid Access Token>'
+
+            Identify the service whose configuration you need to update to enable
+            Sync. If you have accepted the default names when configuring
+            your App, this should be a service whose ``name`` is ``mongodb-atlas``
+            and ``type`` is ``mongodb-atlas``. You need this service's ``_id``.
+
+            Now you can :admin-api-endpoint:`get the configuration file for
+            this service <operation/adminGetServiceConfig>`:
+
+            .. code-block:: shell
+
+               curl https://services.cloud.mongodb.com/api/admin/v3.0/groups/{GROUP_ID}/apps/{APP_ID}/services/{MongoDB_Service_ID}/config \
+                 -X GET \
+                 -h 'Authorization: Bearer <Valid Access Token>'
+
+            Once you have the configuration, add the ``sync`` object with the
+            following template configuration:
+
+            .. code-block:: json
+
+               {
+                 ...
+                 "sync": {
+                   "type": "partition",
+                   "state": "enabled",
+                   "development_mode_enabled": <Boolean>,
+                   "database_name": "<Database Name>",
+                   "partition": {
+                     "key": "<Partition Key Field Name>",
+                     "type": "<Partition Key Type>",
+                     "permissions": {
+                       "read": { <Expression> },
+                       "write": { <Expression> }
+                     }
+                   },
+                   "client_max_offline_days": <Number>,
+                   "is_recovery_mode_disabled": <Boolean>
+                 }
+                 ...
+               }
+
+         .. step:: Choose a Partition Key
+
+            The sync partition key is a field in every synced document that maps
+            each document to a client-side realm. Sync rules apply at the partition level,
+            so it's particularly important to consider your data model and access
+            patterns. For more information on partition keys and how to choose one, see
+            :ref:`Partitions <sync-partitions>`.
+
+            You can :admin-api-endpoint:`get a list of all valid partition
+            keys <operation/adminGetSync>` and their corresponding types
+            through the Admin API:
+
+            .. code-block:: shell
+
+               curl https://services.cloud.mongodb.com/api/admin/v3.0/groups/{GROUP_ID}/apps/{APP_ID}/sync/data?service_id=<MongoDB Service ID> \
+                 -X GET \
+                 -h 'Authorization: Bearer <Valid Access Token>'
+
+            .. note::
+
+              The partition key can either be required or optional. If the partition key
+              field is optional, then all MongoDB documents that either exclude the
+              partition key or have a null value for the partition key will be sent to the
+              null partition. If the partition key field is required, Device Sync
+              ignores any MongoDB documents that lack a valid value for the partition
+              key. We recommend a required partition key unless you want to sync
+              pre-existing data with invalid or missing partition values from a
+              MongoDB collection.
+
+            Once you have decided which field to use, update ``sync.partition``
+            with the partition key field name in the ``key`` field and the partition key
+            type in the ``type`` field.
+
+            .. code-block:: json
+               :emphasize-lines: 9-10
+
+               {
+                 ...
+                 "sync": {
+                   "type": "partition",
+                   "state": "enabled",
+                   "development_mode_enabled": <Boolean>,
+                   "database_name": "<Database Name>",
+                   "partition": {
+                     "key": "owner_id",
+                     "type": "string",
+                     "permissions": {
+                       "read": { <Expression> },
+                       "write": { <Expression> }
+                     }
+                   },
+                   "client_max_offline_days": <Number>,
+                   "is_recovery_mode_disabled": <Boolean>
+                 }
+                 ...
+               }
+
+         .. step:: Define Read & Write Permissions
+
+            App Services allows you to define :ref:`JSON expressions <expressions>` that it
+            dynamically evaluates whenever a user opens a realm to determine if the user
+            has read or write permissions for data in the partition.
+
+            Sync rule expressions have access to :json-expansion:`%%user`, which resolves
+            to the user that opened the realm, and :json-expansion:`%%partition`, which
+            resolves to the partition key value for the realm. You can also use operators,
+            including :json-operator:`%function`, to handle more complex cases. For
+            examples, see :ref:`Sync Permissions <sync-permissions>`.
+
+            Once you've determined how to decide a user's read and write permissions for a
+            given partition, define the corresponding JSON expressions in the
+            ``read`` and ``write`` fields of ``sync.partition.permissions``.
+
+            .. code-block:: json
+               :emphasize-lines: 12-20
+
+               {
+                 ...
+                 "sync": {
+                   "type": "partition",
+                   "state": "enabled",
+                   "development_mode_enabled": <Boolean>,
+                   "database_name": "<Database Name>",
+                   "partition": {
+                     "key": "owner_id",
+                     "type": "string",
+                     "permissions": {
+                       "read": {
+                         "$or": [
+                           { "%%user.id": "%%partition" },
+                           { "%%user.custom_data.shared": "%%partition" }
+                         ]
+                       },
+                       "write": {
+                         "%%user.id": "%%partition"
+                       }
+                     }
+                   },
+                   "client_max_offline_days": <Number>,
+                   "is_recovery_mode_disabled": <Boolean>
+                 }
+                 ...
+               }
+
+         .. step:: Specify Values for Sync Optimization
+
+            Sync provides features that enable you to optimize Sync
+            performance and improve the client data recovery process. These
+            features are represented by additional settings:
+
+            - ``client_max_offline_days``
+            - ``is_recovery_mode_disabled``
+
+            You can set a numerical value for ``client_max_offline_days``.
+            When you enable Sync via the App Services UI, the default
+            value is ``30``, which represents 30 days.
+
+            For more information, see: :ref:`client-maximum-offline-time`.
+
+            Recovery Mode enables Sync to attempt to recover unsynced data
+            when a client reset occurs. When you enable Sync via the App
+            Services UI, Recovery Mode is enabled by default. We recommend
+            enabling Recovery Mode for automatic client reset handling.
+            To enable Recovery Mode, set ``is_recovery_mode_disabled`` to
+            ``false``.
+
+            For more information, see: :ref:`recover-unsynced-changes`.
+
+            .. code-block:: json
+               :emphasize-lines: 11-12
+
+               {
+                 ...
+                 "sync": {
+                   "type": "partition",
+                   "state": "enabled",
+                   "development_mode_enabled": true,
+                   "database_name": "my-test-database",
+                   "partition": {
+                     ...
+                   },
+                   "client_max_offline_days": 30,
+                   "is_recovery_mode_disabled": false
+                 }
+                 ...
+               }
+
+         .. step:: Deploy the Sync Configuration
+
+            Now that you've defined the sync configuration, including read and write
+            permissions, you can deploy your changes to start syncing data and enforcing
+            sync rules.
+
+            To deploy your changes, send an :admin-api-endpoint:`Admin API request that updates the cluster
+            configuration with your sync configuration <operation/adminGetServiceConfig>`:
+
+            .. code-block:: shell
+
+               curl https://services.cloud.mongodb.com/api/admin/v3.0/groups/{GROUP_ID}/apps/{APP_ID}/services/{MongoDB_Service_ID}/config \
+                 -X PATCH \
+                 -h 'Authorization: Bearer <Valid Access Token>' \
+                 -d @/sync/config.json
+
+.. _partition-based-rules-and-permissions:
+
+Partition-Based Rules and Permissions
+-------------------------------------
+
+Whenever a user opens a synced realm from a client app, App Services evaluates your
+app's rules and determines if the user has read and write permissions for the
+:ref:`partition <sync-partitions>`. Users must have read permission to sync
+and read data in a realm and must have write permission to create, modify,
+or delete objects. Write permission implies read permission, so if a user
+has write permission then they also have read permission.
+
+Partition-Based Sync Rule Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sync rules apply to specific partitions and are coupled to your app's data model
+by the partition key. Consider the following behavior when designing
+your schemas to ensure that you have appropriate data access granularity and
+don't accidentally leak sensitive information.
+
+- Sync rules apply dynamically based on the user. One user may have full read &
+  write access to a partition while another user has only read permissions or is
+  unable to access the partition entirely. You control these permissions by
+  defining :ref:`JSON expressions <expressions>`.
+
+- Sync rules apply equally to all objects in a partition. If a user has read
+  or write permission for a given partition then they can read or modify all
+  synced fields of any object in the partition.
+
+- Write permissions require read permissions, so a user with write access to a
+  partition also has read access regardless of the defined read permission
+  rules.
+
+.. _partition-based-sync-permissions:
+
+Partition-Based Sync Permissions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+App Services enforces dynamic, user-specific read and write permissions to secure the
+data in each :ref:`partition <sync-partitions>`. You define permissions with
+:ref:`JSON rule expressions <expressions>` that control whether or not a given
+user has read or write access to the data in a given partition. App Services evaluates
+a user's permissions every time they open a synced realm.
+
+.. tip::
+
+   Your rule expressions can use JSON expansions like
+   :json-expansion:`%%partition` and :json-expansion:`%%user` to dynamically
+   determine a user's permissions based on the context of their request.
+
+Key Concepts
+~~~~~~~~~~~~
+
+.. _sync-read-permissions:
+
+Read Permissions
+````````````````
+
+A user with read permissions for a given partition can view all fields of any
+object in the corresponding synced realm. Read permissions do not permit a user
+to modify data.
+
+.. _sync-write-permissions:
+
+Write Permissions
+`````````````````
+
+A user with write permissions for a given partition can modify the value of any
+field of any object in the corresponding synced realm. Write permissions require
+read permissions, so any user that can modify data can also view that data
+before and after it's modified.
+
+.. _sync-permission-strategies:
+
+Permission Strategies
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/note-partition-relationships.rst
+
+You can structure your read and write permission expressions as a set of
+permission strategies that apply to your :ref:`partition strategy
+<partition-strategies>`. The following strategies outline common approaches that
+you might take to define sync read and write permissions for your app.
+
+Global Permissions
+``````````````````
+
+You can define global permissions that apply to all users for all partitions.
+This is, in essence, a choice to not implement user-specific permissions in
+favor of universal read or write permissions that apply to all users.
+
+To define a global read or write permission, specify a boolean value or a
+:ref:`JSON expression <expressions>` that always evaluates to the same boolean
+value.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Example
+     - Description
+
+   * - .. code-block:: json
+
+          true
+
+     - The expression ``true`` means that all users have the given access
+       permissions for all partitions.
+
+   * - .. code-block:: json
+
+          false
+
+     - The expression ``false`` means that no users have the given access
+       permissions for any partitions.
+
+   * - .. code-block:: json
+
+          { "%%true": true }
+
+     - This expression always evaluates to ``true``, so it's effectively the
+       same as directly specifying ``true``.
+
+Permissions for Specific Partitions
+```````````````````````````````````
+
+You can define permissions that apply to a specific partition or a groups of
+partitions by explicitly specifying their partition values.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Example
+     - Description
+
+   * - .. code-block:: json
+
+          { "%%partition": "PUBLIC" }
+
+     - This expression means that all users have the given access permissions
+       for data with a partition value of ``"Public"``.
+
+   * - .. code-block:: json
+
+          {
+            "%%partition": {
+              "$in": [
+                "PUBLIC (NA)",
+                "PUBLIC (EMEA)",
+                "PUBLIC (APAC)"
+              ]
+            }
+          }
+
+     - This expression means that all users have the given access permissions
+       for data with any of the specified partition values.
+
+Permissions for Specific Users
+``````````````````````````````
+
+You can define permissions that apply to a specific user or a group of users by
+explicitly specifying their ID values.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Example
+     - Description
+
+   * - .. code-block:: json
+
+          { "%%user.id": "5f4863e4d49bd2191ff1e623" }
+
+     - This expression means that the user with id
+       ``"5f4863e4d49bd2191ff1e623"`` has the given access permissions for data
+       in any partition.
+
+   * - .. code-block:: json
+
+          {
+            "%%user.id": {
+              "$in": [
+                "5f4863e4d49bd2191ff1e623",
+                "5f48640dd49bd2191ff1e624",
+                "5f486417d49bd2191ff1e625"
+              ]
+            }
+          }
+
+     - This expression means that any user with one of the specified user ID
+       values has the given access permissions for data in any partition.
+
+Permissions Based on User Data
+``````````````````````````````
+
+You can define permissions that apply to users based on specific data defined in
+their :ref:`custom user data <custom-user-data>` document, metadata fields, or
+other data from an authentication provider.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Example
+     - Description
+
+   * - .. code-block:: json
+
+          { "%%user.custom_data.readPartitions" : "%%partition" }
+
+     - This expression means that a user has read access to a
+       partition if the partition value is listed in the ``readPartitions``
+       field of their custom user data.
+
+   * - .. code-block:: json
+
+          { "%%user.data.writePartitions" : "%%partition" }
+
+     - This expression means that a user has write access to a
+       partition if the partition value is listed in the
+       ``data.writePartitions`` field of their user object.
+
+.. _pbs-function-rules:
+
+Function Rules
+``````````````
+
+You can define complex dynamic permissions by evaluating a :ref:`function
+<functions>` that returns a boolean value. This is useful for permission schemes
+that require you to access external systems or other custom logic that you
+cannot express solely in JSON expressions.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Example
+     - Description
+
+   * - .. code-block:: json
+
+          {
+            "%%true": {
+              "%function": {
+                "name": "canReadPartition",
+                "arguments": ["%%partition"]
+              }
+            }
+          }
+
+       .. code-block:: javascript
+
+          // canReadPartition
+          exports = async (partition) => {
+            const cluster = context.services.get("mongodb-atlas");
+            const permissions = cluster
+              .db("myApp")
+              .collection("permissions");
+            const { canRead } = await permissions.findOne({ partition });
+            return canRead.includes(context.user.id);
+          }
+
+     - This expression calls the ``canReadPartition`` function and
+       passes in the partition value as its first and only argument. The
+       function looks up the user's permissions for the partition from a MongoDB
+       collection and then returns a boolean that indicates if the user can read
+       data in the requested partition.
+
+.. _pbs-rule-migration:
+
+Migrate Partition-Based Sync Rules to App Services Rules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you migrate your Partition-Based Sync App to Flexible Sync, your data access
+rules also need to migrate.
+
+Some Partition-Based Sync rule strategies can't translate directly to App Services
+Rules. You may need to manually migrate permissions that include:
+
+- :json-operator:`%function` operator.
+
+  :ref:`Function rules <pbs-function-rules>` are not compatible with Flexible Sync
+  and cannot be migrated.
+
+- :json-expansion:`%%partition` expansion.
+
+  App Services Rules do not have an equivalent expansion for
+  :json-expansion:`%%partition`, so it cannot be migrated.
+
+- ``%or``, ``%not``, ``%nor``, ``%and`` expansions.
+
+  These permissions  *may*  work, but there is enough nuance that you should test them
+  to ensure expected behavior. Testing new permissions won't work on the App
+  you are migrating. You'll need a new app to test manually-migrated permissions.
+
+See the list of :ref:`Flexible Sync-compatible expansions <sync-compatible-expansions>`
+for all supported expansions.
+
+You should also check out the
+:ref:`Device Sync Permissions Guide <flexible-sync-permissions-guide>` for more
+information about how to work with permissions.
+
+.. _partition-strategy:
+.. _partition-strategies:
+
+Partition Strategies
+--------------------
+
+A **partition strategy** is a key/value pattern to divide objects into
+partitions. Different use cases call for different partition strategies.
+You can compose partition strategies within the same app to form a larger
+strategy. This enables you to handle arbitrarily complex use cases.
+
+Which strategy to use depends on your app's data model and access patterns.
+Consider an app with both public and private data. You might put some data,
+like announcements, in a public partition. You might restrict other data,
+like personal information, to privileged users.
+
+When developing a partition strategy, consider:
+
+- **Data Security:** Users may need different read and write access
+  permissions to subsets of data. Consider the permissions users need for
+  types of documents. A user has the same permissions for every document
+  in a partition.
+
+- **Storage Capacity:** Your client apps may have limited on-device storage
+  on some devices and platforms. A partition strategy should take storage
+  limitations into account. Make sure a user can store their synced data
+  on their device.
+
+.. tip:: Combine Strategies
+
+   You can use a partition key name like ``_partition`` with a query string
+   as the value. This lets you use multiple strategies in the same app.
+   For example:
+
+   .. code-block:: javascript
+
+      _partitionKey: "user_id=abcdefg"
+      _partitionKey: "team_id=1234&city='New York, NY'"
+
+   You can use functions and rule expressions to parse the string.
+   Sync can determine whether a user has access to a partition based on
+   the combined strategy.
+
+.. _partition-strategy-firehose:
+
+Firehose Strategy
+~~~~~~~~~~~~~~~~~
+
+A firehose partition strategy groups all documents into a single partition.
+With this structure, every user syncs all of your app's data to their device.
+This approach is functionally a decision to not partition data. This works
+for basic applications or small public data sets.
+
+- **Data Security.** All data is public to clients with a realm that
+  uses the partition. If a user has read or write access to the partition,
+  they can read or write *any* document.
+
+- **Storage Capacity.** Every user syncs every document in the partition.
+  All data must fit within your most restrictive storage limitation. Use
+  this strategy only when data sets are small and do not grow quickly.
+
+
+One way to create a firehose is to set the partition key as an optional
+field. Don't include a value for this field in any document. App Services maps
+any document that doesn't include a partition value to the **null partition**.
+
+You can also set a **static partition value**. This is when the partition
+value doesn't change based on the user or data. For example, realms
+across all clients could use the partition value ``"MyPartitionValue"``.
+
+.. example::
+
+   An app lets users browse scores and statistics for local high school
+   baseball games. Consider the following documents in the ``games`` and
+   ``teams`` collections:
+
+   .. code-block:: javascript
+
+      collection games: [
+        { teams: ["Brook Ridge Miners", "Southside Rockets"], score: { ... }, date: ... }
+        { teams: ["Brook Ridge Miners", "Uptown Bombers"], score: { ... }, date: ... }
+        { teams: ["Brook Ridge Miners", "Southside Rockets"], score: { ... }, date: ... }
+        { teams: ["Southside Rockets", "Uptown Bombers"], score: { ... }, date: ... }
+        { teams: ["Brook Ridge Miners", "Uptown Bombers"], score: { ... }, date: ... }
+        { teams: ["Southside Rockets", "Uptown Bombers"], score: { ... }, date: ... }
+      ]
+
+      collection teams: [
+        { name: "Brook Ridge Miners" }
+        { name: "Southside Rockets" }
+        { name: "Uptown Bombers" }
+      ]
+
+   The total number of games is small. A small number of local teams only
+   play a few games each year. Most devices should be able to download all
+   game data for easy offline access. In this case, the firehose strategy
+   is appropriate. The data is public and documents don't need a partition
+   key.
+
+   The strategy maps the collections to the following realms:
+
+   .. code-block:: javascript
+
+      realm null: [
+        Game { teams: ["Brook Ridge Miners", "Southside Rockets"], score: { ... }, date: ... }
+        Game { teams: ["Brook Ridge Miners", "Uptown Bombers"], score: { ... }, date: ... }
+        Game { teams: ["Brook Ridge Miners", "Southside Rockets"], score: { ... }, date: ... }
+        Game { teams: ["Southside Rockets", "Uptown Bombers"], score: { ... }, date: ... }
+        Game { teams: ["Brook Ridge Miners", "Uptown Bombers"], score: { ... }, date: ... }
+        Game { teams: ["Southside Rockets", "Uptown Bombers"], score: { ... }, date: ... }
+        Team { name: "Brook Ridge Miners" }
+        Team { name: "Southside Rockets" }
+        Team { name: "Uptown Bombers" }
+      ]
+
+.. _partition-strategy-user:
+
+User Strategy
+~~~~~~~~~~~~~
+
+A user partition strategy groups private documents for each user. These
+documents go into a partition specific to that user. This works when each
+document has an owner, and nobody else needs the data. A username or ID that
+identifies the owner makes a natural partition key.
+
+- **Data Security.** Data in a user partition is specific to a given user.
+  It may contain information private to that user. Each user syncs only
+  their own partition. Other users cannot access documents in the partition.
+
+- **Storage Capacity.** Each user only syncs data from their own partition.
+  Their data must fit within their device's storage constraints. Use this
+  strategy only when each user has a manageable amount of data.
+
+.. example::
+
+   A music streaming app stores data about playlists and song ratings for each
+   user. Consider the following documents in the ``playlists`` and ``ratings``
+   collections:
+
+   .. code-block:: javascript
+
+      collection playlists: [
+        { name: "Work", owner_id: "dog_enthusiast_95", song_ids: [ ... ] }
+        { name: "Party", owner_id: "cat_enthusiast_92", song_ids: [ ... ] }
+        { name: "Soup Tunes", owner_id: "dog_enthusiast_95", song_ids: [ ... ] }
+        { name: "Disco Anthems", owner_id: "PUBLIC", song_ids: [ ... ] }
+        { name: "Deep Focus", owner_id: "PUBLIC", song_ids: [ ... ] }
+      ]
+
+      collection ratings: [
+        { owner_id: "dog_enthusiast_95", song_id: 3, rating: -1 }
+        { owner_id: "cat_enthusiast_92", song_id: 1, rating: 1 }
+        { owner_id: "dog_enthusiast_95", song_id: 1, rating: 1 }
+      ]
+
+   Every document includes the ``owner_id`` field. This is a good partition
+   key for a user partition strategy. It naturally maps documents to
+   individual users. This limits the data on each device to playlists and
+   ratings for the device's user.
+
+   - Users have read and write access to their user realm. This contains
+     playlists they have created and ratings that they've given to songs.
+
+   - Every user has read access to the realm for partition value ``PUBLIC``.
+     This contains playlists that are available to all users.
+
+   The strategy maps the collections to the following realms:
+
+   .. code-block:: javascript
+
+      realm dog_enthusiast_95: [
+        Playlist { name: "Work", owner_id: "dog_enthusiast_95", song_ids: [ ... ] }
+        Playlist { name: "Soup Tunes", owner_id: "dog_enthusiast_95", song_ids: [ ... ] }
+        Rating { owner_id: "dog_enthusiast_95", song_id: 3, rating: -1 }
+        Rating { owner_id: "dog_enthusiast_95", song_id: 1, rating: 1 }
+      ]
+
+      realm cat_enthusiast_92: [
+        Playlist { name: "Party", owner_id: "cat_enthusiast_92", song_ids: [ ... ] }
+        Rating { owner_id: "cat_enthusiast_92", song_id: 1, rating: 1 }
+      ]
+
+      realm PUBLIC: [
+        Playlist { name: "Disco Anthems", owner_id: "PUBLIC", song_ids: [ ... ] }
+        Playlist { name: "Deep Focus", owner_id: "PUBLIC", song_ids: [ ... ] }
+      ]
+
+.. _partition-strategy-team:
+
+Team Strategy
+~~~~~~~~~~~~~
+
+A team partition strategy groups private documents shared by a team of users.
+A team might include a store location's employees or a band's members. Each
+team has a partition specific to that group. All users in the team share
+access and ownership of the team's documents.
+
+- **Data Security.** Data in a team partition is specific to a given team.
+  It may contain data private to the team but not to a member of the team.
+  Each user syncs partitions for the teams they belong to. Users not in a
+  team cannot access documents in the team's partition.
+
+- **Storage Capacity:** Each user only syncs data from their own teams. The
+  data from a user's teams must fit within their device's storage constraints.
+  Use this strategy when users belong to a manageable number of teams. If
+  users belong to many teams, the combined realms could contain a lot of
+  data. You may need to limit the number of team partitions synced at a
+  time.
+
+.. example::
+
+   An app lets users create projects to collaborate with other users.
+   Consider the following documents in the ``projects``
+   and ``tasks`` collections:
+
+   .. code-block:: javascript
+
+      collection projects: [
+        { name: "CLI", owner_id: "cli-team", task_ids: [ ... ] }
+        { name: "API", owner_id: "api-team", task_ids: [ ... ] }
+      ]
+
+      collection tasks: [
+        { status: "complete", owner_id: "api-team", text: "Import dependencies" }
+        { status: "inProgress", owner_id: "api-team", text: "Create app MVP" }
+        { status: "inProgress", owner_id: "api-team", text: "Investigate off-by-one issue" }
+        { status: "todo", owner_id: "api-team", text: "Write tests" }
+        { status: "inProgress", owner_id: "cli-team", text: "Create command specifications" }
+        { status: "todo", owner_id: "cli-team", text: "Choose a CLI framework" }
+      ]
+
+   Every document includes the ``owner_id`` field. This is a good partition
+   key for a team partition strategy. It naturally maps documents to
+   individual teams. This limits the data on each device. Users only have
+   projects and tasks that are relevant to them.
+
+   - Users have read and write access to partitions owned by teams where
+     they're a member.
+
+   - Data stored in a ``teams`` or ``users`` collection can map users to
+     team membership:
+
+     .. code-block:: javascript
+
+        collection teams: [
+          { name: "cli-team", member_ids: [ ... ] }
+          { name: "api-team", member_ids: [ ... ] }
+        ]
+
+        collection users: [
+          { name: "Joe", team_ids: [ ... ] }
+          { name: "Liz", team_ids: [ ... ] }
+          { name: "Matt", team_ids: [ ... ] }
+          { name: "Emmy", team_ids: [ ... ] }
+          { name: "Scott", team_ids: [ ... ] }
+        ]
+
+   The strategy maps the collections to the following realms:
+
+   .. code-block:: javascript
+
+      realm cli-team: [
+        Project { name: "CLI", owner_id: "cli-team", task_ids: [ ... ] }
+        Task { status: "inProgress", owner_id: "cli-team", text: "Create command specifications" }
+        Task { status: "todo", owner_id: "cli-team", text: "Choose a CLI framework" }
+      ]
+
+      realm api-team: [
+        Project { name: "API", owner_id: "api-team", task_ids: [ ... ] }
+        Task { status: "complete", owner_id: "api-team", text: "Import dependencies" }
+        Task { status: "inProgress", owner_id: "api-team", text: "Create app MVP" }
+        Task { status: "inProgress", owner_id: "api-team", text: "Investigate off-by-one issue" }
+        Task { status: "todo", owner_id: "api-team", text: "Write tests" }
+      ]
+
+.. _partition-strategy-channel:
+
+Channel Strategy
+~~~~~~~~~~~~~~~~
+
+A channel partition strategy groups documents for a common topic or domain.
+Each topic or domain has its own partition. Users can choose to access or
+subscribe to specific channels. A name or ID may identify these channels
+in a public list.
+
+- **Data Security.** Data in a channel partition is specific to a topic or
+  area. Users can choose to access these channels. You can limit a user's
+  access to a subset of channels. You could prevent users from accessing
+  channels entirely. When user has read or write permission for a channel,
+  they can access any document in the partition.
+
+- **Storage Capacity.** Users can choose to sync data from any allowed
+  channel. All data from a user's channels must fit within their device's
+  storage constraints. Use this strategy to partition public or semi-private
+  data sets. This strategy breaks up data sets that would not fit within
+  storage constraints.
+
+.. example::
+
+   An app lets users create chatrooms based on topics. Users can search
+   for and join channels for any topic that interests them. Consider
+   these documents in the ``chatrooms`` and ``messages`` collections:
+
+   .. code-block:: javascript
+
+      collection chatrooms: [
+        { topic: "cats", description: "A place to talk about cats" }
+        { topic: "sports", description: "We like sports and we don't care who knows" }
+      ]
+
+      collection messages: [
+        { topic: "cats", text: "Check out this cute pic of my cat!", timestamp: 1625772933383 }
+        { topic: "cats", text: "Can anybody recommend a good cat food brand?", timestamp: 1625772953383 }
+        { topic: "sports", text: "Did you catch the game last night?", timestamp: 1625772965383 }
+        { topic: "sports", text: "Yeah what a comeback! Incredible!", timestamp: 1625772970383 }
+        { topic: "sports", text: "I can't believe how they scored that goal.", timestamp: 1625773000383 }
+      ]
+
+   Every document includes the ``topic`` field. This is a good partition
+   key for a channel partition strategy. It naturally maps documents to
+   individual channels. This reduces the data on each device. Data only
+   contains messages and metadata for channels the user has chosen.
+
+   - Users have read and write access to chatrooms where they're subscribed.
+     Users can change or delete any message - even those sent by other users.
+     To limit write permissions, you could give users read-only access.
+     Then, handle sending messages with a serverless function.
+
+   - Store the use's subscribed channels in either the ``chatrooms``
+     or ``users`` collection:
+
+     .. code-block:: javascript
+
+        collection chatrooms: [
+          { topic: "cats", subscriber_ids: [ ... ] }
+          { topic: "sports", subscriber_ids: [ ... ] }
+        ]
+
+        collection users: [
+          { name: "Joe", chatroom_ids: [ ... ] }
+          { name: "Liz", chatroom_ids: [ ... ] }
+          { name: "Matt", chatroom_ids: [ ... ] }
+          { name: "Emmy", chatroom_ids: [ ... ] }
+          { name: "Scott", chatroom_ids: [ ... ] }
+        ]
+
+   The strategy maps the collections to the following realms:
+
+   .. code-block:: javascript
+
+      realm cats: [
+        Chatroom { topic: "cats", description: "A place to talk about cats" }
+        Message { topic: "cats", text: "Check out this cute pic of my cat!", timestamp: 1625772933383 }
+        Message { topic: "cats", text: "Can anybody recommend a good cat food brand?", timestamp: 1625772953383 }
+      ]
+
+      realm sports: [
+        Chatroom { topic: "sports", description: "We like sports and we don't care who knows" }
+        Message { topic: "sports", text: "Did you catch the game last night?", timestamp: 1625772965383 }
+        Message { topic: "sports", text: "Yeah what a comeback! Incredible!", timestamp: 1625772970383 }
+        Message { topic: "sports", text: "I can't believe how they scored that goal.", timestamp: 1625773000383 }
+      ]
+
+.. _partition-strategy-region:
+
+Region Strategy
+~~~~~~~~~~~~~~~
+
+A region partition strategy groups documents related to a location or region.
+Each partition contains documents specific to those areas.
+
+- **Data Security.** Data is specific to a given geographic area. You can
+  limit a user's access to their current region. Alternately, give access
+  to data on a region-by-region basis.
+
+- **Storage Capacity.** Storage needs vary depending on size and usage
+  patterns for the region. Users might only sync data in their own region.
+  The data for any region should fit within a device's storage constraints.
+  If users sync multiple regions, partition into smaller subregions. This
+  helps avoid syncing unneeded data.
+
+.. example::
+
+   An app lets users search for nearby restaurants and order from their
+   menus. Consider the following documents in the ``restaurants``
+   collection:
+
+   .. code-block:: javascript
+
+      collection restaurants: [
+        { city: "New York, NY", name: "Joe's Pizza", menu: [ ... ] }
+        { city: "New York, NY", name: "Han Dynasty", menu: [ ... ] }
+        { city: "New York, NY", name: "Harlem Taste", menu: [ ... ] }
+        { city: "Chicago, IL", name: "Lou Malnati's", menu: [ ... ] }
+        { city: "Chicago, IL", name: "Al's Beef", menu: [ ... ] }
+        { city: "Chicago, IL", name: "Nando's", menu: [ ... ] }
+      ]
+
+   Every document includes the ``city`` field. This is a good partition
+   key for a region partition strategy. It naturally maps documents to
+   specific physical areas. This limits data to messages and metadata
+   for a user's current city. Users have read access to restaurants in
+   their current region. You could determine the user's region in your
+   application logic.
+
+   The strategy maps the collections to the following realms:
+
+   .. code-block:: javascript
+
+      realm New York, NY: [
+       { city: "New York, NY", name: "Joe's Pizza", menu: [ ... ] }
+       { city: "New York, NY", name: "Han Dynasty", menu: [ ... ] }
+       { city: "New York, NY", name: "Harlem Taste", menu: [ ... ] }
+      ]
+
+      realm Chicago, IL: [
+       { city: "Chicago, IL", name: "Lou Malnati's", menu: [ ... ] }
+       { city: "Chicago, IL", name: "Al's Beef", menu: [ ... ]  }
+       { city: "Chicago, IL", name: "Nando's", menu: [ ... ]  }
+      ]
+
+.. _partition-strategy-bucket:
+
+Bucket Strategy
+~~~~~~~~~~~~~~~
+
+A bucket partition strategy groups documents by range. When documents range
+along a dimension, a partition contains a subrange. Consider time-based
+bucket ranges. Triggers move documents to new partitions when they fall
+out of their bucket range.
+
+- **Data Security.** Limit users to read or write only specific buckets.
+  Data may flow between buckets. Consider access permissions for a document
+  across all possible buckets.
+
+- **Storage Capacity.** Storage needs vary based on size and usage patterns
+  for each bucket. Consider which buckets users need to access. Limit the
+  size of buckets to fit within a device's storage constraints. If users
+  sync many buckets, partition into smaller buckets. This helps avoid
+  syncing unneeded data.
+
+.. example::
+
+   An IoT app shows real-time views of sensor readings several times a
+   second. Buckets derive from the number of seconds since the reading
+   came in. Consider these documents in the ``readings`` collection:
+
+   .. code-block:: javascript
+
+      collection readings: [
+        { bucket: "0s<t<=60s", timestamp: 1625773000383 , data: { ... } }
+        { bucket: "0s<t<=60s", timestamp: 1625772970383 , data: { ... } }
+        { bucket: "0s<t<=60s", timestamp: 1625772965383 , data: { ... } }
+        { bucket: "60s<t<=300s", timestamp: 1625772953383 , data: { ... } }
+        { bucket: "60s<t<=300s", timestamp: 1625772933383 , data: { ... } }
+      ]
+
+   Every document includes the ``bucket`` field. This field maps documents
+   to specific time ranges. A user's device only contains sensor readings
+   for the window they view.
+
+   - Users have read access to sensor readings for any time bucket.
+
+   - Sensors use client apps with write access to upload readings.
+
+   The strategy maps the collections to the following realms:
+
+   .. code-block:: javascript
+
+      realm 0s<t<=60s: [
+        Reading { bucket: "0s<t<=60s", timestamp: 1625773000383 , data: { ... } }
+        Reading { bucket: "0s<t<=60s", timestamp: 1625772970383 , data: { ... } }
+        Reading { bucket: "0s<t<=60s", timestamp: 1625772965383 , data: { ... } }
+      ]
+
+      realm 60s<t<=300s: [
+        Reading { bucket: "60s<t<=300s", timestamp: 1625772953383 , data: { ... } }
+        Reading { bucket: "60s<t<=300s", timestamp: 1625772933383 , data: { ... } }
+      ]
+
+
+
+Data Ingest
+-----------
+
+:ref:`Data Ingest <optimize-data-ingest>` is a feature of Flexible Sync
+and cannot be enabled on apps that use Partition-Based Sync.
+
+.. _partition-based-sync-config-object:
+
+Partition-Based Sync Configuration
+----------------------------------
+
+When you use :ref:`Partition-Based Sync <partition-based-sync>`, your Atlas App Services
+app uses this Sync configuration:
+
+.. code-block:: json
+   :caption: sync/config.json
+
+   {
+     "type": "partition",
+     "state": <"enabled" | "disabled">,
+     "development_mode_enabled": <Boolean>,
+     "service_name": "<Data Source Name>",
+     "database_name": "<Development Mode Database Name>",
+     "partition": {
+       "key": "<Partition Key Field Name>",
+       "type": "<Partition Key Type>",
+       "permissions": {
+         "read": { <Expression> },
+         "write": { <Expression> }
+       }
+     },
+     "last_disabled": <Number>,
+     "client_max_offline_days": <Number>,
+     "is_recovery_mode_disabled": <Boolean>
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 40
+
+   * - Field
+     - Description
+
+   * - | ``type``
+       | String
+     - The sync mode. There are two Sync modes: :ref:`Flexible Sync
+       <flexible-sync>` and the older Partition-Based Sync.
+
+       Valid Options for a Partition-Based Sync Configuration:
+
+       - ``"partition"``
+
+   * - | ``state``
+       | String
+     - The current state of the sync protocol for the application.
+
+       Valid Options:
+
+       - ``"enabled"``
+       - ``"disabled"``
+
+   * - | ``service_name``
+       | String
+     - The name of the :ref:`MongoDB data source <appconfig-data_sources>`
+       to sync. You cannot use sync with a :ref:`serverless instance
+       <serverless-caveats>` or :ref:`{+adf-instance+} <data-federation-caveats>`.
+
+   * - | ``development_mode_enabled``
+       | Boolean
+     - If ``true``, :ref:`Development Mode <development-mode>` is enabled
+       for the application. While enabled, App Services automatically stores synced
+       objects in a specific database (specified in ``database_name``) and
+       mirrors objects types in that database's collection schemas.
+
+   * - | ``database_name``
+       | String
+     - The name of a database in the synced cluster where App Services stores data in
+       :ref:`Development Mode <development-mode>`. App Services automatically
+       generates a schema for each synced type and maps each object type to a
+       collection within the database.
+
+   * - | ``partition.key``
+       | String
+     - The field name of your app's :ref:`partition key <partition-key>`. This
+       field must be defined in the schema for object types that you want to
+       sync.
+
+   * - | ``partition.type``
+       | String
+     - The value type of the partition key field. This must match the type
+       defined in the object schema.
+
+       Valid Options:
+
+       - ``"string"``
+       - ``"objectId"``
+       - ``"long"``
+
+   * - | ``partition.permissions.read``
+       | Expression
+     - An :ref:`expression <expressions>` that evaluates to ``true`` when a user
+       has permission to read objects in a partition. If the expression
+       evaluates to ``false``, App Services does not allow the user to read
+       an object or its properties.
+
+   * - | ``partition.permissions.write``
+       | Expression
+     - An :ref:`expression <expressions>` that evaluates to ``true`` when a user
+       has permission to write objects in a partition. If the expression
+       evaluates to ``false``, App Services does not allow the user to
+       modify an object or its properties. Write permission requires read
+       permission. A user cannot write to a document that they cannot read.
+
+   * - | ``last_disabled``
+       | Number
+     - The date and time that sync was last paused or disabled, represented by
+       the number of seconds since the Unix epoch (January 1, 1970, 00:00:00
+       UTC).
+
+   * - | ``client_max_offline_days``
+       | Number
+     - Controls how long the :ref:`backend compaction <optimize-sync-atlas-usage>`
+       process waits before aggressively pruning metadata that some clients
+       require to synchronize from an old version of a realm.
+
+   * - | ``is_recovery_mode_disabled``
+       | Boolean
+     - If ``false``, :ref:`Recovery Mode <recover-unsynced-changes>` is enabled
+       for the application. While enabled, Realm SDKs that support this feature
+       attempt to recover unsynced changes upon performing a client reset.
+       Recovery mode is enabled by default.
+
+
+.. _alter-partition-based-sync-config:
+
+Alter Your Partition-Based Sync Configuration
+---------------------------------------------
+
+You must :ref:`Terminate Device Sync <terminating-realm-sync>` and
+:ref:`Re-enable Device Sync <re-enable-realm-sync>` to make changes to your
+Partition-Based Device Sync Configuration. While you are re-enabling
+Atlas Device Sync, you can specify a new Partition Key, or changes to your Read/Write
+Permissions. Making changes to your Device Sync configuration while
+terminating and re-enabling Device Sync will trigger a client reset. To learn
+more about handling client resets, read the :ref:`client reset <client-resets>`
+documentation.
+
+.. _partition-based-sync-errors:
+
+Partition-Based Sync Errors
+---------------------------
+
+The following errors may occur when your App uses :ref:`Partition-Based Sync
+<partition-based-sync>`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Error Name
+     - Description
+
+   * - ErrorIllegalRealmPath
+     - This error indicates that the client attempted to open a realm with a
+       partition value of the wrong type. For example, you might see the error
+       message "attempted to bind on illegal realm partition: expected partition
+       to have type objectId but found string".
+
+       To recover from this error, ensure that the type of the partition value
+       used to open the realm matches the partition key type in your
+       Device Sync configuration.
+.. _backend-compaction:
+
+Backend Compaction
+------------------
+
+Atlas Device Sync uses space in your app's synced Atlas cluster to store metadata
+for synchronization. This includes a history of changes to each realm.
+Atlas App Services minimizes this space usage in your Atlas cluster.
+Minimizing metadata is necessary to reduce the time and data needed for sync.
+
+Apps using Partition-Based Sync perform **backend compaction** to reduce the amount
+of metadata stored in an Atlas Cluster. Backend compaction is an  maintenance process
+that automatically runs for all Apps using Partition-Based Sync.
+Using compaction, the backend optimizes a realm's history by removing unneeded
+changeset metadata. The process removes any instruction whose effect is later
+overwritten by a newer instruction.
+
+.. example::
+
+   Consider the following realm history:
+
+   .. code-block::
+      :caption: Original History
+
+      CREATE table1.object1
+      UPDATE table1.object1.x = 4
+      UPDATE table1.object1.x = 10
+      UPDATE table1.object1.x = 42
+
+   The following history would also converge to the same state, but
+   without unneeded interim changes:
+
+   .. code-block::
+      :caption: Compacted History
+
+      CREATE table1.object1
+      UPDATE table1.object1.x = 42
+
+.. note::
+
+   :ref:`Partition Based Sync <partition-based-sync>` uses backend compaction
+   to reduce Device Sync history stored in Atlas.
+   Flexible Sync achieves this with :ref:`trimming <trimming>` and
+   :ref:`client maximum offline time <client-maximum-offline-time>`.

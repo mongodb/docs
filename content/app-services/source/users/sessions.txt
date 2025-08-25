@@ -1,0 +1,513 @@
+.. meta::
+   :robots: nosnippet
+
+.. _manage-user-sessions:
+
+====================
+Manage User Sessions
+====================
+
+.. meta:: 
+   :keywords: code example, curl
+   :description: Learn how to manage App Services user access tokens and user sessions.
+
+.. facet::
+  :name: genre
+  :values: tutorial
+
+.. contents:: On this page
+   :depth: 2
+
+Overview
+--------
+
+App Services manages :ref:`user sessions <user-sessions>` with access
+tokens and refresh tokens. An access token allows anyone that has the
+token to use the session it's associated with for up to
+{+user-session-expiration-time+}. A refresh token lets you generate a
+new access token for a session even if the previous token has already
+expired.
+
+The Realm SDKs automatically manage user access and refresh tokens for
+you when they connect to App Services. You may want to manage sessions
+yourself if you're connecting to an API service like the Data API.
+
+.. _get-access-token:
+
+Get a User Session Access Token
+-------------------------------
+
+You can authenticate a user and receive a user access token directly
+over HTTPS or through a session managed by a Realm SDK.
+
+Get a User Access Token Over HTTPS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can get an access token by sending an authentication request
+directly to App Services over HTTPS. The authentication endpoint accepts
+an HTTPS POST request with a JSON body that contains the user's login
+credentials. If the credentials are valid, the response contains a user
+access token.
+
+.. procedure::
+
+   .. step:: Find Your App's Client API Base URL
+
+      Your App's authentication endpoint URL depends on the App's
+      deployment model.
+
+      Select your App's deployment model to see how to construct the
+      base URL.
+
+      .. tabs::
+
+         .. tab:: Global Deployment
+            :tabid: global
+
+            .. code-block:: text
+
+               https://services.cloud.mongodb.com/api/client/v2.0/app/<App ID>
+
+            Replace ``<App ID>`` with your client App ID. For example,
+            ``myapp-abcde``.
+
+         .. tab:: Local Deployment
+            :tabid: local
+
+            .. code-block:: text
+
+               https://<Region>.<Cloud>.services.cloud.mongodb.com/api/client/v2.0/app/<App ID>
+
+            - Replace ``<Region>`` with the region where your app is hosted. For example, ``us-east-1``.
+
+            - Replace ``<Cloud>`` with the cloud where your app is hosted. For example, ``aws``, ``azure``, or ``gcp``.
+
+            - Replace ``<App ID>`` with your client app ID. For example, ``myapp-abcde``.
+
+      You can find the base URL programmatically with the App
+      location endpoint. The response body includes the base URL as
+      the ``hostname`` field.
+
+      .. io-code-block::
+
+         .. input::
+            :language: shell
+
+            curl 'https://services.cloud.mongodb.com/api/client/v2.0/app/<App ID>/location'
+
+         .. output::
+            :language: json
+            :emphasize-lines: 4
+
+            {
+              "deployment_model": "LOCAL",
+              "location": "US-VA",
+              "hostname": "https://us-east-1.aws.services.cloud.mongodb.com",
+              "ws_hostname": "wss://ws.us-east-1.aws.services.cloud.mongodb.com"
+            }
+
+   .. step:: Authenticate a User
+
+      To authenticate a user, call the login endpoint, specifying the 
+      authentication provider. The login endpoint is  
+      ``<Base URL>/auth/providers/<ProviderType>/login``, where 
+      ``<ProviderType>`` is one of the following types:
+
+      - ``anon-user``
+      - ``local-userpass``
+      - ``api-key``
+      - ``custom-token``
+      - ``custom-function``
+
+      Append the login endpoint to the base URL, and send an HTTPS POST request 
+      with a JSON body that contains the user's login credentials for the chosen 
+      provider type:
+
+      .. tabs-realm-auth-providers::
+
+         .. tab::
+            :tabid: anon-user
+
+            .. code-block:: shell
+
+               curl -X POST 'https://services.cloud.mongodb.com/api/client/v2.0/app/myapp-abcde/auth/providers/anon-user/login'
+
+         .. tab::
+            :tabid: local-userpass
+
+            .. code-block:: shell
+               :emphasize-lines: 4-5
+
+               curl -X POST 'https://services.cloud.mongodb.com/api/client/v2.0/app/myapp-abcde/auth/providers/local-userpass/login' \
+                 --header 'Content-Type: application/json' \
+                 --data-raw '{
+                   "username": "test@example.com",
+                   "password": "Pa55w0rd"
+                 }'
+
+         .. tab::
+            :tabid: api-key
+
+            .. code-block:: shell
+               :emphasize-lines: 4
+
+               curl -X POST 'https://services.cloud.mongodb.com/api/client/v2.0/app/myapp-abcde/auth/providers/api-key/login' \
+                 --header 'Content-Type: application/json' \
+                 --data-raw '{
+                   "key": "hScMWZyOKnjQMbfDPMJ1qHgtdGT2raQXdVDDvlC2SzKEBKlHKV8FK9SPCSTnODPg"
+                 }'
+
+         .. tab::
+            :tabid: custom-token
+
+            .. code-block:: shell
+               :emphasize-lines: 4
+
+               curl -X POST 'https://services.cloud.mongodb.com/api/client/v2.0/app/myapp-abcde/auth/providers/custom-token/login' \
+                 --header 'Content-Type: application/json' \
+                 --data-raw '{
+                   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJ0ZXN0ZGV2LWJwcWVsIiwiZXhwIjoxNTE2MjM5MDIyLCJzdWIiOiIyNDYwMSIsInVzZXJfZGF0YSI6eyJuYW1lIjoiSmVhbiBWYWxqZWFuIiwiYWxpYXNlcyI6WyJNb25zaWV1ciBNYWRlbGVpbmUiLCJVbHRpbWUgRmF1Y2hlbGV2ZW50IiwiVXJiYWluIEZhYnJlIl19fQ.mVWr4yFf8nD1EhuhrJbgKfY7BEpMab38RflXzUxuaEI"
+                 }'
+
+         .. tab::
+            :tabid: custom-function
+
+            .. code-block:: shell
+               :emphasize-lines: 4
+
+               curl -X POST 'https://services.cloud.mongodb.com/api/client/v2.0/app/myapp-abcde/auth/providers/custom-function/login' \
+                 --header 'Content-Type: application/json' \
+                 --data-raw '{
+                   "someCustomFunctionArg": "<Login Info>"
+                 }'
+
+      If the authentication request succeeds, the response body includes
+      ``access_token`` and ``refresh_token`` values for the user. The
+      ``access_token`` is a JSON Web Token (JWT) that you can use to
+      authenticate requests.
+
+      .. code-block:: json
+         :emphasize-lines: 2
+
+         {
+           "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJiYWFzX2RldmljZV9pZCI6IjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImJhYXNfZG9tYWluX2lkIjoiNWVlYTg2NjdiY2I0YzgxMGI2NTFmYjU5IiwiZXhwIjoxNjY3OTQwNjE4LCJpYXQiOjE2Njc5Mzg4MTgsImlzcyI6IjYzNmFiYTAyMTcyOGI2YzFjMDNkYjgzZSIsInN0aXRjaF9kZXZJZCI6IjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsInN0aXRjaF9kb21haW5JZCI6IjVlZWE4NjY3YmNiNGM4MTBiNjUxZmI1OSIsInN1YiI6IjYzNmFiYTAyMTcyOGI2YzFjMDNkYjdmOSIsInR5cCI6ImFjY2VzcyJ9.pyq3nfzFUT-6r-umqGrEVIP8XHOw0WGnTZ3-EbvgbF0",
+           "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJiYWFzX2RhdGEiOm51bGwsImJhYXNfZGV2aWNlX2lkIjoiMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwIiwiYmFhc19kb21haW5faWQiOiI1ZWVhODY2N2JjYjRjODEwYjY1MWZiNTkiLCJiYWFzX2lkIjoiNjM2YWJhMDIxNzI4YjZjMWMwM2RiODNlIiwiYmFhc19pZGVudGl0eSI6eyJpZCI6IjYzNmFiYTAyMTcyOGI2YzFjMDNkYjdmOC1ud2hzd2F6ZHljbXZycGVuZHdkZHRjZHQiLCJwcm92aWRlcl90eXBlIjoiYW5vbi11c2VyIiwicHJvdmlkZXJfaWQiOiI2MjRkZTdiYjhlYzZjOTM5NjI2ZjU0MjUifSwiZXhwIjozMjQ0NzM4ODE4LCJpYXQiOjE2Njc5Mzg4MTgsInN0aXRjaF9kYXRhIjpudWxsLCJzdGl0Y2hfZGV2SWQiOiIwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAiLCJzdGl0Y2hfZG9tYWluSWQiOiI1ZWVhODY2N2JjYjRjODEwYjY1MWZiNTkiLCJzdGl0Y2hfaWQiOiI2MzZhYmEwMjE3MjhiNmMxYzAzZGI4M2UiLCJzdGl0Y2hfaWRlbnQiOnsiaWQiOiI2MzZhYmEwMjE3MjhiNmMxYzAzZGI3Zjgtbndoc3dhemR5Y212cnBlbmR3ZGR0Y2R0IiwicHJvdmlkZXJfdHlwZSI6ImFub24tdXNlciIsInByb3ZpZGVyX2lkIjoiNjI0ZGU3YmI4ZWM2YzkzOTYyNmY1NDI1In0sInN1YiI6IjYzNmFiYTAyMTcyOGI2YzFjMDNkYjdmOSIsInR5cCI6InJlZnJlc2gifQ.h9YskmSpSLK8DMwBpPGuk7g1s4OWZDifZ1fmOJgSygw",
+           "user_id": "636aba021728b6c1c03db7f9"
+         }
+
+Get a User Access Token from a Realm SDK
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the Realm SDKs, you can access a logged in user's access token from
+their ``User`` object. The SDKs automatically refresh expired access
+tokens for SDK operations and you can manually refresh it by calling a
+method.
+
+To learn more, refer to the documentation for your Realm SDK:
+
+- :ref:`Realm C++ SDK <cpp-get-a-user-access-token>`
+- :ref:`Realm Flutter SDK <flutter-access-token>`
+- :ref:`Realm Java SDK <java-get-user-access-token>`
+- :ref:`Realm Kotlin SDK <kotlin-access-token>`
+- :ref:`Realm .NET SDK <dotnet-retrieve-current-user>`
+- :ref:`Realm Node.js SDK <node-get-user-access-token>`
+- :ref:`Realm React Native SDK <react-native-get-user-access-token>`
+- :ref:`Realm Swift SDK <ios-get-a-user-access-token>`
+- :ref:`Web SDK <web-get-user-access-token>`
+
+Refresh a User Session Access Token
+-----------------------------------
+
+Access tokens expire {+user-session-expiration-time+} after they are
+granted. When an access token expires, you must get a new access token
+to continue sending requests.
+
+You could acquire a new access token by logging the user in again, but
+that would require the user to re-enter their credentials. Instead, you
+can use the refresh token associated with the user's session to get a
+new access token that's valid for another
+{+user-session-expiration-time+}.
+
+You get the refresh token in the :ref:`same response as the access token
+<get-access-token>` after a successful login.
+
+Refresh a User Access Token Over HTTPS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The session refresh endpoint accepts a ``POST`` request that includes
+the refresh token in the ``Authorization`` header. The endpoint URL
+depends on your App's deployment model.
+
+.. tabs::
+
+   .. tab:: Global Deployment
+      :tabid: global
+
+      .. io-code-block::
+
+         .. input::
+            :language: shell
+            :emphasize-lines: 3
+
+            curl -X POST 'https://services.cloud.mongodb.com/api/client/v2.0/auth/session' \
+              --header 'Content-Type: application/json' \
+              --header 'Authorization: Bearer <RefreshToken>'
+
+         .. output::
+            :language: json
+            :emphasize-lines: 2
+
+            {
+            	"access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJiYWFzX2RldmljZV9pZCI6IjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImJhYXNfZG9tYWluX2lkIjoiNWVlYTg2NjdiY2I0YzgxMGI2NTFmYjU5IiwiZXhwIjoxNjY3OTQzOTc5LCJpYXQiOjE2Njc5NDIxNzksImlzcyI6IjYzNmFjNzAyMDE5ZDJkYmY0NzUxMDRjMiIsInN0aXRjaF9kZXZJZCI6IjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsInN0aXRjaF9kb21haW5JZCI6IjVlZWE4NjY3YmNiNGM4MTBiNjUxZmI1OSIsInN1YiI6IjYzNmFjNzAyMDE5ZDJkYmY0NzUxMDQ5MyIsInR5cCI6ImFjY2VzcyJ9.pF3DR-096Ujt9-0KOWJTU25ZuryvwMfeCI7TiHJERNg"
+            }
+
+   .. tab:: Local Deployment
+      :tabid: local
+
+      - Replace ``<Region>`` with the region where your app is hosted. For example, ``us-east-1``.
+      - Replace ``<Cloud>`` with the cloud where your app is hosted. For example, ``aws``, ``azure``, or ``gcp``.
+
+      .. io-code-block::
+
+         .. input::
+            :language: shell
+            :emphasize-lines: 3
+
+            curl -X POST 'https://<Region>.<Cloud>.services.cloud.mongodb.com/api/client/v2.0/auth/session' \
+              --header 'Content-Type: application/json' \
+              --header 'Authorization: Bearer <RefreshToken>'
+
+         .. output::
+            :language: json
+            :emphasize-lines: 2
+
+            {
+            	"access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJiYWFzX2RldmljZV9pZCI6IjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImJhYXNfZG9tYWluX2lkIjoiNWVlYTg2NjdiY2I0YzgxMGI2NTFmYjU5IiwiZXhwIjoxNjY3OTQzOTc5LCJpYXQiOjE2Njc5NDIxNzksImlzcyI6IjYzNmFjNzAyMDE5ZDJkYmY0NzUxMDRjMiIsInN0aXRjaF9kZXZJZCI6IjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsInN0aXRjaF9kb21haW5JZCI6IjVlZWE4NjY3YmNiNGM4MTBiNjUxZmI1OSIsInN1YiI6IjYzNmFjNzAyMDE5ZDJkYmY0NzUxMDQ5MyIsInR5cCI6ImFjY2VzcyJ9.pF3DR-096Ujt9-0KOWJTU25ZuryvwMfeCI7TiHJERNg"
+            }
+
+Refresh a User Access Token from a Realm SDK
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Realm SDKs automatically refresh a logged in user's access token if
+the token is expired at the time of a request.
+
+The SDKs also allow you to manually refresh a user's access token by
+calling a method on the ``User`` object.
+
+To learn more, refer to the documentation for your Realm SDK:
+
+- :ref:`Realm C++ SDK <cpp-get-a-user-access-token>`
+- :ref:`Realm Flutter SDK <flutter-access-token>`
+- :ref:`Realm Java SDK <java-get-user-access-token>`
+- :ref:`Realm Kotlin SDK <kotlin-access-token>`
+- :ref:`Realm .NET SDK <dotnet-retrieve-current-user>`
+- :ref:`Realm Node.js SDK <node-get-user-access-token>`
+- :ref:`Realm React Native SDK <react-native-get-user-access-token>`
+- :ref:`Realm Swift SDK <ios-get-a-user-access-token>`
+- :ref:`Web SDK <web-get-user-access-token>`
+
+.. _refresh-token-expiration:
+
+Configure Refresh Token Expiration
+----------------------------------
+
+By default, refresh tokens expire 
+{+default-user-session-refresh-token-expiration-time+} after they are issued. 
+You can configure the refresh token expiration interval for your App to be 
+anywhere between {+min-user-session-refresh-token-expiration-time+} 
+and {+max-user-session-refresh-token-expiration-time+} inclusive.
+
+Anonymous user refresh tokens have a long expiration time and
+effectively do not expire. Instead, Anonymous user accounts are
+automatically deleted 90 days after they are created.
+
+You can configure the refresh token expiration time for all sessions in
+an App from the Admin UI or Admin API.
+
+Set the Refresh Token Expiration In the Admin UI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To set the refresh token expiration time for all sessions in an App from
+the Admin UI:
+
+1. Click :guilabel:`App Users` in the left navigation menu.
+
+2. Select the :guilabel:`User Settings` tab.
+
+3. Find the :guilabel:`Refresh Token Expiration` option and click the
+   :guilabel:`Edit` button.
+
+4. Enter a time value in the text input and choose the appropriate time
+   unit (e.g. "minutes" or "days") from the dropdown menu.
+
+5. Click :guilabel:`Save`.
+
+Set the Refresh Token Expiration Over HTTPS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To set the refresh token expiration time for all sessions in an App from
+the Admin API, call your App's :admin-api-endpoint:`Set User Refresh
+Token Expiration Time <operation/adminSetRefreshTokenExpiration>`
+endpoint with the ``expiration_time_seconds`` field of the request body
+set to your desired expiration time.
+
+.. code-block:: bash
+
+   curl -X PUT \
+     https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/security/refresh_token_expiration \
+     --data-raw '{
+       "expiration_time_seconds": 864000
+     }'
+
+If you successfully update the refresh token expiration time, the
+endpoint returns a ``204`` response.
+
+Verify & Decode a User Access Token
+-----------------------------------
+
+You can decode an access token to verify that it has the correct format
+and has a valid signature. The decoded response includes other
+information like when the access token expires.
+
+Call your App's :admin-api-endpoint:`Verify and decode an access token
+<operation/adminVerifyUserAccessToken>` Admin API endpoint with the
+token in the ``token`` field of the request body.
+
+.. io-code-block::
+
+   .. input::
+      :language: bash
+
+      curl -X POST \
+        https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/users/verify_token \
+        --data-raw '{
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJiYWFzX2RldmljZV9pZCI6IjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsImJhYXNfZG9tYWluX2lkIjoiNWNkYjEyNDA4ZTIzMmFjNGY5NTg3ZmU4IiwiZXhwIjoxNjc2NTExMjgyLCJpYXQiOjE2NzY1MDk0ODIsImlzcyI6IjYzZWQ4MTJhNDNiZTcyYzE3NmFhNWQyMyIsInN0aXRjaF9kZXZJZCI6IjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsInN0aXRjaF9kb21haW5JZCI6IjVjZGIxMjQwOGUyMzJhYzRmOTU4N2ZlOCIsInN1YiI6IjYzZWQ4MTJhNDNiZTcyYzE3NmFhNWQyMSIsInR5cCI6ImFjY2VzcyJ9.7kHO9wjWvIaD3VewDyPhLyb-oRc7wTYZdD9-hroF-H4"
+        }'
+
+   .. output::
+      :language: json
+
+      {
+      	"sub": "63ed812a43be72c176aa5d21",
+      	"exp": 1676511282,
+      	"iat": 1676509482,
+      	"iss": "63ed812a43be72c176aa5d23",
+      	"domain_id": "5cdb12408e232ac4f9587fe8",
+      	"device_id": "000000000000000000000000"
+      }
+
+If the token is valid, you'll receive a ``200`` response.
+
+If the token is valid but expired, the response indicates that the token
+is expired rather than containing the decoded JWT.
+
+.. code-block:: json
+
+   "token expired"
+
+If the token is invalid, you'll receive a ``401`` response that contains
+an error message.
+
+.. code-block:: json
+
+   {
+     "error": "signature is invalid"
+   }
+
+End a User Session
+------------------
+
+Once a session has been established you cannot end it individually,
+though you can :ref:`revoke all of a user's active sessions
+<revoke-user-sessions>`.
+
+You can effectively end a user session by deleting all copies of the
+access token and refresh token. This prevents further access to the
+session and requires the user to authenticate and start a new session
+to continue.
+
+Each Realm SDK has a ``User.logOut()`` method that deletes local copies
+of the access token and refresh token and invalidates the refresh token
+so that it can't be used to get a new access token.
+
+If a user account is :ref:`deleted <delete-user>`, either by an
+administrator or by the user, then all of the user's sessions are
+automatically revoked.
+
+.. important:: Keep Tokens Secure
+
+   Even if you delete and invalidate all copies of a token that you
+   have, that does **not** end the active session on the server. If a
+   malicious user copied the access token before it was deleted, they
+   could use the token to make requests for up to
+   {+user-session-expiration-time+} until it expires. These requests
+   would appear to come from the user who "logged out".
+
+.. _revoke-user-sessions:
+
+Revoke a User's Sessions
+------------------------
+
+You can revoke all of a user's current sessions. This invalidates the
+session access and refresh tokens and prevents the user from making any
+requests on any device until they log in again.
+
+If a user account is deleted, either by an administrator or by the user,
+then all of the user's sessions are automatically revoked.
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      #. Select :guilabel:`App Users` from the left navigation menu.
+
+      #. Under the :guilabel:`Users` tab, find a user in the list and click on the ellipsis (``...``).
+
+      #. Click :guilabel:`Revoke all sessions`.
+
+   .. tab::
+      :tabid: cli
+
+      To revoke all sessions for a user, call ``{+cli-bin+} users
+      revoke``. The CLI will prompt you for your App ID and list users
+      in that app for you to select.
+
+      .. code-block:: bash
+
+         {+cli-bin+} users revoke
+
+      You can also specify the arguments when you run the command:
+
+      .. code-block:: bash
+
+         {+cli-bin+} users revoke \
+           --app=<Your App ID> \
+           --user=<User ID>
+
+      .. tip::
+
+         You can revoke sessions for multiple users with a single command by
+         specifying their ``id`` values as a comma-separated list.
+
+         .. code-block:: bash
+
+            {+cli-bin+} users revoke --user=6099694d5debcbcc873ff413,60996996b78eca4a8d615d3a
+
+   .. tab::
+      :tabid: api
+
+      Call the :admin-api-endpoint:`Revoke user sessions
+      <operation/adminUserLogout>` endpoint.
+
+      Make sure to replace the following values in the endpoint URL:
+
+      - ``{groupId}`` with your :ref:`Atlas Project ID <find-atlas-project-id>`.
+      - ``{appId}`` with your App's :ref:`internal ObjectID <find-atlas-project-id>`.
+      - ``{userId}`` with the user's account ID.
+
+      .. code-block:: sh
+
+         curl -X PUT \
+           -H 'Authorization: Bearer {access_token}' \
+           https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/users/{userId}/logout

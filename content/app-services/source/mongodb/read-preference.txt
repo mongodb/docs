@@ -1,0 +1,205 @@
+.. meta::
+   :robots: nosnippet
+
+.. _read-preference:
+
+===============
+Read Preference
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You can configure the :manual:`read preference </core/read-preference>`
+for a :doc:`linked MongoDB Atlas cluster </mongodb>` to control the type
+of :manual:`replica set member </core/replica-set-members>` that Atlas App Services
+routes database read requests to. You can also specify a :manual:`tag
+set </core/read-preference/#replica-set-read-preference-tag-sets>` to
+target specific members of the replica set.
+
+You cannot set the read preference on a :ref:`{+adf-datasource+} <data-federation-caveats>`.
+
+By default, App Services uses a read preference of ``primary``, which routes
+all read requests through the :manual:`primary node
+</core/replica-set-primary>` of a replica set.
+
+When To Specify Read Preference
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The default read preference (``primary``) should be sufficient for most
+use cases. Consider specifying a cluster read preference when you need
+to do the following:
+
+- Read from a specific secondary that has a custom configuration, such
+  as an analytics node with special indexes optimized for reporting
+  workloads.
+
+- Read from a node in a specific region of a globally distributed
+  replica set.
+
+- Maintain read availability during a replica set failover, i.e.,
+  continue to read potentially stale data when there is no ``primary``
+  node.
+
+Procedure
+---------
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      .. procedure::
+
+         .. step:: Navigate to the Cluster Configuration Screen
+
+            You can configure the read preference for a linked cluster from the cluster's
+            configuration screen in the App Services UI. To get to the configuration screen, click
+            :guilabel:`Linked Data Sources` beneath :guilabel:`Manage` in the left-hand
+            navigation. 
+            In the list of data sources, select the cluster on which you want to 
+            configure read preference.
+
+
+         .. step:: Specify a Cluster Read Preference
+
+            On the cluster configuration screen, select a mode from the
+            :guilabel:`Read Preference` dropdown.
+
+            .. figure:: /images/cluster-read-preference-selector.png
+               :alt: The read preference dropdown menu
+
+            The following read preference modes are available:
+
+            .. include:: /mongodb/tables/read-preference-modes.rst
+
+
+         .. step:: Specify Read Preference Tags
+
+            If you specify a read preference other than ``primary``, you can also
+            specify one or more :manual:`read preference tags
+            </core/read-preference/#replica-set-read-preference-tag-sets>`. To
+            serve a read request, a :manual:`replica set member
+            </core/replica-set-members>` must include all of the specified read
+            preference tags in its node configuration.
+
+            .. note:: Atlas Cluster Tag Sets
+
+               `MongoDB Atlas <https://www.mongodb.com/docs/atlas?tck=docs_realm>`_ clusters
+               are configured with pre-defined tag sets for each
+               member node depending on the member's type. For detailed information
+               on which tags are defined nodes in an Atlas cluster, see :atlas:`Atlas
+               Replica Set Tags </reference/replica-set-tags>`.
+
+            To specify a read preference tag, click :guilabel:`Add Tag` and then
+            enter the tag's :guilabel:`Key` and :guilabel:`Value` in the new row
+            of the :guilabel:`Read Preference Tags` table.
+
+            .. figure:: /images/cluster-read-preference-tags-table.png
+               :alt: The read preference tags table
+
+
+         .. step:: Save the Cluster Configuration
+
+            Once you have specified a :guilabel:`Read Preference` and any
+            :guilabel:`Read Preference Tags`, click :guilabel:`Save`. Once saved,
+            App Services routes all incoming database read requests for the cluster
+            according to your preference.
+
+   
+   .. tab::
+      :tabid: cli
+      
+      .. procedure::
+
+         .. step:: Pull the Latest Version of Your App
+
+            To define the read preference for a linked cluster with the {+cli-ref+}, you need
+            a local copy of your application's configuration files.
+
+            To pull a local copy of the latest version of your app, run the following:
+
+            .. code-block:: bash
+
+               {+cli-bin+} pull --remote="<Your App ID>"
+
+            .. tip::
+
+               You can also download a copy of your application's configuration files from
+               the :guilabel:`Deploy > Export App` screen in the App Services UI.
+
+
+         .. step:: Specify a Cluster Read Preference
+
+            To configure the read preference for a linked cluster, open the cluster's
+            ``config.json`` file and set the value of ``config.readPreference``:
+
+            .. code-block:: json
+               :emphasize-lines: 5
+               :caption: /data_sources/<Service Name>/config.json
+
+               {
+                  "name": "<MongoDB Service Name>",
+                  "type": "mongodb-atlas",
+                  "config": {
+                     "readPreference": "<Read Preference Mode>"
+                  }
+               }
+
+            The following read preference modes are available:
+
+            .. include:: /mongodb/tables/read-preference-modes.rst
+
+
+         .. step:: Specify Read Preference Tags
+
+            If you specify a read preference other than ``primary``, you can also
+            specify one or more :manual:`read preference tags
+            </core/read-preference/#replica-set-read-preference-tag-sets>`. To
+            serve a read request, a :manual:`replica set member
+            </core/replica-set-members>` must include all of the specified read
+            preference tags in its node configuration. To specify a read
+            preference tag set for a cluster, ensure that you have specified a
+            ``readPreference`` other than ``primary``, and then add one or more
+            tag definition objects to ``config.readPreferenceTagSets``:
+
+            .. code-block:: json
+               :emphasize-lines: 6-9
+               :caption: /data_sources/<Service Name>/config.json
+
+               {
+                  "name": "<MongoDB Service Name>",
+                  "type": "mongodb-atlas",
+                  "config": {
+                     "readPreference": "<Read Preference Mode (other than primary)>",
+                     "readPreferenceTagSets": [
+                        { <Tag Key>: <Tag Value> },
+                        ...
+                     ],
+                  }
+               }
+
+            .. note:: Atlas Cluster Tag Sets
+
+               Atlas clusters are configured with pre-defined tag sets for each
+               member node depending on the member's type. For detailed information
+               on which tags are defined nodes in an Atlas cluster, see :atlas:`Atlas
+               Replica Set Tags </reference/replica-set-tags>`.
+
+
+         .. step:: Deploy the Updated Data Source Configuration
+
+            Once you've set the read preference for the cluster, you can push the updated
+            config to your remote app. {+cli+} immediately deploys the update on push.
+
+            .. code-block:: bash
+
+               {+cli-bin+} push --remote="<Your App ID>"

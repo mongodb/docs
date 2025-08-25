@@ -1,0 +1,126 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+============================
+GitHub Snippets [Deprecated]
+============================
+
+.. include:: /includes/note-third-party-services-deprecation.rst
+
+Overview
+--------
+
+The code snippets on this page cover demonstrate how you can respond to
+events in a GitHub repository through the :doc:`GitHub Service
+</services/github>`. All of the snippets require a GitHub Service
+interface with rules that allow the service actions used in the snippet.
+
+If your app does not have a GitHub Service interface, :doc:`create one
+</services/configure/services>` before using these snippets.
+
+.. contents:: GitHub Snippets
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Log All Commits in MongoDB
+--------------------------
+
+This :ref:`GitHub incoming webhook <github-incoming-webhooks>` function
+records all commits pushed to a repo in MongoDB based on a
+:github-dev:`PushEvent <v3/activity/events/types/#pushevent>` payload
+from GitHub.
+
+.. code-block:: javascript
+
+   exports = async function(pushEvent) {
+     // Parse the list of commits from the PushEvent payload.
+     // Also grab the user that pushed the commits and the repo information.
+     const { commits, pusher, repository } = pushEvent;
+
+     // Create a new array of log documents, one for each commit
+     const commitLogs = commits.map(commit => {
+       return {
+         commit: commit,
+         pushed_by: pusher,
+         repo: {
+           name: repository.name,
+           url: repository.url
+         }
+       }
+     })
+
+     // Get a client for the `GitHubRepo.logs` collection in MongoDB
+     const mongodb = context.services.get("mongodb-atlas");
+     const logs = mongodb.db("GitHubRepo").collection("commit-logs");
+
+     // Insert the log documents in MongoDB
+     try {
+       const insertResult = await logs.insertMany(commitLogs)
+       console.log(insertResult.insertedIds);
+     } catch(err) {
+       console.error(err)
+     }
+   };
+
+Automatically Comment On New Pull Requests
+------------------------------------------
+
+This :ref:`GitHub incoming webhook <github-incoming-webhooks>` function
+adds a comment to new pull requests that thanks users for submitting.
+The webhook accepts a :github-dev:`PullRequestEvent
+<v3/activity/events/types/#pullrequestevent>` payload from GitHub and
+uses an :doc:`HTTP service </services/http>` client to
+:github-dev:`create a comment <v3/issues/comments/#create-a-comment>`
+through the GitHub API.
+
+.. code-block:: javascript
+   :emphasize-lines: 34-35
+
+   exports = async function(pullRequest) {
+     // Get information about the PR from the PullRequestEvent
+     const { action, repository, pull_request: pr } = pullRequest;
+
+     // Only run if this is a new PR
+     if (action !== "opened") { return }
+
+     // Construct the GitHub API URL for this PR's Comments
+     const pr_comments_url = {
+       scheme: "https",
+       host: "api.github.com",
+       path: `/repos/${repository.owner.login}/${repository.name}/issues/${pr.number.$numberInt}/comments`,
+     };
+     // Specify GitHub API Basic Authentication Fields and Headers
+     const github_basic_auth = {
+       username: context.values.get("github-credentials").username,
+       password: context.values.get("github-credentials").password,
+     };
+     const headers = {
+       // OPTIONAL: Include this header if your security settings require a 2fa code
+       "X-GitHub-OTP": ["<2fa Code>"]
+     };
+     // Specify the comment text
+     const body = EJSON.stringify({
+       body: `Thank you for submitting a pull request, ${pr.user.login}!`
+     });
+
+     try {
+       // Get an HTTP service client. The service rules should allow you
+       // to send POST requests to `https://api.github.com`.
+       const http = context.services.get("<HTTP Service Name>");
+
+       // Send the Request to GitHub
+       const request = { ...github_basic_auth, ...pr_comments_url, headers, body };
+       const result = await http.post(request);
+
+       // Check for a Successful Result
+       if (result.statusCode == 201) {
+         return "Successfully commented on the pull request!";
+       } else {
+         throw new Error(`Received a bad result status from GitHub: ${result.body.text()}`);
+       }
+     } catch (err) {
+       console.error("Something went wrong while posting the comment.", err);
+     }
+   };

@@ -1,0 +1,238 @@
+.. meta::
+   :robots: nosnippet
+
+.. _enable-realm-sync:
+.. _enable-sync:
+.. _alter-your-sync-configuration:
+
+======================================
+Configure and Enable Atlas Device Sync
+======================================
+
+.. default-domain:: mongodb
+
+..
+   Note: Depth is "1" to avoid headings within tabs
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+You can configure and enable Atlas Device Sync via the App Services UI, {+cli+}, or
+the Atlas App Services Admin API. You can update an existing configuration in
+the same way. If it is your first time enabling Device Sync, the UI is a great
+choice because it walks you through the required steps.
+
+You might want to alter your Atlas Device Sync configuration after you have
+already enabled Device Sync. You can update a configuration using the same
+procedure as enabling Device Sync in the first place. If you're using Flexible
+Sync mode, you can update your configuration without needing to terminate and
+re-enable Sync.
+
+If you're re-enabling Device Sync after pausing or terminating it, refer to
+:ref:`Resume <resume-sync>` or :ref:`Re-Enable <re-enable-realm-sync>` Device
+Sync.
+
+.. tip::
+
+   Device Sync pauses automatically after {+sync-inactive-app-pause-time+} 
+   of inactivity.
+
+Prerequisites
+-------------
+
+If you haven't already decided how you want to configure your data model, see
+:ref:`sync-schema-overview`.
+
+Unless you are using :ref:`Development Mode <development-mode>`, you must
+specify at least one valid :ref:`schema <schemas>` for a collection in the
+synced cluster before enabling Sync. At a minimum, the schema must define
+``_id`` as a primary key. You should also include the field(s) you intend to use
+as your :ref:`queryable fields <queryable-fields>`.
+
+For more details on how to define a schema, see :ref:`enforce-a-schema`.
+
+.. _sync-modes:
+.. _enable-flexible-sync:
+
+Procedure
+---------
+
+.. include:: /includes/note-flexible-sync-prerequisite.rst
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+      
+      .. procedure::
+
+         .. step:: Navigate to the Device Sync Configuration Screen
+
+            To enable Device Sync for your application, navigate to the
+            :guilabel:`Device Sync` configuration screen through the left
+            navigation menu.
+
+         .. step:: Specify Your Sync Settings
+
+            Follow the prompts to configure Device Sync. For details on the
+            available configuration settings, refer to :ref:`sync-settings`.
+
+         .. step:: Turn On Sync
+
+            Click :guilabel:`Enable Sync`, take note of any
+            recommendations that appear and then confirm your choice.
+
+     
+   .. tab::
+      :tabid: cli
+      
+      .. procedure::
+
+         .. step:: Authenticate a MongoDB Atlas User
+
+            .. include:: /includes/cli-login.rst
+
+         .. step:: Pull the Latest Version of Your App
+
+            .. include:: /includes/cli-pull-latest.rst
+
+         .. step:: Add a Sync Configuration
+
+            You can enable sync for a single linked cluster in your application.
+            If you have not yet linked the cluster to your application, follow the
+            :ref:`link-a-data-source` guide first.
+
+            The App Services App has a ``sync`` directory where you can find 
+            the :ref:`sync configuration file <appconfig-sync>`. If you have not 
+            yet enabled Sync, this directory is empty.
+
+            Add a ``config.json`` similar to:
+
+            .. code-block:: json
+
+               {
+                 "type": "flexible",
+                 "development_mode_enabled": <Boolean>,
+                 "service_name": "<Data Source Name>",
+                 "database_name": "<Development Mode Database Name>",
+                 "state": <"enabled" | "disabled">,
+                 "client_max_offline_days": <Number>,
+                 "is_recovery_mode_disabled": <Boolean>,
+                 "indexed_queryable_fields_names": <Array of String Field Names>,
+                 "queryable_fields_names": <Array of String Field Names>,
+                 "collection_queryable_fields_names": <Map[String][]String>
+               }
+               
+            For details, refer to the :ref:`sync-configuration-reference`.
+
+         .. step:: Deploy the Sync Configuration
+
+            Deploy your changes to start syncing data. Import your app
+            configuration:
+
+            .. code-block:: shell
+
+               {+cli-bin+} push --remote="<Your App ID>"
+     
+   .. tab::
+      :tabid: api
+      
+      .. procedure::
+
+         .. step:: Select a Cluster to Sync
+
+            You can enable Device Sync for a single linked cluster in your
+            application. If you have not yet linked the cluster to your
+            application, follow the :ref:`link-a-data-source` guide.
+
+            .. note:: Authenticating Your Request with an Access Token
+
+              To authenticate your request to the App Services Admin API, you need a valid and
+              current authorization token from the MongoDB Cloud API. Read the
+              :admin-api-endpoint:`API Authentication <section/Get-Authentication-Tokens>`
+              documentation to learn how to acquire a valid access token.
+
+            You'll need the cluster's service configuration file to configure sync. You
+            can find the configuration file by :admin-api-endpoint:`listing all services 
+            through the Admin API <operation/adminListServices>`:
+
+            .. code-block:: shell
+               :caption: Find Your Cluster's Id
+
+               curl https://services.cloud.mongodb.com/api/admin/v3.0/groups/{GROUP_ID}/apps/{APP_ID}/services \
+                 -X GET \
+                 -h 'Authorization: Bearer <Valid Access Token>'
+
+            Identify the cluster whose configuration you need to update to enable
+            Sync. If you have accepted the default names when configuring 
+            your App, this should be a cluster whose ``name`` is ``mongodb-atlas``
+            and ``type`` is ``mongodb-atlas``. You need this cluster's ``_id``.
+
+            Now you can :admin-api-endpoint:`get the service configuration file for 
+            this cluster <operation/adminGetServiceConfig>`:
+
+            .. code-block:: shell
+               :caption: Get the Service Configuration File for the Cluster
+
+               curl https://services.cloud.mongodb.com/api/admin/v3.0/groups/{GROUP_ID}/apps/{APP_ID}/services/{MongoDB_Service_ID}/config \
+                 -X GET \
+                 -h 'Authorization: Bearer <Valid Access Token>'
+
+            To configure Sync, we will add a ``flexible_sync`` object to this configuration in a following step.
+
+         .. step:: Enable Development Mode (optional)
+
+            If you would like to enable :ref:`Development Mode <development-mode>` to streamline production, 
+            use the following command:
+
+            .. code-block:: shell
+               :caption: Enable Development Mode
+
+               curl https://services.cloud.mongodb.com/api/admin/v3.0/groups/{GROUP_ID}/apps/{APP_ID}/sync/config \
+                 -X PUT \
+                 -h 'Authorization: Bearer <Valid Access Token>' \
+                 -h "Content-Type: application/json" \
+                 -d '{"development_mode_enabled": true}'
+
+         .. step:: Add and Deploy the Sync Configuration
+
+            To deploy your changes and start syncing data, send an
+            Admin API request that :admin-api-endpoint:`updates the cluster
+            configuration <operation/adminUpdateServiceConfig>` with a 
+            ``flexible_sync`` object using the following template configuration:
+
+            .. code-block:: shell
+               :caption: Update Sync Configuration
+
+               curl https://services.cloud.mongodb.com/api/admin/v3.0/groups/{GROUP_ID}/apps/{APP_ID}/services/{MongoDB_Service_ID}/config \
+                 -X PATCH \
+                 -h 'Authorization: Bearer <Valid Access Token>' \
+                 -h "Content-Type: application/json" \
+                 -d '<Flexible Sync Configuration>'
+
+            .. code-block:: json
+               :caption: Flexible Sync Configuration
+
+               {
+                 "flexible_sync": {
+                   "state": "enabled",
+                   "database_name": "<Name of Database>",
+                   "client_max_offline_days": <Number>,
+                   "is_recovery_mode_disabled": <Boolean>,
+                   "indexed_queryable_fields_names": <Array of String Field Names>,
+                   "queryable_fields_names": <Array of String Field Names>,
+                   "collection_queryable_fields_names": <Map[String][]String>
+                 }
+               }
+
+            
+            For details on the Sync configuration, refer to the :ref:`sync-configuration-reference`.
+
+            You can confirm the Sync configuration is added by getting the service
+            configuration again, as described in Step 1. 

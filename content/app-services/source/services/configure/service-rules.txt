@@ -1,0 +1,174 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+====================================
+Configure Service Rules [Deprecated]
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/note-third-party-services-deprecation.rst
+
+Overview
+--------
+
+In order to call a service action, you must first define a :ref:`service
+rule <service-rules>` that enables and configures the capabilities of
+the action. You can define service rules from the Atlas App Services UI or by
+:ref:`importing <deploy-cli>` a service
+configuration directory that contains a rule configuration file. Select
+the tab below that corresponds to the method you want to use.
+
+Procedure
+---------
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      .. procedure::
+
+         .. step:: Create a New Rule
+
+            You can create and configure a service rule from its associated
+            :doc:`service </reference/services>` page in the App Services UI.
+
+            To define a new service rule:
+
+            1. Click :guilabel:`Services` in the left navigation menu.
+
+            2. Click on the service that you want to specify a rule for.
+
+            3. Click on the :guilabel:`Rules` tab of the service.
+
+            4. Click :guilabel:`New Rule`.
+
+            5. Specify a name for the rule in the textbox that appears.
+
+            6. Click :guilabel:`Add Rule` to confirm the creation of the new rule.
+
+
+         .. step:: Configure the Rule
+
+            To configure the new service rule you just created:
+
+            1. Click on the newly created rule in the rules list on the left-hand
+               side of the page.
+
+            2. In the list of :guilabel:`Actions`, select all of the actions that
+               you want the rule to apply to.
+
+            3. For the :guilabel:`When` box, specify a :ref:`rule expression
+               <expressions>` that evaluates to ``true`` when you want the action to be
+               permitted.
+
+               .. note::
+
+                  If you specify ``{}``, the expression will always evaluate to
+                  ``true`` and App Services will always allow the associated actions to
+                  be called.
+
+            .. figure:: /images/define-service-rule.png
+               :alt: An example rule configuration for the HTTP service in the UI
+               :lightbox:
+
+
+         .. step:: Save the Configured Rule
+
+            Once you've finished configuring the rule, click :guilabel:`Save`.
+            Once saved, the rule takes effect immediately.
+
+   
+   .. tab::
+      :tabid: cli
+      
+      .. procedure::
+
+         .. step:: Pull Your App's Latest Configuration Files
+
+            .. code-block:: shell
+
+               realm-cli pull --remote=<App ID>
+
+
+         .. step:: Create a Service Rule Directory
+
+            If it doesn't already exist, create a new ``rules`` subdirectory in
+            the ``/services`` folder of the exported directory.
+
+            .. code-block:: shell
+
+               mkdir -p services/<service name>/rules
+
+
+         .. step:: Create and Configure a New Service Rule
+
+            Add a rule configuration JSON file to the ``rules`` directory. The
+            configuraiton file should have the same name as the rule and have the
+            following form:
+
+            .. code-block:: json
+
+               {
+                 "name": <string>,
+                 "actions": [<action>, ...],
+                 "when": <JSON expression>
+               }
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 10 30
+
+               * - Configuration Value
+                 - Description
+
+               * - | :guilabel:`Rule Name`
+                   | *name*
+
+                 - Required. A name for the rule. The name should be unique
+                   within the service.
+
+               * - | :guilabel:`Actions`
+                   | *actions*
+
+                 - Required. An array of strings where each item is the name of
+                   a service action that the rule applies to.
+
+                   .. example::
+
+                      An HTTP service rule that only applies to the
+                      :doc:`http.post()
+                      </services/http-actions/http.post>` service
+                      action would have the following ``action`` value:
+
+                      .. code-block:: json
+
+                        "actions": [
+                          "post"
+                        ]
+
+               * - | :guilabel:`When`
+                   | *when*
+
+                 - Required. A :ref:`rule expression <expressions>` that determines if a
+                   service action should actually execute after being called. App Services
+                   will only execute the action if the expression resolves to ``true``. If
+                   you do not specify an expression, :guilabel:`Can Evaluate` defaults to
+                   ``true``.
+
+
+         .. step:: Deploy the Rule
+
+            Push the rule configuration to deploy it to your app. Once you have deployed,
+            App Services immediately begins to enforce the rule.
+
+            .. code-block:: shell
+
+               realm-cli push

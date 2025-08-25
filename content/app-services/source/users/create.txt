@@ -1,0 +1,336 @@
+.. meta::
+   :robots: nosnippet
+
+==================
+Create an App User
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Atlas App Services provides various :ref:`authentication providers <authentication-providers>`
+to log users into your app. For most providers, App Services automatically creates a 
+user account the first time a user authenticates through the provider. The only exception is 
+:ref:`email/password user authentication <create-email-password-user>`, which requires 
+registering and confirming a user before the user can authenticate.
+
+.. include:: /includes/apple-account-deletion-requirements.rst
+
+Identity
+--------
+
+When you first log in with an authentication provider, App Services creates a 
+:ref:`user object <user-objects>` that contains a unique identity ID and 
+:ref:`provider-specific metadata <auth-provider-metadata>` about the user.
+
+Link to Existing Accounts
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A single user object can have more than one identity. You can use the Realm SDKs 
+to link identities to existing user accounts. This allows users to log in to 
+a single account with more than one provider. For more information, see the 
+documentation on linking identities for your preferred SDK:
+
+- :ref:`Link User Identities - Flutter SDK <flutter-link-user-identities>`
+- :ref:`Link User Identities - Java SDK <java-link-user-identities>`
+- :ref:`Link User Identities - Kotlin SDK <kotlin-link-user-identities>`
+- :ref:`Link User Identities - .NET SDK <dotnet-link-user-identities>`
+- :ref:`Link User Identities - Node.js SDK <node-link-user-identities>`
+- :ref:`Link User Identities - React Native SDK <react-native-link-user-identities>`
+- :ref:`Link User Identities - Swift SDK <ios-link-user-identities>`
+- :ref:`Link User Identities - Web SDK <web-link-user-identities>`
+
+.. _create-email-password-user:
+
+Create an Email/Password User
+-----------------------------
+
+When you use :ref:`email/password user authentication 
+<email-password-authentication>`, you must first register a user, which creates 
+the user object. You can register users in your client application
+using your preferred SDK or you can manually create email/password users.
+
+After registering the user, you must :ref:`confirm the user <confirm-user>` 
+before they can authenticate.
+
+Create an Email/Password User in the SDK
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each SDK offers an API that enables you to register an email/password user. 
+After registering the user, you must confirm the user before the they can 
+authenticate. For code examples that demonstrate how to manage email/password 
+users in the client application, see the documentation for the Realm SDKs:
+
+- :ref:`Create Email/Password Users - C++ SDK <cpp-manage-users>`
+- :ref:`Create Email/Password Users - Flutter SDK <flutter-manage-email-password-users-register>`
+- :ref:`Create Email/Password Users - Java SDK <java-register-a-new-user-account>`
+- :ref:`Create Email/Password Users - Kotlin SDK <kotlin-manage-email-password-users>`
+- :ref:`Create Email/Password Users - .NET SDK <dotnet-email-password-register-new-user>`
+- :ref:`Create Email/Password Users - Node SDK <node-register-new-user>`
+- :ref:`Create Email/Password Users - React Native SDK <react-native-register-new-user>`
+- :ref:`Create Email/Password Users - Swift SDK <ios-register-a-new-user-account>`
+- :ref:`Create Email/Password Users - Web SDK <web-manage-email-password-users>`
+
+Manually Create an Email/Password User
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can create a new :ref:`Email/Password <email-password-authentication>` user
+from the App Services UI, CLI, or Admin API. Manually-created users bypass any 
+configured user confirmation flows.
+
+.. tip::
+   
+   Manually creating a user can be useful for testing and debugging your application in
+   development.
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      #. Select :guilabel:`App Users` from the left navigation menu.
+      
+      #. Click the :guilabel:`Add New User` button.
+      
+      #. Specify an email address and password for the new user.
+      
+         .. note::
+      
+            The Email/Password authentication provider requires passwords to be
+            between 6 and 128 characters long.
+      
+      #. Click :guilabel:`Create`.
+      
+      .. note::
+         
+         You can also create API keys that applications use to connect to your
+         App. Although API Keys are not associated with
+         a single user, the :guilabel:`Users` tab lists them. To learn more
+         about API keys, see :doc:`API Key Authentication
+         </authentication/api-key>`.
+   
+   .. tab::
+      :tabid: cli
+      
+      To create a new email/password user, call ``{+cli-bin+} users create`` and
+      specify ``--type=email``. The CLI will prompt you for your App ID as well
+      as the new user's email and password.
+      
+      .. code-block:: bash
+         
+         {+cli-bin+} users create --type=email
+      
+      You can also specify the arguments when you call the program:
+      
+      .. code-block:: bash
+         
+         {+cli-bin+} users create --type=email \
+           --app=<Your App ID> \
+           --email=<User's Email Address> \
+           --password=<User's Password>
+         
+      .. note::
+         
+         The Email/Password authentication provider requires passwords to be
+         between 6 and 128 characters long.
+
+   .. tab::
+      :tabid: api
+
+      To create a new email/password user, create a ``POST`` request 
+      in the following format. You must specify the user credentials 
+      in the request body and the Group and App ID in the request URL.
+
+      .. code-block:: sh
+
+         curl --request POST \
+           --header 'Authorization: Bearer <access_token>' \
+           --data '{ "email": "<string>", "password": "<string>" }' \
+           https://services.cloud.mongodb.com/api/admin/v3.0/groups/<groupId>/apps/<appId>/users
+
+      .. note::
+         
+         The Email/Password authentication provider requires passwords to be
+         between 6 and 128 characters long.
+
+      .. seealso::
+       
+         :admin-api-endpoint:`Admin API Documentation <operation/adminCreateUser>`
+
+.. _confirm-user:
+
+Confirm a User
+--------------
+
+You must confirm the email address of new
+:doc:`Email/Password users </authentication/email-password>`
+before they are permitted to log into App Services. The
+exact method of confirmation depends upon your provider
+configuration, but typically involves a
+:wikipedia:`handshake process <Handshaking>` between the
+user and your application. You can read more about
+Email/Password user confirmation at :ref:`Email/Password
+Confirmation <email-password-authentication-confirmation>`.
+
+Sometimes, users are unable to complete the confirmation
+process. For example:
+
+- An overzealous spam filter might block App Services email confirmation
+  emails.
+
+- A proxy or web blocker could prevent a user from activating the
+  ``confirmUser`` client SDK function via the client application.
+
+- An implementation error could cause the client application's user
+  confirmation page to fail for specific use cases.
+
+To help you work around cases like this, you can confirm
+users manually using the App Services UI or the Admin API:
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+
+      To confirm a pending email/password user in the UI:
+
+      #. Select :guilabel:`App Users` from the left navigation menu.
+
+      #. Under the :guilabel:`Users` tab, select the :guilabel:`PENDING`
+         button.
+
+      #. Find the user in the list and click on the ellipsis (``...``).
+
+      #. Select the :guilabel:`Confirm User` option from the context menu that
+         appears.
+
+      #. If the operation succeeds, the banner at the top of the App Services
+         admin console should display a confirmation message. The user's
+         :guilabel:`User Status` changes from :guilabel:`Pending Confirmation`
+         to :guilabel:`Pending User Login`.
+
+      A manually-confirmed user continues to appear in the :guilabel:`PENDING`
+      user list until they log in to your application for the first time, at
+      which point App Services moves them into the list of confirmed users and
+      transitions their :guilabel:`User Status` to ``confirmed``.
+
+   .. tab::
+      :tabid: api
+
+      To confirm a pending email/password user using the Admin API, create 
+      a ``POST`` request in the following format. You must specify the Group 
+      ID, App ID, and email address.
+
+      .. code-block:: sh
+
+         curl --request POST \
+           --header 'Authorization: Bearer <access_token>' \
+           https://services.cloud.mongodb.com/api/admin/v3.0/groups/<groupId>/apps/<appId>/user_registrations/by_email/<email>/confirm
+
+      .. seealso::
+       
+         :admin-api-endpoint:`Admin API Documentation <operation/adminConfirmPendingUser>`
+
+Re-run the User Confirmation Workflow
+-------------------------------------
+
+A few circumstances can lead to incomplete Email/Password user
+confirmation workflows:
+
+- An email is caught by a spam filter, not delivered due to a bug, or
+  accidentally deleted by a prospective App Services user.
+
+- A custom confirmation function is unable to communicate with an
+  unconfirmed user due to a bug or oversight.
+
+- An unconfirmed user forgot to visit their confirmation link within 30
+  minutes of receiving their login tokens, and the tokens expired.
+
+Users caught in this situation appear stuck in an unconfirmed state.
+Since an existing account has their email registered to it, users cannot
+create a new account with the same email address. Also, they cannot log
+into an account that is not confirmed.
+
+Applications that use the built-in email confirmation service of App Services
+can use the ``resendConfirmationEmail`` Client SDK method to send a new
+email with a new confirmation link to the user, allowing them to confirm
+their account and log in. Calling this method will result in an error by
+any application using a confirmation flow other than ``send a
+confirmation email``.
+
+There is no such specific method to re-run a custom confirmation
+function. Instead, App Services has a method to trigger a re-run of whatever
+the current Email/Password user confirmation workflow happens to be. You
+can manually re-run the currently selected user confirmation flow using
+the App Services UI or the :doc:`App Services Admin API </admin/api/v3>`:
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+
+      To re-run the confirmation workflow for a user in the UI:
+
+      #. Select :guilabel:`App Users` from the left navigation menu.
+
+      #. Under the :guilabel:`Users` tab, select the :guilabel:`PENDING`
+         button.
+
+      #. Find the user in the list and click on the ellipsis (``...``).
+
+      #. Select the :guilabel:`Run user confirmation` option from the context
+         menu that appears.
+
+      #. Select the :guilabel:`Run User Confirmation` button in the dialogue
+         box that appears.
+
+      #. If the operation succeeds, the banner at the top of the App Services
+         admin console should display a confirmation message. The user's
+         :guilabel:`User Status` changes from :guilabel:`Pending Confirmation`
+         to :guilabel:`Pending User Login`. Once the user logs in, they will
+         move into the list of active users automatically.
+
+      If the re-run fails or the user's tokens expire again, you can re-run
+      the confirmation function as many times as necessary.
+
+   .. tab::
+      :tabid: api
+
+      To re-run the confirmation workflow for a user using the Admin API, create a 
+      ``POST`` request in the following format. You must specify the Group ID, App ID, 
+      and email address.
+
+      .. code-block:: sh
+
+         curl --request POST \
+           --header 'Authorization: Bearer <access_token>' \
+           https://services.cloud.mongodb.com/api/admin/v3.0/groups/<groupId>/apps/<appId>/user_registrations/by_email/<email>/run_confirm
+
+      .. seealso::
+       
+         :admin-api-endpoint:`Admin API Documentation <operation/adminRerunPendingUserConfirmation>`
+
+Summary
+-------
+
+- For all providers except for Email/Password authentication,
+  App Services automatically creates a user object the first time a user authenticates.
+
+- You can log in to a single account with more than one provider by using the Realm SDKs
+  to link identities.
+
+- The Email/Password authentication provider requires users to create an
+  account the first time they connect to your App.
+
+- Email/Password users must be confirmed manually through the App Services UI or Admin API.
+
+- Users caught in an incomplete Email/Password confirmation workflow
+  must re-run the confirmation through the App Services UI or Admin API.

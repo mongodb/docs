@@ -1,0 +1,203 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _config-expansions:
+
+==============================================
+Create Template Configurations with Expansions
+==============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Atlas App Services supports a replacement operator (``%()``) that dynamically resolves JSON
+expansions like :json-expansion:`%%environment` in your :ref:`configuration
+files <app-configuration>`. When you create a new app with configuration files
+that include expansions (either with :ref:`{+cli+} <deploy-cli>` or through
+:ref:`GitHub <deploy-github>`), App Services automatically resolves the expansions and
+uses the resolved configuration files to create the app.
+
+Configuration files that use the replacement operator are *templates*.
+Once you create an app from a template, the app uses a copy of the
+configuration files that reflect the resolved values at the time the app
+was created. You can use the same template to create multiple apps with
+different configurations.
+
+.. important::
+
+   The replacement operator is currently only supported for
+   configuration fields with string values. You cannot use expansions
+   for boolean, number, object, or array values.
+
+   For example, you can use expansions to template the ``clusterName`` field:
+
+   .. code-block:: json
+      :caption: Valid Template Data Source Configuration
+      :emphasize-lines: 5
+
+      {
+        "name": "mongodb-atlas",
+        "type": "mongodb-atlas",
+        "config": {
+          "clusterName": "%(%%environment.values.clusterName)",
+          "readPreference": "primaryPreferred",
+          "wireProtocolEnabled": false
+        }
+      }
+
+   But you cannot use expansions to template the ``wireProtocolEnabled``
+   field because it has a boolean value:
+
+   .. code-block:: json
+      :caption: Invalid Template Data Source Configuration
+      :emphasize-lines: 7
+
+      {
+        "name": "mongodb-atlas",
+        "type": "mongodb-atlas",
+        "config": {
+          "clusterName": "Cluster0",
+          "readPreference": "primaryPreferred",
+          "wireProtocolEnabled": %(%%environment.values.wireProtocolEnabled)
+         }
+      }
+
+Define a Template
+-----------------
+
+.. procedure::
+
+   .. step:: Define Environment Values
+
+      You can use expansions to template any environment. For each environment that
+      you use, define values that you reference in your configuration files.
+
+      .. example::
+
+         The following environments configure different MongoDB Atlas cluster names:
+
+         .. code-block:: json
+            :caption: environments/development.json
+
+            {
+              "values": {
+                "clusterName": "atlas-development"
+              }
+            }
+
+         .. code-block:: json
+            :caption: environments/production.json
+
+            {
+              "values": {
+                "clusterName": "atlas-production"
+              }
+            }
+
+
+   .. step:: Define an Expansion Replacement
+
+      You can reference any environment value from a configuration file with the
+      ``%()`` replacement operator and the :json-expansion:`%%environment`
+      expansion. Define expansions for each configuration file you want to template.
+
+      .. example::
+
+         The following template configuration file for the ``mongodb-atlas`` data
+         source uses expansions to dynamically resolve ``clusterName`` based on the
+         environment:
+
+         .. code-block:: json
+            :caption: data_sources/mongodb-atlas/config.json
+            :emphasize-lines: 5
+
+            {
+              "name": "mongodb-atlas",
+              "type": "mongodb-atlas",
+              "config": {
+                "clusterName": "%(%%environment.values.clusterName)",
+                "readPreference": "primaryPreferred",
+                "wireProtocolEnabled": true
+              }
+            }
+
+
+   .. step:: Specify an Environment
+
+      Choose which environment to deploy your app to and then update the
+      app configuration with the environment name:
+
+      .. code-block::
+         :caption: root_config.json
+         :emphasize-lines: 3
+
+         {
+           "name": "MyApp",
+           "environment": "development",
+           "deployment_model": "LOCAL",
+           "location": "aws-us-east-1"
+         }
+      
+      .. tip::
+
+         If you do not specify an environment, ``%%environment``
+         expansions resolve to values in
+         ``environments/no-environment.json``.
+
+   .. step:: Create a New Templated App
+
+      You can now use your templated configuration files to create a new
+      app in your chosen environment.
+
+      .. example::
+
+         App Services uses the template configuration to generate
+         new, resolved configuration files on import:
+
+         .. code-block:: shell
+
+            {+cli-bin+} push
+
+         .. code-block:: json
+            :caption: data_sources/mongodb-atlas/config.json
+            :emphasize-lines: 5
+
+            {
+              "name": "mongodb-atlas",
+              "type": "mongodb-atlas",
+              "config": {
+                "clusterName": "atlas-development",
+                "readPreference": "primaryPreferred",
+                "wireProtocolEnabled": true
+              }
+            }
+
+Development Workflow
+--------------------
+
+You can use configuration expansions for any App, but the most useful case
+is for teams that develop a production application with source code files stored
+in an external version control system like GitHub. You can create independent
+apps to develop features or test changes and use expansions to customize the
+apps based on their environment.
+
+1. :ref:`Create a copy <copy-app>` of the common template with the
+   environment set to ``development``. If you're using Git, create a new branch
+   on GitHub and check out a local copy.
+
+2. Make changes and test them locally against the development app. Any changes
+   you make to the app won't affect the production app, though they may still
+   read and write production data sources and services unless you configure
+   alternatives.
+
+3. Commit changes and merge them back to production. You can set up a CI/CD
+   pipeline, which may itself create an app in the ``test`` environment, to
+   validate and merge your changes into the production branch.
+
+4. Once your changes are merged, you can safely delete the development app and
+   clean up any other associated services.

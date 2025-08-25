@@ -1,0 +1,8 @@
+-  ``"anon-user"``
+-  ``"local-userpass"``
+-  ``"api-key"``
+-  ``"custom-token"``
+-  ``"custom-function"``
+-  ``"oauth2-facebook"``
+-  ``"oauth2-google"``
+-  ``"oauth2-apple"``

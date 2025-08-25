@@ -1,0 +1,906 @@
+.. meta::
+   :robots: nosnippet
+
+.. _graphql-custom-resolvers:
+
+========================
+Define a Custom Resolver
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You can define custom resolvers that extend the GraphQL API for your app's use
+cases. Custom resolvers allow you to define new root-level operations that are
+more complex or specific than the generated :ref:`query
+<graphql-query-resolvers>` and :ref:`mutation <graphql-mutation-resolvers>`
+resolvers. You can also add new computed fields to :ref:`generated document
+types <graphql-document-types>` that dynamically evaluate a result whenever an
+operation reads a document of the extended type.
+
+Procedure
+---------
+
+.. procedure::
+
+   .. step:: Create a New Custom Resolver
+
+      In the App Services UI, click :guilabel:`GraphQL` in the navigation sidebar and then
+      select the :guilabel:`Custom Resolvers` tab.
+
+      Click the :guilabel:`Add a Custom Resolver` button to open the configuration
+      screen for a new custom resolver.
+
+      .. figure:: /images/graphql-add-a-custom-resolver.png
+         :alt: The custom resolvers screen in the App Services UI
+         :width: 750px
+
+
+   .. step:: Define the Resolver Field Name
+
+      Specify App Servicese name for the resolver in the :guilabel:`GraphQL Field
+      Name` input. App Services exposes the custom resolver in its parent type using this
+      name, so the name should describe what the resolver does in a way that is
+      useful to developers who work with the GraphQL API.
+
+   .. step:: Define the Parent Type
+
+      App Services exposes every custom resolver as a field on a parent type. The parent
+      type can be a root-level :ref:`query <graphql-query-resolvers>`,
+      :ref:`mutation <graphql-mutation-resolvers>`, or a :ref:`generated document
+      type <graphql-document-types>`.
+
+      In the :guilabel:`Parent Type` dropdown, select one of the following options:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 80
+
+         * - Option
+           - Description
+
+         * - :guilabel:`Query`
+           - The resolver is a root-level ``query`` operation:
+
+             .. example::
+
+                A custom resolver for a query named ``myCustomQuery`` has the
+                following generated schema:
+
+                .. code-block:: graphql
+
+                   type Query {
+                     myCustomQuery: DefaultPayload
+                     ...
+                   }
+
+         * - :guilabel:`Mutation`
+           - The resolver is a root-level ``mutation`` operation:
+
+             .. example::
+
+                A custom resolver for a mutation named ``myCustomMutation`` has the
+                following generated schema:
+
+                .. code-block:: graphql
+
+                   type Mutation {
+                     myCustomMutation: DefaultPayload
+                     ...
+                   }
+
+         * - :guilabel:`Document Type`
+           - The resolver is a computed property on the specified document type.
+             Any query or mutation that returns the document type can also ask for
+             computed properties defined by custom resolvers on the type.
+
+             .. example::
+
+                A custom resolver that defines a computed property on the ``Task``
+                type named ``myCustomTaskProperty`` has the following generated
+                schema:
+
+                .. code-block:: graphql
+
+                   type Task {
+                     myCustomTaskProperty: DefaultPayload
+                     ...
+                   }
+
+
+   .. step:: Define the Input Type
+
+      A custom resolver can accept input parameters from the incoming query or
+      mutation. You can use an existing :ref:`generated input type
+      <graphql-input-types>` or define a new custom input type specifically for the
+      resolver.
+
+      If you specify an input type, App Services exposes the ``input`` parameter in the
+      custom resolver's generated GraphQL schema definition as an optional parameter
+      that accepts the specified input type. If you don't specify an input type, the
+      custom resolver does not accept any arguments.
+
+      In the :guilabel:`Input Type` dropdown, select one of the following options:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 80
+
+         * - Option
+           - Description
+
+         * - :guilabel:`None`
+           - The resolver does not accept any input.
+
+             .. example::
+
+                A custom resolver named ``myCustomQuery`` that does not accept an
+                input has the following generated schema:
+
+                .. code-block:: graphql
+
+                   type Query {
+                     myCustomQuery: DefaultPayload
+                     ...
+                   }
+
+         * - :guilabel:`Scalar`
+           - The resolver uses an existing :ref:`scalar type <graphql-scalar-types>`
+             from the generated GraphQL schema.
+
+             In the second dropdown input, select either a single scalar or an array
+             of multiple scalars of the same type.
+
+             .. example::
+
+                A custom resolver named ``myCustomQuery`` that uses the
+                :guilabel:`Scalar Type` option to specify an input type of
+                ``DateTiem`` has the following generated schema:
+
+                .. code-block:: graphql
+
+                   type Query {
+                     myCustomQuery(input: DateTime): DefaultPayload
+                     ...
+                   }
+
+         * - :guilabel:`Existing Type`
+           - The resolver uses an existing :ref:`input type <graphql-input-types>`
+             from the generated GraphQL schema.
+
+             In the second dropdown input, select either a single input object or an
+             array of multiple input objects of the same type.
+
+             .. example::
+
+                A custom resolver named ``myCustomQuery`` that uses the
+                :guilabel:`Existing Type` option to specify an input type of
+                ``TaskInsertInput`` has the following generated schema:
+
+                .. code-block:: graphql
+
+                   type Query {
+                     myCustomQuery(input: TaskInsertInput): DefaultPayload
+                     ...
+                   }
+
+         * - :guilabel:`Custom Type`
+           - App Services generates a new input type specifically for the resolver based on
+             a :ref:`schema <schemas>` that you define. The schema must be an
+             ``object`` that contains at least one property and a ``title`` field
+             that defines a unique name for the generated input type.
+
+             .. figure:: /images/custom-resolver-input-type-custom-bson.png
+                :alt: A custom resolver configuration for a custom input type.
+
+             .. example::
+
+                A custom resolver named ``myCustomQuery`` that uses the
+                :guilabel:`Custom Type` option with an input type named
+                ``MyCustomQueryInput`` has the following generated schema:
+
+                .. code-block:: graphql
+
+                   input MyCustomQueryInput {
+                     someArgument: String;
+                   }
+                   type Query {
+                     myCustomQuery(input: MyCustomQueryInput): DefaultPayload
+                     ...
+                   }
+
+
+   .. step:: Define the Payload Type
+
+      All GraphQL resolvers must return a payload that conforms to a specific type
+      in the schema. For a custom resolver, you can use an existing :ref:`generated
+      document type <graphql-document-types>`, define a new custom payload type
+      specifically for the resolver, or use a default payload. App Services includes the
+      specified payload type in the custom resolver's generated GraphQL schema
+      definition.
+
+      In the :guilabel:`Payload Type` dropdown, select one of the following options:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 80
+
+         * - Option
+           - Description
+
+         * - :guilabel:`DefaultPayload`
+           - The resolver returns the automatically generated ``DefaultPayload``
+             type which has the following signature:
+
+             .. literalinclude:: /includes/DefaultPayload.type.graphql
+                :language: graphql
+
+             The ``status`` field will always resolve to ``"complete"`` regardless
+             of the resolver function's return value.
+
+             .. code-block:: graphql
+
+                {
+                  status: "complete"
+                }
+
+             .. example::
+
+                A custom resolver named ``myCustomQuery`` that uses the
+                :guilabel:`DefaultPayload` option has the following generated
+                schema:
+
+                .. code-block:: graphql
+
+                   type Query {
+                     myCustomQuery: DefaultPayload
+                     ...
+                   }
+
+         * - :guilabel:`Scalar`
+           - The resolver uses an existing :ref:`scalar type <graphql-scalar-types>`
+             from the generated GraphQL schema.
+
+             In the second dropdown input, select either a single scalar or an array
+             of multiple scalars of the same type.
+
+             .. example::
+
+                A custom resolver named ``myCustomQuery`` that uses the
+                :guilabel:`Scalar Type` option to specify a payload type of
+                ``DateTime`` has the following generated schema:
+
+                .. code-block:: graphql
+
+                   type Query {
+                     myCustomQuery: DateTime
+                     ...
+                   }
+
+         * - :guilabel:`Existing Type`
+           - The resolver returns an existing :ref:`document type
+             <graphql-document-types>` from the generated GraphQL schema.
+
+             In the second dropdown input, select either a single document type or an
+             array of multiple documents of the same type.
+
+             .. example::
+
+                A custom resolver named ``myCustomQuery`` that uses the
+                :guilabel:`Existing Type` option to specify an input type of
+                ``TaskInsertInput`` has the following generated schema:
+
+                A custom resolver named ``myCustomQuery`` that uses the
+                :guilabel:`Existing Type` option to specify a payload type of
+                ``[Task]`` has the following generated schema:
+
+                .. code-block:: graphql
+
+                   type Query {
+                     myCustomQuery: [Task]
+                     ...
+                   }
+
+         * - :guilabel:`Custom Type`
+           - App Services generates a new payload type specifically for the resolver based
+             on a :ref:`schema <schemas>` that you define. The schema must be an
+             ``object`` that contains at least one property and a ``title`` field
+             that defines a unique name for the generated input type.
+
+             .. figure:: /images/custom-resolver-payload-type-custom-bson.png
+                :alt: A custom resolver configuration that defines a new custom payload type.
+
+             .. example::
+
+                A custom resolver named ``myCustomQuery`` that uses the
+                :guilabel:`Custom Type` option with a payload type named
+                ``MyCustomQueryPayload`` has the following generated schema:
+
+                .. code-block:: graphql
+
+                   input MyCustomQueryPayload {
+                     someValue: String;
+                   }
+                   type Query {
+                     myCustomQuery: MyCustomQueryPayload
+                     ...
+                   }
+
+
+   .. step:: Define the Resolver Function
+
+      When a user calls a custom resolver App Services executes the resolver
+      function and returns the result, which must conform to the resolver's
+      :guilabel:`Payload Type`.
+
+      App Services passes the function any input data from the operation, if applicable. If
+      the resolver is a computed property on a document type, App Services
+      passes the function the specific document that the resolver was called on.
+
+      A custom resolver function has one of two possible signatures, depending on
+      whether or not it accepts an input:
+
+      .. tabs::
+
+         .. tab:: Input
+            :tabid: yes-input-type
+
+            .. code-block:: javascript
+
+               exports = function myCustomResolver(input, source) {
+                 // The `input` parameter that contains any input data provided to the resolver.
+                 // The type and shape of this object matches the resolver's input type.
+                 const { someArgument } = input;
+
+                 // If the resolver is a computed property, `source` is the parent document.
+                 // Otherwise `source` is undefined.
+                 const { _id, name } = source;
+
+                 // The return value must conform to the resolver's configured payload type
+                 return {
+                   "someValue": "abc123",
+                 };
+               }
+
+         .. tab:: No Input
+            :tabid: no-input-type
+
+            .. code-block:: javascript
+
+               exports = function myCustomResolver(source) {
+                 // If the resolver is a computed property, `source` is the parent document.
+                 // Otherwise `source` is undefined.
+                 const { _id, name } = parent;
+
+                 // The return value must conform to the resolver's configured payload type
+                 return {
+                   "someValue": "abc123",
+                 };
+               }
+
+      To define the resolver function, click the :guilabel:`Function` dropdown
+      and either select an existing function or create a new one.
+
+   .. step:: Save and Deploy the Resolver
+
+      Once you have configured the resolver, click :guilabel:`Save` and
+      deploy your application. Once deployed, you can call the
+      custom resolver through the GraphQL API.
+
+
+Custom Resolver Examples
+------------------------
+
+Scenario & Schemas
+~~~~~~~~~~~~~~~~~~
+
+Consider a hypothetical dashboard that a sales team uses to show various
+statistics and other performance metrics for a given time period. The dashboard
+uses the custom resolvers in this section to handle some of its specific use
+cases.
+
+The resolvers all reference ``Sale`` documents, which have the following schema:
+
+.. tabs::
+   
+   .. tab:: GraphQL Schema
+      :tabid: graphql-schema
+      
+      .. code-block:: graphql
+         
+         type Sale {
+           _id: ObjectId!
+           customer_id: String!
+           year: String!
+           month: String!
+           saleTotal: Float!
+           notes: [String]
+         }
+   
+   .. tab:: JSON Schema
+      :tabid: json-schema
+
+      .. code-block:: json
+         
+         {
+           "title": "Sale",
+           "bsonType": "object",
+           "required": ["_id", "customer_id", "year", "month", "saleTotal"],
+           "properties": {
+             "_id": { "bsonType": "objectId" },
+             "customer_id": { "bsonType": "string" },
+             "year": { "bsonType": "string" },
+             "month": { "bsonType": "string" },
+             "saleTotal": { "bsonType": "decimal" },
+             "notes": {
+               "bsonType": "array",
+               "items": { "bsonType": "string" }
+             }
+           }
+         }
+
+.. _example-graphql-custom-query:
+
+Custom Query Resolver
+~~~~~~~~~~~~~~~~~~~~~
+
+The sales team's hypothetical dashboard uses a custom query resolver that
+returns aggregated sales data for a specific month.
+
+App Services generates schema definitions for the resolver's custom input and payload
+types and adds the resolver to its parent type, the root-level ``Query``:
+
+.. code-block:: graphql
+   
+   type Query {
+     averageSaleForMonth(input: AverageSaleForMonthInput): AverageSaleForMonthPayload
+   }
+   
+   input AverageSalesForMonthInput {
+     month: String!;
+     year: String!;
+   }
+   
+   type AverageSaleForMonthPayload {
+     month: String!;
+     year: String!;
+     averageSale: Float!;
+   }
+
+Configuration
+`````````````
+
+The resolver uses the following configuration:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Option
+     - Description
+   
+   * - :guilabel:`Parent Type`
+     - ``Query``
+
+   * - :guilabel:`GraphQL Field Name`
+     - ``averageSaleForMonth``
+   
+   * - :guilabel:`Input Type`
+     - Custom Type: ``AverageSaleForMonthInput``
+       
+       .. tabs::
+          
+          .. tab:: JSON Schema
+             :tabid: json-schema
+             
+             .. code-block:: json
+                
+                {
+                  "bsonType": "object",
+                  "title": "AverageSaleForMonthInput",
+                  "required": ["month", "year"],
+                  "properties": {
+                    "month": {
+                      "bsonType": "string"
+                    },
+                    "year": {
+                      "bsonType": "string"
+                    }
+                  }
+                }
+          
+          .. tab:: GraphQL Schema
+             :tabid: graphql-schema
+             
+             .. code-block:: graphql
+                
+                input AverageSalesForMonthInput {
+                  month: String!;
+                  year: String!;
+                }
+
+   * - :guilabel:`Payload Type`
+     - Custom Type: ``AverageSaleForMonthPayload``
+       
+       .. tabs::
+          
+          .. tab:: JSON Schema
+             :tabid: json-schema
+             
+             .. code-block:: json
+                
+                {
+                  "bsonType": "object",
+                  "title": "AverageSaleForMonthPayload",
+                  "required": ["month", "year", "averageSale"],
+                  "properties": {
+                    "month": {
+                      "bsonType": "string"
+                    },
+                    "year": {
+                      "bsonType": "string"
+                    },
+                    "averageSale": {
+                      "bsonType": "decimal"
+                    }
+                  }
+                }
+          
+          .. tab:: GraphQL Schema
+             :tabid: graphql-schema
+             
+             .. code-block:: text
+                
+                type AverageSaleForMonthPayload {
+                  month: String!;
+                  year: String!;
+                  averageSale: Float!;
+                }
+   
+   * - :guilabel:`Function`
+     - .. code-block:: javascript
+          
+          exports = async function averageSaleForMonth({ month, year }) {
+            const cluster = context.services.get("mongodb-atlas");
+            const sales = cluster.db("corp").collection("sales");
+            const averageSalePayload = await sales
+              .aggregate([
+                { $match: { month: month, year: year } },
+                {
+                  $group: {
+                    _id: { month: "$month", year: "$year" },
+                    averageSale: { $avg: "$saleTotal" },
+                  }
+                },
+                {
+                  $project: {
+                    month: "$_id.month",
+                    year: "$_id.year",
+                    averageSale: 1
+                  }
+                }
+              ])
+              .next();
+            return averageSalePayload;
+          };
+
+Example Usage
+`````````````
+
+To call this custom query, you could use the following operation and variables:
+
+.. code-block:: graphql
+   
+   query GetAverageSaleForMonth($averageSaleInput: AverageSaleForMonthInput!) {
+     averageSaleForMonth(input: $averageSaleInput) {
+       month
+       year
+       averageSale
+     }
+   }
+
+.. code-block:: json
+   
+   {
+     "variables": {
+       "averageSaleInput": { month: "March", year: "2020" }
+     }
+   }
+
+.. _example-graphql-custom-mutation:
+
+Custom Mutation
+~~~~~~~~~~~~~~~
+
+The sales team's hypothetical dashboard uses a custom mutation resolver that
+adds a string note to a specific ``Sale`` document, identified by its ``_id``.
+
+App Services generates schema definitions for the resolver's custom input type and adds
+the resolver to its parent type, the root-level ``Mutation``:
+
+.. code-block:: graphql
+   
+   type Mutation {
+     addNoteToSale(input: AddNoteToSaleInput): Sale
+   }
+   
+   input AddNoteToSaleInput {
+     sale_id: ObjectId!;
+     note: String!;
+   }
+
+Configuration
+`````````````
+
+The resolver uses the following configuration:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Option
+     - Description
+   
+   * - :guilabel:`Parent Type`
+     - ``Mutation``
+
+   * - :guilabel:`GraphQL Field Name`
+     - ``addNoteToSale``
+   
+   * - :guilabel:`Input Type`
+     - Custom Type: ``AddNoteToSaleInput``
+       
+       .. tabs::
+          
+          .. tab:: JSON Schema
+             :tabid: json-schema
+             
+             .. code-block:: json
+                
+                {
+                  "bsonType": "object",
+                  "title": "AddNoteToSaleInput",
+                  "required": ["sale_id", "note"],
+                  "properties": {
+                    "sale_id": {
+                      "bsonType": "objectId"
+                    },
+                    "note": {
+                      "bsonType": "string"
+                    }
+                  }
+                }
+          
+          .. tab:: GraphQL Schema
+             :tabid: graphql-schema
+             
+             .. code-block:: graphql
+                
+                input AddNoteToSaleInput {
+                  sale_id: ObjectId!;
+                  note: String!;
+                }
+             
+
+   * - :guilabel:`Payload Type`
+     - Existing Type: ``Sale``
+       
+       .. tabs::
+          
+          .. tab:: GraphQL Schema
+             :tabid: graphql-schema
+             
+             .. code-block:: graphql
+                
+                type Sale {
+                  _id: ObjectId!
+                  customer_id: String!
+                  year: String!
+                  month: String!
+                  saleTotal: Float!
+                  notes: [String]
+                }
+          
+          .. tab:: JSON Schema
+             :tabid: json-schema
+       
+             .. code-block:: json
+                
+                {
+                  "title": "Sale",
+                  "bsonType": "object",
+                  "required": ["_id", "customer_id", "year", "month", "saleTotal"],
+                  "properties": {
+                    "_id": { "bsonType": "objectId" },
+                    "customer_id": { "bsonType": "string" },
+                    "year": { "bsonType": "string" },
+                    "month": { "bsonType": "string" },
+                    "saleTotal": { "bsonType": "decimal" },
+                    "notes": {
+                      "bsonType": "array",
+                      "items": { "bsonType": "string" }
+                    }
+                  }
+                }
+   
+   * - :guilabel:`Function`
+     - .. code-block:: javascript
+          
+          exports = async function addNoteToSale({ sale_id, note }) {
+            const cluster = context.services.get("mongodb-atlas");
+            const sales = cluster.db("corp").collection("sales");
+            
+            const sale = await sales.findOneAndUpdate(
+              { _id: sale_id },
+              { $push: { notes: note } },
+              { returnNewDocument: true }
+            );
+            return sale;
+          }
+
+Example Usage
+`````````````
+
+To call this custom query, you could use the following operation and variables:
+
+.. code-block:: graphql
+   
+   mutation AddNoteToSale($addNoteToSaleInput: AddNoteToSaleInput) {
+     addNoteToSale(input: $addNoteToSaleInput) {
+       _id
+       customer_id
+       month
+       year
+       saleTotal
+       notes
+     }
+   }
+
+.. code-block:: json
+   
+   {
+     "variables": {
+       "addNoteToSaleInput": {
+         "sale_id": "5f3c2779796615b661fcdc25",
+         "note": "This was such a great sale!"
+       }
+     }
+   }
+
+.. _example-graphql-computed-property:
+
+Computed Properties
+~~~~~~~~~~~~~~~~~~~
+
+The sales team's hypothetical dashboard uses a custom resolver that adds a new
+computed property to each ``Sale`` document. When an operation requests the
+computed field for a given ``Sale``, the resolver queries an external system and
+returns support cases filed by the associated customer.
+
+App Services generates schema definitions for the resolver's custom payload type and
+adds the resolver to its parent type, ``Sale``:
+
+.. code-block:: graphql
+   :emphasize-lines: 8
+   
+   type Sale {
+     _id: ObjectId!
+     customer_id: String!
+     year: String!
+     month: String!
+     saleTotal: Float!
+     notes: [String]
+     customerSupportCases: [CustomerSupportCase]
+   }
+   
+   type CustomerSupportCase {
+     caseId: String!
+     description: String!
+   }
+
+Configuration
+`````````````
+
+The resolver uses the following configuration:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Option
+     - Description
+   
+   * - :guilabel:`Parent Type`
+     - ``Sale``
+
+   * - :guilabel:`GraphQL Field Name`
+     - ``customerSupportCases``
+   
+   * - :guilabel:`Input Type`
+     - None
+
+   * - :guilabel:`Payload Type`
+     - Custom Type: ``[CustomerSupportCase]``
+       
+       .. tabs::
+          
+          .. tab:: JSON Schema
+             :tabid: json-schema
+             
+             .. code-block:: json
+                
+                {
+                  "bsonType": "array",
+                  "items": {
+                    "title": "CustomerSupportCase",
+                    "bsonType": "object",
+                    "required": ["caseId", "description"],
+                    "properties": {
+                      "caseId": { "bsonType": "string" },
+                      "description": { "bsonType": "string" }
+                    }
+                  }
+                }
+          
+          .. tab:: GraphQL Schema
+             :tabid: graphql-schema
+             
+             .. code-block:: graphql
+                :emphasize-lines: 13
+                
+                type CustomerSupportCase {
+                  caseId: String!
+                  description: String!
+                }
+                
+                type Sale {
+                  _id: ObjectId!
+                  customer_id: String!
+                  year: String!
+                  month: String!
+                  saleTotal: Float!
+                  notes: [String]
+                  customerSupportCases: [CustomerSupportCase]
+                }
+
+   * - :guilabel:`Function`
+     - .. code-block:: javascript
+          
+          exports = async function customerSupportCases(sale) {
+            // Return a list of objects from some external system
+            const cases = await fetchCustomerSupportCases({
+              customerId: sale.customer_id
+            });
+            return cases;
+          };
+
+Example Usage
+`````````````
+
+To use this custom computed property, you could run the following operation:
+
+.. code-block:: graphql
+   :emphasize-lines: 9-12
+   
+   query GetSalesWithSupportCases {
+     sales {
+       _id
+       customer_id
+       year
+       month
+       saleTotal
+       notes
+       customerSupportCases {
+         caseId
+         description
+       }
+     }
+   }

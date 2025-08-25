@@ -1,0 +1,339 @@
+.. meta::
+   :robots: nosnippet
+
+.. _data-sources:
+
+===============================
+Connect to MongoDB Data Sources
+===============================
+
+.. meta::
+   :description: Learn how to connect your Atlas App Services App to a MongoDB Atlas data source.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   CRUD & Aggregation APIs </mongodb/crud-and-aggregation-apis>
+   Query Atlas from Client Apps </mongodb/data-access>
+   Read Preference </mongodb/read-preference>
+   Wire Protocol </mongodb/wire-protocol>
+   Document Preimages </mongodb/preimages>
+   Internal Database Usage </mongodb/internal-database-usage>
+
+Overview
+--------
+
+A **data source** represents a `MongoDB Atlas
+<https://www.mongodb.com/docs/atlas?tck=docs_realm>`_
+instance in the same project as your app. You use data sources to store
+and retrieve your application's data.
+
+Most apps connect to a single data source, but you can configure
+multiple data sources if your data is spread across instances. You
+define a unique name for each data source linked to your application and
+use the name to refer to the data source throughout your app.
+
+Requests to data sources are routed through Atlas App Services. Because of this,
+App Services automatically opens and closes database connections. This means you
+don't need to worry about calling ``db.close()`` when using a data source.
+
+.. include:: /includes/x509-encryption.rst
+
+Read, Write, and Aggregate Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can read and write data in a data source from a server-side function
+or connect from a client application. You write queries using standard
+MongoDB query syntax.
+
+.. code-block:: javascript
+   // example Atlas Function
+
+   exports = async function() {
+      const mongodb = context.services.get("mongodb-atlas");
+      return mongodb
+         .db("myDatabase")
+         .collection("myCollection")
+         .findOne()
+   }
+
+To learn how to work with a data source in an Atlas Function, refer to the
+following guides:
+
+- :ref:`Read Data from MongoDB Atlas <mongodb-read>`
+- :ref:`Write Data in MongoDB Atlas <mongodb-write>`
+- :ref:`Aggregate Data in MongoDB Atlas <mongodb-aggregate>`
+
+To learn how to work with a data source from a Realm SDK,
+refer to :ref:`client-data-access`.
+
+.. note::
+
+   Linked data sources do not support all MongoDB CRUD and Aggregation
+   operations. Some operations are not available when you query MongoDB
+   as a specific :ref:`user <users-and-authentication>` due to overhead
+   from schema validation and data access rules. You can bypass some
+   limitations by querying MongoDB as the :ref:`system user
+   <system-user>` instead.
+
+   For more information on which operations are supported, see
+   :ref:`CRUD & Aggregation APIs <mongodb-crud-and-aggregation-apis>`.
+
+Secure and Validate Data
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Data sources allow you to define :ref:`access rules <rules>` and
+:ref:`document schemas <schemas>` for the data they contain. Rules
+dynamically authorize users to read and write subsets of your data and
+schemas control the shape and contents of each document.
+
+Read and write operations on a linked data source are secure by default.
+A user cannot read or write any data unless a rule explicitly allows
+them to. Any data inserted or modified by an authorized user must
+conform to the corresponding schema.
+
+If you do not define rules for a collection, queries on the collection
+will fail. This means that you can safely expose a properly configured
+data source interface in client applications without risking data
+corruption or leaks.
+
+Automatically Sync Data
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Atlas Device Sync applications store data and sync data changes to a linked
+cluster, called the *synced cluster*. The sync protocol ensures that
+your data is eventually consistent across all sync clients and the
+synced cluster.
+
+To learn more about Atlas Device Sync and how it interacts with your app's data
+sources, see :ref:`Atlas Device Sync <sync>`.
+
+.. include:: /includes/note-flexible-sync-prerequisite.rst
+
+React to Changing Data
+~~~~~~~~~~~~~~~~~~~~~~
+
+You can create database triggers that run functions automatically in
+response to changing data. Triggers use MongoDB change streams to
+observe the data source and execute a function whenever a change event
+matches the trigger configuration. A trigger function can run arbitrary
+code and can access a change event for detailed information about the
+change that caused it to run.
+
+To learn more about how triggers work and how to define your own, see
+:ref:`Database Triggers <database-trigger>`.
+
+.. important::
+
+   Triggers are only available for data sources that support change
+   streams. You cannot define triggers on a {+adf-instance+} or
+   serverless Atlas instance.
+
+.. _link-a-data-source:
+
+Link a Data Source
+------------------
+
+A configured data source in your app is *linked* to the underlying
+instance in Atlas. You can link multiple instances to your app
+and even create multiple data sources that link to the same underlying
+instance.
+
+You can configure a new linked data source in the App Services UI or by defining
+and pushing a configuration file with the {+cli-ref+} or GitHub deployment:
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      .. procedure::
+
+         .. step:: Navigate to the Data Source Management Screen
+
+            In the App Services UI, click :guilabel:`Linked Data Sources` under :guilabel:`Manage`
+            in the left navigation menu.
+
+
+         .. step:: Link a New Data Source
+
+            Click :guilabel:`Link a Data Source` and provide the following
+            configuration information on the :guilabel:`Data Source Configuration` screen:
+
+            .. list-table::
+              :header-rows: 1
+              :widths: 10 30
+
+              * - Field
+                - Description
+              * - :guilabel:`Data Source`
+                - A MongoDB Atlas cluster or {+adf-instance+} associated with the same project as
+                  your App.
+              * - :guilabel:`App Services Service Name`
+                - A name for the App Services service that connects to the data source.
+                  You will use this name when referring to the data source in other
+                  parts of your application, such as when you instantiate a
+                  MongoDB service client.
+
+                  .. example::
+
+                     Consider a MongoDB cluster data source with the :guilabel:`App Services
+                     Service Name` ``myAtlasCluster``. To create a service client in a
+                     :doc:`function </functions>` you would use the following code:
+
+                     .. code-block:: javascript
+
+                        const myAtlasCluster = context.services.get("myAtlasCluster");
+
+              * - | :guilabel:`MongoDB Connection String`
+                  | *config.wireProtocolEnabled*
+                - Required for Atlas clusters. Not enabled for {+adf-instance+}s.
+                  A boolean indicating whether App Services should allow
+                  clients to :ref:`connect to this cluster with a connection string over
+                  the wire protocol <wire-protocol>`.
+
+              * - :guilabel:`Read Preference`
+                - Required for Atlas clusters. Not available for {+adf-instance+}s. Specifies the
+                  :ref:`read preference <read-preference>` of the cluster. The default
+                  read preference (primary) should be sufficient for most use cases.
+
+
+         .. step:: Save the Linked Data Source
+
+            Once you've selected and configured a MongoDB cluster or {+adf-instance+},
+            click :guilabel:`Save`. App Services immediately begins the
+            process of linking to the data source, which could take up to five
+            minutes.
+
+
+   .. tab::
+      :tabid: cli
+
+      .. procedure::
+
+         .. step:: Pull the Latest Version of Your App
+
+            To link a MongoDB Atlas cluster or {+adf-instance+} with the {+cli+}, you need a
+            local copy of your application's configuration files.
+
+            To pull a local copy of the latest version of your app, run the following:
+
+            .. code-block:: bash
+
+               {+cli-bin+} pull --remote="<Your App ID>"
+
+            .. tip::
+
+               You can also download a copy of your application's configuration files from
+               the :guilabel:`Deploy > Export App` screen in the App Services UI.
+
+
+         .. step:: Create a Data Source Configuration Directory
+
+            Create a new subdirectory with the name that you'll use for the data source in
+            ``/data_sources``.
+
+            .. code-block:: shell
+
+               mkdir -p data_sources/<Data Source Name>
+
+
+         .. step:: Add a Data Source Configuration File
+
+            Add a file named ``config.json`` to the data source subdirectory. The file can
+            configure either a MongoDB Atlas cluster or a {+adf-instance+}.
+
+            The configuration file should have the following general form:
+
+            .. tabs::
+
+               .. tab:: Atlas Cluster
+                  :tabid: cluster
+
+                  .. code-block:: json
+                     :caption: /data_sources/<Service Name>/config.json
+
+                     {
+                       "name": "<Service Name>",
+                       "type": "mongodb-atlas",
+                       "config": {
+                         "clusterName": "<Atlas Cluster Name>",
+                         "readPreference": "<Read Preference>",
+                         "wireProtocolEnabled": <Boolean>,
+                         "sync": <Sync Configuration>
+                       }
+                     }
+
+                  .. note::
+
+                     For detailed information on the contents of a cluster configuration
+                     file, see :ref:`Linked MongoDB Cluster Configuration
+                     <config-mongodb-cluster>`.
+
+               .. tab:: {+adf+}
+                  :tabid: adf
+
+                  .. code-block:: json
+                     :caption: /data_sources/<Service Name>/config.json
+
+                     {
+                       "name": "<Service Name>",
+                       "type": "datalake",
+                       "config": {
+                          "dataLakeName": "<{+adf-instance+} name>"
+                        }
+                     }
+
+                  .. note::
+
+                     For more information, see :ref:`{+adf-instance+} Configuration <config-adf>`.
+
+
+         .. step:: Deploy the Data Source Configuration
+
+            Once you've defined and saved a ``config.json`` file for the data
+            source, you can push the config to your remote app. App Services
+            immediately begins the process of linking to the data source, which
+            could take up to five minutes.
+
+            .. code-block:: bash
+
+               {+cli-bin+} push --remote="<Your App ID>"
+
+.. _data-source-limitations:
+
+Data Source Limitations
+-----------------------
+
+A linked data source can represent one of several instance MongoDB Atlas
+instance types. Depending on the type of the underlying instance, not
+all functionality is supported.
+
+Once you've linked a data source, you cannot change the underlying
+instance type. Instead, you can link a new data source with another
+instance type.
+
+.. _data-federation-caveats:
+
+{+adf+}
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /mongodb/adf-limitations.rst
+
+.. _serverless-caveats:
+
+Serverless Instances
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /mongodb/limitations-serverless-instances.rst

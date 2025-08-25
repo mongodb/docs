@@ -1,0 +1,50 @@
+name: Check & deploy Data API documentation
+
+on:
+  # For deployments
+  workflow_dispatch: # Allow manual trigger in case of quick fix or retrigger
+  push:
+    branches:
+      - master
+    paths:
+      - 'source/openapi-data-api-v1.bundled.yaml'
+
+  # For previews
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'source/openapi-data-api-v1.bundled.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-doc:
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+    name: Deploy API documentation on Bump.sh
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Deploy API documentation
+        uses: bump-sh/github-action@59eaae922e81ac8d127bd2b2ac6dc4804bda8a4c
+        with:
+          doc: ${{vars.DATA_API_V1_DOC_ID}}
+          token: ${{secrets.BUMP_TOKEN}}
+          file: source/openapi-data-api-v1.bundled.yaml
+  
+  api-preview:
+    if: ${{ github.event_name == 'pull_request' }}
+    name: Create API preview on Bump.sh
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Create API preview
+        uses: bump-sh/github-action@59eaae922e81ac8d127bd2b2ac6dc4804bda8a4c
+        with:
+          doc: ${{vars.DATA_API_V1_DOC_ID}}
+          token: ${{secrets.BUMP_TOKEN}}
+          file: source/openapi-data-api-v1.bundled.yaml
+          command: preview

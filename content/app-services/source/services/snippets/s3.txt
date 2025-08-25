@@ -1,0 +1,135 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+============================
+AWS S3 Snippets [Deprecated]
+============================
+
+.. include:: /includes/note-third-party-services-deprecation.rst
+
+Overview
+--------
+
+The code snippets on this page demonstrate how to work with Amazon
+Simple Storage Service through the :doc:`AWS Service </services/aws>`.
+All of the snippets require an AWS Service interface with a
+configuration of AWS Service rules that allow the service actions
+used in the snippet. You can run these snippets yourself by copying this
+code into an :doc:`Atlas Function </functions>`.
+
+If your app does not have an AWS Service interface, :doc:`create one
+</services/configure/services>` before using these snippets.
+
+.. contents:: AWS Snippets
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Upload an Image to S3
+---------------------
+
+This :doc:`Atlas Function </functions>` uploads a Base64 encoded image
+to AWS S3 using the :aws-go:`PutObject <s3/#S3.PutObject>` action.
+
+.. code-block:: javascript
+
+  exports = function(base64EncodedImage, bucket, fileName, fileType) {
+    // Convert the base64 encoded image string to a BSON Binary object
+    const binaryImageData = BSON.Binary.fromBase64(base64EncodedImage, 0);
+    // Instantiate an S3 service client
+    const s3Service = context.services.get('myS3Service').s3('us-east-1');
+    // Put the object to S3
+    return s3Service.PutObject({
+      'Bucket': bucket,
+      'Key': fileName,
+      'ContentType': fileType,
+      'Body': binaryImageData
+    })
+    .then(putObjectOutput => {
+      console.log(putObjectOutput);
+      // putObjectOutput: {
+      //   ETag: <string>, // The object's S3 entity tag
+      // }
+      return putObjectOutput
+    })
+    .catch(console.error);
+  };
+
+Function Parameters
+~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 60
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``base64EncodedImage``
+     - string
+     - A Base64 encoded image. You can convert an image
+       :mdn:`File <Web/API/File>` to Base64 with the :mdn:`readAsDataURL
+       <Web/API/FileReader/readAsDataURL>` method from the FileReader
+       Web API.
+
+   * - ``bucket``
+     - string
+     - The name of the S3 bucket that will hold the image.
+
+   * - ``fileName``
+     - string
+     - The name of the image file, including its file extension.
+
+   * - ``fileType``
+     - string
+     - The :mdn:`MIME Type <Web/HTTP/Basics_of_HTTP/MIME_types>` of the image.
+
+Get an Image From S3
+--------------------
+
+This :doc:`Atlas Function </functions>` retrieves an object from AWS S3
+using the :aws-go:`GetObject <s3/#S3.GetObject>` action.
+
+.. code-block:: javascript
+
+  exports = function(bucket, fileName) {
+    // Instantiate an S3 service client
+    const s3Service = context.services.get('myS3Service').s3('us-east-1');
+    // Get the object from S3
+    return s3Service.GetObject({
+      'Bucket': bucket,
+      'Key': fileName,
+    })
+    .then(getObjectOutput => {
+      console.log(getObjectOutput);
+      // {
+      //   ETag: <string>, // The object's S3 entity tag
+      //   Body: <binary>, // The object data
+      //   ContentType: <string>, // The object's MIME type
+      // }
+      const base64EncodedImage = getObjectOutput.Body
+      return base64EncodedImage
+    })
+    .catch(console.error);
+  };
+
+Function Parameters
+~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 60
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``bucket``
+     - string
+     - The name of the S3 bucket that will hold the image.
+
+   * - ``fileName``
+     - string
+     - The name of the image file, including its file extension.

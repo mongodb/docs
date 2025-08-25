@@ -1,0 +1,138 @@
+.. _disable-a-trigger:
+
+=================
+Disable a Trigger
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+Triggers may enter a :guilabel:`suspended` state in response to
+an event that prevents the Trigger's change stream from continuing, such
+as a network disruption or change to the underlying cluster. When a
+Trigger enters a suspended state, it does not receive change events and will not
+fire.
+
+.. note:: 
+
+   In the event of a suspended or failed trigger, Atlas App Services sends the 
+   project owner an email alerting them of the issue. 
+
+You can suspend a Trigger from the Atlas App Services UI or by
+importing an application directory with the {+cli-ref+}.
+
+.. tabs-realm-admin-interfaces::
+   
+   .. tab::
+      :tabid: ui
+      
+      .. procedure::
+
+         .. step:: Find the Trigger
+
+            On the :guilabel:`Database Triggers` tab of the :guilabel:`Triggers`
+            page, find the trigger that you want to disable in the list of
+            Triggers.
+
+            .. figure:: /images/suspended-db-trigger.png
+               :alt: A list of Triggers in an App in the App Services UI
+
+
+         .. step:: Disable the Trigger
+
+            Switch the :guilabel:`Enabled` toggle to the "off" setting.
+
+            .. figure:: /images/auth-trigger-example-config.png
+               :alt: The "Edit Trigger" screen in the App Services UI
+               :width: 750px
+               :lightbox:
+
+
+         .. step:: Deploy Your Changes
+
+            If Development Mode is not enabled, press the
+            :guilabel:`review draft & deploy` button to release your changes.
+
+
+   .. tab::
+      :tabid: cli
+      
+      .. procedure::
+
+         .. step:: Pull Your App's Latest Configuration Files
+
+            .. code-block:: shell
+
+               {+cli-bin+} pull --remote=<App ID>
+
+
+         .. step:: Verify that the Trigger Configuration File Exists
+
+            If you exported a new copy of your application, it should already include an
+            up-to-date configuration file for the suspended trigger. You can confirm that
+            the configuration file exists by looking in the ``/triggers`` directory for a
+            :ref:`trigger configuration file <config-database-trigger>` with the same name
+            as the trigger.
+
+
+         .. step:: Disable the Trigger
+
+            After you have verified that the trigger configuration file exists, add
+            a field named ``"disabled"`` with the value ``true`` to the top level
+            of the trigger json definition:
+
+            .. code-block:: json
+               :emphasize-lines: 9
+
+               {
+                  "id": "6142146e2f052a39d38e1605",
+                  "name": "steve",
+                  "type": "SCHEDULED",
+                  "config": {
+                     "schedule": "*/1 * * * *"
+                  },
+                  "function_name": "myFunc",
+                  "disabled": true
+               }
+
+
+         .. step:: Deploy Your Changes
+
+            Finally, push the configuration back to your app:
+
+            .. code-block:: shell
+
+               {+cli-bin+} push
+
+Restoring from a Snapshot
+-------------------------
+
+Consider the following scenario:
+
+1. A database trigger is disabled or suspended.
+
+#. New documents are added while the trigger is disabled.
+
+#. The database is restored from a snapshot to a time prior to the new documents
+   being added.
+
+#. The database trigger is restarted.
+
+In this case, the trigger picks up all of the newly-added documents and fires
+for each document. It will not fire again for events that have already been
+processed.
+
+.. note::
+
+   If a previously-enabled database trigger is running during snapshot restoration,
+   you will see an error in the Edit Trigger section of the Atlas UI because the
+   trigger cannot connect to the Atlas cluster during the restore process. Once
+   snapshot restoration completes, the error disappears and the trigger continues
+   to execute normally.

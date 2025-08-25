@@ -1,0 +1,186 @@
+.. meta::
+   :robots: nosnippet
+
+.. _graphql-expose-data:
+
+===========================
+Expose Data in a Collection
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You can expose data from a MongoDB collection to client applications through the
+Atlas GraphQL API. Atlas App Services automatically generates GraphQL types and resolvers based on
+the :ref:`collection schema <schemas>` and enforces :ref:`collection rules
+<rules>` for all GraphQL operations.
+
+Procedure
+---------
+
+1. Configure Roles for the Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+App Services enforces :ref:`collection rules <mongodb-rules>` for all incoming
+GraphQL requests, so you need to define at least one :ref:`collection
+role <define-roles-and-permissions>` with the permissions that
+your application requires.
+
+All GraphQL requests include an authentication token that identifies the
+logged in App Services user that sent the request. App Services evaluates a role for
+every document included in a GraphQL operation and only returns fields
+and documents that the user has permission to see. If App Services omits a
+field, the field has a ``null`` value in the returned document.
+
+2. Define a Schema for Documents in the Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+GraphQL requires that all data conforms to a well-defined type, so you
+must :ref:`enforce-a-schema` for
+documents in the collection. App Services automatically generates
+:doc:`GraphQL types and resolvers
+</graphql/types-and-resolvers>` for documents in the collection
+based on the collection schema and regenerates new types whenever the
+schema changes.
+
+.. note:: Automatically Generate a Schema
+
+   App Services can generate a collection schema for you based on a sample of
+   existing documents in the collection. If you don't have existing
+   data, you can insert a new document that has a mock implementation of
+   the fields you want to include in your schema and then generate a
+   schema based on the mock.
+
+3. Define Relationships to Other Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can define :ref:`relationships <relationships>` that connect each
+document in the collection to one or more documents in a foreign
+collection. To learn how to define a relationship, see
+:ref:`define-a-relationship`.
+
+Relationships allow you to fluently reference and query related
+documents in GraphQL read and write operations. For example, you can
+query for a person and include the full document for each of their
+children from the same ``people`` collection:
+
+.. code-block:: graphql
+   
+   query {
+     person(query: { name: "Molly Weasley" }) {
+       _id
+       name
+       age
+       picture
+       children {
+         _id
+         name
+         age
+         picture
+       }
+     }
+   }
+
+4. Name the Data Type
+~~~~~~~~~~~~~~~~~~~~~
+
+App Services names the GraphQL types that it generates based on the data type
+that documents in the collection conform to. You can configure the name
+of the GraphQL types by setting the ``title`` field in a schema to the
+name of the data type that the schema defines.
+
+There are three situations where you can set the ``title`` field:
+
+- You can define the type name for each document in a collection by
+  setting ``title`` at the root level of the schema. If you don't
+  specify a title, App Services uses the name of the collection instead.
+
+- You can define the type name for an embedded object by setting
+  ``title`` in the embedded object schema.
+
+- You can define the type name for a field that has a defined
+  relationship by setting ``title`` in the field schema. App Services uses the
+  ``title`` instead of the defined field name when it resolves
+  relationships in GraphQL.
+
+.. code-block:: json
+   :emphasize-lines: 2
+
+   {
+     "title": "movie",
+     "properties": {
+       "_id": { "bsonType": "objectId" },
+       "title": { "bsonType": "string" },
+       "year": { "bsonType": "int" },
+       "director": { "bsonType": "int" }
+     }
+   }
+
+.. note:: Singular and Plural Types
+
+   App Services generates two :ref:`GraphQL queries
+   <graphql-query-resolvers>` for each collection:
+   
+   - A **singular** query that finds a specific document in the collection. The
+     query uses the same name as the schema's ``title``. If the schema's
+     ``title`` is a plural noun, App Services attempts to use its singular
+     form as determined by the `Rails ActiveSupport inflection rules
+     <https://github.com/rails/rails/blob/master/activesupport/lib/active_support/inflections.rb>`__.
+   
+   - A **plural** query that finds a subset of all documents in the collection.
+     If possible, the query uses the plural form of the singular query name. If
+     App Services is unable to pluralize the name or if the pluralized name
+     is the same as the singular name, the plural query uses the same name as
+     the singular query with an additional ``"s"`` appended to the end.
+
+   .. example::
+      
+      The following schema is configured for the ``laboratory.mice``
+      collection:
+      
+      .. code-block:: json
+         
+         {
+           "title": "Mouse",
+           "bsonType": "object",
+           "properties": {
+             "_id": { "bsonType": "objectId" },
+             "name": { "bsonType": "string" },
+             "age": { "bsonType": "int" }
+           }
+         }
+      
+      App Services generates two queries, ``mouse`` (singular) and ``mice``
+      (plural), based on the schema:
+
+      .. code-block:: graphql
+         
+         query Mice {
+           mouse(query: { _id: "5ebe6819197003ddb1f74475" }) {
+             name
+             age
+           }
+           mice {
+             name
+             age
+           }
+         }
+
+Next Steps
+----------
+
+Once you have defined a schema for the collection, App Services automatically exposes
+the documents in the collection through the GraphQL API. You can now connect
+from a client application and execute queries and mutations.
+
+.. seealso::
+  - :ref:`graphql-apollo-react`
+  - :doc:`Run GraphQL Operations from a CLI </graphql/cli>`

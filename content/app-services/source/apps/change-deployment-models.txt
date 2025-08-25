@@ -1,0 +1,262 @@
+.. meta::
+   :robots: nosnippet
+
+.. _change-deployment-models:
+
+========================
+Change Deployment Models
+========================
+
+.. contents:: On this page
+   :depth: 2
+
+Overview
+--------
+
+You can change an existing App's deployment configuration to deploy it
+in a new model, region, and/or cloud provider. For example, you might
+switch your App from a global deployment to a specific local AWS region
+or switch an App deployed in the Eastern USA from AWS to Azure. For a
+list of all available options, see :ref:`Deployment Models & Regions
+<deployment-model>`.
+
+To move an existing App, you begin a **Deployment Migration** that
+automatically moves your App's data and configuration to the new
+configuration. The migration process is designed to be as seamless as
+possible but requires 5 to 30 minutes of downtime. You can
+monitor the migration status, but no requests will be processed until the
+migration is complete. For more information, see :ref:`Deployment
+Migration Process <deployment-migration-process>`.
+
+.. important:: Contact MongoDB Support
+
+   We recommend that you contact MongoDB technical support if you are
+   planning to change your deployment model for a production App. To
+   learn how, visit the `MongoDB Support
+   <https://www.mongodb.com/support>`_ portal.
+
+Run a Deployment Migration
+--------------------------
+
+You can begin a deployment migration at any time. Only one migration may
+be in progress at a time for a single App. If you try to start a migration while another
+is in progress, the new migration does not run and fails with an error.
+
+If you connect to your App from a Realm SDK, you must update your SDK to
+a version that supports changing deployment models. If your App's SDK
+version does not support changing deployment models, you'll need to reinstall
+your app. If you change deployment models before upgrading, the SDK will
+not be able to connect and requests will fail.
+
+Minimum SDK version: 
+
+- Realm C++ SDK v0.2.0
+- Realm Flutter SDK v1.2.0
+- Realm Kotlin SDK v1.10.0
+- Realm .NET SDK v11.1.0
+- Realm Node.js SDK v12.0.0 (pending release)
+- Realm React Native SDK v12.0.0 (pending release)
+- Realm Swift SDK v10.40.0
+
+Before You Begin
+~~~~~~~~~~~~~~~~
+
+Before changing deployment models, please note the following: 
+
+- All logs and drafts will be lost.
+- Suspended Triggers will restart.
+- Any existing Private Endpoints will need to be recreated for the new region.
+- Triggers and Device Sync operations will be paused during the migration.
+
+.. important:: Deployment Migration is Permanent
+
+         Changing your deployment model is not a draft. This change
+         cannot be reversed after it is saved.
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      You will need the following to modify an App's deployment model in
+      the Atlas UI:
+
+      - .. include:: /includes/prereqs/atlas-account.rst
+
+   .. tab::
+      :tabid: api
+
+      You will need the following to modify an App's deployment model
+      with the Admin API:
+
+      - .. include:: /includes/prereqs/atlas-account.rst
+
+      - .. include:: /includes/prereqs/atlas-admin-api-key.rst
+
+      - .. include:: /includes/prereqs/api-project-app-id.rst
+
+Procedure
+~~~~~~~~~
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      .. procedure::
+
+         .. step:: Navigate to the Deployment Screen
+
+            Click :guilabel:`App Settings` in the left navigation menu.
+            On the settings page, find the :guilabel:`Deployment Region`
+            section and click the :guilabel:`Edit` button.
+
+         .. step:: Choose a Target Deployment Model and Region
+
+            You can migrate an App to any valid deployment configuration.
+
+            First, choose to migrate to either a specific ``LOCAL``
+            region or a ``GLOBAL`` deployment distributed around the
+            world.
+
+            If you choose ``GLOBAL``, choose one of the global regions
+            to host your App's configuration data.
+
+            If you choose ``LOCAL``, choose a specific cloud provider
+            and region to deploy to. For a list of all available
+            options, see :ref:`Deployment Models & Regions
+            <deployment-model>`.
+
+         .. step:: Start the Migration
+
+            Once you've specified your desired deployment configuration,
+            click :guilabel:`Continue`. You should see a confirmation
+            prompt with a checklist. Review and check each item in the
+            list to confirm that you understand the impact of the
+            migration.
+
+            Once you've reviewed the checklist, being the migration by
+            clicking :guilabel:`Change region`.
+
+         .. step:: Monitor the Migration Status
+
+            While the migration is in progress, the UI displays a banner
+            at the top of the page with the current migration status.
+
+         .. include:: /includes/step-deployment-region-migration-cleanup.rst
+
+   .. tab::
+      :tabid: api
+
+      .. procedure::
+
+         .. step:: Choose a Target Deployment Model and Region
+
+            You can migrate an App to any valid deployment configuration.
+
+            First, choose to migrate to either a specific ``LOCAL``
+            region or a ``GLOBAL`` deployment distributed around the
+            world.
+
+            If you choose ``GLOBAL``, choose one of the global regions
+            to host your App's configuration data.
+
+            .. code-block:: json
+
+               {
+                 "deployment_model": "GLOBAL",
+                 "provider_region": "aws-us-east-1"
+               }
+
+            If you choose ``LOCAL``, choose a specific cloud provider
+            and region to deploy to. For a list of all available
+            options, see :ref:`Deployment Models & Regions
+            <deployment-model>`.
+
+            .. code-block:: json
+
+               {
+                 "deployment_model": "LOCAL",
+                 "provider_region": "azure-westus"
+               }
+
+         .. step:: Start the Migration
+
+            To start a migration, call the :admin-api-endpoint:`Create a
+            Deployment Migration
+            <operation/adminCreateDeploymentMigration>` endpoint with
+            the deployment model and region you want to migrate to in
+            the request body.
+
+            .. code-block:: sh
+
+               curl -X PUT \
+                 https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/deployment_migration \
+                 -H 'Content-Type: application/json' \
+                 -H 'Authorization: Bearer <AccessToken>' \
+                 -d '{
+                   "deployment_model": "<DeploymentModel>",
+                   "provider_region": "<RegionID>"
+                 }'
+
+         .. step:: Monitor the Migration Status
+
+            To get the current status of a deployment migration, call
+            the :admin-api-endpoint:`Get a Deployment Migration
+            <operation/adminGetDeploymentMigration>`
+            endpoint.
+
+            .. code-block:: sh
+               
+               curl -X GET \
+                 https://services.cloud.mongodb.com/api/admin/v3.0/groups/<groupId>/apps/<appId>/deployment_migration \
+                 -H 'Authorization: Bearer <AccessToken>'
+
+         .. include:: /includes/step-deployment-region-migration-cleanup.rst
+
+.. _deployment-migration-process:
+
+Deployment Migration Process
+----------------------------
+
+Deployment migrations move your App's data and configuration to one or
+more new regions in a series of stages. At each stage, the process
+migrates a portion of your App to the new model and cleans up any
+artifacts from the previous model.
+
+A deployment migration moves through the following stages in order:
+
+1. ``"started"``: the migration has been started
+
+#. ``"downtime"``: the App is unavailable while the migration is in progress
+
+#. ``"enabling_event_subscriptions"``: the App's Triggers and Device
+   Sync translators are being enabled
+
+#. ``"cleanup"``: deployment artifacts are being cleaned up
+
+#. The migration is complete and can be in one of two states:
+
+   - ``"successful"``: the migration completed successfully
+
+   - ``"failed"``: the migration failed
+
+Data Affected
+~~~~~~~~~~~~~
+
+The migration process does not affect any application data stored in a
+MongoDB Atlas cluster.
+
+The migration process migrates the following components of your App:
+
+- User accounts
+- App configuration files
+- Triggers
+- API Services
+- Device Sync translators
+
+The migration process **does not** migrate the following data:
+
+- Application logs
+- Deployment drafts
+- Data stored in a MongoDB Atlas cluster

@@ -1,0 +1,286 @@
+.. meta::
+   :robots: nosnippet
+
+.. _app-environment:
+
+============================
+Configure an App Environment
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+App Environments are a way to organize your development workflow and
+effectively reuse code. You can use App Environments to define different
+multiple versions of global configuration values and then switch between
+them by changing the App's current environment.
+
+App Services supports a set of built-in environment names that each
+represent a stage of your development workflow:
+
+.. include:: /includes/list-of-environment-names.rst
+
+Environment Values
+~~~~~~~~~~~~~~~~~~
+
+For each environment, you can define a set of *environment values* that
+are available to your application when that environment is active.
+
+For example, you might use different values for an API's ``baseUrl``
+configuration depending on whether you're developing a new feature or
+deploying to production.
+
+The values for an environment are stored as a single JSON object. You
+can set the field names and corresponding values to whatever you want.
+
+You can access values from the current environment by field name:
+
+- Use :ref:`context.environment <context-environment>` in Functions.
+
+- Use :json-expansion:`%%environment <%%environment>` in rule
+  expressions.
+
+- Use :ref:`Templated Configurations <config-expansions>` in your
+  App's configuration files.
+
+How to Use Environments
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Environment tags each represent a specific stage of your development
+process. You can define a separate App for each environment, where each
+App uses the same set of configuration files but has a distinct
+environment tag. To learn how, see :ref:`Copy an App <copy-app>`.
+
+For example, a typical development process may have three development
+stages: ``development``, ``testing``, and ``production``. You could use
+a separate App for each stage and use different environment values for
+each App.
+
+You can also use unique applications to test individual feature
+branches. For example, you might have a core ``development`` App that
+developers fork for their feature branches. When a feature branch moves
+into testing, you can use the core ``testing`` App instead.
+
+To learn how to incorporate environments into your CI/CD workflow, see
+:ref:`Set Up a CI/CD Pipeline <ci-cd-pipeline>`. For a full example that
+manages testing, deployment, and other tasks for a real application,
+see: `How to Build CI/CD Pipelines for App Services Apps using GitHub
+Actions
+<https://www.mongodb.com/developer/how-to/build-ci-cd-pipelines-realm-apps-github-actions/>`__.
+
+.. figure:: /images/realm-app-environments-in-workflow.png
+   :width: 400 px
+   :align: center
+   :alt: Diagram showing different App Services Apps for each branch
+   :lightbox:
+
+Before You Begin
+----------------
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      You will need the following to define an App Environment in the Atlas UI:
+
+      - .. include:: /includes/prereqs/atlas-account.rst
+
+   .. tab::
+      :tabid: cli
+
+      You will need the following to define an App Environment in the CLI:
+
+      - .. include:: /includes/prereqs/atlas-account.rst
+
+      - .. include:: /includes/prereqs/atlas-admin-api-key.rst
+
+      - .. include:: /includes/prereqs/appservices-cli.rst
+
+      - .. include:: /includes/prereqs/app-id.rst
+
+   .. tab::
+      :tabid: api
+
+      You will need the following to define an App Environment with the Admin API:
+
+      - .. include:: /includes/prereqs/atlas-account.rst
+
+      - .. include:: /includes/prereqs/atlas-admin-api-key.rst
+
+      - .. include:: /includes/prereqs/api-project-app-id.rst
+
+Procedure
+---------
+
+.. tabs-realm-admin-interfaces::
+
+   .. tab::
+      :tabid: ui
+
+      .. procedure::
+
+         .. step:: Create a New Value
+
+            In the App Services UI, click :guilabel:`Values` in the left
+            navigation menu, then click :guilabel:`Create New Value`.
+
+            Enter a name for the value and select
+            :guilabel:`Environment` for the value type.
+
+         .. step:: Define Values for Each Environment
+
+            Define a value for each environment tag that you want to
+            access the value from. You can define a different value for
+            each environment and may leave a value undefined in any
+            environment.
+
+            .. figure:: /images/ui-environment-values.png
+               :width: 750px
+               :alt: Environment value inputs in the App Services UI
+
+         .. step:: Specify Your App Environment
+
+            Your App always runs in a specific environment, which affects the value of all
+            environment values. You can specify the current environment for your App on
+            the :guilabel:`Deploy > Environment` screen.
+
+            .. figure:: /images/ui-environment-selector.png
+               :width: 750px
+               :alt: The environment selector in the App Services UI
+
+         .. step:: Save and Deploy
+
+            Once you've defined the environment value, click :guilabel:`Save` to update
+            the configuration. If your application has deployment drafts enabled, click
+            :guilabel:`Review & Deploy` to deploy the changes.
+
+   .. tab::
+      :tabid: cli
+
+      .. procedure::
+
+         .. step:: Authenticate a MongoDB Atlas User
+
+            .. include:: /includes/cli-login.rst
+
+         .. step:: Pull the Latest Version of Your App
+
+            .. include:: /includes/cli-pull-latest.rst
+
+         .. step:: Define One or More Environments
+
+            The ``/environments`` directory contains a ``.json`` file
+            for each supported environment tag. Each file defines all of
+            the environment values for its corresponding environment.
+
+            App Services supports the following environment tags:
+
+            .. include:: /includes/list-of-environment-names.rst
+
+            Open the file for each environment you want to use. In each
+            file, add an entry to the ``values`` subdocument that maps
+            the value's name to its value in that environment.
+
+            .. example::
+
+               The following configurations define the ``baseUrl`` environment value in
+               the ``production`` and ``development`` environments.
+
+               .. code-block:: json
+                  :caption: /environments/production.json
+
+                  {
+                    "values": {
+                      "baseUrl": "https://example.com"
+                    }
+                  }
+
+               .. code-block:: json
+                  :caption: /environments/development.json
+
+                  {
+                    "values": {
+                      "baseUrl": "https://dev.example.com"
+                    }
+                  }
+
+
+         .. step:: Set Your App Environment
+
+            Your app always runs in a specific environment, which affects the value of all
+            environment values. You can specify the current environment for your app in
+            ``root_config.json``:
+
+            .. code-block:: json
+               :caption: root_config.json
+
+               {
+                 ...,
+                 "environment": "development"
+               }
+
+         .. step:: Deploy Your App
+
+            Once you've defined values for each environment, you can push the updated
+            configurations to your remote app. {+cli+} immediately deploys the updated
+            environment values on push.
+
+            .. code-block:: bash
+
+               {+cli-bin+} push --remote="<Your App ID>"
+
+   .. tab::
+      :tabid: api
+
+      .. procedure::
+
+         .. step:: Authenticate a MongoDB Atlas User
+
+            .. include:: /includes/api-authenticate-instructions.rst
+
+         .. step:: Define Environment Values
+
+            You can define environment values for your App by calling
+            the :admin-api-endpoint:`Create an Environment Value
+            <operation/adminCreateEnvironmentValue>`
+            endpoint. Each environment value has a name and a ``values``
+            object that maps environment tags to the value in the
+            environment.
+
+            .. code-block:: bash
+
+               curl -X GET \
+                 https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/environment_values/{environmentValueId} \
+                 -H 'Authorization: Bearer <access_token>' \
+                 -d '{
+                   "name": "myEnvironmentValue",
+                   "values": {
+                     "none": "alpha",
+                     "development": "beta",
+                     "testing": "gamma",
+                     "qa": "delta",
+                     "production": "epsilon"
+                   }
+                 }'
+
+         .. step:: Set Your App Environment
+
+            You can set your App's environment tag by calling the
+            :admin-api-endpoint:`Set the App Environment
+            <operation/adminSetEnvironment>` endpoint.
+
+            .. code-block:: bash
+
+               curl -X PUT \
+                 https://services.cloud.mongodb.com/api/admin/v3.0/groups/{groupId}/apps/{appId}/environment \
+                 -H 'Authorization: Bearer <access_token>' \
+                 -d '{ "environment": "production" }'

@@ -1,0 +1,229 @@
+.. meta::
+   :robots: nosnippet
+
+.. _schemas:
+
+=======
+Schemas
+=======
+
+.. meta:: 
+   :description: Learn about Atlas App Services Schemas.
+
+.. facet::
+  :name: genre
+  :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. toctree::
+   :titlesonly:
+   
+   Define & Enforce a Schema </schemas/enforce-a-schema>
+   Remove a Schema </schemas/remove-a-schema>
+   Schema Data Types </schemas/types>
+
+Overview
+--------
+
+What is a Schema?
+~~~~~~~~~~~~~~~~~
+
+A schema is a JSON object that defines the structure and contents of your
+data. You can use Atlas App Services' BSON schemas, which extend the `JSON Schema
+<https://json-schema.org/>`_ standard, to define your application's data model
+and validate documents whenever they're created, changed, or deleted.
+
+Schemas represent *types* of data rather than specific values. App Services supports
+many built-in :ref:`schema types <schema-types>`. These include primitives, like
+strings and numbers, as well as structural types, like objects and arrays, which
+you can combine to create schemas that represent custom *object types*.
+
+For example, this is a basic schema for data about cars and some car objects
+that conform to the schema:
+
+.. tabs::
+   
+   .. tab:: Schema
+      :tabid: schema
+      
+      .. code-block:: json
+         
+         {
+           "title": "car",
+           "required": [
+              "_id",
+              "year",
+              "make",
+              "model",
+              "miles"
+           ],
+           "properties": {
+             "_id": { "bsonType": "objectId" },
+             "year": { "bsonType": "string" },
+             "make": { "bsonType": "string" },
+             "model": { "bsonType": "string" },
+             "miles": { "bsonType": "number" }
+           }
+         }
+   
+   .. tab:: Objects
+      :tabid: objects
+      
+      .. code-block:: json
+         
+         {
+           "_id": ObjectId("5af712eff26b29dc5c51c60f"),
+           "year": "2017",
+           "make": "Honda",
+           "model": "Civic",
+           "miles": 117424
+         }
+         {
+           "_id": ObjectId("5af714eff24b294c5251cf04"),
+           "year": "2020",
+           "make": "Ford",
+           "model": "Mustang",
+           "miles": 13579
+         }
+
+Why Define a Schema?
+~~~~~~~~~~~~~~~~~~~~
+
+Schemas are the specification for your application's data model. Once you've
+defined a schema, App Services provides you with additional tools and services to work
+with data that conforms to the schema.
+
+App Services uses schemas in many application services:
+
+- :ref:`Atlas Device Sync <sync>` uses schemas to sync data between realms and MongoDB
+  Atlas. App Services can also generate idiomatic SDK object models for you based on
+  your schemas.
+
+- :ref:`Data Access Rules <rules>` validate that data conforms to your schema
+  before and after every request. If any document fails validation, App Services
+  prevents or rolls back the entire request.
+
+.. _define-a-schema:
+
+Define a Schema
+---------------
+
+A root-level collection schema can contain additional schemas that describe the
+type's properties. Each root-level schema is an ``object`` schema that has the
+following form:
+
+.. code-block:: json
+   
+   {
+     "bsonType": "object",
+     "title": "<Type Name>",
+     "required": ["<Required Field Name>", ...],
+     "properties": {
+       "<Field Name>": <Schema>
+     }
+   }
+
+You can use any of the supported :ref:`schema types <schema-types>` to
+configure the object's properties:
+
+- :ref:`Object <schema-type-object>`
+- :ref:`Array <schema-type-array>`
+- :ref:`String <schema-type-string>`
+- :ref:`Number <schema-type-number>`
+- :ref:`Boolean <schema-type-boolean>`
+- :ref:`UUID <schema-type-uuid>`
+- :ref:`ObjectId <schema-type-objectid>`
+- :ref:`Binary Data <schema-type-bindata>`
+- :ref:`Mixed <schema-type-mixed>`
+- :ref:`Set <schema-type-set>`
+- :ref:`Dictionary <schema-type-dictionary>`
+
+.. note::
+
+   To learn how to configure and deploy a schema in your app, see
+   :ref:`enforce-a-schema`.
+
+.. _schema-enforcement:
+
+How App Services Enforces Schemas
+---------------------------------
+
+App Services validates all write operations (inserts, updates, and deletes) on a
+MongoDB collection against its collection schema. It checks every document
+before and after every request to ensure that all properties conform to the
+schema and that no invalid changes occured.
+
+App Services evaluates the result of all document writes and compares them against the
+schema before committing the writes to your cluster. If the result of any write
+operation in a request does not match the schema, App Services returns an error
+to the user without applying any changes in the request.
+
+.. example::
+
+   A collection has the following schema:
+
+   .. code-block:: json
+
+      {
+        "title": "person",
+        "properties": {
+          "_id": { "bsonType": "objectId" },
+          "name": { "bsonType": "string" }
+        }
+      }
+
+   A user with permission to read and write all fields wants to update
+   the ``name`` field of a particular document. They issue the following
+   query:
+
+   .. code-block:: javascript
+      :copyable: False
+
+      collection.updateOne(
+        { "_id": BSON.ObjectId("5ae782e48f25b9dc5c51c4d0") },
+        { "$set": { "name": 42 } }
+      )
+
+   The query attempts to set the value of ``name`` to the number ``42``,
+   but the schema requires the value to be a ``string``. App Services will
+   reject this write operation even though the user had permission to
+   update the document because the write result does not conform to the
+   schema.
+
+.. _schema-app-services-vs-built-in:
+
+App Services Schema vs Built-In Schema Validation
+-------------------------------------------------
+
+A schema in App Services is **not the same** as :ref:`MongoDB's built-in
+schema validation <schema-validation-overview>`. Both use the JSON
+schema standard with additional support for BSON types. However, App
+Services does not use your cluster's built-in schema and may interact
+with your cluster in a way that is incompatible with a built-in schema.
+
+If you want to use App Services schemas *and* your cluster's built-in
+schema validation at the same time, consider the following:
+
+- Set your cluster's schema validation level to "warn" initially. Then,
+  monitor activity and address existing warnings. Once you're
+  comfortable that both schema validation layers are compatible, you can
+  upgrade the validation level to "error".
+
+- If you're using :ref:`Device Sync <sync>`, avoid required fields for
+  embedded documents and arrays of embedded documents. The sync protocol
+  may break a valid embedded object write into multiple equivalent
+  writes that do not individually include all required fields.
+
+- If you're using Device Sync, avoid distinguishing between
+  ``undefined``, ``null``, empty arrays, and embedded objects with no
+  fields. The sync protocol treats these values as functional
+  equivalents.
+
+If you need help in working with both schema validation layers
+simultaneously, contact `MongoDB Support
+<https://support.mongodb.com/welcome?tck=docs_realm>`_.

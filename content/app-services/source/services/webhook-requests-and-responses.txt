@@ -1,0 +1,215 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+=========================================
+Webhook Requests & Responses [Deprecated]
+=========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/note-third-party-services-deprecation.rst
+
+Overview
+--------
+
+Depending on the service, :ref:`incoming webhooks <incoming-webhooks>`
+offer several ways to validate requests and customize the response that
+Atlas App Services sends back to the external service.
+
+.. _webhook-request-validation:
+
+Request Validation Methods
+--------------------------
+
+To validate that a webhook request is coming from a trusted source, some
+external services require that incoming requests incorporate a secret
+string in one of several prescribed manners. Other services, like the
+:doc:`HTTP service </services/http>`, allow you to optionally require
+request validation.
+
+There are two type of :guilabel:`Request Validation` for webhooks:
+:ref:`Payload Signature Verification <webhook-verify-payload-signature>`
+and :ref:`Secret as a Query Parameter <webhook-secret-query-parameter>`.
+
+HTTP/1.1 or greater is required when making requests.
+
+.. note::
+
+   For maximum security, programmatically generate the ``secret`` string
+   using a secure package such as the `Python secrets module
+   <https://docs.python.org/3/library/secrets.html>`__. Make sure that
+   you do not publish the secret or include it in your version control
+   system.
+
+.. _webhook-verify-payload-signature:
+
+Payload Signature Verification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :guilabel:`Verify Payload Signature` request validation option
+requires that incoming requests include a hexadecimal-encoded
+:abbr:`HMAC (Hash-based Message Authentication Code)` SHA-256 hash
+generated from the request body and ``secret`` string in the
+``X-Hook-Signature`` header.
+
+.. example::
+
+   Consider the following webhook request body and secret:
+
+   .. code-block:: javascript
+
+      const body = { "message":"MESSAGE" }
+      const secret = 12345
+
+   The following :doc:`Atlas Function </functions>` generates the hash
+   for this ``body`` and ``secret``:
+
+   .. code-block:: javascript
+
+      // Generate an HMAC request signature
+      exports = function(secret, body) {
+        // secret = the secret validation string
+        // body = the webhook request body
+        return utils.crypto.hmac(EJSON.stringify(body), secret, "sha256", "hex");
+      }
+      // Returns: "828ee180512eaf8a6229eda7eea72323f68e9c0f0093b11a578b0544c5777862"
+
+   The hash value must be assigned to the ``X-Hook-Signature`` HTTP
+   request header on every request:
+
+   .. code-block:: none
+
+      X-Hook-Signature:sha256=<hex-encoded-hash>
+
+   To test that the request was properly signed, we could run the
+   following ``curl`` command:
+
+   .. code-block:: shell
+
+      curl -X POST \
+        -H "Content-Type: application/json" \
+        -H "X-Hook-Signature:sha256=828ee180512eaf8a6229eda7eea72323f68e9c0f0093b11a578b0544c5777862" \
+        -d '{"message":"MESSAGE"}' \
+        <webhook URL>
+
+.. _webhook-secret-query-parameter:
+
+Secret as a Query Parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :guilabel:`Require Secret as Query Param` request validation option
+requires that incoming requests include the specified ``secret`` string
+as a `query parameter <https://en.wikipedia.org/wiki/Query_string>`_
+appended to the end of the URL.
+
+.. example::
+
+   Consider a webhook configured to use a :guilabel:`secret` value of
+   ``12345``. All requests must be made to the webhook URL appended with
+   the secret as a query parameter:
+
+   .. code-block:: none
+
+      <webhook URL>?secret=12345
+
+   To test that requests to this URL are properly verified, we could run
+   the following ``curl`` command:
+
+   .. code-block:: none
+
+      curl -H "Content-Type: application/json" \
+           -d '{ "message": "HELLO" }' \
+           -X POST '<webhook URL>?secret=12345'
+
+.. _webhook-response-object:
+
+Webhook Response Object
+-----------------------
+
+App Services automatically passes a ``response`` object that represents the
+webhook's HTTP response as the second argument to webhook Function.
+The following table lists the available methods for modifying the
+``response`` object:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 35
+
+   * - Method
+     - Arguments
+     - Description
+
+   * - ``setStatusCode(code)``
+     - ``code`` *integer*
+     - Set the HTTP response `status code
+       <https://developer.mozilla.org/en-US/docs/Web/HTTP/Status>`_.
+
+       .. example::
+
+          .. code-block:: javascript
+
+             response.setStatusCode(201);
+
+   * - ``setBody(body)``
+     - ``body`` *string* or *BSON.Binary*
+     - Set the HTTP response `body
+       <https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages#Body_2>`_.
+
+       If ``body`` is a string, it will be encoded to ``BSON.Binary``
+       before being returned.
+
+       .. example::
+
+          .. code-block:: javascript
+
+             response.setBody(
+               "{'message': 'Hello, World!'}"
+             );
+
+   * - ``setHeader(name, value)``
+     - | ``name`` *string*
+       | ``value`` *string*
+     - Set the HTTP response `header
+       <https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers>`_
+       specified by ``name`` to the value passed in the ``value``
+       argument. This overrides any other values that may have already
+       been assigned to that  header.
+
+
+       .. example::
+
+          .. code-block:: javascript
+
+             response.setHeader(
+               "Content-Type",
+               "application/json"
+             );
+
+   * - ``addHeader(name, value)``
+     - | ``name`` *string*
+       | ``value`` *string*
+     - Set the HTTP response `header
+       <https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers>`_
+       specified by ``name`` to the value passed in the ``value``
+       argument. Unlike ``setHeader``, this does not override other
+       values that have already been assigned to the header.
+
+       .. example::
+
+          .. code-block:: javascript
+
+             response.addHeader(
+               "Cache-Control",
+               "max-age=600"
+             );
+
+             response.addHeader(
+               "Cache-Control",
+               "min-fresh=60"
+             )

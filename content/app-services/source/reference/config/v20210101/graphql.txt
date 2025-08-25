@@ -1,0 +1,183 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+:orphan:
+
+.. _appconfig-v20210101-graphql:
+
+===========================
+GraphQL Configuration Files
+===========================
+
+.. default-domain:: mongodb
+
+.. include:: /reference/config/v20210101/note-old-version.rst
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. banner::
+   :variant:  warning
+
+   GraphQL is deprecated. :ref:`Learn More <migrate-hosting-graphql>`.
+
+You can configure the :ref:`GraphQL API <graphql-api>` for your application in
+the ``graphql`` directory:
+
+.. code-block:: none
+   
+   app/
+   └── graphql/
+       ├── config.json
+       └── custom_resolvers
+           └── <resolver name>.json
+
+Service Configuration
+---------------------
+
+.. code-block:: json
+   :caption: graphql/config.json
+   
+   {
+     "use_natural_pluralization": <Boolean>,
+     "disable_schema_introspection": <Boolean>
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30
+
+   * - Field
+     - Description
+
+   * - | ``use_natural_pluralization``
+       | Boolean
+     - ``true`` by default for new apps. 
+        
+       You can only set the value to ``false`` when you :admin-api-endpoint:`create a new app with the Admin API endpoint <operation/adminCreateApplication>` 
+       and pass the property into the body of the request. The value 
+       cannot be changed to ``false`` once the app is created.
+
+       If ``true``, generated schema type names use common English
+       pluralization whenever possible.
+
+       If ``false``, or if a natural pluralization cannot be determined,
+       then plural types use the singular type name with an ``"s"``
+       appended to the end.
+       
+       .. example::
+          
+          App Services can use either a natural plural or a default plural for a
+          generated "mouse" type:
+
+          - Natural: "mice"
+          - Default: "mouses"
+
+   * - | ``disable_schema_introspection``
+       | Boolean
+     - This value is ``false`` by default for new apps.
+
+       If ``true``, the GraphQL API blocks :graphql:`introspection
+       queries <learn/introspection/>` from clients.
+
+       This setting is useful for production Apps that do not want to
+       expose their GraphQL schema to the public. When introspection is
+       disabled, clients like GraphiQL cannot show docs for the API
+       schema or autocomplete queries and mutations.
+
+.. _appconfig-v20210101-custom-resolver:
+
+Custom Resolver Configuration
+-----------------------------
+
+.. code-block:: json
+   :caption: graphql/custom_resolvers/<resolver name>.json
+   
+   {
+     "on_type": "<Parent Type Name>",
+     "field_name": "<Resolver Field Name>",
+     "function_name": "<Resolver Function Name>",
+     "input_type": "<Input Type Name>" | { <JSON Schema> },
+     "input_type_format": "<Input Type Format>",
+     "payload_type": "<Payload Type Name>" | { <JSON Schema> },
+     "payload_type_format": "<Payload Type Format>",
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30
+
+   * - Field
+     - Description
+
+   * - | ``on_type``
+       | String
+     - The parent type that exposes the custom resolver as one of its fields.
+       
+       Valid Options:
+
+       - ``"Query"`` (for :ref:`custom query <example-graphql-custom-query>` operations)
+       - ``"Mutation"`` (for :ref:`custom mutation <example-graphql-custom-mutation>` operations)
+       - A singular :ref:`exposed <graphql-expose-data>` type name (for :ref:`computed properties <example-graphql-computed-property>`)
+
+   * - | ``field_name``
+       | String
+     - The name of the field on the parent type that exposes the custom
+       resolver. The field name must be unique among all custom resolver on its
+       parent type.
+
+       If the field name matches a field in the parent type's schema, the custom
+       resolver overrides the schema type.
+
+   * - | ``function_name``
+       | String
+     - The name of the :ref:`function <appconfig-functions>` that runs when the
+       resolver is called. The function arguments may accept a single argument
+       (configured by ``input_type`` and ``input_type_format``) and must return
+       a payload value (configured by ``payload_type`` and
+       ``payload_type_format``).
+
+   * - | ``input_type``
+       | String | JSON Schema
+     - The type of the resolver's ``input`` argument (if it accepts input). You
+       can specify either the name of another type in your GraphQL schema or a
+       custom JSON schema specific to the resolver.
+
+   * - | ``input_type_format``
+       | String
+     - A metadata description of the ``input_type``.
+       
+       Valid Options:
+       
+       - ``"scalar"`` (for a single value of a specific BSON type)
+       - ``"scalar-list"`` (for multiple values of a specific BSON type)
+       - ``"generated"`` (for a single value of a specific :ref:`exposed <graphql-expose-data>` type)
+       - ``"generated-list"`` (for multiple values of a specific :ref:`exposed <graphql-expose-data>` type)
+       - ``"custom"`` (for a custom JSON schema)
+
+   * - | ``payload_type``
+       | String | JSON Schema
+     - The type of the value returned in the resolver's payload. You can specify
+       either the name of another type in your GraphQL schema or a custom JSON
+       schema specific to the resolver.
+
+       If you do not specify a payload type, the resolver returns a
+       ``DefaultPayload`` object:
+
+       .. literalinclude:: /includes/DefaultPayload.type.graphql
+          :language: graphql
+
+   * - | ``payload_type_format``
+       | String
+     - A metadata description of the ``payload_type``.
+       
+       Valid Options:
+       
+       - ``"scalar"`` (for a single value of a specific BSON type)
+       - ``"scalar-list"`` (for multiple values of a specific BSON type)
+       - ``"generated"`` (for a single value of a specific :ref:`exposed <graphql-expose-data>` type)
+       - ``"generated-list"`` (for multiple values of a specific :ref:`exposed <graphql-expose-data>` type)
+       - ``"custom"`` (for a custom JSON schema)

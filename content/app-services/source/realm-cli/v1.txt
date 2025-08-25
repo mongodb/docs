@@ -1,0 +1,710 @@
+.. meta::
+   :robots: nosnippet
+
+:noprevnext:
+:orphan:
+
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _realm-cli-v1:
+
+=============================
+``realm-cli`` v1 [Deprecated]
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/realm-cli-deprecation.rst
+
+Overview
+--------
+
+.. program:: realm-cli
+.. binary:: realm-cli-v1
+
+The Atlas App Services Command Line Interface (``realm-cli``)
+allows you to programmatically manage your Apps.
+With ``realm-cli``, you can create or update
+Apps from a local directory as well as export
+existing applications to a local directory.
+
+.. _install-realm-cli-v1:
+
+Installation
+------------
+
+.. include:: /includes/install-realm-cli-v1.rst
+
+.. _realm-cli-general-options-v1:
+
+General Options
+---------------
+
+.. important:: Check your CLI version
+   
+   This page documents commands, arguments, and flags for version 1 of
+   ``realm-cli``. If you have a newer version of ``realm-cli``, run ``realm-cli``
+   ``--help`` for a list of updated commands and usage examples. To check
+   your CLI version, use: ``realm-cli --version``.
+
+The following options are available for all ``realm-cli`` commands:
+
+.. option:: --config-path <File System Path>
+   
+   | **Optional.**
+   
+   If included with ``realm-cli login``, stores information about the
+   authenticated session in a file at the specified path. Session information
+   includes your MongoDB Cloud username, :atlas:`MongoDB Atlas programmatic API
+   Key </configure-api-access/#programmatic-api-keys>`, and a session refresh
+   token.
+   
+   If included with any other command, authenticates the request with the
+   session saved at the specified path (if it exists) instead of the current CLI
+   authentication state.
+   
+   .. warning::
+   
+      Since the session configuration file contains your MongoDB Atlas
+      programmatic API private key, you should avoid sharing this file
+      unintentionally.
+
+.. option:: --disable-color
+   
+   | **Optional.**
+   
+   If specified, suppress all text color in ``realm-cli`` output.
+   
+   By default, some output such as errors and import diffs are colorized. Use
+   this flag if you wish to prevent this behavior.
+
+.. option:: --yes
+
+   | **Optional.**
+   
+   If specified, automatically respond affirmatively to any yes/no prompts from
+   ``realm-cli``.
+
+Authentication
+--------------
+
+.. _realm-cli-login-v1:
+
+Authenticate a CLI User
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. program:: realm-cli login
+.. binary:: realm-cli login
+
+Use ``realm-cli login`` to authenticate a MongoDB Cloud user
+with a :atlas:`MongoDB Atlas programmatic API Key
+</configure-api-access/#programmatic-api-keys>`.
+
+.. code-block:: shell
+
+   realm-cli login --api-key="<my api key>" --private-api-key="<my private api key>"
+
+.. option:: --api-key <api key>
+   
+   A valid public MongoDB Atlas :atlas:`programmatic API key
+   </configure-api-access/#programmatic-api-keys>` for the MongoDB Cloud account
+   you wish to log in with.
+
+.. option:: --private-api-key <private api key>
+   
+   A valid private MongoDB Atlas :atlas:`programmatic API key
+   </configure-api-access/#programmatic-api-keys>` for the MongoDB Cloud account
+   you wish to log in with.
+
+.. option:: --username <MongoDB Cloud username>
+   
+   (Deprecated) The username of the MongoDB Cloud account you wish to log in
+   with using :atlas:`personal API keys
+   </configure-api-access/#personal-api-keys-deprecated>`.
+
+.. _realm-cli-logout-v1:
+
+Log Out the Current CLI User
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. program:: realm-cli logout
+.. binary:: realm-cli logout
+
+Use ``realm-cli logout`` to log out the currently logged in user.
+
+.. code-block:: shell
+
+   realm-cli logout
+
+.. _realm-cli-whoami-v1:
+
+View the Currently Logged In User
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. program:: realm-cli whoami
+.. binary:: realm-cli whoami
+
+Use ``realm-cli whoami`` to see details on the user that is currently
+logged in to the CLI, if applicable.
+
+.. code-block:: shell
+
+   realm-cli whoami
+
+If there is a currently logged-in user, their information will display
+on the next line in the following format:
+
+.. code-block:: shell
+
+   <username> [API Key: ********-****-****-****-<last 12 digits of API key>]
+
+If no user is logged in, ``realm-cli`` will return the following
+message:
+
+.. code-block:: shell
+
+   no user info available
+
+Apps
+----
+
+.. _realm-cli-import-v1:
+
+Import an Application
+~~~~~~~~~~~~~~~~~~~~~
+
+.. program:: realm-cli import
+.. binary:: realm-cli import
+
+Use ``realm-cli import`` to import a local application directory into a
+hosted App. If you import a directory into an application
+that doesn't exist, ``realm-cli`` can :ref:`create the application
+<create-app>` for you.
+
+.. tip::
+
+   You must be a ``Project Owner`` to import an App. For more info, 
+   see: :atlas:`Atlas User Roles </reference/user-roles/#project-roles>`.
+
+.. code-block:: shell
+
+   realm-cli import \
+     --app-id=myapp-abcde \
+     --path=./path/to/app/dir \
+     --strategy=merge \
+     --include-hosting \
+     --include-dependencies
+
+.. option:: --app-id <App Services Application ID>
+   
+   | **Optional.**
+   
+   The Application ID of your App.
+   
+   If not specified, ``realm-cli`` will attempt to use the value of
+   ``app_id`` defined in :ref:`config.json <legacy-appschema-realm-config>`. If
+   ``config.json`` does not have an ``app_id`` value, ``realm-cli``
+   prompts you to create a new application.
+   
+   .. note:: New Application App IDs
+      
+      If you create a new application with ``realm-cli``, App Services
+      generates a new App ID and ignores any value that you specify for
+      the ``--app-id`` flag.
+
+.. option:: --path <path>
+   
+   | **Optional.**
+   
+   The path to the directory containing files you wish to import.
+   The directory must contain, at minimum, a valid :ref:`config.json
+   <legacy-appschema-realm-config>` file.
+   
+   If the ``path`` argument is omitted, ``realm-cli`` will search for a
+   ``config.json`` file in the current application directory.
+
+.. option:: --strategy ['merge|replace|replace-by-name']
+   
+   | **Optional.**
+   | **Default:** Merge
+   
+   The :ref:`import strategy <realm-import-strategies-v1>` that
+   ``realm-cli`` should use when reconciling imported entities.
+
+.. option:: --project-id <MongoDB Cloud Project ID>
+   
+   | **Optional.**
+   
+   The :guilabel:`Project ID` of the :ref:`Atlas project <projects>` on
+   which you want to host a newly created App. If
+   specified, ``realm-cli`` will not prompt you to select a project when
+   creating a new app.
+   
+   .. note::
+   
+      ``realm-cli`` ignores the value of ``--project-id``
+      unless you are :ref:`importing a new application
+      <create-app>`.
+
+.. option:: --include-hosting
+   
+   | **Optional.**
+   
+   If specified, uploads and deploys any static assets in the
+   ``/hosting/files`` directory of your App.
+
+.. option:: --include-dependencies
+   
+   | **Optional.**
+   
+   If specified, uploads and deploys any external dependencies included
+   in a ``node_modules`` archive in the ``/functions`` directory of your
+   App.
+
+
+.. _realm-cli-export-v1:
+
+Export an Application
+~~~~~~~~~~~~~~~~~~~~~
+
+.. program:: realm-cli export
+.. binary:: realm-cli export
+
+Use ``realm-cli export`` to save an App configuration to
+a local application directory.
+
+.. code-block:: shell
+
+   realm-cli export \
+     --app-id=myRealmApp-abcde \
+     --output=path/to/exported/app/dir \
+     --include-hosting \
+     --as-template
+
+.. option:: --app-id <App Services Application ID>
+   
+   | **Optional.**
+   
+   The Application ID of your App.
+
+.. option:: --output <path>
+   
+   | **Optional.**
+   
+   The path of the directory where App Services will export your application.
+   
+   If specified, ``realm-cli`` creates a directory at the given path and exports
+   the application configuration into the new directory. If a file or directory
+   already exists at the specified path, the export will fail.
+   
+   .. note::
+   
+      If the ``output`` argument is omitted, ``realm-cli`` will export the
+      application configuration to a new directory within the current working
+      directory.
+
+.. option:: --include-hosting
+
+   | **Optional.**
+   
+   If specified, exports all hosted static assets in the ``hosting/files``
+   directory of your App.
+
+.. option:: --for-source-control
+
+   | **Optional.**
+   
+   If enabled, ``realm-cli`` exports the application configuration without any
+   fields that conflict with deployment via GitHub source control, including
+   fields like ``name``, ``app_id``, ``location``, and ``deployment_model`` in
+   the ``config.json`` file as well as the ``config.clusterName`` field in the
+   ``config.json`` of any Atlas data sources linked to the application.
+
+.. option:: --as-template
+   
+   | **Optional.**
+   
+   If enabled, ``realm-cli`` exports the application configuration without any
+   service ID values, including the App ID. This simplifies the creation of new
+   applications from an exported configuration.
+
+.. _realm-cli-diff-v1:
+
+Diff Pending Application Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. program:: realm-cli diff
+.. binary:: realm-cli diff
+
+Use ``realm-cli diff`` to return a diff of the configuration files between the
+deployed application and your local application directory.
+
+.. code-block:: shell
+
+   # Diff application config files
+   realm-cli diff
+   
+   # Diff application config files and hosted files
+   realm-cli diff --include-hosting
+
+The diff resembles the following:
+
+.. code-block:: shell
+   :emphasize-lines: 1-2, 6, 10-11, 15
+
+   --- functions/oldFunctionName/config.json
+   +++ functions/oldFunctionName/config.json
+   @@ -1,6 +1 @@
+   -{
+   -    "id": "5d4c6a5cd28e555496a705da",
+   -    "name": "oldFunctionName",
+   -    "private": false
+   -}
+   
+   --- functions/newFunctionName/config.json
+   +++ functions/newFunctionName/config.json
+   @@ -1 +1,6 @@
+   +{
+   +    "id": "5d4c6a5cd28e555496a705da",
+   +    "name": "newFunctionName",
+   +    "private": false
+   +}
+   
+   Modified Files:
+           * /index.html
+           * /auth/confirmEmail.html
+           * /auth/resetPassword.html
+
+.. option:: --include-hosting
+
+   | **Optional.**
+   
+   If specified, the diff includes a list of files in the
+   ``hosting/files`` directory of your App that are
+   different from your app's deployed files.
+
+Secrets
+-------
+
+.. _realm-cli-secrets-list-v1:
+
+List All Secrets
+~~~~~~~~~~~~~~~~
+
+.. program:: realm-cli secrets list
+.. binary:: realm-cli secrets list
+
+Use ``realm-cli secrets list`` to return a list that contains the Name
+and ID of each :ref:`Secret <app-secret>` in your application.
+
+.. code-block:: shell
+
+   realm-cli secrets list
+
+The returned list of secrets resembles the following:
+
+.. code-block:: shell
+   
+   ID                       Name
+   5d5c25415e30c7ef857c6a10 test-secret-please-ignore
+   5d56dd453b467e2a48a6ec32 some-other-secret
+
+.. _realm-cli-secrets-add-v1:
+
+Create a Secret
+~~~~~~~~~~~~~~~
+
+.. program:: realm-cli secrets add
+.. binary:: realm-cli secrets add
+
+Use ``realm-cli secrets add`` to create a new :ref:`Secret
+<app-secret>` with the specified name and value.
+
+.. code-block:: shell
+   
+   realm-cli secrets add --name=mySecret --value=SuperSecretValue!
+
+.. option:: --name <Secret Name>
+   
+   A unique name for the new Secret. If an existing Secret already has the
+   specified name then this operation will fail.
+
+.. option:: --value <Secret Value>
+   
+   The value of the new Secret.
+
+.. _realm-cli-secrets-update-v1:
+
+Update a Secret's Value
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. program:: realm-cli secrets update
+.. binary:: realm-cli secrets update
+
+Use ``realm-cli secrets update`` to change the value of an existing
+:ref:`Secret <app-secret>` in your application.
+
+.. code-block:: shell
+
+   # Update a Secret by name
+   realm-cli secrets update --secret-name=mySecret --value=NewSecretValue
+   realm-cli secrets update --name=mySecret --value=NewSecretValue
+   
+   # Update a Secret by name
+   realm-cli secrets update --secret-id=5ba9c5c2e707c02b38031412 --value=NewSecretValue
+   realm-cli secrets update --id=5ba9c5c2e707c02b38031412 --value=NewSecretValue
+
+.. option:: --secret-name <Secret Name>
+
+.. option:: --name <Secret Name>
+
+   The name of the Secret to update.
+
+.. option:: --secret-id <Secret ID>
+
+.. option:: --id <Secret ID>
+
+   The ID value of the Secret to update.
+
+.. option:: --value <Secret Value>
+
+   The new value of the Secret.
+
+.. _realm-cli-secrets-remove-v1:
+
+Remove a Secret
+~~~~~~~~~~~~~~~
+
+.. program:: realm-cli secrets remove
+.. binary:: realm-cli secrets remove
+
+Use ``realm-cli secrets remove`` to delete an existing :ref:`Secret
+<app-secret>` from your application.
+
+.. code-block:: shell
+
+   # Remove a Secret by name
+   realm-cli secrets remove --secret-name=mySecret
+   realm-cli secrets remove --name=mySecret
+   
+   # Remove a Secret by ID
+   realm-cli secrets remove --secret-id=5ba9c5c2e707c02b38031412
+   realm-cli secrets remove --id=5ba9c5c2e707c02b38031412
+
+.. option:: --secret-name <Secret Name>
+
+.. option:: --name <Secret Name>
+
+   The name of the Secret to remove from your App.
+
+.. option:: --secret-id <Secret ID>
+
+.. option:: --id <Secret ID>
+
+   The ID value of the Secret to remove from your App.
+
+.. _realm-import-strategies-v1:
+
+Import Strategies
+-----------------
+
+When performing an application import, there are multiple built-in
+strategies for handling existing entities.
+
+All imports default to the ``merge`` strategy unless otherwise
+specified.
+
+.. _realm-cli-import-merge-v1:
+
+Merge
+~~~~~
+
+.. code-block:: shell
+
+   realm-cli import --strategy=merge
+
+Under the ``merge`` strategy, entities in the application directory are
+added to the application non-destructively. Any existing entities in an
+application are left unchanged if they are not represented in the
+imported application directory.
+
+If an imported entity's ``id`` value matches the ``id`` of an existing
+entity, the existing entity will be updated to match the imported
+entity. App Services assigns system-generated ``id`` values to
+entities without ``id`` values before importing them as new entities.
+
+If an entity is imported with an ``id`` that does not match an
+existing entity, the import will fail. Importing an entity with a
+non-ObjectID ``id`` value causes an error.
+
+.. note::
+
+   If an imported entity has an ``id`` field, the value must be an
+   ObjectID or the merge will fail.
+
+.. example::
+
+   An existing application has three functions:
+
+   .. code-block:: none
+      :copyable: False
+
+      { "id": <ObjectID 1>, "name": "FunctionA", ... }
+      { "id": <ObjectID 2>, "name": "FunctionB", ... }
+      { "id": <ObjectID 3>, "name": "FunctionC", ... }
+
+   | A local application directory is imported with the ``merge``
+     strategy.
+   | The directory contains configuration files for the
+     following functions:
+
+   .. code-block:: none
+      :copyable: False
+
+      { "id": <ObjectID 1>, "name": "FunctionA_Updated!", ... }
+      { "name": "FunctionD", ... }
+
+   After importing, the application has the following functions:
+
+   .. code-block:: none
+      :copyable: False
+
+      { "id": <ObjectID 1>, "name": "FunctionA_Updated!" }
+      { "id": <ObjectID 2>, "name": "FunctionB", ... }
+      { "id": <ObjectID 3>, "name": "FunctionC", ... }
+      { "id": <ObjectID 4>, "name": "FunctionD", ... }
+
+   ``FunctionA`` was updated based on its imported configuration file.
+   ``FunctionB`` and ``FunctionC`` were not included in the imported
+   application directory, so they remained unchanged after importing
+   with the ``merge`` strategy. ``FunctionD`` was imported as a new
+   entity and assigned a system-generated ``id`` value.
+
+.. _realm-cli-import-replace-v1:
+
+Replace
+~~~~~~~
+
+.. code-block:: shell
+
+   realm-cli import --strategy=replace
+
+Under the ``replace`` strategy, if an imported entity's ``id`` value
+matches the ``id`` of an existing entity, App Services replaces the
+existing entity with the imported entity. If an imported entity's ``id``
+value does not match an existing entity, the import fails.
+If an existing entity's ``id`` does not match
+the ``id`` of any imported entity, App Services deletes that
+existing entity.
+
+App Services generates ``id`` values for entities that lack ``id``
+values before importing them as new entities. Importing an entity with
+a non-ObjectID ``id`` value does not throw an error.
+
+.. example::
+
+   An existing application has three functions:
+
+   .. code-block:: none
+      :copyable: False
+
+      { "id": <ObjectID 1>, "name": "FunctionA", ... }
+      { "id": <ObjectID 2>, "name": "FunctionB", ... }
+      { "id": <ObjectID 3>, "name": "FunctionC", ... }
+
+   | A local application directory is imported with the ``replace``
+     strategy.
+   | The directory contains configuration files for the
+     following functions:
+
+   .. code-block:: none
+      :copyable: False
+
+      { "id": <ObjectID 1>, "name": "FunctionA_Updated!", ... }
+      { "name": "FunctionD", ... }
+      { "id": "non-ObjectID-value", "name": "FunctionE", ... }
+
+   After importing, the application has the following functions:
+
+   .. code-block:: none
+      :copyable: False
+
+      { "id": <ObjectID 1>, "name": "FunctionA_Updated!" }
+      { "id": <ObjectID 4>, "name": "FunctionD", ... }
+      { "id": <ObjectID 5>, "name": "FunctionE", ... }
+
+   ``FunctionA`` was updated based on its imported configuration file.
+   ``FunctionB`` and ``FunctionC`` were not included in the imported
+   application directory, so they are not present in the app after
+   importing with the ``replace`` strategy. ``FunctionD`` and
+   ``FunctionE`` were imported as new entities and assigned
+   system-generated ``id`` values.
+
+.. _realm-cli-import-replace-by-name-v1:
+
+Replace by Name
+~~~~~~~~~~~~~~~
+
+.. code-block:: shell
+
+   realm-cli import --strategy=replace-by-name
+
+Under the ``replace-by-name`` strategy, if an imported
+entity's ``name`` value matches the ``name`` of an existing
+entity, App Services replaces the existing entity with the imported
+entity. If an imported entity's ``name`` value does not
+match an existing entity, the entity becomes a new entity.
+If an existing entity's ``name`` does not match the ``name``
+of any imported entity, App Services deletes that existing entity.
+
+If an imported entity has no ``name`` value, ``realm-cli`` will throw
+an error.
+
+.. example::
+
+   An existing application has three functions:
+
+   .. code-block:: none
+      :copyable: False
+
+      { "id": <ObjectID 1>, "name": "FunctionA", ... }
+      { "id": <ObjectID 2>, "name": "FunctionB", ... }
+      { "id": <ObjectID 3>, "name": "FunctionC", ... }
+
+   | A local application directory is imported with the ``replace``
+     strategy.
+   | The directory contains configuration files for the
+     following functions:
+
+   .. code-block:: none
+      :copyable: False
+
+      { "name": "FunctionZ", ... }
+      { "name": "FunctionB", ... }
+      { "name": "FunctionC", ... }
+
+   After importing, the application has the following functions:
+
+   .. code-block:: none
+      :copyable: False
+
+      { "id": <ObjectID 2>, "name": "FunctionB", ... }
+      { "id": <ObjectID 3>, "name": "FunctionC", ... }
+      { "id": <ObjectID 4>, "name": "FunctionZ", ... }
+
+   Both the existing application and the imported configuration directory
+   contained functions with the names ``FunctionB`` and ``FunctionC``.
+   As a result, both functions retained their previous ``id`` values and
+   names. The rest of both function's values reflect the values uploaded
+   from the configuration files. ``FunctionA`` was not included in the
+   imported application directory, so it is not present in the app after
+   importing with the ``replace-by-name`` strategy. ``FunctionZ`` was
+   imported as a new entity and assigned a system-generated ``id``
+   value.

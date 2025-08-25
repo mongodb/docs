@@ -1,0 +1,327 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+:orphan:
+
+.. _appconfig-v20210101-data_sources:
+
+=======================================
+MongoDB Data Source Configuration Files
+=======================================
+
+.. default-domain:: mongodb
+
+.. include:: /reference/config/v20210101/note-old-version.rst
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. code-block:: none
+   
+   app/
+   └── data_sources/
+       └── <service name>/
+           ├── config.json
+           └── <database>/
+               └── <collection>/
+                   ├── schema.json
+                   ├── relationships.json
+                   └── rules.json
+
+Service Configuration
+---------------------
+
+.. _config-v20210101-mongodb-cluster:
+
+MongoDB Clusters
+~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+   :caption: config.json
+   
+   {
+     "name": "<Service Name>",
+     "type": "mongodb-atlas",
+     "config": {
+       "clusterName": "<Atlas Cluster Name>",
+       "readPreference": "<Read Preference>",
+       "wireProtocolEnabled": <Boolean>
+     }
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30
+   
+   * - Field
+     - Description
+   
+   * - | ``name``
+       | String
+     - Required. Default: ``mongodb-atlas``
+       
+       The service name used to refer to the cluster within this Atlas App Services
+       app. The name may be at most 64 characters long and must only
+       contain ASCII letters, numbers, underscores, and hyphens.
+   
+   * - | ``type``
+       | String
+     - Required. For MongoDB Atlas clusters, this value is always ``"mongodb-atlas"``.
+   
+   * - | ``config.clusterName``
+       | String
+     - Required. The name of the cluster in Atlas.
+
+   * - | ``config.readPreference``
+       | String
+     - The :ref:`read preference <read-preference>` mode for queries sent
+       through the service.
+       
+       .. include:: /mongodb/tables/read-preference-modes.rst
+   
+   * - | ``config.wireProtocolEnabled``
+       | Boolean   
+     - If ``true``, clients may :ref:`connect to the app over the MongoDB Wire
+       Protocol <wire-protocol-connect>`.
+
+.. _config-v20210101-adf:
+
+{+adf-instance+}s
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+   :caption: /data_sources/<Service Name>/config.json
+   
+   {
+     "name": "<Service Name>",
+     "type": "datalake",
+     "config": {
+        "dataLakeName": "<{+adf-instance+} name>"
+      }
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 30
+   
+   * - Field
+     - Description
+   
+   * - | ``name``
+       | String
+     - Required. Default: ``mongodb-datafederation``
+       
+       The service name used to refer to the {+adf-instance+} within this App Services
+       app. The name may be at most 64 characters long and must only
+       contain ASCII letters, numbers, underscores, and hyphens.
+   
+   * - | ``type``
+       | String
+     - Required. For a {+adf-instance+}, this value is always ``"datalake"``.
+   
+   * - | ``config.dataLakeName``
+       | String   
+     - Required. The name of the {+adf-instance+} in Atlas.
+
+Databases & Collections
+-----------------------
+
+.. _config-v20210101-collection-schema:
+
+Collection Schema
+~~~~~~~~~~~~~~~~~
+
+If you want to enforce a :ref:`schema <schemas>` for a collection, define a
+``schema.json`` configuration file that contains a JSON schema for the
+documents. The root level schema must be an :ref:`object schema
+<schema-type-object>`, which has the following form:
+
+.. code-block:: json
+   :caption: /data_sources/<data source>/<database>/<collection>/schema.json
+   
+   {
+     "title": "<Object Type Name>",
+     "bsonType": "object",
+     "properties": {
+       "<Property Name>": { <Schema> },
+       ...
+     }
+   }
+
+.. _config-v20210101-relationships:
+
+Relationships
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :caption: /data_sources/<data source>/<database>/<collection>/relationships.json
+
+   {
+     "<Source Field Name>": {
+       "ref": "#/relationship/<Data Source Name>/<Database Name>/<Collection Name>",
+       "source_key": "<Source Field Name>",
+       "foreign_key": "<Foreign Field Name>",
+       "is_list": <Boolean>
+     },
+     ...
+   }
+
+.. list-table::
+   :widths: 10 30
+   :header-rows: 1
+
+   * - Field
+     - Description
+   
+   * - | ``ref``
+       | String
+     - A JSON schema ``$ref`` string that specifies the foreign collection. The
+       string has the following form:
+       
+       .. code-block:: text
+          
+          #/relationship/<Data Source Name>/<Database Name>/<Collection Name>
+   
+   * - | ``source_key``
+       | String
+     - The name of the field in this collection's schema that specifies which
+       documents in the foreign collection to include in the relationship. A
+       foreign document is included if ``source_key`` contains the value of its
+       ``foreign_key`` field.
+   
+   * - | ``foreign_key``
+       | String
+     - The name of the field in the foreign collection's schema that contains
+       the value referenced by ``source_key``.
+   
+   * - | ``is_list``
+       | Boolean
+     - If ``true``, the relationship may refer to multiple foreign documents
+       (i.e. a "to-many" relationship). The ``source_key`` field must be an
+       array with elements of the same type as the ``foreign_key`` field.
+       
+       If ``false``, the relationship may refer to zero or one foreign documents
+       (i.e. a "to-one" relationship). The ``source_key`` field must be the same
+       type as the ``foreign_key`` field.
+
+.. example::
+   
+   An ecommerce app defines a relationship between two collections: each
+   document in ``store.orders`` references one or more documents in the
+   ``store.items`` collection by including item ``_id`` values in the order's
+   ``items`` array. Both collection are in the same linked cluster
+   (``mongodb-atlas``) and database (``store``).
+   
+   The relationship is defined for the ``orders`` collection:
+   
+   .. code-block:: json
+      :caption: /data_sources/mongodb-atlas/store/orders/relationships.json
+      
+      {
+        "items": {
+          "ref": "#/relationship/mongodb-atlas/store/items",
+          "source_key": "items",
+          "foreign_key": "_id",
+          "is_list": true
+        }
+      }
+
+.. _config-v20210101-default-rules:
+
+Default Rules
+~~~~~~~~~~~~~
+
+You can define default rules that apply to all collections in a data
+source that don't have more specific :ref:`collection-level rules
+<config-collection-rules>` defined.
+
+You define default rules in the data source's ``default_rule.json``
+configuration file at ``data_sources/<data-source-name>/default_rule.json``.
+
+.. code-block:: json
+   :caption: /data_sources/<data source>/default_rule.json
+   
+   {
+     "roles": [<Role>],
+     "filters": [<Filter>]
+   }
+
+.. list-table::
+   :widths: 10 30
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - | ``roles``
+       | Array<Role>
+     - An array of :ref:`Role <config-v20210101-role>` configurations.
+
+   * - | ``filters``
+       | Array<Filter>
+     - An array of :ref:`Filter <config-v20210101-filter>` configurations.
+
+.. _config-v20210101-collection-rules:
+
+Collection Rules
+~~~~~~~~~~~~~~~~
+
+If the data source is not a :ref:`{+adf-datasource+} <data-federation-caveats>`,
+then you can define collection-level rules in a collection's ``rules.json``
+configuration file.
+
+.. code-block:: json
+   :caption: /data_sources/<data source>/<database>/<collection>/rules.json
+   
+   {
+     "database": "<Database Name>",
+     "collection": "<Collection Name>",
+     "roles": [<Role>],
+     "filters": [<Filter>]
+   }
+
+.. list-table::
+   :widths: 10 30
+   :header-rows: 1
+
+   * - Field
+     - Description
+   
+   * - | ``database``
+       | String
+     - The name of the database that holds the collection.
+   
+   * - | ``collection``
+       | String
+     - The name of the collection.
+
+   * - | ``roles``
+       | Array<Role>
+     - An array of :ref:`Role <config-v20210101-role>` configurations.
+
+   * - | ``filters``
+       | Array<Filter>
+     - An array of :ref:`Filter <config-v20210101-filter>` configurations.
+
+.. _config-v20210101-rule:
+
+Rule Configurations
+-------------------
+
+.. _config-v20210101-role:
+
+Roles
+~~~~~
+
+.. include:: /mongodb/tables/role-configuration.rst
+
+
+.. _config-v20210101-filter:
+
+Filters
+~~~~~~~
+
+.. include:: /mongodb/tables/query-filter-params.rst

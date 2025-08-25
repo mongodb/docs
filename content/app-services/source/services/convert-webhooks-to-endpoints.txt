@@ -1,0 +1,217 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _convert-webhooks-to-endpoints:
+
+===================================
+Convert Webhooks to HTTPS Endpoints
+===================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+The Atlas App Services third-party service webhooks are deprecated in favor of
+custom HTTPS endpoints. HTTPS endpoints are functionally almost
+identical to webhooks but are now a first-class service.
+
+This guide walks through converting your app's existing webhooks and
+updating external apps that call them. For new webhooks or callback
+URLs, you should define an HTTPS endpoint.
+
+.. _migrate-http-webhooks-to-endpoints:
+
+Automatically Convert Existing HTTP Webhooks
+--------------------------------------------
+
+App Services can automatically convert any existing HTTP service
+webhooks in your app into HTTPS endpoints. This conversion is one-way
+which means that you cannot convert HTTPS endpoints back into webhooks.
+The conversion process does not delete the original webhooks so incoming
+webhook requests will continue to execute after the conversion.
+
+To run the webhook to HTTPS endpoint conversion process for all webhooks
+in your application:
+
+1. Click :guilabel:`HTTPS Endpoints` in the left navigation menu of the App Services UI.
+
+#. Click the :guilabel:`Convert` button.
+
+#. Confirm that you want to run the conversion.
+
+.. figure:: /images/confirmation_converting_webhooks.png
+   :alt: Convert all Endpoints in UI
+
+.. note::
+   
+   The converted HTTPS endpoints are independent from their source
+   webhooks. If you choose to edit a webhook after running the conversion,
+   you can run the conversion again with the "Convert & Override" option to
+   propogate those changes to your new endpoints.
+
+Manually Convert GitHub and Twilio Webhooks
+-------------------------------------------
+
+App Services cannot automatically convert GitHub and Twilio
+webhooks to HTTPS endpoints because they use deprecated client
+libraries. However, you can manually migrate webhooks from these
+services to new HTTPS endpoints.
+
+.. _migrate-github-webhooks-to-endpoints:
+
+GitHub Webhooks
+~~~~~~~~~~~~~~~
+
+To migrate a GitHub webhook to an HTTPS endpoint:
+
+1. Create a new HTTPS endpoint
+
+#. Copy the existing GitHub webhook code into the new endpoint's function
+
+#. Update your code to parse the incoming request body instead of using
+   the pre-parsed GitHub payload.
+
+   .. code-block:: javascript
+      :caption: Before: A GitHub webhook with a pre-parsed payload
+      
+      exports = async function(payload, response) {
+        // Webhooks only provide the parsed request body
+        const { commits, pusher, repository } = payload;
+
+        // ... your code here
+      }
+
+   .. code-block:: javascript
+      :caption: After: An HTTPS endpoint that parses the GitHub payload
+      
+      exports = async function(payload, response) {
+        // Endpoints pass an entire request payload, not just a parsed body
+        const { commits, pusher, repository } = JSON.parse(payload.body.text());
+
+        // ... your code here
+      }
+
+.. _migrate-twilio-webhooks-to-endpoints:
+
+Twilio Webhooks
+~~~~~~~~~~~~~~~
+
+To migrate a Twilio webhook to an HTTPS endpoint:
+
+1. Create a new HTTPS endpoint
+
+#. Copy the existing Twilio webhook code into the new endpoint's function
+
+#. Update your code to parse the incoming request body instead of using
+   the pre-parsed Twilio payload. If your webhook uses the built-in
+   Twilio service client, update your code to use the :ref:`twilio
+   <migrate-twilio-to-npm>` Node library instead.
+
+   .. code-block:: javascript
+      :caption: Before: A Twilio webhook with a pre-parsed payload
+      
+      exports = async function(payload, response) {
+        // Webhooks only provide the parsed request body
+        const { To, From, Body } = payload;
+        
+        // Webhooks could use a built-in Twilio client
+        const twilio = context.services.get("twilio")
+        twilio.send({
+          To: From,
+          From: context.values.get("TwilioPhoneNumber"),
+          Body: `Message received!`
+       })
+      }
+
+   .. code-block:: javascript
+      :caption: After: An HTTPS endpoint that parses the Twilio payload
+      
+      exports = async function(payload, response) {
+        // Endpoints pass an entire request payload, not just a parsed body
+        const { To, From, Body } = JSON.parse(payload.body.text())
+
+        // The endpoint should use `twilio` from npm instead of the built-in Twilio client
+        const twilio = require('twilio')(
+          // Your Account SID and Auth Token from https://www.twilio.com/console
+          // Specify the same Twilio credentials as the service configuration
+          context.values.get("TwilioAccountSID"),
+          context.values.get("TwilioAuthToken"),
+        )
+        await twilio.messages.create({
+          To: From,
+          From: context.values.get("TwilioPhoneNumber"),
+          Body: `Message received!`
+        })
+      }
+
+Update Callback URLs in Client Apps & Services
+----------------------------------------------
+
+HTTPS endpoints use a different URL scheme than service webhooks. You
+should update any apps or services that call your webhooks to instead
+call the converted HTTPS endpoint URL. Existing webhooks URLs will
+continue to accept requests and execute their associated functions after
+you've run the conversion. This means that you can gradually migrate to
+the new URLs without breaking existing workflows.
+
+To migrate to the converted HTTPS endpoint URLs:
+
+1. Identify all client apps and services that call service webhooks
+
+#. For each app or service, modify the source code or configuration to
+   use the new URLs.
+
+#. Monitor your app's logs for :ref:`service webhook <logs-webhooks>`
+   records to look for any active webhook callers that you missed.
+
+#. Once all clients are updated with the new URLs, delete the deprecated
+   webhooks from your app.
+
+.. example::
+
+   To migrate a service's integration from an App Services webhook to the
+   converted HTTPS endpoint, modify the service's external configuration
+   for outgoing webhook requests to point to the converted endpoint URL.
+   
+   .. code-block:: text
+      :caption: Deprecated HTTP Service Webhook URL
+      
+      https://webhooks.mongodb-realm.com/api/client/v2.0/app/myapp-abcde/service/myHttpService/incoming_webhook/handleIncomingEvent
+
+   .. code-block:: text
+      :caption: Converted HTTPS Endpoint URL
+      
+      https://data.mongodb-api.com/app/myapp-abcde/endpoint/myHttpService/handleIncomingEvent
+
+.. _differences-webhooks-converted-endpoints: 
+
+Differences between Webhooks and Their Converted Endpoints
+----------------------------------------------------------
+
+If you configured your converted HTTPS endpoint to use :guilabel:`Respond with Result`
+and the webhook function it's based on returns a value but does not invoke ``response.setBody()``,
+the generated endpoint includes the function's return value as its response body.
+The webhook, in contrast, only returns a body specified by ``response.setBody()``.
+
+.. example:: 
+
+   .. code-block:: javascript
+
+      exports = function({ query, headers, body}, response){
+         response.setStatusCode(200);
+         return "Hello world";
+      };
+   
+   The webhook for this function only responds with status code ``200`` without a body.
+
+   For the endpoint, if you enable **Respond with Result**, the endpoint responds 
+   with status code ``200`` *and* the body ``"Hello world"``. 
+   If you don't enable **Respond with Result**, the endpoint only responds 
+   with status code ``200``. 
