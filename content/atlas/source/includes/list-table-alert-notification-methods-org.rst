@@ -162,7 +162,7 @@
        Define escalation and routing rules directly in VictorOps.
 
        This option is available only for alerts that you must
-       acknowledge. You can recieve informational alerts from this 
+       acknowledge. You can receive informational alerts from this 
        :ref:`third-party monitoring service <third-party-integrations>` 
        in |service|. However, you must resolve these alerts within the 
        external service. Acknowledge VictorOps alerts from the 
@@ -184,7 +184,7 @@
        in Opsgenie.
 
        This option is available only for alerts that you must
-       acknowledge. You can recieve informational alerts from this 
+       acknowledge. You can receive informational alerts from this 
        :ref:`third-party monitoring service <third-party-integrations>` 
        in |service|. However, you must resolve these alerts within the 
        external service. `Acknowledge Opsgenie alerts 

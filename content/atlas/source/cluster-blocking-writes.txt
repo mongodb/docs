@@ -1,0 +1,221 @@
+.. _cluster-blocking-writes:
+
+===============
+Write-Blocking
+===============
+
+
+.. meta::
+   :description: Atlas blocks writes to your cluster if your cluster's primary node exceeds write-blocking policy thresholds. This behavior is part of Intelligent Workload Management (IWM) in Atlas.
+
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+If |service| identifies that your cluster's primary node exceeds write-blocking
+:ref:`policy thresholds <write-blocking-thresholds>`, |service| blocks writes
+to the cluster until disk utilization falls below the unblocking thresholds.
+When MongoDB receives writes to a cluster, it flushes data to disk in bulk,
+which can result in large jumps in disk utilization.
+Running out of disk space on the primary node may result in cluster downtime,
+especially if disk exhaustion cascades through all replica set nodes.
+
+To prevent this scenario, when |service| observes that the cluster's
+primary node disk exceeds critical write-blocking :ref:`policy thresholds <write-blocking-thresholds>`,
+|service| blocks writes to the cluster's primary node. |service| continues
+to blocks writes until disk utilization falls below the unblocking thresholds.
+
+By activating write-blocking behavior on the primary node, |service|:
+
+- Prevents cluster unavailability due to disk exhaustion on the primary node.
+- Allows clusters operating close to maximum storage utilization to retain
+  read availability in cases of sudden spikes in write volume.
+
+.. _intelligent-workload-mgmt--blocking-writes:
+
+Write-Blocking and Intelligent Workload Management
+--------------------------------------------------
+
+Cluster write-blocking behavior is part of Intelligent Workload Management (IWM)
+in |service-fullname|. IWM is a dynamic resource manager that enables real-time
+workload monitoring and automated safeguards to maintain high availability
+under load.
+
+.. _block-writes-considerations:
+
+Write-Blocking Considerations
+------------------------------
+
+Write-blocking behavior has the following considerations:
+
+- |service| currently blocks writes to the primary node on replica sets
+  (non-sharded clusters) on dedicated clusters running MongoDB 8.0+.
+
+- |service| doesn't block writes on free and {+Flex-clusters+}.
+
+- |service| monitors disk utilization on the primary node only.
+  |service| doesn't monitor disk utilization on secondary, read-only, search,
+  or analytics nodes.
+
+.. _howitworks-block-writes:
+
+How |service| Blocks Writes to the Primary Node
+-----------------------------------------------
+
+To block writes, |service| uses the following process:
+
+- When the primary node's free disk space exceeds write-blocking
+  :ref:`policy thresholds <write-blocking-thresholds>`, |service| blocks
+  writes to the primary node.
+
+  Even when the MongoDB database is not accepting writes, the cluster
+  remains available for reads. You can read from the primary and secondary
+  nodes as normal.
+
+- When |service| blocks writes, it sends the following alert: :alert:`Writes have
+  been blocked on your cluster due to critically low disk space <Writes have been blocked on your cluster due to critically low disk space>`.
+  The :ref:`activity feed <project-activity-feed>` reflects this alert.
+
+  The top of the cluster page in the {+atlas-ui+} shows a banner that states:
+  ``"To maintain read availability during critically high disk utilization,
+  Atlas has blocked writes to the following clusters: <clusterName>.
+  Increase disk space or enable storage auto-scaling to unblock writes."``
+
+- When free disk space increases 50% over the blocking threshold,
+  |service| unblocks writes to the primary node. When |service| unblocks
+  writes, you receive this alert: :alert:`Writes have been unblocked on your cluster <Writes have been unblocked on your cluster>`.
+
+  The :ref:`activity feed <project-activity-feed>` then reflects this alert. No further action is needed.
+  To avoid write-blocking behavior in the future, consider
+  :ref:`increasing cluster storage <write-blocking-prevention>`.
+
+- If you manually increase the disk size of the cluster or enable
+  storage auto-scaling, |service| automatically adjusts the write-blocking
+  thresholds based on the new disk size.
+
+.. _write-blocking-prevention:
+
+Write-Blocking Prevention
+--------------------------
+
+To prevent write-blocking behavior from occurring and bring the cluster
+below the |service| write-blocking :ref:`policy thresholds <write-blocking-thresholds>`,
+we recommend that you:
+
+- Enable :ref:`storage auto-scaling <howitworks-scale-cluster-storage>`,
+  which automatically scales your cluster storage when disk utilization
+  exceeds 90% and ensures consistent workload availability and performance.
+
+  To enable storage auto-scaling in the {+atlas-ui+}, navigate to
+  the :guilabel:`Cluster Tier` menu and check the :guilabel:`Storage Scaling` 
+  checkbox in the :guilabel:`Auto-scale` section.
+
+  - For all new clusters that you create in the {+atlas-ui+},
+    |service| enables storage auto-scaling by default.
+  - If you :oas-bump-atlas-op:`create clusters with the API <createcluster>`,
+    cluster auto-scaling isn't selected by default and you must explicitly enable it,
+    using the options in the ``autoScaling`` object of the :oas-bump-atlas-op:`Update One Cluster in One Project <updatecluster>` endpoint.
+
+- If you choose to opt out of storage auto-scaling and your disk utilization
+  is close to 90%, you can release existing disk space before |service|
+  activates write-blocking behavior on your cluster:
+
+  - Remove unused data to free up disk space. :ref:`Delete the indexes <drop-an-index>`,
+    or :ref:`delete collections or individual documents <delete-documents-atlas-ui>`.
+  - Use the :dbcommand:`autoCompact` command on each dedicated cluster node
+    to compact disk space.
+
+.. _write-blocking-thresholds:
+
+Write-Blocking Policy Threshold Parameters
+------------------------------------------
+
+|service| uses the following  write-blocking thresholds to accommodate
+disk utilization scenarios with high write volume:
+
+.. list-table:: 
+   :widths: 15 85
+
+   * - **Disk size < 20 GB** 
+     - |service| blocks writes when free disk space drops below 800 MB.
+       |service| unblocks writes when disk space exceeds 1.2 GB.
+   * - **Disk size < 1.25 TB** 
+     - |service| blocks writes when free disk space drops below 4% of
+       total disk size. |service| unblocks writes when disk space
+       exceeds 6% of total disk size.
+   * - **Disk size ≥ 1.25 TB**
+     - |service| blocks writes when free disk space drops below 50 GB.
+       |service| unblocks writes when free disk space exceeds 75 GB.
+
+The thresholds are not configurable. If the disk size increases due to
+auto-scaling, or if you manually increase the disk size, |service|
+automatically adjusts the thresholds based on cluster's disk size.
+
+Once write-blocking behavior is active in your cluster, you:
+
+- Can increase cluster storage manually from the :ref:`Edit Cluster <scale-cluster>`
+  page or enable storage auto-scaling in the {+atlas-ui+} to avoid any
+  future write-blocking behavior.
+- Cannot delete indexes or collections because |service| blocks operations
+  that require writing to the database. To delete indexes and collections,
+  increase the cluster storage.
+
+.. _write-blocking-and-autoscaling:
+
+Write-Blocking and Storage Auto-Scaling
+-----------------------------------------------
+
+|service| blocks writes when free disk space on the primary node reaches
+approximately 96% of total disk size, with the caveats for small and large
+disks noted in the write-blocking :ref:`policy thresholds <write-blocking-thresholds>`.
+
+By comparison, auto-scaling triggers when disk utilization reaches 90%
+of total disk size. This means that:
+
+- If you enable auto-scaling, your cluster has the opportunity to scale up
+  before write-blocking behavior activates.
+- If you disable auto-scaling, you must monitor disk utilization and take
+  action to prevent write-blocking behavior from activating.
+
+.. _write-blocking-troubleshooting:
+
+Write-Blocking Troubleshooting
+------------------------------------------
+
+When |service| blocks writes to the cluster, the following actions occur:
+
+- The top of the cluster page in the {+atlas-ui+} shows a banner indicating
+  that writes have been blocked. See :ref:`howitworks-block-writes`.
+
+- |service| issues :ref:`write-blocking alerts <alert-conditions-write-blocking>`
+  that you can resolve by increasing cluster storage. See also :ref:`disk-space-used`.
+
+- The project's :ref:`Activity Feed <view-activity-feed>` reflects these
+  alerts.
+
+- |service| logs return a ``MongoServerError`` similar to the following: ``User writes blocked, reason: DiskUseThresholdExceeded``.
+
+- The ``userWriteBlockMode`` parameter in :manual:`serverStatus </reference/command/serverStatus/>`
+  command reflects the cluster's current write-blocking status.
+
+.. _unblocking-writes:
+
+Unblocking Writes
+----------------------
+
+|service| unblocks writes when free disk space increases 50% over
+the blocking threshold. The extra buffer to unblock writes ensures that:
+
+- |service| doesn't enable and disable write-blocking behavior in quick succession.
+- The cluster remains in a good state as it begins accepting writes again.
+
+For the exact parameters, see :ref:`write-blocking policy thresholds <write-blocking-thresholds>`.
