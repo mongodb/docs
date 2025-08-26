@@ -635,8 +635,14 @@ connections
       exhaustIsMaster : <num>,
       exhaustHello : <num>,
       awaitingTopologyChanges : <num>,
-      loadBalanced : <num> 
-   },
+      loadBalanced : <num>,
+      queuedForEstablishment : <num>, // Added in MongoDB 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+      establishmentRateLimit : { // Added in MongoDB 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+         rejected: <num>,
+         exempted: <num>,
+         interruptedDueToClientDisconnect: <num>
+      }
+   }
 
 .. serverstatus:: connections
 
@@ -675,6 +681,56 @@ connections
    The number of incoming connections the server rejected because the
    server doesn't have the capacity to accept additional connections or
    the :setting:`net.maxIncomingConnections` setting is reached.
+
+.. serverstatus:: connections.queuedForEstablishment
+
+   .. versionadded:: 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+
+   The number of incoming connections currently queued and waiting for
+   establishment. This metric is relevant when connection establishment
+   rate limiting is enabled using the :parameter:`ingressConnectionEstablishmentRateLimiterEnabled`
+   parameter.
+
+.. serverstatus:: connections.establishmentRateLimit
+
+   .. versionadded:: 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+   
+   A document that contains metrics related to the ingress connection establishment 
+   rate limiter. These metrics provide insights into how the rate limiter handles
+   connection requests when :parameter:`ingressConnectionEstablishmentRateLimiterEnabled` 
+   is set to ``true``. For more information on rate limiting, see :ref:`configure-rate-limiter`.
+
+.. serverstatus:: connections.establishmentRateLimit.rejected
+
+   .. versionadded:: 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+
+   The number of incoming connections the server rejects due to connection establishment
+   rate limiting. This metric shows how many connection attempts the server rejected rejected
+   because they exceeded the rate limits set by the ingress connection
+   establishment rate limiter parameters.
+
+.. serverstatus:: connections.establishmentRateLimit.exempted
+
+   .. versionadded:: 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+   
+   The number of incoming connections that bypassed the rate limiter because they 
+   originated from IP addresses or CIDR ranges specified in the 
+   :parameter:`ingressConnectionEstablishmentRateLimiterBypass` parameter. The server 
+   does note rate limit these connections and establishes them immediately,
+   regardless of current queue size or rate limits.
+
+.. serverstatus:: connections.establishmentRateLimit.interruptedDueToClientDisconnect
+
+   .. versionadded:: 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+   
+   The number of incoming connections that were interrupted while waiting in the 
+   establishment queue because the client disconnected before establishment could 
+   complete. A high value for this metric sometimes indicates that the client's 
+   ``connectTimeoutMS`` setting is too short relative to the queue wait time, which 
+   is affected by :parameter:`ingressConnectionEstablishmentMaxQueueDepth` and 
+   :parameter:`ingressConnectionEstablishmentRatePerSec`. If this value is high, 
+   consider adjusting these parameters using the following formula: 
+   ``maxQueueDepth < (establishmentRatePerSec / 1000) * (connectTimeoutMs - avgEstablishmentTimeMs)``.
 
 .. serverstatus:: connections.active
 
@@ -1773,6 +1829,9 @@ metrics
          totalIngressTLSHandshakeTimeMillis : Long("<num>"),
          totalTimeForEgressConnectionAcquiredToWireMicros : Long("<num>"),
          totalTimeToFirstNonAuthCommandMillis : Long("<num>")
+         "averageTimeToCompletedTLSHandshakeMicros": Long("<num>"), // Added in MongoDB 8.2
+         "averageTimeToCompletedHelloMicros": Long("<num>"), // Added in MongoDB 8.2
+         "averageTimeToCompletedAuthMicros": Long("<num>") // Added in MongoDB 8.2
       },
       operation : {
          killedDueToClientDisconnect : Long("<num>"),  // Added in MongoDB 7.1
@@ -2408,6 +2467,30 @@ metrics
    connection authentication handshake. The number is cumulative and is
    the total after the server was started.
 
+.. serverstatus:: metrics.network.averageTimeToCompletedTLSHandshakeMicros
+
+   .. versionadded:: 8.2 *(also available in 8.1.1)*
+
+   The average time in microseconds that it takes to complete a TLS handshake
+   for incoming connections.
+
+.. serverstatus:: metrics.network.averageTimeToCompletedHelloMicros
+
+   .. versionadded:: 8.2 *(also available in 8.1.1)*
+
+   The time in microseconds between the beginning of connection 
+   establishment and the completion of the ``hello`` command. You can use
+   this metric to tune the :parameter:`ingressConnectionEstablishmentMaxQueueDepth`
+   and :parameter:`ingressConnectionEstablishmentRatePerSec` to ensure that there is proper 
+   time allotted to complete the connection establishment after exiting the queue. 
+
+.. serverstatus:: metrics.network.averageTimeToCompletedAuthMicros
+
+   .. versionadded:: 8.2 *(also available in 8.1.1)*
+
+   The time in microseconds the SASL auth exchange takes to be completed after 
+   the beginning of connection establishment.
+   
 .. serverstatus:: metrics.operation
 
    A document that holds counters for several types of update and query
@@ -4671,7 +4754,7 @@ contention and provides observability into the state of the database.
             exempt: {
                addedToQueue: Long("<num>"),
                removedFromQueue: Long("<num>"),
-               queueLength: Long("<num>")),
+               queueLength: Long("<num>"),
                startedProcessing: Long("<num>"),
                processing: Long("<num>"),
                finishedProcessing: Long("<num>"),
@@ -4729,6 +4812,17 @@ contention and provides observability into the state of the database.
             newAdmissions: Long("<num>"),
             totalTimeQueuedMicros: Long("<num>")
          }
+      },
+      ingressSessionEstablishment: { // Added in MongoDB 8.2
+         "addedToQueue": Long("<num>"),
+         "removedFromQueue": Long("<num>"),
+         "interruptedInQueue": Long("<num>")
+         "rejectedAdmissions": Long("<num>"),
+         "exemptedAdmissions": Long("<num>"),
+         "successfulAdmissions": Long("<num>"),
+         "attemptedAdmissions": Long("<num>"),
+         "averageTimeQueuedMicros": Long("<num>"),
+         "totalAvailableTokens": Long("<num>")
       }
    }
 
@@ -4800,6 +4894,86 @@ contention and provides observability into the state of the database.
 
    The maximum number of allowed concurrent operations is constrained by   
    :parameter:`ingressAdmissionControllerTicketPoolSize`.
+
+.. serverstatus:: queues.ingressSessionEstablishment
+
+   .. versionadded:: 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+
+   A document that contains information about the ingress session establishment
+   queue. This includes metrics related to connections established
+   and processed through the connection establishment rate limiter.
+
+.. serverstatus:: queues.ingressSessionEstablishment.addedToQueue
+
+   .. versionadded:: 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+
+   The number of incoming connections that the server adds to the ingress
+   session establishment queue. This metric tracks connections that are
+   processed through the rate limiter queue when the rate limiter is enabled.
+
+.. serverstatus:: queues.ingressSessionEstablishment.removedFromQueue
+
+   .. versionadded:: 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+
+   The number of incoming connections that the server removes from the ingress 
+   session establishment queue after acquiring a connection establishment token. This 
+   metric tracks connections that have completed their wait in the rate limiter queue.
+
+.. serverstatus:: queues.ingressSessionEstablishment.interruptedInQueue
+
+   .. versionadded:: 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+   
+   The number of incoming connections that halt while waiting in the queue, 
+   typically due to client disconnects or server shutdown.
+
+.. serverstatus:: queues.ingressSessionEstablishment.rejectedAdmissions
+
+   .. versionadded:: 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+   
+   The number of incoming connection attempts that the server rejects because the queue 
+   depth exceeded the :parameter:`ingressConnectionEstablishmentMaxQueueDepth` limit. 
+   When this happens, the server immediately closes the connection rather than 
+   queuing it.
+
+.. serverstatus:: queues.ingressSessionEstablishment.exemptedAdmissions
+
+   .. versionadded:: 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+   
+   The number of incoming connection attempts that bypass the rate limiter due to 
+   being on the :parameter:`ingressConnectionEstablishmentRateLimiterBypass` list. 
+   Connections from IP addresses or CIDR ranges specified in 
+   :parameter:`ingressConnectionEstablishmentRateLimiterBypass` 
+   are not subject to rate limiting.
+
+.. serverstatus:: queues.ingressSessionEstablishment.successfulAdmissions
+
+   .. versionadded:: 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+   
+   The total number of incoming connection attempts that the rate limiter
+   successfully processes, either immediately or after waiting in the queue.
+
+.. serverstatus:: queues.ingressSessionEstablishment.attemptedAdmissions
+
+   .. versionadded:: 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+   
+   The total number of incoming connection attempts on the rate limiter.
+
+.. serverstatus:: queues.ingressSessionEstablishment.averageTimeQueuedMicros
+
+   .. versionadded:: 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+   
+   The average time in microseconds that connections spend waiting in the queue before the server 
+   processes them. This metric uses an exponentially-weighted moving average formula and can be 
+   used to tune the :parameter:`ingressConnectionEstablishmentMaxQueueDepth`. The value 
+   roughly equals ``(maxQueueDepth / establishRatePerSec) * 1e6``.
+
+.. serverstatus:: queues.ingressSessionEstablishment.totalAvailableTokens
+
+   .. versionadded:: 8.2 *(also available in 8.1.1, 8.0.12, and 7.0.23)*
+   
+   The current number of available tokens in the token bucket. This represents the capacity 
+   for immediately processing new connections without queuing. When this value is ``0``, 
+   new connections must wait in the queue, or are rejected if the queue is full.
 
 .. _server-status-queue-information:
 
