@@ -1,4 +1,4 @@
-When you upgrade to MongoDB 8.0, if you have any ``system.buckets``
+When you upgrade to |version|, if you have any ``system.buckets``
 collections that are not time-series collections, you might need to
 :method:`drop <db.collection.drop()>` or :method:`rename
 <db.collection.renameCollection()>` those collections before you
