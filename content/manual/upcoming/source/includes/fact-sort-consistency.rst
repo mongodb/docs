@@ -6,8 +6,9 @@ The ``$sort`` operation is not a "stable sort," which means that documents
 with equivalent sort keys are not guaranteed to remain in the same relative
 order in the output as they were in the input.
 
-If a field does not exist in two documents, then the value on which they are 
-sorted is the same. The two documents may be returned in any order.
+If the field specified in the sort criteria does not exist in two documents, then
+the value on which they are sorted is the same. The two documents may be returned
+in any order.
 
 If consistent sort order is desired, include at least one field in your
 sort that contains unique values. The easiest way to guarantee this is
