@@ -42,11 +42,13 @@ Define the Index for the |fts-field-type| Type
                     "dynamic": true|false,
                     "fields": {
                     "<field-name>": {
-                        "type": "autocomplete",
-                        "representation": "int64|double",
-                        "indexIntegers": true|false,
-                        "indexDoubles": true|false
-                    } 
+                      "type": "autocomplete",
+                      "analyzer": "<lucene-analyzer>",
+                      "tokenization": "edgeGram|rightEdgeGram|nGram",
+                      "minGrams": <2>,
+                      "maxGrams": <15>,
+                      "foldDiacritics": true|false
+                    }
                   }
                 }
               }
