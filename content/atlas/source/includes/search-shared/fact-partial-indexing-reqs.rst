@@ -27,12 +27,11 @@ role and use the :dbcommand:`collMod` database command.
 Limitations
 -----------
 
-- |product-name| supports Views only for :query:`$expr` in the 
-  following stages:
+- |product-name| supports Views with the following stages:
  
   - :pipeline:`$addFields`
   - :pipeline:`$set`
-  - :pipeline:`$match`
+  - :pipeline:`$match` with a :query:`$expr` operator.
 
 - Index names must be unique across a source collection and 
   all of its Views.
