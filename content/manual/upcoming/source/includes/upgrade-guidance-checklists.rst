@@ -1,3 +1,5 @@
+.. include:: /includes/8.2-upgrade-replacements.rst
+
 If you need guidance on upgrading to |newversion|, `MongoDB
 professional services
 <https://www.mongodb.com/products/consulting?tck=docs_server>`_
@@ -49,4 +51,4 @@ Downgrade Consideration
 You cannot downgrade your deployment's binary version without assistance from 
 support.
 
-To learn more, see |downgrade-considerations|.
+To learn more, see |downgrade|.
