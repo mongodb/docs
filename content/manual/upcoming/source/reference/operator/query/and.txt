@@ -66,6 +66,36 @@ help satisfy clauses of the :query:`$and` expression when
       ]
    } )
 
+Most programming languages and drivers, including the
+:ref:`MongoDB Shell <mdb-shell-overview>` (``mongosh``),
+do not allow the construction of objects with duplicate keys at the
+same object level. For example, consider this query:
+
+.. code-block:: javascript
+
+   db.inventory.find( { price: { $in: [ 7.99, 3.99 ], $in: [ 4.99, 1.99 ] } } )
+
+The above query does not construct correctly because the field name
+``price`` has duplicate operators at the same object level. As a
+result, the query sent to the server differs from what is intended. For
+the query to work as expected, use an explicit ``AND`` operator:
+
+.. code-block:: javascript
+
+   db.inventory.find( {
+      $and: [
+         { price: { $in: [ 7.99, 3.99 ] } },
+         { price: { $in: [ 4.99, 1.99 ] } }
+      ]
+   } )
+
+This query explicitly checks that both conditions are satisfied:
+the ``price`` array must include at least one value from each
+:query:`$in` set. For more information on how to address such 
+scenarios, see the :ref:`query-and-examples` section.
+
+.. _query-and-examples:
+
 Examples
 --------
 
@@ -83,107 +113,67 @@ The query selects all documents in the ``inventory`` collection where:
 - the ``price`` field value is not equal to ``1.99`` **and**
 - the ``price`` field exists.
 
-The query can be rewritten with an implicit ``AND`` operation that
-combines the operator expressions for the ``price`` field:
+You can simplify this query by combining the operator expressions for
+the ``price`` field into a single query object with a nested implicit
+``AND``:
 
 .. code-block:: javascript
 
    db.inventory.find( { price: { $ne: 1.99, $exists: true } } )
 
-$and Queries With Multiple Expressions Specifying the Same Operator
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Sometimes such rewrites are not possible, particularly when dealing
+with duplicate conditions on the same field. For example:
 
-Consider this query:
+.. code-block:: javascript
+
+   db.inventory.find( { status: { $ne: "closed", $ne: "archived" } } )
+
+The above query does not construct correctly because it uses the
+:query:`$ne` operator more than once on the same ``status`` field name
+at the same object level. In this case, the :query:`$nin` operator
+provides a more effective solution:
+
+.. code-block:: javascript
+
+   db.inventory.find( { status: { $nin: [ "closed", "archived" ] } } )
+
+How you rewrite a query depends on the intended semantics of your use
+case. Consider the following query:
 
 .. code-block:: javascript
 
    db.inventory.find( {
-       $and: [
-           { $or: [ { qty: { $lt : 10 } }, { qty : { $gt: 50 } } ] },
-           { $or: [ { sale: true }, { price : { $lt : 5 } } ] }
-       ]
+      $and: [
+         { status: "new" },
+         { status: "processing" }
+      ]
    } )
 
-The query selects all documents where:
-
-- the ``qty`` field value is less than ``10`` or greater than ``50``, **and**
-- the ``sale`` field value is equal to ``true`` **or** the ``price``
-  field value is less than ``5``.
-
-The query cannot use an implicit ``AND`` operation because it uses the
-:query:`$or` operator more than once.
-
-$and Queries With Multiple Conditions on the Same Field
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Consider the following sample document stored in the ``inventory`` collection:
+If you want to find documents where ``status`` is either ``new`` or
+``processing``, you can use the :query:`$in` operator:
 
 .. code-block:: javascript
-   :copyable: true
 
-   db.inventory.insertOne(
-      {
-         "tags": [ "home" ]
-      } 
-   )
+   db.inventory.find( { status: { $in: [ "new", "processing" ] } } )
 
-When you specify multiple conditions on the same field at the
-same level of the query object, only the last condition is considered.
+If your ``status`` field is an array ``[ "new", "processing" ]``, and
+you want to check if the document contains both the ``new`` and
+``processing`` values, use the :query:`$all` operator:
 
-.. io-code-block::
-    :copyable: true
+.. code-block:: javascript
 
-    .. input::
-        :language: javascript
+   db.inventory.find( { status: { $all: [ "new", "processing" ] } } )
 
-        db.inventory.find( {
-           tags: { $in: [ "electronics" ] },
-           tags: { $in: [ "home" ] }
-        } );
+In this context, this query is semantically equivalent to ``AND``,
+but :query:`$all` is often clearer when querying array fields.
 
-    .. output::
-        :language: javascript
-
-        [
-           {
-              "_id": ObjectId( "..." ),
-              "tags": [ "home" ]
-           }
-        ]
-
-In the above query:
-
-- The condition ``{ tags: { $in: [ "electronics" ] } }`` is ignored.
-- The condition ``{ tags: { $in: [ "home" ] } }`` is applied and executed.
-
-To check for both ``home`` and ``electronics`` simultaneously, use an
-explicit ``$and`` operation:
-
-.. io-code-block::
-    :copyable: true
-
-    .. input::
-        :language: javascript
-
-        db.inventory.find( {
-           $and: [
-              { tags: { $in: [ "home" ] } },
-              { tags: { $in: [ "electronics" ] } }
-           ]
-        } );
-
-    .. output::
-        :language: javascript
-
-        []
-
-Because the ``$and`` operator requires both conditions to be true,
-no documents match and the query doesn't return any results.
+Similar to duplicate field names, the same considerations apply for
+duplicate operators used in the query.
 
 .. seealso::
 
    - :method:`~db.collection.find()`
-   - :method:`~db.collection.updateMany()`
    - :query:`$ne`
    - :query:`$exists`
-   - :update:`$set`
+   - :query:`$in`
+   - :query:`$all`
