@@ -27,6 +27,7 @@ import Cond, { type CondProps } from '../cond';
 import Strong from '../strong';
 import Subscript from '../subscript';
 import Superscript from '../superscript';
+import Rubric, { RubricProps } from '../rubric';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -152,7 +153,7 @@ const getComponent = (() => {
         // reference: Reference,
         // release_specification: ReleaseSpecification,
         // root: Root,
-        // rubric: Rubric,
+        rubric: Rubric as React.ComponentType<SupportedComponentProps>,
         // 'search-results': SearchResults,
         section: Section as React.ComponentType<SupportedComponentProps>,
         // seealso: SeeAlso,
@@ -215,7 +216,7 @@ export type ComponentFactoryProps = {
   parentNode?: string;
 };
 
-type SupportedComponentProps = ComponentFactoryProps | CondProps | SectionProps | TextProps | ParagraphProps | IntroductionProps | KickerProps | TimeProps | TitleReferenceProps;
+type SupportedComponentProps = ComponentFactoryProps | CondProps | SectionProps | TextProps | ParagraphProps | IntroductionProps | KickerProps | TimeProps | TitleReferenceProps | RubricProps;
 
 const renderComponentWithProps = (
   ComponentType: React.ComponentType<SupportedComponentProps>,
@@ -271,6 +272,9 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('time')) {
     const timeNode = nodeData as Directive;
     return <ComponentType argument={timeNode.argument} />;
+  } else if (ComponentType === getComponent('rubric')) {
+    const rubricNode = nodeData as Directive;
+    return <ComponentType argument={rubricNode.argument} />;
   } else if (ComponentType === getComponent('section')) {
     const sectionNode = nodeData as ParentNode;
     return <ComponentType nodeChildren={sectionNode.children} {...propsToDrill} />;
