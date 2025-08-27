@@ -4,6 +4,9 @@
 Bulk Write Operations
 =====================
 
+.. meta::
+   :description: Perform bulk write operations in MongoDB using bulkWrite() for insert, update, and delete actions, with options for ordered or unordered execution.
+
 .. default-domain:: mongodb
 
 .. contents:: On this page
@@ -16,73 +19,79 @@ Overview
 --------
 
 MongoDB provides clients the ability to perform write operations in
-bulk. Bulk write operations affect a *single* collection. MongoDB
-allows applications to determine the acceptable level of
-acknowledgment required for bulk write operations.
+bulk. Starting in MongoDB 8.0, you can perform bulk write operations across
+multiple databases and collections. If you are using a version
+earlier than MongoDB 8.0, you can perform bulk write operations on a single
+collection.
 
-The :method:`db.collection.bulkWrite()` method provides the ability to 
-perform bulk insert, update, and delete operations.
+To perform bulk write operations across multiple databases and
+collections in MongoDB 8.0, use the :dbcommand:`bulkWrite` 
+database command or the :method:`Mongo.bulkWrite()` ``mongosh`` method.
 
-MongoDB also supports bulk insert through the 
-:method:`db.collection.insertMany()` method.
+To perform bulk write operations on a single collection,
+use the :method:`db.collection.bulkWrite()` ``mongosh`` method. If you are
+running MongoDB 8.0 or later, you can also use :dbcommand:`bulkWrite` or
+:method:`Mongo.bulkWrite()` to write to a single collection.
 
 .. _bulk-write-operations-ordered-vs-unordered:
 
 Ordered vs Unordered Operations
 -------------------------------
 
-Bulk write operations can be either *ordered* or *unordered*. 
+You can set your bulk write operations to be either *ordered* or *unordered*. 
 
 With an ordered list of operations, MongoDB executes the operations serially.
 If an error occurs during the processing of one of the write
-operations, MongoDB will return without processing any remaining write
+operations, MongoDB returns without processing any remaining write
 operations in the list. 
-See :ref:`ordered Bulk Write<bulkwrite-example-bulk-write-operation>`
 
 With an unordered list of operations, MongoDB can execute the
 operations in parallel, but this behavior is not guaranteed. 
 If an error occurs during the processing of one
 of the write operations, MongoDB will continue to process remaining
-write operations in the list. 
-See :ref:`bulkwrite-example-unordered-bulk-write`.
+write operations in the list.
 
 Executing an ordered list of operations on a sharded collection will
 generally be slower than executing an unordered list since with an
 ordered list, each operation must wait for the previous operation to
 finish.
 
-By default, :method:`~db.collection.bulkWrite()` performs ``ordered`` 
-operations. To specify ``unordered`` write operations, set 
-``ordered : false`` in the options document.
+By default, all bulk write commands and methods perform ordered operations.
+To specify unordered operations, set the ``ordered`` option to ``false`` when you
+call your preferred command or method. To learn more about the syntax of 
+each command or method, see their pages linked above.
 
-See :ref:`bulkwrite-write-operations-executionofoperations`
+Bulk Write Methods
+------------------
 
-bulkWrite() Methods
--------------------
+All bulk write methods and commands support the following write operations:
 
-:method:`~db.collection.bulkWrite()` supports the following write operations: 
+- Insert One
+- Update One
+- Update Many
+- Replace One
+- Delete One
+- Delete Many
 
-- :ref:`bulkwrite-write-operations-insertOne`
-- :ref:`updateOne <bulkwrite-write-operations-updateOneMany>`
-- :ref:`updateMany <bulkwrite-write-operations-updateOneMany>`
-- :ref:`bulkwrite-write-operations-replaceOne`
-- :ref:`deleteOne <bulkwrite-write-operations-deleteOneMany>`
-- :ref:`deleteMany <bulkwrite-write-operations-deleteOneMany>`
-
-Each write operation is passed to :method:`~db.collection.bulkWrite()` as a 
-document in an array.
+When you call your preferred command or method, you pass each write
+operation as a document in an array. To learn more about the syntax of 
+each command or method, see their pages linked above.
 
 Example
 -------
 
-The example in this section uses the ``pizzas`` collection:
-
-.. include:: /includes/pizza-example-collection.rst
+``db.collection.bulkWrite()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/pizza-bulk-write-example.rst
 
-For more examples, see :ref:`bulkWrite() Examples
+For more examples, see :ref:`db.collection.bulkWrite() Examples
 <bulkwrite-example-bulk-write-operation>`.
+
+``Mongo.bulkWrite()``
+~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/reference/mongo-bulkwrite-example.rst
 
 .. _bulk-write-sharded-collection:
 
@@ -107,9 +116,9 @@ collection by :ref:`creating ranges in a sharded cluster
 Unordered Writes to ``mongos``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To improve write performance to sharded clusters, use 
-:method:`~db.collection.bulkWrite()` with the optional parameter ``ordered`` 
-set to ``false``. :binary:`~bin.mongos` can attempt to send the writes to 
+To improve write performance to sharded clusters, perform an unordered
+bulk write by setting ``ordered`` to ``false`` when you call your
+preferred method or command. :binary:`~bin.mongos` can attempt to send the writes to 
 multiple shards simultaneously. For *empty* collections,
 first pre-split the collection as described in
 :doc:`/tutorial/split-chunks-in-sharded-cluster`.

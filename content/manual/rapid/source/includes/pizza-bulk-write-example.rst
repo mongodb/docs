@@ -1,5 +1,5 @@
-The following :method:`~db.collection.bulkWrite()` example runs
-these operations on the ``pizzas`` collection:
+The following :method:`db.collection.bulkWrite()` example runs
+the following operations on the ``pizzas`` collection:
 
 - Adds two documents using ``insertOne``.
 - Updates a document using ``updateOne``.
