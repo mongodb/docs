@@ -16,7 +16,7 @@
 
    .. step:: Generate embeddings from your data.
             
-      Use the ``get_embedding`` function to generate 
+      Use the ``get_embedding()`` function to generate 
       embeddings from the sample texts. Your 
       embeddings might vary depending on the model you use.
 
@@ -63,10 +63,10 @@
             Text: Avatar: A marine is dispatched to the moon Pandora on a unique mission
             Embedding: [-0.0275258   0.01144342 -0.02360895]... (truncated)
 
-   .. step:: Ingest the embeddings into |service|.
+   .. step:: Ingest the embeddings into MongoDB.
 
       Perform the following steps to create documents with the
-      embeddings and ingest them into your |service| {+cluster+}:
+      embeddings and ingest them into your MongoDB deployment:
       
       a. Define a function to create documents.
 
@@ -90,21 +90,11 @@
             # Create documents with embeddings and sample data
             docs = create_docs_with_embeddings(embeddings, texts)
 
-      #. Ingest the documents into |service|.
+      #. Insert the documents into a MongoDB collection.
 
-         Paste and run the following code in your notebook, replacing
-         ``<connection-string>`` with your |service| {+cluster+}'s |srv|
-         :manual:`connection string </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
-
-         .. note::
-            
-            .. include:: /includes/fact-connection-string-format-drivers.rst
-             
-         This code does the following:
-
-         - Connects to your |service| {+cluster+}.
-         - Inserts the documents into the specified database 
-           and collection.
+         Paste and run the following code in your notebook
+         to connect to your MongoDB deployment and ingest the embeddings
+         into the specified database and collection.
 
          .. io-code-block:: 
             :copyable: true 
@@ -114,18 +104,20 @@
 
                import pymongo
 
-               # Connect to your Atlas cluster
+               # Connect to your MongoDB deployment
                mongo_client = pymongo.MongoClient("<connection-string>")
                db = mongo_client["sample_db"]
                collection = db["embeddings"]
 
-               # Ingest data into Atlas
+               # Ingest data into the collection
                collection.insert_many(docs)
 
             .. output:: 
 
                InsertManyResult([0, 1, 2], acknowledged=True)
-        
-         You can verify your vector embeddings by viewing them :ref:`in the
-         {+atlas-ui+} <atlas-ui-view-collections>` for the
-         ``sample_db.embeddings`` namespace in your {+cluster+}. 
+
+         .. note::
+             
+            .. include:: /includes/search-shared/find-connection-string.rst
+               
+         .. include:: /includes/avs/facts/fact-view-embeddings-atlas-ui-new-data.rst

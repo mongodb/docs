@@ -20,9 +20,9 @@ public class CreateEmbeddings {
     );
 
     public static void main(String[] args){
-        String uri = System.getenv("ATLAS_CONNECTION_STRING");
+        String uri = System.getenv("MONGODB_URI");
         if (uri == null || uri.isEmpty()) {
-            throw new RuntimeException("ATLAS_CONNECTION_STRING env variable is not set or is empty.");
+            throw new RuntimeException("MONGODB_URI env variable is not set or is empty.");
         }
 
         // establish connection and set namespace
@@ -44,7 +44,7 @@ public class CreateEmbeddings {
                 i++;
             }
 
-            // insert the embeddings into the Atlas collection
+            // insert the embeddings into the MongoDB collection
             List<String> insertedIds = new ArrayList<>();
             try {
                 InsertManyResult result = collection.insertMany(documents);

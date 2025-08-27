@@ -30,10 +30,10 @@ func main() {
 		log.Println("no .env file found")
 	}
 
-	// Connect to your Atlas cluster
-	uri := os.Getenv("ATLAS_CONNECTION_STRING")
+	// Connect to your MongoDB deployment
+	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
-		log.Fatal("set your 'ATLAS_CONNECTION_STRING' environment variable.")
+		log.Fatal("set your 'MONGODB_URI' environment variable.")
 	}
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(clientOptions)
@@ -59,5 +59,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to insert documents: %v", err)
 	}
-	fmt.Printf("Successfully inserted %v documents into Atlas\n", len(result.InsertedIDs))
+	fmt.Printf("Successfully inserted %v documents into MongoDB\n", len(result.InsertedIDs))
 }

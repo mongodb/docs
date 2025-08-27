@@ -6,7 +6,7 @@
 
       In this step, you create a retrieval function called
       ``get_query_results`` that runs a sample vector search query.
-      It uses the ``get_embedding`` function to create embeddings from the
+      It uses the ``get_embedding()`` function to create embeddings from the
       search query. Then, it runs the query to return semantically similar
       documents.
 

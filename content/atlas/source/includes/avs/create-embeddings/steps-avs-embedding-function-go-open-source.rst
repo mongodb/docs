@@ -21,11 +21,11 @@
       .. code-block::
 
          HUGGINGFACEHUB_API_TOKEN = "<access-token>"
-         ATLAS_CONNECTION_STRING = "<connection-string>"
+         MONGODB_URI = "<connection-string>"
 
       Replace the ``<access-token>`` placeholder value with your Hugging Face access token.
 
-      .. include:: /includes/avs/shared/avs-replace-connection-string.rst
+      .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Define a function to generate vector embeddings.
 
@@ -37,7 +37,7 @@
             mkdir common && cd common
 
       #. Create a file named ``get-embeddings.go`` and paste 
-         the following code. This code defines a function named ``GetEmbeddings``
+         the following code. This code defines a function named ``GetEmbeddings()``
          to generate an embedding for a given input. This function specifies:
 
          - The ``feature-extraction`` task using the `Go port of the LangChain

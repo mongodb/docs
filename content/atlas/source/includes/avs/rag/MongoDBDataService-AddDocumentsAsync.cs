@@ -27,6 +27,6 @@ public class MongoDBDataService
             documents.Add(document);
         }
         await Collection.InsertManyAsync(documents);
-        return $"Successfully inserted {embeddings.Count} documents into Atlas.";
+        return $"Successfully inserted {embeddings.Count} documents.";
     }
 }

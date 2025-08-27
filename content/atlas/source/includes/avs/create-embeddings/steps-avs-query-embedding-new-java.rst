@@ -1,10 +1,10 @@
 .. procedure::
    :style: normal
 
-   .. step:: Create the {+avs+} index.
+   .. step:: Create the vector search index.
 
       To enable vector search queries on your data,
-      you must create an {+avs+} index on your
+      you must create a vector search index on your
       collection.
 
       Complete the following steps to create an index on the
@@ -18,7 +18,7 @@
          .. literalinclude:: /includes/avs/tutorial/CreateIndexNewData.java
             :language: java
             :caption: CreateIndex.java
-            :emphasize-lines: 39
+            :emphasize-lines: 40
 
       #. Replace the ``<dimensions>`` placeholder value with the appropriate
          variable for the model you used:
@@ -54,7 +54,7 @@
 
          .. include:: /includes/avs/tutorial/avs-run-query-description.rst
 
-         .. literalinclude:: /includes/avs/tutorial/VectorQueryNew.java
+         .. literalinclude:: /includes/avs/tutorial/VectorQuery.java
             :language: java
             :caption: VectorQuery.java
 

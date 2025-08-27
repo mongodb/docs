@@ -4,16 +4,16 @@
    .. step:: Create a file named ``create-embeddings.go`` and paste the following code.
             
       Use the following code to generate embeddings from an existing
-      collection in |service|. Specifically, this code does the following:
+      collection. Specifically, this code does the following:
 
-      - Connects to your |service| {+cluster+}.
+      - Connects to your MongoDB deployment.
 
       - Gets a subset of documents from the 
         ``sample_airbnb.listingsAndReviews`` collection that 
         have a non-empty ``summary`` field.
 
       - Generates embeddings from each document's ``summary`` field
-        by using the ``GetEmbeddings`` function that you defined.
+        by using the ``GetEmbeddings()`` function that you defined.
 
       - Updates each document with a new ``embeddings`` field 
         that contains the embedding value by using the MongoDB 

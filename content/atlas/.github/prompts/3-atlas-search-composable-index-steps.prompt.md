@@ -171,7 +171,7 @@ Define the Index for the |fts-field-type| Type
          :linenos:
          :copyable:
 
-      .. include:: /includes/fts/field-types/find-connection-string.rst
+      .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Set up a CMake application
 
@@ -260,7 +260,7 @@ Define the Index for the |fts-field-type| Type
          :linenos:
          :copyable:
 
-      .. include:: /includes/fts/field-types/find-connection-string.rst
+      .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Create the index.
 
@@ -328,7 +328,7 @@ Define the Index for the |fts-field-type| Type
          :linenos:
          :copyable:
 
-      .. include:: /includes/fts/field-types/find-connection-string.rst
+      .. include:: /includes/search-shared/find-connection-string.rst
    
    .. step:: Create the index.
    
@@ -425,7 +425,7 @@ Define the Index for the |fts-field-type| Type
          :linenos:
          :copyable: true
 
-      .. include:: /includes/fts/field-types/find-connection-string.rst
+      .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Compile and run the file to create the index.
 
@@ -574,7 +574,7 @@ Define the Index for the |fts-field-type| Type
          :copyable:
          :linenos:
 
-      .. include:: /includes/fts/field-types/find-connection-string.rst
+      .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Create the index.
 
@@ -621,7 +621,7 @@ Define the Index for the |fts-field-type| Type
          :copyable:
          :linenos:
 
-      .. include:: /includes/fts/field-types/find-connection-string.rst
+      .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Create the index.
 

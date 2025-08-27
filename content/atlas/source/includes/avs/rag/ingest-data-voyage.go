@@ -59,5 +59,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to insert documents: %v", err)
 	}
-	fmt.Printf("Successfully inserted %v documents into Atlas\n", len(result))
+	fmt.Printf("Successfully inserted %v documents\n", len(result))
 }

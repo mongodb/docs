@@ -44,7 +44,7 @@
 
       Create a new class named ``AIService`` in a file of the same name by
       pasting the following code. This code defines an async Task named
-      ``GetEmbeddingsAsync`` to generate a array of embeddings for an array
+      ``GetEmbeddingsAsync()`` to generate a array of embeddings for an array
       of given string inputs. This function uses Voyage AI's
       ``voyage-3-large`` model to generate an embedding for a given input.
 
@@ -82,7 +82,7 @@
          same name by pasting the following code. This code defines an async
          Task named ``AddDocumentsAsync`` to add documents to |service|. This
          function uses the
-         :driver:`Collection.InsertManyAsync() </csharp/current/usage-examples/insertMany/>`
+         :ref:`Collection.InsertManyAsync() <csharp-insert-guide>`
          C# Driver method to insert a list of the ``BsonDocument`` type. This
          code stores the embeddings alongside the chunked data in the
          ``rag_db.test`` collection in your |service| {+cluster+}.
@@ -98,7 +98,7 @@
          name by pasting the following code. This code prepares the chunked
          documents for ingestion by creating a list of documents with their
          corresponding vector embeddings. You generate these embeddings 
-         using the ``GetEmbeddingsAsync`` function that you defined earlier.
+         using the ``GetEmbeddingsAsync()`` function that you defined earlier.
 
          .. literalinclude:: /includes/avs/rag/EmbeddingGenerator.cs
             :language: csharp
@@ -192,7 +192,7 @@
          i. Create a new class named ``PerformTestQuery`` in a file of the same 
             name by pasting the following code. This code transforms a text
             input string into vector embeddings, and queries the database for
-            matching results. It uses the ``GetEmbeddingsAsync`` function to create
+            matching results. It uses the ``GetEmbeddingsAsync()`` function to create
             embeddings from the search query. Then, it runs the query to return
             semantically-similar documents.
 
@@ -250,7 +250,7 @@
          by pasting the following code. This code coordinates the following
          components:
 
-         - ``GetEmbeddingsAsync`` function: transform the string query into vector
+         - ``GetEmbeddingsAsync()`` function: transform the string query into vector
            embeddings.
          - ``PerformVectorQuery`` function: retrieve semantically-similar
            results from the database.

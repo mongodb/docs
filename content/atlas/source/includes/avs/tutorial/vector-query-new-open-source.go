@@ -21,15 +21,15 @@ type TextAndScore struct {
 func main() {
 	ctx := context.Background()
 
-	// Connect to your Atlas cluster
+	// Connect to your MongoDB deployment
 	if err := godotenv.Load(); err != nil {
 		log.Println("no .env file found")
 	}
 
-	// Connect to your Atlas cluster
-	uri := os.Getenv("ATLAS_CONNECTION_STRING")
+	// Connect to your MongoDB deployment
+	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
-		log.Fatal("set your 'ATLAS_CONNECTION_STRING' environment variable.")
+		log.Fatal("set your 'MONGODB_URI' environment variable.")
 	}
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(clientOptions)

@@ -7,7 +7,7 @@
       paste the following code. This code creates two functions that do
       the following:
 
-      - Connect to your |service| {+cluster+}.
+      - Connect to your MongoDB deployment.
 
       - The ``GetDocuments`` method gets a subset of documents from the 
         ``sample_airbnb.listingsAndReviews`` collection that 
@@ -25,13 +25,13 @@
 
    .. step:: Update the ``Program.cs`` in your project.
             
-      Use the following code to generate embeddings from an existing
-      collection in |service|.
+      Use the following code to generate embeddings from an existing MongoDB
+      collection.
       
-      Specifically, this code uses the ``GetEmbeddingsAsync`` function 
+      Specifically, this code uses the ``GetEmbeddingsAsync()`` function 
       that you defined to generate embeddings from an array 
       of sample texts and ingest them into the ``sample_db.embeddings`` 
-      collection in |service|.
+      collection.
 
       .. literalinclude:: /includes/avs/tutorial/Program-AddEmbeddingsExisting.cs
          :language: csharp

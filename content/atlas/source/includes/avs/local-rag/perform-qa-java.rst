@@ -1,16 +1,16 @@
 .. procedure::
    :style: normal
 
-   .. step:: Define code to run the local |llm|.
+   .. step:: Write code to run the local |llm|.
 
       Create a new file called ``LocalLLM.java`` and paste the following code.
 
-      This code uses the ``getEmbedding`` and ``retrieveDocuments`` methods and
+      This code uses the ``getEmbedding()`` and ``retrieveDocuments`` methods and
       the Ollama ``chatmodel`` to do the following:
 
       a. Connect to your local |service| {+deployment+} or your |service| {+cluster+}
 
-      #. Generate an embedding for the query string using the ``getEmbedding``
+      #. Generate an embedding for the query string using the ``getEmbedding()``
          method you defined previously.
 
       #. Query the collection for relevant documents using the

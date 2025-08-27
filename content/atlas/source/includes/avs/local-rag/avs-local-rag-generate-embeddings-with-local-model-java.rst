@@ -23,13 +23,13 @@
       This code also defines two methods to generate embeddings for a given input
       using the embedding model that you downloaded previously:
 
-      - **Multiple Inputs**: The ``getEmbeddings`` method accepts an
+      - **Multiple Inputs**: The ``getEmbeddings()`` method accepts an
         array of text inputs (``List<String>``), allowing you to create multiple
         embeddings in a single API call. The method converts the API-provided
         arrays of floats to BSON arrays of doubles for storing in your |service|
         {+cluster+}.
 
-      -  **Single Input**: The ``getEmbedding`` method accepts a
+      -  **Single Input**: The ``getEmbedding()`` method accepts a
          single ``String``, which represents a query you want to make against
          your vector data. The method converts the API-provided array of floats
          to a BSON array of doubles to use when querying your collection.
@@ -38,11 +38,11 @@
          :language: java
          :caption: OllamaModels.java
 
-   .. step:: Define code to generate embeddings from the sample data.
+   .. step:: Write a script that generates embeddings from the sample data.
 
       Create a file named ``EmbeddingGenerator.java`` and paste the following code.
 
-      This code uses the ``getEmbeddings`` method and the MongoDB
+      This code uses the ``getEmbeddings()`` method and the MongoDB
       :driver:`Java Sync Driver </java/sync/>` to do the following:
 
       a. Connect to your local |service| deployment or |service| {+cluster+}.
@@ -57,7 +57,7 @@
             needed to better suit your use case.
 
       #. Generate an embedding from each document's ``summary`` field
-         using the ``getEmbeddings`` method that you defined previously.
+         using the ``getEmbeddings()`` method that you defined previously.
 
       #. Update each document with a new ``embedding`` field that contains the
          corresponding embedding value.

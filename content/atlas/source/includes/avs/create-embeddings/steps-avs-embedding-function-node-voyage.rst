@@ -19,17 +19,11 @@
          .. code-block::
 
             VOYAGE_API_KEY = "<api-key>"
-            ATLAS_CONNECTION_STRING = "<connection-string>"
+            MONGODB_URI = "<connection-string>"
 
-      #. Replace the ``<api-key>`` and ``<connection-string>``
-         placeholder values with your `Voyage API key <https://docs.voyageai.com/docs/api-key-and-installation>`__
-         and the |srv| :manual:`connection string </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
-         for your |service| {+cluster+}. Your connection string should use
-         the following format:
+      #. Replace the ``<api-key>`` placeholder value with your `Voyage API key <https://docs.voyageai.com/docs/api-key-and-installation>`__.
 
-         .. code-block::
-
-            mongodb+srv://<db_username>:<db_password>@<clusterName>.<hostname>.mongodb.net
+      #. .. include:: /includes/search-shared/find-connection-string.rst
 
          .. include:: /includes/avs/shared/note-node-js-env-minimum-requirement.rst
 
@@ -38,7 +32,7 @@
    .. step:: Define a function to generate vector embeddings.
 
       a. Create a file named ``get-embeddings.js``.
-      #. Paste the following code. This code defines a function named ``getEmbedding`` 
+      #. Paste the following code. This code defines a function named ``getEmbedding()`` 
          that uses the ``voyage-3-large`` model to generate an 
          embedding for a given text input.
 

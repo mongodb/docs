@@ -31,12 +31,12 @@
       following: 
 
       - Specifies the ``text-embedding-3-large`` embedding model.
-      - Creates a function named ``get_embedding`` that calls the model's |api|
+      - Creates a function named ``get_embedding()`` that calls the model's |api|
         to generate an embedding for a given text input.
       - Connects to the |service| {+cluster+} and fetches ``3500`` documents
         from the ``sample_mflix.embedded_movies`` namespace.
       - Generates embeddings from each document's ``title`` field by
-        using the ``get_embedding`` function. 
+        using the ``get_embedding()`` function. 
       - Updates each document with a new field named ``title_embedding``
         that contains the embedding value by using the MongoDB PyMongo
         Driver.  

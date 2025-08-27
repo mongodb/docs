@@ -13,16 +13,14 @@
 
    .. step:: Create a ``.env`` file.
 
-      a. In your project, create a ``.env`` file to store your |service|
+      a. In your project, create a ``.env`` file to store your MongoDB
          connection string.
 
          .. code-block::
 
-            ATLAS_CONNECTION_STRING="<connection-string>"
+            MONGODB_URI="<connection-string>"
 
-      #. Replace the ``<connection-string>`` placeholder value with the 
-         |srv| :manual:`connection string </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
-         for your |service| {+cluster+}.
+      #. .. include:: /includes/search-shared/find-connection-string.rst
 
          .. include:: /includes/avs/shared/note-node-js-env-minimum-requirement.rst
 
@@ -38,7 +36,7 @@
 
       #. Paste the following code in the file. 
       
-         This code defines a function named ``getEmbedding`` to generate an embedding for
+         This code defines a function named ``getEmbedding()`` to generate an embedding for
          a given input. This function specifies: 
 
          - The ``feature-extraction`` task from Hugging Face's `transformers.js <https://huggingface.co/docs/transformers.js/en/index>`__

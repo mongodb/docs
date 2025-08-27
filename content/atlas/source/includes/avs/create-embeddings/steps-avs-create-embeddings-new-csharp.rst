@@ -5,8 +5,8 @@
 
       Create a new class in a same-named file named ``DataService.cs`` and
       paste the following code. This code defines an async Task named
-      ``AddDocumentsAsync`` add documents to |service|. This function uses the
-      :driver:`Collection.InsertManyAsync() </csharp/current/usage-examples/insertMany/>`
+      ``AddDocumentsAsync`` add documents to MongoDB. This function uses the
+      :ref:`Collection.InsertManyAsync() <csharp-insert-guide>`
       C# Driver method to insert a list of the ``BsonDocument`` type. Each
       document contains:
 
@@ -22,12 +22,12 @@
    .. step:: Update the ``Program.cs`` in your project.
             
       Use the following code to generate embeddings from an existing
-      collection in |service|.
+      collection.
       
-      Specifically, this code uses the ``GetEmbeddingsAsync`` function 
+      Specifically, this code uses the ``GetEmbeddingsAsync()`` function 
       that you defined to generate embeddings from an array 
       of sample texts and ingest them into the ``sample_db.embeddings`` 
-      collection in |service|.
+      collection.
 
       .. literalinclude:: /includes/avs/tutorial/Program-AddDocumentsFromNewData.cs
          :language: csharp
@@ -46,8 +46,6 @@
          .. output:: 
             :language: sh
 
-            Successfully inserted 3 documents into Atlas
+            Successfully inserted 3 documents
        
-      You can also view your vector embeddings :ref:`in the {+atlas-ui+}
-      <atlas-ui-view-collections>` by navigating to the ``sample_db.embeddings`` 
-      collection in your {+cluster+}.
+      .. include:: /includes/avs/facts/fact-view-embeddings-atlas-ui-new-data.rst

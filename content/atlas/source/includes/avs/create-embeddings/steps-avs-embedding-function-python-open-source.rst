@@ -20,7 +20,7 @@
 
       - Loads the `nomic-embed-text-v1 
         <https://huggingface.co/nomic-ai/nomic-embed-text-v1>`__ embedding model.
-      - Creates a function named ``get_embedding`` that uses the model
+      - Creates a function named ``get_embedding()`` that uses the model
         to generate embeddings for a given text input. The default 
         precision is ``float32``.
       - Generates embeddings for the string, ``foo``.

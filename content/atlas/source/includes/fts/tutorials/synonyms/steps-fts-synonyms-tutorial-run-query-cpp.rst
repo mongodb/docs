@@ -41,7 +41,7 @@
                   :dedent:
                   :emphasize-lines: 17
 
-            #. .. include:: /includes/fts/field-types/find-connection-string.rst
+            #. .. include:: /includes/search-shared/find-connection-string.rst
 
             #. Run the query.    
 
@@ -98,7 +98,7 @@
                   :dedent:
                   :emphasize-lines: 17
 
-            #. .. include:: /includes/fts/field-types/find-connection-string.rst
+            #. .. include:: /includes/search-shared/find-connection-string.rst
 
             #. Run the query.    
 
@@ -192,7 +192,7 @@
                   :dedent:
                   :emphasize-lines: 19
 
-            #. .. include:: /includes/fts/field-types/find-connection-string.rst
+            #. .. include:: /includes/search-shared/find-connection-string.rst
               
             #. Run the query.
 

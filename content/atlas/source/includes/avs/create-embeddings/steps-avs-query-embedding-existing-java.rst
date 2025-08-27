@@ -1,10 +1,10 @@
 .. procedure::
    :style: normal
 
-   .. step:: Create the {+avs+} index.
+   .. step:: Create the vector search index.
 
       To enable vector search queries on your data,
-      you must create an {+avs+} index on your
+      you must create a vector search index on your
       collection.
 
       Complete the following steps to create an index on the

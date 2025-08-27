@@ -15,23 +15,17 @@
 
    .. step:: Create a ``.env`` file to manage secrets.
 
-      In your project, create a ``.env`` file to store your connection
-      string and OpenAI API token.
+      In your project, create a ``.env`` file to store your MongoDB connection string
+      and OpenAI API token.
 
       .. code-block::
 
          OPENAI_API_KEY = "<api-key>"
-         ATLAS_CONNECTION_STRING = "<connection-string>"
+         MONGODB_URI = "<connection-string>"
 
-      Replace the ``<api-key>`` 
-      and ``<connection-string>`` placeholder values with your OpenAI API key
-      and the |srv| :manual:`connection string 
-      </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
-      for your |service| {+cluster+}.
-      
-      .. note::
-         
-         .. include:: /includes/fact-connection-string-format-drivers.rst
+      Replace the ``<api-key>`` placeholder value with your OpenAI API key.
+
+      .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Define a function to generate vector embeddings.
 
@@ -43,7 +37,7 @@
             mkdir common && cd common
 
       #. Create a file named ``get-embeddings.go`` and paste 
-         the following code. This code defines a function named ``GetEmbeddings`` 
+         the following code. This code defines a function named ``GetEmbeddings()`` 
          that uses OpenAI's ``text-embedding-3-small`` model to generate an 
          embedding for a given input.
 

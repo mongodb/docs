@@ -17,9 +17,9 @@ public class CreateIndex {
 
     public static void main(String[] args) {
 
-        String uri = System.getenv("ATLAS_CONNECTION_STRING");
+        String uri = System.getenv("MONGODB_URI");
         if (uri == null || uri.isEmpty()) {
-            throw new IllegalStateException("ATLAS_CONNECTION_STRING env variable is not set or is empty.");
+            throw new IllegalStateException("MONGODB_URI env variable is not set or is empty.");
         }
 
         // establish connection and set namespace
@@ -54,7 +54,7 @@ public class CreateIndex {
                 throw new RuntimeException(e);
             }
 
-            // Wait for Atlas to build the index and make it queryable
+            // wait for index to build and become queryable
             System.out.println("Polling to confirm the index has completed building.");
             System.out.println("It may take up to a minute for the index to build before you can query using it.");
 

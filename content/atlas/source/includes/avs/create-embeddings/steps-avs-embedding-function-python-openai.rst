@@ -22,7 +22,7 @@
       This code does the following:
 
       - Specifies the ``text-embedding-3-small`` embedding model.
-      - Creates a function named ``get_embedding`` that calls the model's |api|
+      - Creates a function named ``get_embedding()`` that calls the model's |api|
         to generate an embedding for a given text input.
       - Tests the function by generating a single embedding 
         for the string ``foo``.

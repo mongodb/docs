@@ -4,10 +4,10 @@
    .. step:: Create a file named ``create-embeddings.js`` and paste the following code.
             
       Use the following code to generate embeddings from an existing
-      collection in |service|. This code uses the ``getEmbedding`` 
+      collection. This code uses the ``getEmbedding()`` 
       function that you defined and the :driver:`Node.js Driver </node/current/>` 
       to generate embeddings from an array of sample texts and ingest them 
-      into the ``sample_db.embeddings`` collection in |service|.
+      into the ``sample_db.embeddings`` collection.
 
       .. collapsible::
          :heading: (Advanced) Compress your embeddings.
@@ -45,6 +45,4 @@
                   Generating embeddings and inserting documents...
                   Count of documents inserted: 3
        
-      You can view your vector embeddings :ref:`in the {+atlas-ui+}
-      <atlas-ui-view-collections>` by navigating to the ``sample_db.embeddings`` 
-      collection in your {+cluster+}.
+      .. include:: /includes/avs/facts/fact-view-embeddings-atlas-ui-new-data.rst

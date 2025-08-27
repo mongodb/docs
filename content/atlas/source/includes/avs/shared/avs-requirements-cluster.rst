@@ -1,5 +1,9 @@
-An `Atlas account
-<https://account.mongodb.com/account/register>`__ with a
-{+cluster+} running MongoDB version 6.0.11, 7.0.2, or
-later (including :abbr:`RCs (Release Candidates)`). Ensure that your :abbr:`IP address (Internet Protocol address)`
-is included in your |service| project's :ref:`access list <access-list>`. To learn more, see :ref:`create-new-cluster`.
+One of the following:
+
+- An :ref:`{+service+} cluster <create-new-cluster>` 
+  running MongoDB version 6.0.11, 7.0.2, or later. 
+  Ensure that your :abbr:`IP address (Internet Protocol address)`
+  is included in your |service| project's :ref:`access list <access-list>`. 
+
+- A local |service| deployment created using the {+atlas-cli+}. 
+  To learn more, see :atlascli:`Deploy a Local Atlas Cluster </atlas-cli-deploy-local>`. 

@@ -1,3 +1,4 @@
-You can view your vector embeddings in the :ref:`{+atlas-ui+} <atlas-ui-view-collections>`
-by navigating to the ``sample_airbnb.listingsAndReviews`` collection in your 
-{+cluster+} and expanding the fields in a document.
+If you're using |service|, you can verify your vector embeddings 
+by navigating to the ``sample_airbnb.listingsAndReviews`` namespace
+:ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`
+and expanding the fields in a document.

@@ -4,22 +4,15 @@
 
    .. step:: Load your existing data.
 
-      Load data from your |service| {+cluster+}. The following code gets 
+      Load data from your MongoDB deployment. The following code gets 
       a subset of ``50`` documents from the ``sample_airbnb.listingAndReviews``
       collection. 
-
-      Replace ``<connection-string>`` with your |service| {+cluster+}'s |srv|
-      :manual:`connection string </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
-
-      .. note::
-         
-         .. include:: /includes/fact-connection-string-format-drivers.rst
 
       .. code-block:: python 
 
          import pymongo
 
-         # Connect to your Atlas cluster
+         # Connect to your MongoDB deployment
          mongo_client = pymongo.MongoClient("<connection-string>")
          db = mongo_client["sample_airbnb"]
          collection = db["listingsAndReviews"]
@@ -30,13 +23,17 @@
          # Get a subset of documents in the collection
          documents = collection.find(filter, {'_id': 1, 'summary': 1}).limit(50)
 
-   .. step:: Generate the embeddings and update your documents in |service|.
+      .. note::
+
+         .. include:: /includes/search-shared/find-connection-string.rst
+
+   .. step:: Generate the embeddings and update your documents.
 
       Generate embeddings from the documents you loaded in the previous step.
       This code does the following:
 
       - Generates embeddings from each document's ``summary`` field
-        by using the ``get_embedding`` function that you defined.
+        by using the ``get_embedding()`` function that you defined.
 
       - Updates each document with a new ``embedding`` field 
         that contains the embedding value.

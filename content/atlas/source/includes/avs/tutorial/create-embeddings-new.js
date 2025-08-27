@@ -11,8 +11,8 @@ const texts = [
 
 async function run() {
 
-    // Connect to your Atlas cluster
-    const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
+    // Connect to your MongoDB deployment
+    const client = new MongoClient(process.env.MONGODB_URI);
     
     try {
         await client.connect();
@@ -44,7 +44,7 @@ async function run() {
         // Continue processing documents if an error occurs during an operation
         const options = { ordered: false };
 
-        // Insert documents with embeddings into Atlas
+        // Insert documents with embeddings into collection
         const result = await collection.insertMany(insertDocuments, options);  
         console.log("Count of documents inserted: " + result.insertedCount); 
 

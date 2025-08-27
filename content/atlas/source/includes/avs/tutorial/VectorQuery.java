@@ -26,9 +26,9 @@ public class VectorQuery {
 
     public static void main(String[] args) {
 
-        String uri = System.getenv("ATLAS_CONNECTION_STRING");
+        String uri = System.getenv("MONGODB_URI");
         if (uri == null || uri.isEmpty()) {
-            throw new IllegalStateException("ATLAS_CONNECTION_STRING env variable is not set or is empty.");
+            throw new IllegalStateException("MONGODB_URI env variable is not set or is empty.");
         }
 
         // establish connection and set namespace

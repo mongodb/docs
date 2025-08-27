@@ -55,7 +55,7 @@
                :tabid: open-source
 
                Paste and run the following code in your notebook to create
-               a function named ``get_embedding`` that generates vector embeddings by 
+               a function named ``get_embedding()`` that generates vector embeddings by 
                using the `nomic-embed-text-v1 <https://huggingface.co/nomic-ai/nomic-embed-text-v1>`__ embedding model
                from `Sentence Transformers <https://huggingface.co/sentence-transformers>`__.
                
@@ -101,7 +101,7 @@
 
          Run this code to prepare the chunked documents for ingestion
          by creating a list of documents with their corresponding vector embeddings.
-         You generate these embeddings by using the ``get_embedding`` function that 
+         You generate these embeddings by using the ``get_embedding()`` function that 
          you just defined.
 
          ..
@@ -245,7 +245,7 @@
 
          Run this code to create a retrieval function called
          ``get_query_results`` that runs a basic vector search query.
-         It uses the ``get_embedding`` function to create embeddings from the
+         It uses the ``get_embedding()`` function to create embeddings from the
          search query. Then, it runs the query to return semantically similar
          documents. Your results might vary depending on the embedding model you use.
 

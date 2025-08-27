@@ -163,13 +163,13 @@
             <https://docs.voyageai.com/docs/embeddings>`__
             embedding model from |voyage|:
 
-            - **Multiple Inputs**: The ``getEmbeddings`` method accepts an
+            - **Multiple Inputs**: The ``getEmbeddings()`` method accepts an
               array of text inputs (``List<String>``), allowing you to create multiple
               embeddings in a single API call. The method converts the API-provided
               arrays of floats to BSON arrays of doubles for storing in your |service|
               {+cluster+}.
 
-            -  **Single Input**: The ``getEmbedding`` method accepts a
+            -  **Single Input**: The ``getEmbedding()`` method accepts a
                single ``String``, which represents a query you want to make against
                your vector data. The method converts the API-provided array of floats
                to a BSON array of doubles to use when querying your collection.
@@ -186,13 +186,13 @@
             <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__
             open-source embedding model:
 
-            - **Multiple Inputs**: The ``getEmbeddings`` method accepts an
+            - **Multiple Inputs**: The ``getEmbeddings()`` method accepts an
               array of text segment inputs (``List<TextSegment>``), allowing you to create multiple
               embeddings in a single API call. The method converts the API-provided
               arrays of floats to BSON arrays of doubles for storing in your |service|
               {+cluster+}.
 
-            -  **Single Input**: The ``getEmbedding`` method accepts a
+            -  **Single Input**: The ``getEmbedding()`` method accepts a
                single ``String``, which represents a query you want to make against
                your vector data. The method converts the API-provided array of floats
                to a BSON array of doubles to use when querying your collection.
@@ -220,7 +220,7 @@
       #. Splits the data into chunks using the ``splitDocument`` method that you
          previously defined.
       #. Creates vector embeddings from the chunked data using
-         the ``GetEmbeddings`` method that you previously defined.
+         the ``GetEmbeddings()`` method that you previously defined.
       #. Stores the embeddings alongside the chunked data in the
          ``rag_db.test`` collection in your |service| {+cluster+}.
 
@@ -279,7 +279,7 @@
       i. Queries the ``rag_db.test`` collection for any matching
          documents using a ``retrieveDocuments`` method.
 
-         This method uses the ``getEmbedding`` method that you created earlier
+         This method uses the ``getEmbedding()`` method that you created earlier
          to generate an embedding from the search query, then runs the query to
          return semantically-similar documents.
 

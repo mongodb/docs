@@ -20,17 +20,11 @@
       .. code-block::
 
          export VOYAGE_API_KEY="<api-key>"
-         export ATLAS_CONNECTION_STRING="<connection-string>"
+         export MONGODB_URI="<connection-string>"
 
-      Replace the ``<api-key>`` 
-      and ``<connection-string>`` placeholder values with your Voyage API key
-      and the |srv| :manual:`connection string 
-      </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
-      for your |service| {+cluster+}.
+      Replace the ``<api-key>`` placeholder value with your Voyage API key.
 
-      .. note::
-         
-         .. include:: /includes/fact-connection-string-format-drivers.rst
+      .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Define a function to generate vector embeddings.
 
@@ -42,7 +36,7 @@
             mkdir common && cd common
 
       #. Create a file named ``get-embeddings.go`` and paste 
-         the following code. This code defines a function named ``GetEmbeddings`` 
+         the following code. This code defines a function named ``GetEmbeddings()`` 
          that uses Voyage AI's ``voyage-3-large`` model to generate an 
          embedding for a given input.
 

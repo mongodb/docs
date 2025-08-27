@@ -4,13 +4,13 @@
    .. step:: Create a file named ``create-embeddings.go`` and paste the following code.
             
       Use the following code to generate embeddings from an existing
-      collection in |service|.
+      collection.
       
-      Specifically, this code uses the ``GetEmbeddings`` function 
+      Specifically, this code uses the ``GetEmbeddings()`` function 
       that you defined and the MongoDB :driver:`Go Driver </go/>` 
       to generate embeddings from an array 
       of sample texts and ingest them into the ``sample_db.embeddings`` 
-      collection in |service|.
+      collection.
 
       .. tabs::
          :hidden:
@@ -49,7 +49,7 @@
                .. output:: 
                   :language: sh
 
-                  Successfully inserted 3 documents into Atlas
+                  Successfully inserted 3 documents
 
          .. tab:: OpenAI
             :tabid: openai
@@ -64,8 +64,6 @@
                .. output:: 
                   :language: sh
 
-                  Successfully inserted 3 documents into Atlas
+                  Successfully inserted 3 documents
        
-      You can also view your vector embeddings :ref:`in the {+atlas-ui+}
-      <atlas-ui-view-collections>` by navigating to the ``sample_db.embeddings`` 
-      collection in your {+cluster+}.
+      .. include:: /includes/avs/facts/fact-view-embeddings-atlas-ui-new-data.rst

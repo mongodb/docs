@@ -1,14 +1,14 @@
 import { MongoClient } from 'mongodb';
 
-// connect to your Atlas deployment
-const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
+// connect to your MongoDB deployment
+const client = new MongoClient(process.env.MONGODB_URI);
 
 async function run() {
    try {
      const database = client.db("sample_db");
      const collection = database.collection("embeddings");
     
-     // define your Atlas Vector Search index
+     // define your MongoDB Vector Search index
      const index = {
          name: "vector_index",
          type: "vectorSearch",

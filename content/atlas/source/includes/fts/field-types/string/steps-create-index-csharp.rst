@@ -27,7 +27,7 @@ Define the Index for the |fts-field-type| Type
          :linenos:
          :copyable:
 
-      .. include:: /includes/fts/field-types/find-connection-string.rst
+      .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Create the index.
       

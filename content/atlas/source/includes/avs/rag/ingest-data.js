@@ -47,7 +47,7 @@ async function run() {
         // Continue processing documents if an error occurs during an operation
         const options = { ordered: false };
 
-        // Insert documents with embeddings into Atlas
+        // Insert documents with embeddings into collection
         const result = await collection.insertMany(insertDocuments, options);  
         console.log("Count of documents inserted: " + result.insertedCount); 
 

@@ -90,7 +90,7 @@ Create the |fts| Index
                   
                   default
 
-            .. include:: /includes/fts/field-types/find-connection-string.rst
+            .. include:: /includes/search-shared/find-connection-string.rst
 
          .. tab:: Multiple Synonym Mappings
             :tabid: multiple
@@ -148,4 +148,4 @@ Create the |fts| Index
                   
                   default
 
-            .. include:: /includes/fts/field-types/find-connection-string.rst
+            .. include:: /includes/search-shared/find-connection-string.rst

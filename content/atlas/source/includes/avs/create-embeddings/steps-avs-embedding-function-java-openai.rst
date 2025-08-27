@@ -66,12 +66,12 @@
          :caption: Environment variables
 
          OPEN_AI_API_KEY=<api-key>
-         ATLAS_CONNECTION_STRING=<connection-string>
+         MONGODB_URI=<connection-string>
 
       Update the placeholders with the following values:
 
-      - Replace the``<api-key>`` placeholder value with your OpenAI API key.
-      - .. include:: /includes/avs/shared/avs-replace-connection-string.rst
+      - Replace the ``<api-key>`` placeholder value with your OpenAI API key.
+      - .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Define a method to generate vector embeddings.
 
@@ -83,13 +83,13 @@
       <https://platform.openai.com/docs/guides/embeddings/#embedding-models>`__
       OpenAI embedding model:
 
-      - **Multiple Inputs**: The ``getEmbeddings`` method accepts an
+      - **Multiple Inputs**: The ``getEmbeddings()`` method accepts an
         array of text inputs (``List<String>``), allowing you to create multiple
         embeddings in a single API call. The method converts the API-provided
         arrays of floats to BSON arrays of doubles for storing in your |service|
         {+cluster+}.
 
-      -  **Single Input**: The ``getEmbedding`` method accepts a
+      -  **Single Input**: The ``getEmbedding()`` method accepts a
          single ``String``, which represents a query you want to make against
          your vector data. The method converts the API-provided array of floats
          to a BSON array of doubles to use when querying your collection.

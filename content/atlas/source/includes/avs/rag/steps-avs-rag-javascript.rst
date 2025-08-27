@@ -23,7 +23,7 @@
                :language: python
                :copyable:
 
-            The ``getEmbedding`` function generates vector embeddings by 
+            The ``getEmbedding()`` function generates vector embeddings by 
             using the ``voyage-3-large`` embedding model
             from `Voyage AI <https://docs.voyageai.com/docs/embeddings>`__.
 
@@ -38,7 +38,7 @@
             .. literalinclude:: /includes/avs/rag/get-embeddings.js
                :language: javascript
 
-            The ``getEmbedding`` function generates vector embeddings by 
+            The ``getEmbedding()`` function generates vector embeddings by 
             using the `nomic-embed-text-v1 <https://huggingface.co/nomic-ai/nomic-embed-text-v1>`__ embedding model
             from `Sentence Transformers <https://huggingface.co/sentence-transformers>`__.
          
@@ -56,7 +56,7 @@
         (number of characters) and *chunk overlap* (number of overlapping
         characters between consecutive chunks). 
       - Create vector embeddings from the chunked data by using 
-        the ``getEmbedding`` function that you defined.
+        the ``getEmbedding()`` function that you defined.
       - Store these embeddings alongside the chunked data in the
         ``rag_db.test`` collection in your |service| {+cluster+}.
 
@@ -119,7 +119,7 @@
          
          In this step, you create a retrieval function called
          ``getQueryResults`` that runs a query to retrieve relevant documents.
-         It uses the ``getEmbedding`` function to create an embedding from the
+         It uses the ``getEmbedding()`` function to create an embedding from the
          search query. Then, it runs the query to return semantically-similar
          documents. 
 

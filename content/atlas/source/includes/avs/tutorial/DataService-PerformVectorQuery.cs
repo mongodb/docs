@@ -5,7 +5,7 @@ using MongoDB.Bson;
 
 public class DataService
 {
-    private static readonly string? ConnectionString = Environment.GetEnvironmentVariable("ATLAS_CONNECTION_STRING");
+    private static readonly string? ConnectionString = Environment.GetEnvironmentVariable("MONGODB_URI");
     private static readonly MongoClient Client = new MongoClient(ConnectionString);
     private static readonly IMongoDatabase Database = Client.GetDatabase("sample_db");
     private static readonly IMongoCollection<BsonDocument> Collection = Database.GetCollection<BsonDocument>("embeddings");

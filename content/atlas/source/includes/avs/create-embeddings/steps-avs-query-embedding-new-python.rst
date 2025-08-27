@@ -1,7 +1,7 @@
 .. procedure::
    :style: normal
 
-   .. step:: Create the {+avs+} index.
+   .. step:: Create the vector search index.
          
       .. include:: /includes/avs/create-embeddings/steps-avs-create-index-python.rst
 

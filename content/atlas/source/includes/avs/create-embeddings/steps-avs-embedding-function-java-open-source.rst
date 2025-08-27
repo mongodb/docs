@@ -66,12 +66,12 @@
          :caption: Environment variables
 
          HUGGING_FACE_ACCESS_TOKEN=<access-token>
-         ATLAS_CONNECTION_STRING=<connection-string>
+         MONGODB_URI=<connection-string>
 
       Update the placeholders with the following values:
 
-      - Replace the``<access-token>`` placeholder value with your Hugging Face access token.
-      - .. include:: /includes/avs/shared/avs-replace-connection-string.rst
+      - Replace the ``<access-token>`` placeholder value with your Hugging Face access token.
+      - .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Define a method to generate vector embeddings.
 
@@ -83,13 +83,13 @@
       <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__
       open-source embedding model:
 
-      - **Multiple Inputs**: The ``getEmbeddings`` method accepts an
+      - **Multiple Inputs**: The ``getEmbeddings()`` method accepts an
         array of text inputs (``List<String>``), allowing you to create multiple
         embeddings in a single API call. The method converts the API-provided
         arrays of floats to BSON arrays of doubles for storing in your |service|
         {+cluster+}.
 
-      -  **Single Input**: The ``getEmbedding`` method accepts a
+      -  **Single Input**: The ``getEmbedding()`` method accepts a
          single ``String``, which represents a query you want to make against
          your vector data. The method converts the API-provided array of floats
          to a BSON array of doubles to use when querying your collection.

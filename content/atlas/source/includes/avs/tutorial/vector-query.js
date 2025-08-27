@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb';
 import { getEmbedding } from './get-embeddings.js';
 
 // MongoDB connection URI and options
-const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
+const client = new MongoClient(process.env.MONGODB_URI);
 
 async function run() {
     try {
