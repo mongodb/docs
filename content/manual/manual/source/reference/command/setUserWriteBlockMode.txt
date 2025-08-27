@@ -23,6 +23,12 @@ Definition
    to block writes on the destination cluster.
    For more information, see the HTTP API :ref:`start <c2c-api-start>` command.
 
+   If you already blocked writes on a replica set, subsequent calls to ``setUserWriteBlockMode`` 
+   with ``global: true`` fail with an ``IllegalOperation`` error if the 
+   specified ``reason`` does not match the reason you provided when you initially enabled 
+   write-blocking. The error message includes both the current reason and 
+   the reason specified in the failed command. Sharded clusters do not enforce this constraint.
+
    .. note::
 
       Users and applications with the
@@ -52,7 +58,8 @@ The command has the following syntax:
    db.adminCommand(
       {
         setUserWriteBlockMode: 1,
-        global: <boolean>
+        global: <boolean>,
+        reason: <string>  // Optional
       }
    )
 
@@ -63,6 +70,7 @@ The command takes the following fields:
 
 .. list-table::
    :header-rows: 1
+   :widths: 25 15 80
 
    * - Field
      - Type
@@ -76,6 +84,15 @@ The command takes the following fields:
      - boolean
      - Blocks writes on a cluster when set to ``true``.  To enable writes on
        a cluster, set ``global: false``.
+       
+   * - ``reason``
+     - string
+     - Optional. Specifies the reason for blocking writes. 
+       Accepts the following values:
+       
+       - ``"Unspecified"`` - Default when you do not provide any reason. 
+       - ``"ClusterToClusterMigrationInProgress"`` - Indicates blocked writes due to ongoing cluster-to-cluster migration.
+       - ``"DiskUseThresholdExceeded"`` - Indicates blocked writes because disk usage has exceeded a threshold.
      
 Required Access
 ---------------
