@@ -9,9 +9,6 @@ method.
    successfully. To determine the current status of the search indexes,
    call the ``list_search_indexes()`` method on your collection.
 
-Example 
-~~~~~~~
-
 .. procedure:: 
    :style: normal 
 

@@ -1,3 +1,5 @@
+To create an {+fts+} index using {+mongosh+}:
+
 .. procedure::
    :style: normal
 

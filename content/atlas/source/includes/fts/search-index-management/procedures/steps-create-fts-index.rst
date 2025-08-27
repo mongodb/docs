@@ -64,7 +64,7 @@
 
       .. note::
 
-         You can't save the :ref:`default index definition <default-index-definition>` as a draft.
+         You can't save the :ref:`default index definition <fts-manage-indexes>` as a draft.
          If you use the :guilabel:`Visual Editor` and your index definition 
          contains :ref:`static mappings <static-dynamic-mappings>`, you can 
          save an index definition as a draft. 

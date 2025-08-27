@@ -31,7 +31,7 @@
            - Status of the index. To learn more, see
              :ref:`search-index-statuses`. 
 
-         * - Actions
+         * - :guilabel:`Actions`
            - Actions you can perform on the index when you hover over
              the index. You can take the following actions: 
 

@@ -1,8 +1,17 @@
-.. _fts-about-indexing:
+.. _fts-manage-indexes:
+.. _ref-create-index: 
+.. _ref-edit-index: 
+.. _ref-view-index:
+.. _ref-delete-index:
+.. _ref-index-limitations:
+.. _ref-create-index-programmatically: 
+.. _ref-view-index-programmatically: 
+.. _ref-edit-index-programmatically: 
+.. _ref-delete-index-programmatically: 
 
-====================
-Manage |fts| Indexes
-====================
+===========================
+Manage {+fts+} Indexes
+===========================
 
 .. default-domain:: mongodb
 
@@ -19,432 +28,128 @@ Manage |fts| Indexes
    :name: programming_language
    :values: c, cpp, csharp, java, javascript/typescript, python, shell
 
-.. include:: /includes/fts/facts/fts-index-description.rst
+.. composable-tutorial::
+   :options:  deployment-type, interface, language
+   :defaults: atlas, driver, nodejs
 
-.. _ref-index-limitations:
+   .. selected-content:: 
+      :selections: atlas, atlas-ui, None
 
-Considerations
---------------
+      .. include:: /includes/manage-indexes-page-introduction.rst
 
-When creating and managing |fts| indexes, consider the following:
+      .. include:: /includes/manage-indexes-supported-clients.rst
 
-Index Consistency and Rebuilding
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If you make changes to the collection for which you defined |fts| 
-indexes, the latest data might not be available immediately for 
-queries. However, ``mongot`` monitors the change streams, which allows 
-it to update stored copies of data, and |fts| indexes are eventually 
-consistent.
-
-When you change an index definition, ``mongot`` automatically rebuilds the new
-index in the background, while continuing to serve queries with the old index to
-make sure there is no downtime. It is recommended that you wait for the index
-build to complete before running any queries using new index definitions. Using
-the new index during its build process can lead to unexpected results or
-incomplete data. This happens when you deploy ``mongot`` and ``mongod``
-processes on the same node and when you deploy the processes on different nodes.
-|service| also rebuilds indexes when you enable or disable :ref:`Encryption at
-Rest <security-kms-encryption>`.
-
-If you change the topology of your search deployment, |fts| provisions
-and builds indexes on any new nodes before removing old nodes, to ensure
-there is no query downtime. 
-
-For deployments where both the ``mongod`` and ``mongot`` processes run on
-the same node, if |fts| introduces changes that require rebuilding
-your indexes (such as some |fts| features that require an :ref:`index
-update <fts-index-rebuild>`), |service| automatically deploys additional
-nodes for free to build the indexes, while the old nodes continue to
-serve your queries.
-
-.. include:: /includes/fact-shardCollection-fts-indexes.rst
-
-.. include:: /includes/fts/facts/fact-fts-out-agg.rst
-
-Dedicated Search Nodes
-~~~~~~~~~~~~~~~~~~~~~~
-
-You can deploy :ref:`dedicated Search Nodes <what-is-search-node>` to
-improve performance, scalability, and resource isolation.
-If you've deployed Search Nodes, consider the following:
-
-- Adding and adjusting :manual:`shards </sharding/>` triggers a
-  rebuild of the |fts| index. During this index rebuild, the index
-  might not have the most current data. Therefore, queries against data
-  on those shards might fail or return incorrect results.
-
-- If you :manual:`reshard </core/sharding-reshard-a-collection/>` a
-  collection with |fts| indexes, |fts| indexes on the collection
-  become unavailable when the resharding operation completes. You 
-  *must* manually rebuild the |fts| indexes once the operation
-  completes.
-
-- If you issue the command to :manual:`change the primary shard 
-  </reference/command/movePrimary/>` of a database, the |fts| indexes
-  for any unsharded collection under this database become unavailable
-  once the operation completes. You *must* delete and create new |fts|
-  indexes once the :dbcommand:`movePrimary` operation is complete.
-
-To learn more about |fts| node architecture, see :ref:`fts-deployment-options`. 
-
-Disk, Memory, and Resource Usage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Although the data stored on |fts| isn't an identical copy of data from
-the collection on your |service| {+cluster+}, |fts| indexes still take
-some disk space and memory. If you enable the ``store`` option for
-fields that contain :ref:`string <bson-data-types-string>` values or if
-you configure the :ref:`stored source fields <fts-stored-source-definition>`
-in your index, |fts| stores an identical copy of the specified fields on
-disk, which can take disk space.
-
-.. note::
-   
-   .. include:: /includes/fts/facts/fact-fts-document-size.rst
-
-Concurrent Requests 
-~~~~~~~~~~~~~~~~~~~
-
-If there are too many concurrent index creation or other index management
-operation requests, |fts| returns the following error:  
-
-.. code-block:: shell 
-
-   Too many concurrent requests. Please try again later.
-   
-We recommend trying again after some time.
-
-Supported Clients
------------------
-
-You can create and manage |fts| indexes from the {+atlas-ui+}, |fts|
-API, {+atlas-cli+}, {+mongosh+}, |compass|, and :driver:`MongoDB drivers </>`. 
-
-----------
-
-.. |arrow| unicode:: U+27A4
-
-|arrow| Use the **Select your language** drop-down menu in the page to set the 
-client for the procedures in this page.
-
-----------
-
-.. tabs-selector:: drivers
-
-{+atlas-cli+} 
-~~~~~~~~~~~~~
-
-To create and manage |fts| indexes using the {+atlas-cli+}, your
-|service| {+cluster+} must run MongoDB 7.0+.
-
-``mongosh``
-~~~~~~~~~~~
-
-To create and manage |fts| indexes using {+mongosh+}, 
-your |service| {+cluster+} must run MongoDB 7.0+.
-
-|compass|
-~~~~~~~~~
-
-To create and manage |fts| indexes using {+Compass+}, 
-your |service| {+cluster+} must run MongoDB 7.0+.
-
-.. _fts-index-supported-drivers:
-
-MongoDB Drivers 
-~~~~~~~~~~~~~~~
-
-To create and manage |fts| indexes programmatically on any
-{+cluster+} tier, you can use any of the following
-:driver:`MongoDB Drivers </>`: 
-
-.. include:: /includes/fts/list-tables/list-table-index-supported-drivers-fts.rst
-
-.. _fts-required-access: 
-
-Required Access
----------------
-
-You can assign Project User Roles or Database User Roles to provide access to the user privileges
-necessary to perform {+fts+} index actions described in this guide. 
-
-.. include:: /includes/fts/facts/fact-fts-required-roles.rst
-
-The following :ref:`MongoDB Database Roles <mongodb-users-roles-and-privileges>` support the given
-:manual:`{+fts+} Index Privilege Actions </reference/privilege-actions/#atlas-search-index-actions>`:   
-
-.. list-table::
-   :header-rows: 1
-   :stub-columns: 1
-   :widths: 30 30 40
-
-   * - Action Description 
-     - Database Roles
-     - {+fts+} Index Privilege Action
-
-   * - View |fts| index
-     - :atlasrole:`read` or :atlasrole:`readAnyDatabase`
-     - :manual:`listSearchIndexes </reference/privilege-actions/#mongodb-authaction-listSearchIndexes>`
-   * - Create |fts| index 
-     - :atlasrole:`readWrite` or :atlasrole:`readWriteAnyDatabase`
-     - :manual:`createSearchIndexes </reference/privilege-actions/#mongodb-authaction-createSearchIndexes>`
-   * - Edit |fts| index
-     - :atlasrole:`readWrite` or :atlasrole:`readWriteAnyDatabase`
-     - :manual:`updateSearchIndex </reference/privilege-actions/#mongodb-authaction-updateSearchIndex>`
-   * - Delete |fts| index 
-     - :atlasrole:`readWrite` or :atlasrole:`readWriteAnyDatabase`
-     - :manual:`dropSearchIndex </reference/privilege-actions/#mongodb-authaction-dropSearchIndex>`
-
-To learn more, see :ref:`atlas-user-privileges` or :ref:`atlas-specific-privileges`.
-
-.. _ref-create-index:
-.. _ref-create-index-programmatically:
-.. _default-index-definition:
-.. _fts-create-an-index:
-
-Create an {+fts+} Index
-----------------------------
-
-The following tutorial describes how to create an |fts| index using your
-selected method.  
-
-To see an example tutorial that creates an index for the ``sample_mflix.movies`` collection, see :ref:`fts-tutorial-ref`. 
-For a conceptual overview of how to define an index to meet your query preferences, see :ref:`fts-define-index`. 
-
-You can also use |fts| with local |service| deployments that you create 
-with the {+atlas-cli+}. To learn more, see :atlascli:`Create a Local Atlas Deployment </atlas-cli-deploy-local>`.
-
-.. tabs-drivers::
-
-   .. tab::
-      :tabid: atlas-cli
-
-      To create an |fts| index using the {+atlas-cli+}:
-
-      Cloud Deployment
-      ~~~~~~~~~~~~~~~~
-
-      .. include:: /includes/extracts/atlas-clusters-search-indexes-create.rst
-
-      Local Deployment 
-      ~~~~~~~~~~~~~~~~
-
-      .. include:: /includes/extracts/atlas-deployments-search-indexes-create.rst
-
-      To learn more about how to use the {+atlas-cli+} to create a local 
-      |service| deployment, see :atlascli:`Create a Local Atlas Deployment </atlas-cli-deploy-local>`.
-
-      .. see:: Related Links
-
-         - :atlascli:`Install the {+atlas-cli+} </install-atlas-cli/>`
-         - :atlascli:`Connect to the {+atlas-cli+} </connect-atlas-cli/>`
-
-      Example
-      ~~~~~~~
-
-      The following example shows you how to use the
-      ``atlas clusters`` or ``atlas deployments`` command to create an
-      |fts| index in non-interactive mode with a configuration file.
-
-      .. procedure::
-         :style: normal
-
-         .. step:: Create an ``indexDef.json`` configuration file.
-
-            .. code-block:: json
-
-               {
-                 "collectionName": "movies",
-                 "database": "sample_mflix",
-                 "definition": {
-                   "mappings": {
-                    "dynamic": true
-                   },
-                 },
-                 "name": "searchIndex"
-               }
-
-         .. step:: Create an |fts| index.
-
-            a. Run one of the following commands.
-
-               **Cloud Deployment:**
-
-               .. code-block:: sh
-
-                  atlas clusters search indexes create --file indexDef.json
-
-               **Local Deployment:**
-
-               .. code-block:: sh
-
-                  atlas deployments search indexes create --file indexDef.json
-
-            #. Specify the deployment and press :kbd:`Enter`.
-
-   .. tab::
-      :tabid: atlas-api
-
-      To create an |fts| index using the |fts| |api|:
+      .. include:: /includes/manage-indexes-required-access.rst
       
-      .. procedure::
-         :style: normal
-         
-         .. step:: Send a ``POST`` request.
-            
-            Send a ``POST`` request to the ``search/indexes`` 
-            :oas-atlas-op:`endpoint </createAtlasSearchIndex>`.
+      Create an {+fts+} Index
+      -----------------------------
 
-            .. code-block:: sh
-
-               curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-               --header "Accept: application/json" \
-               --header "Content-Type: application/json" \
-               --include \
-               --request POST "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/search/indexes" \
-               --data '
-                 {
-                   "collectionName": "<collection-name>",
-                   "database": "<database-name>",
-                   "name": "<index-name>",
-                   "type": "search",
-                   "definition": 
-                   {
-                     "analyzer": "<analyzer-name>",
-                     "searchAnalyzer": "<analyzer-name>",
-                     "mappings": {
-                       "dynamic": <boolean>,
-                       "fields": { <field-definition> }
-                     },
-                     "numPartitions": <integer>,
-                     "analyzers": [ {
-                         <custom-analyzer-definition>
-                       }
-                     ],
-                     "storedSource": <boolean> | {
-                       <stored-source-definition>
-                     },
-                     "synonyms": [
-                       {
-                         <synonym-mapping-definition>
-                       }
-                     ]
-                   }
-                 }'
-            
-            To learn more about the syntax and parameters for this 
-            endpoint, see :oas-atlas-op:`Create One 
-            </createAtlasSearchIndex>`.
-
-         .. step:: Review the response.
-
-            .. note:: 
-
-               |service| doesn't create the index if the collection 
-               doesn't exist, but it still returns a ``200`` status.
-
-   .. tab::
-      :tabid: atlas-ui
-
-      To create an |fts| index using the {+atlas-ui+}:
+      To create an {+fts+} index using the {+atlas-ui+}:
 
       .. |database-name| replace:: name of the database
       .. |collection-name| replace:: name of the collection
       .. |index-name| replace:: ``default``
-      .. |search-type| replace:: |fts|
+      .. |search-type| replace:: {+fts+}
 
       .. include:: /includes/fts/search-index-management/procedures/steps-create-fts-index.rst
 
-   .. tab::
-      :tabid: shell
+      View {+fts+} Indexes
+      -------------------------
 
-      To create an |fts| index using {+mongosh+}:
+      To view the {+atlas-ui+} :guilabel:`{+fts+}` page:  
 
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-shell.rst
-   
-   .. tab::
-      :tabid: compass
+      .. include:: /includes/avs/index-examples/steps-avs-view-index-atlas-ui.rst
+      
+      To learn more about the {+fts+} index details you can view in the
+      {+atlas-ui+}, see :ref:`search-index-details`. 
 
-      To create an |fts| index using |compass|:
+      .. _ref-resume-index:
 
-      .. |database| replace:: name of the database
-      .. |collection| replace:: name of the collection
-      .. |index-name| replace:: ``default``
+      Resume or Delete an {+fts+} Index Draft
+      --------------------------------------------
 
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-tutorial-create-index-compass.rst
+      To resume or delete an {+fts+} index definition that you saved as
+      a draft in the {+atlas-ui+}:
 
-   .. tab::
-      :tabid: nodejs
+      .. include:: /includes/fts/facts/fact-index-draft-pending.rst
 
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-node.rst
+      .. include:: /includes/fts/search-index-management/procedures/steps-resume-fts-index.rst
 
-   .. tab::
-      :tabid: csharp
+      .. _fts-index-rebuild:
 
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-csharp.rst
+      Update and Rebuild an Existing {+fts+} Index
+      -------------------------------------------------
 
-   .. tab::
-      :tabid: java-sync
+      Some {+fts+} features require that you update the index. To update
+      your index, you can take one of the following actions: 
 
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-java.rst
+      - Edit the index definition using the steps in
+        :ref:`ref-edit-index`.
+      - Do the following steps to opt-in for an index update from the
+        {+atlas-ui+}:
 
-   .. tab::
-      :tabid: python
+      .. important:: 
+         
+         The process for updating the {+fts+} index requires time and resources.
+         For the index update to complete successfully, allocate free disk space
+         equal to 125% of your current index's disk space.
+      
+      .. include:: /includes/fts/search-index-management/procedures/steps-update-fts-index-atlas-ui.rst
 
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-python.rst
+      Edit an {+fts+} Index
+      --------------------------
 
-   .. tab::
-      :tabid: c
+      You can edit an {+fts+} index to change the :ref:`index definition
+      <ref-index-definitions>` of an existing {+fts+} index. You cannot
+      rename an index; if you need to change an index's name, you must
+      create a new index and delete the old one.
 
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-c.rst
+      To edit an {+fts+} index using the {+atlas-ui+}:
 
-   .. tab::
-      :tabid: cpp
+      .. include:: /includes/fts/search-index-management/procedures/steps-edit-fts-index.rst
 
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-cxx.rst
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
 
-When you create the |fts| index, the |fts| page displays information
-about |fts| indexes. The :guilabel:`Status` column shows the current
-state of the index on the primary node of the cluster. To learn more,
-see :ref:`search-index-statuses`. 
+      Delete an {+fts+} Index
+      ----------------------------
 
-.. include:: /includes/fact-shardCollection-fts-indexes.rst
+      To delete an {+fts+} index using the {+atlas-ui+}:
 
-.. _ref-view-index:
-.. _ref-view-index-programmatically:
+      .. include:: /includes/fts/search-index-management/procedures/steps-delete-fts-index.rst
 
-View {+fts+} Indexes
--------------------------
+      .. _search-index-statuses:
+      .. _search-index-details:       
 
-----------
+      View Index Details and Statuses in the {+atlas-ui+}
+      ---------------------------------------------------
 
-.. |arrow| unicode:: U+27A4
+      .. include:: /includes/manage-indexes-view-indexes-and-status-ui.rst
 
-|arrow| Use the **Select your language** drop-down menu to set the 
-language of the procedure in this section.
+      Considerations for {+fts+} Indexes
+      ---------------------------------------
+      
+      .. include:: /includes/manage-indexes-considerations.rst
 
-----------
+   .. selected-content:: 
+      :selections: atlas, atlas-admin-api, None
+       
+      .. include:: /includes/manage-indexes-page-introduction.rst
 
-.. tabs-drivers::
+      .. include:: /includes/manage-indexes-supported-clients.rst
 
-   .. tab::
-      :tabid: atlas-cli
+      .. include:: /includes/manage-indexes-required-access.rst
 
-      Retrieve |fts| Indexes for a Cloud Deployment 
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      Create an {+fts+} Index
+      -----------------------------
 
-      .. include:: /includes/extracts/atlas-clusters-search-indexes-list-and-describe.rst
+      To create an {+fts+} index using the {+atlas-admin-api+}: 
 
-      Retrieve |fts| Indexes for a Local Deployment 
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      .. include:: /includes/fts/search-index-management/procedures/steps-create-fts-index-atlas-api.rst
 
-      .. include:: /includes/extracts/atlas-deployments-search-indexes-list-and-describe.rst
+      View {+fts+} Indexes
+      -------------------------
 
-   .. tab::
-      :tabid: atlas-api
-
-      To retrieve an |fts| index using the |fts| |api|:
+      To retrieve an {+fts+} index using the {+atlas-admin-api+}:
       
       .. procedure::
          :style: normal
@@ -452,7 +157,7 @@ language of the procedure in this section.
          .. step:: Send a ``GET`` request.
       
             Send a ``GET`` request with either the unique ID or name of 
-            the |fts| index that you wish to retrieve to the ``search/indexes/`` endpoint.
+            the {+fts+} index that you wish to retrieve to the ``search/indexes/`` endpoint.
 
             .. code-block:: sh
 
@@ -467,7 +172,7 @@ language of the procedure in this section.
 
          .. step:: Review the response.
 
-      To retrieve all |fts| indexes for a collection:
+      To retrieve all {+fts+} indexes for a collection:
       
       .. procedure::
          :style: normal
@@ -486,7 +191,7 @@ language of the procedure in this section.
 
          .. step:: Review the response.
 
-      To retrieve all |fts| indexes for a cluster:
+      To retrieve all {+fts+} indexes for a cluster:
       
       .. procedure::
          :style: normal
@@ -506,132 +211,10 @@ language of the procedure in this section.
 
          .. step:: Review the response.
 
-   .. tab::
-      :tabid: atlas-ui
+      Edit an {+fts+} Index
+      --------------------------
 
-      To view the {+atlas-ui+} :guilabel:`{+fts+}` page:  
-
-      .. include:: /includes/avs/index-examples/steps-avs-view-index-atlas-ui.rst
-
-      The |fts| page contains a table that describes each of the existing |fts| indexes in your project
-      in the following columns. 
-
-      .. include:: /includes/fts/list-tables/search-indexes.rst
-
-      By default, |service| sorts the indexes by first the database name and then the collection
-      name. To sort by multiple columns, press :kbd:`Shift` and click the column names in the order in 
-      which you want to multi-sort the list of indexes.
-      
-      From this table, you can go to the following sections for more details about each index: 
-
-      .. _search-index-node-status:
-
-      Index Overview 
-      ~~~~~~~~~~~~~~
-      
-      To go to the :guilabel:`Index Overview` page from the :guilabel:`{+fts+}` page, 
-      click the name of the index that you want to view in the :guilabel:`Index Name` column. 
-      For each index, the :guilabel:`Index Overview` page shows the 
-      :manual:`namespace </reference/limits/#std-label-faq-dev-namespace>` for the index and the 
-      following configurations specified in the index definition:
-
-      .. include:: /includes/fts/list-tables/index-overview.rst
-
-   .. tab::
-      :tabid: shell
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-shell.rst
-
-   .. tab::
-      :tabid: compass
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-compass.rst
-
-   .. tab::
-      :tabid: nodejs
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-node.rst
-
-   .. tab::
-      :tabid: csharp
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-csharp.rst
-
-   .. tab::
-      :tabid: java-sync
-
-      To retrieve |fts| indexes on a collection using the :driver:`Java
-      Driver </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`,
-      use the ``listSearchIndexes()`` method. You must have
-      :driver:`Java Driver </java/sync/current/>` v4.11.0 or higher.
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-java.txt
-
-      .. seealso:: 
-      
-         :driver:`Atlas Search Indexes </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`
-   
-   .. tab::
-      :tabid: cpp
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-cxx.rst
-         
-   .. tab::
-      :tabid: c
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-c.rst
-
-   .. tab::
-      :tabid: python
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-python.rst
-
-.. _ref-resume-index:
-
-Resume or Delete an Atlas Search Index Draft
---------------------------------------------
-
-To resume or delete your index definition that you saved as a :ref:`draft <ref-create-index>` in the {+atlas-ui+}:
-
-.. include:: /includes/fts/facts/fact-index-draft-pending.rst
-
-.. include:: /includes/fts/search-index-management/procedures/steps-resume-fts-index.rst
-
-.. _ref-edit-index:
-.. _ref-edit-index-programmatically:
-
-Edit an Atlas Search Index
---------------------------
-
-You can change the :ref:`index definition <ref-index-definitions>`
-of an existing |fts| index. You cannot rename an index; if you need to
-change an index's name, you must create a new index and delete the old
-one.
-
-You can edit an |fts| index in the {+atlas-ui+}, or programmatically by
-using {+mongosh+}, the {+atlas-cli+}, the |api|, or a supported
-:driver:`MongoDB Driver </>` in your preferred language. 
-
-----------
-
-.. |arrow| unicode:: U+27A4
-
-|arrow| Use the **Select your language** drop-down menu to set the 
-language of the procedure in this section.
-
-----------
-
-.. tabs-drivers::
-
-   .. tab::
-      :tabid: atlas-cli
-
-      .. include:: /includes/extracts/atlas-clusters-search-indexes-update.rst
-   
-   .. tab::
-      :tabid: atlas-api
-
-      To edit an |fts| index through the |api|:
+      To edit an {+fts+} index using the {+atlas-admin-api+}: 
       
       .. procedure::
          :style: normal
@@ -639,7 +222,7 @@ language of the procedure in this section.
          .. step:: Send a ``PATCH`` request.
             
             Send a ``PATCH`` request with either the unique ID or name 
-            of the |fts| index that you wish to modify to the 
+            of the {+fts+} index that you wish to modify to the 
             ``search/indexes/`` endpoint.
 
             .. code-block:: sh
@@ -688,164 +271,21 @@ language of the procedure in this section.
             :oas-atlas-op:`Update One By ID </updateAtlasSearchIndex>`.
 
          .. step:: Review the response.
-   .. tab::
-      :tabid: atlas-ui
 
-      .. include:: /includes/fts/search-index-management/procedures/steps-edit-fts-index.rst
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
 
-   .. tab::
-      :tabid: compass
+      Delete an {+fts+} Index
+      ----------------------------
 
-      To edit an |fts| index using |compass|:
+      To delete an {+fts+} index using the {+atlas-admin-api+}: 
 
-      .. |database| replace:: name of the database
-      .. |collection| replace:: name of the collection
-      .. |index-name| replace:: ``default``
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-compass.rst
-
-   .. tab::
-      :tabid: shell
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-shell.rst
-
-   .. tab::
-      :tabid: nodejs
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-node.rst
-   
-   .. tab::
-      :tabid: csharp
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-csharp.rst
-
-   .. tab::
-      :tabid: java-sync
-
-      To edit an |fts| index on a collection using the :driver:`Java
-      Driver </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`,
-      construct a document that modifies the search index settings, and
-      then pass the document to the ``updateSearchIndex()`` method. You
-      must have :driver:`Java Driver </java/sync/current/>` v4.11.0 or
-      higher. 
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-java.txt
-
-      .. seealso:: 
-      
-         :driver:`Atlas Search Indexes </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`
-
-   .. tab::
-      :tabid: cpp
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-cpp.rst
-      
-   .. tab::
-      :tabid: c
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-c.rst
-
-   .. tab::
-      :tabid: python
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-python.rst
-
-.. note::
-
-   While your updated index is building, different nodes may update at
-   varying speeds. During this period, you may experience mixed query
-   results, reflecting both the new index definition and the previous
-   index definition. You can view the index that is serving queries
-   in the :ref:`index status details <queryable-index>` page.
-
-.. _sort-index-rebuild:
-.. _fts-index-rebuild:
-
-Update an Existing Index  
-------------------------
-
-Some |fts| features require that you update the index. To update your index,
-you can take one of the following actions: 
-
-- Edit the index definition using the steps in :ref:`ref-edit-index`.
-- Do the following steps to opt-in for an index update from the {+atlas-ui+}:
-
-.. important:: 
-   
-   The process for updating the |fts| index requires time and resources.
-   For the index update to complete successfully, allocate free disk space
-   equal to 125% of your current index's disk space.
-
-.. _fts-index-rebuild-procedure:
-
-.. procedure:: 
-   :style: normal
-
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-
-   .. include:: /includes/nav/steps-atlas-search.rst
-
-   .. step:: Click the name of the index that you want to update. 
-
-       .. tip::
-       
-          If an index requires an update to enable a new feature, the
-          {+atlas-ui+} shows a warning icon next to the index name. 
-
-   .. step:: Update your index to use the new feature. 
-      
-      a. In the :guilabel:`Index Overview` page, click :guilabel:`Update` in the banner.
-      #. Click :guilabel:`Update Index` in the confirmation window. 
-
-         While your index is updating, you can continue to query your
-         collection using your previous index.
-
-.. _ref-delete-index:
-.. _ref-delete-index-programmatically:
-
-Delete an Atlas Search Index
-----------------------------
-
-You can delete an |fts| index in the {+atlas-ui+}, or programmatically by
-using {+mongosh+}, the {+atlas-cli+}, the |api|, or a supported
-:driver:`MongoDB Driver </>` in your preferred language. 
-
-----------
-
-.. |arrow| unicode:: U+27A4
-
-|arrow| Use the **Select your language** drop-down menu to set the 
-language of the procedure in this section.
-
-----------
-
-.. tabs-drivers::
-
-   .. tab::
-      :tabid: atlas-cli
-
-      Delete an |fts| Index for a Cloud Deployment 
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      .. include:: /includes/extracts/atlas-clusters-search-indexes-delete.rst
-
-      Delete an |fts| Index for a Local Deployment 
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      .. include:: /includes/extracts/atlas-deployments-search-indexes-delete.rst
-   
-   .. tab::
-      :tabid: atlas-api
-
-      To delete an |fts| index through the |api|:
-      
       .. procedure::
          :style: normal
          
          .. step:: Send a ``DELETE`` request.
       
             Send a ``DELETE`` request with either the unique ID or name 
-            of the |fts| index that you wish to delete to the ``search/indexes/`` endpoint.
+            of the {+fts+} index that you wish to delete to the ``search/indexes/`` endpoint.
 
             .. code-block:: sh
 
@@ -860,263 +300,837 @@ language of the procedure in this section.
 
          .. step:: Review the response.
 
-   .. tab::
-      :tabid: atlas-ui
-
-      .. include:: /includes/fts/search-index-management/procedures/steps-delete-fts-index.rst
+      Considerations for {+fts+} Indexes
+      ---------------------------------------
       
-   .. tab::
-      :tabid: shell
+      .. include:: /includes/manage-indexes-considerations.rst
+
+   .. selected-content:: 
+      :selections: atlas, atlas-cli, None
+
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+
+      .. include:: /includes/extracts/atlas-clusters-search-indexes-create.rst
+
+      Example
+      ~~~~~~~
+
+      The following example shows you how to use the ``atlas clusters``
+      command to create an {+fts+} index in non-interactive mode with a
+      configuration file.
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create an ``indexDef.json`` configuration file.
+
+            .. code-block:: json
+
+               {
+                 "collectionName": "movies",
+                 "database": "sample_mflix",
+                 "definition": {
+                   "mappings": {
+                    "dynamic": true
+                   },
+                 },
+                 "name": "searchIndex"
+               }
+
+         .. step:: Create an {+fts+} index.
+
+            Specify the cluster name and run the following command:
+
+            .. code-block:: sh
+
+               atlas clusters search indexes create --file indexDef.json --clusterName <clusterName>
+
+      View {+fts+} Indexes
+      -------------------------
+
+      .. include:: /includes/extracts/atlas-clusters-search-indexes-list-and-describe.rst
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      .. include:: /includes/extracts/atlas-clusters-search-indexes-update.rst
+
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
+
+      .. include:: /includes/extracts/atlas-clusters-search-indexes-delete.rst
+
+      Considerations for {+fts+} Indexes
+      ---------------------------------------
+      
+      .. include:: /includes/manage-indexes-considerations.rst
+
+
+   .. selected-content:: 
+      :selections: local, atlas-cli, None
+
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+
+      .. include:: /includes/extracts/atlas-deployments-search-indexes-create.rst
+
+      To learn more about how to use the {+atlas-cli+} to create a local 
+      |service| deployment, see :atlascli:`Create a Local Atlas Deployment </atlas-cli-deploy-local>`.
+
+      .. see:: Related Links
+
+         - :atlascli:`Install the {+atlas-cli+} </install-atlas-cli/>`
+         - :atlascli:`Connect to the {+atlas-cli+} </connect-atlas-cli/>`
+
+      Example
+      ~~~~~~~
+
+      The following example shows you how to use the ``atlas deployments``
+      command to create an {+fts+} index in non-interactive mode with a
+      configuration file.
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create an ``indexDef.json`` configuration file.
+
+            .. code-block:: json
+
+               {
+                 "collectionName": "movies",
+                 "database": "sample_mflix",
+                 "definition": {
+                   "mappings": {
+                    "dynamic": true
+                   },
+                 },
+                 "name": "searchIndex"
+               }
+
+         .. step:: Create an {+fts+} index.
+
+            Run the following command:
+
+            .. code-block:: sh
+
+               atlas deployments search indexes create --file indexDef.json
+
+      View {+fts+} Indexes
+      -------------------------
+
+      .. include:: /includes/extracts/atlas-deployments-search-indexes-list-and-describe.rst
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      There is no {+atlas-cli+} command to edit an {+fts+} index. To
+      edit an {+fts+} index, you can use a different interface, such as
+      {+mongosh+}, |compass|, or a supported driver.
+
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
+
+      .. include:: /includes/extracts/atlas-deployments-search-indexes-delete.rst
+
+   .. selected-content::
+      :selections: atlas, mongosh, None
+
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-shell.rst
+
+      View {+fts+} Indexes
+      -------------------------
+      
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-shell.rst
+
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-shell.rst
+
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
 
       .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-shell.rst
 
-   .. tab::
-      :tabid: compass
+      Considerations for {+fts+} Indexes
+      ---------------------------------------
+      
+      .. include:: /includes/manage-indexes-considerations.rst
 
-      To delete an |fts| index using |compass|:
+   .. selected-content::
+      :selections: local, mongosh, None
+
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+      
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-shell.rst
+
+      View {+fts+} Indexes
+      -------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-shell.rst
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-shell.rst
+      
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-shell.rst
+
+   .. selected-content::
+      :selections: atlas, compass, None
 
       .. |database| replace:: name of the database
       .. |collection| replace:: name of the collection
       .. |index-name| replace:: ``default``
 
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+
+      To create an {+fts+} index using |compass|:
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-tutorial-create-index-compass.rst
+
+      View {+fts+} Indexes
+      -------------------------
+
+      To vew your {+fts+} indexes on a collection using |compass|:
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-compass.rst
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      To edit an {+fts+} index using |compass|:
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-compass.rst
+
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
+
+      To delete an {+fts+} index using |compass|:
+
       .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-compass.rst
 
-   .. tab::
-      :tabid: nodejs
+      Considerations for {+fts+} Indexes
+      ---------------------------------------
+      
+      .. include:: /includes/manage-indexes-considerations.rst
+
+   .. selected-content::
+      :selections: local, compass, None
+
+      .. |database| replace:: name of the database
+      .. |collection| replace:: name of the collection
+      .. |index-name| replace:: ``default``
+
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+
+      To create an {+fts+} index using |compass|:
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-tutorial-create-index-compass.rst
+
+      View {+fts+} Indexes
+      -------------------------
+
+      To vew your {+fts+} indexes on a collection using |compass|:
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-compass.rst
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      To edit an {+fts+} index using |compass|:
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-compass.rst
+
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
+
+      To delete an {+fts+} index using |compass|:
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-compass.rst
+
+   .. selected-content::
+      :selections: atlas, driver, csharp
+
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-csharp.rst
+
+      View {+fts+} Indexes
+      -------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-csharp.rst
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-csharp.rst
+
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
+      
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-csharp.rst
+
+      Considerations for {+fts+} Indexes
+      ---------------------------------------
+      
+      .. include:: /includes/manage-indexes-considerations.rst
+
+   .. selected-content::
+      :selections: local, driver, csharp
+
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-csharp.rst
+
+      View {+fts+} Indexes
+      -------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-csharp.rst
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-csharp.rst
+
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
+      
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-csharp.rst
+
+   .. selected-content::
+      :selections: atlas, driver, c
+      
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-c.rst
+
+      View {+fts+} Indexes
+      -------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-c.rst
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-c.rst
+
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-c.rst
+
+      Considerations for {+fts+} Indexes
+      ---------------------------------------
+      
+      .. include:: /includes/manage-indexes-considerations.rst
+
+   .. selected-content::
+      :selections: local, driver, c
+
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-c.rst
+
+      View {+fts+} Indexes
+      -------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-c.rst
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-c.rst
+
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-c.rst
+
+   .. selected-content::
+      :selections: atlas, driver, cpp
+
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-cxx.rst
+
+      View {+fts+} Indexes
+      -------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-cxx.rst
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-cpp.rst
+
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-cpp.rst
+
+      Considerations for {+fts+} Indexes
+      ---------------------------------------
+      
+      .. include:: /includes/manage-indexes-considerations.rst
+
+   .. selected-content::
+      :selections: local, driver, cpp
+
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-cxx.rst
+
+      View {+fts+} Indexes
+      -------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-cxx.rst
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-cpp.rst
+
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
+      
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-cpp.rst
+
+   .. selected-content::
+      :selections: atlas, driver, nodejs
+
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-node.rst
+
+      View {+fts+} Indexes
+      -------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-node.rst
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-node.rst
+
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
 
       .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-node.rst
 
-   .. tab::
-      :tabid: csharp
+   .. selected-content::
+      :selections: local, driver, nodejs
 
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-csharp.rst
+      .. include:: /includes/manage-indexes-page-introduction.rst
 
-   .. tab::
-      :tabid: java-sync
+      .. include:: /includes/manage-indexes-supported-clients.rst
 
-      To delete an |fts| index on a collection using the :driver:`Java 
-      Driver </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`,
-      use the ``dropSearchIndex()`` method. You must have :driver:`Java
-      Driver </java/sync/current/>` v4.11.0 or higher.
+      .. include:: /includes/manage-indexes-required-access.rst
 
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-java.txt
+      Create an {+fts+} Index
+      -----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-node.rst
+
+      View {+fts+} Indexes
+      -------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-node.rst
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-node.rst
+
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-node.rst
+
+   .. selected-content::
+      :selections: atlas, driver, java-sync
+
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-java.rst
+
+      View {+fts+} Indexes
+      -------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-java.rst
 
       .. seealso:: 
       
          :driver:`Atlas Search Indexes </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`
 
-   .. tab::
-      :tabid: cpp
+      Edit an {+fts+} Index
+      --------------------------
 
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-cpp.rst
-         
-   .. tab::
-      :tabid: c
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-java.rst
 
-      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-c.rst
+      .. seealso:: 
+      
+         :driver:`Atlas Search Indexes </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`
 
-   .. tab::
-      :tabid: python
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-java.rst
+
+      .. seealso:: 
+      
+         :driver:`Atlas Search Indexes </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`
+
+      Considerations for {+fts+} Indexes
+      ---------------------------------------
+      
+      .. include:: /includes/manage-indexes-considerations.rst
+
+   .. selected-content::
+      :selections: local, driver, java-sync
+
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-java.rst
+
+      View {+fts+} Indexes
+      -------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-java.rst
+
+      .. seealso:: 
+      
+         :driver:`Atlas Search Indexes </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-java.rst
+
+      .. seealso:: 
+      
+         :driver:`Atlas Search Indexes </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`
+
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-java.rst
+
+      .. seealso:: 
+      
+         :driver:`Atlas Search Indexes </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`
+
+   .. selected-content::
+      :selections: atlas, driver, python
+
+      .. include:: /includes/manage-indexes-page-introduction.rst
+
+      .. include:: /includes/manage-indexes-supported-clients.rst
+
+      .. include:: /includes/manage-indexes-required-access.rst
+
+      Create an {+fts+} Index
+      -----------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-python.rst
+
+      View {+fts+} Indexes
+      -------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-python.rst
+
+      Edit an {+fts+} Index
+      --------------------------
+
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-python.rst
+
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
+
+      Delete an {+fts+} Index
+      ----------------------------
 
       .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-python.rst
 
-.. _fts-estimate-index-size: 
+      Considerations for {+fts+} Indexes
+      ---------------------------------------
+      
+      .. include:: /includes/manage-indexes-considerations.rst
 
-Estimate the Size of Your Index
--------------------------------
+   .. selected-content::
+      :selections: local, driver, python
 
-The ``mongot`` process stores the indexed fields and the ``_id`` field on disk, so you may 
-want to adjust the size of your index before you build it. 
-You can estimate the size of your full |fts| index by creating an index on a subset of your collection 
-and scaling the size of the sample data index based on the total size of
-your data using the following formula:
+      .. include:: /includes/manage-indexes-page-introduction.rst
 
-.. code-block:: shell 
-   :copyable: false 
+      .. include:: /includes/manage-indexes-supported-clients.rst
 
-   estimated-index-size = ( subset-data-index-size / subset-data-size ) x total-collection-data-size
-        
-For example, if you want to estimate the size of an index for the ``movies`` collection in the ``sample_mflix`` database,
-perform the following steps in {+mongosh+}:
+      .. include:: /includes/manage-indexes-required-access.rst
 
-a. Run :pipeline:`$sample` to create a new collection called ``sample_data`` using a random sample of your data: 
+      Create an {+fts+} Index
+      -----------------------------
 
-   .. io-code-block::
-      :copyable: true 
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-python.rst
 
-      .. input:: 
-         :language: shell 
+      View {+fts+} Indexes
+      -------------------------
 
-         use sample_mflix
-         db.movies.aggregate([
-           { $sample: { size: 10 } },
-           { $out: "sample_data" }
-         ]) 
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-python.rst
 
-      .. output:: /includes/fts/search-index-management/estimate-index-size-sample-data.js 
-         :language: shell 
-         :visible: false
+      Edit an {+fts+} Index
+      --------------------------
 
-#. Create a search index on the collection with the sample data using the 
-   index definition you want to use for your full collection:
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-python.rst
 
-   .. io-code-block::
-      :copyable: true
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
 
-      .. input::  
-         :language: shell
+      Delete an {+fts+} Index
+      ----------------------------
 
-         db.sample_data.createSearchIndex(
-           "sample-index",
-           { mappings: { dynamic: true } } 
-         )
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-python.rst
 
-      .. output::
-         :language: shell
-         :visible: false
+   .. selected-content::
+      :selections: atlas, driver, go
 
-         sample-index
+      .. include:: /includes/manage-indexes-page-introduction.rst
 
-#. Scale the size of the sample data by the total size of the collection. 
-   For example, if the size of the ``sample-index`` index is 44.88, 
-   according to the :ref:`{+atlas-ui+} Index Overview page <ref-view-index>`,
-   then you can use the following commands to calculate your total index size:
+      .. include:: /includes/manage-indexes-supported-clients.rst
 
-   .. io-code-block::
-      :copyable: true
+      .. include:: /includes/manage-indexes-required-access.rst
 
-      .. input::
-         :language: shell
+      Create an {+fts+} Index
+      -----------------------------
 
-         let sampleSize = db.sample_data.totalSize()
-         let totalSize = db.movies.totalSize()
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-go.rst
 
-         let totalIndexSize = ( 44.88 / sampleSize ) * totalSize; totalIndexSize
+      View {+fts+} Indexes
+      -------------------------
 
-      .. output:: 
-         :language: shell
-         :visible: false
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-go.rst
 
-         45864.28
+      Edit an {+fts+} Index
+      --------------------------
 
-.. _search-index-statuses:
-.. _search-index-details:
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-go.rst
 
-Review Index Statuses
----------------------
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
 
-In the {+atlas-ui+}, the :guilabel:`Status` column on the
-:guilabel:`{+fts+}` page shows the current status of the index on the
-primary node of the cluster. The following table describes the possible
-index statuses:  
+      Delete an {+fts+} Index
+      ----------------------------
 
-.. include:: /includes/fts/list-tables/index-statuses.rst
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-go.rst
 
-You can view more status information in the :guilabel:`Status Details` page in one of the following ways:
+   .. selected-content::
+      :selections: local, driver, go
 
-- Click the :guilabel:`View status details` link in the :guilabel:`Status` column.
-- Click the name in the :guilabel:`Index Name` column then select :guilabel:`Status Details`
-  from the menu on the left of the :guilabel:`Index Overview`.
+      .. include:: /includes/manage-indexes-page-introduction.rst
 
-The :guilabel:`Status Details` page contains the following sections:
+      .. include:: /includes/manage-indexes-supported-clients.rst
 
-.. _queryable-index:
+      .. include:: /includes/manage-indexes-required-access.rst
 
-Index Serving Queries
-~~~~~~~~~~~~~~~~~~~~~
+      Create an {+fts+} Index
+      -----------------------------
 
-This section displays the index that is being used to serve queries.
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-create-index-go.rst
 
-If you have only one version of the index with this name for the
-collection, the section contains a link to the :guilabel:`Index
-Overview` where you can see the index definition for the index being
-used. 
+      View {+fts+} Indexes
+      -------------------------
 
-If you had other indexes with the same name on the collection, the
-section shows the latest index definition and also shows prior valid
-versions of the index that you can copy in different tabs. 
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-view-index-go.rst
 
-When you update an index, different nodes apply the updates at different
-speeds. Therefore, some nodes might use the latest version and some might
-use the prior version. |service| displays both versions of the index
-until the changes are applied to all the nodes. 
+      Edit an {+fts+} Index
+      --------------------------
 
-If you attempt to update the index with an invalid index definition, the 
-index build will fail and |service| displays only the previous valid
-index definition. 
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-edit-index-go.rst
 
-.. _node-status-ref:
+      .. include:: /includes/fts/facts/fact-index-update-consistency.rst
 
-Status Details by Node
-~~~~~~~~~~~~~~~~~~~~~~
+      Delete an {+fts+} Index
+      ----------------------------
 
-This section displays the status of the index on each node of the
-{+cluster+}. You can see the following details about the index on each
-node:
-
-.. include:: /includes/fts/list-tables/status-details-by-node.rst
-
-.. _search-node-migration-status:
-
-Migration to Search Nodes
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-This section displays the status of the in-progress migration of your
-|fts| and {+avs+} indexes to search nodes, if applicable. This section displays
-only if you are currently migrating to search nodes.
-
-Click the :guilabel:`View Migration Progress` link in the information
-banner under the :guilabel:`Index Status by Search Node` section for 
-details on the progress of the migration of the indexes to Search Nodes
-(on a per node basis). 
-
-The {+atlas-ui+} displays the following columns for each index on the
-{+cluster+}.  
-
-.. include:: /includes/fts/list-tables/node-migration-progress.rst 
-
-The status column displays one of the following statuses of the index on the Search Nodes: 
-
-.. include:: /includes/fts/list-tables/search-node-migration-status.rst
-
-Your queries can continue to use existing indexes while the new indexes
-are building on the Search Nodes. The migration to the Search Nodes
-completes only when |service| successfully builds all the indexes
-on the Search Nodes. Then, your queries are automatically routed to
-the use the indexes on the Search Nodes.
+      .. include:: /includes/fts/search-index-management/procedures/steps-fts-delete-index-go.rst
 
 Learn More
 ----------
 
-To learn how to define an |fts| index to meet your 
-|fts| query needs, see :ref:`atlas-search-queries`. 
+- To learn how to define an {+fts+} index to meet your 
+  {+fts+} query needs, see :ref:`atlas-search-queries`. 
 
-To learn how to create an |fts| index, see :ref:`Create an {+fts+} index <create-fts-index>`. 
+- To learn how to create an {+fts+} index, see :ref:`Create an {+fts+}
+  index <create-fts-index>`. 
 
-To learn more about the |fts| index configurations described in this tutorial,
-see the following reference pages:
+- To learn more about the {+fts+} index configurations described in this
+  tutorial, see the following reference pages:
 
-- :ref:`analyzers-ref`
-- :ref:`fts-field-mappings`
-- :ref:`fts-stored-source-definition`
-- :ref:`synonyms-ref`
+  - :ref:`analyzers-ref`
+  - :ref:`fts-field-mappings`
+  - :ref:`fts-stored-source-definition`
+  - :ref:`synonyms-ref`
 
-For hands-on experience creating |fts| indexes for the :doc:`sample
-datasets </sample-data>` and running |fts| queries against the indexed
-data, try the :ref:`fts-tutorial-ref`.
+- For hands-on experience creating {+fts+} indexes for the :doc:`sample
+  datasets </sample-data>` and running {+fts+} queries against the indexed
+  data, try the :ref:`fts-tutorial-ref`.
 
-
-Continue Learning 
------------------
+- For a conceptual overview of how to define an index to meet your query
+  preferences, see :ref:`fts-define-index`. 
 
 .. _fts-manage-indexes-video-section:
 
 Learn by Watching
 ~~~~~~~~~~~~~~~~~
 
-Follow along with this video tutorial walk-through that demonstrates 
-how to create |fts| indexes of various complexity.
+You can also watch the following videos to learn more about {+fts+}
+indexes:
 
-*Duration: 15 Minutes*
+.. collapsible::
+   :heading: Video: An Introduction to Indexes for MongoDB Atlas Search
+   :sub_heading: Watch an overview of Atlas Search Indexes. 
+   :expanded: false
 
-.. video:: https://youtu.be/o2ss2LJNZVE 
+   Follow along with this video tutorial walk-through that demonstrates how to create
+   {+fts+} indexes of various complexity.
+
+   *Duration: 15 Minutes*
+
+   .. video:: https://youtu.be/o2ss2LJNZVE 

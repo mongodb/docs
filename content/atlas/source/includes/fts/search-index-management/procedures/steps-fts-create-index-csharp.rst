@@ -5,6 +5,13 @@ To use the :driver:`.NET/C# Driver </csharp/current/>` to create an |fts| index:
 #. Pass the ``BsonDocument`` to the ``CreateOne()`` or
    ``CreateOneAsync()`` method.
 
+.. note::
+
+   The |fts| index management methods run asynchronously. The
+   driver methods can return before confirming that they ran
+   successfully. To determine the current status of the search indexes,
+   call the ``List()`` method on a ``SearchIndexes()`` instance.
+
 .. procedure::
    :style: normal
 

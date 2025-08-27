@@ -1,5 +1,6 @@
-To use the :driver:`C++ Driver </cxx/>` to create an |fts| index, define the search index
-in your application and call the ``create_one()`` method.
+To use the :driver:`C++ Driver </cxx/>` to create an |fts| index, define
+the search index in your application and call the ``create_one()`` or
+``create_many()`` method.
 
 .. note::
 

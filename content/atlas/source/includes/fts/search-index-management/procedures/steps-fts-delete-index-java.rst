@@ -1,3 +1,7 @@
+To delete an |fts| index on a collection using the :driver:`Java 
+Driver </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`,
+use the ``dropSearchIndex()`` method:
+
 .. procedure:: 
    :style: normal 
 
@@ -16,7 +20,7 @@
 
    .. step:: Replace the following values and then save the file.
 
-      - ``<connection-string>`` - Your |service| connection string. To
+      - ``<connection-string>``: Your |service| connection string. To
         learn more, see :ref:`connect-via-driver`.
 
         .. note:: 
@@ -25,11 +29,11 @@
            :manual:`writeConcern </manual/reference/write-concern/>`
            setting.
            
-      - ``<database-name>`` - The name of the database that contains the
-        collection. 
-      - ``<collection-name>`` - The name of the collection for which you
-        want to retrieve the index. 
-      - ``<index-name>`` - the name of the index to delete.
+      - ``<database-name>``: The name of the database that contains the
+        collection.
+      - ``<collection-name>``: The name of the collection for which you
+        want to retrieve the index.
+      - ``<index-name>``: The name of the index to delete.
 
    .. step:: Compile and run the file.
 

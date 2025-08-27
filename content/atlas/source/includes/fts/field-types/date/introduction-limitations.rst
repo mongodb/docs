@@ -15,7 +15,7 @@ You can also use the ``date`` type to index:
   in indexes created after :ref:`July 2023 <fts20230710>` for
   :ref:`sorting <sort-ref>` the |fts| results. For preexisting indexes,
   you must rebuild the index to use date fields in the index for
-  sorting. To learn more, see :ref:`sort-index-rebuild` and
+  sorting. To learn more, see :ref:`fts-index-rebuild` and
   :ref:`sort-ref`.  
 
 .. note:: 

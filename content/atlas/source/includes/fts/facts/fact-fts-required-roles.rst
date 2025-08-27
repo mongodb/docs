@@ -1,11 +1,11 @@
-The following table shows the modes of access that the following :ref:`Project Roles <project-roles>` support for the specified {+fts+} actions:
+The following table shows the modes of access that the following :ref:`Project User Roles <project-roles>` support for the specified {+fts+} actions:
 
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
    :widths: 25 30 10 10 15
 
-   * - Role
+   * - Project User Role
      - {+fts+} Action
      - |service| UI 
      - {+atlas-cli+}

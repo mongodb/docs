@@ -1,13 +1,15 @@
-To use the :driver:`Java Driver </java/sync/current/>` to create an |fts| index,
-construct a document that defines the search index, and then pass the document
-to the ``createSearchIndex()`` or ``createSearchIndexes()`` method.
+To create an {+fts+} index using the :driver:`Java Driver </java/sync/current/>`:
+
+1. Construct a document that defines the search index
+
+#. Pass the document to the ``createSearchIndex()`` or ``createSearchIndexes()`` method.
 
 .. note::
 
    The {+fts+} index management methods run asynchronously. The
    driver methods can return before confirming that they ran
    successfully. To determine the current status of the indexes, call the
-   ``listSearchIndexes()`` method.
+   ``listSearchIndexes()`` method on your collection.
 
 .. procedure:: 
    :style: normal 

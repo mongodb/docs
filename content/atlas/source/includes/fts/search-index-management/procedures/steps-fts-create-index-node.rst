@@ -4,6 +4,13 @@ To create an |fts| index through the :driver:`Node Driver </node/current/>`:
 
 #. Run the ``createSearchIndex`` or ``createSearchIndexes`` helper method.
 
+.. note::
+
+   The {+fts+} index management methods run asynchronously. The
+   driver methods can return before confirming that they ran
+   successfully. To determine the current status of the indexes, call the
+   ``listSearchIndexes()`` method on your collection.
+
 .. procedure::
    :style: normal
 

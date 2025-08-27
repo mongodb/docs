@@ -1,3 +1,6 @@
+To use the :driver:`Java Driver </java/sync/current/>` to retrieve your
+{+fts+} indexes on a collection:
+
 .. procedure:: 
    :style: normal 
 
@@ -16,12 +19,11 @@
 
    .. step:: Replace the following values and then save the file.
 
-      - ``<connection-string>`` - Your |service| connection string. To
+      - ``<connection-string>``: Your |service| connection string. To
         learn more, see :ref:`connect-via-driver`.
-      - ``<database-name>`` - The name of the database that contains the
-        collection. 
-      - ``<collection-name>`` - The name of the collection for which you
-        want to retrieve the index. 
+      - ``<database-name>`` and  ``<collection-name>``: - The name of
+        the database and collection for which you want to retrieve the
+        index.
 
    .. step:: Compile and run the file.
 

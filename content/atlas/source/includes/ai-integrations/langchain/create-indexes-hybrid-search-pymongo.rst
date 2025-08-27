@@ -36,7 +36,7 @@
    .. step:: Create the {+fts+} index.
 
       Run the following code to create a 
-      :ref:`search index <fts-about-indexing>`
+      :ref:`search index <fts-manage-indexes>`
       that indexes the ``plot`` field in the collection.
 
       .. code-block:: python
