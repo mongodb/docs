@@ -18,6 +18,7 @@ The command prompts you to confirm the operation when you run the command withou
 		
 Deleting an Atlas deployment also deletes any backup snapshots for that cluster.
 Deleting a Local deployment also deletes any local data volumes.
+Deleting a deployment will not remove saved connections from MongoDB for VS Code. This must be done manually. To learn more, see https://www.mongodb.com/docs/mongodb-vscode/connect/#remove-a-connection.
 
 To use this command, you must authenticate with a user account or an API key with the Project Owner role.
 
@@ -97,7 +98,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Output
 ------

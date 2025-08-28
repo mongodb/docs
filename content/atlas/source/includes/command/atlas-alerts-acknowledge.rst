@@ -61,6 +61,8 @@ Options
      - 
      - false
      - Option that acknowledges an alert 'forever'. You can't set both the forever option and the until option in the same command.
+
+       Mutually exclusive with --until.
    * - -h, --help
      - 
      - false
@@ -78,6 +80,8 @@ Options
      - false
      - ISO 8601-formatted time until which the alert is acknowledged. This command returns this value if a MongoDB user previously acknowledged the alert. After this date, the alert becomes unacknowledged.
 
+       Mutually exclusive with --forever.
+
 Inherited Options
 -----------------
 
@@ -92,7 +96,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Output
 ------

@@ -47,10 +47,14 @@ Options
      - string
      - false
      - Unique 24-digit string that identifies the team.
+
+       Mutually exclusive with --name.
    * - --name
      - string
      - false
      - Label that identifies the team.
+
+       Mutually exclusive with --id.
    * - --orgId
      - string
      - false
@@ -74,7 +78,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Output
 ------

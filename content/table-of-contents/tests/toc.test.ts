@@ -37,6 +37,7 @@ const DocSitesTesting = [
   "intellij",
   "mongodb-shell",
   "mongodb-analyzer",
+  "mongodb-vscode",
   "mongoid",
   "node",
   "ops-manager",

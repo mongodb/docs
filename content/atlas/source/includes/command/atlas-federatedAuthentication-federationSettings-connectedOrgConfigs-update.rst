@@ -42,7 +42,7 @@ Options
    * - --file
      - string
      - true
-     - Path to a JSON configuration file that defines connected orgs configurations. Note: Unsupported fields in the JSON file are ignored. To learn more about connected org configuration file format, see the request body in https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Federated-Authentication/operation/updateConnectedOrgConfig.
+     - Path to a JSON configuration file that defines connected orgs configurations. Note: Unsupported fields in the JSON file are ignored. To learn more about connected org configuration file format, see the request body in https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-updateconnectedorgconfig.
    * - -h, --help
      - 
      - false
@@ -70,7 +70,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Examples
 --------

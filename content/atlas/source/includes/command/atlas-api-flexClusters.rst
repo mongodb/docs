@@ -12,7 +12,12 @@ atlas api flexClusters
    :depth: 1
    :class: singlecol
 
-`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns, adds, edits, and removes flex clusters.
+`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, edits, and removes flex clusters.
+
+The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
+
+
 
 Options
 -------
@@ -44,17 +49,17 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Related Commands
 ----------------
 
-* :ref:`atlas-api-flexClusters-createFlexCluster` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Creates one flex cluster in the specified project.
-* :ref:`atlas-api-flexClusters-deleteFlexCluster` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Removes one flex cluster from the specified project.
-* :ref:`atlas-api-flexClusters-getFlexCluster` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns details for one flex cluster in the specified project.
-* :ref:`atlas-api-flexClusters-listFlexClusters` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns details for all flex clusters in the specified project.
-* :ref:`atlas-api-flexClusters-updateFlexCluster` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates one flex cluster in the specified project.
-* :ref:`atlas-api-flexClusters-upgradeFlexCluster` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Upgrades a flex cluster to a dedicated cluster (M10+) in the specified project.
+* :ref:`atlas-api-flexClusters-createFlexCluster` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one flex cluster in the specified project.
+* :ref:`atlas-api-flexClusters-deleteFlexCluster` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one flex cluster from the specified project.
+* :ref:`atlas-api-flexClusters-getFlexCluster` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns details for one flex cluster in the specified project.
+* :ref:`atlas-api-flexClusters-listFlexClusters` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns details for all flex clusters in the specified project.
+* :ref:`atlas-api-flexClusters-updateFlexCluster` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates one flex cluster in the specified project.
+* :ref:`atlas-api-flexClusters-upgradeFlexCluster` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Upgrades a flex cluster to a dedicated cluster (M10+) in the specified project.
 
 
 .. toctree::

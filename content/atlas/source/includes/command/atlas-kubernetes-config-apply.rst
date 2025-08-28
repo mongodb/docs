@@ -41,10 +41,18 @@ Options
      - strings
      - false
      - One or more comma separated cluster names to import
+   * - --dataFederationName
+     - strings
+     - false
+     - One or more comma separated data federation names to import
    * - -h, --help
      - 
      - false
      - help for apply
+   * - --independentResources
+     - 
+     - false
+     - Flag that makes the generated resources that support independent usage, to use external IDs rather than Kubernetes references.
    * - --kubeContext
      - string
      - false
@@ -84,7 +92,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Examples
 --------

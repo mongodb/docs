@@ -3,6 +3,12 @@ export interface BreadCrumb {
   title: string;
 }
 
+type XOR<T, U> =
+  | (T & { [K in keyof U]?: never })
+  | (U & { [K in keyof T]?: never });
+
+type Versions = XOR<{ includes: string[] }, { excludes: string[] }>;
+
 export interface TocItemBase {
   label: string;
   url?: string;
@@ -11,6 +17,7 @@ export interface TocItemBase {
   breadcrumbs?: BreadCrumb[];
   versionDropdown?: boolean;
   showSubNav?: boolean;
+  versions?: Versions;
   items?: TocItem[];
 }
 
@@ -32,7 +39,7 @@ export type DocSite =
   | "cloud-docs"
   | "cloud-manager"
   | "cloudgov"
-  | "cluster-sync"
+  | "mongosync"
   | "compass"
   | "cpp-driver"
   | "csharp"
@@ -48,6 +55,7 @@ export type DocSite =
   | "kafka-connector"
   | "kotlin"
   | "kotlin-sync"
+  | "landing"
   | "laravel"
   | "mck"
   | "meta"
@@ -55,7 +63,7 @@ export type DocSite =
   | "intellij"
   | "mcp-server"
   | "mongodb-shell"
-  | "mongodb-analyzer"
+  | "mongodb-vscode"
   | "mongoid"
   | "node"
   | "ops-manager"
@@ -68,6 +76,8 @@ export type DocSite =
   | "docs"
   | "guides"
   | "spark-connector"
+  | "atlas-charts"
+  | "docs-relational-migrator"
   | "visual-studio-extension";
 
 export default TocItem;

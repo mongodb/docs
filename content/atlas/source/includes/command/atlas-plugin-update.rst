@@ -64,6 +64,10 @@ Options
      - 
      - false
      - help for update
+   * - --skipSignatureVerification
+     - 
+     - false
+     - Skip signature verification.
 
 Inherited Options
 -----------------
@@ -79,7 +83,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Examples
 --------

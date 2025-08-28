@@ -37,6 +37,10 @@ Options
      - Type
      - Required
      - Description
+   * - --autoScalingMode
+     - string
+     - false
+     - Mode in which the cluster scales. Valid values are clusterWideScaling or independentShardScaling. This value defaults to "clusterWideScaling".
    * - -h, --help
      - 
      - false
@@ -80,7 +84,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Output
 ------
@@ -101,3 +105,11 @@ Examples
 
    # Return a JSON-formatted list of all clusters for the project with ID 5e2211c17a3e5a48f5497de3:
    atlas clusters list --projectId 5e2211c17a3e5a48f5497de3 --output json
+  
+   
+.. code-block::
+   :copyable: false
+
+   # Return a JSON-formatted list of all clusters for the project with ID 5e2211c17a3e5a48f5497de3 and with independent shard scaling mode:
+   atlas clusters list --projectId 5e2211c17a3e5a48f5497de3 --autoScalingMode independentShardScaling --output json
+   

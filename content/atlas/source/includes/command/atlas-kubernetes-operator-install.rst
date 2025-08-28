@@ -44,6 +44,10 @@ Options
      - 
      - false
      - Flag that indicates whether to configure Atlas for Government as a target of the operator.
+   * - --configOnly
+     - 
+     - false
+     - Flag that indicates whether to generate only the operator configuration files without installing the Operator
    * - -h, --help
      - 
      - false
@@ -103,7 +107,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Examples
 --------

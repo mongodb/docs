@@ -12,7 +12,12 @@ atlas api legacyBackup
    :depth: 1
    :class: singlecol
 
-`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Manages Legacy Backup snapshots, restore jobs, schedules and checkpoints.
+`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Manages Legacy Backup snapshots, restore jobs, schedules and checkpoints.
+
+The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
+
+
 
 Options
 -------
@@ -44,22 +49,22 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Related Commands
 ----------------
 
-* :ref:`atlas-api-legacyBackup-createLegacyBackupRestoreJob` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Restores one legacy backup for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-deleteLegacySnapshot` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Removes one legacy backup snapshot for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-getLegacyBackupCheckpoint` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns one legacy backup checkpoint for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-getLegacyBackupRestoreJob` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns one legacy backup restore job for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-getLegacySnapshot` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns one legacy backup snapshot for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-getLegacySnapshotSchedule` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the snapshot schedule for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-listLegacyBackupCheckpoints` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all legacy backup checkpoints for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-listLegacyBackupRestoreJobs` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all legacy backup restore jobs for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-listLegacySnapshots` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all legacy backup snapshots for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-updateLegacySnapshotRetention` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Changes the expiration date for one legacy backup snapshot for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-updateLegacySnapshotSchedule` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the snapshot schedule for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-createLegacyBackupRestoreJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Restores one legacy backup for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-deleteLegacySnapshot` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one legacy backup snapshot for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-getLegacyBackupCheckpoint` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one legacy backup checkpoint for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-getLegacyBackupRestoreJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one legacy backup restore job for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-getLegacySnapshot` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one legacy backup snapshot for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-getLegacySnapshotSchedule` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the snapshot schedule for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-listLegacyBackupCheckpoints` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all legacy backup checkpoints for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-listLegacyBackupRestoreJobs` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all legacy backup restore jobs for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-listLegacySnapshots` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all legacy backup snapshots for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-updateLegacySnapshotRetention` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Changes the expiration date for one legacy backup snapshot for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-updateLegacySnapshotSchedule` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the snapshot schedule for one cluster in the specified project.
 
 
 .. toctree::

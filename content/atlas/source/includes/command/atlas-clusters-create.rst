@@ -58,6 +58,12 @@ Options
      - Type
      - Required
      - Description
+   * - --autoScalingMode
+     - string
+     - false
+     - Mode in which the cluster scales. Valid values are clusterWideScaling or independentShardScaling.
+
+       Mutually exclusive with --file. This value defaults to "clusterWideScaling".
    * - --backup
      - 
      - false
@@ -83,7 +89,7 @@ Options
      - false
      - Path to an optional JSON configuration file that defines cluster settings. Note: Unsupported fields in the JSON file are ignored. To learn more about cluster configuration files for the Atlas CLI, see https://dochub.mongodb.org/core/cluster-config-file-atlascli.
 
-       Mutually exclusive with --tier, --provider, --members, --region, --diskSizeGB, --mdbVersion, --biConnector, --type, --shards, --tag.
+       Mutually exclusive with --tier, --provider, --members, --region, --diskSizeGB, --mdbVersion, --biConnector, --type, --shards, --tag, --autoScalingMode.
    * - -h, --help
      - 
      - false
@@ -167,7 +173,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Output
 ------
@@ -229,3 +235,11 @@ Examples
 
    # Deploy a cluster or a multi-cloud cluster from a JSON configuration file named myfile.json for the project with the ID 5e2211c17a3e5a48f5497de3:
    atlas cluster create --projectId <projectId> --file myfile.json
+   
+   
+.. code-block::
+   :copyable: false
+
+   # Deploy a three-member sharded cluster with independent shard scaling mode named myRS in GCP for the project with the ID 5e2211c17a3e5a48f5497de3:
+   atlas cluster create myRS --projectId 5e2211c17a3e5a48f5497de3 --provider GCP --region EASTERN_US --members 3 --tier M10  --mdbVersion 5.0 --diskSizeGB 10 --autoScalingMode independentShardScaling
+   

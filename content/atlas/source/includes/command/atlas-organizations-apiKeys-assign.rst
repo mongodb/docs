@@ -76,7 +76,7 @@ Options
    * - --role
      - strings
      - false
-     - Role or roles that you want to assign to the API key. To assign more than one role, specify each role with a separate role flag or specify all of the roles as a comma-separated list using one role flag. For the full list of accepted values, see the Items Enum for the corresponding Atlas API endpoint: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Programmatic-API-Keys/operation/updateApiKey. To learn more about organization level user roles, see: https://dochub.mongodb.org/core/atlas-org-roles. Passing this flag replaces preexisting data.
+     - Role or roles that you want to assign to the API key. To assign more than one role, specify each role with a separate role flag or specify all of the roles as a comma-separated list using one role flag. For the full list of accepted values, see the Items Enum for the corresponding Atlas API endpoint: https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-updateapikey. To learn more about organization level user roles, see: https://dochub.mongodb.org/core/atlas-org-roles. Passing this flag replaces preexisting data.
 
 Inherited Options
 -----------------
@@ -92,7 +92,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Output
 ------

@@ -1,0 +1,623 @@
+import { TocItem } from '../types';
+
+import DatabasesCollectionsData from '../manual-data/databases-collections';
+import ClustersData from '../manual-data/clusters';
+import CRUDData from '../manual-data/crud';
+import IndexesData from '../manual-data/indexes';
+import DataModelingData from '../manual-data/data-modeling';
+import AggregationData from '../manual-data/aggregation';
+import SearchData from '../manual-data/atlas-search';
+import VectorSearchData from '../manual-data/vector-search';
+import TimeSeriesData from '../manual-data/time-series';
+import FederationData from '../manual-data/data-federation';
+import InUseEncryptionData from '../manual-data/in-use-encryption';
+import InUseEncryptionDataVersion7 from '../manual-data/in-use-encryption-v7-only';
+import ReferenceData from '../manual-data/reference';
+
+const tocData: TocItem[] = [
+  {
+    label: "Overview",
+    contentSite: "docs",
+    url: "/docs/:version/",
+  },
+  {
+    label: "Documents",
+    contentSite: "docs",
+    url: "/docs/:version/core/document",
+  },
+  {
+    label: "Databases & Collections",
+    contentSite: "docs",
+    url: "/docs/:version/core/databases-and-collections",
+    collapsible: true,
+    items: DatabasesCollectionsData,
+  },
+  {
+    label: "Client Libraries",
+    contentSite: "drivers",
+    url: "https://www.mongodb.com/docs/drivers/",
+  },
+  {
+    label: "Connect to Clusters",
+    contentSite: "cloud-docs",
+    collapsible: true,
+    items: ClustersData,
+  },
+  {
+    label: "Database Users",
+    contentSite: "docs",
+    url: "/docs/:version/reference/database-users",
+    collapsible: true,
+    items: [
+      {
+        label: "Configure Database Users in Atlas",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/security-add-mongodb-users"
+      },
+      {
+        label: "Authorization",
+        contentSite: "cloud-docs",
+        collapsible: true,
+        items: [
+          {
+            label: "Atlas Built-In Roles",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/mongodb-users-roles-and-privileges",
+          },
+          {
+            label: "Built-In Roles",
+            contentSite: "docs",
+            url: "/docs/:version/reference/built-in-roles",
+          },
+          {
+            label: "Custom Database Roles",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/security-add-mongodb-roles",
+          },
+          {
+            label: "Privilege Actions",
+            contentSite: "docs",
+            url: "/docs/:version/reference/privilege-actions",
+          },
+          {
+            label: "Non-Root User Permissions",
+            contentSite: "docs",
+            url: "/docs/:version/reference/non-root-user-permissions",
+          },
+        ]
+      },
+    ]
+  },
+  {
+    label: "CRUD Operations",
+    contentSite: "docs",
+    url: "/docs/:version/crud",
+    collapsible: true,
+    items: CRUDData,
+  },
+  {
+    label: "Indexes",
+    contentSite: "docs",
+    url: "/docs/:version/indexes",
+    collapsible: true,
+    items: IndexesData,
+  },
+  {
+    label: "Data Modeling",
+    contentSite: "docs",
+    url: "/docs/:version/data-modeling",
+    collapsible: true,
+    items: DataModelingData,
+  },
+  {
+    label: "Aggregation Operations",
+    contentSite: "docs",
+    url: "/docs/:version/aggregation",
+    collapsible: true,
+    items: AggregationData,
+  },
+  {
+    label: "Atlas Search",
+    contentSite: "cloud-docs",
+    url: "/docs/atlas/atlas-search",
+    collapsible: true,
+    items: SearchData,
+  },
+  {
+    label: "Atlas Vector Search",
+    contentSite: "cloud-docs",
+    url: "/docs/atlas/atlas-vector-search/vector-search-overview",
+    collapsible: true,
+    items: VectorSearchData,
+  },
+  {
+    label: "AI Integrations",
+    contentSite: "cloud-docs",
+    url: "/docs/atlas/ai-integrations",
+    collapsible: true,
+    items: [
+      {
+        label: "Frameworks",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/ai-integrations/frameworks",
+        collapsible: true,
+        items: [
+          {
+            label: "LangChain",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/langchain",
+            collapsible: true,
+            items: [
+              {
+                label: "Get Started",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/langchain/get-started",
+              },
+              {
+                label: "Memory and Semantic Caching",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/langchain/memory-semantic-cache",
+              },
+              {
+                label: "Hybrid Search",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/langchain/hybrid-search",
+              },
+              {
+                label: "Parent Document Retrieval",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/langchain/parent-document-retrieval",
+              },
+              {
+                label: "Self-Querying Retrieval",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/langchain/self-query-retrieval",
+              },
+              {
+                label: "Local RAG",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/langchain/local-rag",
+              },
+              {
+                label: "GraphRAG",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/langchain/graph-rag",
+              },
+              {
+                label: "Natural Language Queries",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/langchain/natural-language-to-mql",
+              },
+            ]
+          },
+          {
+            label: "LangChain JS/TS",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/langchain-js",
+          },
+          {
+            label: "LangChainGo",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/langchaingo",
+          },
+          {
+            label: "LangChain4j",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/langchain4j",
+          },
+          {
+            label: "LlamaIndex",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/llamaindex",
+          },
+          {
+            label: "Semantic Kernel",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/semantic-kernel",
+            collapsible: true,
+            items: [
+              {
+                label: "Python Integration",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/semantic-kernel-python",
+              },
+              {
+                label: "C# Integration",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/semantic-kernel-csharp",
+              },
+            ]
+          },
+          {
+            label: "Haystack",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/haystack",
+          },
+          {
+            label: "Spring AI",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/spring-ai",
+          },
+        ]
+      },
+      {
+        label: "Semantic Kernel",
+        contentSite: "cloud-docs",
+        collapsible: true,
+        items: [
+          {
+            label: "Haystack",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/haystack",
+          },
+          {
+            label: "Spring AI",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/spring-ai",
+          }
+        ]
+      },
+      {
+        label: "Agent Frameworks",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/ai-integrations/agent-frameworks",
+        collapsible: true,
+        items: [
+          {
+            label: "LangGraph",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/langgraph",
+            collapsible: true,
+            items: [
+              {
+                label: "Build AI Agents",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/langgraph/build-agents",
+              },
+            ]
+          },
+          {
+            label: "LangGraph.js",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/langgraph-js",
+            collapsible: true,
+            items: [
+              {
+                label: "Build AI Agents",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/langgraph-js/build-agents",
+              },
+            ]
+          },
+        ]
+      },
+      {
+        label: "Platforms",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/ai-integrations/platforms",
+        collapsible: true,
+        items: [
+          {
+            label: "Amazon Bedrock",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/amazon-bedrock",
+            collapsible: true,
+            items: [
+              {
+                label: "Hybrid Search",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/amazon-bedrock/hybrid-search",
+              },
+              {
+                label: "Troubleshooting",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/amazon-bedrock/troubleshooting",
+              },
+            ]
+          },
+          {
+            label: "Google Vertex AI",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/google-vertex-ai",
+            collapsible: true,
+            items: [
+              {
+                label: "Vertex AI Extensions",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/google-vertex-ai/extensions",
+              },
+              {
+                label: "Vertex AI Agent Engine",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/google-vertex-ai/agent-engine",
+              },
+            ]
+          },
+        ]
+      },
+      {
+        label: "Tools",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/ai-integrations/tools",
+        collapsible: true,
+        items: [
+          {
+            label: "MCP Server",
+            contentSite: "cloud-docs",
+            url: "https://www.mongodb.com/docs/mcp-server/",
+          },
+        ]
+      },
+      {
+        label: "API Resources",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/ai-integrations/ai-api-resources",
+        collapsible: true,
+        items: [
+          {
+            label: "LangChain Python API Reference",
+            isExternal: true,
+            url: "https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/api_docs.html",
+          },
+          {
+            label: "LangChain JS/TS API Reference",
+            isExternal: true,
+            url: "https://api.js.langchain.com/modules/langchain_mongodb.html",
+          },
+          {
+            label: "LangGraph API Reference",
+            isExternal: true,
+            url: "https://langchain-mongodb.readthedocs.io/en/latest/langgraph_checkpoint_mongodb/api_docs.html",
+          },
+          {
+            label: "LangGraph.js API Reference",
+            isExternal: true,
+            url: "https://langchain-ai.github.io/langgraphjs/reference/classes/checkpoint_mongodb.MongoDBSaver.html",
+          },
+          {
+            label: "LangChainGo API Reference",
+            isExternal: true,
+            url: "https://pkg.go.dev/github.com/tmc/langchaingo",
+          },
+          {
+            label: "LangChain4j API Reference",
+            isExternal: true,
+            url: "https://docs.langchain4j.dev/apidocs/index.html",
+          },
+          {
+            label: "LlamaIndex API Reference",
+            isExternal: true,
+            url: "https://docs.llamaindex.ai/en/stable/api_reference/storage/vector_store/mongodb/",
+          },
+          {
+            label: "Semantic Kernel C# API Reference",
+            isExternal: true,
+            url: "https://learn.microsoft.com/en-us/dotnet/api/microsoft.semantickernel.connectors.mongodb",
+          },
+          {
+            label: "Haystack API Reference",
+            isExternal: true,
+            url: "https://docs.haystack.deepset.ai/reference/integrations-mongodb-atlas",
+          },
+          {
+            label: "Spring AI API Reference",
+            isExternal: true,
+            url: "https://docs.spring.io/spring-ai/docs/current/api/org/springframework/ai/vectorstore/package-summary.html",
+          },
+        ]
+      },
+    ]
+  },
+  {
+    label: "Time Series",
+    contentSite: "docs",
+    url: "/docs/:version/core/timeseries-collections",
+    collapsible: true,
+    items: TimeSeriesData,
+  },
+  {
+    label: "Change Streams",
+    contentSite: "docs",
+    url: "/docs/:version/changeStreams",
+    collapsible: true,
+    items: [
+      {
+        label: "Production Recommendations",
+        contentSite: "docs",
+        url: "/docs/:version/administration/change-streams-production-recommendations",
+      },
+      {
+        label: "Change Events",
+        contentSite: "docs",
+        url: "/docs/:version/reference/change-events",
+        collapsible: true,
+        items: [
+          {
+            label: "create",
+            contentSite: "docs",
+            url: "/docs/:version/reference/change-events/create",
+          },
+          {
+            label: "createIndexes",
+            contentSite: "docs",
+            url: "/docs/:version/reference/change-events/createIndexes",
+          },
+          {
+            label: "delete",
+            contentSite: "docs",
+            url: "/docs/:version/reference/change-events/delete",
+          },
+          {
+            label: "drop",
+            contentSite: "docs",
+            url: "/docs/:version/reference/change-events/drop",
+          },
+          {
+            label: "dropDatabase",
+            contentSite: "docs",
+            url: "/docs/:version/reference/change-events/dropDatabase",
+          },
+          {
+            label: "dropIndexes",
+            contentSite: "docs",
+            url: "/docs/:version/reference/change-events/dropIndexes",
+          },
+          {
+            label: "insert",
+            contentSite: "docs",
+            url: "/docs/:version/reference/change-events/insert",
+          },
+          {
+            label: "invalidate",
+            contentSite: "docs",
+            url: "/docs/:version/reference/change-events/invalidate",
+          },
+          {
+            label: "modify",
+            contentSite: "docs",
+            url: "/docs/:version/reference/change-events/modify",
+          },
+          {
+            label: "refineCollectionShardKey",
+            contentSite: "docs",
+            url: "/docs/:version/reference/change-events/refineCollectionShardKey",
+          },
+          {
+            label: "rename",
+            contentSite: "docs",
+            url: "/docs/:version/reference/change-events/rename",
+          },
+          {
+            label: "replace",
+            contentSite: "docs",
+            url: "/docs/:version/reference/change-events/replace",
+          },
+          {
+            label: "reshardCollection",
+            contentSite: "docs",
+            url: "/docs/:version/reference/change-events/reshardCollection",
+          },
+          {
+            label: "shardCollection",
+            contentSite: "docs",
+            url: "/docs/:version/reference/change-events/shardCollection",
+          },
+          {
+            label: "update",
+            contentSite: "docs",
+            url: "/docs/:version/reference/change-events/update",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    label: "Transactions",
+    contentSite: "docs",
+    url: "/docs/:version/core/transactions",
+    collapsible: true,
+    items: [
+      {
+        label: "Drivers API",
+        contentSite: "docs",
+        url: "/docs/:version/core/transactions-in-applications",
+      },
+      {
+        label: "Operations",
+        contentSite: "docs",
+        url: "/docs/:version/core/transactions-operations",
+      },
+      {
+        label: "Production Considerations",
+        contentSite: "docs",
+        url: "/docs/:version/core/transactions-production-consideration",
+      },
+      {
+        label: "Sharded Clusters",
+        contentSite: "docs",
+        url: "/docs/:version/core/transactions-sharded-clusters",
+      },
+    ],
+  },
+  {
+    label: "Data Federation",
+    contentSite: "cloud-docs",
+    url: "/docs/atlas/data-federation",
+    collapsible: true,
+    items: FederationData,
+  },
+  {
+    label: "In-Use Encryption",
+    contentSite: "docs",
+    url: "/docs/:version/core/security-in-use-encryption",
+    collapsible: true,
+    versions: {excludes: ["v7.0"]},
+    items: InUseEncryptionData,
+  },
+  {
+    label: "In-Use Encryption ",
+    contentSite: "docs",
+    url: "/docs/v7.0/core/security-in-use-encryption",
+    collapsible: true,
+    versions: {includes: ["v7.0"]},
+    items: InUseEncryptionDataVersion7,
+  },
+  {
+    label: "Development Checklist",
+    contentSite: "docs",
+    url: "/docs/:version/administration/production-checklist-development",
+  },
+  {
+    label: "Performance",
+    contentSite: "docs",
+    url: "/docs/:version/administration/analyzing-mongodb-performance",
+    collapsible: true,
+    items: [
+      {
+        label: "Connection Pool",
+        contentSite: "docs",
+        url: "/docs/:version/administration/connection-pool-overview",
+        collapsible: true,
+        items: [
+          {
+            label: "Tuning",
+            contentSite: "docs",
+            url: "/docs/:version/tutorial/connection-pool-performance-tuning",
+          },
+        ]
+      },
+      {
+        label: "Performance Tuning",
+        contentSite: "docs",
+        url: "/docs/:version/administration/performance-tuning",
+      }
+    ]
+  },
+  {
+    label: "Reference",
+    contentSite: "docs",
+    url: "/docs/:version/reference",
+    collapsible: true,
+    items: ReferenceData,
+  },
+  {
+    label: "Support",
+    contentSite: "docs",
+    url: "/docs/:version/support",
+    collapsible: true,
+    items: [
+      {
+        label: "Atlas Support",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/support",
+      },
+      {
+        label: "Create a Vulnerability Report",
+        contentSite: "docs",
+        url: "/docs/:version/tutorial/create-a-vulnerability-report",
+      },
+    ]
+  }
+]
+
+export default tocData;

@@ -54,7 +54,7 @@ Options
    * - --connectWith
      - string
      - false
-     - Method for connecting to the deployment. Valid values are compass, connectionString and mongosh.
+     - Method for connecting to the deployment. Valid values are compass, connectionString, mongosh, and vscode.
    * - --connectionStringType
      - string
      - false
@@ -94,5 +94,5 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 

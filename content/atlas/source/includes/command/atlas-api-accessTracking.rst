@@ -12,7 +12,10 @@ atlas api accessTracking
    :depth: 1
    :class: singlecol
 
-`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns access logs for authentication attempts made to Atlas database deployments.
+`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns access logs for authentication attempts made to Atlas database deployments.
+
+The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 To view database access history, you must have either the Project Owner or Organization Owner role.
 
@@ -46,13 +49,13 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Related Commands
 ----------------
 
-* :ref:`atlas-api-accessTracking-listAccessLogsByClusterName` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the access logs of one cluster identified by the cluster's name.
-* :ref:`atlas-api-accessTracking-listAccessLogsByHostname` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the access logs of one cluster identified by the cluster's hostname.
+* :ref:`atlas-api-accessTracking-listAccessLogsByClusterName` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the access logs of one cluster identified by the cluster's name.
+* :ref:`atlas-api-accessTracking-listAccessLogsByHostname` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the access logs of one cluster identified by the cluster's hostname.
 
 
 .. toctree::

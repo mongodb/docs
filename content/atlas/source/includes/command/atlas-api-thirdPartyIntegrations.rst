@@ -12,7 +12,10 @@ atlas api thirdPartyIntegrations
    :depth: 1
    :class: singlecol
 
-`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns, adds, edits, and removes third-party service integration configurations.
+`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, edits, and removes third-party service integration configurations.
+
+The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 MongoDB Cloud sends alerts to each third-party service that you configure.
 
@@ -49,16 +52,16 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Related Commands
 ----------------
 
-* :ref:`atlas-api-thirdPartyIntegrations-createThirdPartyIntegration` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Adds the settings for configuring one third-party service integration.
-* :ref:`atlas-api-thirdPartyIntegrations-deleteThirdPartyIntegration` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Removes the settings that permit configuring one third-party service integration.
-* :ref:`atlas-api-thirdPartyIntegrations-getThirdPartyIntegration` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the settings for configuring integration with one third-party service.
-* :ref:`atlas-api-thirdPartyIntegrations-listThirdPartyIntegrations` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the settings that permit integrations with all configured third-party services.
-* :ref:`atlas-api-thirdPartyIntegrations-updateThirdPartyIntegration` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the settings for configuring integration with one third-party service.
+* :ref:`atlas-api-thirdPartyIntegrations-createThirdPartyIntegration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Adds the settings for configuring one third-party service integration.
+* :ref:`atlas-api-thirdPartyIntegrations-deleteThirdPartyIntegration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes the settings that permit configuring one third-party service integration.
+* :ref:`atlas-api-thirdPartyIntegrations-getThirdPartyIntegration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the settings for configuring integration with one third-party service.
+* :ref:`atlas-api-thirdPartyIntegrations-listThirdPartyIntegrations` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the settings that permit integrations with all configured third-party services.
+* :ref:`atlas-api-thirdPartyIntegrations-updateThirdPartyIntegration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the settings for configuring integration with one third-party service.
 
 
 .. toctree::

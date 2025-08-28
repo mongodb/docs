@@ -62,6 +62,12 @@ Options
      - Type
      - Required
      - Description
+   * - --autoScalingMode
+     - string
+     - false
+     - Mode in which the cluster scales. Valid values are clusterWideScaling or independentShardScaling.
+
+       Mutually exclusive with --file.
    * - --disableTerminationProtection
      - 
      - false
@@ -85,7 +91,7 @@ Options
      - false
      - Path to an optional JSON configuration file that defines cluster settings. Note: Unsupported fields in the JSON file are ignored. To learn more about cluster configuration files for the Atlas CLI, see https://dochub.mongodb.org/core/cluster-config-file-atlascli.
 
-       Mutually exclusive with --tier, --diskSizeGB, --enableTerminationProtection, --disableTerminationProtection, --tag.
+       Mutually exclusive with --tier, --diskSizeGB, --enableTerminationProtection, --disableTerminationProtection, --tag, --autoScalingMode.
    * - -h, --help
      - 
      - false
@@ -129,7 +135,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Output
 ------

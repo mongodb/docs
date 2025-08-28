@@ -12,7 +12,10 @@ atlas api alerts
    :depth: 1
    :class: singlecol
 
-`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns and acknowledges alerts that MongoDB Cloud triggers based on the alert conditions that you define.
+`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns and acknowledges alerts that MongoDB Cloud triggers based on the alert conditions that you define.
+
+The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 This collection remains under revision and may change.
 
@@ -46,15 +49,15 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Related Commands
 ----------------
 
-* :ref:`atlas-api-alerts-acknowledgeAlert` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Confirms receipt of one existing alert.
-* :ref:`atlas-api-alerts-getAlert` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns one alert.
-* :ref:`atlas-api-alerts-listAlerts` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all alerts.
-* :ref:`atlas-api-alerts-listAlertsByAlertConfigurationId` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all open alerts that the specified alert configuration triggers.
+* :ref:`atlas-api-alerts-acknowledgeAlert` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Confirms receipt of one existing alert.
+* :ref:`atlas-api-alerts-getAlert` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one alert.
+* :ref:`atlas-api-alerts-listAlerts` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all alerts.
+* :ref:`atlas-api-alerts-listAlertsByAlertConfigurationId` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all open alerts that the specified alert configuration triggers.
 
 
 .. toctree::

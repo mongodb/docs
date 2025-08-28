@@ -12,7 +12,10 @@ atlas api awsClustersDns
    :depth: 1
    :class: singlecol
 
-`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns and edits custom DNS configurations for MongoDB Cloud database deployments on AWS.
+`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns and edits custom DNS configurations for MongoDB Cloud database deployments on AWS.
+
+The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 The resource requires your Project ID. If you use the VPC peering on AWS and you use your own DNS servers instead of Amazon Route 53, enable custom DNS. Before 31 March 2020, applications deployed within AWS using custom DNS services and VPC-peered with MongoDB Cloud couldn't connect over private IP addresses. Custom DNS resolved to public IP addresses. AWS internal DNS resolved to private IP addresses. Applications deployed with custom DNS services in AWS should use Private IP for Peering connection strings.
 
@@ -46,13 +49,13 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Related Commands
 ----------------
 
-* :ref:`atlas-api-awsClustersDns-getAwsCustomDns` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the custom DNS configuration for AWS clusters in the specified project.
-* :ref:`atlas-api-awsClustersDns-toggleAwsCustomDns` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Enables or disables the custom DNS configuration for AWS clusters in the specified project.
+* :ref:`atlas-api-awsClustersDns-getAwsCustomDns` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the custom DNS configuration for AWS clusters in the specified project.
+* :ref:`atlas-api-awsClustersDns-toggleAwsCustomDns` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Enables or disables the custom DNS configuration for AWS clusters in the specified project.
 
 
 .. toctree::

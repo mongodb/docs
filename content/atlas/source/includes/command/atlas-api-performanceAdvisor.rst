@@ -12,7 +12,10 @@ atlas api performanceAdvisor
    :depth: 1
    :class: singlecol
 
-`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns suggested indexes and slow query data for a database deployment.
+`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns suggested indexes and slow query data for a database deployment.
+
+The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 Also enables or disables MongoDB Cloud-managed slow operation thresholds. To view field values in a sample query, you must have the Project Data Access Read Only role or higher. Otherwise, MongoDB Cloud returns redacted data rather than the field values.
 
@@ -46,22 +49,20 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Related Commands
 ----------------
 
-* :ref:`atlas-api-performanceAdvisor-disableSlowOperationThresholding` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Disables the slow operation threshold that MongoDB Cloud calculated for the specified project.
-* :ref:`atlas-api-performanceAdvisor-enableSlowOperationThresholding` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Enables MongoDB Cloud to use its slow operation threshold for the specified project.
-* :ref:`atlas-api-performanceAdvisor-getManagedSlowMs` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Get whether the Managed Slow MS feature is enabled.
-* :ref:`atlas-api-performanceAdvisor-getServerlessAutoIndexing` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Get whether the Serverless Auto Indexing feature is enabled.
-* :ref:`atlas-api-performanceAdvisor-listClusterSuggestedIndexes` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the indexes that the Performance Advisor suggests.
-* :ref:`atlas-api-performanceAdvisor-listDropIndexes` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the indexes that the Performance Advisor suggests to drop.
-* :ref:`atlas-api-performanceAdvisor-listSchemaAdvice` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the schema suggestions that the Performance Advisor detects.
-* :ref:`atlas-api-performanceAdvisor-listSlowQueries` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns log lines for slow queries that the Performance Advisor and Query Profiler identified.
-* :ref:`atlas-api-performanceAdvisor-listSlowQueryNamespaces` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns up to 20 namespaces for collections experiencing slow queries on the specified host.
-* :ref:`atlas-api-performanceAdvisor-listSuggestedIndexes` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the indexes that the Performance Advisor suggests.
-* :ref:`atlas-api-performanceAdvisor-setServerlessAutoIndexing` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Set whether the Serverless Auto Indexing feature is enabled.
+* :ref:`atlas-api-performanceAdvisor-disableSlowOperationThresholding` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Disables the slow operation threshold that MongoDB Cloud calculated for the specified project.
+* :ref:`atlas-api-performanceAdvisor-enableSlowOperationThresholding` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Enables MongoDB Cloud to use its slow operation threshold for the specified project.
+* :ref:`atlas-api-performanceAdvisor-getManagedSlowMs` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Get whether the Managed Slow MS feature is enabled.
+* :ref:`atlas-api-performanceAdvisor-listClusterSuggestedIndexes` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the indexes that the Performance Advisor suggests.
+* :ref:`atlas-api-performanceAdvisor-listDropIndexes` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the indexes that the Performance Advisor suggests to drop.
+* :ref:`atlas-api-performanceAdvisor-listSchemaAdvice` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the schema suggestions that the Performance Advisor detects.
+* :ref:`atlas-api-performanceAdvisor-listSlowQueries` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns log lines for slow queries that the Performance Advisor and Query Profiler identified.
+* :ref:`atlas-api-performanceAdvisor-listSlowQueryNamespaces` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns up to 20 namespaces for collections experiencing slow queries on the specified host.
+* :ref:`atlas-api-performanceAdvisor-listSuggestedIndexes` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the indexes that the Performance Advisor suggests.
 
 
 .. toctree::
@@ -70,12 +71,10 @@ Related Commands
    disableSlowOperationThresholding </command/atlas-api-performanceAdvisor-disableSlowOperationThresholding>
    enableSlowOperationThresholding </command/atlas-api-performanceAdvisor-enableSlowOperationThresholding>
    getManagedSlowMs </command/atlas-api-performanceAdvisor-getManagedSlowMs>
-   getServerlessAutoIndexing </command/atlas-api-performanceAdvisor-getServerlessAutoIndexing>
    listClusterSuggestedIndexes </command/atlas-api-performanceAdvisor-listClusterSuggestedIndexes>
    listDropIndexes </command/atlas-api-performanceAdvisor-listDropIndexes>
    listSchemaAdvice </command/atlas-api-performanceAdvisor-listSchemaAdvice>
    listSlowQueries </command/atlas-api-performanceAdvisor-listSlowQueries>
    listSlowQueryNamespaces </command/atlas-api-performanceAdvisor-listSlowQueryNamespaces>
    listSuggestedIndexes </command/atlas-api-performanceAdvisor-listSuggestedIndexes>
-   setServerlessAutoIndexing </command/atlas-api-performanceAdvisor-setServerlessAutoIndexing>
 

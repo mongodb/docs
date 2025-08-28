@@ -20,4 +20,4 @@ The MongoDB Documentation Project is governed by the terms of the
 `MongoDB Contributor Agreement
 <https://www.mongodb.com/legal/contributor-agreement>`_.
 
--- The MongoDB Docs Team
+-- The MongoDB Docs Team --

@@ -54,6 +54,10 @@ Options
      - Type
      - Required
      - Description
+   * - --autoScalingMode
+     - string
+     - false
+     - Mode in which the cluster scales. Valid values are clusterWideScaling or independentShardScaling. This value defaults to "clusterWideScaling".
    * - -h, --help
      - 
      - false
@@ -81,7 +85,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Output
 ------

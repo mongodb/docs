@@ -12,7 +12,10 @@ atlas api dataFederation
    :depth: 1
    :class: singlecol
 
-`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns, adds, edits, and removes Federated Database Instances.
+`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, edits, and removes Federated Database Instances.
+
+The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 This resource requires your project ID. Changes to federated database instance configurations can affect costs.
 
@@ -46,25 +49,25 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Related Commands
 ----------------
 
-* :ref:`atlas-api-dataFederation-createDataFederationPrivateEndpoint` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Adds one private endpoint for Federated Database Instances and Online Archives to the specified projects.
-* :ref:`atlas-api-dataFederation-createFederatedDatabase` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Creates one federated database instance in the specified project.
-* :ref:`atlas-api-dataFederation-createOneDataFederationQueryLimit` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Creates or updates one query limit for one federated database instance.
-* :ref:`atlas-api-dataFederation-deleteDataFederationPrivateEndpoint` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Removes one private endpoint for Federated Database Instances and Online Archives in the specified project.
-* :ref:`atlas-api-dataFederation-deleteFederatedDatabase` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Removes one federated database instance from the specified project.
-* :ref:`atlas-api-dataFederation-deleteOneDataFederationInstanceQueryLimit` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Deletes one query limit for one federated database instance.
-* :ref:`atlas-api-dataFederation-downloadFederatedDatabaseQueryLogs` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Downloads the query logs for the specified federated database instance.
-* :ref:`atlas-api-dataFederation-getDataFederationPrivateEndpoint` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the specified private endpoint for Federated Database Instances or Online Archives in the specified project.
-* :ref:`atlas-api-dataFederation-getFederatedDatabase` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the details of one federated database instance within the specified project.
-* :ref:`atlas-api-dataFederation-listDataFederationPrivateEndpoints` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all private endpoints for Federated Database Instances and Online Archives in the specified project.
-* :ref:`atlas-api-dataFederation-listFederatedDatabases` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the details of all federated database instances in the specified project.
-* :ref:`atlas-api-dataFederation-returnFederatedDatabaseQueryLimit` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the details of one query limit for the specified federated database instance in the specified project.
-* :ref:`atlas-api-dataFederation-returnFederatedDatabaseQueryLimits` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns query limits for a federated databases instance in the specified project.
-* :ref:`atlas-api-dataFederation-updateFederatedDatabase` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates the details of one federated database instance in the specified project.
+* :ref:`atlas-api-dataFederation-createDataFederationPrivateEndpoint` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Adds one private endpoint for Federated Database Instances and Online Archives to the specified projects.
+* :ref:`atlas-api-dataFederation-createFederatedDatabase` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one federated database instance in the specified project.
+* :ref:`atlas-api-dataFederation-createOneDataFederationQueryLimit` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates or updates one query limit for one federated database instance.
+* :ref:`atlas-api-dataFederation-deleteDataFederationPrivateEndpoint` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one private endpoint for Federated Database Instances and Online Archives in the specified project.
+* :ref:`atlas-api-dataFederation-deleteFederatedDatabase` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one federated database instance from the specified project.
+* :ref:`atlas-api-dataFederation-deleteOneDataFederationInstanceQueryLimit` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Deletes one query limit for one federated database instance.
+* :ref:`atlas-api-dataFederation-downloadFederatedDatabaseQueryLogs` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Downloads the query logs for the specified federated database instance.
+* :ref:`atlas-api-dataFederation-getDataFederationPrivateEndpoint` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the specified private endpoint for Federated Database Instances or Online Archives in the specified project.
+* :ref:`atlas-api-dataFederation-getFederatedDatabase` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the details of one federated database instance within the specified project.
+* :ref:`atlas-api-dataFederation-listDataFederationPrivateEndpoints` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all private endpoints for Federated Database Instances and Online Archives in the specified project.
+* :ref:`atlas-api-dataFederation-listFederatedDatabases` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the details of all federated database instances in the specified project.
+* :ref:`atlas-api-dataFederation-returnFederatedDatabaseQueryLimit` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the details of one query limit for the specified federated database instance in the specified project.
+* :ref:`atlas-api-dataFederation-returnFederatedDatabaseQueryLimits` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns query limits for a federated databases instance in the specified project.
+* :ref:`atlas-api-dataFederation-updateFederatedDatabase` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the details of one federated database instance in the specified project.
 
 
 .. toctree::

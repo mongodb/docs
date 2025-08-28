@@ -12,7 +12,12 @@ atlas api onlineArchive
    :depth: 1
    :class: singlecol
 
-`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns, adds, edits, or removes an online archive.
+`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, edits, or removes an online archive.
+
+The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
+
+
 
 Options
 -------
@@ -44,17 +49,17 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Related Commands
 ----------------
 
-* :ref:`atlas-api-onlineArchive-createOnlineArchive` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Creates one online archive.
-* :ref:`atlas-api-onlineArchive-deleteOnlineArchive` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Removes one online archive.
-* :ref:`atlas-api-onlineArchive-downloadOnlineArchiveQueryLogs` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Downloads query logs for the specified online archive.
-* :ref:`atlas-api-onlineArchive-getOnlineArchive` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns one online archive for one cluster.
-* :ref:`atlas-api-onlineArchive-listOnlineArchives` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns details of all online archives.
-* :ref:`atlas-api-onlineArchive-updateOnlineArchive` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Updates, pauses, or resumes one online archive.
+* :ref:`atlas-api-onlineArchive-createOnlineArchive` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one online archive.
+* :ref:`atlas-api-onlineArchive-deleteOnlineArchive` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one online archive.
+* :ref:`atlas-api-onlineArchive-downloadOnlineArchiveQueryLogs` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Downloads query logs for the specified online archive.
+* :ref:`atlas-api-onlineArchive-getOnlineArchive` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one online archive for one cluster.
+* :ref:`atlas-api-onlineArchive-listOnlineArchives` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns details of all online archives.
+* :ref:`atlas-api-onlineArchive-updateOnlineArchive` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates, pauses, or resumes one online archive.
 
 
 .. toctree::

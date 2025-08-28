@@ -47,6 +47,18 @@ Options
      - Flag that disables the Data Explorer project setting.
 
        Mutually exclusive with --enableDataExplorer.
+   * - --disableDataExplorerGenAIFeatures
+     - 
+     - false
+     - Flag that disables the Data Explorer GenAI Features project setting.
+
+       Mutually exclusive with --enableDataExplorerGenAIFeatures.
+   * - --disableDataExplorerGenAISampleDocumentPassing
+     - 
+     - false
+     - Flag that disables the Data Explorer GenAI Sample Document Passing project setting.
+
+       Mutually exclusive with --enableDataExplorerGenAISampleDocumentPassing.
    * - --disablePerformanceAdvisor
      - 
      - false
@@ -77,6 +89,18 @@ Options
      - Flag that enables the Data Explorer project setting.
 
        Mutually exclusive with --disableDataExplorer.
+   * - --enableDataExplorerGenAIFeatures
+     - 
+     - false
+     - Flag that enables the Data Explorer GenAI Features project setting.
+
+       Mutually exclusive with --disableDataExplorerGenAIFeatures.
+   * - --enableDataExplorerGenAISampleDocumentPassing
+     - 
+     - false
+     - Flag that enables the Data Explorer GenAI Sample Document Passing project setting.
+
+       Mutually exclusive with --disableDataExplorerGenAISampleDocumentPassing.
    * - --enablePerformanceAdvisor
      - 
      - false
@@ -122,7 +146,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Output
 ------

@@ -16,7 +16,7 @@ Create an online archive for a collection in the specified cluster.
 
 You can create an online archive for an M10 or larger cluster.
 		
-To learn more about online archives, see https://www.mongodb.com/docs/atlas/online-archive/overview/.
+To learn more about online archives, see https://www.mongodb.com/docs/atlas/online-archive/manage-online-archive/.
 
 To use this command, you must authenticate with a user account or an API key with the Project Data Access Admin role.
 
@@ -120,7 +120,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Examples
 --------

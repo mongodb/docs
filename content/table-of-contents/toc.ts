@@ -1,31 +1,28 @@
-import AtlasArchData from './data/atlas-architecture';
-import CloudDocsData from './data/cloud-docs';
-import CloudMangerData from './data/cloud-manager';
-import ToolsData from './data/database-tools';
-import ManualData from './data/server-manual';
-import ClientLibData from './L2-data/client-libraries';
-import PricingData from './L2-data/pricing';
+import AtlasArchData from './L1-data/atlas-architecture-center';
+import ToolsData from './L1-data/tools';
+import DevelopmentData from './L1-data/development';
+import ManagementData from './L1-data/management';
+import ClientLibData from './L1-data/client-libraries';
 import type { TocItem } from './types';
 
-// These are all the L1's for the ToC
+// These are all the L1's for the ToC - BIANCA
 export const toc: TocItem[] = [
   {
     label: 'Get Started',
-    contentSite: 'cloud-docs',
-    url: '/docs/atlas/',
-    items: CloudDocsData,
+    contentSite: 'landing',
+    url: '/docs/get-started',
   },
   {
     label: 'Development',
-    contentSite: 'docs',
-    url: '/docs/manual',
-    items: ManualData,
+    contentSite: 'landing',
+    url: '/docs/development',
+    items: DevelopmentData,
   },
   {
     label: 'Management',
-    contentSite: 'cloud-manager',
-    url: '/docs/cloud-manager/',
-    items: CloudMangerData,
+    contentSite: 'landing',
+    url: "/docs/management",
+    items: ManagementData,
   },
   {
     label: 'Client Libraries',
@@ -35,15 +32,9 @@ export const toc: TocItem[] = [
   },
   {
     label: 'Tools',
-    contentSite: 'database-tools',
-    url: '/docs/database-tools',
+    contentSite: "landing",
+    url: "/docs/tools-and-connectors",
     items: ToolsData,
-  },
-  {
-    label: 'Plans and Pricing',
-    contentSite: 'docs',
-    url: '/docs/:version',
-    items: PricingData,
   },
   {
     label: 'Atlas Architecture Center',

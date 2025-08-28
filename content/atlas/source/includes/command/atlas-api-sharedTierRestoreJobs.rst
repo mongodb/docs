@@ -12,7 +12,12 @@ atlas api sharedTierRestoreJobs
    :depth: 1
    :class: singlecol
 
-`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns and adds restore jobs for shared-tier database deployments.
+`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns and adds restore jobs for shared-tier database deployments.
+
+The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
+
+
 
 Options
 -------
@@ -44,14 +49,14 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Related Commands
 ----------------
 
-* :ref:`atlas-api-sharedTierRestoreJobs-createSharedClusterBackupRestoreJob` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Restores the specified M2 or M5 cluster.
-* :ref:`atlas-api-sharedTierRestoreJobs-getSharedClusterBackupRestoreJob` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns the specified restore job for the specified M2 or M5 cluster.
-* :ref:`atlas-api-sharedTierRestoreJobs-listSharedClusterBackupRestoreJobs` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all restore jobs for the specified M2 or M5 cluster.
+* :ref:`atlas-api-sharedTierRestoreJobs-createSharedClusterBackupRestoreJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Restores the specified M2 or M5 cluster.
+* :ref:`atlas-api-sharedTierRestoreJobs-getSharedClusterBackupRestoreJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the specified restore job for the specified M2 or M5 cluster.
+* :ref:`atlas-api-sharedTierRestoreJobs-listSharedClusterBackupRestoreJobs` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all restore jobs for the specified M2 or M5 cluster.
 
 
 .. toctree::

@@ -12,7 +12,12 @@ atlas api flexRestoreJobs
    :depth: 1
    :class: singlecol
 
-`experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns and adds restore jobs for flex database deployments.
+`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns and adds restore jobs for flex database deployments.
+
+The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
+
+
 
 Options
 -------
@@ -44,14 +49,14 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
 
 Related Commands
 ----------------
 
-* :ref:`atlas-api-flexRestoreJobs-createFlexBackupRestoreJob` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Restores one snapshot of one flex cluster from the specified project.
-* :ref:`atlas-api-flexRestoreJobs-getFlexBackupRestoreJob` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns one restore job for one flex cluster from the specified project.
-* :ref:`atlas-api-flexRestoreJobs-listFlexBackupRestoreJobs` - `experimental <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-api/>`_: Returns all restore jobs for one flex cluster from the specified project.
+* :ref:`atlas-api-flexRestoreJobs-createFlexBackupRestoreJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Restores one snapshot of one flex cluster from the specified project.
+* :ref:`atlas-api-flexRestoreJobs-getFlexBackupRestoreJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one restore job for one flex cluster from the specified project.
+* :ref:`atlas-api-flexRestoreJobs-listFlexBackupRestoreJobs` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all restore jobs for one flex cluster from the specified project.
 
 
 .. toctree::
