@@ -7,7 +7,28 @@ import Header from "@/components/header";
 import Footer from "@/components/footer";
 import { LeafyGreenProvider } from "./emotion";
 import layoutStyles from "./layout.module.scss";
-import Tag from "@/components/tag";
+import IconBook from "@/components/icons/Book";
+import IconCompass from "@/components/icons/Compass";
+import IconC from "@/components/icons/C";
+import IconCpp from "@/components/icons/Cpp";
+import IconCsharp from "@/components/icons/Csharp";
+import IconDarkmode from "@/components/icons/DarkMode";
+import IconDart from "@/components/icons/Dart";
+import IconGo from "@/components/icons/Go";
+import IconJava from "@/components/icons/Java";
+import IconJavascript from "@/components/icons/Javascript";
+import IconKotlin from "@/components/icons/Kotlin";
+import IconLightningBolt from "@/components/icons/LightningBolt";
+import IconNode from "@/components/icons/Node";
+import IconObjectiveC from "@/components/icons/ObjectiveC";
+import IconPhp from "@/components/icons/Php";
+import IconPython from "@/components/icons/Python";
+import IconRuby from "@/components/icons/Ruby";
+import IconRust from "@/components/icons/Rust";
+import IconScala from "@/components/icons/Scala";
+import IconShell from "@/components/icons/Shell";
+import IconSwift from "@/components/icons/Swift";
+import IconTypescript from "@/components/icons/Typescript";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -38,8 +59,28 @@ export default function RootLayout({
               }}
             >
               REPLACE WITH SIDENAV
-              <Tag variant={'blue'}>Tag time!</Tag>
-              <Tag variant={'green'}>Greenie time!</Tag>
+              <IconBook />
+              <IconCompass />
+              <IconC />
+              <IconCpp />
+              <IconCsharp />
+              <IconDarkmode />
+              <IconDart />
+              <IconGo />
+              <IconJava />
+              <IconJavascript />
+              <IconKotlin />
+              <IconLightningBolt />
+              <IconNode />
+              <IconObjectiveC />
+              <IconPhp />
+              <IconPython />
+              <IconRuby />
+              <IconRust />
+              <IconScala />
+              <IconShell />
+              <IconSwift />
+              <IconTypescript />
             </div>
             {children}
             <Footer />
