@@ -1,29 +1,26 @@
 .. procedure::
    :style: normal
 
-   .. step:: Copy the data in the {+gcs+} bucket using the ``gcloud`` CLI and extract the data.
+   .. step:: Copy the data in the {+az-bs+} container using the ``azcopy`` CLI and extract the data.
 
       .. code-block:: shell
 
-	 gsutil -m cp -r "gs://<bucketName>/<prefix> <downloadFolder>" --recursive
-	 gunzip -r <downloadFolder>
+	 azcopy copy "https://<storageAccountName>.blob.core.windows.net/<containerName>/<prefix>/*" "<downloadFolder>" --recursive
 	 
       where: 
 
       .. list-table:: 
 	 :widths: 30 70 
 
-	 * - ``<bucketName>`` 
-	   - Name of the {+gcp+} bucket.
+         * - ``<storageAccountName>``
+	   - Name of the |azure| account to which the blob storage
+	     container belongs.
+		  
+	 * - ``<containerName>`` 
+	   - Name of the |azure| blob storage container.
 
 	 * - ``<prefix>``
-	   - Path to archived data in the bucket. The path has the 
-	     following format:
-
-	     .. code-block:: shell 
-		:copyable: false 
-
-		/exported_snapshots/<orgId>/<projectId>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/
+	   - Path to archived data in the bucket.
 
 	 * - ``<downloadFolder>``
 	   - Path to the local folder where you want to copy the archived 
@@ -34,11 +31,7 @@
 	 .. code-block:: shell 
 	    :copyable: false
 
-	    gsutil -m cp -r
-	    gs://export-test-bucket/exported_snapshots/1ab2cdef3a5e5a6c3bd12de4/12ab3456c7d89d786feba4e7/myCluster/2021-04-24T0013/1619224539
-	    mybucket --recursive
-	    gunzip -r mybucket
-
+	    azcopy copy	"https://mystorageaccount.blob.core.windows.net/mycontainer/myTextFile.txt" "~/downloads" --recursive
 	    
    .. step:: Copy and store the following script in a file named ``massimport.sh``.
 
@@ -81,8 +74,7 @@
 	documents from an archive. 
       - ``--uri`` specifies the connection string for the |service| cluster.	     
 
-   .. step:: Run the ``massimport.sh`` utility to import the archived
-      data into the {+service+} cluster.
+   .. step:: Run the ``massimport.sh`` utility to import the archived data into the {+service+} cluster.
 
       .. code-block:: shell 
 
@@ -104,4 +96,4 @@
 	 .. code-block:: shell 
 	    :copyable: false
 
-	    sh massimport.sh mybucket "mongodb+srv://<myConnString>"
+	    sh massimport.sh "~/downloads" "mongodb+srv://<myConnString>"
