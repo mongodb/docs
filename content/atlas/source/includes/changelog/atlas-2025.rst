@@ -1,3 +1,17 @@
+.. _atlas_2025_08_27:
+
+27 August 2025 Release
+~~~~~~~~~~~~~~~~~~~~~~  
+
+- Introduces Intelligent Workload Management (IWM), a dynamic resource manager
+  in |service|. :abbr:`IWM (Intelligent Workload Management)` enables
+  real-time workload monitoring and automated safeguards to maintain
+  high availability under load. The first policy, now active for eligible
+  clusters, blocks user writes when disk space is nearly full to prevent
+  node crashes and maintain read availability. To learn more, see :ref:`Write-Blocking <cluster-blocking-writes>`.
+  If you enable auto-scaling, your cluster has the opportunity to scale up
+  before write-blocking behavior activates.
+
 
 .. _atlas_2025_08_06:
 
