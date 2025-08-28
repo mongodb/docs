@@ -332,6 +332,47 @@ The TTL monitor stops when ``mongod`` runs in standalone mode and the
 set node out of the replica set and run it as a standalone, then the 
 TTL monitor is disabled.
 
+TTL and Schema validation
+-------------------------
+
+Even though TTL indexes do not require schema validation, using validation
+can help ensure consistent behavior by standardizing
+the existence and format of the date field used for expiration.
+
+For example, you can use schema validation to enforce the presence of a
+``lastModifiedDate`` field and ensure its value adheres to a valid date
+format:
+
+.. code-block:: javascript
+
+   db.createCollection(
+      "eventlog",
+      {
+         validator: {
+            $jsonSchema: {
+               bsonType: "object",
+               required: [ "lastModifiedDate" ],
+               properties: {
+                  lastModifiedDate: {
+                     bsonType: "date",
+                     description: "Must be a valid date."
+                  }
+               }
+            }
+         }
+      }
+   )
+
+This schema validation rule ensures that:
+
+- Every document in the ``eventlog`` collection includes the
+  ``lastModifiedDate`` field.
+- The ``lastModifiedDate`` field contains a valid date value.
+
+.. seealso::
+
+   :ref:`Schema Validation <schema-validation-document>`.
+
 Restrictions
 ------------
 
