@@ -35,7 +35,7 @@ const tocData: TocItem[] = [
       {
         label: "Kubernetes Operator (Deprecated)",
         contentSite: "docs-k8s-operator",
-        url: "/docs/kubernetes-operator/:version/",
+        url: "/docs/kubernetes-operator/v1.33/",
         items: EnterpriseK8sData,
         showSubNav: true,
       },
