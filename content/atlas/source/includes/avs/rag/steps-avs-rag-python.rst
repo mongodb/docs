@@ -244,7 +244,7 @@
       #. Define a function to run vector search queries.
 
          Run this code to create a retrieval function called
-         ``get_query_results`` that runs a basic vector search query.
+         ``get_query_results()`` that runs a basic vector search query.
          It uses the ``get_embedding()`` function to create embeddings from the
          search query. Then, it runs the query to return semantically similar
          documents. Your results might vary depending on the embedding model you use.
@@ -403,7 +403,7 @@
       as context. For this tutorial, you can use a model from OpenAI or an 
       open-source model from Hugging Face. This code does the following:
 
-      - Uses the ``get_query_results`` function you defined to retrieve 
+      - Uses the ``get_query_results()`` function you defined to retrieve 
         relevant documents from |service|.
       - Creates a prompt using the user's question and retrieved
         documents as context.
