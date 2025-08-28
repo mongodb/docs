@@ -20,16 +20,15 @@ const PRETTIER_CONFIG_PATH = path.resolve(SCRIPT_DIRECTORY, '.prettierrc');
 
 // Check if Bluehawk is installed
 function isBluehawkInstalled() {
-  const errorString = 'This script requires Bluehawk. Please run "npm install -g bluehawk" in the terminal, and then re-run this script.';
+  const errorString =
+    'This script requires Bluehawk. Please run "npm install -g bluehawk" in the terminal, and then re-run this script.';
 
-  const result = spawnSync("which", ["bluehawk"], { encoding: "utf-8" });
+  const result = spawnSync('which', ['bluehawk'], { encoding: 'utf-8' });
 
   // If the spawnSync operation returns an exit code of 1, there was an error
   // running 'which bluehawk' and we can assume Bluehawk isn't installed
   if (result.status == 1) {
-    console.error(
-      errorString
-    );
+    console.error(errorString);
     return false;
   }
   return true;

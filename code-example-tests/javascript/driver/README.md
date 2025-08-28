@@ -212,6 +212,34 @@ for details.
 For an example you can copy/paste to stub out your own test case, refer to
 `tests/example.test.js`.
 
+#### Writing tests that use sample data
+
+If your code examples require MongoDB sample data, import the sample data utilities:
+
+```javascript
+import { describeWithSampleData, itWithSampleData } from '../utils/sampleDataChecker.js';
+```
+
+Use `describeWithSampleData()` for test suites that entirely depend on sample data,
+or `itWithSampleData()` for individual test cases. Tests automatically skip when
+required sample databases are not available.
+
+```javascript
+// Entire test suite requires sample data
+describeWithSampleData('Movie Tests', () => {
+  it('should find movies', async () => {
+    const result = await runMovieQuery();
+    expect(result.length).toBeGreaterThan(0);
+  });
+}, 'sample_mflix');
+
+// Individual test case
+itWithSampleData('should query restaurants', async () => {
+  const result = await runRestaurantQuery();
+  expect(result.length).toBeGreaterThan(0);
+}, 'sample_restaurants');
+```
+
 ### Define logic to verify the output
 
 You can verify the output in a few different ways:
@@ -243,83 +271,155 @@ expect(actualReturn).toStrictEqual(expectedReturn);
 #### Verify output from a file
 
 If you are showing the output in the docs, write the output to a file whose
-filename matches the example - i.e. `tutorial-output.sh`. Then, read the
-contents of the file in the test and verify that the output matches what the
-test returns.
+filename matches the example - i.e. `tutorial-output.sh`. Then, use the
+`outputMatchesExampleOutput` helper function to verify that the output matches
+what the test returns.
+
+Import the helper function at the top of the test file:
+
+```javascript
+import outputMatchesExampleOutput from '../../../utils/outputMatchesExampleOutput.js';
+```
+
+Use this function to verify the output based on what your output contains:
 
 ```javascript
 const result = await runTutorial();
-const outputFilepath =
-  'aggregation/pipelines/filter/expected-outputs/tutorial.sh';
-
-// Read the content of the expected output
-const filepathString = '../examples/' + outputFilepath;
-const outputFilePath = path.resolve(__dirname, filepathString);
-const rawExpectedOutput = fs.readFileSync(outputFilePath, 'utf8');
+const outputFilepath = 'aggregation/pipelines/filter/tutorial-output.sh';
+const comparisonOptions = { comparisonType: 'ordered' };
+const arraysMatch = outputMatchesExampleOutput(
+  outputFilepath,
+  result,
+  comparisonOptions
+);
+expect(arraysMatch).toBe(true);
 ```
 
-By default, MongoDB does not guarantee the order of output. If you are not
-performing a sort operation, use the logic below to verify unordered output.
-If you are using a sort operation in your code, use the logic below to verify
-ordered output.
+The `comparisonOptions` parameter is an object that controls how the comparison
+is performed. Choose the appropriate options based on your output characteristics:
+
+##### Verify unordered output (default behavior)
+
+For output that can be in any order (most common case):
+
+```javascript
+// Pass the `comparisonType` option explicitly:
+const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
+  comparisonType: 'unordered',
+});
+
+// Omit the options object (unordered comparison is used by default)
+const arraysMatch = outputMatchesExampleOutput(outputFilepath, result);
+```
+
 
 ##### Verify ordered output
 
-If you expect the output to be in a specific order, as when you perform a sort
-in your code example, expect an exact match:
+For output that must be in a specific order (e.g., when using sort operations):
 
 ```javascript
-expect(rawExpectedOutput).toStrictEqual(result);
+const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
+  comparisonType: 'ordered',
+});
 ```
 
-If your output contains MongoDB data types that require special handling when
-reading from file, you can use the provided helper function to read the output.
+##### Handle variable field values
 
-Import the helper function at the top of the test file:
+When your output contains fields that will have different values between test runs
+(such as ObjectIds, timestamps, UUIDs, or other auto-generated values), ignore
+specific fields during comparison:
 
 ```javascript
-import outputMatchesExampleOutput from '../../../utils/outputMatchesExampleOutput.js';
+const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
+  comparisonType: 'unordered',
+  ignoreFieldValues: ['_id', 'timestamp', 'userId', 'uuid', 'sessionId'],
+});
 ```
 
-And then use this function to verify the output, providing the `'ordered'` parameter:
+This ensures the comparison only validates that the field names are present,
+without checking if the values match exactly. This is particularly useful for:
+
+- **Database IDs**: `_id`, `userId`, `documentId`
+- **Timestamps**: `createdAt`, `updatedAt`, `timestamp`
+- **UUIDs and tokens**: `uuid`, `sessionId`, `apiKey`
+- **Auto-generated values**: Any field with dynamic content
+
+##### Handle flexible content in output files
+
+For output files that truncate the actual output to show only what's relevant
+to our readers, use ellipsis patterns (`...`) in your output files to enable
+flexible content matching. Our tooling automatically detects and handles these
+patterns.
+
+###### Shorten string values
+
+You can use an ellipsis at the end of a string value to shorten it in the
+example output. This will match any number of characters in the actual return
+after the `...`.
+
+In the expected output file, add an ellipsis to the end of a string value:
+
+```txt
+{
+  plot: 'A young man is accidentally sent 30 years into the past...',
+}
+```
+
+This matches the actual output of:
+
+```txt
+{
+  plot: 'A young man is accidentally sent 30 years into the past in a time-traveling DeLorean invented by his close friend, the maverick scientist Doc Brown.',
+}
+```
+
+###### Omit unimportant values for keys
+
+If it's not important to show the value or type for a given key at all,
+replace the value with an ellipsis in the expected output file.
+
+```txt
+`{_id: ...}`
+```
+
+Matches any value for the key `_id` in the actual output.
+
+###### Omit any number of keys and values entirely
+
+If actual output contains many keys and values that are not necessary to show
+to illustrate an example, add an ellipsis as a standalone line in your
+expected output file:
+
+```txt
+{
+  full_name: 'Carmen Sandiego',
+  ...
+}
+```
+
+Matches actual output that contains any number of additional keys and values
+beyond the `full_name` field.
+
+You can also interject standalone `...` lines between properties, similar to:
+
+```txt
+{
+  full_name: 'Carmen Sandiego',
+  ...
+  address: 'Somewhere in the world...'
+}
+```
+
+##### Complete options reference
+
+The `options` object supports these properties:
 
 ```javascript
-const arraysMatch = outputMatchesExampleOutput(
-  outputFilepath,
-  result,
-  'ordered'
-);
-expect(arraysMatch).toBeTruthy();
+{
+  comparisonType: 'ordered' | 'unordered',        // Default: 'unordered'
+  ignoreFieldValues: ['field1', 'field2']         // Default: []
+}
 ```
-
-The function returns `true` if all elements are present and in the correct order, or
-`false` if they're not.
-
-##### Verify unordered output
-
-If you expect the output to be in a random order, as when you are not performing
-a sort operation, use the provided helper function to confirm that every element
-of the output is present in your output file.
-
-Import the helper function at the top of the test file:
-
-```javascript
-import outputMatchesExampleOutput from '../../../utils/outputMatchesExampleOutput.js';
-```
-
-And then use this function to verify the output, providing the `'unordered'` parameter:
-
-```javascript
-const arraysMatch = outputMatchesExampleOutput(
-  outputFilepath,
-  result,
-  'unordered'
-);
-expect(arraysMatch).toBeTruthy();
-```
-
-The function returns `true` if all the elements are present, or `false` if
-they're not.
 
 ## To run the tests locally
 
@@ -329,6 +429,66 @@ To run these tests locally, you need a local MongoDB deploy or an Atlas cluster.
 Save the connection string for use in the next step. If needed, see
 [here](https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-deploy-local/)
 for how to create a local deployment.
+
+### Load sample data
+
+Some of the tests in this project use the MongoDB sample data. The test suite
+automatically detects whether sample data is available and skips tests that
+require missing datasets, providing clear feedback about what's available.
+
+#### Automatic sample data detection
+
+The test suite includes built-in sample data detection that:
+
+- **Automatically skips tests** when required sample datasets are not available
+- **Shows a status summary** at the start of test runs indicating available databases
+- **Provides concise warnings** about which specific tests are being skipped
+- **Caches detection results** to avoid repeated database queries during test runs
+- **Works seamlessly** - no special commands or scripts needed
+
+When you run tests, you'll see a status summary like:
+
+```
+📊 Sample Data Status: 3 database(s) available
+   Found: sample_mflix, sample_restaurants, sample_analytics
+
+⚠️  Skipping "Advanced Movie Analysis" - Missing: sample_training
+```
+
+#### Atlas
+
+To learn how to load sample data in Atlas, refer to this docs page:
+
+- [Atlas](https://www.mongodb.com/docs/atlas/sample-data/)
+
+#### Local deployment
+
+If you're running MongoDB locally in a docker container:
+
+1. Install the MongoDB Database Tools.
+
+   You must install the MongoDB Command Line Database Tools to access the
+   `mongorestore` command, which you'll use to load the sample data. Refer to
+   the Database Tools [Installation](https://www.mongodb.com/docs/database-tools/installation/)
+   docs for details.
+
+2. Download the sample database.
+
+   Run the following command in your terminal to download the sample data:
+
+   ```shell
+   curl  https://atlas-education.s3.amazonaws.com/sampledata.archive -o sampledata.archive
+   ```
+
+3. Load the sample data.
+
+   Run the following command in your terminal to load the data into your
+   deployment, replacing `<port-number>` with the port where you're hosting the
+   deployment:
+
+   ```shell
+   mongorestore --archive=sampledata.archive --port=<port-number>
+   ```
 
 ### Create a .env file
 

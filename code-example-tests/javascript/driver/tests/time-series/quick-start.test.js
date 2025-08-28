@@ -26,11 +26,9 @@ describe('Time series quick start tests', () => {
     const result = await runMetaFieldQuery();
     const outputFilepath =
       'time-series/quick-start/quick-start-meta-field-output.sh';
-    const arraysMatch = outputMatchesExampleOutput(
-      outputFilepath,
-      result,
-      'unordered'
-    );
+    const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
+      comparisonType: 'unordered',
+    });
     expect(arraysMatch).toBe(true);
   });
 
@@ -38,11 +36,9 @@ describe('Time series quick start tests', () => {
     const result = await runTimeFieldQuery();
     const outputFilepath =
       'time-series/quick-start/quick-start-time-field-output.sh';
-    const arraysMatch = outputMatchesExampleOutput(
-      outputFilepath,
-      result,
-      'unordered'
-    );
+    const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
+      comparisonType: 'unordered',
+    });
     expect(arraysMatch).toBe(true);
   });
 });
