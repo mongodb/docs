@@ -6,6 +6,7 @@ from django_mongodb_backend.expressions import (
 )
 # start-models
 from django.db import models
+from django.contrib.gis.db import models
 from django_mongodb_backend.fields import ArrayField
 
 class Movie(models.Model):
@@ -22,15 +23,15 @@ class Movie(models.Model):
         return self.title
 
 class Theater(models.Model):
-    theaterId = models.IntegerField(default=0)
-    location = models.JSONField(null=True)
+    theater_id = models.IntegerField(default=0, db_column="theaterId")
+    geo = models.PointField(db_column="location.geo")
 
     class Meta:
         db_table = "theaters"
         managed = False
     
     def __str__(self):
-        return self.theaterId
+        return self.theater_id
 # end-models
 
 # start-search-equals
@@ -79,11 +80,22 @@ Movie.objects.annotate(score=SearchWildcard(path="title", query="Star*"))
 # end-search-wildcard
 
 # start-search-geo-shape
-polygon = {"type": "Polygon", "coordinates": [[[0, 0], [3, 6], [6, 1], [0, 0]]]}
-Theater.objects.annotate(score=SearchGeoShape(
-    path="location", 
+chicago = {
+    "type": "Polygon",
+    "coordinates": [
+        [
+            [-87.851, 41.976],
+            [-87.851, 41.653],
+            [-87.651, 41.653],
+            [-87.651, 41.976],
+            [-87.851, 41.976],
+        ]
+    ]
+}
+theaters = Theater.objects.annotate(score=SearchGeoShape(
+    path="geo", 
     relation="within", 
-    geometry=polygon
+    geometry=chicago
 ))
 # end-search-geo-shape
 
@@ -92,8 +104,8 @@ circle = {
     "center": {"type": "Point", "coordinates": [-73.98, 40.75]},
     "radius": 5000
 }
-Theater.objects.annotate(score=SearchGeoWithin(
-    path="location", 
+theaters = Theater.objects.annotate(score=SearchGeoWithin(
+    path="geo", 
     kind="circle", 
     geometry=circle
 ))
