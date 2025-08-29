@@ -1,0 +1,148 @@
+.. _mcp-server-oidc:
+
+==================================
+Connect with OpenID Connect (OIDC)
+==================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to connect to a MongoDB deployment using OpenID Connect (OIDC) authentication with the MongoDB MCP server.
+   :keywords: MCP, MCP server, OIDC, OpenID Connect, authentication, security, browser, device auth
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can connect to a MongoDB Enterprise deployment or MongoDB Atlas cluster
+using OpenID Connect (OIDC) authentication
+with the MongoDB MCP server.
+
+To learn more, see :manual:`Authentication and Authorization with OIDC/OAuth 2.0 
+</core/security-oidc/>`.
+
+Configuration Options
+---------------------
+
+To connect to a MongoDB deployment
+with OIDC, configure the following options in your
+:ref:`MCP server configuration <mcp-server-configuration>`:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 10 10 40
+
+   * - CLI Option Name
+     - OS Environment Variable Name
+     - Type
+     - Necessity
+     - Description
+
+   * - ``authenticationMechanism``
+     - ``MDB_MCP_AUTHENTICATION_MECHANISM``
+     - string
+     - Required
+     - Set to ``MONGODB-OIDC`` to use OIDC authentication.
+
+   * - ``oidcFlows``
+     - ``MDB_MCP_OIDC_FLOWS``
+     - array of strings
+     - Optional
+     - Specifies OIDC flows in a comma-separated list.
+       The OIDC flows specify how the MongoDB MCP server
+       interacts with the identity provider for the authentication process.
+       The MongoDB MCP server supports the following OIDC flows:
+       ``auth-code``, ``device-auth``.
+
+   * - ``oidcRedirectUri``
+     - ``MDB_MCP_OIDC_REDIRECT_URI``
+     - string
+     - Optional
+     - Specifies a URI where the identity provider redirects you after authentication.
+       The URI must match the configuration of the identity provider.
+       Default: ``http://localhost:27097/redirect``.
+
+   * - ``browser``
+     - ``MDB_MCP_BROWSER``
+     - string
+     - Optional
+     - Specifies the browser the MongoDB MCP server redirects you to when
+       ``MONGODB-OIDC`` is enabled. 
+
+   * - ``oidcIdTokenAsAccessToken``
+     - ``MDB_MCP_OIDC_ID_TOKEN_AS_ACCESS_TOKEN``
+     - boolean
+     - Optional
+     - Specifies whether the MongoDB MCP server uses the ID token received
+       from the identity provider instead of the access token. Use this
+       option with identity providers that you can't configure to provide JWT access tokens.
+
+   * - ``oidcTrustedEndpoint``
+     - ``MDB_MCP_OIDC_TRUSTED_ENDPOINT``
+     - string
+     - Optional
+     - Specifies a connection to a trusted endpoint that is not Atlas or
+       localhost to ensure that access tokens are sent to trusted servers.
+       Only use this option when connecting to servers that you trust.
+
+OIDC Flows
+----------
+
+The MongoDB MCP server supports two OIDC flows:
+
+- Authorization Code Flow (default)
+- Device Authorization Grant Flow (when browser-based authentication isn't available)
+
+.. note::
+
+   When you configure the MongoDB MCP Server to accept remote connections, 
+   it uses Device Authorization Grant Flow.
+
+.. tabs::
+
+   .. tab:: Authorization Code Flow
+      :tabid: auth-code-flow
+
+      The Authorization Code Flow is the default OIDC mechanism. In
+      this flow, the user authenticates with the identity provider (IdP)
+      in a browser and the MCP server exchanges the authorization code for tokens.
+
+      - If you start the server with a MongoDB connection string,
+        the server completes browser-based authentication on startup.
+
+      - If you use the MCP server's ``connect`` tool, authentication runs
+        interactively. While authentication is in progress, operations that require a
+        database connection are unavailable. If sign-in does not complete promptly,
+        the attempt times out and you can try again. You can view your MCP server logs 
+        for details.
+
+   .. tab:: Device Authorization Grant Flow
+      :tabid: device-auth-flow
+
+      In environments where a browser is not available, the MCP Server uses
+      the Device Authorization Grant Flow. Device
+      authorization is available when the MCP Server runs with HTTP transport.
+      For instructions on running the MCP Server with 
+      HTTP transport (``--transport http``), see :ref:`mcp-server-configuration`.
+
+      To initiate device authorization:
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Start the MCP Server.
+
+         .. step:: Run the ``connect`` tool to begin device authorization.
+
+         .. step:: Follow the instructions to open the verification URL and enter the user code.
+
+      While authentication is in progress, operations that require a database
+      connection are unavailable. If sign-in does not complete promptly, the attempt
+      times out and you can try again. Refer to your MCP server logs for details.
+      

@@ -32,6 +32,38 @@ const tocData: TocItem[] = [
         url: "/docs/mcp-server/configuration",
       },
       {
+        label: "Security",
+        contentSite: "mcp-server",
+        url: "/docs/mcp-server/security",
+        items: [
+          {
+            label: "OIDC",
+            contentSite: "mcp-server",
+            url: "/docs/mcp-server/security/connect-with-oidc",
+          },
+          {
+            label: "LDAP",
+            contentSite: "mcp-server",
+            url: "/docs/mcp-server/security/connect-with-ldap",
+          },
+          {
+            label: "Kerberos",
+            contentSite: "mcp-server",
+            url: "/docs/mcp-server/security/connect-with-kerberos",
+          },
+          {
+            label: "x.509",
+            contentSite: "mcp-server",
+            url: "/docs/mcp-server/security/connect-with-x509",
+          },
+          {
+            label: "Proxy",
+            contentSite: "mcp-server",
+            url: "/docs/mcp-server/security/connect-with-proxy",
+          },        
+        ],
+      },
+      {
         label: "Tools",
         contentSite: "mcp-server",
         url: "/docs/mcp-server/tools",
