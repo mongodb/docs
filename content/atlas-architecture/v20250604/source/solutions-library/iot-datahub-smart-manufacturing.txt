@@ -1,0 +1,265 @@
+.. _arch-center-is-manufacturing-iot-data-hub-solution:
+
+================================================ 
+Building an IoT Data Hub for Smart Manufacturing 
+================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Use streaming data from edge devices to power machine learning models
+and smart applications by integrating MongoDB Atlas with Microsoft Azure
+IoT.
+
+**Use cases:** `IoT <https://www.mongodb.com/use-cases/internet-of-things>`__, 
+`Analytics <https://www.mongodb.com/use-cases/analytics>`__
+
+**Industries:** `Manufacturing and Mobility <https://www.mongodb.com/industries/manufacturing>`__
+
+**Products and tools:**  `Atlas <https://www.mongodb.com/atlas>`__, `Time Series <https://www.mongodb.com/time-series>`__,
+`Atlas Charts <https://www.mongodb.com/products/charts>`__, `Connector for Business Intelligence <https://www.mongodb.com/products/bi-connector>`__
+
+**Partners:** `Microsoft Azure <https://www.mongodb.com/mongodb-on-azure>`__
+
+Solution Overview
+-----------------
+
+The modern factory floor is full of unique machines and widgets, each
+producing its own sets of data, and interconnecting with each other to
+make a complex system that supports complex manufacturing processes and
+produces countless goods.
+
+Being able to understand how the system is operating, and how to
+troubleshoot errors and bottlenecks, is critical to driving operational
+efficiency and building smarter manufacturing applications.
+
+This solution shows how MongoDB Atlas can be used to radically simplify
+an IoT landscape, taking data from disparate edge devices and using that
+data to power smart applications for a variety of data consumers.
+
+Other Applicable Industries and Use Cases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Automotive**: Automotive is a subset of manufacturing. Car makers need
+to develop efficient production factories and manage a complex inventory
+of parts and services in order to maximize throughput of finished cars.
+
+**Telecommunications**: Telecommunications is at the heart of edge and
+IoT as more people around the world conduct their lives and businesses
+through mobile and connected devices.
+
+**Healthcare**: The healthcare industry is proving to be one of the
+largest industries affected by IoT. Wearable and connected devices are
+critical for providing care both within medical institutions and
+increasingly in other areas, such as within a patient’s own home and on
+their personal devices.
+
+Reference Architectures
+-----------------------
+
+Without MongoDB
+~~~~~~~~~~~~~~~
+
+It’s common in many manufacturing environments to have unique systems
+running their own proprietary software, often with a relational database
+in the background, or a niche database covering time-series and graph
+use cases.
+
+The challenge with this approach is that as the number and type of
+databases becomes unmanageable, architectural complexity increases, and
+it becomes more difficult to move data between disparate systems and
+connect them to newer, smarter applications.
+
+.. figure:: /includes/images/industry-solutions/Azure Smart IoT Hub - Ref Arch Before state.svg
+   :figwidth: 1200px
+   :alt: Reference Architecture Without MongoDB
+
+   Figure 1. Reference architecture without MongoDB
+
+With MongoDB
+~~~~~~~~~~~~
+
+With MongoDB Atlas, architectural complexity is reduced, as the
+versatility of the document model allows teams to structure data in
+any way their application needs. The expressive API and indexing also
+allow teams to query data any way they want.
+
+.. figure:: /includes/images/industry-solutions/Azure Smart IoT Hub - Ref Arch After state.svg
+   :figwidth: 1200px
+   :alt: Reference Architecture With MongoDB
+
+   Figure 2. Reference architecture with MongoDB
+
+Data Model Approach
+-------------------
+
+Sensors in a factory may be streaming time-series data for multiple
+machines, capturing the following data points:
+
+- Product Type
+- Air Temperature (K)
+- Process Temperature (K)
+- Rotational Speed (rpm)
+- Torque (Nm)
+- Tool Wear (min)
+
+In a relational database, you would likely have to create multiple
+tables to effectively store this varied data. But with MongoDB and
+the flexible document data model, you can use a single collection to
+store all sensor data coming in using 
+`time-series collections <https://www.mongodb.com/docs/manual/core/timeseries/timeseries-procedures/#insert-measurements-into-a-time-series-collection>`__ .
+For example:
+
+.. code-block:: sh
+
+   {
+      "device_id": 1,
+      "sensor_id": 12345,
+      "start_date": ISODate("2023-01-31T10:00:00.000Z"),
+      "end_date": ISODate("2023-01-31T10:59:59.000Z"),
+      "measurements": [
+   {
+      "timestamp": ISODate("2023-01-31T10:00:00.000Z"),
+      "temperature": 298.1
+      "speed": 1551
+      "torque": 42.8
+      "failure": “No failure”
+   },
+   {
+      "timestamp": ISODate("2023-01-31T10:01:00.000Z"),
+      "temperature": 302.4
+      "speed": 1410
+      "torque": 65.7
+      "failure": “Power failure”
+   },
+   ...
+   {
+      "timestamp": ISODate("2023-01-31T10:42:00.000Z"),
+      "temperature": 298.8
+      "speed": 1455
+      "torque": 41.3
+      "failure": “Tool wear failure”
+   }
+   ],
+   "transaction_count": 4223,
+   "avg_temperature": 300.7
+   }
+
+We can then use the MongoDB aggregation framework to easily 
+`query time-series data
+<https://www.mongodb.com/docs/manual/core/timeseries/timeseries-procedures/#query-a-time-series-collection>`__.
+For example, we can group documents by the date of the sensor measurement and return functions like average.
+
+Building the Solution
+---------------------
+
+.. figure:: /includes/images/industry-solutions/Azure Smart IoT Hub - Solution Overview 2.svg
+   :figwidth: 1200px
+   :alt: Solution Overview
+
+   Figure 3. Solution overview
+
+This solution showcases how you can build a smart manufacturing hub
+using MongoDB Atlas and Azure IoT Edge. The example use case is sending
+sensor data from CNC machines to Azure IoT Hub, with selected data
+streamed to MongoDB Atlas for use in a variety of data consumers, such
+as factory workers with mobile devices, and analysts using MongoDB
+Charts.
+
+To illustrate this solution in practice, we will create a machine
+learning model that will predict the root cause of machine failure based
+on sensor data. The detailed guide and associated sample data,
+functions, and code can be found in this `solution repository <https://github.com/mongodb-partners/Azure-IIoT>`__.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Train your ML model
+
+      You can use MongoDB as a feature store to train ML models, and
+      once models are trained, those binaries can be converted and
+      stored in another MongoDB collection for analysis. Refer to this 
+      `notebook <https://github.com/mongodb-partners/Azure-IIoT/blob/main/ml-model/fraud-detection.ipynb>`__ to train your ML model, and once your models are trained, use
+      `this model <https://github.com/mongodb-partners/Azure-IIoT/blob/main/azure-functions/fault_prediction.py#L61>`__ to make predictions using Azure functions.
+
+   .. step:: Set up Azure IoT hub
+
+      We use Azure IoT Hub to connect, monitor, provision, and configure
+      IoT devices. `Use this link <https://learn.microsoft.com/en-us/azure/iot-hub/iot-hub-create-through-portal#create-an-iot-hub>`__ to set up IoT Hub in your Azure
+      account, and when you’re ready, `register <https://learn.microsoft.com/en-us/azure/iot-hub/iot-hub-create-through-portal#register-a-new-device-in-the-iot-hub>`__ a new device.
+
+
+   .. step:: Simulate IoT data
+
+      To generate data for our sample solution, we built `this web app <https://github.com/mongodb-partners/Azure-IIoT/tree/main/web-app>`__ to
+      simulate data flow to Azure IoT.
+
+   .. step:: Serve data to Azure Stream Analytics
+
+      Once data is in Azure IoT Hub, it can then be served to Stream
+      Analytics for filtering, then pushed into MongoDB. Follow these
+      `instructions <https://learn.microsoft.com/en-us/azure/stream-analytics/stream-analytics-quick-create-portal#create-a-stream-analytics-job>`__ to 
+      set up a Stream Analytics job, then add IoT Hub as an input for that job.
+
+   .. step:: Use Azure functions to push data to MongoDB Atlas
+
+      Now that data is in Stream Analytics, you can push it to a
+      time-series collection in MongoDB Atlas using this `function <https://github.com/mongodb-partners/Azure-IIoT/blob/main/azure-functions/telemetry_data.py>`__ to
+      serve a variety of use cases and data consumers. You canalso run
+      your machine learning model to get failure inferences using this
+      `function <https://github.com/mongodb-partners/Azure-IIoT/blob/main/azure-functions/fault_prediction.py>`__.
+
+   .. step:: Use MongoDB Atlas to turn data into insights
+
+      Once your machine failure data is in MongoDB Atlas, you can easily
+      put it in the hands of users through MongoDB’s platform services.
+      You can `build a mobile app <https://github.com/mongodb-partners/Azure-IIoT/tree/main/realm-app>`__ using 
+      `Atlas Device Sync <https://www.mongodb.com/atlas/app-services/device-sync>`__ to send notifications and alerts to floor supervisors, or you can use
+      `Mongo Charts <https://www.mongodb.com/docs/charts/welcome-experience/>`__ to create visualizations for BI teams.        
+
+Technologies and Products Used
+------------------------------
+
+MongoDB Developer Data Platform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- `MongoDB Atlas <https://www.mongodb.com/atlas>`__
+- `Time Series <https://www.mongodb.com/time-series>`__
+- `MongoDB Charts <https://www.mongodb.com/products/charts>`__
+- `MongoDB BI Connector <https://www.mongodb.com/products/bi-connector>`__
+
+Partner Technologies 
+~~~~~~~~~~~~~~~~~~~~
+
+- `Azure IoT Edge <https://learn.microsoft.com/en-us/azure/iot-edge/about-iot-edge?view=iotedge-1.4>`__
+- `Azure IoT Hub <https://azure.microsoft.com/en-us/products/iot-hub/>`__
+- `Azure Stream Analytics <https://azure.microsoft.com/en-us/products/stream-analytics>`__
+- `Azure Machine Learning <https://azure.microsoft.com/en-us/products/machine-learning/>`__
+
+Key Considerations
+------------------
+
+- This solution walks you through a simple configuration to learn how to
+  generate IoT data, use it to run machine learning models, and store that
+  data in MongoDB Atlas to use in business applications.
+- MongoDB is a great choice for IoT applications because it is a highly
+  scalable document-based database that can handle the high volumes of
+  data that IoT applications generate.
+- MongoDB’s flexible document model makes it well-suited to handle the
+  different types of data structures needed to store a wide range of IoT
+  devices and ML models, without requiring separate databases for
+  different data types.
+
+Author
+------
+
+- Diana Annie Jenosh, MongoDB
+- Utsav Talwar, MongoDB
+- Dr. Humza Akhtar, MongoDB
