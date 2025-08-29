@@ -10,8 +10,13 @@ Guidance for {+service+} Monitoring and Alerts
    :name: genre
    :values: reference
 
+.. facet::
+   :name: programming_language
+   :values: go, shell
+
 .. meta::   
    :description: Learn how to monitor and set up alerts on your Atlas cluster.
+   :keywords: code example, atlas sdk for go, terraform configuration, atlas cli
 
 .. contents:: On this page
    :local:
@@ -31,8 +36,8 @@ proactively and in real time.
 
 Monitoring your deployment allows you to:
 
-- Understand the health and status of your {+cluster+}
-- Learn how operations running on the {+cluster+} are impacting the
+- Understand the health and status of your cluster
+- Learn how operations running on the cluster are impacting the
   database
 - Learn if your hardware is resource constrained
 - Perform workload and query optimization
@@ -40,7 +45,7 @@ Monitoring your deployment allows you to:
 
 |service| provides several metrics for monitoring and alerting. You can
 track the health, availability, consumption, and performance of your 
-deployments in visual dashboards and by |api|. You can also view various {+cluster+} metrics, monitor your
+deployments in visual dashboards and by |api|. You can also view various cluster metrics, monitor your
 database performance, configure alerts and alert notification, and
 download activity logs. 
 
@@ -80,7 +85,7 @@ Features for {+service+} Monitoring and Alerts
        to tailor alerts for precise monitoring. |service| issues alerts
        for the database and server conditions that you configure in your
        alert settings. When a condition triggers an alert, |service|
-       displays a warning symbol on the {+cluster+} and sends alert
+       displays a warning symbol on the cluster and sends alert
        notifications. 
        
        You can use the {+atlas-ui+}, {+atlas-admin-api+}, {+atlas-cli+},
@@ -100,7 +105,7 @@ Features for {+service+} Monitoring and Alerts
        on database performance.  
 
    * - Logs 
-     - |service| provides logs for each process in the {+cluster+}. Each
+     - |service| provides logs for each process in the cluster. Each
        process keeps an account of its activity in its own log file. 
        
        You can download logs by using the {+atlas-ui+}, {+atlas-cli+}, and
@@ -111,22 +116,100 @@ Features for {+service+} Monitoring and Alerts
 Recommendations for {+service+} Monitoring and Alerts
 -----------------------------------------------------
 
-Monitor by Configuring Alerts 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. collapsible::
+   :heading: Single-Region Deployment Recommendations
+   :sub_heading: Recommendations that apply only to deployments in a single region
+   :expanded: true
 
-|service| extends into your existing observability stack so that you can get alerts and make data-driven decisions without replacing your
-current tools or changing your workflows. {+service+} can send alert notifications with third-party tools like
-:atlas:`Microsoft Teams </tutorial/integrate-msft-teams>`,
-:ref:`PagerDuty <pagerduty-integration>`, :ref:`DataDog 
-<datadog-integration>`, :ref:`Prometheus <prometheus-integration>`,
-:atlascli:`Opsgenie </command/atlas-integrations-create-OPS_GENIE/>`,
-:atlascli:`Splunk On-Call </command/atlas-integrations-create-VICTOR_OPS/>`, 
-and :atlas:`other tools </tutorial/third-party-service-integrations/>` to give you visibility into both database and full-stack performance in the same place. 
+   Single-region deployments have no unique considerations
+   for integrations with third-party alerting tools,
+   such as :ref:`Datadog <datadog-integration>` and :ref:`Prometheus <prometheus-integration>`.
+   See :ref:`arch-center-monitoring-alerts-recs-for-any-deployment`.
+
+.. collapsible::
+   :heading: Multi-Region and Multi-Cloud Deployment Recommendations
+   :sub_heading: Recommendations that apply only to deployments across multiple regions or multiple cloud providers
+   :expanded: true
+
+   In multi-region clusters, consider potential data transfer costs
+   associated with sending logs and metrics across regions. We recommend
+   that you configure your logging and auditing system to minimize
+   inter-region data transfers, possibly by keeping logs local to the
+   region where they are generated.
+
+.. _arch-center-monitoring-alerts-recs-for-any-deployment:
+
+All Deployment Paradigm Recommendations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following recommendations apply to all :ref:`deployment paradigms
+<arch-center-paradigms>`.
+
+Monitor by Using Metrics
+````````````````````````
+
+To monitor your cluster or database performance, you can view the
+cluster metrics such as historical throughput, performance, and
+utilization metrics. The following table lists some (but not all)
+important categories of metrics to monitor: 
+
+.. list-table:: 
+   :widths: 30 70 
+   :stub-columns: 1
+
+   * - |service| Cluster Operations and Connection Metrics 
+     - - Opcounters 
+       - Operation Execution Times 
+       - Query Executors and Query Targeting 
+       - Connections 
+       - Queues 
+       - Scan and Order
+
+   * - Hardware Metrics
+     - - Normalized System CPU 
+       - Normalized Process CPU 
+       - Disk Latency 
+       - Disk IOPS 
+       - Disk Space Free 
+       - System Memory 
+       - Swap Usage
+
+   * - Replication Metrics
+     - - Replication Lag 
+       - Replication Oplog Window 
+       - Replication Headroom 
+       - Oplog GB/Hour 
+       - Opcounters -repl 
+
+You can use the {+atlas-ui+}, {+atlas-admin-api+}, and {+atlas-cli+} to
+view |service| cluster metrics. Additionally, |service| provides
+built-in integrations with third-party tools such as :ref:`Datadog
+<datadog-integration>` and :ref:`Prometheus <prometheus-integration>`,
+and you can also leverage the {+atlas-admin-api+} to integrate with
+other custom metrics tools.
+
+To learn more, see :ref:`monitor-cluster-metrics`. 
+
+Monitor by Configuring Alerts 
+`````````````````````````````
+
+|service| extends into your existing observability stack so that you can
+get alerts and make data-driven decisions without replacing your current
+tools or changing your workflows. {+service+} can send alert
+notifications with third-party tools like :atlas:`Microsoft Teams
+</tutorial/integrate-msft-teams>`, :ref:`PagerDuty
+<pagerduty-integration>`, :ref:`DataDog <datadog-integration>`, :atlascli:`Opsgenie
+</command/atlas-integrations-create-OPS_GENIE/>`, :atlascli:`Splunk
+On-Call </command/atlas-integrations-create-VICTOR_OPS/>`, and
+:atlas:`other tools </tutorial/third-party-service-integrations/>` to
+give you visibility into both database and full-stack performance in the
+same place. 
 
 Configure alerts and notifications for security events, such as failed
 login attempts, unusual access patterns, and data breaches. In dev and
-test environments, we recommend configuring alerts on {+clusters+} after
-seven days of inactivity to save costs. 
+test environments, we recommend configuring alerts for clusters that
+have been inactive for seven or more days to help you identify which
+clusters can be shut down to save costs.
 
 When you :atlas:`view alerts in the {+atlas-ui+} 
 </alert-resolutions/#view-alerts>`, we recommend that you use
@@ -134,16 +217,18 @@ available filters to limit results by host, replica set, cluster,
 shard, and more to help focus on the most critical alerts.
 
 Recommended {+service+} Alert Configurations
-````````````````````````````````````````````
+############################################
 
 At the minimum, we recommend configuring the following alerts. These
 alerts recommendations provide a baseline, but you should adjust them
 based on your workload characteristics. Where "high priority" conditions
 are specified in the following table, we recommend that you configure
-multiple alerts for the same condition, one for a low priority level of severity, and one for a high priority level of severity. This allows you to configure alert notification settings for each separately.
+multiple alerts for the same condition, one for a low priority level of
+severity, and one for a high priority level of severity. This allows you
+to configure alert notification settings for each separately.
 
-{+service+} configures some alerts by default. To learn about the default alert settings, 
-see :atlas:`Default Alert Settings </configure-alerts/#default-alert-settings>`.
+{+service+} configures some alerts by default. To learn about the
+default alert settings, see :ref:`default-alert-settings`.
 
 .. list-table:: 
    :header-rows: 1
@@ -167,7 +252,7 @@ see :atlas:`Default Alert Settings </configure-alerts/#default-alert-settings>`.
        secondary node is elected as the new primary. Frequent election events can 
        disrupt operations and impact availability, causing temporary write 
        unavailability and possible rollback of data. Keeping election events to 
-       a minimum ensures consistent write operations and stable {+cluster+} performance.
+       a minimum ensures consistent write operations and stable cluster performance.
 
    * - Read :atlas:`IOPS </reference/alert-resolutions/disk-io-utilization/>`
      - > 4000 for 2 minutes
@@ -212,7 +297,7 @@ see :atlas:`Default Alert Settings </configure-alerts/#default-alert-settings>`.
      - 15 minutes
      - 15 minutes
      - Monitor the status of active ``mongos`` processes to ensure effective query 
-       routing in sharded {+clusters+}. A missing ``mongos`` can disrupt query routing.
+       routing in sharded clusters. A missing ``mongos`` can disrupt query routing.
 
    * - Page faults
      - > 50/second for 5 minutes
@@ -270,7 +355,7 @@ see :atlas:`Default Alert Settings </configure-alerts/#default-alert-settings>`.
    * - :manual:`Primary election </core/replica-set-elections/>`
      - Any occurrence
      - None
-     - Monitor primary elections to ensure stable {+cluster+} operations. Frequent 
+     - Monitor primary elections to ensure stable cluster operations. Frequent 
        elections can indicate network issues or resource constraints, potentially 
        impacting the availability and performance of the database.
 
@@ -293,7 +378,7 @@ see :atlas:`Default Alert Settings </configure-alerts/#default-alert-settings>`.
    * - :atlas:`Steal </alert-basics/#cpu-steal>`
      - > 5% for 5 minutes
      - > 20% for 5 minutes
-     - Monitor CPU steal on AWS EC2 {+clusters+} with Burstable Performance 
+     - Monitor CPU steal on AWS EC2 clusters with Burstable Performance 
        to identify when CPU usage exceeds the guaranteed baseline due to shared 
        cores. High steal percentages indicate the CPU credit balance is depleted, 
        affecting performance.
@@ -311,57 +396,14 @@ see :atlas:`Default Alert Settings </configure-alerts/#default-alert-settings>`.
 
 To learn more, see :atlas:`Configure and Resolve Alerts </alerts>`. 
 
-Monitor by Using Metrics
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-To monitor your {+cluster+} or database performance, you can view the {+cluster+} metrics such as historical throughput,
-performance, and utilization metrics. The following table lists some
-important categories of metrics to monitor: 
-
-.. list-table:: 
-   :widths: 30 70 
-   :stub-columns: 1
-
-   * - |service| {+Cluster+} Operations and Connection Metrics 
-     - - Opcounters 
-       - Operation Execution Times 
-       - Query Executors and Query Targeting 
-       - Connections 
-       - Queues 
-       - Scan and Order
-
-   * - Hardware Metrics
-     - - Normalized System CPU 
-       - Normalized Process CPU 
-       - Disk Latency 
-       - Disk IOPS 
-       - Disk Space Free 
-       - System Memory 
-       - Swap Usage
-
-   * - Replication Metrics
-     - - Replication Lag 
-       - Replication Oplog Window 
-       - Replication Headroom 
-       - Oplog GB/Hour 
-       - Opcounters -repl 
-
-You can use the {+atlas-ui+}, {+atlas-admin-api+}, and {+atlas-cli+} to
-view |service| {+cluster+} metrics. Additionally, |service| provides
-built-in integrations with third-party tools such as :ref:`Datadog <datadog-integration>` and :ref:`Prometheus <prometheus-integration>`, and you
-can also leverage the {+atlas-admin-api+} to integrate with other
-custom metrics tools.
-
-To learn more, see :ref:`monitor-cluster-metrics`. 
-
 Monitor by Using {+service+} Built-In Tools
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```````````````````````````````````````````
 
 |service| provides several tools that allow you to proactively monitor and
 improve the performance of your database. 
 
 Real-Time Performance Panel
-```````````````````````````
+###########################
 
 The Real-Time Performance Panel (RTPP) in the {+atlas-ui+} provides
 insights into current network traffic, database operations, and hardware
@@ -384,7 +426,7 @@ with :oas-atlas-op:`Update One Project Settings
 To learn more, see :ref:`real-time-metrics-status-tab`.
 
 Query Profiler 
-``````````````
+##############
 
 The Query Profiler identifies slow queries and bottlenecks, and suggests
 index refinement and query restructuring to improve the performance of
@@ -401,7 +443,7 @@ with :oas-atlas-op:`Return Slow Queries
 To learn more, see :ref:`query-profiler`.
 
 Performance Advisor 
-```````````````````
+###################
 
 The Performance Advisor automatically analyzes logs for slow-running
 queries and recommends indexes to create and drop. It analyzes slow
@@ -423,7 +465,7 @@ with :oas-atlas-op:`Return Slow Queries
 To learn more, see :ref:`performance-advisor`.
 
 Namespace Insights 
-``````````````````
+##################
 
 The Namespace Insights page in the {+atlas-ui+} allows you to monitor
 collection-level performance and usage metrics. It displays metrics
@@ -436,8 +478,23 @@ decisions about scaling, indexing, and query tuning.
 
 To learn more, see :ref:`namespace-insights`.  
 
+Activity Feed
+#############
+
+The Organization Activity Feed and Project Activity Feed in the
+{+atlas-ui+} list all events that occur for a given {+service+} organization
+or project, respectively. You can filter each activity feed for event
+type and time range to monitor events such as API access updates, alert
+configuration changes, and more. This allows you to review activity
+records for your organization or project at your desired level of
+granularity.
+
+You use the {+atlas-ui+}, {+atlas-cli+}, and {+atlas-admin-api+} to
+retrieve events from each activity feed. To learn more, see
+:ref:`activity-feed`.
+
 Monitor by Using Logs 
-~~~~~~~~~~~~~~~~~~~~~
+`````````````````````
 
 .. include:: /includes/cloud-docs/logs.rst
 
@@ -447,8 +504,6 @@ When you configure this feature, {+service+} continually pushes logs from ``mong
 
 Automation Examples: {+service+} Monitoring and Logging
 -------------------------------------------------------
-
-.. include:: /includes/complete-examples.rst
 
 The following examples demonstrate how to enable monitoring using |service|
 :ref:`tools for automation <arch-center-automation>`.
@@ -479,7 +534,7 @@ The following examples demonstrate how to enable monitoring using |service|
             space on the specified disk. This metric can be used to determine
             if the system is running out of free space. 
 
-            .. include:: /includes/examples/cli-example-metrics-disk-devtest.rst
+            .. include:: /includes/examples/cli/dev-test/cli-example-metrics-disk-devtest.rst
 
             Configure Alerts 
             ~~~~~~~~~~~~~~~~
@@ -487,7 +542,7 @@ The following examples demonstrate how to enable monitoring using |service|
             Run the following command to create an alert notification to an
             email address when your deployment doesn't have a primary.
 
-            .. include:: /includes/examples/cli-example-alerts-no-primary-devtest.rst
+            .. include:: /includes/examples/cli/dev-test/cli-example-alerts-no-primary-devtest.rst
 
             Monitor Database Performance 
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -495,7 +550,7 @@ The following examples demonstrate how to enable monitoring using |service|
             Run the following command to enable |service|-managed slow operation threshold
             for your project. 
 
-            .. include:: /includes/examples/cli-example-performance-advisor-enable-devtest.rst 
+            .. include:: /includes/examples/cli/dev-test/cli-example-performance-advisor-enable-devtest.rst 
 
             Download Logs 
             ~~~~~~~~~~~~~
@@ -503,10 +558,57 @@ The following examples demonstrate how to enable monitoring using |service|
             Run the following command to download a compressed file that contains the
             MongoDB logs for the specified host in your project. 
 
-            .. include:: /includes/examples/cli-example-download-logs.rst
+            .. include:: /includes/examples/cli/cli-example-download-logs.rst
+
+         .. tab:: Atlas Go SDK
+            :tabid: go-sdk
+
+            .. include:: /includes/complete-examples-go-sdk.rst
+
+            Before you can authenticate and run the example scripts using
+            the Atlas Go SDK, you must:
+
+            - :ref:`Create an Atlas service account <service-accounts-overview>`.
+              Store your client ID and secret as environment variables by
+              running the following command in the terminal:
+
+              .. code-block:: shell
+
+                 export MONGODB_ATLAS_SERVICE_ACCOUNT_ID="<insert your client ID here>"
+                 export MONGODB_ATLAS_SERVICE_ACCOUNT_SECRET="<insert your client secret here>"
+
+            - Set the following configuration variables in your Go project:
+
+              .. literalinclude:: /includes/examples/generated-examples/snippet.config.json
+                 :language: json
+                 :caption: configs/config.json
+
+            View Cluster Metrics
+            ~~~~~~~~~~~~~~~~~~~~
+
+            The following example script demonstrates how to retrieve the amount of
+            used and free space on the specified disk. This metric can be used
+            to determine if the system is running out of free space.
+
+            .. literalinclude:: /includes/examples/generated-examples/main.snippet.get-metrics-dev.go
+               :language: go
+               :caption: get-cluster-metrics/main.go
+
+            Download Logs
+            ~~~~~~~~~~~~~
+
+            The following example script demonstrates how to download and
+            unzip a compressed file that contains the
+            MongoDB logs for the specified host in your Atlas project:
+
+            .. literalinclude:: /includes/examples/generated-examples/main.snippet.get-logs.go
+              :language: go
+              :caption: get-logs/main.go
 
          .. tab:: Terraform
-            :tabid: terraform 
+            :tabid: terraform
+
+            .. include:: /includes/complete-examples-terraform.rst
 
             Before you can create resources with Terraform, you must:
 
@@ -516,15 +618,14 @@ The following examples demonstrate how to enable monitoring using |service|
               Store your |api| key as environment variables by running the
               following command in the terminal: 
 
-              .. code-block::
+              .. code-block:: shell
 
                  export MONGODB_ATLAS_PUBLIC_KEY="<insert your public key here>"
                  export MONGODB_ATLAS_PRIVATE_KEY="<insert your private key here>"
 
             - `Install Terraform <https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli>`__ 
             
-            We also suggest `creating a workspace for your environment
-            <https://developer.hashicorp.com/terraform/cloud-docs/recommended-practices/part1#one-workspace-per-environment-per-terraform-configuration>`__.  
+            We also recommend `creating a workspace for your environment <https://developer.hashicorp.com/terraform/cloud-docs/recommended-practices/part1#one-workspace-per-environment-per-terraform-configuration>`__.  
 
             Configure Alerts 
             ~~~~~~~~~~~~~~~~
@@ -537,12 +638,12 @@ The following examples demonstrate how to enable monitoring using |service|
             variables.tf 
             ````````````
 
-            .. include:: /includes/examples/tf-example-monitoring-variables-devtest.rst 
+            .. include:: /includes/examples/terraform/dev-test/tf-example-monitoring-variables-devtest.rst 
 
             terraform.tfvars 
             ````````````````
 
-            .. include:: /includes/examples/tf-example-monitoring-tfvars-devtest.rst
+            .. include:: /includes/examples/terraform/dev-test/tf-example-monitoring-tfvars-devtest.rst
 
             **Example:** Use the following to send an alert notification
             by email to users with the ``GROUP_CLUSTER_MANAGER`` role
@@ -552,7 +653,7 @@ The following examples demonstrate how to enable monitoring using |service|
             main.tf 
             ```````
 
-            .. include:: /includes/examples/tf-example-alerts-replication-lag-devtest.rst
+            .. include:: /includes/examples/terraform/dev-test/tf-example-alerts-replication-lag-devtest.rst
 
    .. tab:: Staging and Prod Environments
       :tabid: stagingprod
@@ -567,20 +668,22 @@ The following examples demonstrate how to enable monitoring using |service|
 
             Run the sample command to retrieve the following metrics: 
       
-            - OPCOUNTERS - to monitor the amount of queries, updates, inserts,
+            - OPCOUNTERS - Monitor the amount of queries, updates, inserts,
               and deletes occurring at peak load and ensure that load doesn't
-              increase unexpectedly. 
-            - TICKETS - to ensure that the number of allowed concurrent reads
-              and writes doesn't lower much, or frequently. 
-            - CONNECTIONS - to ensure that the number of sockets used for
-              heartbeats and replication between members isn't above the 
-              set limit. 
-            - QUERY TARGETING - to ensure that number of keys and documents
-              scanned to the number of documents returned, averaged by second,
-              are't too high. 
-            - SYSTEM CPU - to ensure that the CPU usage is steady. 
+              increase unexpectedly.
+            - CONNECTIONS - Ensure that the number of sockets used for
+              heartbeats and replication between members isn't above the
+              set limit.
+            - QUERY TARGETING - Ensure the number of keys and documents
+              scanned to the number of documents returned, averaged by
+              second, aren't too high.
+            - SYSTEM CPU - Ensure that the CPU usage is steady.
+            - GLOBAL LOCK QUEUE - Monitor the number of read and write
+              operations that are currently queued and waiting for the
+              read and write lock, and ensure that load doesn't increase
+              unexpectedly.
 
-            .. include:: /includes/examples/cli-example-metrics-processes-stagingprod.rst
+            .. include:: /includes/examples/cli/staging-prod/cli-example-metrics-processes-stagingprod.rst
 
             Configure Alerts 
             ~~~~~~~~~~~~~~~~
@@ -589,7 +692,7 @@ The following examples demonstrate how to enable monitoring using |service|
             there are possible connection storms based on the number of
             connections in your project. 
 
-            .. include:: /includes/examples/cli-example-alerts-connection-storms-stagingprod.rst
+            .. include:: /includes/examples/cli/staging-prod/cli-example-alerts-connection-storms-stagingprod.rst
 
             Monitor Database Performance 
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -597,7 +700,7 @@ The following examples demonstrate how to enable monitoring using |service|
             Run the following command to retrieve the suggested indexes for collections
             experiencing slow queries. 
 
-            .. include:: /includes/examples/cli-example-return-suggested-indexes-stagingprod.rst
+            .. include:: /includes/examples/cli/staging-prod/cli-example-return-suggested-indexes-stagingprod.rst
 
             Download Logs 
             ~~~~~~~~~~~~~
@@ -605,10 +708,73 @@ The following examples demonstrate how to enable monitoring using |service|
             Run the following command to download a compressed file that contains the
             MongoDB logs for the specified host in your project. 
 
-            .. include:: /includes/examples/cli-example-download-logs.rst
+            .. include:: /includes/examples/cli/cli-example-download-logs.rst
+
+         .. tab:: Atlas Go SDK
+            :tabid: go-sdk
+
+            .. include:: /includes/complete-examples-go-sdk.rst
+
+            Before you can authenticate and run the example scripts using
+            the Atlas Go SDK, you must:
+
+            - :ref:`Create an Atlas service account <service-accounts-overview>`.
+              Store your client ID and secret as environment variables by
+              running the following command in the terminal:
+
+              .. code-block:: shell
+
+                 export MONGODB_ATLAS_SERVICE_ACCOUNT_ID="<insert your client ID here>"
+                 export MONGODB_ATLAS_SERVICE_ACCOUNT_SECRET="<insert your client secret here>"
+
+            - Set the following configuration variables in your Go project:
+
+              .. literalinclude:: /includes/examples/generated-examples/snippet.config.json
+                 :language: json
+                 :caption: configs/config.json
+
+            For more information on authenticating and creating a client, see
+            the complete Atlas SDK for Go example project `in GitHub <https://github.com/mongodb/atlas-architecture-go-sdk>`__.
+
+            View Cluster Metrics
+            ~~~~~~~~~~~~~~~~~~~~
+
+            The following example script demonstrates how to retrieve the following metrics:
+
+            - OPCOUNTERS - Monitor the amount of queries, updates, inserts,
+              and deletes occurring at peak load and ensure that load doesn't
+              increase unexpectedly.
+            - CONNECTIONS - Ensure that the number of sockets used for
+              heartbeats and replication between members isn't above the
+              set limit.
+            - QUERY TARGETING - Ensure the number of keys and documents
+              scanned to the number of documents returned, averaged by
+              second, aren't too high.
+            - SYSTEM CPU - Ensure that the CPU usage is steady.
+            - GLOBAL LOCK QUEUE - Monitor the number of read and write
+              operations that are currently queued and waiting for the
+              read and write lock, and ensure that load doesn't increase
+              unexpectedly.
+
+            .. literalinclude:: /includes/examples/generated-examples/main.snippet.get-metrics-prod.go
+               :language: go
+               :caption: get-disk-metrics/main.go
+
+            Download Logs
+            ~~~~~~~~~~~~~
+
+            The following example script demonstrates how to download and
+            unzip a compressed file that contains the
+            MongoDB logs for the specified host in your Atlas project:
+
+            .. literalinclude:: /includes/examples/generated-examples/main.snippet.get-logs.go
+              :language: go
+              :caption: get-logs/main.go
 
          .. tab:: Terraform
             :tabid: terraform 
+
+            .. include:: /includes/complete-examples-terraform.rst
 
             Before you can create resources with Terraform, you must:
 
@@ -618,12 +784,14 @@ The following examples demonstrate how to enable monitoring using |service|
               Store your |api| key as environment variables by running the
               following command in the terminal: 
 
-              .. code-block::
+              .. code-block:: shell
 
                  export MONGODB_ATLAS_PUBLIC_KEY="<insert your public key here>"
                  export MONGODB_ATLAS_PRIVATE_KEY="<insert your private key here>"
 
-            - `Install Terraform <https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli>`__ 
+            - `Install Terraform <https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli>`__
+
+            We also recommend `creating a workspace for your environment <https://developer.hashicorp.com/terraform/cloud-docs/recommended-practices/part1#one-workspace-per-environment-per-terraform-configuration>`__.
 
             Configure Alerts 
             ~~~~~~~~~~~~~~~~
@@ -637,12 +805,12 @@ The following examples demonstrate how to enable monitoring using |service|
             variables.tf 
             ````````````
 
-            .. include:: /includes/examples/tf-example-monitoring-variables-stagingprod.rst 
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-monitoring-variables-stagingprod.rst 
 
             terraform.tfvars 
             ````````````````
 
-            .. include:: /includes/examples/tf-example-monitoring-tfvars-stagingprod.rst
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-monitoring-tfvars-stagingprod.rst
 
             **Example 1:** Use the following to integrate with
             third-party services like Datadog and Prometheus for alert notification.
@@ -650,7 +818,7 @@ The following examples demonstrate how to enable monitoring using |service|
             main.tf 
             ```````
 
-            .. include:: /includes/examples/tf-example-third-party-integration-stagingprod.rst 
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-third-party-integration-stagingprod.rst 
 
             **Example 2:** Use the following to send alert notification
             to third-party services like Datadog and Prometheus when
@@ -659,7 +827,7 @@ The following examples demonstrate how to enable monitoring using |service|
             main.tf 
             ```````
 
-            .. include:: /includes/examples/tf-example-alerts-no-primary-stagingprod.rst  
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-alerts-no-primary-stagingprod.rst  
 
             **Example 3:** Use the following to send an alert
             notification by email to users with the
@@ -669,4 +837,4 @@ The following examples demonstrate how to enable monitoring using |service|
             main.tf 
             ```````
 
-            .. include:: /includes/examples/tf-example-alerts-replication-lag-stagingprod.rst
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-alerts-replication-lag-stagingprod.rst

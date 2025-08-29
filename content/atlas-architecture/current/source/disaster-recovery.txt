@@ -30,7 +30,7 @@ Use the recommendations on this page to prepare for and respond to
 disasters.
 
 To learn more about proactive high availability configurations that
-can help with disaster recovery, see :ref:`arch-center-ha-configurations`.
+can help with disaster recovery, see :ref:`arch-center-ha-recs`.
 
 Features for {+service+} Disaster Recovery
 ------------------------------------------
@@ -39,7 +39,6 @@ To learn about {+service+} features that support disaster recovery, see
 the following pages in the {+atlas-arch-center+}:
 
 - :ref:`arch-center-high-availability`
-- :ref:`arch-center-resiliency`
 - :ref:`arch-center-backups`
 
 .. _arch-center-dr-recs:
@@ -54,6 +53,32 @@ on steps to take in the event of a disaster.
 It is imperative that you test the plans in this section regularly (ideally quarterly, but at least semi-annually). Testing often helps prepare the Enterprise Database Management (EDM) team to respond to disasters while also helping to keep the instructions up to date. 
 
 Some disaster recovery testing might require actions that cannot be performed by EDM users. In these cases, open a support case for the purpose of performing artificial outages at least a week in advance of when you plan on running a test exercise.
+
+.. collapsible::
+   :heading: Single-Region Deployment Recommendations
+   :sub_heading: Recommendations that apply only to deployments in a single region
+   :expanded: true
+
+   Each cloud provider on which you can deploy {+service+} {+clusters+} provides default data redundancy that helps to mitigate any outages:
+
+   - {+aws+} stores objects on multiple devices across a minimum of three Availability Zones in an {+aws+} Region.
+   - {+azure+} uses locally redundant storage (LRS) that replicates your data three times within a single data center in the selected region.
+   - {+gcp+} spreads your data across multiple zones in the backup region.
+
+   To enhance your disaster recovery, you can configure {+service+} to automatically create copies of your snapshots and oplogs in other regions. This ensures that, even if the primary region experiences an outage, you can restore your {+cluster+} using snapshot copies stored in other regions. {+service+} optimizes restore speeds by selecting the most efficient option based on region availability, using copied snapshots if restoring to a region where those copies exist. Additionally, if the original snapshot is inaccessible due to a regional outage, {+service+} will restore using the nearest available snapshot copy, minimizing downtime and improving recovery resilience. To learn more, see :atlas:`Configure Atlas to Automatically Copy Snapshots to Other Regions </backup/cloud-backup/export-cloud-backup/#configure-atlas-to-automatically-copy-snapshots-to-other-regions>`.
+
+.. collapsible::
+   :heading: Multi-Region and Multi-Cloud Deployment Recommendations
+   :sub_heading: Recommendations that apply only to deployments across multiple regions or multiple cloud providers
+   :expanded: true
+
+   If you run a multi-region or multi-cloud MongoDB {+cluster+}, ensure you configure your backup strategy to account for your specific needs for mitigating data corruption risks. Address how quickly you can identify a potential data corruption issue within your system. Once you establish this detection timeframe, configure your backup retention accordingly, and ensure that snapshots are available to restore from before the corruption occurred. To account for any delays or uncertainties in detecting the issue, we advise you to include an additional buffer, typically around 10-15%, in your backup retention schedule. This padding helps ensure you can reliably recover clean data without losing critical information, which enhances the overall resilience and reliability of your deployment.
+
+All Deployment Paradigm Recommendations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following recommendations apply to all :ref:`deployment paradigms
+<arch-center-paradigms>`.
 
 This section covers the following disaster recovery procedures:
 
@@ -70,9 +95,9 @@ This section covers the following disaster recovery procedures:
 .. _arch-center-single-node-outage:
 
 Single Node Outage
-~~~~~~~~~~~~~~~~~~
+``````````````````
 
-If a single node in your replica set fails due to a regional outage, your deployment should still be available, assuming you have followed best practices. If you are reading from secondaries, you might experience degraded performance because you have one less node to read from.
+If a single node in your replica set fails due to a partial regional outage, your deployment should still be available, assuming you have followed best practices. If you are reading from secondaries, you might experience degraded performance or potential outages in the event that a secondary node should fail, because of the increased load on the then underprovisioned {+cluster+}.
 
 You can test a primary node outage in {+service+} using the 
 {+atlas-ui+}\'s
@@ -81,9 +106,12 @@ You can test a primary node outage in {+service+} using the
 .. _arch-center-regional-outage:
 
 Regional Outage
-~~~~~~~~~~~~~~~
+```````````````
 
-If a single region outage or multi-region outage degrades the state of your {+cluster+}, follow these steps:
+Multi-region {+clusters+}, in the event of a regional outage, will automatically hold an election and identify a new primary node if necessary. This topology change will be automatically communicated to the application allowing it to take any necessary corrective action. In order to maintain application uptime in the event of a regional outage, your application itself must also be deployed with a multi-region topology. This requirement extends to include any third-party service your application may be integrated with. To learn more, see :ref:`<arch-center-paradigms-multi-region>`.
+
+If a single region outage or multi-region outage degrades the state of your 
+{+cluster+}, follow these steps:
 
 .. procedure::
    :style: normal
@@ -128,7 +156,20 @@ You can test a region outage in {+service+} using the
 .. _arch-center-provider-outage:
 
 Cloud Provider Outage
-~~~~~~~~~~~~~~~~~~~~~
+`````````````````````
+
+With multi-cloud {+clusters+}, you can select electable nodes across cloud providers 
+to maintain high availability. Should the provider in which your primary node is 
+deployed become unavailable, electable nodes can be converted to primary nodes 
+to ensure continuous operation. For example, you can create electable nodes on 
+{+aws+}, {+gcp+}, and {+azure+} to ensure that if one cloud provider experiences 
+an outage, an electable node on a separate provider can take over as your 
+{+cluster+}'s primary node. To learn more, see :ref:`<arch-center-paradigms-multi-cloud>`.
+
+Most multi-region {+service+} {+clusters+} will recover automatically from a single region outage. 
+To learn more, see the High Availability section and Multi-region Deployment page. 
+In the case that regional outages have knocked out a majority of nodes, you must 
+determine how many more nodes you need to add in order for a majority of nodes to be healthy.
 
 In the highly unlikely event that an entire cloud provider is
 unavailable, follow these steps to bring your deployment back online:
@@ -136,7 +177,7 @@ unavailable, follow these steps to bring your deployment back online:
 .. procedure::
    :style: normal
    
-   .. step:: Determine when the cloud provider outage began. 
+   .. step:: Determine when the cloud provider outage began
       
       You need this information later in this procedure to restore your deployment.
 
@@ -145,17 +186,17 @@ unavailable, follow these steps to bring your deployment back online:
       For a list of cloud providers and information, see 
       :atlas:`Cloud Providers </reference/cloud-providers>`.
 
-   .. step:: Find the most recent available snapshot taken of the {+cluster+} before the outage began
+   .. step:: If you store backups across multiple cloud providers, as a cloud provider outage implies that any backups stored on the primary cloud provider are necessarily unavailable, find the most recent available snapshot taken of the {+cluster+} before the outage began
 
       To learn how to view your backup snapshots, see 
       :atlas:`View M10+ Backup Snapshots </backup/cloud-backup/dedicated-cluster-backup/#view-m10--backup-snapshots>`.
 
    .. step:: Create a new {+cluster+} with the alternative cloud provider
 
-      Your new {+cluster+} must have an identical topology of the original cluster.
+      Your new {+cluster+} must have an identical topology of the original {+cluster+}.
 
-      Alternatively, instead of creating a full new cluster, you can also add new
-      nodes hosted by an alternative cloud provider to the existing cluster.
+      Alternatively, instead of creating a full new {+cluster+}, you can also add new
+      nodes hosted by an alternative cloud provider to the existing {+cluster+}.
 
    .. step:: Restore the most recent snapshot from the previous step into the new {+cluster+}
 
@@ -169,7 +210,7 @@ unavailable, follow these steps to bring your deployment back online:
 .. _arch-center-atlas-outage:
 
 {+service+} Outage
-~~~~~~~~~~~~~~~~~~
+``````````````````
 
 In the highly unlikely event that the {+service+} Control Plane and
 the {+atlas-ui+} are unavailable, your {+cluster+} is still available and accessible.
@@ -180,7 +221,7 @@ to investigate this further.
 .. _arch-center-resource-capacity:
 
 Resource Capacity Issues
-~~~~~~~~~~~~~~~~~~~~~~~~
+````````````````````````
 
 Computational resource (such as disk space, RAM, or CPU) capacity
 issues can result from poor planning or unexpected database traffic.
@@ -203,7 +244,7 @@ amount and causes a disaster, follow these steps:
 
    .. step:: Allocate the necessary resources
       
-      Note that Atlas will perform this change in a rolling manner, so
+      Note that {+service+} will perform this change in a rolling manner, so
       it should not have any major impact on your applications.
 
       To learn how to allocate more resources, see :atlas:`Edit a Cluster </scale-cluster/#edit-a-cluster>`.
@@ -213,11 +254,11 @@ amount and causes a disaster, follow these steps:
 .. _arch-center-resource-failure:
 
 Resource Failure
-~~~~~~~~~~~~~~~~
+````````````````
 
 .. include:: /includes/temporary-cluster-fix.rst
 
-If a computational resource fails and causes your cluster to become
+If a computational resource fails and causes your {+cluster+} to become
 unavailable, follow these steps:
 
 .. procedure::
@@ -236,11 +277,11 @@ unavailable, follow these steps:
 .. _arch-center-data-deletion:
 
 Deletion of Production Data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```````````````````````````
 
 Production data might be accidentally deleted due to human error or a bug
 in the application built on top of the database.
-If the cluster itself was accidentally deleted, Atlas might retain
+If the {+cluster+} itself was accidentally deleted, {+service+} might retain
 the volume temporarily.
 
 If the contents of a collection or database have been deleted, follow these steps to restore your data:
@@ -259,7 +300,7 @@ If the contents of a collection or database have been deleted, follow these step
       If the deletion occurred within the last 72 hours, and you configured continuous backup,
       use Point in Time (PIT) restore to restore from the point in time right before the deletion occurred.
       
-      If the deletion did not occur in the past 72 hours, restore the most recent backup from before the deletion occurred into the cluster.
+      If the deletion did not occur in the past 72 hours, restore the most recent backup from before the deletion occurred into the {+cluster+}.
 
       To learn more, see :atlas:`Restore Your Cluster </backup/cloud-backup/restore-overview/>`.
 
@@ -270,7 +311,7 @@ If the contents of a collection or database have been deleted, follow these step
 .. _arch-center-driver-failure:
 
 Driver Failure
-~~~~~~~~~~~~~~
+``````````````
 
 If a driver fails, follow these steps:
 
@@ -302,7 +343,7 @@ If a driver fails, follow these steps:
 .. _arch-center-data-corruption:
 
 Data Corruption
-~~~~~~~~~~~~~~~
+```````````````
 
 .. include:: /includes/temporary-cluster-fix.rst
 

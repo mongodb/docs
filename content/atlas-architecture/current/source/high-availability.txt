@@ -12,270 +12,242 @@ Guidance for {+service+} High Availability
    :depth: 2
    :class: onecol
 
-Consult this page to plan the appropriate cluster configuration that optimizes 
-your availability and performance while aligning with your enterprise's 
-cost controls and access needs.
+High availability is the ability of your application to ensure
+continuous operation and minimize downtime during infrastructure
+outages, system maintenance, and other disruptions. MongoDB's default
+deployment architecture is designed for high availability, with built-in
+features for data redundancy and automatic failover. This page describes
+additional configuration options and deployment architecture
+enhancements you can choose from to prevent disruptions and support
+robust failover mechanisms for zone, region, and cloud provider outages.
 
-Features for {+service+} High Availability
+{+service+} Features for High Availability
 ------------------------------------------
 
-When you launch a new cluster in |service|, {+service+} automatically configures a 
-minimum three-node replica set and distributes it in the region you deploy to. If a 
-primary member experiences an outage, the MongoDB database automatically detects this failure 
-and elects a secondary member as a replacement, and promotes this secondary member 
-to become the new primary. |service| then restores or replaces the failing member 
-to ensure that the cluster is returned to its target configuration as soon as possible. 
-The MongoDB client driver also automatically switches all client connections. The 
-entire selection and failover process happens within seconds, without manual 
-intervention. MongoDB optimizes the algorithms used to detect failure and elect a 
-new primary, reducing the failover interval. 
+Database Replication 
+~~~~~~~~~~~~~~~~~~~~
 
-Clusters that you deploy within a single region are spread across availability 
-zones within that region, so that they can withstand partial region outages without 
-an interruption of read or write availability.
+MongoDB's default deployment architecture is designed for redundancy.
+{+service+} deploys each cluster as a :manual:`replica set
+</core/replication>` with a minimum of three database instances (also
+called nodes or replica set members), distributed across separate
+availability zones within your selected cloud provider regions.
+Applications write data to the replica set's :manual:`primary node
+</core/replica-set-primary>`, and then {+service+} replicates and stores
+that data across all nodes within your cluster. To control the
+durability of your data storage, you can adjust the :manual:`write
+concern </reference/write-concern>` of your application code to complete
+the write only once a certain number of secondaries have committed the
+write. The default behavior is for data to be persisted on a majority of
+electable nodes before confirming the action.
 
-If maintaining write operations in your 
-preferred region at all times is a high priority, MongoDB recommends deploying the 
-cluster so that at least two electable members are in at least two availability zones within 
-your preferred region.
+The following diagram represents how replication works for a default
+three-node replica set:
 
-For the best database performance in a worldwide deployment, users can configure a 
-:ref:`global cluster <global-clusters>` which uses location-aware sharding to minimize 
-read and write latency. If you have geographical storage requirements, you can also 
-ensure that {+service+} stores data in a particular geographical area.
+.. figure:: /includes/images/atlas-database-replication.png
+   :alt: An image showing the replication process in a three-node replica set.
+   :align: center
+   :lightbox:
+
+Automatic Failover
+~~~~~~~~~~~~~~~~~~
+
+In the event that a primary node in a replica set becomes unavailable
+due to an infrastructure outage, scheduled maintenance, or any other
+disruption, {+service+} clusters self-heal by promoting an existing
+secondary node to the role of primary node in a :manual:`replica set
+election </core/replica-set-elections/>`. This failover process is fully
+automatic and completes within seconds without any data loss, including
+operations that were in flight at the time of the failure, which are
+retried after the failure if :manual:`retryable writes
+</core/retryable-writes/>` are enabled. After a replica set election,
+{+service+} restores or replaces the failing member to ensure that the
+cluster is returned to its target configuration as soon as possible. The
+MongoDB client driver also automatically switches all client connections
+during and after the failure.
+
+The following diagram represents the replica set election process:
+
+.. figure:: /includes/images/atlas-self-healing.png
+   :alt: An image showing the self-healing primary election process in a three-node replica set.
+   :align: center
+   :lightbox:
+
+To improve availability for your most critical applications, you can
+scale your deployment by adding nodes, regions, or cloud providers to
+withstand zone, region, or provider outages, respectively. To learn
+more, see the :ref:`arch-center-scale-for-fault-tolerance`
+recommendation below. 
 
 .. _arch-center-ha-recs:
 
 Recommendations for {+service+} High Availability
 -------------------------------------------------
 
-.. _arch-center-deployment-topologies:
+The following recommendations describe additional configuration options
+and deployment architecture enhancements you can make to increase
+availability for your deployment.
 
-Recommended Deployment Topology for Single Region
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Choose a Cluster Tier that Fits your Deployment Goals
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Single Region, 3 Node Replica Set / Shard (Primary Secondary Secondary)
-```````````````````````````````````````````````````````````````````````
+When creating a new cluster, you can choose between a range of cluster
+tiers available under the Dedicated, Flex, or Free deployment types. The
+cluster tier in MongoDB {+service+} specifies the resources (memory,
+storage, vCPUs, and IOPS) available for each node in your cluster.
+Scaling to a higher tier improves your cluster's ability to handle
+spikes in traffic and increases system reliability through faster
+response to high workloads. To determine the recommended cluster tier
+for your application size, see the :ref:`Atlas Cluster Size Guide
+<arch-center-cluster-size-guide>`.
 
-.. figure:: /includes/images/highavailabilityPSS.svg
-   :figwidth: 750px
-   :alt: A topology with a single region with 3 nodes: one primary and two secondaries.
+Atlas also supports :ref:`auto-scaling <cluster-autoscaling>` to allow
+the cluster to automatically adjust to spikes in demand. Automating this
+action reduces the risk of an outage due to resource constraints. To
+learn more, see :ref:`arch-center-automation`. 
 
-This topology is appropriate if low latency is required but high availability requirements 
-are limited to a single region. This topology can tolerate any 1 node failure and easily satisfy majority write 
-concern within region secondaries. This will maintain a primary in the preferred region upon any node 
-failure, limits cost, and is the least complicated from an application architecture perspective. 
-The reads and writes from secondaries in this topology encounter low latency in your preferred region.
+.. _arch-center-scale-for-fault-tolerance: 
 
-This topology, however, can't tolerate a regional outage.
+Scale Your Deployment Paradigm for Fault Tolerance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. _arch-center-ha-configurations:
+Fault tolerance for an {+service+} deployment can be measured as the
+number of :manual:`replica set </core/replication>` members that can
+become unavailable while your deployment still remains operational. In
+the event of an availability zone, region, or cloud provider outage,
+{+service+} clusters self-heal by promoting an existing secondary node
+to the role of primary node in a :manual:`replica set election
+</core/replica-set-elections>`. A majority of the voting nodes in a
+replica set must be operational in order to run a replica set election
+when a primary node experiences an outage.
 
-Recommended Configurations for High Availability and Recovery
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To ensure that a replica set can elect a primary in the case of a
+partial-region outage, you should deploy clusters to regions with at
+least three availability zones. Availability zones are separated groups
+of datacenters within a single cloud provider region, each with its own
+power, cooling, and networking infrastructure. {+service+} automatically
+distributes your cluster across availability zones when they are
+supported by your selected cloud provider region, so that if one zone
+experiences an outage, the remaining nodes in your cluster still support
+regional services. Most {+service+}-supported cloud provider regions
+have at least three availability zones. These regions are marked with a
+star icon in the {+atlas-ui+}. For more information about recommended
+regions, see :ref:`create-cluster-cloud-provider-region`. 
 
-Use the following recommendations to configure your
-{+service+} deployments and backups for high availability and to
-expedite recovery from disasters.
-
-To learn more about how to plan for and respond to disasters, see
-:ref:`arch-center-dr`.
-
-Choose a Deployment Type and Cluster Tier that Fits your Deployment Goals
-`````````````````````````````````````````````````````````````````````````
-
-When creating a new cluster, you can choose between between a range of {+cluster+} tiers 
-available under the Dedicated, Flex, or Free deployment types. 
-
-To determine the recommended cluster tier for your 
-application size, see the :ref:`arch-center-cluster-size-guide` .
-
-Use an Odd Number of Replica Set Members and Test Failover
-``````````````````````````````````````````````````````````
-
-To elect a :manual:`primary </core/replica-set-members>`, you need a majority of :manual:`voting </core/replica-set-elections>` replica set members available. We recommend that you create replica sets with an
-odd number of voting replica set members. There is no benefit in having
-an even number of voting replica set members. |service| satisfies this
-requirement by default, as |service| requires having 3, 5, or 7 nodes.
-
-Fault tolerance is the number of replica set members that can become
-unavailable with enough members still available for a primary election. 
-Fault tolerance of a four-member replica set is the same as for a three-member replica set because both can withstand a single-node
+To further improve fault tolerance for your most critical applications,
+you can scale your deployment by adding nodes, regions, or cloud
+providers to withstand availability zone, region, or provider outages,
+respectively. You can increase the node count to any odd number of
+nodes, with a maximum of 7 electable nodes and 50 total nodes. You can
+also deploy a cluster to multiple regions to enhance availability across
+a larger geography and enable automatic failover in the case of a
+full-region outage that disables all availability zones within your
+primary region. The same pattern applies to deploying your cluster to
+multiple cloud providers in order to withstand a full cloud provider
 outage.
 
-To test if your application can handle a failure of the replica set primary,
-submit a request to :ref:`test primary failover <test-failover>`. 
-When {+service+} simulates a failover event, {+service+} shuts down the current 
-primary and holds an election to elect a new primary.
+For guidance on how to choose a deployment that balances your needs for
+high availability, low latency, compliance, and cost, see our
+:ref:`arch-center-paradigms` documentation.
 
-To learn more about replica set members, see :manual:`Replica Set Members </core/replica-set-members>`. To learn more about replica set elections and 
-voting, see :manual:`Replica Set Elections </core/replica-set-elections>`.
+Prevent Accidental Cluster Deletion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. _arch-center-distribute-data:
+You can :ref:`enable termination protection
+<create-cluster-termination-protection>` to ensure that a cluster will
+not be accidentally terminated and require downtime to restore from a
+backup. To delete a cluster that has termination protection enabled, you
+must first disable termination protection. By default, Atlas disables
+termination protection for all clusters.
 
-Distribute Data Across At Least Three Data Centers in Different Availability Zones
-``````````````````````````````````````````````````````````````````````````````````
-MongoDB provides high availability by storing multiple copies of data across replica sets.
-To ensure that members of the same replica set don't share the same resources, and that 
-a replica set can elect a primary if a data center becomes unavailable, you must distribute 
-nodes across at least three data centers. We recommend that you use at least five data centers.
+Enabling termination protection is especially important when leveraging
+{+iac+} tools like Terraform to ensure that a redeployment does not
+provision new infrastructure.
 
-You can distribute data across multiple data centers by deploying your {+cluster+} to a region that supports multiple availability zones. 
-Each availability zone typically contains one or more discrete data centers, each with redundant power, networking and connectivity, often housed in separate
-facilities. When you deploy a dedicated {+cluster+} to a region that supports availability zones, {+service+} automatically splits your {+cluster+}'s 
-nodes across the availability zones. For example, for a three-node replica set {+cluster+} deployed to a region with three availability zones, 
-{+service+} deploys one node in each zone. This ensures that members of the same replica set are not sharing resources, so that your database remains 
-available even if one zone experiences an outage.
+Test Automatic Failovers
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-To understand the risks associated with using fewer than three data centers, consider the following diagram, 
-which shows data distributed across two data centers:
-
-.. figure:: /includes/images/two-data-centers.png
-   :figwidth: 750px
-   :alt: An image showing two data centers: Data Center 1, with a primary and a secondary node, and Data Center 2, with only a secondary node
-
-In the previous diagram, if Data Center 2 becomes unavailable, a majority of replica set members remain available and {+service+} can elect a primary.
-However, if you lose Data Center 1, you have only one out of three replica set members available, no majority, and the system degrades into read-only mode.
-
-Consider the following diagram, which shows a five-node replica set {+cluster+} deployed to a region with three availability zones:
-
-.. figure:: /includes/images/highavailabilityPS-SS-S.svg	
-   :figwidth: 750px
-   :alt: An image showing three data centers: Data Center 1, with a primary and secondary node, Data Center, 2 with two secondary nodes, and Data Center 3, with one secondary node
-
-The 2-2-1 topology in the previous diagram is our recommended topology to balance high availability, performance, and cost across multiple regions.
-In this topology, if any one data center fails, a majority of replica set members remain available and {+service+} can perform automatic faiilover. 
-While a three-node, three-region topology can also tolerate any one-region failure, any failover event in a 1-1-1 topology forces a new primary to be elected in a different region.
-The 2-2-1 topology can tolerate a primary node failure while keeping the new primary in the preferred region.
-
-We recommend that you deploy replica sets to the following regions because they support at least three availability zones:
-
-Recommended AWS Regions
-#######################
-
-.. include:: /includes/aws-recommended-regions.rst
-
-Recommended Azure Regions
-#########################
-
-.. include:: /includes/azure-recommended-regions.rst
-
-Recommended Google Cloud Regions
-################################
-
-.. include:: /includes/gcp-recommended-regions.rst
-
-Use ``mongos`` Redundancy for Sharded {+Clusters+}
-```````````````````````````````````````````````````
-
-When a client connects to a sharded {+cluster+}, we recommend that you include multiple :manual:`mongos </reference/program/mongos/>`
-processes, separated by commas, in the connection URI. To learn more,
-see :manual:`MongoDB Connection String Examples </reference/connection-string-examples/#self-hosted-replica-set-with-members-on-different-machines>`.
-This setup allows operations to route to different ``mongos`` instances
-for load balancing, but it is also important for disaster recovery.
-
-Consider the following diagram, which shows a sharded {+cluster+}
-spread across three data centers. The application connects to the {+cluster+} from a remote location. If Data Center 3 becomes unavailable, the application can still connect to the ``mongos``
-processes in the other data centers.
-
-.. figure:: /includes/images/mongos-three-data-centers.png
-   :figwidth: 750px
-   :alt: An image showing three data centers: Data Center 1, with a primary shards and two mongos, Data Center 2, with secondary shards and two mongos, and Data Center 3, with secondary shards and two mongos. The application connects to all six mongos instances.
-
-You can use 
-:manual:`retryable reads </core/retryable-reads/>` and
-:manual:`retryable writes</core/retryable-writes/>` to simplify the required error handling for the ``mongos``
-configuration.
+Before you deploy an application to production, we strongly recommend
+that you simulate various scenarios that require automatic node
+failovers to measure your preparedness for such events. With
+{+service+}, you can :ref:`test primary node failover <test-failover>`
+for a replica set and :ref:`simulate regional outages <test-outage>` for
+a multi-region deployment.
 
 .. _arch-center-majority-write-concern:
 
 Use ``majority`` Write Concern
-``````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MongoDB allows you to specify the level of acknowledgment requested
-for write operations by using :manual:`write concern 
-</reference/write-concern/>`. For example, if
-you have a three-node replica set with a write concern of
-``majority``, every write operation needs to be persisted on 
-two nodes before an acknowledgment of completion is sent to the driver
-that issued said write operation. For the best protection from a regional
-node outage, we recommend that you set the write concern to ``majority``.
+MongoDB allows you to specify the level of acknowledgment requested for
+write operations by using :manual:`write concern
+</reference/write-concern>`. {+service+} has a default write
+concern of ``majority``, meaning that data must be replicated across
+more than half of the nodes in your cluster before {+service+} reports
+success. Using ``majority`` instead of a definite number value like
+``2`` allows {+service+} to automatically adjust to requiring
+replication across fewer nodes if you experience a temporary node
+outage, allowing writes to continue after automatic failover.
+This also provides a consistent setting across all environments, so your
+connection string remains the same whether you have three nodes in a
+test environment or a larger number of nodes in production.
 
-Even though using ``majority`` write concern increases write latency compared
-with write concern ``1``, we recommend that you use ``majority`` write
-concern because it allows your data centers to continue performing write
-operations even if a replica set loses the primary.
+Configure Retryable Database Reads and Writes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To understand the advantage of using ``majority`` write concern over a numeric write concern, 
-consider a three-region, five-node replica set with a 2-2-1 topology, with a numeric write concern of ``4``.
-If one of the two-node regions becomes unavailable, write operations cannot complete because they are unable to persist data on four nodes.
-Using ``majority`` will allow write operations to continue when they persist data across at least two nodes, 
-maintaining data redundancy as well as write continuity. 
+{+service+} supports :manual:`retryable read </core/retryable-reads/>`
+and :manual:`retryable write </core/retryable-writes/>` operations. When
+enabled, {+service+} retries read and write operations once as a
+safeguard against intermittent network outages and replica set elections
+in which the application temporarily cannot find a healthy primary node.
+Retryable writes require an acknowledged :manual:`write concern
+</reference/write-concern>`, meaning your write concern cannot be ``{w:
+0}``. 
 
-Consider Backup Configuration
-`````````````````````````````
-Frequent data backups is critical for business continuity and disaster recovery. Frequent backups ensure that data loss and downtime is
-minimal if a disaster or cyber attack disrupts normal operations. 
-
-We recommend that you:
-
-- Set your backup frequency to meet your desired business continuity
-  objectives. Continuous backups may be needed for some systems, while less frequent snapshots may be desirable for others.
-- Store backups in a different physical location than the
-  source data.
-- Test your backup recovery process to ensure that you can restore
-  backups in a repeatable and timely manner.
-- Confirm that your {+clusters+} run the same MongoDB versions for
-  compatibility during restore.
-- Configure a :atlas:`backup compliance policy 
-  </backup/cloud-backup/backup-compliance-policy/#std-label-backup-compliance-policy>` to prevent deleting backup
-  snapshots, prevent decreasing the snapshot retention time, and more.
-
-For more backup recommendations, see :ref:`arch-center-backups`.
-
-Plan Your Resource Utilization
-``````````````````````````````
+Monitor and Plan Your Resource Utilization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To avoid resource capacity issues, we recommend that you monitor
-resource utilization and hold regular capacity planning sessions.
-MongoDB Professional Services offers these sessions.
-
-Over-utilized clusters could fail causing a disaster. 
-Scale up clusters to higher tiers if your utilization is regularly alerting at a steady state,
-such as above 60%+ utilization for system CPU and system memory.
-
-To view your resource utilization, see :atlas:`Monitor Real-Time Performance </real-time-performance-panel>`. To view metrics with the {+atlas-admin-api+}, see :oas-atlas-tag:`Monitoring and Logs </Monitoring-and-Logs>`.
+resource utilization and hold regular capacity planning sessions. {+ps+}
+offers these sessions. See our :ref:`Resource Capacity Disaster Recovery
+Plan <arch-center-resource-capacity>` for our recommendations on how to
+recover from resource capacity issues.
 
 To learn best practices for alerts and monitoring for resource
 utilization, see :ref:`arch-center-monitoring-alerts`.
 
-If you encounter resource capacity issues, see :ref:`arch-center-resource-capacity`.
+Plan Your MongoDB Version Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Plan Your MongoDB Version Changes and Maintenance
-`````````````````````````````````````````````````
+We recommend that you run the latest MongoDB version to take advantage
+of new features and improved security guarantees. You should always
+ensure that you upgrade to the latest MongoDB major version before your
+current version reaches `end of life
+<https://www.mongodb.com/legal/support-policy/lifecycles>`__.
 
-We recommend that you run the latest MongoDB version as it allows you to
-take advantage of new features and provides improved security guarantees
-compared with previous versions.
-
-Ensure that you perform MongoDB major version upgrades far before your
-current version reaches `end of life <https://www.mongodb.com/legal/support-policy/lifecycles>`__. 
-
-You can't downgrade your MongoDB version using the {+atlas-ui+}. Because of this,
-when planning and executing a major version upgrade, we recommend that you
-work directly with MongoDB Professional or Technical Services to help you
+You can't downgrade your MongoDB version using the {+atlas-ui+}. Because
+of this, we recommend that you work directly with {+ps+} or Technical
+Services when planning and executing a major version upgrade to help you
 avoid any issues that might occur during the upgrade process.
 
 Configure Maintenance Windows
-`````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MongoDB allows you to :ref:`configure a maintenance window <configure-maintenance-window>` for your {+cluster+},
-which sets the hour of the day when {+service+} starts weekly maintenance on your {+cluster+}.  
-Setting a custom maintenance window allows you to schedule maintenance, which requires at least one replica set election per replica set, 
-outside of business-critical hours. 
+{+service+} maintains uptime during scheduled maintenance by applying
+updates in a rolling fashion to one node at a time. Whenever the current
+primary is taken offline for maintenance during this process,
+{+service+} elects a new primary through an automatic :manual:`replica
+set election </core/replica-set-elections/>`. This is the same process
+that occurs during automatic failover in response to an unplanned
+primary node outage. 
 
-You can also set protected hours for your project, which defines a daily window of time in which standard updates cannot begin. 
-Standard updates do not involve {+cluster+} restarts or resyncs. 
+We recommend that you :ref:`configure a custom maintenance window
+<configure-maintenance-window>` for your project to avoid
+maintenance-related replica set elections during business-critical
+hours. You can also set protected hours in your maintenance window
+settings to define a daily window of time in which standard updates
+cannot begin. Standard updates do not involve cluster restarts or
+resyncs. 
 
 Automation Examples: {+service+} High Availability
 --------------------------------------------------
@@ -325,7 +297,7 @@ These examples also apply other recommended configurations, including:
             For your development and testing environments, run the following command for each project. Change
             the IDs and names to use your values:
 
-            .. include:: /includes/examples/cli-example-create-clusters-devtest.rst
+            .. include:: /includes/examples/cli/dev-test/cli-example-create-clusters-devtest.rst
 
          .. tab:: Staging and Prod Environments
             :tabid: stagingprod
@@ -333,16 +305,16 @@ These examples also apply other recommended configurations, including:
             For your staging and production environments, create the following ``cluster.json`` file for each project. 
             Change the IDs and names to use your values:
 
-            .. include:: /includes/examples/cli-json-example-create-clusters.rst
+            .. include:: /includes/examples/cli/cli-json-example-create-clusters.rst
 
             After you create the ``cluster.json`` file, run the
             following command for each project. The
             command uses the ``cluster.json`` file to create a cluster.
 
-            .. include:: /includes/examples/cli-example-create-clusters-stagingprod.rst 
+            .. include:: /includes/examples/cli/staging-prod/cli-example-create-clusters-stagingprod.rst 
 
       For more configuration options and info about this example, 
-      see :ref:`atlas-clusters-create`.
+      see the :ref:`atlas-clusters-create` command.
 
    .. tab:: Terraform
       :tabid: Terraform
@@ -381,22 +353,22 @@ These examples also apply other recommended configurations, including:
             main.tf
             ```````
 
-            .. include:: /includes/examples/tf-example-main-devtest.rst 
+            .. include:: /includes/examples/terraform/dev-test/tf-example-main-devtest.rst 
 
             variables.tf
             ````````````
 
-            .. include:: /includes/examples/tf-example-variables.rst
+            .. include:: /includes/examples/terraform/tf-example-variables.rst
 
             terraform.tfvars
             ````````````````
 
-            .. include:: /includes/examples/tf-example-tfvars-devtest.rst
+            .. include:: /includes/examples/terraform/dev-test/tf-example-tfvars-devtest.rst
 
             provider.tf
             ```````````
 
-            .. include:: /includes/examples/tf-example-provider.rst
+            .. include:: /includes/examples/terraform/tf-example-provider.rst
 
             After you create the files, navigate to each application and environment pair's directory and run the following
             command to initialize Terraform:
@@ -432,22 +404,22 @@ These examples also apply other recommended configurations, including:
             main.tf
             ```````
 
-            .. include:: /includes/examples/tf-example-main-stagingprod.rst 
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-main-stagingprod.rst 
 
             variables.tf
             ````````````
 
-            .. include:: /includes/examples/tf-example-variables.rst
+            .. include:: /includes/examples/terraform/tf-example-variables.rst
 
             terraform.tfvars
             ````````````````
 
-            .. include:: /includes/examples/tf-example-tfvars-stagingprod.rst
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-tfvars-stagingprod.rst
 
             provider.tf
             ```````````
 
-            .. include:: /includes/examples/tf-example-provider.rst
+            .. include:: /includes/examples/terraform/tf-example-provider.rst
 
             After you create the files, navigate to each application and environment pair's directory and run the following
             command to initialize Terraform:
@@ -475,4 +447,3 @@ These examples also apply other recommended configurations, including:
       For more configuration options and info about this example, 
       see |service-terraform| and the `MongoDB Terraform Blog Post
       <https://www.mongodb.com/developer/products/atlas/deploy-mongodb-atlas-terraform-aws/>`__.
-

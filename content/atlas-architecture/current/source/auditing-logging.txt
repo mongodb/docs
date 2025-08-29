@@ -6,6 +6,14 @@ Guidance for {+service+} Auditing and Logging
 
 .. default-domain:: mongodb
 
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:   
+   :description: Learn about auditing and logging in MongoDB Atlas.
+   :keywords: logging, audit, auditing, monitoring, compliance, security, database auditing, MongoDB Atlas logging
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -14,257 +22,28 @@ Guidance for {+service+} Auditing and Logging
 
 To monitor and log |service| platform activities, use auditing and logs.
 
-Features for {+service+} Auditing and Logging
----------------------------------------------
-
-.. _auditing:
-
-Auditing
-~~~~~~~~
-
-Available on ``M10+`` {+clusters+}, database auditing lets you track system 
-activity for deployments with
-multiple users. As an |service| administrator, you can:
-
-- Rely on default auditing settings in |service|. By default, |service|
-  performs database authentication auditing in ``M10+`` {+clusters+} to
-  record authentication events, including those pertaining to:
-
-  - database users
-  - source IP addresses
-  - timestamps for successful and failed attempts
-
-- :atlas:`Configure a JSON-formatted audit filter 
-  </database-auditing/#configure-a-custom-auditing-filter>` to
-  customize MongoDB auditing
-  and select the actions, database users, |service| roles, and |ldap| groups
-  that you want to audit. If you create a custom audit filter, you can
-  skip using the managed {+atlas-ui+} auditing filter builder and configure
-  your own tailored filter of event auditing. For a full list of
-  events you can configure for auditing, and for a list of examples,
-  see :manual:`MongoDB auditing </core/auditing>` and :atlas:`Example Auditing Filters 
-  </database-auditing/#example-auditing-filters>`.
+- :ref:`MongoDB Atlas Database Auditing <arch-center-auditing>` is available
+  on ``M10+`` clusters.
   
-  You can :manual:`configure manual auditing </core/auditing>` of most of the
-  documented :manual:`system event actions </reference/audit-message/mongo/>`
-  in |service|. Granular MongoDB database auditing allows you to track
-  usage of all DDL (Data Definition Language), DML (Data Manipulation Language),
-  and DCL (Data Control Language) commands in detail. See also
-  :atlas:`Set up Database Auditing </database-auditing>`.
+  As |a-service| administrator, you can create and enable custom JSON audit
+  filters in MongoDB to precisely control what gets audited across your
+  system and track system activity for deployments with multiple users.
+  This approach lets you specify exactly which actions, database users,
+  and |service| roles should be monitored, giving you more granular control
+  over your auditing process compared with the standard filter builder in
+  the {+atlas-ui+}.
 
-.. _accessing-audit-logs:
+- :ref:`MongoDB Atlas Logging <arch-center-logging>` provides a comprehensive
+  view of platform activities, including user actions and system events.
+  
+  You can use the {+atlas-ui+} to view logs, or you can export logs to
+  external systems for further analysis. |service| logs include detailed
+  information about database operations, user activities, and system events,
+  enabling you to monitor performance, troubleshoot issues, and ensure
+  compliance with security and operational policies.
 
-Accessing Audit Logs
-~~~~~~~~~~~~~~~~~~~~
+.. toctree::
+   :titlesonly:
 
-.. include:: /includes/cloud-docs/logs.rst
-
-You can review and update your auditing configuration per project. Use
-the following {+atlas-cli+} commands:
-
-- :ref:`atlas auditing describe <atlas-auditing-describe>` returns the
-  auditing configuration for the specified project.
-- :ref:`atlas auditing update <atlas-auditing-update>` updates
-  the auditing configuration for the specified project.
-
-You can :ref:`view authentication attempts <access-tracking>` that users make
-against your {+cluster+} with the {+atlas-cli+}, {+atlas-admin-api+}, or {+atlas-ui+}.
-|service| logs both successful and unsuccessful authentication attempts,
-including the timestamp of each attempt and which user tried to authenticate.
-
-You can also :ref:`view and filter the activity feed <view-activity-feed>`
-for an organization or project with the {+atlas-cli+}, {+atlas-admin-api+},
-or {+atlas-ui+}. The activity feed lists all events at the organization or project level.
-
-To perform a full audit, you can use a combination of audit logs,
-:manual:`MongoDB log messages </reference/log-messages/>`, and
-:ref:`the project and organization activity feed <view-activity-feed>`.
-
-.. _arch-center-auditing-logging-recs:
-
-Recommendations for {+service+} Auditing and Logging
-----------------------------------------------------
-
-We recommend that you :atlas:`set up database auditing </database-auditing>`
-when you provision your {+clusters+}. 
-Auditing puts additional load on your {+clusters+} and increases costs. 
-To optimize costs, you can disable auditing in lower environments for development. 
-Certain industries, such as healthcare and financial services, may opt to keep 
-auditing enabled in development environments for compliance reasons.
-
-Enabling auditing for all database users, including application
-service users, might affect cluster performance. We recommend that you
-audit only the actions of users that require auditing.
-
-For staging and production environments, enable auditing for
-additional security.
-
-We recommend that you audit the following events at a minimum:
-
-- Failed logon
-- Session activity
-- Logon and logoff
-- Attempts to perform unauthorized functions
-- Password change
-- Database User Access changes
-- DDL & System configuration stored procedures
-- Modification of Native audit
-- Running a backup or restore operation
-- Altering DBMS native audit settings
-- Altering security
-- Running database start and stop commands
-
-For all of the previous events, you should include in the audit log the following
-information at a minimum:
-
-- Session ID
-- Client hostname and IP address
-- Database server hostname and IP address
-- Database user
-- Database name
-- OS user
-- Service/instance name
-- Port
-- Application
-- Query
-- SQL command
-- Object
-- Timestamp
-- Error code (if applicable)
-
-Programmatic Access to Audit Logs
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To integrate with tools beyond the built-in integrations, we recommend
-that you retrieve logs with the following programmatic tools and feed
-the JSON-formatted output to your external tools:
-
-- To continually push logs to an |aws| |s3| bucket, use the {+atlas-admin-api+}
-  endpoints for :oas-atlas-tag:`Push-Based Log Export <Push-Based-Log-Export>`.
-- To retrieve deployment logs and lists of project events,
-  use the {+atlas-admin-api+} endpoints for :oas-atlas-tag:`Logs <MongoDB-Cloud-Users>`
-  and :oas-atlas-tag:`Project and Organization Events <Events>`.
-- To retrieve deployment logs, use :ref:`atlas deployment logs <atlas-deployments-logs>`
-  command in the {+atlas-cli+}. To learn more, see :atlas:`Atlas Deployment Logs </cli/current/command/atlas-deployments-logs/>`.
-
-Automation Examples: {+service+} Auditing and Logging
------------------------------------------------------
-
-.. include:: /includes/complete-examples.rst
-
-The following examples show how to retrieve and download logs and configure auditing
-using |service| :ref:`tools for automation <arch-center-automation>`.
-
-In addition to the following examples, see the blogpost
-`Streamlining Log Management to Amazon S3 Using Atlas Push-based Log Exports With HashiCorp Terraform <https://www.mongodb.com/developer/products/atlas/streamlining-log-management-amazon-s3-atlas-push-based-log-exports-hashicorp-terraform/>`__.
-
-.. tabs::
-
-   .. tab:: CLI
-      :tabid: cli
-
-      Update Audit Configuration
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      Run the following {+atlas-cli+} command to audit all authentication events
-      for known users in your project:
-
-      .. include:: /includes/examples/cli-example-audit-logs-known-users.rst
-
-      Run the following {+atlas-cli+} command to audit a known user
-      via a configuration file:
-
-      .. include:: /includes/examples/cli-example-audit-logs-config-file.rst
-
-      Describe Audit Configuration
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      Run the :ref:`atlas auditing describe <atlas-auditing-describe>`
-      {+atlas-cli+} command to return the auditing configuration for the specified project:
-
-      .. include:: /includes/examples/cli-example-audit-logs-describe.rst
-
-      Create and Use Audit Filter
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      Create an audit filter to only audit the authenticate operations
-      that occur against the test database. To learn more,
-      see :manual:`Configure Audit Filters </tutorial/configure-audit-filters/>`.
-
-      .. include:: /includes/examples/cli-example-audit-filter.rst
-
-      To use an audit filter that you created, update the audit configuration
-      using the :ref:`atlas auditing update <atlas-auditing-describe>`
-      {+atlas-cli+} command:
-
-      .. include:: /includes/examples/cli-example-audit-filter-use.rst
-
-      Retrieve Logs
-      ~~~~~~~~~~~~~
-
-      To retrieve the access log, use a command similar to the following.
-      This command returns a JSON-formatted list of all authentication
-      requests made against the {+clusters+} named ``Cluster0`` for the project
-      with the ID ``618d48e05277a606ed2496fe``:
-
-      .. include:: /includes/examples/cli-example-retrieve-logs.rst
-
-      Retrieve All Log Events for Organization in a JSON File
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      To return all events for the specified organization, use a command
-      similar to the following. This command returns a JSON-formatted list
-      of events for the organization with the ID ``5dd5a6b6f10fab1d71a58495``:
-
-      .. include:: /includes/examples/cli-example-retrieve-logs-org.rst
-
-      Download Logs
-      ~~~~~~~~~~~~~
-
-      Run the following {+atlas-cli+} command to download a compressed file that
-      contains the MongoDB logs for the specified host in your project.
-
-      .. include:: /includes/examples/cli-example-download-logs.rst
-
-   .. tab:: Terraform
-      :tabid: Terraform
- 
-      The following example demonstrates how to enable auditing for
-      your deployment. Before you can create resources with Terraform,
-      you must:
-
-      - :ref:`Create your paying organization <configure-paying-org>`
-        and :ref:`create an API key <atlas-admin-api-access>` for the
-        paying organization. Store your public and private keys as
-        environment variables by running the following commands in the terminal:
-
-        .. code-block::
-
-           export MONGODB_ATLAS_PUBLIC_KEY="<insert your public key here>"
-           export MONGODB_ATLAS_PRIVATE_KEY="<insert your private key here>"
-
-      - `Install Terraform <https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli>`__.
-
-      Enable Auditing and Create an Auditing Filter for the {+Cluster+}
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      You can :manual:`configure manual auditing </core/auditing>` of most of the
-      documented :manual:`system event actions </reference/audit-message/mongo/>`
-      by creating audit filters. To learn more about configuring audit filters,
-      see :manual:`Configure Audit Filters </tutorial/configure-audit-filters/>`.
-
-      .. include:: /includes/examples/tf-example-auditing-filter.rst
-
-      Retrieve Logs
-      ~~~~~~~~~~~~~
-
-      You can't retrieve logs with Terraform. Instead, use the following
-      {+atlas-admin-api+} endpoints:
-
-      - Use :oas-atlas-tag:`Access Tracking Admin API </Access-Tracking>`
-        to return access logs for all authentication attempts for the database,
-        identified by the cluster's name or hostname.
-
-      - Use :oas-atlas-tag:`Monitoring and Logs APIs </Monitoring-and-Logs>`
-        to retrieve a compressed log file with log messages for the specified
-        host.
+   Auditing </auditing/>
+   Logging </logging/>

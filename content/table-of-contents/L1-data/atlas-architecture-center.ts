@@ -20,9 +20,69 @@ const tocData: TocItem[] = [
             url: "/docs/atlas/architecture/:version/landing-zone",
           },
           {
+            label: "Deployment Paradigms",
+            contentSite: "atlas-architecture",
+            url: "/docs/atlas/architecture/:version/deployment-paradigms",
+            versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+            collapsible: true,
+            items: [
+              {
+                label: "Single-Region",
+                contentSite: "atlas-architecture",
+                url: "/docs/atlas/architecture/:version/deployment-paradigms/single-region",
+                versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+              },
+              {
+                label: "Multi-Region",
+                contentSite: "atlas-architecture",
+                url: "/docs/atlas/architecture/:version/deployment-paradigms/single-region",
+                versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+                collapsible: true,
+                items: [
+                  {
+                    label: "Global Data",
+                    contentSite: "atlas-architecture",
+                    url: "/docs/atlas/architecture/:version/deployment-paradigms/global-data",
+                    versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+                  },
+                  {
+                    label: "Latency Reduction Strategies",
+                    contentSite: "atlas-architecture",
+                    url: "/docs/atlas/architecture/:version/deployment-paradigms/latency-strategies",
+                    versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+                  }
+                ],
+              },
+              {
+                label: "Multi-Cloud",
+                contentSite: "atlas-architecture",
+                url: "/docs/atlas/architecture/:version/deployment-paradigms/multi-cloud",
+                versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+              },
+              {
+                label: "Hybrid",
+                contentSite: "atlas-architecture",
+                url: "/docs/atlas/architecture/:version/deployment-paradigms/hybrid",
+                versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+              },
+            ],
+          },
+          {
             label: "Orgs, Projects, and Clusters",
             contentSite: "atlas-architecture",
             url: "/docs/atlas/architecture/:version/hierarchy",
+          },
+          {
+            label: "Migration",
+            contentSite: "atlas-architecture",
+            url: "/docs/atlas/architecture/:version/migration",
+            versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+          },
+          {
+            label: "Operational Readiness Checklist",
+            contentSite: "atlas-architecture",
+            url: "/docs/atlas/architecture/:version/operational-readiness-checklist",
+            versions: { excludes: ["v20250604", "v20250317","v20250228"] },
           },
         ],
       },
@@ -59,6 +119,34 @@ const tocData: TocItem[] = [
             label: "Authorization and Authentication",
             contentSite: "atlas-architecture",
             url: "/docs/atlas/architecture/:version/auth",
+            versions: { includes: ["v20250604", "v20250317","v20250228"] },
+          },
+          {
+            label: "Authorization and Authentication ",
+            contentSite: "atlas-architecture",
+            url: "/docs/atlas/architecture/:version/auth",
+            versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+            collapsible: true,
+            items: [
+              {
+                label: "Authentication",
+                contentSite: "atlas-architecture",
+                url: "/docs/atlas/architecture/:version/auth/authentication",
+                versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+              },
+              {
+                label: "Authorization",
+                contentSite: "atlas-architecture",
+                url: "/docs/atlas/architecture/:version/auth/authorization",
+                versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+              },
+              {
+                label: "Auth Examples",
+                contentSite: "atlas-architecture",
+                url: "/docs/atlas/architecture/:version/auth/auth-examples",
+                versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+              },
+            ],
           },
           {
             label: "Data Encryption",
@@ -74,6 +162,28 @@ const tocData: TocItem[] = [
             label: "Auditing and Logging",
             contentSite: "atlas-architecture",
             url: "/docs/atlas/architecture/:version/auditing-logging",
+            versions: { includes: ["v20250604", "v20250317","v20250228"] },
+          },
+          {
+            label: "Auditing and Logging ",
+            contentSite: "atlas-architecture",
+            url: "/docs/atlas/architecture/:version/auditing-logging",
+            collapsible: true,
+            versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+            items: [
+              {
+                label: "Auditing",
+                contentSite: "atlas-architecture",
+                url: "/docs/atlas/architecture/:version/auditing",
+                versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+              },
+              {
+                label: "Logging",
+                contentSite: "atlas-architecture",
+                url: "/docs/atlas/architecture/:version/logging",
+                versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+              },
+            ],
           },
         ],
       },
@@ -92,6 +202,7 @@ const tocData: TocItem[] = [
             label: "Resiliency",
             contentSite: "atlas-architecture",
             url: "/docs/atlas/architecture/:version/resiliency",
+            versions: { includes: ["v20250604", "v20250317","v20250228"] },
           },
           {
             label: "Backups",

@@ -27,39 +27,123 @@ Use the following {+service+} features to address compliance requirements.
 Certifications and Compliance with Regulations
 ----------------------------------------------
 
-To help you address security and privacy requirements, MongoDB {+service+}
+To help you address security, compliance, and privacy requirements, MongoDB {+service+}
 aims to deliver the highest levels of standards conformance and regulatory
 compliance.
 
-{+service+} data platform undergoes rigorous independent audits to verify
+{+service+} data platform undergoes rigorous independent third-party audits to verify
 its security, privacy, and organizational controls. These audits help ensure
 that the platform  meets compliance and regulatory requirements, including
 those specific to highly-regulated industries.
 
-{+service+} has ISO/IEC 27001 and 9001, PCI DSS, HIPAA, GDPR, FedRAMP, and
-several other certifications. The full list of certifications is included
-in this section.
+{+service+} adheres to compliance frameworks including ISO/IEC 27001, 
+SOC2 Type II, PCI DSS, and others listed in our |atlas-trust|.  You can 
+view and download attestations, compliance reports, and other 
+compliance documentation in our `Customer Trust Portal <https://trust.mongodb.com/>`__.
 
-These certifications mean you can configure {+service+} to comply with a 
-particular standard. Be sure to follow the recommended settings for the 
-standard to ensure compliance.
+.. _arch-center-compliance-atlas-gov:
 
-{+service+} maintains the following certifications:
+MongoDB {+service+} for Government
+-----------------------------------
 
-- **ISO/IEC 27001:2022**: Global standard for information security management systems.
-- **ISO/IEC 27017:2015**: Global standard for cloud-specific security controls.
-- **ISO/IEC 27018:2019**: Global standard for protecting sensitive data (PII) on the cloud.
-- **ISO 9001:2015**: Globally recognized standard for Quality Management.
-- **PCI DSS**: Requirements for processing and accessing credit card data.
-- **HIPAA**: U.S. privacy regulation safeguarding health information.
-- **GDPR**: General Data Protection Regulation in the EU and EEA.
-- **IRAP**: Australian government cybersecurity assessment framework.
-- **TX-RAMP**: Texas Risk and Authorization Management Program.
-- **TISAX**: Trusted Information Security Assessment Exchange for automotive industries.
-- **HDS**: French standard for hosting health data (Hébergeur de Données de Santé).
+MongoDB |atlas-gov| is the first fully-managed multi-cloud developer data platform
+authorized at FedRAMP® Moderate that:
 
-To learn more, visit the |atlas-trust|, a comprehensive compliance and
-trust program for MongoDB {+service+}.
+- Uses a secure, fully-managed, dedicated FedRAMP® authorized environment.
+- Supports the unique requirements and missions of the U.S. Government.
+- Offers a set of features and the scalability needed to modernize legacy applications.
+
+.. _arch-center-resource-policies:
+
+{+arps+} 
+-----------------------
+
+To support your compliance requirements, {+arps+} offer 
+organization-wide controls for configuring and managing {+service+} resources in 
+alignment with your security, compliance, and operational best practices. Organization 
+Owners can define rules that govern user actions when creating or modifying resources 
+such as clusters, network configurations, and project settings. We 
+recommend that you set a resource policy according to your company's 
+standards at Organization creation time.
+
+{+arps+} support your compliance objectives by enabling you to:
+
+- **Enforce Minimum TLS Version:** Mandate the use of modern |tls| protocols across 
+  all {+service+} deployments, enhancing security and mitigating risks associated with 
+  older, less secure versions. This ensures adherence to contemporary encryption 
+  standards for all data in transit.
+
+- **Customize Default TLS Ciphers:** Select a specific set of allowed |tls| ciphers 
+  to optimize security based on operational needs while eliminating 
+  vulnerabilities associated with legacy encryption methods. This allows for fine-tuning 
+  encryption protocols to meet specific compliance requirements.
+
+- **Restrict VPC Peering Modifications:** Enable secure cross-network communication 
+  through established |vpc| peering connections while preventing configuration changes. 
+  Current project-level peerings remain active with their existing routing tables 
+  and security protocols, allowing customers to view but not alter these one-to-one 
+  |vpc| relationships and their associated network control mechanisms.
+
+- **Restrict Private Endpoint Modifications:** Maintain secure service connectivity 
+  through existing private endpoint configurations with read-only access. Project-level 
+  connections remain functional with their current private IP addressing scheme, while 
+  customers can view but not modify these dedicated service connection points within 
+  their |vpc|.
+
+- **Control IP Access Lists:** Prevent unauthorized modifications to IP access lists, 
+  ensuring consistent and controlled network access to your databases. This strengthens 
+  database security by preserving carefully defined network boundaries and protecting 
+  against accidental configuration changes.
+
+- **Set Cluster Tier Limits:** Define deployment guardrails by establishing both 
+  maximum and minimum cluster size limits that developers must adhere to when 
+  provisioning resources. This boundary-setting approach ensures teams can deploy 
+  appropriately sized environments within organization-approved parameters, optimizing 
+  infrastructure utilization while enforcing consistent resource allocation policies 
+  across all project workloads.
+
+- **Set Maintenance Window Requirement:** Enhance platform stability by requiring 
+  a maintenance window for all projects. This governance control ensures organizations 
+  establish a predictable update period (without dictating a specific timeframe) 
+  to supporting consistent system maintenance according to operational needs.
+
+- **Set Cloud Provider and Regions:** Set your cloud provider and 
+  distribute clusters across multiple regions and providers to meet 
+  data residency requirements and ensure high availability.
+
+- **Block Usage of the Wildcard IP Address:** Ensure that your cluster 
+  is only accessible from explicitly permitted IP addresses by not 
+  including the wildcard IP address in your IP access list or firewall 
+  rules. The wildcard IP address is 0.0.0.0/0 and allows access from 
+  anywhere.
+
+To learn more, see :atlas:`Atlas Resource Policies </atlas-resource-policies/>`.
+
+The following resource policy example, allows clusters to be created 
+on |aws|:
+
+.. code-block::
+   :copyable: true
+
+   {
+     "name": "Only Allow Clusters on AWS",
+     "policies": [
+       {
+         "body": "forbid ( principal, action == cloud::Action::\"cluster.createEdit\", resource) unless { context.cluster.cloudProviders   == [cloud::cloudProvider::\"aws\"] };"
+       }
+     ]
+   }
+
+The following example creates a Terraform resource policies file you 
+can use to enforce resource policies in your application. The file 
+enforces the following policies:
+
+- Restricts cluster modification to only a specified cloud provider.
+- Forbids cluster access from a wildcard IP address.
+- Specifies a minimum and maximum cluster size.
+- Prevents modification to private endpoints.
+
+.. include:: /includes/examples/terraform/tf-example-resource-policy.rst
 
 .. _arch-center-compliance-encryption:
 
@@ -130,16 +214,17 @@ This global distribution of supported locations ensures that you can
 provision clusters and store data that complies with your data sovereignty 
 and compliance requirements. Understanding the data sovereignty requirements 
 for any application being built on {+service+} is necessary to ensure you 
-stay compliant with proper governance. Additionally, {+service+} simplifies 
-data sovereignty compliance through global {+clusters+} with zoned sharding.
+stay compliant with proper governance.
 
-You can use global {+clusters+} to control data storage locations. You can
-partition and store data in your database into distinct zones, each situated
-in a different geographical location. For example, you can store European
-customer data in Europe, while storing U.S. customer data in the U.S.
-This allows you to comply with data sovereignty regulations and reduces
-latency for users accessing data from their respective regions. To learn
-more, see :atlas:`Global Clusters </global-clusters>`.
+You can simplify your data sovereignty compliance by deploying your 
+Atlas clusters across multiple regions. When you deploy a 
+:ref:`multi-region deployment paradigm 
+<arch-center-paradigms-multi-region>`, you can partition your data to 
+reside in distinct regions, each situated in a different geographical 
+region.  For example, you can store European customer data in Europe 
+and U.S. customer data in the U.S. This allows you to comply with data 
+sovereignty regulations and reduces latency for users accessing data 
+from their respective regions.
 
 .. _arch-center-compliance-backup-distribution:
 

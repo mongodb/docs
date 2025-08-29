@@ -1,4 +1,4 @@
-To review both ongoing and past migrations, navigate to the :guilabel:`Migration Home`
+To review both ongoing and past migrations, navigate to the :guilabel:`Migration Hub`
 page in |service|.
 
 You can click each migration process for more detailed information, including 

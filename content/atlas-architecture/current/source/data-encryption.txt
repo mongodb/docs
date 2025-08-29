@@ -12,9 +12,8 @@ Guidance for {+service+} Data Encryption
    :depth: 2
    :class: onecol
 
-|service| offers several encryption features to protect data 
-while in transit, at rest, and in use to safeguard data through 
-its full lifecycle.
+|service| offers several encryption features to protect data while in
+transit, at rest, and in use to safeguard data through its full lifecycle.
 
 Features for {+service+} Data Encryption
 ----------------------------------------
@@ -22,12 +21,12 @@ Features for {+service+} Data Encryption
 Encryption in Transit
 ~~~~~~~~~~~~~~~~~~~~~
 
-Encryption in transit secures data during transmission between 
-clients and servers, ensuring that your data cannot be inspected 
-while in motion. In |service|, all network traffic to {+clusters+} is 
-protected by Transport Layer Security (TLS), which is enabled by default 
-and cannot be disabled. Data transmitted to and between nodes is encrypted 
-in transit using TLS, ensuring secure communication throughout.
+Encryption in transit secures data during transmission between clients
+and servers, ensuring that your data cannot be inspected while in motion.
+In |service|, all network traffic to {+clusters+} is protected by
+Transport Layer Security (TLS), which is enabled by default and cannot
+be disabled. Data transmitted to and between nodes is encrypted in transit
+using TLS, ensuring secure communication throughout.
 
 You can select which TLS version to use in |service|. 
 TLS 1.2 and a minimum key length of 128 bits are the recommended default settings.
@@ -43,20 +42,20 @@ OpenSSL :abbr:`FIPS (Federal Information Processing Standards)` Object Module.
 Encryption at Rest
 ~~~~~~~~~~~~~~~~~~
 
-Encryption at rest ensures that all data on disk is encrypted
-and only visible once decrypted by an authorized process or
-application. In |service|, customer data is automatically encrypted 
-at rest using AES-256. This process utilizes your cloud provider's 
-disk encryption, with the provider managing the encryption keys. 
-This process cannot be disabled.
+Encryption at rest ensures that all data on disk is encrypted and only
+visible once decrypted by an authorized process or application.
+
+In |service|, customer data is automatically encrypted at rest using AES-256.
+This process utilizes your cloud provider's disk encryption, with the
+provider managing the encryption keys. This process cannot be disabled.
 
 By default, Encryption at Rest is volume-level encryption.
 
-Additionally, you can enable database-level encryption by bringing your own
-customer-managed key (CMK) with a key management service (KMS) 
-such as AWS KMS, Google Cloud KMS, or Azure Key Vault. This feature 
-provides file-level encryption and is equivalent to Transparent Data Encryption (TDE), 
-meeting enterprise TDE requirements. Encryption with customer key management 
+Additionally, you can enable database-level encryption by bringing your own key (BYOK).
+This is the customer-managed key (CMK) that you add with a key management service (KMS),
+such as AWS KMS, Google Cloud KMS, or Azure Key Vault. The BYOK feature
+provides file-level encryption and is equivalent to Transparent Data Encryption (TDE),
+meeting enterprise TDE requirements. Encryption with customer key management
 adds another layer of security for additional confidentiality and data segmentation.
 
 To learn more, see :ref:`security-kms-encryption`.
@@ -75,7 +74,7 @@ needs: Client-Side Field-Level Encryption and Queryable Encryption.
 Client-Side Field-Level Encryption
 ``````````````````````````````````
 
-:ref:`Client-Side Field-Level Encryption <manual-csfle-feature>` (CSFLE) 
+:ref:`Client-Side Field-Level Encryption <manual-csfle-feature>` (CSFLE)
 is an in-use encryption capability that enables a client application to encrypt 
 sensitive data before storing it in the MongoDB database. Sensitive data is 
 transparently encrypted, remains encrypted throughout its lifecycle, and is 
@@ -139,13 +138,72 @@ client as readable plaintext.
 Recommendations for {+service+} Data Encryption
 -----------------------------------------------
 
-Consider the following security recommendations when 
-provisioning your {+clusters+}.
+.. collapsible::
+   :heading: Single-Region Deployment Recommendations
+   :sub_heading: Recommendations that apply only to deployments in a single region
+   :expanded: true
+
+   Single-region deployments have no unique considerations for data encryption.
+   See the next section for "All Deployment Paradigm Recommendations".
+
+.. collapsible::
+   :heading: Multi-Region and Multi-Cloud Deployment Recommendations
+   :sub_heading: Recommendations that apply only to deployments across multiple regions or multiple cloud providers
+   :expanded: true
+
+   In multi-region and multi-cloud deployments, you can enable database-level
+   encryption by bringing your own customer-managed key (BYOK).
+   
+   Some KMS providers support multi-region capabilities. For example:
+   
+   - GCP KMS supports multi-region deployment and automatic key replication.
+   - In AWS KMS, you need to explicitly set the keys to be multi-region and
+     replicate them to every region |service| is deployed in. To learn more,
+     see `Create multi-Region replica keys in AWS <https://docs.aws.amazon.com/kms/latest/developerguide/multi-region-keys-replicate.html>`__.
+   
+   However, in the event of a regional outage affecting the configured
+   KMS endpoint, the |service| integration with a KMS provider
+   **doesn't provide automatic failover** of the connection or access
+   mechanism to the KMS across regions.
+
+   If the configured KMS provider becomes unavailable, |service| performs
+   periodic validation of your KMS configuration. If your KMS provider
+   credentials become invalid or the encryption key is deleted or disabled,
+   |service| shuts down the ``mongod`` and ``mongos`` processes on the
+   next scheduled validation check and notifies you via email, reflecting
+   the status in the {+atlas-ui+}.
+
+   When |service| can't connect to your key management provider,
+   it doesn't shut down your processes. Therefore, if access to the KMS
+   is disrupted due to a regional issue, the cluster might continue running
+   until you manually restart it or until validation fails more critically.
+
+   Because of this, if the KMS goes down, you can change the configuration.
+   To recover access to the encryption key in a multi-region outage scenario,
+   you must manually change the configuration in |service| to point to a
+   different, accessible KMS instance or configuration.
+   
+   If you use Private Endpoints to connect to KMS, you must establish a
+   private endpoint from each region where |service| nodes are deployed
+   back to the primary KMS. This is to ensure the configuration is still
+   valid during periodic checks and during initial configurations or key
+   rotations each node needs to access the customer master key stored in
+   the primary KMS.
+
+   In summary, |service| integration with the BYOK providers for Encryption at Rest
+   doesn't support multi-region failover automatically and you must manually
+   change the configuration.
+
+All Deployment Paradigm Recommendations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following recommendations apply to all :ref:`deployment paradigms
+<arch-center-paradigms>`.
 
 .. _arch-center-cmk:
 
 Encryption with Customer Key Management
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```````````````````````````````````````
 
 .. include:: /includes/encryption-with-cmk-recommendations.rst
 
@@ -160,7 +218,7 @@ when provisioning a new |service| organization, project, and {+cluster+},
 see :ref:`arch-center-create-hierarchy-example`.
 
 Data Classification
-~~~~~~~~~~~~~~~~~~~
+```````````````````
 
 During the provisioning process, we also recommend assessing the 
 sensitivity of certain fields in your data and classifying
@@ -201,7 +259,7 @@ Consider the following data classification levels as a starting point:
 Automation Examples: {+service+} Data Encryption
 ------------------------------------------------
 
-.. include:: /includes/complete-examples.rst
+.. include:: /includes/complete-examples-terraform.rst
 
 The following examples configure encryption with customer key management
 using |service| :ref:`tools for automation <arch-center-automation>`.
@@ -222,46 +280,82 @@ Configure Encryption with Customer Key Management
       with customer key management to save costs, unless you're in a highly-regulated industry
       or storing sensitive data. To learn more, see :ref:`arch-center-orgs-projects-clusters-recs`.
 
+      To enable encryption with customer key management with Terraform, 
+      create the following resources. Change the IDs and names to use your values:
+
+      .. tabs::
+   
+         .. tab:: AWS
+            :tabid: aws
+
+            .. tip:: 
+
+               For a complete configuration example, see
+               :github:`Atlas Terraform Provider Example <mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_encryption_at_rest/aws/atlas-cluster>`.
+
+            Alternatively, to simplify the configuration process, you can use the
+            `encryption at rest Terraform module <https://registry.terraform.io/modules/terraform-mongodbatlas-modules/encryption-at-rest/mongodbatlas/latest>`__.
+
+            .. include:: /includes/examples/terraform/tf-example-aws-kms.rst
+   
+         .. tab:: Azure
+            :tabid: azure
+
+            .. tip:: 
+
+               For a complete configuration example, see
+               :github:`Atlas Terraform Provider Example <mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_encryption_at_rest/azure>`.
+
+            .. include:: /includes/examples/terraform/tf-example-azure-key-vault.rst
+   
+         .. tab:: GCP
+            :tabid: gcp
+
+            .. include:: /includes/examples/terraform/tf-example-gcp-kms.rst
+
+            For more configuration options and info about this example, 
+            see `Terraform documentation <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/encryption_at_rest>`__.
+
+
    .. tab:: Staging and Prod Environments
       :tabid: stagingprod
 
-      For your staging and production environments, we
-      recommend that you enable encryption with customer key management when you provision your {+clusters+}.
+      For your staging and production environments, we recommend that you
+      enable encryption with customer key management when you provision your {+clusters+}.
       To learn more, see :ref:`arch-center-orgs-projects-clusters-recs`.
 
-To enable encryption with customer key management with Terraform, 
-create the following resources. Change the IDs and names to use your values:
+      To enable encryption with customer key management with Terraform, 
+      create the following resources. Change the IDs and names to use your values:
 
-.. tabs::
+      .. tabs::
    
-   .. tab:: AWS
-      :tabid: aws
+         .. tab:: AWS
+            :tabid: aws
 
-      .. tip:: 
+            .. tip:: 
 
-         For a complete configuration example, see
-         :github:`Atlas Terraform Provider Example <mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_encryption_at_rest/aws/atlas-cluster>`.
+               For a complete configuration example, see
+               :github:`Atlas Terraform Provider Example <mongodb/terraform-provider-mongodbatlas/blob/master/examples/mongodbatlas_encryption_at_rest/aws/atlas-cluster>`.
 
-         Alternatively, to simplify the configuration process, you can use the
-         `encryption at rest Terraform module <https://registry.terraform.io/modules/terraform-mongodbatlas-modules/encryption-at-rest/mongodbatlas/latest>`__.
+               Alternatively, to simplify the configuration process, you can use the
+               `encryption at rest Terraform module <https://registry.terraform.io/modules/terraform-mongodbatlas-modules/encryption-at-rest/mongodbatlas/latest>`__.
 
-      .. include:: /includes/examples/tf-example-aws-kms.rst
+            .. include:: /includes/examples/terraform/tf-example-aws-kms.rst
    
-   .. tab:: Azure
-      :tabid: azure
+         .. tab:: Azure
+            :tabid: azure
 
-      .. tip:: 
+            .. tip:: 
 
-         For a complete configuration example, see
-         :github:`Atlas Terraform Provider Example <mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_encryption_at_rest/azure>`.
+               For a complete configuration example, see
+               :github:`Atlas Terraform Provider Example <mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_encryption_at_rest/azure>`.
 
-      .. include:: /includes/examples/tf-example-azure-key-vault.rst
+            .. include:: /includes/examples/terraform/tf-example-azure-key-vault.rst
    
-   .. tab:: GCP
-      :tabid: gcp
+         .. tab:: GCP
+            :tabid: gcp
 
-      .. include:: /includes/examples/tf-example-gcp-kms.rst
+            .. include:: /includes/examples/terraform/tf-example-gcp-kms.rst
 
-For more configuration options and info about this example, 
-see `Terraform documentation 
-<https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/encryption_at_rest>`__.
+            For more configuration options and info about this example, 
+            see `Terraform documentation <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/encryption_at_rest>`__.
