@@ -19,7 +19,7 @@ if (!URI) {
 
 let client: MongoClient | null;
 
-function getClient() {
+export function getClient() {
   if (!client) {
     client = new MongoClient(URI, {
       appName: "docs-nextjs-" + envConfig.DB_ENV,
