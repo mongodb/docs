@@ -21,6 +21,7 @@ Release Notes
 
 Learn what's new in:
 
+* :ref:`Version 6.19 <version-6.19>`
 * :ref:`Version 6.18 <version-6.18>`
 * :ref:`Version 6.17 <version-6.17>`
 * :ref:`Version 6.16 <version-6.16>`
@@ -41,6 +42,42 @@ Learn what's new in:
 * :ref:`Version 6.1 <version-6.1>`
 * :ref:`Version 6.0 <version-6.0>`
 
+.. _version-6.19: 
+
+What's New in 6.19
+------------------
+
+The {+driver-short+} v6.19 release includes the following features:
+
+- Deprecates the following options for ``findOne()`` operations:
+
+  - ``limit``
+  - ``noCursorResponse``
+  - ``batchSize``
+
+- Sets the ``limit`` option to 1 and the ``singleBatch`` option to ``true`` for
+  ``findOne()`` operations. ``findOne()`` operations now guarantee that no more cursors
+  can be orphaned and no ``killCursors`` commands can be executed.
+
+- Sets the ``limit`` option for ``find()`` operations to ``batchSize + 1``, which ensures
+  cursors are closed on the server when batch size and limit are equal.
+
+- Adds experimental support for Queryable Encryption text field prefix, suffix, and
+  substring queries. You must upgrade your ``mongodb-client-encryption`` package to v6.5.0 or later to use this feature.
+
+  .. important:: 
+
+     Substring, prefix and suffix search are in preview and should be used for experimental workloads only.
+
+- Adds support to specify a ``secureContext`` to ``tlsOptions:<provider>`` in the ``autoEncryption`` options
+  on the ``MongoClient`` or as an option to the``ClientEncryption`` object. This allows you to pass ``tlsCAFile`` and ``tlsCertificateKeyFile`` as in
+  memory options to both ``MongoClientOptions.autoEncryption.tlsOptions`` and
+  ``ClientEncryption``. 
+
+- When authentication is enabled, the ``MongoClient`` now checks a connection out of the
+  connection pool to force the initial handshake and checks it back in when connecting. This
+  prevents unnecessary ``ping`` commands when connecting.
+
 .. _version-6.18:
 
 What's New in 6.18
@@ -59,7 +96,7 @@ The {+driver-short+} v6.18 release includes the following features:
   - ``ClientMetadata``
   - ``ClientMetadataOptions``
   - ``CancellationToken``
-  - ``CommandOperationOptions.noResponse()``
+  - ``CommandOperationOptions.noResponse``
 
   These members and types will be removed in an upcoming major version of the driver.
 
@@ -87,7 +124,7 @@ The {+driver-short+} v6.18 release includes the following features:
   setting is set to ``0``. This fixes a bug where the ``ConnectionPool`` did not clean up
   idle or perished connections unless ``minPoolSize`` was greater than ``0``.
 
-- The driver allocates sessions when it iterates on a cursor. In previous
+- The driver allocates sessions lazily when a cursor is iterated. In previous
   versions, the driver allocated sessions whenever a cursor was created,
   regardless of whether the application iterated on the cursor. 
 
