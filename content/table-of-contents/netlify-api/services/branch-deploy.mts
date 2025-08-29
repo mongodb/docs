@@ -1,6 +1,4 @@
 import { NetlifyAPI } from "@netlify/api";
-import { ENVIRONMENT_VARS } from "../configs.js";
-import { manageNetlifyEnv } from "../helpers/mangage-netlify-envs.mjs";
 
 export const triggerBranchDeploy = async ({
   siteId,
@@ -12,50 +10,7 @@ export const triggerBranchDeploy = async ({
   client: NetlifyAPI
 }) => {
 
-  let frontendVersion: { deleteEnvVarValue: () => Promise<void> }
-  let useUnifiedToc: { deleteEnvVarValue: () => Promise<void> }
-  let populateMetadata: { deleteEnvVarValue: () => Promise<void> }
-
   try {
-    // Enable FRONTEND_VERSION for the said branch
-    frontendVersion = await manageNetlifyEnv(client, branch, {
-      account_id: "mongodb",
-      key: ENVIRONMENT_VARS.FRONTEND_VERSION,
-      siteId,
-      body: {
-        context: "branch",
-        context_parameter: branch,
-        value: "feat/unified-nav",
-      },
-    });
-
-    
-
-    // Enable GATSBY_USE_UNIFIED_TOC for the said branch
-    useUnifiedToc = await manageNetlifyEnv(client, branch, {
-      account_id: "mongodb",
-      key: ENVIRONMENT_VARS.GATSBY_USE_UNIFIED_TOC,
-      siteId,
-      body: {
-        context: "branch",
-        context_parameter: branch,
-        value: "true",
-      },
-    })
-
-    // Enable POPULATE_METADATA_ENABLED_STAGING_ZW for the said branch
-    populateMetadata = await manageNetlifyEnv(client, branch, {
-      account_id: "mongodb",
-      key: ENVIRONMENT_VARS
-        .POPULATE_METADATA_ENABLED,
-      siteId,
-      body: {
-        context: "branch",
-        context_parameter: branch,
-        value: "true",
-      },
-    })
-    
 
     const createSiteBuildHook = await client.createSiteBuildHook({
       siteId,
@@ -91,11 +46,6 @@ export const triggerBranchDeploy = async ({
     if(id) {
       await client.deleteSiteBuildHook({ siteId, id })
     }
-
-    //TODO: DOP-6090: need to find the right time to call these methods to remove the env var for said branch
-    // frontendVersion.deleteEnvVarValue();
-    // useUnifiedToc.deleteEnvVarValue();
-    // populateMetadata.deleteEnvVarValue();
 
   } catch (error) {
     console.error("error", error);
