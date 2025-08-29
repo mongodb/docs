@@ -1,30 +1,53 @@
 name: Trigger branch builds on ToC Changes
 
 on:
-  pull_request:
+  pull_request_target:
     branches:
       - main
-      - unified-toc-mvp
-      - feat/unified-toc
+      - 'feat/**'
     paths:
       - 'content/table-of-contents/**'
 
+permissions:
+  contents: write
+  pull-requests: read
+
 env:
   NETLIFY_ACCESS_TOKEN: ${{ secrets.NETLIFY_ACCESS_TOKEN }}
-  PR_BRANCH: ${{ github.head_ref }}
+
 jobs:
+  get-branch-name:
+    uses: ./.github/workflows/generate-branch-name.yml
+    with:
+      pr_number: ${{ github.event.number }}
+
   trigger-branch-build:
+    needs: get-branch-name
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # This ensures we get the PR content for the path check
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Create temporary branch
+        run: |
+          BRANCH_NAME="${{ needs.get-branch-name.outputs.branch_name }}"
+          echo "Retrieving temporary branch: $BRANCH_NAME"
+          
+          # Push the current HEAD (with PR changes) to a new branch using full refspec
+          git push origin HEAD:refs/heads/$BRANCH_NAME
+
       - name: Install dependencies for table-of-contents
         run: npm install
         working-directory: ./content/table-of-contents
+
       - name: Trigger Netlify Branch Build
         run: |
-          echo "The PR branch is: $PR_BRANCH"
-          # Triggering the branch deploy for $PR_BRANCH
-          npm run api:build -- --branch=$PR_BRANCH 
+          BRANCH_NAME="${{ needs.get-branch-name.outputs.branch_name }}"
+          echo "The temp branch is: $BRANCH_NAME"
+          # Triggering the branch deploy for $BRANCH_NAME
+          npm run api:build -- --branch=$BRANCH_NAME
         working-directory: ./content/table-of-contents
           

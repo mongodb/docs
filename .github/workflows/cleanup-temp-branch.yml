@@ -1,0 +1,33 @@
+name: Cleanup Temporary Branch
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  get-branch-name:
+    uses: ./.github/workflows/generate-branch-name.yml
+    with:
+      pr_number: ${{ github.event.number }}
+
+  cleanup:
+    needs: get-branch-name
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name:
+        run: |
+          BRANCH_NAME="${{ needs.get-branch-name.outputs.branch_name }}"
+          echo "Looking for temp branch: $BRANCH_NAME"
+
+          # Check if branch exists and delete it
+          if git ls-remote --heads origin $BRANCH_NAME | grep -q $BRANCH_NAME; then
+            echo "Deleting temp branch: $BRANCH_NAME"
+            git push origin --delete $BRANCH_NAME
+            echo "Successfully deleted branch: $BRANCH_NAME"
+          else
+            echo "Branch $BRANCH_NAME not found, skipping cleanup"
+          fi
