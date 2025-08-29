@@ -289,6 +289,19 @@ const tocData: TocItem[] = [
               },
             ]
           },
+          {
+            label: "CrewAI",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/crewai",
+            collapsible: true,
+            items: [
+              {
+                label: "Build AI Agents",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/crewai/build-agents",
+              },
+            ],
+          },
         ]
       },
       {

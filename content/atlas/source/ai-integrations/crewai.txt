@@ -1,0 +1,337 @@
+.. _crewai:
+
+=============================
+Integrate MongoDB with CrewAI
+=============================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Integrate MongoDB with CrewAI to build autonomous AI agents and multi-agent applications with specialized roles, tools, and tasks.
+   :keywords: CrewAI, agents, agentic, RAG, retrieval, vector database, vector search, tools
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can integrate MongoDB with `CrewAI <https://docs.crewai.com/en/introduction>`__ 
+to build autonomous AI agents and multi-agent applications 
+with specialized roles, tools, and tasks. Specifically, you can leverage the 
+MongoDB Vector Search Tool for CrewAI to enable the 
+AI agents in your `crews <https://docs.crewai.com/en/concepts/crews>`__ 
+to retrieve relevant information from your data to help them
+complete tasks.
+
+Get Started
+-----------
+
+To complete a tutorial using CrewAI and MongoDB, 
+see :ref:`crewai-tutorial`.
+
+Installation
+------------
+
+To install the MongoDB Vector Search Tool for CrewAI, run one of the 
+following commands depending on your Python package manager:
+
+.. tabs::
+
+   .. tab:: pip 
+      :tabid: pip
+
+      .. code-block:: shell
+
+         pip install 'crewai-tools[mongodb]'
+
+   .. tab:: uv
+      :tabid: uv
+
+      .. code-block:: shell
+
+         uv add crewai-tools --extra mongodb
+
+.. include:: /includes/ai-integrations/crewai/fact-crewai-tools-dependency.rst
+
+Usage
+-----
+
+To use the MongoDB Vector Search Tool, initialize 
+it and then pass it to an `agent <https://docs.crewai.com/en/concepts/agents>`__.
+
+.. tabs:: 
+
+   .. tab:: Basic initialization 
+      :tabid: basic
+      
+      To initialize the tool, you must specify the following:
+
+      .. code-block:: python
+
+         from crewai_tools import MongoDBVectorSearchTool
+
+         tool = MongoDBVectorSearchTool(
+           connection_string="<connection-string>",
+           database_name="<database-name>",
+           collection_name="<collection-name>",
+           # Other optional parameters...
+         )
+
+         # To test the tool
+         print(tool.run(query="<test-query>"))
+
+         # To use the tool in an agent
+         rag_agent = Agent(
+             name="rag_agent",
+             role="You are a helpful assistant that can answer questions with the help of the MongoDBVectorSearchTool.",
+             goal="...",
+             backstory="...",
+             tools=[tool],
+         )
+         
+   .. tab:: Custom query configuration
+      :tabid: custom
+
+      Optionally, you can customize the vector search query for
+      the tool by specifying an instance of ``MongoDBVectorSearchConfig`` to the 
+      tool's constructor.
+
+      To learn more about vector search queries, see :ref:`return-vector-search-results`.
+
+      .. code-block:: python
+
+         from crewai_tools import MongoDBVectorSearchConfig, MongoDBVectorSearchTool
+
+         # Custom query configuration
+         query_config = MongoDBVectorSearchConfig(
+           limit = 10, 
+           oversampling_factor = 2,
+           )
+
+         tool = MongoDBVectorSearchTool(
+             database_name="example_database",
+             collection_name="example_collection",
+             connection_string="<connection_string>",
+             query_config=query_config,
+             # Other optional parameters...
+         )
+
+         # To test the tool
+         print(tool.run(query="<test-query>"))
+
+         # To use the tool in an agent
+         rag_agent = Agent(
+             name="rag_agent",
+             role="You are a helpful assistant that can answer questions with the help of the MongoDBVectorSearchTool.",
+             goal="...",
+             backstory="...",
+             tools=[tool],
+         )
+
+.. collapsible:: 
+   :heading: MongoDBVectorSearchTool Parameters
+   :sub_heading: Use these parameters to configure the vector search tool.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``connection_string``
+        - Required
+        - The connection string for your MongoDB instance. To learn more about finding your
+          connection string, see :ref:`connect-via-driver`.
+
+          .. note:: 
+
+             For a local deployment, your connection string should use the 
+             following format: 
+
+             .. code-block:: 
+
+                mongodb://localhost:<port-number>/?directConnection=true
+             
+             To learn more about connection strings, see 
+             :manual:`Connection Strings </reference/connection-string/>`. 
+
+      * - ``database_name``
+        - Required
+        - The name of the MongoDB database. 
+
+      * - ``collection_name``
+        - Required
+        - The name of the MongoDB collection.
+
+      * - ``query_config``
+        - Optional
+        - An instance of ``MongoDBVectorSearchConfig`` to customize 
+          the vector search query.
+
+      * - ``embedding_model``
+        - Optional
+        - The OpenAI embedding model used to generate vector embeddings. Defaults to ``text-embedding-3-large``.
+
+      * - ``vector_index_name``
+        - Optional
+        - The name of the {+avs+} index. Defaults to ``vector_index``.
+
+      * - ``text_key``
+        - Optional
+        - The document field containing the text content. Defaults to ``text``.
+
+      * - ``embedding_key``
+        - Optional
+        - The document field where the vector embedding is stored. Defaults to ``embedding``.
+
+      * - ``dimensions``
+        - Optional
+        - The number of dimensions for the vector embedding. Defaults to ``1536``.
+
+.. collapsible:: 
+   :heading: MongoDBVectorSearchConfig Parameters
+   :sub_heading: Use these parameters to customize the vector search query.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 25 50
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``limit``
+        - Optional
+        - The maximum number of documents to return. Defaults to ``4``.
+
+      * - ``pre_filter``
+        - Optional
+        - A MongoDB ``$match`` expression to filter documents before the vector search.
+
+      * - ``post_filter_pipeline``
+        - Optional
+        - A list of MongoDB aggregation stages to apply after the vector search.
+
+      * - ``oversampling_factor``
+        - Optional
+        - A multiplier for ``limit`` to determine the number of candidates (``numCandidates``) considered during the search. Defaults to ``10``.
+
+      * - ``include_embeddings``
+        - bool
+        - If True, the vector embedding of each result is included in the output. Defaults to ``False``.
+
+.. tip::
+   
+   Also see the `CrewAI MongoDB Vector Search Tool Docs <https://docs.crewai.com/en/tools/database-data/mongodbvectorsearchtool>`__
+
+Methods
+-------
+
+The ``MongoDBVectorSearchTool`` class provides the following methods:
+
+- ``add_texts()``: Adds text documents to the specified MongoDB collection.
+- ``create_vector_search_index()``: Creates a vector search index on the collection.
+- ``run()``: Runs a vector search query on your data.
+
+.. code-block:: python
+
+   import os
+   from crewai_tools import MongoDBVectorSearchTool
+
+   tool = MongoDBVectorSearchTool(
+     connection_string="<connection-string>",
+     database_name="<database-name>",
+     collection_name="<collection-name>"
+   )
+
+   # Example of loading text content from a local folder
+   texts = []
+   for fname in os.listdir("knowledge"):
+       path = os.path.join("knowledge", fname)
+       if os.path.isfile(path):
+           with open(path, "r", encoding="utf-8") as f:
+               texts.append(f.read())
+
+   # Method to add documents to the vector store
+   tool.add_texts(texts)
+
+   # Method to create the vector search index
+   tool.create_vector_search_index(dimensions=<number-of-dimensions>)
+
+   # Method to test the tool by running a vector search query
+   tool.run(query="<search-query>")
+
+.. collapsible:: 
+   :heading: create_vector_search_index() Parameters
+   :sub_heading: Use these parameters to configure the vector index.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``dimensions``
+        - Required
+        - The number of dimensions for the embedding vector. 
+
+      * - ``relevance_score_fn``
+        - Optional
+        - The similarity metric. Either ``euclidean``, ``cosine``, or ``dotProduct``. 
+          Defaults to ``cosine``.
+
+      * - ``auto_index_timeout``
+        - Optional
+        - The time in seconds to wait for the index to become ready. Defaults to ``15``.
+    
+   To learn more about vector search indexes, see :ref:`avs-types-vector-search`.
+
+.. collapsible:: 
+   :heading: add_texts() Parameters
+   :sub_heading: Use these parameters to configure how MongoDB ingests documents.
+   :expanded: false
+
+   .. list-table::
+      :widths: 25 15 60
+      :header-rows: 1
+
+      * - Parameter
+        - Necessity
+        - Description
+
+      * - ``texts``
+        - Required
+        - Array of iterable text documents to add.
+
+      * - ``metadatas``
+        - Optional
+        - A list of metadata documents, one for each text document.
+
+      * - ``ids``
+        - Optional
+        - A list of unique IDs for each document. 
+
+      * - ``batch_size``
+        - Optional
+        - The number of documents to process and insert in a single batch. Defaults to ``100``.
+
+.. toctree::
+    :titlesonly:
+
+    Build AI Agents </ai-integrations/crewai/build-agents>
