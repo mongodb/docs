@@ -36,6 +36,11 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
+        label: "Combined Vector Search and Full-Text Search",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/atlas-vector-search/hybrid-search/vector-search-with-full-text-search",
+      },
+      {
         label: "Combined Vector Search",
         contentSite: "cloud-docs",
         url: "/docs/atlas/atlas-vector-search/hybrid-search/vector-search-with-rankfusion",
@@ -48,25 +53,18 @@ const tocData: TocItem[] = [
     url: "/docs/atlas/atlas-vector-search/view-support",
   },
   {
-    label: "Transform Documents & Filter Collections",
-    contentSite: "cloud-docs",
-    url: "/docs/atlas/atlas-vector-search/transform-documents-collections",
-  },
-  {
-    label: "Vector Quantization",
-    contentSite: "cloud-docs",
-    url: "/docs/atlas/atlas-vector-search/vector-quantization",
-  },
-  {
     label: "Retrieval-Augmented Generation (RAG)",
     contentSite: "cloud-docs",
     url: "/docs/atlas/atlas-vector-search/rag",
+    collapsible: true,
+    items: [
+      {
+        label: "Playground Chatbot Demo Builder",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/atlas-vector-search/vector-search-playground/",
+      },
+    ],
   },
-  {
-    label: "Playground Chatbot Demo Builder",
-    contentSite: "cloud-docs",
-    url: "/docs/atlas/atlas-vector-search/vector-search-playground/",
-  },  
   {
     label: "Build AI Agents",
     contentSite: "cloud-docs",
@@ -78,6 +76,11 @@ const tocData: TocItem[] = [
     url: "/docs/atlas/atlas-vector-search/deployment-options",
   },
   {
+    label: "Vector Quantization",
+    contentSite: "cloud-docs",
+    url: "/docs/atlas/atlas-vector-search/vector-quantization",
+  },
+  {
     label: "Tutorials",
     contentSite: "cloud-docs",
     url: "/docs/atlas/atlas-vector-search/tutorials",
@@ -87,11 +90,6 @@ const tocData: TocItem[] = [
         label: "Semantic Search for Text",
         contentSite: "cloud-docs",
         url: "/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial",
-      },
-      {
-        label: "Hybrid Search",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/atlas-vector-search/hybrid-search/vector-search-with-full-text-search",
       },
       {
         label: "Local RAG",
@@ -135,8 +133,8 @@ const tocData: TocItem[] = [
         label: "Additional Recommendations",
         contentSite: "cloud-docs",
         url: "/docs/atlas/atlas-vector-search/benchmark/performance-recommendations",
-      }
-    ]
+      },
+    ],
   },
   {
     label: "Multi-Tenant Architecture",

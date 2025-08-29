@@ -139,7 +139,6 @@ const tocData: TocItem[] = [
       {
         label: "Frameworks",
         contentSite: "cloud-docs",
-        url: "/docs/atlas/ai-integrations/frameworks",
         collapsible: true,
         items: [
           {
@@ -213,7 +212,6 @@ const tocData: TocItem[] = [
           {
             label: "Semantic Kernel",
             contentSite: "cloud-docs",
-            url: "/docs/atlas/ai-integrations/semantic-kernel",
             collapsible: true,
             items: [
               {
@@ -241,26 +239,8 @@ const tocData: TocItem[] = [
         ]
       },
       {
-        label: "Semantic Kernel",
-        contentSite: "cloud-docs",
-        collapsible: true,
-        items: [
-          {
-            label: "Haystack",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/ai-integrations/haystack",
-          },
-          {
-            label: "Spring AI",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/ai-integrations/spring-ai",
-          }
-        ]
-      },
-      {
         label: "Agent Frameworks",
         contentSite: "cloud-docs",
-        url: "/docs/atlas/ai-integrations/agent-frameworks",
         collapsible: true,
         items: [
           {
@@ -307,7 +287,6 @@ const tocData: TocItem[] = [
       {
         label: "Platforms",
         contentSite: "cloud-docs",
-        url: "/docs/atlas/ai-integrations/platforms",
         collapsible: true,
         items: [
           {
@@ -351,7 +330,6 @@ const tocData: TocItem[] = [
       {
         label: "Tools",
         contentSite: "cloud-docs",
-        url: "/docs/atlas/ai-integrations/tools",
         collapsible: true,
         items: [
           {
@@ -364,7 +342,6 @@ const tocData: TocItem[] = [
       {
         label: "API Resources",
         contentSite: "cloud-docs",
-        url: "/docs/atlas/ai-integrations/ai-api-resources",
         collapsible: true,
         items: [
           {
