@@ -35,7 +35,7 @@ const tocData: TocItem[] = [
               {
                 label: "Multi-Region",
                 contentSite: "atlas-architecture",
-                url: "/docs/atlas/architecture/:version/deployment-paradigms/single-region",
+                url: "/docs/atlas/architecture/:version/deployment-paradigms/multi-region",
                 versions: { excludes: ["v20250604", "v20250317","v20250228"] },
                 collapsible: true,
                 items: [
