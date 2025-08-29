@@ -35,6 +35,7 @@ const tocData: TocItem[] = [
         label: "Security",
         contentSite: "mcp-server",
         url: "/docs/mcp-server/security",
+        collapsible: true,
         items: [
           {
             label: "OIDC",
