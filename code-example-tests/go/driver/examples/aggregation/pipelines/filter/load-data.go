@@ -1,56 +1,38 @@
-package main
+package filter
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
+
+	"driver-examples/utils"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-// start-structs
-type Person struct {
-	PersonID    string        `bson:"person_id"`
-	Firstname   string        `bson:"firstname"`
-	Lastname    string        `bson:"lastname"`
-	Gender      string        `bson:"gender,omitempty"`
-	DateOfBirth bson.DateTime `bson:"dateofbirth"`
-	Vocation    string        `bson:"vocation"`
-	Address     Address       `bson:"address"`
-}
-
-type Address struct {
-	Number int
-	Street string
-	City   string
-}
-
-// end-structs
-
-func main() {
-	const uri = "<connection string>"
-
-	client, err := mongo.Connect(options.Client().ApplyURI(uri))
-	if err != nil {
-		log.Fatal(err)
+func LoadData() {
+	ctx := context.Background()
+	// Get the connection string from environment
+	uri := utils.GetConnectionString()
+	if uri == "" {
+		log.Fatal("set your 'CONNECTION_STRING' environment variable.")
 	}
 
-	defer func() {
-		if err = client.Disconnect(context.TODO()); err != nil {
-			log.Fatal(err)
-		}
-	}()
+	clientOptions := options.Client().ApplyURI(uri)
+	client, err := mongo.Connect(clientOptions)
+	if err != nil {
+		log.Fatalf("failed to connect to the server: %v", err)
+	}
+	defer func() { _ = client.Disconnect(ctx) }()
 
 	aggDB := client.Database("agg_tutorials_db")
 
-	// start-insert-persons
+	// :snippet-start: example
 	persons := aggDB.Collection("persons")
-	persons.DeleteMany(context.TODO(), bson.D{})
 
-	_, err = persons.InsertMany(context.TODO(), []interface{}{
+	_, err = persons.InsertMany(ctx, []interface{}{
 		Person{
 			PersonID:    "6392529400",
 			Firstname:   "Elise",
@@ -104,45 +86,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// end-insert-persons
-
-	// start-match
-	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "vocation", Value: "ENGINEER"}}}}
-	// end-match
-
-	// start-sort
-	sortStage := bson.D{{Key: "$sort", Value: bson.D{{Key: "dateofbirth", Value: -1}}}}
-	// end-sort
-
-	// start-limit
-	limitStage := bson.D{{Key: "$limit", Value: 3}}
-	// end-limit
-
-	// start-unset
-	unsetStage := bson.D{{Key: "$unset", Value: bson.A{"_id", "address"}}}
-	// end-unset
-
-	// start-run-agg
-	pipeline := mongo.Pipeline{matchStage, sortStage, limitStage, unsetStage}
-	cursor, err := persons.Aggregate(context.TODO(), pipeline)
-	// end-run-agg
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer func() {
-		if err := cursor.Close(context.TODO()); err != nil {
-			log.Fatalf("failed to close cursor: %v", err)
-		}
-	}()
-
-	var results []bson.D
-	if err = cursor.All(context.TODO(), &results); err != nil {
-		log.Fatalf("failed to decode results: %v", err)
-	}
-	for _, result := range results {
-		res, _ := bson.MarshalExtJSON(result, false, false)
-		fmt.Println(string(res))
-	}
+	// :snippet-end:
 }

@@ -16,22 +16,18 @@ their field values match specified criteria.
 First, create Go structs to model the data in the ``persons``
 collection:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/filtered_subset.go
+.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/models.snippet.person-address.go
    :language: go
    :copyable: true
-   :start-after: start-structs
-   :end-before: end-structs
-   :dedent:
+   :category: usage example
 
 To create the ``persons`` collection and insert the sample data, add the
 following code to your application:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/filtered_subset.go
+.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/load-data.snippet.example.go
    :language: go
    :copyable: true
-   :start-after: start-insert-persons
-   :end-before: end-insert-persons
-   :dedent:
+   :category: usage example
 
 .. end-prep-steps
 
@@ -45,12 +41,10 @@ following code to your application:
       First, add a :pipeline:`$match` stage that finds documents in which
       the value of the ``vocation`` field is ``"ENGINEER"``:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/filtered_subset.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/run-pipeline.snippet.match.go
          :language: go
          :copyable: true
-         :start-after: start-match
-         :end-before: end-match
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a sort stage to sort from youngest to oldest.
 
@@ -58,12 +52,10 @@ following code to your application:
       documents in descending order by the ``dateofbirth`` field to
       list the youngest people first:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/filtered_subset.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/run-pipeline.snippet.sort.go
          :language: go
          :copyable: true
-         :start-after: start-sort
-         :end-before: end-sort
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a limit stage to see only three results.
 
@@ -71,24 +63,20 @@ following code to your application:
       stage to the pipeline to output only the first three documents in
       the results.
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/filtered_subset.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/run-pipeline.snippet.limit.go
          :language: go
          :copyable: true
-         :start-after: start-limit
-         :end-before: end-limit
-         :dedent:
+         :category: syntax example
 
    .. step:: Add an unset stage to remove unneeded fields.
 
       Finally, add an :pipeline:`$unset` stage. The
       ``$unset`` stage removes unnecessary fields from the result documents:
-            
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/filtered_subset.go
+
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/run-pipeline.snippet.unset.go
          :language: go
          :copyable: true
-         :start-after: start-unset
-         :end-before: end-unset
-         :dedent:
+         :category: syntax example
 
       .. tip::
 
@@ -101,19 +89,12 @@ following code to your application:
       Add the following code to the end of your application to perform
       the aggregation on the ``persons`` collection:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/filtered-subset/full-files/filtered_subset.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/run-pipeline.snippet.run-agg.go
          :language: go
          :copyable: true
-         :start-after: start-run-agg
-         :end-before: end-run-agg
-         :dedent:
+         :category: syntax example
 
-      Finally, run the following command in your shell to start your
-      application:
-
-      .. code-block:: bash
-      
-         go run agg_tutorial.go
+      Finally, run the application and inspect the results.
 
    .. step:: Interpret the aggregation results.
 
@@ -122,11 +103,9 @@ following code to your application:
       ordered from youngest to oldest. The results omit the ``_id`` and ``address``
       fields.
 
-      .. code-block:: none
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/output.txt
+         :language: text
          :copyable: false
-
-         {"person_id":"7363626383","firstname":"Carl","lastname":"Simmons","dateofbirth":{"$date":"1998-12-26T13:13:55Z"},"vocation":"ENGINEER"}
-         {"person_id":"1723338115","firstname":"Olive","lastname":"Ranieri","gender":"FEMALE","dateofbirth":{"$date":"1985-05-12T23:14:30Z"},"vocation":"ENGINEER"}
-         {"person_id":"6392529400","firstname":"Elise","lastname":"Smith","dateofbirth":{"$date":"1972-01-13T09:32:07Z"},"vocation":"ENGINEER"}
+         :category: example return object
 
 .. end-tutorial
