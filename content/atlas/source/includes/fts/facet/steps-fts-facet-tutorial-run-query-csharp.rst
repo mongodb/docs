@@ -1,22 +1,5 @@
 .. procedure:: 
-   :style: normal 
-
-   .. step:: Set up and initialize the .NET/C# project for the query.
-
-      a. Create a new directory called ``facet-query-example`` and
-         initialize your project with the ``dotnet new`` command.
-
-         .. code-block:: bash
-
-            mkdir facet-query-example
-            cd facet-query-example
-            dotnet new console
-
-      #. Add the .NET/C# Driver to your project as a dependency.
-
-         .. code-block:: bash
-
-            dotnet add package MongoDB.Driver
+   :style: normal
 
    .. step:: Create the query in the ``Program.cs`` file.
 
@@ -60,7 +43,7 @@
          .. input::
             :language: bash
 
-            dotnet run facet-query-example.csproj
+            dotnet run Program.cs
 
          .. output::
             :language: json
@@ -94,6 +77,3 @@
                 } 
               } 
             }
-              
-
-...

@@ -2,7 +2,7 @@ import pymongo
 import datetime
 
 # connect to your Atlas cluster
-client = pymongo.MongoClient('<connection-string>')
+client = pymongo.MongoClient("<connection-string>")
 
 # define pipeline
 pipeline = [{"$searchMeta": { 

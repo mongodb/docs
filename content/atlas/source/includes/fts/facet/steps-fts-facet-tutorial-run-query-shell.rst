@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Connect to your cluster in {+mongosh+}.
+   .. step:: Connect to your cluster in ``mongosh``.
 
       Open {+mongosh+} in a terminal window and connect to your cluster.
       For detailed instructions on connecting, see
@@ -15,7 +15,7 @@
 
          use sample_mflix
 
-   .. step:: Run an |fts| facet query that groups the genre and year fields into buckets."
+   .. step:: Run an |fts| facet query that groups the genre and year fields into buckets.
 
       The sample query uses the following to query the collection:
 
@@ -116,5 +116,3 @@
                       }
                     }
                    ]
-
-...

@@ -20,7 +20,7 @@
          - Establishes a connection to your |service| cluster.
          - Uses the following to query the collection:
 
-         .. include:: /includes/fts/extracts/fts-facet-constant-desc.rst 
+           .. include:: /includes/fts/extracts/fts-facet-constant-desc.rst 
 
          - Prints the documents that match the query from the ``AggregateFlow`` instance.
 
@@ -45,41 +45,43 @@
                   :language: kotlin
                   :linenos:
                   :dedent:
-                  :emphasize-lines: 9
+                  :emphasize-lines: 10
 
       #. .. include:: /includes/fts/facts/fact-fts-driver-connection-string.rst
 
    .. step:: Run the ``FacetQuery.kt`` file.
      
       When you run the ``FacetQuery.kt`` program in your IDE, it prints
-      the following result:
+      a result similar to the following:
      
       .. code-block:: none
          :copyable: false
         
-         Document{{
-          count=Document{{lowerBound=20878}}, 
-          facet=Document{{
-            genresFacet=Document{{
-              buckets=[
-                Document{{_id=Drama, count=12149}}, 
-                Document{{_id=Comedy, count=6436}}, 
-                Document{{_id=Romance, count=3274}}, 
-                Document{{_id=Crime, count=2429}}, 
-                Document{{_id=Thriller, count=2400}}, 
-                Document{{_id=Action, count=2349}}, 
-                Document{{_id=Adventure, count=1876}}, 
-                Document{{_id=Documentary, count=1755}}, 
-                Document{{_id=Horror, count=1432}}, 
-                Document{{_id=Biography, count=1244}}
-              ]
-            }}, 
-            yearFacet=Document{{
-              buckets=[
-                Document{{_id=1910, count=14}}, 
-                Document{{_id=1920, count=47}}, 
-                Document{{_id=1930, count=238}}
-              ]
-            }}
+         {"meta": {
+            "count": {"lowerBound": 20878}, 
+            "facet": {
+              "genresFacet": {
+                "buckets": [
+                  {"_id": "Drama", "count": 12149}, 
+                  {"_id": "Comedy", "count": 6436}, 
+                  {"_id": "Romance", "count": 3274}, 
+                  {"_id": "Crime", "count": 2429}, 
+                  {"_id": "Thriller", "count": 2400}, 
+                  {"_id": "Action", "count": 2349}, 
+                  {"_id": "Adventure", "count": 1876}, 
+                  {"_id": "Documentary", "count": 1755}, 
+                  {"_id": "Horror", "count": 1432}, 
+                  {"_id": "Biography", "count": 1244}
+                ]
+              }, 
+              "yearFacet": {
+                "buckets": [
+                  {"_id": 1910, "count": 14}, 
+                  {"_id": 1920, "count": 47}, 
+                  {"_id": 1930, "count": 238}
+                ]
+              }
+            }
           }}
-         }}
+          }
+         }

@@ -8,7 +8,7 @@
       The code example performs the following tasks:
       
       - Imports ``mongodb`` packages and dependencies.
-      - Establishes a connection to your |service| cluster.
+      - Establishes a connection to your |service| cluster or local deployment.
       - Uses the following searchMeta clauses to query the collection: 
 
         .. include:: /includes/fts/extracts/fts-facet-constant-desc.rst 
@@ -57,33 +57,29 @@
             :language: none
             :visible: true
          
-            [
-             {count [
-               {lowerBound 20878}
-             ]} 
-             {facet [
-               {genresFacet [
-                 {buckets [
-                  [{_id Drama} {count 12149}] 
-                  [{_id Comedy} {count 6436}] 
-                  [{_id Romance} {count 3274}] 
-                  [{_id Crime} {count 2429}] 
-                  [{_id Thriller} {count 2400}] 
-                  [{_id Action} {count 2349}] 
-                  [{_id Adventure} {count 1876}] 
-                  [{_id Documentary} {count 1755}] 
-                  [{_id Horror} {count 1432}] 
-                  [{_id Biography} {count 1244}]
+            {"meta":
+             {"count":
+               {"lowerBound":{"$numberLong":"20878"}}
+             , 
+             "facet":
+               {"genresFacet":
+                 {"buckets":
+                  [{"_id":"Drama", "count":{"$numberLong":"12149"}}, 
+                  {"_id":"Comedy", "count":{"$numberLong":"6436"}}, 
+                  {"_id":"Romance", "count":{"$numberLong":"3274"}}, 
+                  {"_id":"Crime", "count":{"$numberLong":"2429"}}, 
+                  {"_id":"Thriller", "count":{"$numberLong":"2400"}}, 
+                  {"_id":"Action", "count":{"$numberLong":"2349"}}, 
+                  {"_id":"Adventure", "count":{"$numberLong":"1876"}}, 
+                  {"_id":"Documentary", "count":{"$numberLong":"1755"}}, 
+                  {"_id":"Horror", "count":{"$numberLong":"1432"}}, 
+                  {"_id":"Biography", "count":{"$numberLong":"1244"}}
                  ]}
-               ]} 
-               {yearFacet [
-                 {buckets [
-                  [{_id 1910} {count 14}] 
-                  [{_id 1920} {count 47}] 
-                  [{_id 1930} {count 238}]
+               }, 
+               {"yearFacet":
+                 {"buckets":
+                  [{"_id":{"$numberInt":"1910"}, "count":{"$numberLong":"14"}}, 
+                  {"_id":{"$numberInt":"1920"}, "count":{"$numberLong":"47"}}, 
+                  {"_id":{"$numberInt":"1930"}, "count":{"$numberLong":"238"}}
                  ]}
-               ]}
-             ]}
-            ]
-
-...
+               }}

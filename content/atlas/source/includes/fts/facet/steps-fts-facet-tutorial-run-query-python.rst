@@ -2,7 +2,7 @@
    :style: normal
 
 
-   .. step:: Set up the file to run an |fts| facet query."
+   .. step:: Set up the file to run an |fts| facet query.
 
       a. Create a file named ``facet-query.py``. 
 
@@ -54,7 +54,7 @@
 
       #. .. include:: /includes/fts/facts/fact-fts-driver-connection-string.rst
 
-   .. step:: Run the fts| facet query that groups the genre and year fields into buckets.
+   .. step:: Run the |fts| facet query that groups the genre and year fields into buckets.
   
       .. io-code-block::
          :copyable: true 

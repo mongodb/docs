@@ -15,7 +15,7 @@
            connection to your |service| cluster.
          - Uses the following searchMeta clauses to query the collection: 
 
-         .. include:: /includes/fts/extracts/fts-facet-constant-desc.rst 
+           .. include:: /includes/fts/extracts/fts-facet-constant-desc.rst 
 
          - Iterates over the cursor to print the documents that match the 
            query.
@@ -59,8 +59,7 @@
             :language: javascript
             :visible: true
            
-            '{
-              "meta":{
+            '{"meta":{
                 "count":{"lowerBound":20878},
                 "facet":{
                   "genresFacet":{
@@ -85,7 +84,4 @@
                    ]
                   }
                 }
-              }
-            }'
-
-...
+              }}'

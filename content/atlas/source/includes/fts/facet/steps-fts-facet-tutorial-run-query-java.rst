@@ -1,21 +1,7 @@
 .. procedure:: 
    :style: normal
 
-   .. step:: Ensure that your ``CLASSPATH`` contains the following libraries.
-
-      .. list-table::
-         :widths: 30 70 
-
-         * - ``junit``
-           - 4.11 or higher version 
-
-         * - ``mongodb-driver-sync``
-           - 4.3.0 or higher version
-
-         * - ``slf4j-log4j12``
-           - 1.7.30 or higher version
-
-   .. step:: Set up the file to run |fts| facet query.
+   .. step:: Set up the file to run an |fts| facet query.
   
       a. Create a file named ``FacetQuery.java``.
       #. Copy and paste the following code into the ``FacetQuery.java`` file.
@@ -51,7 +37,7 @@
                   :language: java
                   :linenos:
                   :dedent:
-                  :emphasize-lines: 14
+                  :emphasize-lines: 13
 
          .. note:: 
 
@@ -60,11 +46,11 @@
 
             .. code-block:: 
 
-            package com.mongodb.drivers;
+               package com.mongodb.drivers;
 
       #. .. include:: /includes/fts/facts/fact-fts-driver-connection-string.rst
 
-   .. step:: Compile and run ``FacetQuery.java`` file.
+   .. step:: Compile and run the ``FacetQuery.java`` file.
 
      .. io-code-block::
         :copyable: true
@@ -79,31 +65,29 @@
            :language: json
            :visible: true
            
-           {meta: {
-             count: { lowerBound: Long('20878') },
-             facet: {
-               genresFacet: {
-                 buckets: [
-                  { _id: 'Drama', count: Long('12149') },
-                  { _id: 'Comedy', count: Long('6436') },
-                  { _id: 'Romance', count: Long('3274') },
-                  { _id: 'Crime', count: Long('2429') },
-                  { _id: 'Thriller', count: Long('2400') },
-                  { _id: 'Action', count: Long('2349') },
-                  { _id: 'Adventure', count: Long('1876') },
-                  { _id: 'Documentary', count: Long('1755') },
-                  { _id: 'Horror', count: Long('1432') },
-                  { _id: 'Biography', count: Long('1244') }
+           {"meta": {
+             "count": {"lowerBound": 20878},
+             "facet": {
+               "genresFacet": {
+                 "buckets": [
+                  {"_id": "Drama", "count": 12149},
+                  {"_id": "Comedy", "count": 6436},
+                  {"_id": "Romance", "count": 3274},
+                  {"_id": "Crime", "count": 2429},
+                  {"_id": "Thriller", "count": 2400},
+                  {"_id": "Action", "count": 2349},
+                  {"_id": "Adventure", "count": 1876},
+                  {"_id": "Documentary", "count": 1755},
+                  {"_id": "Horror", "count": 1432},
+                  {"_id": "Biography", "count": 1244}
                  ]
                },
-               yearFacet: {
-                 buckets: [
-                  { _id: 1910, count: Long('14') },
-                  { _id: 1920, count: Long('47') },
-                  { _id: 1930, count: Long('238') }
+               "yearFacet": {
+                 "buckets": [
+                  {"_id": 1910, "count": 14},
+                  {"_id": 1920, "count": 47},
+                  {"_id": 1930, "count": 238}
                  ]
                }
              }
            }}
-
-...
