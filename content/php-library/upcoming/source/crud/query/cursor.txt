@@ -7,7 +7,7 @@ Access Data From a Cursor
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. facet::
@@ -30,6 +30,11 @@ documents at once.
 
 Whenever the {+php-library+} performs a read operation by using the ``MongoDB\Collection::find()``
 method, it returns the matching documents in a ``MongoDB\Driver\Cursor`` instance.
+The ``Cursor`` class implements {+language+}'s :php:`Iterator <iterator>`
+interface, which provides more control over iteration and greater compatibility
+with {+language+} functions that work with :php:`iterables <types.iterable>`.
+MongoDB cursors support only forward iteration, so you cannot rewind a cursor
+or use a ``foreach`` loop multiple times.
 
 Sample Data
 ~~~~~~~~~~~
@@ -134,14 +139,39 @@ in an array:
 Tailable Cursors
 ----------------
 
-When querying on a :manual:`capped collection </core/capped-collections/>`, you
-can use a **tailable cursor** that remains open after the client exhausts the
-results in a cursor. To create a tailable cursor, set the ``cursorType`` option to
+If you want a cursor to remain open after your client
+reads its initial contents, you can use a **tailable cursor**.
+We recommend that you use tailable cursors to query :manual:`capped collections </core/capped-collections/>`.
+
+You cannot use a ``foreach`` loop to iterate a tailable cursor, since
+the loop terminates after reading the cursor's initial result set. If you
+use a second ``foreach`` loop to continue iterating the tailable cursor,
+the {+driver-short+} attempts to rewind the cursor and then generates an error.
+Instead, you must use methods from the :php:`Iterator <iterator>` interface
+to retrieve results from a tailable cursor.
+
+To create a tailable cursor, set the ``cursorType`` option to
 ``MongoDB\Operation\Find::TAILABLE`` in an array. Then, pass the array as an options
 parameter to the ``MongoDB\Collection::find()`` method.
 
-For example, you can create a capped collection called ``vegetables`` that stores
-documents representing vegetables, as shown in the following code:
+Tailable Cursor Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+This section provides the following sample scripts, which you can
+run simultaneously:
+
+1. A :ref:`producer script <php-tailable-create-coll>` that creates a capped collection
+   and inserts documents into it
+#. A :ref:`consumer script <php-tailable-create-cursor>` that creates a tailable cursor
+   to read documents from the capped collection
+
+.. _php-tailable-create-coll:
+
+Create and Populate a Collection
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following example creates a capped collection called ``vegetables`` and
+waits ``5`` seconds before inserting an additional document into the collection:
 
 .. literalinclude:: /includes/read/cursor.php
     :language: php
@@ -149,8 +179,13 @@ documents representing vegetables, as shown in the following code:
     :start-after: start-capped-coll
     :end-before: end-capped-coll
 
-The following code uses a tailable cursor to retrieve all documents in the ``vegetables``
-collection. After the cursor is exhausted, it remains open until retrieving three documents:
+.. _php-tailable-create-cursor:
+
+Create a Tailable Cursor
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+While the :ref:`preceding code example <php-tailable-create-coll>` is running, use the following
+code to create a tailable cursor and retrieve all documents in the ``vegetables`` collection:
 
 .. io-code-block::
    :copyable:
@@ -164,14 +199,18 @@ collection. After the cursor is exhausted, it remains open until retrieving thre
    .. output::
       :visible: false
 
-      {"_id":{"$oid":"..."},"name":"cauliflower"}
-      {"_id":{"$oid":"..."},"name":"zucchini"}
+      {"_id":{"$oid":"..."},"name":"cauliflower","createdAt":{"$date":{"$numberLong":"..."}}}
+      {"_id":{"$oid":"..."},"name":"zucchini","createdAt":{"$date":{"$numberLong":"..."}}}
+      {"_id":{"$oid":"..."},"name":"carrot","createdAt":{"$date":{"$numberLong":"..."}}}
 
-If you insert another document into the ``vegetables`` collection, the preceding code prints
-the new document and closes the ``while`` loop.
+This code prints the two initial documents in the collection, but the ``while``
+loop does not terminate until receiving a third document. The ``next()``
+method ensures that the code waits for the additional cursor results.
 
-To learn more about tailable cursors, see :manual:`Tailable Cursors
-</core/tailable-cursors/>` in the {+mdb-server+} manual.
+.. tip::
+   
+   To learn more about tailable cursors, see :manual:`Tailable Cursors
+   </core/tailable-cursors/>` in the {+mdb-server+} manual.
 
 Additional Information
 ----------------------
