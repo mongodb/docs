@@ -1,6 +1,8 @@
 # start-models
 from django.db import models
-from django_mongodb_backend.fields import ArrayField
+from django.contrib.gis.db import models
+from django_mongodb_backend.fields import ArrayField, EmbeddedModelField
+from django_mongodb_backend.models import EmbeddedModel
 from django_mongodb_backend.managers import MongoManager
 
 class Movie(models.Model):
@@ -18,9 +20,13 @@ class Movie(models.Model):
     def __str__(self):
         return self.title
 
+class Location(EmbeddedModel):
+    address = models.JSONField(null=True)
+    geo = models.PointField()
+
 class Theater(models.Model):
     theaterId = models.IntegerField(default=0)
-    objects = MongoManager()
+    location = EmbeddedModelField(Location, null=True, blank=True)
 
     class Meta:
         db_table = "theaters"

@@ -8,7 +8,7 @@ class Location(EmbeddedModel):
     geo = models.PointField()
 
 class Theater(models.Model):
-    theaterId = models.IntegerField(default=0)
+    theater_id = models.IntegerField(default=0, db_column="theaterId")
     location = EmbeddedModelField(Location, null=True, blank=True)
 
     class Meta:
@@ -16,5 +16,5 @@ class Theater(models.Model):
         managed = False
     
     def __str__(self):
-        return self.theaterId
+        return self.theater_id
 # end-geo-models
