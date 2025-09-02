@@ -12,7 +12,7 @@ describe("mongosh aggregation pipeline tutorial tests", () => {
   const dbName = "agg-pipeline";
 
   // Drop the database and delete temp files after running the tests
-  afterAll(() => {
+  afterEach(() => {
     const command = `mongosh "${mongoUri}" --eval "db = db.getSiblingDB('${dbName}'); db.dropDatabase();"`;
 
     try {
@@ -192,6 +192,84 @@ describe("mongosh aggregation pipeline tutorial tests", () => {
             );
             expect(result).toBe(true);
             done();
+          },
+        );
+      },
+    );
+  });
+
+  test("Should return joined data with the customer product name and category", (done) => {
+    // Load test data details
+    const loadDataOrdersFilePath = "aggregation/pipelines/join-one-to-one/load-data-orders.js";
+
+    const loadDataOrdersDetails = {
+      connectionString: mongoUri,
+      dbName: dbName,
+      filepath: loadDataOrdersFilePath,
+      validateOutput: false,
+    };
+
+    const tempLoadDataOrdersPath = makeTempFileForTesting(loadDataOrdersDetails);
+
+    const loadDataProductsFilePath = "aggregation/pipelines/join-one-to-one/load-data-products.js";
+
+    const loadDataProductsDetails = {
+      connectionString: mongoUri,
+      dbName: dbName,
+      filepath: loadDataProductsFilePath,
+      validateOutput: false,
+    };
+
+    const tempLoadDataProductsPath = makeTempFileForTesting(loadDataProductsDetails);
+
+    // Run the aggregation pipeline details
+    const pipelineFilePath = "aggregation/pipelines/join-one-to-one/run-pipeline.js";
+    const expectedOutputFilePath = "aggregation/pipelines/join-one-to-one/output.sh";
+
+    const pipelineDetails = {
+      connectionString: mongoUri,
+      dbName: dbName,
+      filepath: pipelineFilePath,
+      validateOutput: true,
+    };
+
+    const tempPipelinePath = makeTempFileForTesting(pipelineDetails);
+
+    // Load the orders test data
+    exec(
+      `mongosh --file ${tempLoadDataOrdersPath} --port ${port}`,
+      (error, stdout, stderr) => {
+        expect(error).toBeNull(); // Ensure no error occurred
+        if (stderr !== "") {
+          console.error("Standard Error:", stderr);
+        }
+        // Load the products test data
+        exec(
+          `mongosh --file ${tempLoadDataProductsPath} --port ${port}`,
+          (error, stdout, stderr) => {
+            expect(error).toBeNull(); // Ensure no error occurred
+            if (stderr !== "") {
+              console.error("Standard Error:", stderr);
+            }
+
+            // Run the pipeline after the test data is loaded
+            exec(
+              `mongosh --file ${tempPipelinePath} --port ${port}`,
+              (error, stdout, stderr) => {
+                expect(error).toBeNull(); // Ensure no error occurred
+                if (stderr !== "") {
+                  console.error("Standard Error:", stderr);
+                }
+
+                // Validate the output
+                const result = unorderedOutputArrayMatches(
+                  expectedOutputFilePath,
+                  stdout,
+                );
+                expect(result).toBe(true);
+                done();
+              },
+            );
           },
         );
       },
