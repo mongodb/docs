@@ -16,6 +16,8 @@ import type {
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
 
+import Admonition, { type AdmonitionProps } from '../admonition';
+import { admonitionMap } from '../admonition/constants';
 import Text, { type TextProps } from '../text';
 import Paragraph, { type ParagraphProps } from '../paragraph';
 import Kicker, { type KickerProps } from '../kicker';
@@ -49,8 +51,8 @@ const IGNORED_TYPES = new Set([
   'named_reference',
   'substitution_definition',
 ]);
-// TODO: reinsert when developing admonitions
-// const DEPRECATED_ADMONITIONS = new Set(['admonition', 'caution', 'danger']);
+
+const DEPRECATED_ADMONITIONS = new Set(['admonition', 'caution', 'danger']);
 
 const roleMap: Record<
   RoleName,
@@ -99,7 +101,7 @@ const getComponent = (() => {
   return (key: validComponentKey) => {
     if (componentMap === undefined) {
       componentMap = {
-        // admonition: Admonition,
+        admonition: Admonition as React.ComponentType<SupportedComponentProps>,
         // banner: Banner,
         // blockquote: BlockQuote,
         // button: Button,
@@ -193,9 +195,9 @@ function getComponentType(
     }
 
     // Various admonition types are all handled by the Admonition component
-    // if (DEPRECATED_ADMONITIONS.has(name) || name in admonitionMap) {
-    //   ComponentType = getComponent('admonition');
-    // }
+    if (DEPRECATED_ADMONITIONS.has(name) || (name && name in admonitionMap)) {
+      ComponentType = getComponent('admonition');
+    }
   }
 
   // if (lookup && LAZY_COMPONENTS[lookup]) {
@@ -216,7 +218,18 @@ export type ComponentFactoryProps = {
   parentNode?: string;
 };
 
-type SupportedComponentProps = ComponentFactoryProps | CondProps | SectionProps | TextProps | ParagraphProps | IntroductionProps | KickerProps | TimeProps | TitleReferenceProps | RubricProps;
+type SupportedComponentProps =
+  | ComponentFactoryProps
+  | CondProps
+  | SectionProps
+  | TextProps
+  | ParagraphProps
+  | IntroductionProps
+  | KickerProps
+  | TimeProps
+  | TitleReferenceProps
+  | RubricProps
+  | AdmonitionProps;
 
 const renderComponentWithProps = (
   ComponentType: React.ComponentType<SupportedComponentProps>,
