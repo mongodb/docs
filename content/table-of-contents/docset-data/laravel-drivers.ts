@@ -290,6 +290,7 @@ const tocData: TocItem[] = [
         label: "HTTP Sessions",
         contentSite: "laravel",
         url: "/docs/drivers/php/laravel-mongodb/:version/sessions",
+        versions: {"excludes":["v4.x"]}
       },
       {
         label: "Queues",
