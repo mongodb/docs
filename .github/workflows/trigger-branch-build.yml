@@ -35,9 +35,14 @@ jobs:
         run: |
           BRANCH_NAME="${{ needs.get-branch-name.outputs.branch_name }}"
           echo "Retrieving temporary branch: $BRANCH_NAME"
+
+          # Fetch only the specific branch we need rather than fetching the entire set of branches and tags
+          git fetch origin $BRANCH_NAME || true
           
           # Push the current HEAD (with PR changes) to a new branch using full refspec
-          git push origin HEAD:refs/heads/$BRANCH_NAME
+          # using --force-with-lease to allow pushes to happen to an existing branch
+          # this happens when someone makes a change to their pre-existing PR.
+          git push origin HEAD:refs/heads/$BRANCH_NAME --force-with-lease
 
       - name: Install dependencies for table-of-contents
         run: npm install
