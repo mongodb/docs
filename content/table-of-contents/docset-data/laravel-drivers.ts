@@ -57,6 +57,7 @@ const tocData: TocItem[] = [
             label: "Tutorial: Build a Back End",
             contentSite: "laravel",
             url: "/docs/drivers/php/laravel-mongodb/:version/quick-start/backend-service-tutorial",
+            versions: {"excludes":["v4.x"]}
           },
         ],
       },
@@ -187,6 +188,7 @@ const tocData: TocItem[] = [
                 label: "Query Logging",
                 contentSite: "laravel",
                 url: "/docs/drivers/php/laravel-mongodb/:version/fundamentals/read-operations/query-logging",
+                versions: {"excludes":["v4.x"]}
               },
             ],
           },
@@ -222,11 +224,13 @@ const tocData: TocItem[] = [
             label: "Atlas Search",
             contentSite: "laravel",
             url: "/docs/drivers/php/laravel-mongodb/:version/fundamentals/atlas-search",
+            versions: {"excludes":["v4.x"]}
           },
           {
             label: "Atlas Vector Search",
             contentSite: "laravel",
             url: "/docs/drivers/php/laravel-mongodb/:version/fundamentals/vector-search",
+            versions: {"excludes":["v4.x"]}
           },
         ],
       },
@@ -285,6 +289,7 @@ const tocData: TocItem[] = [
         label: "Scout Integration",
         contentSite: "laravel",
         url: "/docs/drivers/php/laravel-mongodb/:version/scout",
+        versions: {"excludes":["v4.x"]}
       },
       {
         label: "HTTP Sessions",

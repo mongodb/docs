@@ -300,7 +300,7 @@ const tocData: TocItem[] = [
         label: "Include & Link the Driver",
         contentSite: "cpp-driver",
         url: "/docs/languages/cpp/cpp-driver/:version/include-link",
-        versions: { excludes: outdatedVersions },
+        versions: { excludes: ["v4.0", "v3.11", ...outdatedVersions] },
       },
       {
         label: "Thread & Fork Safety",

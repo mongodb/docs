@@ -86,6 +86,12 @@ const tocData: TocItem[] = [
             contentSite: "django",
             url: "/docs/languages/python/django-mongodb/:version/model-data/models",
           },
+          {
+            label: "Model Geospatial Data",
+            contentSite: "django",
+            url: "/docs/languages/python/django-mongodb/:version/model-data/geodjango",
+            versions: { excludes: ["v5.1"] },
+          },
         ],
       },
       {
@@ -113,16 +119,19 @@ const tocData: TocItem[] = [
             label: "Atlas Search",
             contentSite: "django",
             url: "/docs/languages/python/django-mongodb/:version/interact-data/atlas-search",
+            versions: { excludes: ["v5.1"] },
           },
           {
             label: "Atlas Vector Search",
             contentSite: "django",
             url: "/docs/languages/python/django-mongodb/:version/interact-data/atlas-vector-search",
+            versions: { excludes: ["v5.1"] },
           },
           {
             label: "Transactions",
             contentSite: "django",
             url: "/docs/languages/python/django-mongodb/:version/interact-data/transactions",
+            versions: { excludes: ["v5.1"] },
           }
         ],
       },

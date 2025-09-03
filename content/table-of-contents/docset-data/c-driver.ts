@@ -275,7 +275,7 @@ const tocData: TocItem[] = [
         label: "Logging",
         contentSite: "c",
         url: "/docs/languages/c/c-driver/:version/logging",
-        versions: { excludes: outdatedVersions },
+        versions: { excludes: ["v2.0", "v1.30", "v1.29", ...outdatedVersions] },
       },
       {
         label: "Data Aggregation",
