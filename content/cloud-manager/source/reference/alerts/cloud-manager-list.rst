@@ -487,7 +487,7 @@ Host
      - Project, Global
 
    * - .. alert:: HOST_SSL_CERTIFICATE_STALE
-     - Host's SSL certificate will expire within 30 days
+     - Host's SSL certificate will expire within 21 days
      - Project, Global
 
    * - .. alert:: HOST_UP
@@ -676,7 +676,7 @@ Project
      - Project, Global
 
    * - .. alert:: DELINQUENT
-     - Service suspended due to unpaid invoice(s) more than 30 days old
+     - Service suspended due to unpaid invoice(s) more than 21 days old
      - Project, Global
 
    * - .. alert:: PAID_IN_FULL
