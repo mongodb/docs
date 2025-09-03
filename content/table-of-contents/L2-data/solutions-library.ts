@@ -9,13 +9,11 @@ const tocData: TocItem[] = [
   {
     label: "Financial Services",
     contentSite: "atlas-architecture",
-    url: "/docs/atlas/architecture/:version/solutions-library/financial-services",
     collapsible: true,
     items: [
       {
         label: "App-Driven Analytics",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/fin-services-app-driven-analytics",
         collapsible: true,
         items: [
           {
@@ -33,7 +31,6 @@ const tocData: TocItem[] = [
       {
         label: "Fraud Prevention",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/fin-services-fraud-prevention",
         collapsible: true,
         items: [
           {
@@ -56,7 +53,6 @@ const tocData: TocItem[] = [
       {
         label: "Gen AI",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/fin-services-gen-ai",
         collapsible: true,
         items: [
           {
@@ -94,7 +90,6 @@ const tocData: TocItem[] = [
       {
         label: "Modernization",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/fin-services-modernization",
         collapsible: true,
         items: [
           {
@@ -109,13 +104,11 @@ const tocData: TocItem[] = [
   {
     label: "Healthcare",
     contentSite: "atlas-architecture",
-    url: "/docs/atlas/architecture/:version/solutions-library/healthcare",
     collapsible: true,
     items: [
       {
         label: "Interoperability",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/healthcare-interoperability",
         collapsible: true,
         items: [
           {
@@ -130,13 +123,11 @@ const tocData: TocItem[] = [
   {
     label: "Insurance",
     contentSite: "atlas-architecture",
-    url: "/docs/atlas/architecture/:version/solutions-library/insurance",
     collapsible: true,
     items: [
       {
         label: "App-Driven Analytics",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/insurance-app-driven-analytics",
         collapsible: true,
         items: [
           {
@@ -154,7 +145,6 @@ const tocData: TocItem[] = [
       {
         label: "Gen AI",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/insurance-gen-ai",
         collapsible: true,
         items: [
             {
@@ -184,13 +174,11 @@ const tocData: TocItem[] = [
   {
     label: "Manufacturing & Motion",
     contentSite: "atlas-architecture",
-    url: "/docs/atlas/architecture/:version/solutions-library/manufacturing",
     collapsible: true,
     items: [
       {
         label: "App-Driven Analytics",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/manufacturing-app-driven-analytics",
         collapsible: true,
         items: [
           {
@@ -203,7 +191,6 @@ const tocData: TocItem[] = [
       {
         label: "Gen AI",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/manufacturing-gen-ai",
         collapsible: true,
         items: [
           {
@@ -236,7 +223,6 @@ const tocData: TocItem[] = [
       {
         label: "IoT",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/manufacturing-iot",
         collapsible: true,
         items: [
           {
@@ -264,7 +250,6 @@ const tocData: TocItem[] = [
       {
         label: "Modernization",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/manufacturing-modernization",
         collapsible: true,
         items: [
           {
@@ -279,13 +264,11 @@ const tocData: TocItem[] = [
   {
     label: "Media",
     contentSite: "atlas-architecture",
-    url: "/docs/atlas/architecture/:version/solutions-library/media",
     collapsible: true,
     items: [
       {
         label: "App-Driven Analytics",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/media-app-driven-analytics",
         collapsible: true,
         items: [
           {
@@ -298,7 +281,6 @@ const tocData: TocItem[] = [
       {
         label: "Gen AI",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/media-gen-ai",
         collapsible: true,
         items: [
           {
@@ -365,7 +347,6 @@ const tocData: TocItem[] = [
       {
         label: "Gen AI",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/retail-gen-ai",
         collapsible: true,
         items: [
           {
@@ -383,7 +364,6 @@ const tocData: TocItem[] = [
       {
         label: "Personalization",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/retail-personalization",
         collapsible: true,
         items: [
           {
@@ -413,13 +393,11 @@ const tocData: TocItem[] = [
   {
     label: "Telecommunications",
     contentSite: "atlas-architecture",
-    url: "/docs/atlas/architecture/:version/solutions-library/telco",
     collapsible: true,
     items: [
       {
         label: "Gen AI",
         contentSite: "atlas-architecture",
-        url: "/docs/atlas/architecture/:version/solutions-library/telcom-gen-ai",
         collapsible: true,
         items: [
           {
