@@ -183,8 +183,8 @@ You can verify the output in a few different ways:
 
 1. Return a simple string from your example function, and use a strict match
    to confirm it matches expectations.
-2. Read expected output from a file, such as when we are showing the output
-   in the docs, and compare it to what the code returns.
+2. Use the **Comparison** library to validate output against the output we show
+   in the documentation.
 
 #### Verify a simple string match
 
@@ -208,25 +208,238 @@ Assert.That(result, Is.EqualTo(expectedReturn), $"Result '{result}' does not mat
 #### Verify output from a file
 
 If you are showing the output in the docs, write the output to a file whose
-filename matches the example - i.e. `TutorialOutput.txt`. Then, read the
-contents of the file in the test and verify that the output matches what the
-test returns.
+filename matches the example - i.e. `TutorialOutput.txt`. Then, use the
+**Comparison** library to validate that the actual output matches the expected
+output from the file:
 
 ```csharp
 var results = _example.PerformAggregation();
 
-// Read the contents of the file
-var solutionRoot = DotNetEnv.Env.GetString("SOLUTION_ROOT", "Env variable not found. Verify you have a .env file with a valid connection string.");
+// Use the Comparison Library to validate results against expected output file
 var outputLocation = "Examples/Aggregation/Pipelines/Filter/TutorialOutput.txt";
-var fullPath = Path.Combine(solutionRoot, outputLocation);
-var fileData = TestUtils.ReadBsonDocumentsFromFile(fullPath);
+var validation = OutputValidator.Expect(results).ToMatchFile(outputLocation);
 
-//
-Assert.That(results.Count, Is.EqualTo(fileData.Length), $"Result count {results.Count} does not match output example length {fileData.Length}.");
-for (var i = 0; i < fileData.Length; i++)
+// Verify the validation succeeded
+validation.IsSuccess.Should().BeTrue(validation.ErrorMessage);
+
+// Alternative: Use the fluent API with options
+OutputValidator.Expect(results)
+    .WithUnorderedArrays()  // For results that can come back in any order
+    .WithIgnoredFields("_id", "timestamp")  // Ignore dynamic fields
+    .ToMatchFile(outputLocation)
+    .IsSuccess.Should().BeTrue();
+```
+
+## Using the Comparison Library
+
+This test suite includes a comprehensive **Comparison Library** (`Utilities.Comparison`)
+designed specifically for validating MongoDB C# Driver output against expected results.
+
+### Key Features
+
+- **MongoDB Type Support**: Automatically handles ObjectId, Decimal128, DateTime, and other MongoDB-specific types
+- **Multiple Input Formats**: Supports JSON, JSONL, MongoDB Extended JSON, and C# object syntax
+- **Flexible Matching**: Use ellipsis patterns (`...`) for dynamic content like timestamps or generated IDs
+- **Array Strategies**: Configure ordered vs unordered array comparisons
+- **Field Exclusion**: Ignore specific fields during comparison
+
+### Basic Usage
+
+```csharp
+using Utilities.Comparison;
+
+// Simple validation
+var results = example.RunExample();
+OutputValidator.Expect(results)
+    .ToMatchFile("Examples/MyExample/ExpectedOutput.txt")
+    .IsSuccess.Should().BeTrue();
+```
+
+### Advanced Options
+
+```csharp
+// With comparison options
+OutputValidator.Expect(results)
+    .WithUnorderedArrays()                    // Arrays can be in any order
+    .WithIgnoredFields("_id", "createdAt")   // Ignore dynamic fields
+    .ToMatchFile("ExpectedOutput.txt")
+    .IsSuccess.Should().BeTrue();
+
+// Ordered arrays (for aggregation pipelines, sorted results)
+OutputValidator.Expect(results)
+    .WithOrderedArrays()
+    .ToMatchFile("ExpectedOutput.txt")
+    .IsSuccess.Should().BeTrue();
+```
+
+### Expected Output File Formats
+
+The library supports multiple formats in your expected output files:
+
+**MongoDB Extended JSON:**
+```json
+{ "date" : { "$date" : "2021-12-18T15:55:00Z" }, "name" : "Alice" }
+{ "date" : { "$date" : "2021-12-18T15:56:00Z" }, "name" : "Bob" }
+```
+
+**JSONL (Line-delimited JSON):**
+```json
+{"date": {"$date": "2021-12-18T15:55:00Z"}, "name": "Alice"}
+{"date": {"$date": "2021-12-18T15:56:00Z"}, "name": "Bob"}
+```
+
+**C# Object Syntax:**
+```csharp
+{ date: new DateTime(2021, 12, 18, 15, 55, 0), name: "Alice" }
+{ date: new DateTime(2021, 12, 18, 15, 56, 0), name: "Bob" }
+```
+
+### Ellipsis Patterns for Dynamic Content
+
+Use `...` to match dynamic or variable content:
+
+**String truncation:**
+```
+"username_abc123..."  // Matches any string starting with "username_abc123"
+```
+
+**Object fields:**
+```json
+{ "name": "Alice", "profile": { "age": 30, ... } }  // Matches objects with at least these fields
+```
+
+**Array elements:**
+```json
+["first", "second", ...]  // Matches arrays starting with these elements
+```
+
+### Error Handling
+
+When validation fails, the library provides detailed error messages:
+
+```csharp
+var validation = OutputValidator.Expect(results).ToMatchFile("Expected.txt");
+if (!validation.IsSuccess)
 {
-    Assert.That(fileData[i], Is.EqualTo(results[i]), $"Mismatch at index {i}: expected {fileData[i]}, got {results[i]}.");
+    Console.WriteLine($"Validation failed: {validation.ErrorMessage}");
+    // Example output: "Mismatch at path 'users[0].email': expected 'alice@example.com', got 'alice@test.com'"
 }
+```
+
+## Working with Sample Data
+
+This test suite includes a **Sample Data Utility** (`Utilities.SampleData`) that
+allows tests to conditionally skip execution when MongoDB sample databases are
+not available. This provides a better experience for developers who may not have
+sample data loaded locally.
+
+### Basic Usage
+
+Mark tests that require sample data and check availability at the start:
+
+```csharp
+using Utilities.SampleData;
+
+[Test]
+[RequiresSampleData("sample_mflix")]
+public async Task TestMovieAggregation()
+{
+    // Check sample data availability (skips test if missing)
+    SampleDataTestHelper.EnsureSampleDataOrSkip("sample_mflix");
+
+    // Test code that uses sample_mflix database
+    var movies = await collection.Find(filter).ToListAsync();
+    // ... rest of test
+}
+```
+
+### Multiple Databases
+
+For tests requiring multiple sample databases:
+
+```csharp
+[Test]
+[RequiresSampleData("sample_mflix", "sample_restaurants")]
+public async Task TestCrossDatabaseQuery()
+{
+    SampleDataTestHelper.EnsureSampleDataOrSkip("sample_mflix", "sample_restaurants");
+
+    // Test code using both databases
+}
+```
+
+### Fixture-Level Requirements
+
+Apply sample data requirements to entire test fixtures:
+
+```csharp
+[TestFixture]
+[RequiresSampleData("sample_mflix")]
+public class MovieAnalysisTests
+{
+    [SetUp]
+    public void SetUp()
+    {
+        // Check once per fixture
+        SampleDataTestHelper.EnsureSampleDataOrSkip("sample_mflix");
+    }
+
+    [Test]
+    public async Task TestMoviesByGenre() { /* ... */ }
+
+    [Test]
+    public async Task TestMovieRatings() { /* ... */ }
+}
+```
+
+### Specific Collections
+
+Require specific collections within a database:
+
+```csharp
+[Test]
+[RequiresSampleData("sample_mflix")]
+public async Task TestMovieTheaterData()
+{
+    var collections = new Dictionary<string, string[]>
+    {
+        ["sample_mflix"] = new[] { "movies", "theaters" }
+    };
+
+    SampleDataTestHelper.EnsureSampleDataOrSkip(new[] { "sample_mflix" }, collections);
+
+    // Test code requiring both movies and theaters collections
+}
+```
+
+### Available Sample Databases
+
+The utility automatically recognizes these standard MongoDB sample databases:
+
+- `sample_mflix` - Movie and theater data
+- `sample_restaurants` - Restaurant and neighborhood data
+- `sample_training` - Training datasets (posts, companies, trips, etc.)
+- `sample_analytics` - Customer and transaction analytics
+- `sample_airbnb` - Airbnb listings data
+- `sample_geospatial` - Geographic and mapping data
+- `sample_guides` - Planetary and comet data
+- `sample_stores` - Sales transaction data
+- `sample_supplies` - Supply chain data
+- `sample_weatherdata` - Weather and climate data
+
+### Test Output Examples
+
+When sample data is missing, tests skip with helpful messages:
+
+```
+📊 Sample Data Status: No MongoDB sample databases found
+   Some tests may be skipped. To load sample data:
+   • Atlas: https://www.mongodb.com/docs/atlas/sample-data/
+   • Local: Use mongorestore with sample data archive
+
+⚠️  Missing required sample data: sample_mflix
+
+TestMovieAggregation: Missing required sample data: sample_mflix
 ```
 
 ## To run the tests locally
@@ -258,6 +471,19 @@ From the `/drivers` directory, run:
 ```
 dotnet test
 ```
+
+### Run Only Code Example Tests (Recommended for Writers)
+
+To run only the tests that validate code example functionality (excluding utility tests), 
+from the `/drivers` directory, run:
+
+```
+dotnet test Tests/Tests.csproj
+```
+
+This runs only the tests in the `Tests` project, which validate that code examples
+compile, execute, and produce expected output. It excludes the utility tests that
+test internal infrastructure.
 
 ### Run Individual Tests from the command line
 
