@@ -38,12 +38,15 @@ $db->createCollection(
 );
 
 $vegetables = [
-    ['name' => 'cauliflower'],
-    ['name' => 'zucchini'],
+    ['name' => 'cauliflower', 'createdAt' => new MongoDB\BSON\UTCDateTime()],
+    ['name' => 'zucchini', 'createdAt' => new MongoDB\BSON\UTCDateTime()],
 ];
 
 $collection = $db->vegetables;
 $result = $collection->insertMany($vegetables);
+
+sleep(5);
+$collection->insertOne(['name' => 'carrot', 'createdAt' => new MongoDB\BSON\UTCDateTime()]);
 // end-capped-coll
 
 // Iterates over the initial query results and continues iterating until three documents are stored in the cursor
