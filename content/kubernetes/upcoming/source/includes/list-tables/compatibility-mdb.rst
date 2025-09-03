@@ -5,5 +5,6 @@
    * - |k8s-op-short| Release Series
      - Base Image
 
-   * - 1.0.0
+   
+   * - 1.0.0, 1.1.0, 1.2.0
      - Red Hat UBI 9 Base Image
