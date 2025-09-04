@@ -28,7 +28,7 @@ const tocData: TocItem[] = [
         url: "/docs/:version/core/aggregation-pipeline-sharded-collections",
       },
       {
-        label: "Preference Examples",
+        label: "Pipeline Tutorials",
         contentSite: "docs",
         url: "/docs/:version/tutorial/aggregation-complete-examples",
         collapsible: true,
