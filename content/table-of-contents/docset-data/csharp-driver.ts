@@ -95,7 +95,6 @@ const tocData: TocItem[] = [
       {
         label: "CRUD Operations",
         contentSite: "csharp",
-        url: "/docs/drivers/csharp/:version/crud",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
@@ -677,7 +676,6 @@ const tocData: TocItem[] = [
           {
             label: "CRUD Operations",
             contentSite: "csharp",
-            url: "/docs/drivers/csharp/:version/fundamentals/crud",
             collapsible: true,
             items: [
               {
