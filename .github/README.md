@@ -4,4 +4,4 @@ These GH Actions are meant for the private repo, and will not be copied over to 
 
 ## Omitted Actions
 
-See the workflow for repo-sync that instructs the action to copy over to the public repo. This action specifically omits any github workflows from being copied. See [example ticket](https://jira.mongodb.org/browse/SECBUG-503)
+See the workflow for repo-sync that instructs the action to copy over to the public repo. This action specifies which files to be copied over. See [example ticket](https://jira.mongodb.org/browse/SECBUG-503)
