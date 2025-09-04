@@ -335,6 +335,11 @@ const tocData: TocItem[] = [
             contentSite: "pymongo",
             url: "/docs/languages/python/pymongo-driver/:version/integrations/flask-celery-integration",
           },
+          {
+            label: "Tutorial: FastAPI Integration",
+            contentSite: "pymongo",
+            url: "/docs/languages/python/pymongo-driver/:version/integrations/fastapi-integration",
+          },
         ],
       },
       {
