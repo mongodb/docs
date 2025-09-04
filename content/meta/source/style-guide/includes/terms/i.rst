@@ -42,8 +42,8 @@ I
    i.e.
      :icon-fa5:`trash-alt` Use *that is* instead.
 
-     .. seealso:: 
-       
+     .. seealso::
+
         :ref:`avoid-obscure-words`
 
    if necessary
@@ -67,7 +67,7 @@ I
 
    if
      **whether**
-     
+
      - Use *if* to introduce an adverbial clause that describes a
        condition on which an action depends.
 
@@ -209,7 +209,7 @@ I
    internet
      **Internet**
      **intranet**
-     Capitalize *Internet* when referring to the world’s largest
+     Capitalize *Internet* when referring to the world's largest
      computer network; use lowercase letters when referring
      generically to any large network made up of smaller networks
      that are connected by routers. The World Wide Web is part of the
@@ -221,8 +221,8 @@ I
         e-mail system), but the network is accessible only to people
         within a given company or organization.
 
-     .. seealso:: 
-       
+     .. seealso::
+
         :term:`web`
 
    its

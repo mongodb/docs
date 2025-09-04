@@ -146,8 +146,8 @@ S
      Use *since* to express a passage of time, not to explain why.
      Use *because* to explain why.
 
-     .. seealso:: 
-       
+     .. seealso::
+
         :term:`as`
 
    slash
@@ -200,8 +200,8 @@ S
      Use *stop* to refer to hardware operations, jobs, services, or
      routines.
 
-     .. seealso:: 
-       
+     .. seealso::
+
         :term:`exit`
 
      .. list-table::
@@ -227,8 +227,8 @@ S
      If a nonrestrictive clause occurs in midsentence, set the clause
      off with commas.
 
-     .. seealso:: 
-       
+     .. seealso::
+
         :ref:`restrictive clauses<restrictive-clauses>`
 
      .. list-table::
@@ -238,11 +238,11 @@ S
         * - Recommended
           - Not Recommended
 
-        * - Trees such as oaks and elms don’t grow at this altitude.
+        * - Trees such as oaks and elms don't grow at this altitude.
             (restrictive)
           -
 
-        * - This year we’d like to visit a place such as Greece or
+        * - This year we'd like to visit a place such as Greece or
             Rome. (restrictive)
           -
 
