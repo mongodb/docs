@@ -1,8 +1,10 @@
 use std::env;
 
 use bson::{binary::Vector, DateTime};
+use bson::serde_helpers::{object_id, datetime, u32};
 use mongodb::{bson::doc, Client, Collection};
 use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 
 // begin-struct
 #[derive(Serialize, Deserialize)]
@@ -60,28 +62,31 @@ async fn main() -> mongodb::error::Result<()> {
 }
 
 // begin-hex-to-objectid
+#[serde_as]
 #[derive(Serialize, Deserialize)]
 struct Order {
-    #[serde(serialize_with = "serialize_hex_string_as_object_id")]
+    #[serde_as(as = "object_id::FromHexString")]
     _id: String,
     item: String,
 }
 // end-hex-to-objectid
 
 // begin-dt-to-string
+#[serde_as]
 #[derive(Serialize, Deserialize)]
 struct Order {
     item: String,
-    #[serde(serialize_with = "serialize_bson_datetime_as_rfc3339_string")]
+    #[serde_as(as = "datetime::AsRfc3339String")]
     delivery_date: DateTime,
 }
 // end-dt-to-string
 
 // begin-u32-f64
+#[serde_as]
 #[derive(Serialize, Deserialize)]
 struct Order {
     item: String,
-    #[serde(serialize_with = "serialize_u32_as_f64")]
+    #[serde_as(as = "u32::AsF64")]
     quantity: u32,
 }
 // end-u32-f64

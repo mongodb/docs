@@ -169,26 +169,66 @@ include the attribute before the field definition:
    }
 
 In the following sections, you can find examples that use helper
-functions from the ``bson`` library to achieve common serialization tasks. To
-see a full list of these helper functions, see the `serde_helpers API
-documentation <https://docs.rs/bson/latest/bson/serde_helpers/index.html#functions>`__.
+types from the ``bson`` library to achieve common serialization tasks. 
+
+The examples show the following approaches:
+
+- **BSON 3.0**: Uses the ``serde_as`` annotation provided by the ``serde_with``
+  crate, which offers additional flexibility and composition capabilities
+- **BSON 2.x**: Uses the traditional ``serialize_with`` helper functions
+
+BSON 2.15 is the default version. Choose the approach that matches your BSON crate version.
+
+To use BSON 3.0 in your application, enable it as a feature in your
+project's ``Cargo.toml``, similar to the following:
+
+.. code-block:: none
+
+   [dependencies.mongodb]
+   version = "3.3.0"
+   features = ["bson-3"]
+
+When you enable BSON 3.0, you can use ``serde_as``. To use ``serde_as``, you must
+import it in your application, as shown in the following code:
+
+.. code-block:: rust
+
+   use serde_with::serde_as;
+
+To see a full list of Serde helper functions, see the `serde_helpers API
+documentation <https://docs.rs/bson/latest/bson/serde_helpers/index.html>`__.
 
 Serialize a String as an ObjectId
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You might want to represent the ``_id`` field in a document as a
-hexadecimal string in your struct. To convert the hexadecimal string to
-the ``ObjectId`` BSON type, use the
-``serialize_hex_string_as_object_id`` helper function as the value of
-the ``serialize_with`` attribute. The following example attaches the
-``serialize_with`` attribute to the ``_id`` field so that the driver
-serializes the hexadecimal string as an ``ObjectId`` type:
+You might want to represent the ``_id`` field in a document as a hexadecimal
+string in your struct. To convert the hexadecimal string to the ``ObjectId``
+BSON type, select the :guilabel:`BSON 3.0 (serde_as)` or :guilabel:`BSON 2.x (serialize_with)` 
+tab for corresponding code examples depending on your BSON crate version:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/serialization.rs
-   :language: rust
-   :dedent:
-   :start-after: begin-hex-to-objectid
-   :end-before: end-hex-to-objectid
+.. tabs::
+
+   .. tab:: BSON 3.0 (serde_as)
+      :tabid: bson3-objectid
+
+      Use the ``bson::serde_helpers::object_id::FromHexString`` type with the ``serde_as`` annotation:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/serialization.rs
+         :language: rust
+         :dedent:
+         :start-after: begin-hex-to-objectid
+         :end-before: end-hex-to-objectid
+
+   .. tab:: BSON 2.x (serialize_with)
+      :tabid: bson2-objectid
+
+      Use the ``serialize_hex_string_as_object_id`` helper function:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/serialization-2x.rs
+         :language: rust
+         :dedent:
+         :start-after: begin-hex-to-objectid
+         :end-before: end-hex-to-objectid
 
 To see how the driver serializes a sample ``Order`` struct to BSON,
 select from the following :guilabel:`Struct` and :guilabel:`BSON` tabs:
@@ -222,22 +262,37 @@ select from the following :guilabel:`Struct` and :guilabel:`BSON` tabs:
 Serialize a DateTime as a String
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You might want to represent a ``DateTime`` field value in a document as
-an ISO-formatted string in BSON. To specify this conversion, use the
-``serialize_bson_datetime_as_rfc3339_string`` helper function as the value of
-the ``serialize_with`` attribute attached to the field with a
-``DateTime`` value. The following example attaches the
-``serialize_with`` attribute to the ``delivery_date`` field so that the
-driver serializes the ``DateTime`` value to a string:
+You might want to represent a ``DateTime`` field value in a document as an
+ISO-formatted string in BSON. Select the :guilabel:`BSON 3.0(serde_as)` or
+:guilabel:`BSON 2.x (serialize_with)` tab for corresponding code examples for
+this conversion.
 
-.. literalinclude:: /includes/fundamentals/code-snippets/serialization.rs
-   :language: rust
-   :dedent:
-   :start-after: begin-dt-to-string
-   :end-before: end-dt-to-string
+.. tabs::
 
-To see how the driver serializes a sample ``Order`` struct to BSON,
-select from the following :guilabel:`Struct` and :guilabel:`BSON` tabs:
+   .. tab:: BSON 3.0 (serde_as)
+      :tabid: bson3-datetime
+
+      Use the ``bson::serde_helpers::datetime::AsRfc3339String`` type with the ``serde_as`` annotation:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/serialization.rs
+         :language: rust
+         :dedent:
+         :start-after: begin-dt-to-string
+         :end-before: end-dt-to-string
+
+   .. tab:: BSON 2.x (serialize_with)
+      :tabid: bson2-datetime
+
+      Use the ``serialize_bson_datetime_as_rfc3339_string`` helper function:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/serialization-2x.rs
+         :language: rust
+         :dedent:
+         :start-after: begin-dt-to-string
+         :end-before: end-dt-to-string
+
+Select the :guilabel:`BSON 3.0(serde_as)` or :guilabel:`BSON 2.x (serialize_with)` 
+tab to see how the driver serializes a sample ``Order`` struct to BSON.
 
 .. tabs::
 
@@ -270,18 +325,33 @@ Serialize a u32 as an f64
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You might want to represent a ``u32`` field value in a document as
-an ``f64``, or ``Double``, type in BSON. To specify this conversion, use the
-``serialize_u32_as_f64`` helper function as the value of
-the ``serialize_with`` attribute attached to the field with a ``u32``
-value. The following example attaches the
-``serialize_with`` attribute to the ``quantity`` field so that the
-driver serializes the ``u32`` value to a ``Double`` type:
+an ``f64``, or ``Double``, type in BSON. Select the :guilabel:`BSON 3.0(serde_as)` 
+or :guilabel:`BSON 2.x (serialize_with)` tab for corresponding code
+samples to specify this conversion.
 
-.. literalinclude:: /includes/fundamentals/code-snippets/serialization.rs
-   :language: rust
-   :dedent:
-   :start-after: begin-u32-f64
-   :end-before: end-u32-f64
+.. tabs::
+
+   .. tab:: BSON 3.0 (serde_as)
+      :tabid: bson3-u32f64
+
+      Use the ``bson::serde_helpers::u32::AsF64`` type with the ``serde_as`` annotation:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/serialization.rs
+         :language: rust
+         :dedent:
+         :start-after: begin-u32-f64
+         :end-before: end-u32-f64
+
+   .. tab:: BSON 2.x (serialize_with)
+      :tabid: bson2-u32f64
+
+      Use the ``serialize_u32_as_f64`` helper function:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/serialization-2x.rs
+         :language: rust
+         :dedent:
+         :start-after: begin-u32-f64
+         :end-before: end-u32-f64
 
 .. note::
    

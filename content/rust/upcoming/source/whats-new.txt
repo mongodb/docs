@@ -21,6 +21,7 @@ What's New
 Learn about new features, improvements, and fixes introduced in the
 following versions of the {+driver-long+}:
 
+* :ref:`Version 3.3 <rust-version-3.3>`
 * :ref:`Version 3.2 <rust-version-3.2>`
 * :ref:`Version 3.1 <rust-version-3.1>`
 * :ref:`Version 3.0.1 <rust-version-3.0.1>`
@@ -28,6 +29,65 @@ following versions of the {+driver-long+}:
 * :ref:`Version 2.8 <rust-version-2.8>`
 * :ref:`Version 2.7 <rust-version-2.7>`
 * :ref:`Version 2.6 <rust-version-2.6>`
+
+.. _rust-version-3.3:
+
+What's New in 3.3
+-----------------
+
+The {+driver-short+} v3.3 release includes the following features, improvements,
+and fixes:
+
+- Introduces support for version 3.0 of the BSON crate. By default, the driver
+  uses version 2.15 for backwards compatibility. To use version 3.0, add the
+  ``bson-3`` feature to the ``features`` list for the driver crate in your
+  project's ``Cargo.toml``. BSON 3.0 updates several APIs in
+  backwards-incompatible ways. The following changes might require updates to
+  your application:
+
+  - Introduces a unified ``bson::error::Error`` type that consolidates error
+    handling across the crate with consistent fields and granular error information.
+
+  - Adds ``&CStr`` and ``CString`` types for BSON keys and regular expressions
+    to prevent null byte issues that previously caused panics. The following example
+    shows how to update your code by using the ``&CStr`` and ``CString`` types:
+
+    .. code-block:: rust
+       :copyable: true
+
+       let mut computed_key = "foo".to_owned();
+       computed_key.push_str("bar");
+       // Non-static values need to be checked at runtime
+       let computed_key = CString::try_from(computed_key)?;
+       let doc_buf = rawdoc! {
+          // String literal keys in `rawdoc!` are implicitly checked at compile-time.
+          "hello": "world",
+          computed_key: 42,
+          "regex": Regex {
+              // `&CStr` implements many common traits like `ToOwned`
+              pattern: cstr!("needle").to_owned(),
+              options: cstr!("").to_owned(),
+          }
+       };
+       // `append` keys must now be a `&CStr` or `CString`.
+       doc_buf.append(cstr!("a key"), "a value");
+
+  - Provides all conversions between raw types and their reference types via
+    standard library traits.
+
+  - Makes ``serde`` an optional feature that is disabled by default. Serialization
+    and deserialization functions now have ``serialize_to`` or ``deserialize_from``
+    prefixes for clarity.
+
+  - Simplifies UTF-8 lossy decoding with the ``Utf8Lossy`` wrapper type and
+    new conversion methods.
+
+  - Updates ``serde`` helper functions to work with the ``serde_as`` annotation
+    from the ``serde_with`` crate for more flexible type conversions. For more
+    information, see :ref:`rust-serialization`.
+
+  - For detailed instructions migrating from BSON 2.x to BSON 3.0, see the `Migrating from 2.x to 3.0 guide
+    <{+driver-source+}/blob/main/migration-3.0.md>`__ on GitHub.
 
 .. _rust-version-3.2:
 
