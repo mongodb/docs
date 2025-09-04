@@ -5,8 +5,6 @@ import schedule
 
 def update_monthly_phone_transactions(client, collection):
     """Update the materialized view of monthly phone transactions."""
-    monthly_phone_transactions = client.sample_supplies.monthlyPhoneTransactions
-    
     # Create the aggregation pipeline
     pipeline = [
         {"$match": {"purchaseMethod": "Phone"}},
@@ -21,20 +19,15 @@ def update_monthly_phone_transactions(client, collection):
             "sales_quantity": {"$sum": "$items.quantity"},
             "sales_price": {"$sum": "$items.price"}
         }},
-        {"$set": {"sales_price": {"$toDouble": "$sales_price"}}}
+        {"$set": {"sales_price": {"$toDouble": "$sales_price"}}},
+        {"$merge": {
+            "into": "monthlyPhoneTransactions",
+            "whenMatched": "replace"
+        }}
     ]
     
-    # Execute the aggregation
-    cursor = collection.aggregate(pipeline)
-    
-    # Process and save the results to monthlyPhoneTransactions
-    for doc in cursor:
-        # For each result, upsert into the materialized view
-        monthly_phone_transactions.replace_one(
-            {"_id": doc["_id"]},
-            doc,
-            upsert=True
-        )
+    # Run the aggregation
+    collection.aggregate(pipeline)
 
 def scheduled_update(client, sales, purchase_orders):
     """Run the monthly update task."""

@@ -49,9 +49,6 @@ namespace SearchMaterializedView
         
         static async Task UpdateMonthlyPhoneTransactions(MongoClient client, IMongoCollection<BsonDocument> collection)
         {
-            var database = client.GetDatabase("sample_supplies");
-            var monthlyPhoneTransactions = database.GetCollection<BsonDocument>("monthlyPhoneTransactions");
-            
             // Create the aggregation pipeline
             var pipeline = new BsonDocument[]
             {
@@ -68,22 +65,16 @@ namespace SearchMaterializedView
                     { "sales_quantity", new BsonDocument("$sum", "$items.quantity") },
                     { "sales_price", new BsonDocument("$sum", "$items.price") }
                 }),
-                new BsonDocument("$set", new BsonDocument("sales_price", new BsonDocument("$toDouble", "$sales_price")))
-            };
-            
-            // Execute the aggregation
-            using (var cursor = await collection.AggregateAsync<BsonDocument>(pipeline))
-            {
-                // Process and save the results to monthlyPhoneTransactions
-                await cursor.ForEachAsync(async doc =>
+                new BsonDocument("$set", new BsonDocument("sales_price", new BsonDocument("$toDouble", "$sales_price"))),
+                new BsonDocument("$merge", new BsonDocument
                 {
-                    // For each result, upsert into the materialized view
-                    var filter = Builders<BsonDocument>.Filter.Eq("_id", doc["_id"]);
-                    var options = new ReplaceOptions { IsUpsert = true };
-                    
-                    await monthlyPhoneTransactions.ReplaceOneAsync(filter, doc, options);
-                });
-            }
+                    { "into", "monthlyPhoneTransactions" },
+                    { "whenMatched", "replace" }
+                })
+            };
+
+            // Run the aggregation
+            await collection.AggregateAsync<BsonDocument>(pipeline);
         }
     }
 }

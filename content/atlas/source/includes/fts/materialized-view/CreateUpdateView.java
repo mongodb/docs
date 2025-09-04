@@ -18,9 +18,6 @@ import java.util.concurrent.TimeUnit;
 public class CreateUpdateView {
 
     private static void updateMonthlyPhoneTransactions(MongoClient client, MongoCollection<Document> collection) {
-        MongoDatabase database = client.getDatabase("sample_supplies");
-        MongoCollection<Document> monthlyPhoneTransactions = database.getCollection("monthlyPhoneTransactions");
-
         // Create the aggregation pipeline
         List<Document> pipeline = Arrays.asList(
             new Document("$match", new Document("purchaseMethod", "Phone")),
@@ -31,20 +28,14 @@ public class CreateUpdateView {
                 .append("sales_quantity", new Document("$sum", "$items.quantity"))
                 .append("sales_price", new Document("$sum", "$items.price"))
             ),
-            new Document("$set", new Document("sales_price", new Document("$toDouble", "$sales_price")))
+            new Document("$set", new Document("sales_price", new Document("$toDouble", "$sales_price"))),
+            new Document("$merge", new Document("into", "monthlyPhoneTransactions")
+                .append("whenMatched", "replace"))
         );
 
-        // Execute the aggregation
+        // Run the aggregation
         AggregateIterable<Document> results = collection.aggregate(pipeline);
-
-        // Process and save the results to monthlyPhoneTransactions
-        for (Document doc : results) {
-            // For each result, upsert into the materialized view
-            Document filter = new Document("_id", doc.get("_id"));
-            ReplaceOptions options = new ReplaceOptions().upsert(true);
-
-            monthlyPhoneTransactions.replaceOne(filter, doc, options);
-        }
+        results.toCollection();
     }
 
     public static void main(String[] args) {

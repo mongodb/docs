@@ -56,16 +56,12 @@
        return 0;
    }
 
-   void update_monthly_phone_transactions(mongoc_client_t *client, mongoc_collection_t *collection)
+  void update_monthly_phone_transactions(mongoc_client_t *client, mongoc_collection_t *collection)
    {
-       mongoc_collection_t *monthly_phone_transactions;
        bson_t *pipeline;
        mongoc_cursor_t *cursor;
        const bson_t *doc;
        bson_error_t error;
-       
-       /* Get materialized view handle */
-       monthly_phone_transactions = mongoc_client_get_collection(client, "sample_supplies", "monthlyPhoneTransactions");
        
        /* Create the aggregation pipeline */
        pipeline = BCON_NEW (
@@ -81,43 +77,25 @@
                    "sales_price", "{", "$sum", BCON_UTF8("$items.price"), "}",
                "}", "}",
                "{", "$set", "{", "sales_price", "{", "$toDouble", BCON_UTF8("$sales_price"), "}", "}", "}",
+               "{", "$merge", "{", "into", BCON_UTF8("monthlyPhoneTransactions"), "whenMatched", BCON_UTF8("replace"), "}", "}",
            "]"
        );
        
-       /* Execute the aggregation */
+       /* Run the aggregation */
        cursor = mongoc_collection_aggregate(
            collection, MONGOC_QUERY_NONE, pipeline, NULL, NULL);
-       
-       /* Process and save the results to monthlyPhoneTransactions */
+
        while (mongoc_cursor_next(cursor, &doc)) {
-           /* For each result, upsert into the materialized view */
-           bson_t *query = bson_new();
-           bson_t *update = bson_copy(doc);
-           bson_t *opts = BCON_NEW("upsert", BCON_BOOL(true));
-           
-           /* Extract the _id field from the aggregation result */
-           bson_iter_t iter;
-           if (bson_iter_init_find(&iter, doc, "_id")) {
-               bson_append_value(query, "_id", 3, bson_iter_value(&iter));
-           }
-           
-           mongoc_collection_replace_one(
-               monthly_phone_transactions,
-               query,
-               update,
-               opts,
-               NULL,
-               &error
-           );
-           
-           bson_destroy(query);
-           bson_destroy(update);
-           bson_destroy(opts);
+        /* Consume the cursor to execute the pipeline */
+       }
+       
+       
+       if (mongoc_cursor_error(cursor, &error)) {
+           fprintf(stderr, "Aggregation error: %s\n", error.message);
        }
        
        /* Clean up */
        bson_destroy(pipeline);
        mongoc_cursor_destroy(cursor);
        mongoc_collection_destroy(collection);
-       mongoc_collection_destroy(monthly_phone_transactions);
    }

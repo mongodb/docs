@@ -19,8 +19,6 @@ using bsoncxx::builder::stream::open_document;
 
 // Function to update the materialized view
 void update_monthly_phone_transactions(mongocxx::client& client, mongocxx::collection collection) {
-    auto monthly_phone_transactions = client["sample_supplies"]["monthlyPhoneTransactions"];
-    
     // Create the aggregation pipeline
     auto pipeline = mongocxx::pipeline{};
     pipeline.match(document{} << "purchaseMethod" << "Phone" << finalize);
@@ -39,31 +37,15 @@ void update_monthly_phone_transactions(mongocxx::client& client, mongocxx::colle
     pipeline.add_fields(document{} << "sales_price" << open_document 
                                   << "$toDouble" << "$sales_price" 
                                   << close_document << finalize);
+    pipeline.merge(document{} << "into" << "monthlyPhoneTransactions" 
+                             << "whenMatched" << "replace" << finalize);
     
-    // Execute the aggregation
+    // Run the aggregation
     auto cursor = collection.aggregate(pipeline);
     
-    // Process and save the results to monthlyPhoneTransactions
-    for (auto&& doc : cursor) { 
-
-        // Extract the `_id` field  
-        auto id_element = doc["_id"];
-  
-        // Create the filter document for the operation  
-        bsoncxx::builder::basic::document filter_builder;  
-        filter_builder.append(bsoncxx::builder::basic::kvp("_id", id_element.get_string().value));
-  
-        // Prepare upsert options  
-        auto options = mongocxx::options::replace{};  
-        options.upsert(true);  
-  
-        // Perform the replace operation  
-        try {  
-            monthly_phone_transactions.replace_one(filter_builder.view(), doc, options);  
-        } catch (const std::exception& e) {  
-            std::cerr << "Error replacing document: " << e.what() << std::endl;  
-        }  
-    } 
+    for (auto&& doc : cursor) {
+        //  Consume the cursor to execute the pipeline
+    }
 }
 
 int main() {

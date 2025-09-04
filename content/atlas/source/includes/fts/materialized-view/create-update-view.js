@@ -3,9 +3,6 @@ const schedule = require('node-schedule');
 
 // Function to update the materialized view
 async function updateMonthlyPhoneTransactions(client, collection) {
-    const database = client.db('sample_supplies');
-    const monthlyPhoneTransactions = database.collection('monthlyPhoneTransactions');
-    
     // Create the aggregation pipeline
     const pipeline = [
         { $match: { purchaseMethod: 'Phone' } },
@@ -22,20 +19,20 @@ async function updateMonthlyPhoneTransactions(client, collection) {
                 sales_price: { $sum: '$items.price' }
             }
         },
-        { $set: { sales_price: { $toDouble: '$sales_price' } } }
+        { $set: { sales_price: { $toDouble: '$sales_price' } } },
+        { 
+            $merge: {
+                into: 'monthlyPhoneTransactions',
+                whenMatched: 'replace'
+            }
+        }
     ];
     
-    // Execute the aggregation
+    // Run the aggregation
     const cursor = collection.aggregate(pipeline);
     
-    // Process and save the results to monthlyPhoneTransactions
     for await (const doc of cursor) {
-        // For each result, upsert into the materialized view
-        await monthlyPhoneTransactions.replaceOne(
-            { _id: doc._id },
-            doc,
-            { upsert: true }
-        );
+        // Consume the cursor to execute the pipeline
     }
 }
 
@@ -74,6 +71,8 @@ async function main() {
         
     } catch (err) {
         console.error('Error:', err);
+    } finally {
+        await client.close();
     }
 }
 

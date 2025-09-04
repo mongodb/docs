@@ -10,9 +10,6 @@ class CreateUpdateView {
 
     companion object {
         private suspend fun updateMonthlyPhoneTransactions(client: MongoClient, collection: MongoCollection<Document>) {
-            val database = client.getDatabase("sample_supplies")
-            val monthlyPhoneTransactions = database.getCollection<Document>("monthlyPhoneTransactions")
-
             // Create the aggregation pipeline
             val pipeline = listOf(
                 Document("\$match", Document("purchaseMethod", "Phone")),
@@ -23,20 +20,14 @@ class CreateUpdateView {
                     .append("sales_quantity", Document("\$sum", "\$items.quantity"))
                     .append("sales_price", Document("\$sum", "\$items.price"))
                 ),
-                Document("\$set", Document("sales_price", Document("\$toDouble", "\$sales_price")))
+                Document("\$set", Document("sales_price", Document("\$toDouble", "\$sales_price"))),
+                Document("\$merge", Document("into", "monthlyPhoneTransactions")
+                    .append("whenMatched", "replace"))
             )
 
-            // Execute the aggregation
+            // Run the aggregation
             val results = collection.aggregate<Document>(pipeline)
-
-            // Process and save the results to monthlyPhoneTransactions
-            results.collect { doc ->
-                // For each result, upsert into the materialized view
-                val filter = Document("_id", doc["_id"])
-                val options = ReplaceOptions().upsert(true)
-
-                monthlyPhoneTransactions.replaceOne(filter, doc, options)
-            }
+            results.toCollection()
         }
 
         @JvmStatic

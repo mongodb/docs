@@ -33,7 +33,7 @@ collection.
          :linenos:
          :copyable:
 
-      .. include:: /includes/fts/field-types/find-connection-string.rst
+      .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Set up a CMake application
 

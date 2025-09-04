@@ -12,53 +12,33 @@ import (
 )
 
 func updateMonthlyPhoneTransactions(ctx context.Context, client *mongo.Client, collection *mongo.Collection) error {
-	monthlyPhoneTransactions := client.Database("sample_supplies").Collection("monthlyPhoneTransactions")
-
 	// Create the aggregation pipeline
-	matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "purchaseMethod", Value: "Phone"}}}}
-	unwindStage := bson.D{{Key: "$unwind", Value: bson.D{{Key: "path", Value: "$items"}}}}
-	groupStage := bson.D{{Key: "$group", Value: bson.D{
-		{Key: "_id", Value: bson.D{
-			{Key: "$dateToString", Value: bson.D{
-				{Key: "format", Value: "%Y-%m"},
-				{Key: "date", Value: "$saleDate"},
+	matchStage := bson.D{bson.E{Key: "$match", Value: bson.D{bson.E{Key: "purchaseMethod", Value: "Phone"}}}}
+	unwindStage := bson.D{bson.E{Key: "$unwind", Value: bson.D{bson.E{Key: "path", Value: "$items"}}}}
+	groupStage := bson.D{bson.E{Key: "$group", Value: bson.D{
+		bson.E{Key: "_id", Value: bson.D{
+			bson.E{Key: "$dateToString", Value: bson.D{
+				bson.E{Key: "format", Value: "%Y-%m"},
+				bson.E{Key: "date", Value: "$saleDate"},
 			}},
 		}},
-		{Key: "sales_quantity", Value: bson.D{{Key: "$sum", Value: "$items.quantity"}}},
-		{Key: "sales_price", Value: bson.D{{Key: "$sum", Value: "$items.price"}}},
+		bson.E{Key: "sales_quantity", Value: bson.D{bson.E{Key: "$sum", Value: "$items.quantity"}}},
+		bson.E{Key: "sales_price", Value: bson.D{bson.E{Key: "$sum", Value: "$items.price"}}},
 	}}}
-	setStage := bson.D{{Key: "$set", Value: bson.D{{Key: "sales_price", Value: bson.D{{Key: "$toDouble", Value: "$sales_price"}}}}}}
+	setStage := bson.D{bson.E{Key: "$set", Value: bson.D{bson.E{Key: "sales_price", Value: bson.D{bson.E{Key: "$toDouble", Value: "$sales_price"}}}}}}
+	mergeStage := bson.D{bson.E{Key: "$merge", Value: bson.D{
+		bson.E{Key: "into", Value: "monthlyPhoneTransactions"},
+		bson.E{Key: "whenMatched", Value: "replace"},
+	}}}
 
-	pipeline := mongo.Pipeline{matchStage, unwindStage, groupStage, setStage}
+	pipeline := mongo.Pipeline{matchStage, unwindStage, groupStage, setStage, mergeStage}
 
-	// Execute the aggregation
+	// Run the aggregation
 	cursor, err := collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		return err
 	}
 	defer cursor.Close(ctx)
-
-	// Process and save the results to monthlyPhoneTransactions
-	for cursor.Next(ctx) {
-		var doc bson.M
-		if err := cursor.Decode(&doc); err != nil {
-			return err
-		}
-
-		// For each result, upsert into the materialized view
-		filter := bson.M{"_id": doc["_id"]}
-		opts := options.Replace().SetUpsert(true)
-
-		_, err := monthlyPhoneTransactions.ReplaceOne(ctx, filter, doc, opts)
-		if err != nil {
-			return err
-		}
-	}
-
-	if err := cursor.Err(); err != nil {
-		return err
-	}
-
 	return nil
 }
 
