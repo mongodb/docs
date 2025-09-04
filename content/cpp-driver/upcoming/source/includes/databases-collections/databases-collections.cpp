@@ -83,6 +83,14 @@ int main() {
     }
 
     {
+        // Deletes the test_database database
+        // start-delete-database
+        auto db = client["test_database"];
+        db.drop();
+        // end-delete-database
+    }
+
+    {
         // Sets read settings for the "test_database" database
         // start-database-read-settings
         auto db = client["test_database"];
