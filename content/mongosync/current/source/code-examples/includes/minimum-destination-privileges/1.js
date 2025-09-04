@@ -3,7 +3,6 @@
       "resource": { "cluster": true },
       "actions": [
          "appendOplogNote",
-         "enableSharding",
          "getDefaultRWConcern",
          "getShardMap",
          "hostInfo",
@@ -47,10 +46,6 @@
       "actions": [ "listCollections", "listIndexes" ]
    },
    {
-      "resource": { "db": "config", "collection": "shards" },
-      "actions": [ "find" ]
-   },
-   {
       "resource": { "db": "", "collection": "system.views" },
       "actions": [ "dropCollection" ]
    },
@@ -67,8 +62,12 @@
       "actions": [ "find" ]
    },
    {
+      "resource": { "db": "config", "collection": "shards" },
+      "actions": [ "find", "update" ]
+   },
+   {
       "resource": { "db": "config", "collection": "tags" },
-      "actions": [ "find" ]
+      "actions": [ "find", "update", "remove" ]
    },
    {
       "resource": { "system_buckets": "" },
