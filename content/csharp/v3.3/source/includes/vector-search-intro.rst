@@ -82,19 +82,10 @@ You can use the ``options`` parameter to configure your vector search operation.
 Consider the ``embedded_movies`` collection in the ``sample_mflix`` database.
 The following ``EmbeddedMovie`` class represents a document in this database:
 
-.. code-block:: csharp
-
-   public class EmbeddedMovie
-   {
-       [BsonElement("title")]
-       public string Title { get; set; }
-
-       [BsonElement("plot_embedding")]
-       public double[] Embedding { get; set; }
-
-       [BsonElement("score")]
-       public double Score { get; set; }
-   }
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-vector-search/VectorSearchQueryExample.cs
+   :language: csharp
+   :start-after: start-sample-class
+   :end-before: end-sample-class
 
 You can use a ``$vectorSearch`` stage to perform a semantic search on the ``plot_embedding``
 field of the documents in the collection.
