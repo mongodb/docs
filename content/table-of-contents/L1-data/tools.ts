@@ -45,7 +45,7 @@ const tocData: TocItem[] = [
         items: DatabaseToolsData,
       },
       {
-        label: "Mongo Shell",
+        label: "MongoDB Shell",
         contentSite: "mongodb-shell",
         url: "/docs/mongodb-shell/",
         showSubNav: true,
