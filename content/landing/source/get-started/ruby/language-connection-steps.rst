@@ -58,7 +58,7 @@
          :start-after: start-query
          :end-before: end-query
       
-      .. include:: /unified-getting-started/includes/connection-string-note.rst
+      .. include:: /get-started/includes/connection-string-note.rst
 
    .. step:: Run your application
 

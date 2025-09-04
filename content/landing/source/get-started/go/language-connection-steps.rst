@@ -42,7 +42,7 @@
       .. literalinclude:: /shared/drivers-get-started/go/get-started-connect.go
          :language: go
 
-      .. include:: /unified-getting-started/includes/connection-string-note.rst
+      .. include:: /get-started/includes/connection-string-note.rst
 
    .. step:: Run your application
 

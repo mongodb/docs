@@ -20,7 +20,7 @@
       
       .. code-block:: bash
 
-         curl -OL https://github.com/mongodb/mongo-cxx-driver/releases/download/r{+full-version+}/mongo-cxx-driver-r{+full-version+}.tar.gz
+         curl -OL https://github.com/mongodb/mongo-cxx-driver/releases/download/r{+cpp-driver-version+}/mongo-cxx-driver-r{+cpp-driver-version+}.tar.gz
          tar -xzf mongo-cxx-driver-r{+cpp-driver-version+}.tar.gz
          cd mongo-cxx-driver-r{+cpp-driver-version+}/build
 
@@ -80,7 +80,7 @@
       .. literalinclude:: /shared/drivers-get-started/cpp/get-started-connect.cpp
          :language: cpp
 
-      .. include:: /unified-getting-started/includes/connection-string-note.rst
+      .. include:: /get-started/includes/connection-string-note.rst
 
    .. step:: Run your application
 

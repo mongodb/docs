@@ -60,7 +60,7 @@
       .. literalinclude:: /shared/drivers-get-started/kotlin-sync/get-started-connect.kt
          :language: kotlin
 
-      .. include:: /unified-getting-started/includes/connection-string-note.rst
+      .. include:: /get-started/includes/connection-string-note.rst
 
    .. step:: Run your application
 

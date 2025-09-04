@@ -64,4 +64,4 @@
 
       The output includes details of the retrieved movie document:
 
-      .. include:: /unified-getting-started/includes/application-output.rst
+      .. include:: /get-started/includes/application-output.rst

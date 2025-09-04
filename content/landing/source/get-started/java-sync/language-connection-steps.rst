@@ -49,7 +49,7 @@
          :end-before: // end QuickStart
          :dedent:
 
-         .. include:: /unified-getting-started/includes/connection-string-note.rst
+         .. include:: /get-started/includes/connection-string-note.rst
 
    .. step:: Run your application
 

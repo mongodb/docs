@@ -65,7 +65,7 @@
       .. literalinclude:: /shared/drivers-get-started/java-rs/get-started-connect.java
          :language: java
 
-         .. include:: /unified-getting-started/includes/connection-string-note.rst
+         .. include:: /get-started/includes/connection-string-note.rst
 
    .. step:: Run your application
 
