@@ -18,6 +18,9 @@ following utilities:
   the test database and wraps the example code for output capture.
 - `unorderedOutputArrayMatches.js`: Compares actual and expected outputs,
   handling unordered arrays and MongoDB-specific types.
+- `testExamplesSequentially.js`: Combines the two functions above to test
+  multi-step examples that include loading data, initializing embedded pipelines
+  or other setup tasks, and then executing a query or aggregation pipeline.
 
 ## Overview
 
@@ -65,30 +68,28 @@ in your docs project's `source/code-examples` directory. Then, file a DOCSP tick
 with the component set to `DevDocs` to request the DevDocs team move the file
 into this test project and add a test.
 
-### Create a code example file
+### Create one or more code example files
 
-Create a new file in the `/examples` directory. Organize these examples to group
+Create new files in the `/examples` directory. Organize these examples to group
 related concepts - e.g. `aggregation/pipelines` or `crud/insert`. With the goal
 of single-sourcing code examples across different docs projects, avoid matching
 a specific docs project's page structure and instead group code examples by
 related concept or topic for easy reuse.
 
+For pages that demonstrate multi-step mongosh operations, such as loading
+data and running an aggregation pipeline, group related examples into a directory
+together.
+
 ### Create an output file
 
-If the output from the code example will be shown in the docs, create a file
-to store the output alongside the example. For example:
+Create a file to store the output alongside the example. For example:
 
 - `aggregation/pipelines/filter/run-pipeline.js`
 - `aggregation/pipelines/filter/output.sh`
 
 Verifying code with an output file is the only method provided by this MongoDB
-Shell test framework to validate the code runs successfully. If your operation
-is a prerequisite for another operation, such as inserting documents to then
-run another operation on those documents, you can omit the output file. That
-code will be tested implicitly by the second operation.
-
-Otherwise, you must include an output file for the test even if you do not
-intend to show it in the docs.
+Shell test framework to validate the code runs successfully. You must include
+an output file for the test even if you do not intend to show it in the docs.
 
 ### Format the code example files
 
@@ -134,11 +135,14 @@ set a timeout value for your tests:
 const { exec, execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
-const makeTempFileForTesting = require("../../../utils/makeTempFileForTesting");
-const unorderedOutputArrayMatches = require("../../../utils/unorderedOutputArrayMatches");
+const testExamplesSequentially = require("../../../utils/testExamplesSequentially");
 
 jest.setTimeout(10000);
 ```
+
+> **Note**: the path to `testExamplesSequentially.js` is relative, so you may
+> need a different number of `../` to get from the test file to the `utils`
+> directory where this utility is located.
 
 Inside the test file, create a new `describe` block, similar to:
 
@@ -169,7 +173,7 @@ case.
 After the last `it` block in the file, create a new `it` block similar to:
 
 ```javascript
-it("Should return filtered output with three specified person records", async () => {
+it("Should return filtered output with three specified person records", (done) => {
   // Insert your test code
 });
 ```
@@ -178,87 +182,63 @@ The string following the `it` is the description of your test case; this is
 what shows when a test fails. Make it a descriptive string so it's easier to
 find the test case and fix a failure if it fails.
 
+The `done` is a construct provided by Jest, and it's used to indicate to the
+test suite when the test case has finished.
+
 In the test case:
 
-1. Specify the file path for your example file. This file path should:
+1. Specify the file paths for your example files as an array. These file paths
+   should:
    - Be relative to the `examples` directory
    - Omit the `examples` directory
+   - Be added in the order that they need to execute. A `load-data.js` filepath
+     should come before a `run-pipeline.js` filepath.
 
    For example, a file path in `mongosh/examples/aggregation/pipelines/filter`
-   might resemble:
+   might resemble: `"aggregation/pipelines/filter/run-pipeline.js"`.
 
    ```javascript
-   const pipelineFilePath = "aggregation/pipelines/filter/run-pipeline.js";
+   const exampleFiles = [
+     "aggregation/pipelines/filter/load-data.js",
+     "aggregation/pipelines/filter/run-pipeline.js"
+   ];
    ```
 
-2. Create a `details` object to provide the information needed to run the file
-   as executable code, similar to:
+2. Add an output filepath to your test, similar to:
 
    ```javascript
-   const details = {
-     connectionString: mongoUri,
-     dbName: dbName,
-     filepath: loadDataFilePath,
-     validateOutput: false,
-   };
+   const outputFile = "aggregation/pipelines/filter/output.sh";
    ```
 
-   Establish variables at the top of the test file for connection string and
-   db name, for reuse in the `beforeEach` and `afterEach` blocks to perform setup
-   and teardown.
-
-   The filepath should be the relative filepath you established previously.
-
-   `validateOutput` is `true` if you have an output file you want to run the
-   code against, or `false` if you are performing a prerequisite operation to
-   set up or prepare for additional operations.
-
-   If you intend to validate the output, you'll also need to add an output
-   filepath to your test, similar to:
+2. Establish variables at the top of the test file for connection string and
+   db name, for use in any `beforeEach` and `afterEach` blocks and also in
+   the validation logic.
 
    ```javascript
-   const expectedOutputFilePath = "aggregation/pipelines/filter/output.sh";
+   const mongoUri = process.env.CONNECTION_STRING;
+   const port = process.env.CONNECTION_PORT;
+   const dbName = "agg-pipeline";
    ```
 
-3. Call the `makeTempFileForTesting` function, and store the resulting temp
-   filepath as a const to use when you execute the test. This creates an
-   intermediary temporary file that wraps your example in the infrastructure
-   needed to actually execute it.
-
-   It takes the `details` object you created in the prior step.
+3. Call the `testExamplesSequentially` function with the details you've set up:
 
    ```javascript
-   const tempPath = makeTempFileForTesting(details);
+   testExamplesSequentially({
+     mongoUri,
+     dbName,
+     port,
+     files: exampleFiles,
+     expectedOutputFile: outputFile,
+     done,
+     expect
+   });
    ```
 
-4. Call `exec` with the following details to execute the code
-   example:
-
-   ```javascript
-   exec(
-     `mongosh --file ${tempPath} --port ${port}`,
-     (error, stdout, stderr) => {
-       expect(error).toBeNull(); // Ensure no error occurred
-       if (stderr !== "") {
-         console.error("Standard Error:", stderr);
-       }
-
-       // Validate the output
-       const result = outputMatchesExampleOutput(
-         expectedOutputFilePath,
-         stdout,
-       );
-       expect(result).toBe(true);
-       done();
-     },
-   );
-   ```
-
-   This runs your code example in `mongosh` as a script using a filepath.
-   We pass `stdout` - the output from executing the command - to the
-   `outputMatchesExampleOutput` function, along with the filepath for the
-   expected output. If it matches, the `result` is true, and if it doesn't
-   match, the result is `false`.
+   This creates a temporary file that combines your example files commands and
+   runs your code example in `mongosh`. The `done` comes from the test case
+   initialization described above, at the end of the `it` block. The `expect`
+   is a construct provided by Jest that we use in the utility to validate the
+   expected output matches what the code example returns.
 
 ## To run the tests locally
 
