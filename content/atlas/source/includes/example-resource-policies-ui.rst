@@ -1,27 +1,45 @@
+.. _restrict-number-of-clusters-ui:
+
+Restrict Number of Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example prevents users from creating more than ``2``
+clusters in a project: 
+
+.. code-block::
+   :copyable: true
+   
+   forbid (
+       principal,
+       action == ResourcePolicy::Action::"cluster.modify",
+       resource
+   )
+   when { context.project.clustersInProject > 2 };
+
 .. _restrict-cloud-provider-ui: 
 
 Restrict Cloud Provider
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example prevents users from creating a {+cluster+} 
+The following example prevents users from creating a cluster 
 on |gcp|:
 
-.. code::
-    :copyable: true  
+.. code-block::
+   :copyable: true  
 
-    forbid (
-        principal, 
-        action == ResourcePolicy::Action::"cluster.modify", 
-        resource
-    ) 
-    when { context.cluster.cloudProviders.contains(ResourcePolicy::CloudProvider::"gcp") };
+   forbid (
+       principal, 
+       action == ResourcePolicy::Action::"cluster.modify", 
+       resource
+   ) 
+   when { context.cluster.cloudProviders.contains(ResourcePolicy::CloudProvider::"gcp") };
 
 
 The following example uses the ``unless`` clause to allow users to 
 create {+clusters+} *only* on |gcp|:
 
-.. code::
-    :copyable: true 
+.. code-block::
+   :copyable: true 
 
     forbid(
       principal, 
@@ -31,11 +49,11 @@ create {+clusters+} *only* on |gcp|:
     unless { context.cluster.cloudProviders == [ResourcePolicy::CloudProvider::"gcp"] };
 
 The following example uses the ``when`` clause to prevent users from  
-creating or editing a {+cluster+} in the project with ID ``6217f7fff7957854e2d09179`` 
+creating or editing a cluster in the project with ID ``6217f7fff7957854e2d09179`` 
 unless |gcp| is the only cloud provider:
 
-.. code::
-    :copyable: true 
+.. code-block::
+   :copyable: true 
                
     forbid (
       principal, 
@@ -44,11 +62,11 @@ unless |gcp| is the only cloud provider:
     ) 
     when {resource in ResourcePolicy::Project::"6217f7fff7957854e2d09179" && context.cluster.cloudProviders == [ResourcePolicy::CloudProvider::"gcp"] };
 
-The following example prevents modifications to the {+cluster+} with ID 
+The following example prevents modifications to the cluster with ID 
 ``3217e2gdf79a4c54e2d0827`` when |gcp| is the cloud provider:
 
-.. code::
-    :copyable: true 
+.. code-block::
+   :copyable: true 
                
     forbid (
       principal, 
@@ -62,11 +80,11 @@ The following example prevents modifications to the {+cluster+} with ID
 Restrict Cloud Provider Region
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example prevents users from creating or editing a {+cluster+}
+The following example prevents users from creating or editing a cluster
 in the region ``aws:us-east-1``:
 
-.. code::
-    :copyable: true 
+.. code-block::
+   :copyable: true 
 
     forbid (
       principal,
@@ -75,11 +93,11 @@ in the region ``aws:us-east-1``:
     ) 
     when {context.cluster.regions.contains(ResourcePolicy::Region::"aws:us-east-1")};
 
-The following example prevents users from creating a {+cluster+} 
+The following example prevents users from creating a cluster 
 in the region ``aws:us-west-1``:
 
-.. code::
-    :copyable: true 
+.. code-block::
+   :copyable: true 
 
     forbid(
       principal, 
@@ -88,11 +106,11 @@ in the region ``aws:us-west-1``:
     ) 
     when { context.cluster.regions.contains(ResourcePolicy::Region::"aws:us-west-1") };
 
-The following example prevents users from creating a {+cluster+} 
+The following example prevents users from creating a cluster 
 in the regions ``aws:us-east-1``, ``aws:us-west-1``, or ``azure:westeurope``:
 
-.. code::
-    :copyable: true 
+.. code-block::
+   :copyable: true 
           
     forbid(
       principal, 
@@ -104,8 +122,8 @@ in the regions ``aws:us-east-1``, ``aws:us-west-1``, or ``azure:westeurope``:
 The following example uses the ``unless`` clause to allow users to 
 create {+clusters+} *only* in the regions ``aws:us-east-1`` and ``azure:westeurope``:
 
-.. code::
-    :copyable: true 
+.. code-block::
+   :copyable: true 
 
     forbid(
       principal, 
@@ -115,11 +133,11 @@ create {+clusters+} *only* in the regions ``aws:us-east-1`` and ``azure:westeuro
     unless { [ResourcePolicy::Region::"aws:us-east-1", ResourcePolicy::Region::"azure:westeurope"].containsAll(context.cluster.regions) };
 
 The following example uses the ``when`` clause to restrict users from 
-editing the {+cluster+} with ID ``3217e2gdf79a4c54e2d0827`` 
+editing the cluster with ID ``3217e2gdf79a4c54e2d0827`` 
 in the regions ``aws:us-east-1`` and ``aws:us-west-1``:
 
-.. code::
-    :copyable: true 
+.. code-block::
+   :copyable: true 
 
     forbid(
       principal, 
@@ -136,8 +154,8 @@ Restrict IP Addresses
 The following example prevents users from editing a project 
 from a wildcard IP (``0.0.0.0/0``):
 
-.. code::
-    :copyable: true 
+.. code-block::
+   :copyable: true 
 
     forbid(
       principal, 
@@ -150,8 +168,8 @@ The following example uses the ``unless`` clause to allow users to
 edit projects *only* from the IP addresses ``1.2.3.4/32``, ``8.8.8.8/32``, 
 and ``4.4.4.4/32``:
 
-.. code::
-    :copyable: true 
+.. code-block::
+   :copyable: true 
 
     forbid(
       principal, 
@@ -160,11 +178,11 @@ and ``4.4.4.4/32``:
     ) 
     unless { [ip("1.2.3.4/32"), ip("8.8.8.8/32"), ip("4.4.4.4/32")].containsAll(context.project.ipAccessList) };
 
-The following example ensures that all traffic to the {+cluster+} is prohibited 
+The following example ensures that all traffic to the cluster is prohibited 
 over public networks by requiring the IP access list to be empty.
 
-.. code::
-    :copyable: true 
+.. code-block::
+   :copyable: true 
 
     forbid (
       principal,
@@ -175,7 +193,7 @@ over public networks by requiring the IP access list to be empty.
 
 .. _restrict-cluster-tier-ui: 
 
-Restrict {+Cluster+} Tier Sizes
+Restrict cluster Tier Sizes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example uses the ``when`` clause to restrict |service| from
@@ -185,8 +203,8 @@ provisioning or scaling  {+clusters+} to less than ``M30`` or greater than ``M60
 
     This policy doesn't restrict {+clusters+} with a :ref:`cluster class <storage-class-ui>` of  **Low CPU** or **NVMe SSD**.
 
-.. code::
-    :copyable: true
+.. code-block::
+   :copyable: true
 
     forbid(
       principal, 
@@ -202,8 +220,8 @@ Require Project Maintenance Windows
 
 The following example requires that a project has a :ref:`maintenance window <configure-maintenance-window>` configured:
 
-.. code::
-    :copyable: true
+.. code-block::
+   :copyable: true
 
     forbid (
       principal, 
@@ -240,8 +258,8 @@ details for your cloud provider and replace them in the example:
 - ``GCP_PROJECT_ID``: The ID of your |gcp| project.
 - ``VPC_NAME``: The name of the |vpc| in |gcp|.
 
-.. code::
-    :copyable: true
+.. code-block::
+   :copyable: true
 
     forbid (
       principal, 
@@ -275,8 +293,8 @@ following details for your cloud provider and replace them in the example:
 - ``GCP_PROJECT_ID``: The ID of your |gcp| project.
 - ``VPC_NAME``: The name of the |vpc| in |gcp| associated with the connection.
 
-.. code::
-    :copyable: true
+.. code-block::
+   :copyable: true
 
     forbid (
       principal, 
@@ -290,7 +308,7 @@ following details for your cloud provider and replace them in the example:
 Restrict |tls| Protocol and Cipher Suites
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example restricts the minimum |tls| version that your {+cluster+}
+The following example restricts the minimum |tls| version that your cluster
 accepts for incoming connections to |tls| 1.2. 
 
 Possible values for ``minTLSVersion`` include:
@@ -299,8 +317,8 @@ Possible values for ``minTLSVersion`` include:
 * **TLS 1.1**: ``ResourcePolicy::TLSVersion::"tls1_1"``
 * **TLS 1.2**: ``ResourcePolicy::TLSVersion::"tls1_2"``
 
-.. code::
-    :copyable: true
+.. code-block::
+   :copyable: true
 
     forbid (
       principal,
@@ -318,8 +336,8 @@ Possible values for custom |tls| cipher suite configurations are:
 * ``ResourcePolicy::CipherSuite::"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"``
 * ``ResourcePolicy::CipherSuite::"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"``
 
-.. code::
-    :copyable: true
+.. code-block::
+   :copyable: true
 
     forbid (
       principal,
@@ -334,8 +352,8 @@ Possible values for custom |tls| cipher suite configurations are:
 
 The following example requires that {+clusters+} use the default |tls| cipher suite configuration.
 
-.. code::
-    :copyable: true
+.. code-block::
+   :copyable: true
 
     forbid (
       principal,

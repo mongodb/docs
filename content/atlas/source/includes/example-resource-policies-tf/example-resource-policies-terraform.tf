@@ -1,3 +1,22 @@
+# start-restrict-number-of-clusters
+resource "mongodbatlas_resource_policy" "forbid_more_than_two_clusters" {
+  org_id = var.org_id
+  name   = "forbid-more-than-two-clusters"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action == ResourcePolicy::Action::"cluster.modify",
+            resource
+        )
+        when { context.project.clustersInProject > 2 };
+      EOF
+    },
+  ]
+}
+# end-restrict-number-of-clusters
+
 # start-restrict-ip
 resource "mongodbatlas_resource_policy" "forbid_project_access_anywhere" {
   org_id = var.org_id

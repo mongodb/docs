@@ -1,3 +1,16 @@
+.. _tf-restrict-number-of-clusters:
+
+Restrict Number of Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example prevents users from creating more than ``2``
+clusters in a project: 
+
+.. literalinclude:: /includes/example-resource-policies-tf/example-resource-policies-terraform.tf
+   :language: terraform
+   :start-after: # start-restrict-number-of-clusters
+   :end-before: # end-restrict-number-of-clusters
+
 .. _tf-restrict-cloud-provider:
 
 Restrict Cloud Provider
