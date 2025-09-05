@@ -30,8 +30,8 @@ complete CRUD application that integrates MongoDB and FastAPI.
 Non-Blocking Architecture
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-FastAPI’s asynchronous, non-blocking architecture allows it to handle thousands
-of concurrent requests without relying on multi-threading. It uses Python’s
+FastAPI's asynchronous, non-blocking architecture allows it to handle thousands
+of concurrent requests without relying on multi-threading. It uses Python's
 ``asyncio`` event loop to manage concurrency through coroutines. This allows the
 application to suspend a request while waiting queries to return. This reduces
 memory usage and can reduce latency. 
@@ -563,7 +563,7 @@ the results:
       You can also see your results by using the :guilabel:`List Students` endpoint.
 
 Next Steps
-----------
+~~~~~~~~~~
 
 Now that you have a basic understanding of how FastAPI integrates with MongoDB
 and the {+driver-async+} driver, you can add more features. The following list
@@ -574,6 +574,97 @@ includes some suggestions for how you could add to this application:
 - `Testing with TestClient <https://fastapi.tiangolo.com/reference/testclient/>`__
 - `Error handling and custom responses <https://fastapi.tiangolo.com/tutorial/handling-errors/>`__
 - `Authentication and authorization <https://fastapi.tiangolo.com/tutorial/security/>`__
+
+.. _pymongo-fastapi-best-practices:
+
+Best Practices
+--------------
+
+The following sections describe some best practices for integrating FastAPI with
+MongoDB and the {+driver-async+} driver.
+
+Security and Environment
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Storing sensitive credentials directly in your application code might cause
+accidental exposure in version control systems. Instead, use environment
+variables to store connection strings, API keys, and other sensitive
+information.
+
+For development environments, you can use the following tools to manage
+environment variables:
+
+- `direnv <https://direnv.net/>`__: Automatically loads environment variables
+  from a ``.envrc`` file when entering a directory
+- `python-dotenv <https://pypi.org/project/python-dotenv/>`__: Loads environment
+  variables from a ``.env`` file within your Python application
+- `envdir <https://pypi.org/project/envdir/>`__: Sets environment variables from
+  files in a directory
+- `Honcho <https://honcho.readthedocs.io/en/latest/>`__: Loads environment
+  variables from configuration files
+
+Regardless of which environment variable control tool you choose, add any
+files containing secrets (such as ``.env``, ``.envrc``, or similar) to your
+``.gitignore`` file to prevent them from being committed to version
+control.
+
+For production deployments, use a Key Management System (KMS). You can also use
+KMS solutions in your development environment for enhanced security.
+
+Database Connection Lifecycle
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Properly manage your MongoDB connection lifecycle by initializing and closing
+client connections in response to FastAPI application startup and shutdown
+events. This approach is more robust than initializing connections at the module
+level.
+
+Attach your MongoDB client to the FastAPI application object to make it
+accessible to all path operation functions throughout your codebase. This
+eliminates the need for global variables and simplifies dependency management.
+
+Use FastAPI's lifespan events to handle connection management:
+
+.. literalinclude:: /includes/integrations/fastapi-best-practices-db-connect.py
+   :language: python
+   :dedent:
+
+BSON vs JSON Type handling
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+FastAPI endpoints that provide JSON data to MongoDB might contain ``ObjectId``
+and ``Binary`` types, which aren't natively supported in JSON.
+
+You can serialize ``ObjectId`` in several ways:
+
+- **Use string-based IDs**: Replace ``ObjectId`` with JSON-compatible string
+  values for ``_id`` fields. This approach can work well for new applications
+  but might not be suitable if you have existing data.
+- **Automatic conversion**: Convert ``ObjectId`` values to string representations
+  when serializing to JSON, and parse strings back to ``ObjectId`` when processing
+  incoming data.
+- **Pydantic integration**: Use Pydantic's type annotations to handle automatic
+  conversion, as demonstrated in this tutorial's ``PyObjectId`` type.
+- **Object Document Mappers (ODMs)**: Use an ODM like `Beanie
+  <https://beanie-odm.dev/>`__, which assumes ``_id`` fields use ``ObjectId`` by
+  default and automatically handles serialization and deserialization.
+
+Data Modeling
+~~~~~~~~~~~~~
+
+Separate your database schema from your API schema to maintain flexibility. This
+allows you to modify MongoDB document structures without changing your API
+interface.
+
+Provide a Pydantic class as the ``response_model`` for your path operation to
+convert, validate, document, and filter the fields of the returned BSON data.
+The following code example shows how to implement this technique:
+
+.. literalinclude:: /includes/integrations/fastapi-best-practices-response-model.py
+   :language: python
+   :dedent:
+   :start-after: start-data-model
+   :end-before: end-data-model
 
 More Resources
 --------------
