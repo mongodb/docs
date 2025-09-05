@@ -1,0 +1,251 @@
+.. _rust-delete-guide:
+
+================
+Delete Documents
+================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: set options, code example 
+   :description: Learn how to delete documents from MongoDB collections with the MongoDB Rust Driver.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to remove documents from your MongoDB
+collections using **delete operations**.
+
+This guide includes the following sections:
+
+- :ref:`Sample Data for Examples <rust-retrieve-sample-data>` presents
+  the sample data that is used by the delete operation example
+
+- :ref:`Delete Operations <rust-delete-operations>` describes how to use the
+  driver to execute delete operations
+
+- :ref:`Delete Examples <rust-delete-operations>` provides code examples
+  for the delete operations
+
+- :ref:`Additional Information <rust-crud-del-addtl-info>`
+  provides links to resources and API documentation for types
+  and methods mentioned in this guide
+
+.. _rust-delete-sample-data:
+
+Sample Data for Examples
+------------------------
+
+The example in this guide uses the following sample documents. Each
+document represents an item in a store's inventory and contains
+information about its categorization and unit price:
+
+.. code-block:: json
+   :copyable: false
+   
+   { "item": "trowel", "category": "garden", "unit_price": 9.89 },
+   { "item": "placemat", "category": "kitchen", "unit_price": 3.19 },
+   { "item": "watering can", "category": "garden", "unit_price": 11.99 }
+
+.. _rust-delete-operations:
+
+Delete Operations
+-----------------
+
+The {+driver-short+} provides the ``delete_one()`` and ``delete_many()``
+methods to perform delete operations.
+
+Parameters
+~~~~~~~~~~
+
+The ``delete_one()`` and ``delete_many()`` methods take a query filter
+as a parameter. A query filter consists of the fields and values that
+form criteria for documents to match.
+
+Options
+~~~~~~~
+
+You can modify the behavior of the delete operation methods by chaining
+option builder methods to ``delete_one()`` and ``delete_many()``. These option
+methods set ``DeleteOptions`` struct fields.
+
+.. note:: Setting Options
+   
+   You can set ``DeleteOptions`` fields by chaining option builder methods directly
+   to the delete method call. If you're using an earlier version of the driver,
+   you must construct an ``DeleteOptions`` instance by chaining option builder methods
+   to the ``builder()`` method. Then, pass your options instance as a parameter to
+   ``delete_one()`` or ``delete_many()``.
+
+The following table describes the options available in ``DeleteOptions``:
+
+.. list-table::
+   :header-rows: 1
+   :class: compatibility-large
+
+   * - Option
+     - Description
+
+   * - ``collation`` 
+     - | The collation to use when sorting results. To learn more about collations,
+         see the :ref:`rust-collations` guide.
+       |
+       | Type: ``Collation``
+       | Default: ``None``
+
+   * - ``write_concern``
+     - | The write concern for the operation. If you don't set this
+         option, the operation inherits the write concern set for
+         the collection. To learn more about write concerns, see
+         :manual:`Write Concern </reference/write-concern/>` in the
+         Server manual.
+       |
+       | Type: ``WriteConcern``
+
+   * - ``hint`` 
+     - | The index to use for the operation. To learn more about
+         indexes, see :manual:`Indexes </indexes/>` in the Server
+         manual. This option is available only when connecting to
+         {+server+} versions 4.4 and later.
+       |
+       | Type: ``Hint``
+       | Default: ``None``
+
+   * - ``let_vars``
+     - | A map of parameters and values. These parameters can be accessed
+         as variables in aggregation expressions. This option is available
+         only when connecting to {+server+} versions 5.0 and later.
+       |
+       | Type: ``Document``
+
+   * - ``comment``
+     - | An arbitrary ``Bson`` value tied to the operation to trace
+         it through the database profiler, ``currentOp``, and
+         logs. This option is available only when connecting to
+         {+server+} versions 4.4 and later.
+       |
+       | Type: ``Bson``
+       | Default: ``None``
+
+.. TODO add links to guides for relevant options
+
+The following code shows how to set the ``comment`` field by chaining
+the ``comment()`` method to the ``delete_one()`` method:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/delete.rs
+   :start-after: begin-options
+   :end-before: end-options
+   :language: rust
+   :copyable:
+   :dedent:
+
+Return Value
+~~~~~~~~~~~~
+
+The ``delete_one()`` and ``delete_many()`` methods return a
+``DeleteResult`` type. This type contains the ``deleted_count`` property,
+which describes the number of documents deleted. If no documents match
+the query filter you specified, the delete operation does
+not remove any documents, and the value of ``deleted_count`` is ``0``.
+
+Delete Examples
+---------------
+
+This section provides code examples for the following delete operations:
+
+- :ref:`delete_one() <rust-delete-one-ex>`
+- :ref:`delete_many() <rust-delete-many-ex>`
+
+.. _rust-delete-one-ex:
+
+Delete One Example
+~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``delete_one()`` method to delete a document
+that has an ``item`` value of ``"placemat"``:
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/delete.rs
+      :start-after: begin-delete-one
+      :end-before: end-delete-one
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Deleted documents: 1
+
+.. _rust-delete-many-ex:
+
+Delete Many Example
+~~~~~~~~~~~~~~~~~~~
+
+This example performs the following actions:
+
+- Calls the ``delete_many()`` method
+- Passes a query filter to ``delete_many()`` that matches documents where the value of ``category``
+  is ``"garden"``
+- Chains the ``hint()`` method to ``delete_many()`` to use the ``_id_`` index as the hint
+  for the delete operation
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/delete.rs
+      :start-after: begin-delete-many
+      :end-before: end-delete-many
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Deleted documents: 2
+
+.. note::
+
+   If you use the ``delete_one()`` method instead of
+   ``delete_many()`` in the preceding code example, the driver deletes
+   only the first of the two documents that match the query filter.
+
+.. _rust-crud-del-addtl-info:
+
+Additional Information
+----------------------
+
+For runnable examples of the delete operations, see the following usage
+examples:
+
+- :ref:`rust-delete-one-usage`
+- :ref:`rust-delete-many-usage`
+
+To learn more about the operations in this guide, see the
+following documentation:
+
+- :ref:`rust-query-guide` guide
+- :ref:`rust-collations` guide
+
+.. - :ref:`rust-indexes`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `delete_one() <{+api+}/struct.Collection.html#method.delete_one>`__
+- `delete_many() <{+api+}/struct.Collection.html#method.delete_many>`__
+- `DeleteOptions <{+api+}/options/struct.DeleteOptions.html>`__
+- `Hint <{+api+}/options/enum.Hint.html>`__
+- `DeleteResult <{+api+}/results/struct.DeleteResult.html>`__

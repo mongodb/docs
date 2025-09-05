@@ -6,8 +6,11 @@
    * - Rust Driver Version
      - Minimum Supported Rust Version
 
-   * - 3.2
+   * - 3.3
      - {+min-rust-version+}
+
+   * - 3.2
+     - 1.71.1
 
    * - 2.8 to 3.1
      - 1.61.0
