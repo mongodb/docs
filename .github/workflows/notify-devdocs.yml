@@ -1,0 +1,41 @@
+name: Notify DevDocs Mentions
+
+on:
+  pull_request:
+    types: [opened, edited]
+  pull_request_review:
+    types: [submitted, edited]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for @DevDocs mention and send to Slack
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const text = context.payload.comment?.body 
+                      || context.payload.issue?.body 
+                      || context.payload.pull_request?.body 
+                      || context.payload.review?.body 
+                      || "";
+
+            if (text.includes("@DevDocs")) {
+              const fetch = require("node-fetch");
+              const url = process.env.SLACK_WEBHOOK_URL;
+
+              const link = context.payload.comment?.html_url 
+                        || context.payload.issue?.html_url 
+                        || context.payload.pull_request?.html_url 
+                        || context.payload.review?.html_url;
+
+              await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  text: `:eyes: @DevDocs was mentioned in *${context.payload.repository.full_name}*\nEvent: *${context.eventName}*\nLink: ${link}`
+                }),
+              });
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
