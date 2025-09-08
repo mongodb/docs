@@ -1,5 +1,7 @@
 import type { TocItem } from "../types";
 
+const outdatedIntegrationVersions = ["v4.7", "v4.8", "v4.9", "v4.10", "v4.11", "v4.12"];
+
 const tocData: TocItem[] = [
   {
     label: "PyMongo Driver",
@@ -328,7 +330,14 @@ const tocData: TocItem[] = [
         label: "Third-Party Integrations",
         contentSite: "pymongo",
         url: "/docs/languages/python/pymongo-driver/:version/integrations",
+        versions: { includes: outdatedIntegrationVersions },
+      },
+      {
+        label: "Third-Party Integrations",
+        contentSite: "pymongo",
+        url: "/docs/languages/python/pymongo-driver/:version/integrations",
         collapsible: true,
+        versions: { excludes: outdatedIntegrationVersions },
         items: [
           {
             label: "Tutorial: Flask and Celery Integration",
