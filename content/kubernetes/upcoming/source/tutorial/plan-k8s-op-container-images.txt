@@ -21,9 +21,13 @@ Container Images
 
 When you install the |k8s-op-short|, it pulls the images from the Quay.io
 container registry. The |k8s-op-short| images are based on the
-`Red Hat UBI 8 <https://www.redhat.com/en/topics/containers>`__
-operating system. MongoDB rebuilds |k8s-op-short| images daily for the
+`Red Hat UBI 8 and 9 <https://www.redhat.com/en/topics/containers>`__
+operating systems. MongoDB rebuilds |k8s-op-short| images daily for the
 latest operating system and supporting library updates.
+
+.. note::
+
+   {+mdbagent+} images pulled by :ref:`static containers <static-containers>` are always on Red Hat UBI 9.
 
 Official images provide the following advantages:
 
@@ -34,44 +38,59 @@ To view all available versions for each image, see the following links.
 
 .. list-table::
    :header-rows: 1
-   :widths: 50 50
+   :widths: 20 40 20
 
    * - Image Name
      - Description
+     - Supported Architecture
    
+   * - :qr-mdb:`mongodb-agent
+       </mongodb-agent?tab=tags&tag=latest>`
+     - {+mdbagent+} image built on Red Hat UBI 9 and used for :ref:`static containers <static-containers>`, 
+       the {+appdb+}, and MongoDB Community Edition deployments.
+     - Supports x86-64, ARM64, s390x, and ppc64le. Supports static and 
+       non-static containers for all versions of |k8s-op|.
+
    * - :qr-mdb:`mongodb-agent-ubi
        </mongodb-agent-ubi?tab=tags&tag=latest>`
-     - {+mdbagent+} image.
+     - Legacy {+mdbagent+} image.
+     - Supports x86-64 and ARM64. Supports non-static containers for all versions 
+       of |k8s-op|. Supports static containers for |k8s-op| 1.2.0 and earlier only.
 
    * - :qr-mdb:`mongodb-enterprise-server 
        </mongodb-enterprise-server?tab=tags&tag=latest>`
      - The Enterprise MongoDB image used for :ref:`static containers <static-containers>` 
-       and the {+appdb+}.
+       and the {+appdb+}. For IBM ZSeries (s390x) and Power (ppc64le) architectures, 
+       images run on Red Hat UBI 9 only and support is limited to MongoDB 8.0.12+.
+     - x86-64, ARM64, s390x, ppc64le 
 
    * - :qr-mdb:`mongodb-kubernetes-init-appdb 
        </mongodb-kubernetes-init-appdb?tab=tags&tag=latest>`
      - ``initContainer`` image that contains the {+appdb+} 
        start-up scripts and the readiness probe.
+     - x86-64, ARM64, s390x, ppc64le  
 
    * - :qr-mdb:`mongodb-kubernetes-database 
        </mongodb-kubernetes-database?tab=tags&tag=latest>`
      - MongoDB Database environment image used for non-static containers. 
-       To learn about static and non-static containers, see  
-       :ref:`static-containers`.
+     - x86-64, ARM64, s390x, ppc64le  
 
    * - :qr-mdb:`mongodb-kubernetes-init-database
        </mongodb-kubernetes-init-database?tab=tags&tag=latest>`
      - ``initContainer`` image that contains the {+mdbagent+} start-up
        scripts and the readiness probe.
+     - x86-64, ARM64, s390x, ppc64le 
 
    * - :qr-mdb:`mongodb-enterprise-ops-manager-ubi 
        </mongodb-enterprise-ops-manager-ubi?tab=tags&tag=latest>`
      - |onprem| image.
+     - x86-64 only
 
    * - :qr-mdb:`mongodb-kubernetes-init-ops-manager
        </mongodb-kubernetes-init-ops-manager?tab=tags&tag=latest>`
      - ``initContainer`` image that contains the |onprem| start-up
        scripts and the readiness probe.
+     - x86-64 only 
 
 .. _static-containers:
 
@@ -164,6 +183,9 @@ Limitations
 
 If you enable static containers:
 
+- Deployments on IBM ZSeries (s390x) or IBM Power (ppc64le) hardware architectures 
+  support static containers only for MongoDB 8.0.12 and later.
+
 - You must :ref:`disable-queryable-backups` so the :ref:`backup-daemon`
   doesn't attempt to download the MongoDB binaries from |onprem|, which
   undermines the immutable nature of static containers.
@@ -189,7 +211,7 @@ If you enable static containers:
          podTemplate:
            spec:
              containers:
-               - name: mongodb-agent-ubi
+               - name: mongodb-agent
                  Image: 12.0.29.7785-1_1.24.0
 
   - :ref:`Upgrade the {+k8s-op-short+} <upgrade-k8s-operator>` to the latest version, 
