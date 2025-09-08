@@ -207,7 +207,12 @@ const tocData: TocItem[] = [
             label: "Framework for Rapid AI Agent Deployment",
             contentSite: "atlas-architecture",
             url: "/docs/atlas/architecture/:version/solutions-library/manufacturing-agentic-ai-framework",
-                                  },
+                                  },       
+          {
+            label: "Multi-Agent Predictive Maintenance",
+            contentSite: "atlas-architecture",
+            url: "/docs/atlas/architecture/:version/solutions-library/multi-agent-predictive-maintenance",
+                                  },                 
           {
             label: "Predictive Maintenance Excellence",
             contentSite: "atlas-architecture",
