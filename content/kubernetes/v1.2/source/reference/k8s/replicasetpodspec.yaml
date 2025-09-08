@@ -1,0 +1,79 @@
+---
+apiVersion: mongodb.com/v1
+kind: MongoDB
+metadata:
+  name: my-replica-set
+spec:
+  members: 3
+  version: "8.0.0"
+  service: my-service
+  opsManager: # Alias of cloudManager
+    configMapRef:
+      name: my-project
+  credentials: my-credentials
+  persistent: true
+  type: ReplicaSet
+  podSpec:
+    persistence:
+      multiple:
+        data:
+          storage: "10Gi"
+        journal:
+          storage: "1Gi"
+          labelSelector:
+            matchLabels:
+              app: "my-app"
+        logs:
+          storage: "500M"
+          storageClass: standard
+    podTemplate:
+      metadata:
+        labels:
+          label1: mycustomlabel
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: security
+                operator: In
+                values:
+                - S1
+            topologyKey: failure-domain.beta.kubernetes.io/zone
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/e2e-az-name
+                operator: In
+                values:
+                - e2e-az1
+                - e2e-az2
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                topologyKey: "mykey"
+              weight: 50
+      spec:
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+              - podAffinityTerm:
+                  topologyKey: "mykey"
+                weight: 50
+  security:
+    certsSecretPrefix: "prefix"
+    tls:
+      ca: custom-ca
+    authentication:
+      enabled: true
+      modes: ["X509"]
+      internalCluster: "X509"
+  statefulSet:
+    spec:
+      serviceName: my-service
+  additionalMongodConfig:
+    net:
+      ssl:
+        mode: preferSSL
+...

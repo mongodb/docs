@@ -15,6 +15,83 @@ Release Notes for |k8s-op-full|
    :depth: 1
    :class: singlecol
 
+.. _mck-1.3.0-rn:
+
+|k8s-op-short| v1.3.0
+---------------------
+
+*Released 04 September 2025*
+
+New features
+~~~~~~~~~~~~
+
+- **Multi-Architecture Support**
+
+  - Adds comprehensive multi-architecture support for the |k8s-op-short|.
+  - Supports deployment on IBM Power (ppc64le) and IBM Z (s390x) architectures alongside existing x86_64 support. 
+  - Core images (operator, agent, init containers, database, readiness
+    probe) now support multiple architectures. But, this release doesn't add IBM and ARM
+    support for |onprem| and the ``mongodb-kubernetes-init-ops-manager``
+    images. 
+
+    .. note:: 
+  
+       This release migrates MongoDB Agent images to a new container
+       repository, ``quay.io/mongodb/mongodb-agent``. 
+
+       - The agents in the new repository support the x86-64, ARM64,
+         s390x, and ppc64le architectures. To learn more, see
+         :ref:`k8s-container-images`. 
+       - |k8s-op-short| running version greater than or equal to 1.3.0
+         and static can't use the agent images from the old container
+         repository, ``quay.io/mongodb/mongodb-agent-ubi``. 
+
+       Don't use ``quay.io/mongodb/mongodb-agent-ubi`` as it is
+       made available only for backwards compatibility.
+
+Bug Fixes
+~~~~~~~~~
+
+* Fixes the current architecture for stateful set containers, which
+  relies on an "agent matrix" to map operator and agent versions. The
+  new design eliminates the ``operator-version/agent-version`` matrix,
+  but adds one additional container containing all required binaries.
+  This architecture maps to the ``mongodb-database`` container.
+* Fixes an issue where the readiness probe reported the node as ready
+  even when its authentication mechanism was not in sync with the other
+  nodes, sometimes resulting in premature restarts. 
+* Fixes an issue where the MongoDB Agents didn't adhere to the
+  ``NO_PROXY`` environment variable configured on the operator. 
+* Changes webhook ``ClusterRole`` and ``ClusterRoleBinding`` default
+  names to include the namespace so that multiple operator installations
+  in different namespaces don't conflict with each other. 
+
+Other Changes 
+~~~~~~~~~~~~~
+
+* Moves optional permissions for ``PersistentVolumeClaim`` to a separate
+  role. 
+
+  When you manage the operator with |helm|, you could disable permissions
+  for ``PersistentVolumeClaim`` resources by setting
+  ``operator.enablePVCResize`` value to ``false``, which is ``true`` by
+  default. If enabled, these permissions were part of the primary
+  operator role. With this change, permissions have a separate role.
+
+* Removes ``subresourceEnabled`` |helm| value.
+ 
+  This setting was ``true`` by default. You could exclude subresource
+  permissions from the operator role by specifying ``false`` as the
+  value. This setting was introduced as a temporary solution for the
+  OpenShift issue (Bug 1803171). The issue has since been resolved and
+  the setting is no longer needed. Therefore, this change removes this
+  configuration option, making the operator roles always have
+  subresource permissions. 
+
+* Doesn't include container images for |onprem| versions 7.0.16, 8.0.8,
+  8.0.9 and 8.0.10 due to a bug in |onprem| that prevents |k8s-op-short|
+  users from upgrading their |onprem| deployments of these versions.
+
 .. _mck-1.2.0-rn:
 
 |k8s-op-short| v1.2.0
