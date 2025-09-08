@@ -13,6 +13,20 @@ async fn main() -> mongodb::error::Result<()> {
     let uri = "<connection string>";
     let mut client_options = ClientOptions::parse(uri).await?;
 
+    // start-gssapi
+    let gssapi_cred = Credential::builder()
+        .username("<username>".to_string())
+        .password("<password>".to_string())
+        .mechanism(AuthMechanism::Gssapi)
+        .mechanism_properties(
+            doc! { "SERVICE_REALM": "<service_realm>", "SERVICE_NAME": "<service_name>", "SERVICE_HOST": "<service_host>" }
+        )
+        .build();
+    
+    client_options.credential = Some(gssapi_cred);
+    let client = Client::with_options(client_options)?;
+    // end-gssapi
+
     // start-ldap
     let plain_cred = Credential::builder()
         .username("<username>".to_string())
