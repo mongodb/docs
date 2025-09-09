@@ -11,16 +11,8 @@
 
    .. step:: Define the index.
 
-      Create a file named ``vector-index.go``. Copy and paste the following
-      code into the file, and replace the ``<connectionString>``
-      placeholder value.
-
-      .. literalinclude:: /includes/avs/index-management/create-index/filter-example.go
-         :language: go
-         :copyable: true
-         :caption: vector-index.go
-         :emphasize-lines: 18
-         :linenos:
+      Create a file named ``vector-index.go`` and copy and paste the
+      following code into the file. 
 
       This index definition indexes the ``plot_embedding_voyage_3_large`` field
       as the ``vector`` type and the ``genres`` and ``year`` fields
@@ -29,6 +21,17 @@
       ``voyage-3-large`` embedding model. The index definition
       specifies ``2048`` vector dimensions and measures similarity using
       ``dotProduct`` function.
+
+      .. literalinclude:: /includes/avs/index-management/create-index/filter-example.go
+         :language: go
+         :copyable: true
+         :caption: vector-index.go
+         :emphasize-lines: 18
+         :linenos:
+
+   .. step:: Replace the ``<connection-string>`` in the code and then save the file.
+
+      .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Run the following command to create the index.
 

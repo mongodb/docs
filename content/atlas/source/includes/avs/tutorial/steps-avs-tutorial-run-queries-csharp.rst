@@ -34,10 +34,9 @@
                :caption: DataService.cs
                :emphasize-lines: 8
 
-   .. step:: Replace the ``<connection-string>`` with your |service| connection string and then save the file.
+   .. step:: Replace the ``<connection-string>`` in the query and then save the file.
 
-      Ensure that your connection string includes your database user's
-      credentials. To learn more, see :ref:`connect-via-driver`. 
+      .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Update ``Program.cs``.
 

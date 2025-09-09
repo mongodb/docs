@@ -32,10 +32,9 @@
                :dedent:
                :emphasize-lines: 17
 
-   .. step:: Replace the ``<connection-string>`` with your |service| connection string and then save the file.
+   .. step:: Replace the ``<connection-string>`` in the query and then save the file.
 
-      Ensure that your connection string includes your database user's
-      credentials. To learn more, see :ref:`connect-via-driver`. 
+      .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Compile and run ``AtlasVectorSearchTutorial.go`` file.
 

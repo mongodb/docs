@@ -17,9 +17,16 @@
 
    .. step:: Define the index.
 
-      Create a file named ``vector-index.js``. Copy and paste the following
-      code into the file, and replace the ``<connectionString>``
-      placeholder value.
+      Create a file named ``vector-index.js`` and copy and paste the
+      following code into the file.
+
+      This index definition indexes the
+      ``plot_embedding_voyage_3_large`` field as the ``vector`` type and
+      the ``genres`` and ``year`` fields as the ``filter`` type in an
+      {+avs+} index. The ``plot_embedding_voyage_3_large`` field
+      contains embeddings created using |voyage|'s ``voyage-3-large``
+      embedding model. The index definition specifies ``2048`` vector
+      dimensions and measures similarity using ``dotProduct`` function.
 
       .. literalinclude:: /includes/avs/index-management/create-index/filter-example.js
          :language: javascript
@@ -28,14 +35,10 @@
          :emphasize-lines: 4
          :linenos:
 
-      This index definition indexes the ``plot_embedding_voyage_3_large`` field
-      as the ``vector`` type and the ``genres`` and ``year`` fields
-      as the ``filter`` type in an {+avs+} index. The ``plot_embedding_voyage_3_large``
-      field contains embeddings created using |voyage|'s
-      ``voyage-3-large`` embedding model. The index definition
-      specifies ``2048`` vector dimensions and measures similarity using
-      ``dotProduct`` function.
+   .. step:: Replace the ``<connection-string>`` in the code and then save the file.
 
+      .. include:: /includes/search-shared/find-connection-string.rst
+       
    .. step:: Run the following command to create the index.
 
       .. io-code-block::
