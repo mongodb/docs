@@ -119,6 +119,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "PHP Extension",
+            isExternal: true,
+            url: "https://www.php.net/mongodb",
+          },
+          {
             label: "PHP Library",
             contentSite: "php-library",
             url: "/docs/php-library/current/",
