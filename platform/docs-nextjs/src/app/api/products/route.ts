@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import type { Sort } from 'mongodb';
 import { getClient } from '@/services/db';
 
@@ -8,8 +8,8 @@ interface ProductNavigationData {
   slug: string;
 }
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
   const dbName = searchParams.get('dbName') ?? process.env.SNOOTY_DB_NAME;
 
   try {
