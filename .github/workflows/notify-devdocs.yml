@@ -1,6 +1,10 @@
 name: Notify DevDocs Mentions
 
 on:
+  issue_comment:
+    types: [created, edited]
+  pull_request_review_comment:
+    types: [created, edited]
   pull_request:
     types: [opened, edited]
   pull_request_review:
@@ -20,22 +24,19 @@ jobs:
                       || context.payload.review?.body 
                       || "";
 
-            if (text.includes("@DevDocs")) {
-              const fetch = require("node-fetch");
-              const url = process.env.SLACK_WEBHOOK_URL;
-
-              const link = context.payload.comment?.html_url 
-                        || context.payload.issue?.html_url 
-                        || context.payload.pull_request?.html_url 
-                        || context.payload.review?.html_url;
-
-              await fetch(url, {
+            if (text.includes("@DevDocs") || text.includes("@10gen/devdocs")) {
+              await fetch(process.env.SLACK_WEBHOOK_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  text: `:eyes: @DevDocs was mentioned in *${context.payload.repository.full_name}*\nEvent: *${context.eventName}*\nLink: ${link}`
+                  text: `:eyes: @DevDocs has been mentioned in *${context.payload.repository.full_name}* 
+              Event: *${context.eventName}* 
+              Link: ${context.payload.comment?.html_url
+                    || context.payload.issue?.html_url
+                    || context.payload.pull_request?.html_url
+                    || context.payload.review?.html_url}`
                 }),
               });
-            }
+                          }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
