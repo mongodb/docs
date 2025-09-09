@@ -25,7 +25,7 @@
    .. step:: Link with Atlas.
       
       a. Click :guilabel:`Generate Link-Token`. |service| displays the
-         page for generating a :term:`link-token`.
+         page for generating a link-token.
       
       #. Click :guilabel:`Next` to see a page that contains the generated link-token.
       
@@ -35,7 +35,7 @@
          share it publicly.
       
          .. note::
-            Use one unique :term:`link-token` for live migrating all
+            Use one unique link-token for live migrating all
             projects in one |mms| organization to |service|.
       
       #. Click :guilabel:`Done`.

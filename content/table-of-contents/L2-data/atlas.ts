@@ -699,7 +699,7 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: "Manual Cluster-to-Cluster Sync",
+        label: "Standalone Mongosync",
         contentSite: "mongosync",
         url: "/docs/cluster-to-cluster-sync/current/reference/mongosync/#mongosync",
       },
@@ -707,96 +707,6 @@ const tocData: TocItem[] = [
         label: "Troubleshoot Live Migration",
         contentSite: "cloud-docs",
         url: "/docs/atlas/import/live-migration-troubleshooting",
-      },
-      {
-        label: "Legacy Migration",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/legacy-migration",
-        collapsible: true,
-        items: [
-          {
-            label: "Pull into Atlas",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/migration-live-atlas-managed",
-            collapsible: true,
-            items: [
-              {
-                label: "Replica Set 4.4 or 5.0",
-                contentSite: "cloud-docs",
-                url: "/docs/atlas/import/live-import",
-              },
-              {
-                label: "Troubleshoot",
-                contentSite: "cloud-docs",
-                url: "/docs/atlas/import/live-import-troubleshooting",
-              },
-            ],
-          },
-          {
-            label: "Push from Cloud Manager or Ops Manager",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/migration-from-com",
-            collapsible: true,
-            items: [
-              {
-                label: "Replica Set 4.4 or 5.0",
-                contentSite: "cloud-docs",
-                url: "/docs/atlas/import/migrate-from-com-rs",
-              },
-            ],
-          },
-          {
-            label: "Self-Managed Tools",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/migration-self-managed",
-            collapsible: true,
-            items: [
-              {
-                label: "Migrate Manually",
-                contentSite: "cloud-docs",
-                url: "/docs/atlas/import/mongomirror",
-                collapsible: true,
-                items: [
-                  {
-                    label: "mongomirror",
-                    contentSite: "cloud-docs",
-                    url: "/docs/atlas/reference/mongomirror",
-                  },
-                  {
-                    label: "mongomirror Changelog",
-                    contentSite: "cloud-docs",
-                    url: "/docs/atlas/release-notes/mongomirror",
-                  },
-                  {
-                    label: "mongomirror Versions",
-                    contentSite: "cloud-docs",
-                    url: "/docs/atlas/reference/mongomirror-old-versions",
-                  },
-                ],
-              },
-              {
-                label: "Seed Data",
-                contentSite: "cloud-docs",
-                url: "/docs/atlas/import/mongorestore",
-              },
-              {
-                label: "Load Files",
-                contentSite: "cloud-docs",
-                url: "/docs/atlas/import/mongoimport",
-              },
-              {
-                label: "Import with Compass",
-                contentSite: "compass",
-                url: "/docs/compass/current/import-export/",
-              },
-            ],
-          },
-          {
-            label: "AWS into Atlas",
-            contentSite: "guides",
-            url: "/docs/guides/cloud/migrate-from-aws-to-atlas/",
-          },
-        ],
       },
     ],
   },

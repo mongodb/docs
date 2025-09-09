@@ -38,11 +38,6 @@
       :ref:`restore the most recent snapshot <restore-archive-snapshots>` and choose the
       staging cluster as the destination.
       
-      If you do *not* have backups enabled for the production cluster,
-      use |service| :doc:`Live Import </import/live-import>` to mirror data
-      from your production cluster to the staging cluster. The live
-      migration documentation includes specific instructions for creating
-      staging environments.
       
    .. step:: Point your staging application at the staging cluster.
 

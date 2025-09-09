@@ -1,1 +1,0 @@
-To live migrate a source sharded cluster to |service|, use :ref:`this live migration procedure <c2c-push-live-migration>`.

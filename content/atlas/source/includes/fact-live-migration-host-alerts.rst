@@ -1,1 +1,0 @@
-During live migration, |service| disables host alerts.

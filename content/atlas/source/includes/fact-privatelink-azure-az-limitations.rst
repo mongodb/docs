@@ -8,4 +8,4 @@
 
    All new |service| clusters are compatible with {+az-pl+}. If you must
    connect to your cluster using only {+az-pl+}, you can create a new
-   cluster in the same |service| project and :doc:`migrate your data </import/live-import>`.
+   cluster in the same |service| project and :atlas:`migrate your data </import>`.

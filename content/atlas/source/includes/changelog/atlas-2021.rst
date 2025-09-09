@@ -91,7 +91,7 @@
 - Enables :ref:`cluster tier auto-scaling <cluster-autoscaling>` by
   default for all new |service| clusters created via the web interface.
 
-- Supports using :ref:`Live Migration from Ops Manager or Cloud Manager <migrate-from-com>`
+- Supports using Live Migration from Ops Manager or Cloud Manager
   for MongoDB deployments running MongoDB 5.0.
 
 - Introduces metrics alerts for |service| serverless instances.

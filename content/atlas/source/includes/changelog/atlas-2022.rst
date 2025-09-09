@@ -4,7 +4,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Adds the ability to configure some |service| project limits using the :oas-atlas-op:`Projects Administration API resource </updateProjectInvitationById>`.
-- Adds the ability to push live migrations of replica sets using :ref:`private endpoints <migrate-from-com-vpc-support>`.
+- Adds the ability to push live migrations of replica sets using private endpoints.
 - Introduces :ref:`atlas-go-to`.
 
 16 November 2022 Release
