@@ -1,10 +1,18 @@
+.. _atlas-sp-20250821:
+
+21 August 2025 Release
+----------------------
+
+- Adds support for the ``Stream Processor State`` metric in
+  the {+service+} :ref:`Datadog integration <datadog-integration>`.
+
 .. _atlas-sp-20250819:
 
 19 August 2025 Release
 ----------------------
 
 - Adds the ``$function`` operator, allowing for Javascript execution 
-  in stream processing pipelines. To learn more, see :ref:`streams-agg-pipeline-function`.
+  in stream processing pipelines. To learn more, see :ref:`atlas-sp-agg-function`.
 
 - Adds the ``$cachedLookup`` operator allowing for
   ``$lookup`` results to be cached for a specific TTL to improve the performance 
