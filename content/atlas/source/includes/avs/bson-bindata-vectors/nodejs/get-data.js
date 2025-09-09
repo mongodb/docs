@@ -3,15 +3,15 @@ import fs from 'fs/promises';
 import { writeFile } from "fs/promises"; 
   
 async function main() {  
-  // Replace with your Atlas connection string  
-  const uri = process.env.MONGODB_URI || '<CONNECTION-STRING>';  
-  
-  // Create a new MongoClient instance  
-  const client = new MongoClient(uri);  
-  
-  try {  
-    // Connect to your Atlas cluster  
-    await client.connect();  
+  // Replace with your MongoDB connection string
+  const uri = process.env.MONGODB_URI || '<CONNECTION-STRING>';
+
+  // Create a new MongoClient instance
+  const client = new MongoClient(uri);
+
+  try {
+    // Connect to your MongoDB cluster
+    await client.connect();
   
     // Specify the database and collection  
     const db = client.db('sample_airbnb');  

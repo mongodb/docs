@@ -1,6 +1,6 @@
 import pymongo  
 
-# Connect to your Atlas cluster
+# Connect to your MongoDB cluster
 mongo_client = pymongo.MongoClient("<CONNECTION-STRING>")
 db = mongo_client["<DATABASE-NAME>"]
 collection = db["<COLLECTION-NAME>"]

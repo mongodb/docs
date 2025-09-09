@@ -34,7 +34,7 @@ a. Initialize your Node.js project.
 
 #. Create a ``.env`` file.
 
-   In your project, create a ``.env`` file to store your |service| connection
+   In your project, create a ``.env`` file to store your MongoDB connection
    string and API keys for the models that you want to use:
 
    .. code-block::

@@ -99,6 +99,6 @@
       select your data source and click :guilabel:`Sync` to sync 
       the data from the |s3| bucket and load it into |service|.
 
-      When the sync completes, you can view your vector embeddings 
-      :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`
-      by navigating to the ``bedrock_db.test`` collection in your {+cluster+}.
+      When the sync completes, if you're using |service|, you can verify your vector embeddings
+      by navigating to the ``bedrock_db.test`` namespace
+      :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`.

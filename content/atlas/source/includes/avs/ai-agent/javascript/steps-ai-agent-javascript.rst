@@ -31,25 +31,7 @@
 
       #. Configure the environment.
 
-         Create an environment file named ``.env`` in your project. This
-         file will contain your API keys for the agent, |service|
-         connection string, and MongoDB database and collection names.
-
-         .. collapsible::
-            :heading: .env
-            :sub_heading: Copy and paste the following code into your .env file.
-            :expanded: false
-
-            Replace the placeholder values with your |service| connection
-            string and your Voyage AI and OpenAI API keys.
-
-            .. literalinclude:: /includes/avs/ai-agent/shared/ai-agent-env-variables.js
-               :language: none
-               :copyable:
-            
-            .. note::
-
-               .. include:: /includes/fact-connection-string-format-drivers.rst
+         .. include:: /includes/avs/ai-agent/shared/env-config-description.rst
 
    .. step:: Configure the agent. 
          
@@ -66,12 +48,12 @@
             :language: javascript
             :copyable:
 
-   .. step:: Use |service| as a vector database.
+   .. step:: Use MongoDB as a vector database.
 
       Create a file named ``ingest-data.js`` in your project. This script
       ingests a sample PDF that contains a recent `MongoDB earnings report
       <https://investors.mongodb.com/node/12881/pdf>`__ into a collection
-      in |service| by using the ``voyage-3-large`` embedding model. This
+      in MongoDB by using the ``voyage-3-large`` embedding model. This
       code also includes a function to create a vector search index on your
       data if it doesn't already exist.
 
@@ -184,7 +166,7 @@
             Chunked PDF into 100 documents.
             Inserted documents: 100
 
-            Attempting to create/verify Atlas Vector Search Index...
+            Attempting to create/verify Vector Search Index...
             New index named vector_index is building.
             Polling to check if the index is ready. This may take up to a minute.
             vector_index is ready for querying.
@@ -211,18 +193,8 @@
             Answer:
             579
 
-      .. tip::
-
-         You can view your embeddings and interactions :ref:`in the {+atlas-ui+} 
-         <atlas-ui-view-collections>` by navigating to the ``ai_agent_db`` database 
-         in your {+cluster+} and selecting the ``embeddings`` or ``chat_history`` 
-         collections.
+      .. include:: /includes/avs/ai-agent/shared/verify-embeddings-tip.rst
 
    .. step:: Continue building.
 
-      Now that you have a basic AI agent, you can continue developing it by: 
-
-      - Improving the :ref:`performance <avs-performance-tuning>` of your vector search tools and :ref:`fine tuning <rag-fine-tuning>` your RAG pipelines.
-      - Adding more tools to the agent, such as :ref:`hybrid <as_hybrid-search>` or :ref:`full-text search <atlas-search>` tools.
-      - Refining the planning phase by using more advanced prompts and LLM calls.
-      - Implement long-term memory and more advanced memory systems by using :ref:`{+fts+} <atlas-search>`.
+      .. include:: /includes/avs/ai-agent/shared/continue-building.rst

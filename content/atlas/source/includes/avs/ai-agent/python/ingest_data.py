@@ -11,7 +11,7 @@ def get_embedding(data, input_type = "document"):
   ).embeddings
   return embeddings[0]
 
-# --- Ingest embeddings into MongoDB Atlas ---
+# --- Ingest embeddings into MongoDB ---
 def ingest_data():
     # Chunk PDF data
     loader = PyPDFLoader("https://investors.mongodb.com/node/13176/pdf")

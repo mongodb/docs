@@ -1,7 +1,7 @@
 import { MongoClient, BSON } from "mongodb";  
 import { setTimeout } from "timers/promises";  
 
-// Connect to your Atlas deployment
+// Connect to your MongoDB cluster
 const uri = process.env.MONGODB_URI || "<CONNECTION-STRING>";
 
 const client = new MongoClient(uri);

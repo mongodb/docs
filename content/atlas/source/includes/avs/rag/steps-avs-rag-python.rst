@@ -28,10 +28,10 @@
          os.environ["HF_TOKEN"] = "<hf-token>"             # If using Hugging Face embedding or generative model
          os.environ["OPENAI_API_KEY"] = "<openai-api-key>" # If using OpenAI generative model
 
-   .. step:: Ingest data into |service|.
+   .. step:: Ingest data into your MongoDB deployment.
 
       In this section, you :ref:`ingest <rag-ingestion>` sample 
-      data into |service| that LLMs don't have access to.
+      data into MongoDB that LLMs don't have access to.
       Paste and run each of the following code snippets in your notebook:
 
       a. Define a function to generate vector embeddings.
@@ -116,13 +116,11 @@
                 "embedding": get_embedding(doc.page_content)
             } for doc in documents]
 
-      #. Store the data and embeddings in |service|.
+      #. Store the data and embeddings in MongoDB.
 
          Run this code to insert the documents containing the embeddings 
-         into the ``rag_db.test`` collection in your |service| 
-         {+cluster+}. Before running the code, replace 
-         ``<connection-string>`` with your |service| :ref:`connection string
-         <connect-via-driver>`.
+         into the ``rag_db.test`` collection. Before running the code, replace 
+         ``<connection-string>`` with your MongoDB connection string.
 
          ..
             NOTE: If you edit this Python code, also update the Jupyter Notebook
@@ -132,7 +130,7 @@
           
             from pymongo import MongoClient
 
-            # Connect to your Atlas cluster
+            # Connect to your MongoDB deployment
             client = MongoClient("<connection-string>")
             collection = client["rag_db"]["test"]
 
@@ -141,9 +139,9 @@
 
          .. tip:: 
 
-            After you run the code, you can
-            view your vector embeddings :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`
-            by navigating to the ``rag_db.test`` collection in your {+cluster+}.
+            After you run the code, if you're using |service|, you can verify your vector embeddings
+            by navigating to the ``rag_db.test`` namespace
+            :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`.
       
    .. step:: Use {+avs+} to retrieve documents.
 
@@ -404,7 +402,7 @@
       open-source model from Hugging Face. This code does the following:
 
       - Uses the ``get_query_results()`` function you defined to retrieve 
-        relevant documents from |service|.
+        relevant documents from your collection.
       - Creates a prompt using the user's question and retrieved
         documents as context.
       - Prompts the LLM about MongoDB's latest AI announcements. 

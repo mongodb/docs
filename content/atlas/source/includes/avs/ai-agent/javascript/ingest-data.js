@@ -79,7 +79,7 @@ export async function createVectorIndex() {
             return;
         }
         
-        // define your Atlas Vector Search index
+        // define your Vector Search index
         const index = {
             name: "vector_index",
             type: "vectorSearch",

@@ -34,7 +34,7 @@
 
             export VOYAGE_API_KEY="<voyage-api-key>"
             export OPENAI_API_KEY="<openai-api-key>"
-            export ATLAS_CONNECTION_STRING="<connection-string>"
+            export MONGODB_URI="<connection-string>"
 
       Replace the placeholder values with your Voyage AI and OpenAI API keys.
  
@@ -53,10 +53,10 @@
          :copyable:
          :caption: AIService.cs
 
-   .. step:: Ingest data into |service|.
+   .. step:: Ingest data into your MongoDB deployment.
 
       In this section, you :ref:`ingest <rag-ingestion>` sample 
-      data into |service| that LLMs don't have access to.
+      data into MongoDB that LLMs don't have access to.
       
       a. Load and split the data.
 
@@ -76,16 +76,16 @@
             :copyable:
             :caption: PdfIngester.cs
       
-      #. Prepare to store the data and embeddings in Atlas.
+      #. Prepare to store the data and embeddings in MongoDB.
 
          Create a new class named ``MongoDBDataService`` in a file of the
          same name by pasting the following code. This code defines an async
-         Task named ``AddDocumentsAsync`` to add documents to |service|. This
+         Task named ``AddDocumentsAsync`` to add documents to MongoDB. This
          function uses the
          :ref:`Collection.InsertManyAsync() <csharp-insert-guide>`
          C# Driver method to insert a list of the ``BsonDocument`` type. This
          code stores the embeddings alongside the chunked data in the
-         ``rag_db.test`` collection in your |service| {+cluster+}.
+         ``rag_db.test`` collection.
 
          .. literalinclude:: /includes/avs/rag/MongoDBDataService-AddDocumentsAsync.cs
             :language: csharp
@@ -151,7 +151,7 @@
       
          Add a new ``CreateVectorIndex()`` method in the file named
          ``MongoDBDataService.cs`` to define the search index. This code
-         connects to your |service| {+cluster+} and creates an index of the
+         connects to your MongoDB deployment and creates an index of the
          :ref:`vectorSearch <avs-types-vector-search>`
          type on the ``rag_db.test`` collection.    
 

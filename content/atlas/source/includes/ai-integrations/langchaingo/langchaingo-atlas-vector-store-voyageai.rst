@@ -60,6 +60,6 @@ store <https://python.langchain.com/docs/concepts/vectorstores/>`__.
 
       .. tip::
 
-         After running ``main.go``, you can view your vector embeddings :ref:`in the
-         {+atlas-ui+} <atlas-ui-view-collections>` by navigating to the
-         ``langchaingo_db.test`` collection in your {+cluster+}.
+         After running ``main.go``, if you're using |service|, you can verify your vector embeddings
+         by navigating to the ``langchaingo_db.test`` namespace
+         :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`.

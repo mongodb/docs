@@ -55,4 +55,3 @@
       .. note:: 
 
          .. include:: /includes/search-shared/find-connection-string.rst
-

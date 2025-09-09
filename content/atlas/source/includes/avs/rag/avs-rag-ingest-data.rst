@@ -12,7 +12,7 @@
    an :term:`embedding model`. To learn more, 
    see :ref:`create-vector-embeddings`.
 
-#. Store the data and embeddings in |service|.
+#. Store the data and embeddings in MongoDB.
 
-   Store these embeddings in |service|. You store embeddings 
+   Store these embeddings in your cluster. You store embeddings
    as a field alongside other data in your collection.

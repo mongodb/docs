@@ -55,7 +55,7 @@
       .. note:: 
 
          .. include:: /includes/search-shared/find-connection-string.rst
-
+            
    .. step:: Configure LlamaIndex settings.
 
       Run the following code to configure settings that are specific

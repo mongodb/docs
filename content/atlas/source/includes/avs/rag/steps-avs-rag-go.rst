@@ -33,13 +33,13 @@
 
       #. Create a ``.env`` file.
 
-         In your project, create a ``.env`` file to store your |service| connection
+         In your project, create a ``.env`` file to store your MongoDB connection
          string and any API keys that you need to access the models.
 
          .. code-block::
             :caption: .env
 
-            ATLAS_CONNECTION_STRING = "<connection-string>"
+            MONGODB_URI = "<connection-string>"
             VOYAGEAI_API_KEY = "<voyage-api-key>"   # If using Voyage AI embedding model
             HUGGINGFACEHUB_API_TOKEN = "<hf-token>" # If using Hugging Face embedding model
             OPENAI_API_KEY = "<openai-api-key>"
@@ -51,7 +51,7 @@
    .. step:: Create a function to retrieve and process your data.
 
       In this section, you download and process sample 
-      data into |service| that LLMs don't have access to.
+      data into MongoDB that LLMs don't have access to.
       The following code uses the `Go library for LangChain
       <https://tmc.github.io/langchaingo/docs/>`__ to perform the
       following tasks:
@@ -76,10 +76,10 @@
             :language: go
             :caption: process-file.go
 
-   .. step:: Ingest data into |service|.
+   .. step:: Ingest data into your MongoDB deployment.
 
       In this section, you :ref:`ingest <rag-ingestion>` sample 
-      data into |service| that LLMs don't have access to.
+      data into MongoDB that LLMs don't have access to.
       The following code uses the `Go library for LangChain
       <https://tmc.github.io/langchaingo/docs/>`__
       and :driver:`Go driver </go/current/quick-start>` to perform the
@@ -92,8 +92,7 @@
         implement the vector store.
       - Create and store vector embeddings from the chunked data by using 
         the ``mongovector.AddDocuments()`` method. The code stores the chunked data and
-        corresponding embeddings in the ``rag_db.test`` collection in
-        your |service| {+cluster+}.
+        corresponding embeddings in the ``rag_db.test`` collection.
 
       a. Navigate to the root of the ``rag-mongodb`` project directory.
 
@@ -145,7 +144,7 @@
       a. Create an {+avs+} index on your vector embeddings.
       
          Create a new file named ``rag-vector-index.go`` and paste the
-         following code. This code connects to your |service| {+cluster+} and
+         following code. This code connects to your MongoDB deployment and
          creates an index of the :ref:`vectorSearch <avs-types-vector-search>`
          type on the ``rag_db.test`` collection.
 
@@ -162,7 +161,7 @@
       #. Define a function to retrieve relevant data.
 
          In this step, you create a retrieval function called
-         ``GetQueryResults`` that runs a query to retrieve relevant documents.
+         ``GetQueryResults()`` that runs a query to retrieve relevant documents.
          It uses the ``mongovector.SimilaritySearch()`` method, which
          automatically generates a vector representation of your query
          string and returns relevant results.

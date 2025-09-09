@@ -119,7 +119,7 @@
             VOYAGE_AI_KEY=<voyage-api-key> # If using Voyage AI embedding models
             HUGGING_FACE_ACCESS_TOKEN=<access-token> # If using Hugging Face embedding models
             OPENAI_API_KEY=<openai-api-key>
-            ATLAS_CONNECTION_STRING=<connection-string>
+            MONGODB_URI=<connection-string>
 
       Update the placeholders with the following values:
 
@@ -166,8 +166,7 @@
             - **Multiple Inputs**: The ``getEmbeddings()`` method accepts an
               array of text inputs (``List<String>``), allowing you to create multiple
               embeddings in a single API call. The method converts the API-provided
-              arrays of floats to BSON arrays of doubles for storing in your |service|
-              {+cluster+}.
+              arrays of floats to BSON arrays of doubles for storing in MongoDB.
 
             -  **Single Input**: The ``getEmbedding()`` method accepts a
                single ``String``, which represents a query you want to make against
@@ -189,8 +188,7 @@
             - **Multiple Inputs**: The ``getEmbeddings()`` method accepts an
               array of text segment inputs (``List<TextSegment>``), allowing you to create multiple
               embeddings in a single API call. The method converts the API-provided
-              arrays of floats to BSON arrays of doubles for storing in your |service|
-              {+cluster+}.
+              arrays of floats to BSON arrays of doubles for storing in MongoDB.
 
             -  **Single Input**: The ``getEmbedding()`` method accepts a
                single ``String``, which represents a query you want to make against
@@ -201,19 +199,19 @@
                :language: java
                :caption: EmbeddingProvider.java
 
-   .. step:: Define a method to ingest data into |service|.
+   .. step:: Define a method to ingest data into your MongoDB deployment.
 
       Create a file named ``DataIngest.java`` and paste the following
       code.
       
       This code uses the `LangChain4j <https://docs.langchain4j.dev/intro/>`__
       library and the MongoDB :driver:`Java Sync Driver </java/sync/>` to
-      :ref:`ingest <rag-ingestion>` sample data into |service| that LLMs
+      :ref:`ingest <rag-ingestion>` sample data into MongoDB that LLMs
       don't have access to.
 
       Specifically, this code does the following:
 
-      i. Connects to your |service| {+cluster+}.
+      i. Connects to your MongoDB deployment.
       #. Loads and parses the `MongoDB earnings report
          <https://investors.mongodb.com/node/12236/pdf>`__ PDF file from the URL
          using the ``parsePDFDocument`` method that you previously defined.
@@ -222,7 +220,7 @@
       #. Creates vector embeddings from the chunked data using
          the ``GetEmbeddings()`` method that you previously defined.
       #. Stores the embeddings alongside the chunked data in the
-         ``rag_db.test`` collection in your |service| {+cluster+}.
+         ``rag_db.test`` collection.
 
          .. literalinclude:: /includes/avs/rag/DataIngest.java
             :language: java

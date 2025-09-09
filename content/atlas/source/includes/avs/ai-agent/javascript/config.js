@@ -5,7 +5,7 @@ import OpenAI from "openai";
 // Load environment variables from .env file
 dotenv.config();
 
-// MongoDB Atlas Configuration
+// MongoDB cluster configuration
 export const MONGODB_URI = process.env.MONGODB_URI;
 export const mongoClient = new MongoClient(MONGODB_URI);
 export const agentDb = mongoClient.db("ai_agent_db");

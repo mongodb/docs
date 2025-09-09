@@ -28,9 +28,9 @@
 
       .. tip:: 
 
-         After accessing the endpoint, you can
-         view your vector embeddings :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`
-         by navigating to the ``springai_test.vector_store`` collection in your {+cluster+}.
+         After accessing the endpoint, if you're using |service|, you can verify your vector embeddings
+         by navigating to the ``springai_test.vector_store`` namespace
+         :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`.
 
       Then, run the following
       command in your terminal to access the ``search`` endpoint to

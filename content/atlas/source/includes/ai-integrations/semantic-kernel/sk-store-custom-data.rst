@@ -113,6 +113,6 @@
 
       .. tip:: 
 
-         After running the sample code, you can
-         view your vector embeddings :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`
-         by navigating to the ``semantic_kernel_db.test`` collection in your {+cluster+}.
+         After running the sample code, if you're using |service|, you can verify your vector embeddings
+         by navigating to the ``semantic_kernel_db.test`` namespace
+         :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`.

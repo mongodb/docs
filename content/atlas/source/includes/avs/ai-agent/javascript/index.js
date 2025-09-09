@@ -22,7 +22,7 @@ async function main() {
         const runIngest = await prompt("Ingest sample data? (y/n): ");
         if (runIngest.trim().toLowerCase() === 'y') {
             await ingestData();
-            console.log("\nAttempting to create/verify Atlas Vector Search Index...");
+            console.log("\nAttempting to create/verify Vector Search Index...");
             await createVectorIndex(); 
         } else {
             await createVectorIndex(); // ensure index exists even if not ingesting data

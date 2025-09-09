@@ -42,10 +42,10 @@
             using the `nomic-embed-text-v1 <https://huggingface.co/nomic-ai/nomic-embed-text-v1>`__ embedding model
             from `Sentence Transformers <https://huggingface.co/sentence-transformers>`__.
          
-   .. step:: Ingest data into |service|.
+   .. step:: Ingest data into your MongoDB deployment.
 
       In this section, you :ref:`ingest <rag-ingestion>` sample 
-      data into |service| that LLMs don't have access to.
+      data into MongoDB that LLMs don't have access to.
       The following code uses the :ref:`LangChain integration <langchain-js>`
       and :driver:`Node.js driver </node/current/quick-start>` to do the
       following:
@@ -58,7 +58,7 @@
       - Create vector embeddings from the chunked data by using 
         the ``getEmbedding()`` function that you defined.
       - Store these embeddings alongside the chunked data in the
-        ``rag_db.test`` collection in your |service| {+cluster+}.
+        ``rag_db.test`` collection.
 
       Create a file called ``ingest-data.js`` in your project, and paste the
       following code:
@@ -84,8 +84,8 @@
 
       .. tip:: 
 
-         This code takes some time to run. You can view your vector embeddings
-         as they're inserted by navigating to the ``rag_db.test`` collection
+         This code takes some time to run. If you're using |service|, you can verify your vector embeddings
+         by navigating to the ``rag_db.test`` namespace
          :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`.
    
    .. step:: Use {+avs+} to retrieve documents.
@@ -96,7 +96,7 @@
       a. Create an {+avs+} index on your vector embeddings.
       
          Create a new file named ``rag-vector-index.js`` and paste the following code. 
-         This code connects to your |service| {+cluster+} and creates an 
+         This code connects to your MongoDB deployment and creates an 
          index of the :ref:`vectorSearch <avs-types-vector-search>` type on 
          the ``rag_db.test`` collection. Replace the ``<dimensions>`` placeholder 
          with one of the following values:
@@ -118,7 +118,7 @@
          Create a new file called ``retrieve-documents.js``.
          
          In this step, you create a retrieval function called
-         ``getQueryResults`` that runs a query to retrieve relevant documents.
+         ``getQueryResults()`` that runs a query to retrieve relevant documents.
          It uses the ``getEmbedding()`` function to create an embedding from the
          search query. Then, it runs the query to return semantically-similar
          documents. 

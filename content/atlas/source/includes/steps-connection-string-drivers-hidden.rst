@@ -4,7 +4,7 @@
    .. tab:: {+service+} {+Cluster+}
       :tabid: cloud
 
-      .. include:: /includes/fact-connection-string-format-drivers.rst
+      .. include:: /includes/search-shared/find-connection-string.rst
    
       .. note::
 
