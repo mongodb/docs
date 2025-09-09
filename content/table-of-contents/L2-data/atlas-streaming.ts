@@ -2,7 +2,7 @@ import type { TocItem } from "../types";
 
 const tocData: TocItem[] = [
   {
-    label: "Stream Processing",
+    label: "Atlas Stream Processing",
     contentSite: "cloud-docs",
     url: "/docs/atlas/atlas-stream-processing",
     collapsible: true,
@@ -189,7 +189,7 @@ const tocData: TocItem[] = [
     ],
   },
   {
-    label: "Triggers",
+    label: "Atlas Triggers",
     contentSite: "cloud-docs",
     url: "/docs/atlas/atlas-ui/triggers",
     collapsible: true,

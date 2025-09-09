@@ -1,7 +1,7 @@
 import type { TocItem } from "../types";
 
 import DatabaseManualData from "../L2-data/database-manual";
-import AtlasRealTimeProcessingData from "../L2-data/atlas-real-time-processing";
+import AtlasStreamingData from "../L2-data/atlas-streaming";
 import ReleaseNotesData from "../L2-data/release-notes";
 
 const tocData: TocItem[] = [
@@ -13,10 +13,10 @@ const tocData: TocItem[] = [
     items: DatabaseManualData
   },
   {
-    label: "Atlas Real-Time Processing",
+    label: "Streaming Data",
     group: true,
     contentSite: "cloud-docs",
-    items: AtlasRealTimeProcessingData
+    items: AtlasStreamingData
   },
   {
     label: "Release Notes",
