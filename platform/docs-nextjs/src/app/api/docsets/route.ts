@@ -63,6 +63,10 @@ export async function GET(request: NextRequest) {
       ])
       .toArray();
 
+    if (!docsets || docsets.length === 0) {
+      return NextResponse.json({ error: 'No docsets found' }, { status: 404 });
+    }
+
     return NextResponse.json(docsets);
   } catch (err) {
     console.error(err);

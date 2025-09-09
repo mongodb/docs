@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/services/db';
 
 interface NavigationData {
@@ -16,8 +16,8 @@ type NavigationProjection = Pick<
   'breadcrumbs' | 'baseUrl' | 'slug'
 >;
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
   const dbName = searchParams.get('dbName') ?? 'snooty_dotcomprd';
   const projectName = searchParams.get('project');
 

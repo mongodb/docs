@@ -70,8 +70,12 @@ export async function GET(
         },
       ])
       .toArray();
+    
+    if (!docsets || docsets.length === 0) {
+      return NextResponse.json({ error: `No docset found for project ${project}` }, { status: 404 });
+    }
 
-    return NextResponse.json(docsets);
+    return NextResponse.json(docsets[0]);
   } catch (err) {
     console.error(err);
     return NextResponse.json(
