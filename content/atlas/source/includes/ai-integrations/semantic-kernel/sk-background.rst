@@ -4,7 +4,7 @@ You can use Semantic Kernel for a variety of AI use cases,
 including |rag|.
 
 By integrating {+avs+} with Semantic Kernel, you can use 
-|service| as a vector database and use {+avs+} to
+MongoDB as a vector database and use {+avs+} to
 implement |rag| by retrieving semantically similar documents 
 from your data. To learn more about |rag|,
 see :ref:`ai-key-concepts`.

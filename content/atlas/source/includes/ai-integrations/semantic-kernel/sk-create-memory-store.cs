@@ -13,10 +13,10 @@ static class Program
     static async Task Main(string[] args)
     {
         // Get connection string and OpenAI API Key
-        var connectionString = Environment.GetEnvironmentVariable("ATLAS_CONNECTION_STRING");
+        var connectionString = Environment.GetEnvironmentVariable("MONGODB_URI");
         if (connectionString == null)
         {
-            Console.WriteLine("You must set your 'ATLAS_CONNECTION_STRING' environment variable.");
+            Console.WriteLine("You must set your 'MONGODB_URI' environment variable.");
             Environment.Exit(0);
         }
 
@@ -32,7 +32,7 @@ static class Program
             .GetEmbeddingClient("text-embedding-ada-002")
             .AsIEmbeddingGenerator();
 
-        // Instantiate Atlas as a vector store
+        // Instantiate MongoDB as a vector store
         var mongoClient = new MongoClient(connectionString);
         var options = new MongoVectorStoreOptions { EmbeddingGenerator = embeddingGenerator };
         var vectorStore = new MongoVectorStore(mongoClient.GetDatabase("semantic_kernel_db"), options);

@@ -38,7 +38,7 @@
 
       Replace the placeholder values with your Voyage AI and OpenAI API keys.
  
-      .. include:: /includes/avs/shared/avs-replace-connection-string.rst
+      .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Create a function to generate vector embeddings.
 

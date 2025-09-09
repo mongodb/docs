@@ -4,7 +4,7 @@ import { getEmbedding } from './get-embeddings.js';
 // Function to get the results of a vector query
 export async function getQueryResults(query) {
     // Connect to your Atlas cluster
-    const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
+    const client = new MongoClient(process.env.MONGODB_URI);
     
     try {
         // Get embedding for a query
@@ -32,7 +32,7 @@ export async function getQueryResults(query) {
             }
         ];
 
-        // Retrieve documents from Atlas using this Vector Search query
+        // Retrieve documents using a Vector Search query
         const result = collection.aggregate(pipeline);
 
         const arrayOfQueryDocs = [];

@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Run the following code to connect to your Atlas cluster. 
+   .. step:: Run the following code to connect to your MongoDB cluster.
       
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook

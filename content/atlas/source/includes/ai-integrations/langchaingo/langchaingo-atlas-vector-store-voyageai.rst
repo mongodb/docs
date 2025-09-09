@@ -1,5 +1,5 @@
 In this section, you define an asynchronous function to load custom data into
-|service| and instantiate |service| as a vector database, also called a `vector
+MongoDB and instantiate MongoDB as a vector database, also called a `vector
 store <https://python.langchain.com/docs/concepts/vectorstores/>`__.
 
 .. procedure::
@@ -41,7 +41,7 @@ store <https://python.langchain.com/docs/concepts/vectorstores/>`__.
 
    .. step:: Run your Go project.
 
-      Save the file, then run the following command to load your data into |service|.
+      Save the file, then run the following command to load your data into MongoDB.
 
       .. io-code-block::
          :copyable: true

@@ -98,7 +98,7 @@
 
       Set the following environment variables:
 
-      - ``MONGODB_URI``: Set to your |service| connection string.
+      - ``MONGODB_URI``: Set to your MongoDB connection string.
       - ``VOYAGE_AI_KEY``: Set to your Voyage AI API key.
 
       .. note:: 

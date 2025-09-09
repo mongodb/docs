@@ -41,7 +41,7 @@ This code also uses an await function to ensure that your search index has :ref:
       const result = await collection.createSearchIndex(index);
       console.log(result);
 
-      // Wait for Atlas to sync index
+      // Wait for index to build and become queryable
       console.log("Waiting for initial sync...");
       await new Promise(resolve => setTimeout(() => {
          resolve();

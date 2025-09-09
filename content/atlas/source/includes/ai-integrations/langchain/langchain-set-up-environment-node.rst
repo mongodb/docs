@@ -31,7 +31,7 @@
       
       This initial code snippet imports
       required packages for this tutorial, defines environment variables,
-      and establishes a connection to your |service| {+cluster+}.
+      and establishes a connection to your MongoDB cluster.
 
       .. code-block:: javascript
 
@@ -49,8 +49,8 @@
 
          process.env.VOYAGEAI_API_KEY = "<api-key>"
          process.env.OPENAI_API_KEY = "<api-key>";
-         process.env.ATLAS_CONNECTION_STRING = "<connection-string>";
-         const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
+         process.env.MONGODB_URI = "<connection-string>";
+         const client = new MongoClient(process.env.MONGODB_URI);
 
    .. step:: Replace the placeholder values.
 
@@ -58,7 +58,7 @@
       and ``<connection-string>`` placeholder values in ``get-started.js``
       with your Voyage AI API Key, your OpenAI API Key and the |srv| :manual:`connection string 
       </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
-      for your |service| {+cluster+} respectively. Your connection string should use
+      for your MongoDB cluster respectively. Your connection string should use
       the following format:
 
       .. code-block::

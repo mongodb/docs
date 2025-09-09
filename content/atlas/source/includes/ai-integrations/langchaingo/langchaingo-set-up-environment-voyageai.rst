@@ -37,12 +37,12 @@
 
          OPENAI_API_KEY="<openai-api-key>"
          VOYAGEAI_API_KEY="<voyage-api-key>"
-         ATLAS_CONNECTION_STRING="<connection-string>"
+         MONGODB_URI="<connection-string>"
 
       Replace the placeholder values with your OpenAI API Key,
       Voyage AI API Key, and the |srv| :manual:`connection string
       </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
-      for your |service| {+cluster+}. Your connection string should
+      for your MongoDB cluster. Your connection string should
       use the following format:
 
       .. code-block::

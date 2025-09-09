@@ -23,7 +23,7 @@
          .. input:: 
             :language: python     
             
-            # Instantiate Atlas Vector Search as a retriever
+            # Instantiate MongoDB Vector Search as a retriever
             vector_store_retriever = VectorIndexRetriever(index=vector_store_index, similarity_top_k=5)
 
             # Pass the retriever into the query engine
@@ -80,7 +80,7 @@
                filters=[ExactMatchFilter(key="metadata.page_label", value="2")]
             )
 
-            # Instantiate Atlas Vector Search as a retriever
+            # Instantiate MongoDB Vector Search as a retriever
             vector_store_retriever = VectorIndexRetriever(index=vector_store_index, filters=metadata_filters, similarity_top_k=5)
 
             # Pass the retriever into the query engine

@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb';
 import { getEmbeddings } from './get-embeddings.js';
 
 async function run() {
-    const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
+    const client = new MongoClient(process.env.MONGODB_URI);
 
     try {
         // Connect to your local MongoDB deployment

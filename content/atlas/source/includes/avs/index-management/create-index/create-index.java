@@ -50,7 +50,7 @@ public class VectorIndex {
             System.out.println("Successfully created vector index named: " + result.get(0));
             System.out.println("It may take up to a minute for the index to leave the BUILDING status and become queryable.");
 
-            // Wait for Atlas to build the index
+            // Wait for index to build and become queryable
             System.out.println("Polling to confirm the index has left the BUILDING status.");
             // No special handling in case of a timeout. Custom handling can be implemented.           
             waitForIndex(collection, indexName);

@@ -15,9 +15,9 @@ import java.util.stream.Collectors;
 public class DataIngest {
 
     public static void main(String[] args) {
-        String uri = System.getenv("ATLAS_CONNECTION_STRING");
+        String uri = System.getenv("MONGODB_URI");
         if (uri == null || uri.isEmpty()) {
-            throw new RuntimeException("ATLAS_CONNECTION_STRING env variable is not set or is empty.");
+            throw new RuntimeException("MONGODB_URI env variable is not set or is empty.");
         }
 
         // establish connection and set namespace
@@ -39,7 +39,7 @@ public class DataIngest {
             System.out.println("Creating vector embeddings from the parsed data segments. This may take a few moments.");
             List<Document> documents = embedText(segments);
 
-            // insert the embeddings into the Atlas collection
+            // insert the embeddings into the MongoDB collection
             try {
                 System.out.println("Ingesting data into the " + collection.getNamespace() + " collection.");
                 insertDocuments(documents, collection);

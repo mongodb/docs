@@ -61,7 +61,7 @@
       .. code-block:: python
 
          mongodb_atlas_memory_store = MongoDBAtlasMemoryStore(
-            connection_string=ATLAS_CONNECTION_STRING, 
+            connection_string=MONGODB_URI,
             database_name="semantic_kernel_db", 
             index_name="vector_index"
          )

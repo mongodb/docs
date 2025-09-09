@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from pymongo.operations import SearchIndexModel
 
 # Connect to your cluster
-client = MongoClient(ATLAS_CONNECTION_STRING)
+client = MongoClient(MONGODB_URI)
 collection = client[database_name][collection_name]
 
 # Create your vector search index model, then create the index

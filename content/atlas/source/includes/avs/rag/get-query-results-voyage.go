@@ -20,10 +20,10 @@ func GetQueryResults(query string) []schema.Document {
 		log.Fatal("no .env file found")
 	}
 
-	// Connect to your Atlas cluster
-	uri := os.Getenv("ATLAS_CONNECTION_STRING")
+	// Connect to your MongoDB cluster
+	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
-		log.Fatal("set your 'ATLAS_CONNECTION_STRING' environment variable.")
+		log.Fatal("set your 'MONGODB_URI' environment variable.")
 	}
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(clientOptions)

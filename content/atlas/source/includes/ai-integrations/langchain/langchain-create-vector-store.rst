@@ -49,8 +49,8 @@
       named ``vector_store`` from the sample documents.
       This snippet specifies the following:
 
-      - The connection string to your |service| {+cluster+}.
-      - ``langchain_db.test`` as the |service| namespace to store the documents.
+      - The connection string to your MongoDB cluster.
+      - ``langchain_db.test`` as the MongoDB namespace to store the documents.
       - The ``voyage-3-large`` embedding model from |voyage|.
         to convert the text into vector embeddings for the ``embedding`` field.
       - ``vector_index`` as the index to use for querying the vector store.
@@ -63,7 +63,7 @@
 
          # Instantiate the vector store using your MongoDB connection string
          vector_store = MongoDBAtlasVectorSearch.from_connection_string(
-           connection_string = ATLAS_CONNECTION_STRING,
+           connection_string = MONGODB_URI,
            namespace = "langchain_db.test",
            embedding =  VoyageAIEmbeddings(model="voyage-3-large"),
            index_name = "vector_index"

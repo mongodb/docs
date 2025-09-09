@@ -1,11 +1,11 @@
 async function run() {
   try {
-    // Configure your Atlas collection
+    // Configure your MongoDB collection
     const database = client.db("langchain_db");
     const collection = database.collection("test");
     const dbConfig = {  
       collection: collection,
-      indexName: "vector_index", // The name of the Atlas search index to use.
+      indexName: "vector_index", // The name of the Atlas Search index to use.
       textKey: "text", // Field name for the raw text content. Defaults to "text".
       embeddingKey: "embedding", // Field name for the vector embeddings. Defaults to "embedding".
     };
@@ -31,7 +31,7 @@ async function run() {
     });
     const docs = await textSplitter.splitDocuments(data);
 
-    // Instantiate Atlas as a vector store
+    // Instantiate MongoDB as a vector store
     const embeddingModel = new VoyageEmbeddings({ model: "voyage-3-large" });
     const vectorStore = await MongoDBAtlasVectorSearch.fromDocuments(docs, embeddingModel, dbConfig);
 

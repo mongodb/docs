@@ -5,7 +5,7 @@ import { getEmbedding } from './get-embeddings.js';
 import * as fs from 'fs';
 
 async function run() {
-    const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
+    const client = new MongoClient(process.env.MONGODB_URI);
 
     try {
         // Save online PDF as a file
@@ -25,7 +25,7 @@ async function run() {
         const docs = await textSplitter.splitDocuments(data);
         console.log(`Successfully chunked the PDF into ${docs.length} documents.`);
 
-        // Connect to your Atlas cluster
+        // Connect to your MongoDB cluster
         await client.connect();
         const db = client.db("rag_db");
         const collection = db.collection("test");

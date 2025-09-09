@@ -22,7 +22,7 @@
          .. input:: 
             :language: python
 
-            # Instantiate Atlas Vector Search as a retriever
+            # Instantiate MongoDB Vector Search as a retriever
             retriever = vector_store.as_retriever(
                search_type = "similarity",
                search_kwargs = { "k": 10 }
@@ -108,7 +108,7 @@
          .. input:: 
             :language: python
 
-            # Instantiate Atlas Vector Search as a retriever
+            # Instantiate MongoDB Vector Search as a retriever
             retriever = vector_store.as_retriever(
                search_type = "similarity",
                search_kwargs = {

@@ -47,7 +47,7 @@
       
       .. code-block:: shell
 
-         export ATLAS_CONNECTION_STRING="<connection-string>"
+         export MONGODB_URI="<connection-string>"
       
       Replace the ``<connection-string>`` placeholder value with your |service|
       connection string.
@@ -63,7 +63,7 @@
             
             .. code-block::
 
-               export ATLAS_CONNECTION_STRING="mongodb://localhost:<port-number>/?directConnection=true"
+               export MONGODB_URI="mongodb://localhost:<port-number>/?directConnection=true"
 
          .. tab:: Cloud {+Deployment+}
             :tabid: cloud
@@ -75,7 +75,7 @@
             
             .. code-block::
 
-               export ATLAS_CONNECTION_STRING="<connection-string>"
+               export MONGODB_URI="<connection-string>"
 
             .. note:: 
 

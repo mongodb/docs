@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from sentence_transformers import SentenceTransformer
 
-# Connect to your local Atlas deployment or Atlas Cluster
+# Connect to your local MongoDB deployment
 client = MongoClient(MONGODB_URI)
 
 # Select the sample_airbnb.listingsAndReviews collection

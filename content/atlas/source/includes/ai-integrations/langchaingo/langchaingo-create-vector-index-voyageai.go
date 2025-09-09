@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/tmc/langchaingo/embeddings/voyageai"
+	"github.com/tmc/langchaingo/embeddings"
+	"github.com/tmc/langchaingo/llms/openai"
 	"github.com/tmc/langchaingo/schema"
 	"github.com/tmc/langchaingo/vectorstores/mongovector"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -25,7 +26,7 @@ type Document struct {
 
 func main() {
 	const (
-		voyageAIEmbeddingDim   = 1536
+		voyageAIEmbeddingDim = 1536
 		similarityAlgorithm  = "dotProduct"
 		indexName            = "vector_index"
 		databaseName         = "langchaingo_db"
@@ -37,9 +38,9 @@ func main() {
 	}
 
 	// Loads the MongoDB URI from environment
-	uri := os.Getenv("ATLAS_CONNECTION_STRING")
+	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
-		log.Fatal("Set your 'ATLAS_CONNECTION_STRING' environment variable in the .env file")
+		log.Fatal("Set your 'MONGODB_URI' environment variable in the .env file")
 	}
 
 	// Loads the API key from environment

@@ -125,7 +125,7 @@ const fetchEmbeddings = async (records: { pageContent: string }[]) => {
 
 async function seedDatabase(): Promise<void> {
   try {
-    const client = new MongoClient(process.env.MONGODB_ATLAS_URI as string);
+    const client = new MongoClient(process.env.MONGODB_URI as string);
     await client.connect();
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");

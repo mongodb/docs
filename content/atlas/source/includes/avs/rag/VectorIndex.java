@@ -17,9 +17,9 @@ public class VectorIndex {
 
     public static void main(String[] args) {
 
-        String uri = System.getenv("ATLAS_CONNECTION_STRING");
+        String uri = System.getenv("MONGODB_URI");
         if (uri == null || uri.isEmpty()) {
-            throw new IllegalStateException("ATLAS_CONNECTION_STRING env variable is not set or is empty.");
+            throw new IllegalStateException("MONGODB_URI env variable is not set or is empty.");
         }
 
         // establish connection and set namespace
@@ -50,7 +50,7 @@ public class VectorIndex {
                 throw new RuntimeException(e);
             }
 
-            // wait for Atlas to build the index and make it queryable
+            // wait for index to build and become queryable
             System.out.println("Polling to confirm the index has completed building.");
             waitForIndexReady(collection, indexName);
         } catch (MongoException me) {

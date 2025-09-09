@@ -39,7 +39,7 @@
 
       - Your OpenAI API Key.
       - Your Voyage AI API Key.
-      - Your |service| {+cluster+}'s |srv| :manual:`connection string
+      - Your MongoDB cluster's |srv| :manual:`connection string
         </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
 
       ..
@@ -50,12 +50,12 @@
 
          os.environ["OPENAI_API_KEY"] = "<openai-api-key>"
          os.environ["VOYAGEAI_API_KEY"] = "<voyageai-api-key>"
-         ATLAS_CONNECTION_STRING = "<connection-string>"
+         MONGODB_URI = "<connection-string>"
 
       .. note:: 
 
-         .. include:: /includes/fact-connection-string-format-drivers.rst
-            
+         .. include:: /includes/search-shared/find-connection-string.rst
+
    .. step:: Configure LlamaIndex settings.
 
       Run the following code to configure settings that are specific

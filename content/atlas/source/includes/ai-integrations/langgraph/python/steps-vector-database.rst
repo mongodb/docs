@@ -16,7 +16,7 @@
    .. step:: Set up the vector store and indexes.
 
       Create a file named ``config.py`` in your project. This file 
-      configures |service| as the vector store for your agent.
+      configures MongoDB as the vector store for your agent.
       It also creates the indexes to enable vector search and full-text 
       search queries on the sample data.
 
@@ -29,4 +29,3 @@
             :language: python
             :copyable:
             
-      .. include:: /includes/avs/facts/note-avs-index-required-access.rst

@@ -46,7 +46,7 @@
 
          Replace the placeholder values with your credentials.
 
-         .. include:: /includes/avs/shared/avs-replace-connection-string.rst
+         .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Create a function to retrieve and process your data.
 

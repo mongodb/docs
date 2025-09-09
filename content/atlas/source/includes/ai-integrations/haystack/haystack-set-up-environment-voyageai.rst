@@ -40,8 +40,7 @@
       
       - Your |voyage| API Key.
       - Your OpenAI API Key.
-      - Your |service| {+cluster+}'s |srv| :manual:`connection string
-        </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
+      - Your MongoDB cluster's connection string.
 
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook
@@ -55,4 +54,5 @@
 
       .. note:: 
 
-         .. include:: /includes/fact-connection-string-format-drivers.rst
+         .. include:: /includes/search-shared/find-connection-string.rst
+

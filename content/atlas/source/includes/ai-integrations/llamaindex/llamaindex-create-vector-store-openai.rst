@@ -112,12 +112,12 @@
    .. step:: Instantiate the vector store.
 
       Run the following code to create a vector store 
-      named ``atlas_vector_store`` by using the 
+      by using the 
       ``MongoDBAtlasVectorSearch`` method, which
       specifies the following:
       
-      - A connection to your |service| {+cluster+}.
-      - ``llamaindex_db.test`` as the |service| database and collection 
+      - A connection to your MongoDB cluster.
+      - ``llamaindex_db.test`` as the MongoDB database and collection
         used to store the documents.
       - ``vector_index`` as the index to use for querying the vector store.
 
@@ -131,22 +131,22 @@
 
       .. code-block:: python
 
-         # Connect to your Atlas cluster
-         mongo_client = pymongo.MongoClient(ATLAS_CONNECTION_STRING)
+         # Connect to your MongoDB cluster
+         mongo_client = pymongo.MongoClient(MONGODB_URI)
 
          # Instantiate the vector store
-         atlas_vector_store = MongoDBAtlasVectorSearch(
+         vector_store = MongoDBAtlasVectorSearch(
              mongo_client,
              db_name = "llamaindex_db", 
              collection_name = "test",
              vector_index_name = "vector_index"
          ) 
-         vector_store_context = StorageContext.from_defaults(vector_store=atlas_vector_store)
+         vector_store_context = StorageContext.from_defaults(vector_store=vector_store)
 
    .. step:: Store your data as vector embeddings.
 
-      Once you've loaded your data and instantiated |service| as a vector store, 
-      generate vector embeddings from your data and store them in |service|. 
+      Once you've loaded your data and instantiated MongoDB as a vector store,
+      generate vector embeddings from your data and store them in MongoDB.
       To do this, you must build a `vector store index 
       <https://docs.llamaindex.ai/en/stable/understanding/indexing/indexing/>`__.
       This type of index is a LlamaIndex data structure that 
@@ -155,8 +155,8 @@
       The following code uses the ``VectorStoreIndex.from_documents``
       method to build the vector store index on your sample data. It turns
       your sample data into vector embeddings and stores these embeddings 
-      as documents in the ``llamaindex_db.test`` collection in your 
-      |service| {+cluster+}, as specified by the vector store's storage context.
+      as documents in the ``llamaindex_db.test`` collection in your
+      MongoDB cluster, as specified by the vector store's storage context.
       
       .. note:: 
 

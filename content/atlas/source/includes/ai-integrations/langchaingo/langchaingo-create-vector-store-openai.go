@@ -37,9 +37,9 @@ func main() {
 	}
 
 	// Loads the MongoDB URI from environment
-	uri := os.Getenv("ATLAS_CONNECTION_STRING")
+	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
-		log.Fatal("Set your 'ATLAS_CONNECTION_STRING' environment variable in the .env file")
+		log.Fatal("Set your 'MONGODB_URI' environment variable in the .env file")
 	}
 
 	// Loads the API key from environment
@@ -48,7 +48,7 @@ func main() {
 		log.Fatal("Set your OPENAI_API_KEY environment variable in the .env file")
 	}
 
-	// Connects to MongoDB Atlas
+	// Connects to MongoDB
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
 	if err != nil {
 		log.Fatalf("Failed to connect to server: %v", err)
@@ -60,7 +60,7 @@ func main() {
 		}
 	}()
 
-	log.Println("Connected to MongoDB Atlas.")
+	log.Println("Connected to MongoDB.")
 
 	// Selects the database and collection
 	coll := client.Database(databaseName).Collection(collectionName)
@@ -77,10 +77,10 @@ func main() {
 		log.Fatalf("Failed to create an embedder: %v", err)
 	}
 
-	// Creates a new MongoDB Atlas vector store
+	// Creates a new MongoDB vector store
 	store := mongovector.New(coll, embedder, mongovector.WithIndex(indexName), mongovector.WithPath("embeddings"))
 
-	// Checks if the collection is empty, and if empty, adds documents to the MongoDB Atlas database vector store
+	// Checks if the collection is empty, and if empty, adds documents to the MongoDB database vector store
 	if isCollectionEmpty(coll) {
 		documents := []schema.Document{
 			{

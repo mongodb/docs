@@ -66,4 +66,4 @@ try:
         )
         print("Search index created successfully!")
 except Exception as e:
-    print(f"Error creating Atlas Search index: {e}")
+    print(f"Error creating search index: {e}")

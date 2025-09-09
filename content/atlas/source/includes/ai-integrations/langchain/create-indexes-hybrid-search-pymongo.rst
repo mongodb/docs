@@ -13,7 +13,7 @@
          from pymongo.operations import SearchIndexModel
 
          # Connect to your cluster
-         client = MongoClient(ATLAS_CONNECTION_STRING)
+         client = MongoClient(MONGODB_URI)
          collection = client["sample_mflix"]["embedded_movies"]
         
          # Create your vector search index model, then create the index

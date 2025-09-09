@@ -13,7 +13,7 @@ collection_name = "parent_document"
 
 # Create the parent document retriever
 parent_doc_retriever = MongoDBAtlasParentDocumentRetriever.from_connection_string(
-    connection_string = ATLAS_CONNECTION_STRING,
+    connection_string = MONGODB_URI,
     child_splitter = child_splitter,
     embedding_model = embedding_model,
     database_name = database_name,

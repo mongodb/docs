@@ -97,7 +97,7 @@ public class UploadDataAndCreateIndex {
         List<String> result = collection.createSearchIndexes(Collections.singletonList(indexModel));
         System.out.println("Successfully created vector index named: " + result.get(0));
         System.out.println("It may take up to a minute for the index to leave the BUILDING status and become queryable.");
-        // Wait for Atlas to build the index
+        // wait for index to build and become queryable
         System.out.println("Polling to confirm the index has changed from the BUILDING status.");
         waitForIndex(collection, INDEX_NAME);
     }

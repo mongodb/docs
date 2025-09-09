@@ -30,14 +30,14 @@
 
    .. step:: Define environment variables.
 
-      In your terminal, run the following commands to add your |service| {+cluster+}'s |srv| :manual:`connection string 
+      In your terminal, run the following commands to add your MongoDB cluster's |srv| :manual:`connection string
       </reference/connection-string/#find-your-mongodb-atlas-connection-string>` and OpenAI API Key to your environment.
 
       .. code-block:: shell
 
          export OPENAI_API_KEY="<Your OpenAI API Key>"
-         export ATLAS_CONNECTION_STRING="<Your MongoDB Atlas SRV Connection String>"
+         export MONGODB_URI="<Your MongoDB Atlas SRV Connection String>"
 
       .. note:: 
 
-         .. include:: /includes/fact-connection-string-format-drivers.rst
+         .. include:: /includes/search-shared/find-connection-string.rst

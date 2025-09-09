@@ -1,8 +1,3 @@
-.. note:: 
-
-   To create an {+avs+} index, you must have :authrole:`Project Data Access
-   Admin` or higher access to the |service| project.
-
 To enable vector search queries on your vector store, create an {+avs+} index on
 the ``langchaingo_db.test`` collection.
 

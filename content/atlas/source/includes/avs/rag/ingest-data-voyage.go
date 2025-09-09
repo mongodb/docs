@@ -23,10 +23,10 @@ func main() {
 		log.Fatal("no .env file found")
 	}
 
-	// Connect to your Atlas cluster
-	uri := os.Getenv("ATLAS_CONNECTION_STRING")
+	// Connect to your MongoDB cluster
+	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
-		log.Fatal("set your 'ATLAS_CONNECTION_STRING' environment variable.")
+		log.Fatal("set your 'MONGODB_URI' environment variable.")
 	}
 
 	client, err := mongo.Connect(options.Client().ApplyURI(uri))
@@ -52,7 +52,7 @@ func main() {
 
 	store := mongovector.New(coll, embedder, mongovector.WithPath("embedding"))
 
-	// Add documents to the MongoDB Atlas Database vector store.
+	// Add documents to the MongoDB collection.
 	log.Println("Generating embeddings.")
 	result, err := store.AddDocuments(context.Background(), docs)
 

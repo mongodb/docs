@@ -1,6 +1,6 @@
   const executeQuery = async (embedding:[], n: number) => {
     try {
-        const client = new MongoClient(process.env.MONGODB_ATLAS_URI as string);
+        const client = new MongoClient(process.env.MONGODB_URI as string);
         const database = client.db("hr_database");
         const coll = database.collection("employees");
         const agg = [
@@ -26,7 +26,7 @@
         return result
 
     } catch(error) {
-        console.log("Error while querying Atlas:", error)
+        console.log("Error while querying:", error)
     }
   }
 

@@ -44,7 +44,7 @@
       .. code-block:: javascript
          :caption: .env
 
-         ATLAS_CONNECTION_STRING = "<connection-string>"
+         MONGODB_URI = "<connection-string>"
       
       Replace the ``<connection-string>`` placeholder value with your |service|
       connection string.
@@ -60,7 +60,7 @@
             
             .. code-block:: javascript
 
-               ATLAS_CONNECTION_STRING = "mongodb://localhost:<port-number>/?directConnection=true";
+               MONGODB_URI = "mongodb://localhost:<port-number>/?directConnection=true";
 
          .. tab:: Cloud {+Deployment+}
             :tabid: cloud
@@ -72,7 +72,7 @@
             
             .. code-block:: javascript
 
-               ATLAS_CONNECTION_STRING = "<connection-string>";
+               MONGODB_URI = "<connection-string>";
 
             .. note:: 
 

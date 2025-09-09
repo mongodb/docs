@@ -4,7 +4,7 @@ This code performs the following actions:
   ``metadata`` fields.
 
 - Converts the content of the ``text`` field to embeddings and persists
-  the data to |service|. The code includes a delay to accommodate the time
+  the data to MongoDB. The code includes a delay to accommodate the time
   needed for the vector conversion.
 
 Add the following code into your ``Main.java`` file:

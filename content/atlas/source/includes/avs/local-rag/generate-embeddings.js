@@ -3,8 +3,8 @@ import { getEmbedding } from './get-embeddings.js';
 
 async function run() {
 
-    // Connect to your Atlas cluster
-    const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
+    // Connect to your MongoDB cluster
+    const client = new MongoClient(process.env.MONGODB_URI);
 
     try {
         // Connect to your local MongoDB deployment

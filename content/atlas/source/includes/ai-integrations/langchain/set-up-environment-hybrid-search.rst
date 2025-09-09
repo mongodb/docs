@@ -16,9 +16,8 @@
    .. step:: Set environment variables.
 
       Run the following code to set the environment variables for this tutorial.
-      Provide your API keys and |service| {+cluster+}'s |srv| :manual:`connection string
-      </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
-
+      Provide your API keys and MongoDB cluster's connection string.
+      
       ..
          NOTE: If you edit this Python code, also update the Jupyter Notebook
          at https://github.com/mongodb/docs-notebooks/blob/main/ai-integrations/langchain-hybrid-search.ipynb
@@ -29,8 +28,8 @@
          
          os.environ["VOYAGE_API_KEY"] = "<voyage-api-key>"
          os.environ["OPENAI_API_KEY"] = "<openai-api-key>"
-         ATLAS_CONNECTION_STRING = "<connection-string>"
+         MONGODB_URI = "<connection-string>"
 
       .. note:: 
 
-         .. include:: /includes/fact-connection-string-format-drivers.rst
+         .. include:: /includes/search-shared/find-connection-string.rst

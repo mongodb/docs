@@ -125,7 +125,7 @@
 
       - Replace the ``<access-token>`` placeholder value with your Hugging Face access token.
       - Replace the ``<api-key>`` placeholder value with your Voyage AI API key, if you're using Voyage AI.
-      - .. include:: /includes/avs/shared/avs-replace-connection-string.rst
+      - .. include:: /includes/search-shared/find-connection-string.rst
 
    .. step:: Define methods to parse and split the data.
 

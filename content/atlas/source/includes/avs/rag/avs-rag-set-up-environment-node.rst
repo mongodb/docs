@@ -39,11 +39,11 @@ a. Initialize your Node.js project.
 
    .. code-block::
 
-      ATLAS_CONNECTION_STRING = "<connection-string>"
+      MONGODB_URI = "<connection-string>"
       VOYAGE_API_KEY = "<voyage-api-key>"       # If using Voyage AI embedding model
       HUGGING_FACE_ACCESS_TOKEN = "<hf-token>"  # If using Hugging Face embedding or generative model
       OPENAI_API_KEY = "<openai-api-key>"       # If using OpenAI generative model
 
-   .. include:: /includes/avs/shared/avs-replace-connection-string.rst
+   .. include:: /includes/search-shared/find-connection-string.rst
 
    .. include:: /includes/avs/shared/note-node-js-env-minimum-requirement.rst

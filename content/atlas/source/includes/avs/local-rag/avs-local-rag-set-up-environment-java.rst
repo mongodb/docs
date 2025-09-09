@@ -62,7 +62,7 @@
 
       .. include:: /includes/avs/shared/avs-set-env-java.rst
 
-         ``ATLAS_CONNECTION_STRING=<connection-string>``
+         ``MONGODB_URI=<connection-string>``
 
          Replace the ``<connection-string>`` with one of the following
          connection strings, depending on your deployment type:
@@ -78,7 +78,7 @@
 
             .. code-block:: shell
 
-               ATLAS_CONNECTION_STRING = "mongodb://localhost:<port-number>/?directConnection=true"
+               MONGODB_URI = "mongodb://localhost:<port-number>/?directConnection=true"
 
          .. tab:: Cloud {+Deployment+}
             :tabid: cloud

@@ -100,4 +100,4 @@
    Update the placeholders with the following values:
 
    - Replace the ``<api-key>`` placeholder value with your |voyage| API key.
-   - .. include:: /includes/avs/shared/avs-replace-connection-string.rst
+   - .. include:: /includes/search-shared/find-connection-string.rst

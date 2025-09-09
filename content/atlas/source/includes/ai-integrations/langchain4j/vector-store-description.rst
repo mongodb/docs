@@ -20,10 +20,10 @@ This code performs the following actions:
        ]
      }
 
-- Configures your |service| collection by specifying 
+- Configures your MongoDB collection by specifying
   the following parameters:
 
-  - ``langchain4j_test.vector_store`` as the |service| collection to store the documents.
+  - ``langchain4j_test.vector_store`` as the MongoDB collection to store the documents.
   - ``vector_index`` as the index to use for querying the embedding store.
 
 Because the ``createIndex`` boolean is set to ``true``, instantiating

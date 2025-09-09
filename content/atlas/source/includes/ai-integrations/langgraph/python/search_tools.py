@@ -29,7 +29,7 @@ def title_search(user_query: str) -> str:
     retriever = MongoDBAtlasFullTextSearchRetriever(
         collection=collection,            # MongoDB Collection
         search_field="title",             # Name of the field to search
-        search_index_name="search_index", # Name of the Atlas Search index
+        search_index_name="search_index", # Name of the MongoDB Search index
         top_k=1,                          # Number of top results to return       
     ) 
     results = retriever.invoke(user_query)

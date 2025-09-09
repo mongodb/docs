@@ -7,8 +7,8 @@ from langchain_mongodb.agent_toolkit import (
     MongoDBDatabaseToolkit,
 )
 
-ATLAS_CONNECTION_STRING = '<connection-string>'
-ATLAS_DB_NAME = 'sample_restaurants'
+MONGODB_URI = '<connection-string>'
+DB_NAME = 'sample_restaurants'
 NATURAL_LANGUAGE_QUERY = 'Find all restaurants that serve hamburgers.'
 
 class NaturalLanguageToMQL:
@@ -16,8 +16,8 @@ class NaturalLanguageToMQL:
         self.llm = ChatOpenAI(model="gpt-4o-mini", timeout=60)
         self.system_message = MONGODB_AGENT_SYSTEM_PROMPT.format(top_k=5)
         self.db_wrapper = MongoDBDatabase.from_connection_string(
-                            ATLAS_CONNECTION_STRING, 
-                            database=ATLAS_DB_NAME)
+                            MONGODB_URI, 
+                            database=DB_NAME)
         self.toolkit = MongoDBDatabaseToolkit(db=self.db_wrapper, llm=self.llm)
         self.agent = create_react_agent(
                         self.llm, 
