@@ -1,0 +1,42 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+on:
+  pull_request_review_comment:
+    types: [created, edited]
+  pull_request:
+    types: [opened, edited]
+  pull_request_review:
+    types: [submitted, edited]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for @DevDocs mention and send to Slack
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const text = context.payload.comment?.body 
+                      || context.payload.issue?.body 
+                      || context.payload.pull_request?.body 
+                      || context.payload.review?.body 
+                      || "";
+
+            if (text.includes("@DevDocs") || text.includes("@10gen/devdocs")) {
+              await fetch(process.env.SLACK_WEBHOOK_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  text: `:eyes: @DevDocs has been mentioned in *${context.payload.repository.full_name}* 
+              Event: *${context.eventName}* 
+              Link: ${context.payload.comment?.html_url
+                    || context.payload.issue?.html_url
+                    || context.payload.pull_request?.html_url
+                    || context.payload.review?.html_url}`
+                }),
+              });
+                          }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
