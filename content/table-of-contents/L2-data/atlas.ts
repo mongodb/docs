@@ -704,6 +704,11 @@ const tocData: TocItem[] = [
         url: "/docs/cluster-to-cluster-sync/current/reference/mongosync/#mongosync",
       },
       {
+        label: "Compare Migration Methods",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/import/live-migration-comparison-modes",
+      },
+      {
         label: "Troubleshoot Live Migration",
         contentSite: "cloud-docs",
         url: "/docs/atlas/import/live-migration-troubleshooting",
