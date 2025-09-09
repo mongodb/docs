@@ -2,6 +2,7 @@ import type {
   ASTNode,
   ComponentType,
   Directive,
+  LiteralNode,
   NodeName,
   NodeType,
   ParagraphNode,
@@ -30,6 +31,7 @@ import Strong from '../strong';
 import Subscript from '../subscript';
 import Superscript from '../superscript';
 import Rubric, { RubricProps } from '../rubric';
+import Literal, { FormatTextOptions, LiteralProps } from '../literal';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -93,9 +95,9 @@ type validComponentKey = Exclude<
 const getComponent = (() => {
   let componentMap:
     | Record<
-        Exclude<ComponentType, 'toctree' | 'role' | 'tab' | 'selected-content'>,
-        React.ComponentType<SupportedComponentProps>
-      >
+      Exclude<ComponentType, 'toctree' | 'role' | 'tab' | 'selected-content'>,
+      React.ComponentType<SupportedComponentProps>
+    >
     | Record<string, React.ComponentType<SupportedComponentProps>>
     | undefined = undefined;
   return (key: validComponentKey) => {
@@ -143,7 +145,7 @@ const getComponent = (() => {
         // list: List,
         // listItem: ListItem,
         // 'list-table': ListTable,
-        // literal: Literal,
+        literal: Literal as React.ComponentType<SupportedComponentProps>,
         // literal_block: LiteralBlock,
         // literalinclude: LiteralInclude,
         // 'method-selector': MethodSelector,
@@ -216,6 +218,8 @@ export type ComponentFactoryProps = {
   skipPTag?: boolean;
   /** Only used in Paragraph */
   parentNode?: string;
+  /** Only used in Literal */
+  formatTextOptions?: FormatTextOptions;  
 };
 
 type SupportedComponentProps =
@@ -229,7 +233,8 @@ type SupportedComponentProps =
   | TimeProps
   | TitleReferenceProps
   | RubricProps
-  | AdmonitionProps;
+  | AdmonitionProps
+  | LiteralProps;
 
 const renderComponentWithProps = (
   ComponentType: React.ComponentType<SupportedComponentProps>,
@@ -279,6 +284,10 @@ const renderComponentWithProps = (
         {...propsToDrill}
       />
     );
+  }
+  else if (ComponentType === getComponent('literal')) {
+    const literalNode = nodeData as LiteralNode;
+    return <ComponentType nodeChildren={literalNode.children} formatTextOptions={props.formatTextOptions} />;
   } else if (ComponentType === getComponent('kicker')) {
     const kickerNode = nodeData as Directive;
     return <ComponentType argument={kickerNode.argument} {...propsToDrill} />;
