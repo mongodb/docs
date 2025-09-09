@@ -304,6 +304,11 @@ const tocData: TocItem[] = [
             url: "/docs/atlas/architecture/:version/solutions-library/ai-powered-video-summarization",
                                   },
           {
+            label: "Semantic Video Search",
+            contentSite: "atlas-architecture",
+            url: "/docs/atlas/architecture/:version/solutions-library/semantic-video-search",
+                                  },                        
+          {
             label: "Text-to-Audio News Conversion",
             contentSite: "atlas-architecture",
             url: "/docs/atlas/architecture/:version/solutions-library/text-to-audio-conversion",
