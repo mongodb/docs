@@ -11,7 +11,7 @@ const config: Config = {
     '<rootDir>/src/**/*.test.(ts|tsx)',
   ],
 
-  setupFilesAfterEnv: ['<rootDir>/src/tests/testSetup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/src/tests/test-setup.ts'],
 
   snapshotSerializers: ['@emotion/jest/serializer'],
 

@@ -14,6 +14,7 @@ import type {
   SuperscriptNode,
   TextNode,
   TitleReferenceNode,
+  TargetNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
 
@@ -31,6 +32,7 @@ import Strong from '../strong';
 import Subscript from '../subscript';
 import Superscript from '../superscript';
 import Rubric, { RubricProps } from '../rubric';
+import Target, { TargetProps } from '../target';
 import Literal, { FormatTextOptions, LiteralProps } from '../literal';
 
 const IGNORED_NAMES = new Set([
@@ -168,7 +170,7 @@ const getComponent = (() => {
         // substitution_reference: SubstitutionReference,
         // tabs: Tabs,
         // 'tabs-selector': TabSelectors,
-        // target: Target,
+        target: Target as React.ComponentType<SupportedComponentProps>,
         text: Text as React.ComponentType<SupportedComponentProps>,
         time: Time as React.ComponentType<SupportedComponentProps>,
         title_reference:
@@ -234,6 +236,7 @@ type SupportedComponentProps =
   | TitleReferenceProps
   | RubricProps
   | AdmonitionProps
+  | TargetProps
   | LiteralProps;
 
 const renderComponentWithProps = (
@@ -303,6 +306,9 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('cond')) {
     const condNode = nodeData as Directive;
     return <ComponentType nodeData={condNode} />;
+  } else if (ComponentType === getComponent('target')) {
+    const targetNode = nodeData as TargetNode;
+    return <ComponentType nodeChildren={targetNode.children} html_id={targetNode.html_id} name={targetNode.name} options={targetNode.options} {...propsToDrill} />;
   }
 
   // Default: spread all props for other components
