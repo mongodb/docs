@@ -2,6 +2,11 @@ import { TocItem } from "../types";
 
 const tocData: TocItem[] = [
   {
+    label: "Cheat Sheet",
+    contentSite: "docs",
+    url: "/docs/:version/reference/cheatsheet"
+  },
+  {
     label: "Collation",
     contentSite: "docs",
     url: "/docs/:version/reference/collation",
