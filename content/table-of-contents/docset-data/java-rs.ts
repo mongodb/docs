@@ -229,7 +229,7 @@ const tocData: TocItem[] = [
             versions: { excludes: outdatedVersions },
           },
           {
-            label: "Text Search",
+            label: "Text Query",
             contentSite: "java-rs",
             url: "/docs/languages/java/reactive-streams-driver/:version/read/text-search",
             versions: { excludes: outdatedVersions },
