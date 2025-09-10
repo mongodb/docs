@@ -14,4 +14,4 @@ The solution is to add the following type hint to your ``MongoClient`` object:
 
 .. code-block:: python
   
-   ``client: MongoClient[Dict[str, Any]]``
+   client: MongoClient[Dict[str, Any]]
