@@ -233,6 +233,16 @@ The following table shows the main MCP Server configuration options.
      - ``127.0.0.1``
      - IP address for HTTP communications with the MCP Server.
 
+       With Streamable HTTP, the MCP Server is bound to ``localhost
+       (127.0.0.1)`` by default. This ensures the MCP Server only accepts
+       connections that originate on the same computer.
+
+       .. warning::
+
+          .. include:: /includes/warning-bind-security-risk.rst
+
+       To learn more, see :ref:`mcp-remote-connections`.
+
    * - ``idleTimeoutMs``
      - ``MDB_MCP_IDLE_TIMEOUT_MS``
      - integer
@@ -494,39 +504,6 @@ When you enable read-only mode, a message is added to the MCP Server log
 that indicates the tools that perform write operations are prevented
 from running.
 
-.. _mcp-server-configuration-troubleshooting:
-
-Troubleshooting MCP Server
---------------------------
-
-If you have issues with the MCP Server, examine the MCP Server logs for
-information that can help troubleshoot the problem.
-
-By default, the MCP Server writes the logs to disk and also sends the
-logs to the MCP client. You can change the ``loggers`` option to specify
-where the logs are sent. For details about the MCP Server options, see
-:ref:`mcp-server-configuration-options`.
-
-The following table shows the default directories where the MCP
-Server stores the log files:
-
-.. list-table::
-   :header-rows: 1
-
-   * - Operating System
-     - Default Log Directory
-
-   * - Windows
-     - ``%LOCALAPPDATA%\mongodb\mongodb-mcp\.app-logs``
-
-   * - macOS and Linux
-     - ``~/.mongodb/mongodb-mcp/.app-logs``
-
-You can change the log path if required. To do that, set one of these:
-
-- ``logPath`` option in a JSON configuration file or command line
-- ``MDB_MCP_LOG_PATH`` environment variable
-
 .. _mcp-server-configuration-disable-tools:
 
 Disabling MCP Server Tools
@@ -733,13 +710,97 @@ For example:
    npx -y mongodb-mcp-server@latest --transport http --readOnly
 
 By default, the MCP Server responds to requests on
-``http://127.0.0.1:3000``. To change the host and port, use the
-``--httpHost`` and ``--httpPort`` options. For example:
+``http://127.0.0.1:3000`` and only accepts local connections.
 
-.. code-block:: bash
+Client Connection URL
+`````````````````````
 
-   npx -y mongodb-mcp-server@latest \
-      --transport http --httpHost=324.1.5.7 --httpPort=8080 --readOnly
+If you connect an MCP client to the HTTP server, the client's connection URL
+must include the ``/mcp`` endpoint path. For example:
+
+.. code-block:: text
+
+   http://127.0.0.1:3000/mcp
+
+.. _mcp-remote-connections:
+
+Remote Connections
+``````````````````
+
+To allow remote connections from other computers or containers, bind
+the server to all network interfaces using ``--httpHost=0.0.0.0``, 
+and the client can then connect from another computer using the 
+server's IP address or hostname.
+
+.. warning::
+
+   With Streamable HTTP, the MCP Server is bound to ``localhost
+   (127.0.0.1)`` by default. This ensures the MCP Server only accepts
+   connections that originate on the same computer.
+
+   .. include:: /includes/warning-bind-security-risk.rst
+
+.. _mcp-server-configuration-troubleshooting:
+
+Troubleshooting MCP Server
+--------------------------
+
+If you have issues with the MCP Server, examine the MCP Server logs for
+information that can help troubleshoot the problem.
+
+By default, the MCP Server writes the logs to disk and also sends the
+logs to the MCP client. You can change the ``loggers`` option to specify
+where the logs are sent. For details about the MCP Server options, see
+:ref:`mcp-server-configuration-options`.
+
+The following table shows the default directories where the MCP
+Server stores the log files:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Operating System
+     - Default Log Directory
+
+   * - Windows
+     - ``%LOCALAPPDATA%\mongodb\mongodb-mcp\.app-logs``
+
+   * - macOS and Linux
+     - ``~/.mongodb/mongodb-mcp/.app-logs``
+
+You can change the log path if required. To do that, set one of these:
+
+- ``logPath`` option in a JSON configuration file or command line
+- ``MDB_MCP_LOG_PATH`` environment variable
+
+Connection String Issues
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ensure that your configuration file is correct and that
+you're using a valid connection string for your MongoDB deployment.
+
+For connection string formatting and examples, see
+:ref:`connections-connection-examples`.
+
+HTTP Transport Issues
+~~~~~~~~~~~~~~~~~~~~~
+
+If you're using HTTP transport and experiencing connection issues:
+
+- Verify that your client connection URL includes the ``/mcp`` endpoint path:
+
+  .. code-block:: text
+
+     http://<server-address>:3000/mcp
+
+- If connecting to a remote server (different computer, container, or cloud instance),
+  ensure the server is started with ``--httpHost=0.0.0.0`` to accept remote connections:
+
+  .. code-block:: bash
+
+     npx -y mongodb-mcp-server@latest --transport http --httpHost=0.0.0.0 --readOnly
+
+- Ensure that the specified port is open and accessible from your client computer.
 
 Learn More
 ----------
