@@ -662,6 +662,12 @@ const tocData: TocItem[] = [
             url: "/docs/:version/administration/health-managers",
           },
           {
+            label: "Configure the Rate Limiter",
+            contentSite: "docs",
+            url: "/docs/:version/tutorial/configure-rate-limiter",
+            versions: { excludes: [ "v7.0" ] }
+          },
+          {
             label: "UNIX ulimit Settings",
             contentSite: "docs",
             url: "/docs/:version/reference/ulimit",
