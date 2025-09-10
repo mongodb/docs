@@ -1,3 +1,4 @@
+import { withCORS } from '@/app/lib/with-cors';
 import { type NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/services/db';
 
@@ -15,6 +16,10 @@ type NavigationProjection = Pick<
   NavigationData,
   'breadcrumbs' | 'baseUrl' | 'slug'
 >;
+
+export async function OPTIONS() {
+  return withCORS(new NextResponse(null, { status: 204 }));
+}
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -43,33 +48,27 @@ export async function GET(request: NextRequest) {
     );
 
     if (!result) {
-      const res = NextResponse.json(
+      return withCORS(NextResponse.json(
         {
           error: `Failed to retrieve navigation data for project ${projectName}`,
         },
         { status: 500 }
-      );
-      res.headers.set('Access-Control-Allow-Origin', '*');
-      return res;
+      ));
     }
 
     const propertyUrl = result.slug
       ? result.baseUrl + result.slug
       : result.baseUrl;
 
-    const res = NextResponse.json({
+    return withCORS(NextResponse.json({
       breadcrumbs: result.breadcrumbs ?? [],
       propertyUrl,
-    });
-    res.headers.set('Access-Control-Allow-Origin', '*');
-    return res;
+    }));
   } catch (err) {
     console.error(err);
-    const res = NextResponse.json(
+    return withCORS(NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }
-    );
-    res.headers.set('Access-Control-Allow-Origin', '*');
-    return res;
+    ));
   }
 }

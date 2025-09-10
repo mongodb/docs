@@ -1,11 +1,16 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import { withCORS } from '@/app/lib/with-cors';
 import type { Sort } from 'mongodb';
+import { NextResponse, type NextRequest } from 'next/server';
 import { getClient } from '@/services/db';
 
 interface ProductNavigationData {
   title: string;
   baseUrl: string;
   slug: string;
+}
+
+export async function OPTIONS() {
+  return withCORS(new NextResponse(null, { status: 204 }));
 }
 
 export async function GET(request: NextRequest) {
@@ -42,16 +47,9 @@ export async function GET(request: NextRequest) {
       result.splice(atlasK8sIdx, 0, atlasForGovtObj);
     }
 
-    const res = NextResponse.json(result.filter(Boolean));
-    res.headers.set('Access-Control-Allow-Origin', '*');
-    return res;
+    return withCORS(NextResponse.json(result.filter(Boolean)));
   } catch (err) {
     console.error(err);
-    const res = NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
-    res.headers.set('Access-Control-Allow-Origin', '*');
-    return res;
+    return withCORS(NextResponse.json({ error: 'Internal Server Error' }, { status: 500 }));
   }
 }

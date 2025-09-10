@@ -1,6 +1,11 @@
+import { withCORS } from '@/app/lib/with-cors';
 import { type NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/services/db';
 import { Docset } from '@/types/data';
+
+export async function OPTIONS() {
+  return withCORS(new NextResponse(null, { status: 204 }));
+}
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -64,21 +69,15 @@ export async function GET(request: NextRequest) {
       .toArray();
 
     if (!docsets || docsets.length === 0) {
-      const res = NextResponse.json({ error: 'No docsets found' }, { status: 404 });
-      res.headers.set('Access-Control-Allow-Origin', '*');
-      return res;
+      return withCORS(NextResponse.json({ error: 'No docsets found' }, { status: 404 }));
     }
 
-    const res = NextResponse.json(docsets);
-    res.headers.set('Access-Control-Allow-Origin', '*');
-    return res;
+    return withCORS(NextResponse.json(docsets));
   } catch (err) {
     console.error(err);
-    const res = NextResponse.json(
+    return withCORS(NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }
-    );
-    res.headers.set('Access-Control-Allow-Origin', '*');
-    return res;
+    ));
   }
 }
