@@ -101,7 +101,7 @@
                      .. output:: /includes/fts/date-number-to-string/querystring-and-node-query-results.json
                         :language: json 
                         :linenos:
-                        :visible: true
+                        :visible: false
 
                .. tab:: OR Query 
                   :tabid: or-query 
@@ -117,7 +117,7 @@
                      .. output:: /includes/fts/date-number-to-string/querystring-or-node-query-results.json
                         :language: json 
                         :linenos:
-                        :visible: true
+                        :visible: false
 
          .. tab:: autocomplete Operator 
             :tabid: autocomplete
@@ -139,7 +139,7 @@
                      .. output:: /includes/fts/date-number-to-string/autocomplete-date-node-query-results.json
                         :language: json 
                         :linenos:
-                        :visible: true
+                        :visible: false
 
                .. tab:: Number Search
                   :tabid: numericquery
@@ -155,4 +155,4 @@
                      .. output:: /includes/fts/date-number-to-string/autocomplete-numeric-node-query-results.json
                         :language: json 
                         :linenos:
-                        :visible: true
+                        :visible: false

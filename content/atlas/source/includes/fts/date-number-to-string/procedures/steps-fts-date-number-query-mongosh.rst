@@ -22,7 +22,7 @@
          .. output:: 
             :language: sh
             :emphasize-lines: 1 
-            :visible: true
+            :visible: false
 
             switched to db sample_airbnb
 
@@ -69,7 +69,7 @@
                      .. output:: /includes/fts/date-number-to-string/querystring-and-sh-compass-query-results.json
                         :language: json 
                         :linenos:
-                        :visible: true
+                        :visible: false
 
                .. tab:: OR Query 
                   :tabid: or-query 
@@ -103,7 +103,7 @@
                      .. output:: /includes/fts/date-number-to-string/querystring-or-sh-compass-query-results.json
                         :language: json 
                         :linenos:
-                        :visible: true
+                        :visible: false
 
          .. tab:: autocomplete Operator 
             :tabid: autocomplete
@@ -152,7 +152,7 @@
                      .. output:: /includes/fts/date-number-to-string/autocomplete-date-sh-compass-query-results.json
                         :language: none
                         :emphasize-lines: 3, 7, 10, 14, 17, 21, 24, 28, 31, 35
-                        :visible: true
+                        :visible: false
 
                .. tab:: Number Search
                   :tabid: numericquery
@@ -196,4 +196,4 @@
                      .. output:: /includes/fts/date-number-to-string/autocomplete-numeric-sh-compass-query-results.json
                         :language: none
                         :emphasize-lines: 6-7, 13-14, 20-21, 27-28, 34-35
-                        :visible: true
+                        :visible: false

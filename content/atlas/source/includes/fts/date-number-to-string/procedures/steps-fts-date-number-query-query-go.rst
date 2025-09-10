@@ -96,7 +96,7 @@
                      .. output:: /includes/fts/date-number-to-string/querystring-and-go-query-results.json
                         :language: json 
                         :linenos:
-                        :visible: true
+                        :visible: false
 
                .. tab:: OR Query 
                   :tabid: or-query 
@@ -112,7 +112,7 @@
                      .. output:: /includes/fts/date-number-to-string/querystring-or-go-query-results.json
                         :language: json 
                         :linenos:
-                        :visible: true
+                        :visible: false
 
          .. tab:: autocomplete Operator 
             :tabid: autocomplete
@@ -134,7 +134,7 @@
                      .. output:: /includes/fts/date-number-to-string/autocomplete-date-go-query-results.json
                         :language: json 
                         :linenos:
-                        :visible: true
+                        :visible: false
 
                .. tab:: Number Search
                   :tabid: numericquery
@@ -150,4 +150,4 @@
                      .. output:: /includes/fts/date-number-to-string/autocomplete-numeric-go-query-results.json
                         :language: json 
                         :linenos:
-                        :visible: true
+                        :visible: false

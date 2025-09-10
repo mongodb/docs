@@ -112,7 +112,7 @@
                      .. output:: /includes/fts/date-number-to-string/querystring-and-java-csharp-query-results.json
                         :language: json 
                         :linenos:
-                        :visible: true
+                        :visible: false
 
                .. tab:: OR Query 
                   :tabid: or-query 
@@ -128,7 +128,7 @@
                      .. output:: /includes/fts/date-number-to-string/querystring-or-java-csharp-query-results.json
                         :language: json 
                         :linenos:
-                        :visible: true
+                        :visible: false
 
          .. tab:: autocomplete Operator 
             :tabid: autocomplete
@@ -150,7 +150,7 @@
                      .. output:: /includes/fts/date-number-to-string/autocomplete-date-java-csharp-query-results.json
                         :language: json 
                         :linenos:
-                        :visible: true
+                        :visible: false
 
                .. tab:: Number Search
                   :tabid: numericquery
@@ -166,4 +166,4 @@
                      .. output:: /includes/fts/date-number-to-string/autocomplete-numeric-java-csharp-query-results.json
                         :language: json 
                         :linenos:
-                        :visible: true
+                        :visible: false

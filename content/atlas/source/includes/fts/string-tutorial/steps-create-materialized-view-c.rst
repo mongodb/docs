@@ -1,0 +1,91 @@
+To use the :driver:`C Driver </c/>` to create a materialized view: 
+
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Set up the C project. 
+
+      In your terminal, navigate to where you want to create your application, 
+      then run the following command to create a directory called 
+      ``atlas-search-project`` for this project: 
+
+      .. literalinclude:: /includes/fts/field-types/initialize-project-c.sh
+         :language: shell
+         :linenos:
+         :copyable: true
+
+      Add the C driver to your project by following the instructions in the 
+      `MongoDB C Driver documentation <https://www.mongodb.com/docs/languages/c/c-driver/current/get-started/>`__.
+   
+   .. step:: Define the materialized view.
+
+      Create a new file in your project directory named
+      ``create-materialized-view.c``, and copy and paste the following
+      code into the file. 
+      
+      .. include:: /includes/fts/string-tutorial/fact-data-transformation.rst
+
+      .. literalinclude:: /includes/fts/string-tutorial/create-materialized-view.c
+         :caption: create-materialized-view.c
+         :language: c
+         :linenos:
+         :copyable:
+
+      .. include:: /includes/search-shared/find-connection-string.rst
+
+   .. step:: Set up a CMake application
+
+      To configure your application, create a ``CMakeLists.txt`` file in
+      your project directory. Then, add the following code to the file:
+      
+      .. code-block:: shell
+         :caption: CMakeLists.txt
+         
+         cmake_minimum_required(VERSION 3.11)
+         project(atlas-search-index LANGUAGES C)
+         add_executable (materialized-view.out create-materialized-view.c)
+         find_package(mongoc <version> REQUIRED)
+         target_link_libraries(materialized-view.out mongoc::mongoc)
+
+      The preceding code performs the following actions:
+      
+      - Configures a C project.
+      - Creates a ``materialized-view.out`` executable for your application.
+      - Finds and requires the C driver. Replace the ``<version>``
+        placeholder with your C driver version number, such as ``2.0.0``.
+      - Links the program to the ``libmongoc`` library.
+
+      .. note::
+
+         In the sample ``CMakeLists.txt`` file, the ``mongoc::mongoc`` target
+         points to either the static library or the shared library.
+         The library type depends on which one is available and
+         whichever type the user specifies in the ``MONGOC_DEFAULT_IMPORTED_LIBRARY_TYPE``
+         CMake configuration setting. If you don't set this value and
+         both library types are available, ``mongoc::mongoc`` uses
+         the static library.
+
+         You can use the ``mongoc::static`` target to explicitly use the 
+         static library or the ``mongoc::shared`` target to use the shared
+         library.
+
+   .. step:: Create the materialized view.
+
+      In your terminal, run the following commands to build and run this 
+      application: 
+      
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: shell
+
+            cmake -S. -Bcmake-build
+            cmake --build cmake-build --target materialized-view.out
+            ./cmake-build/materialized-view.out
+
+         .. output::
+            :visible: false
+
+            Materialized view created!
+
