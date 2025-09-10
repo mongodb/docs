@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
 import { css } from '@leafygreen-ui/emotion';
-import { ASTNode } from '@/types/ast';
+import type { ASTNode } from '@/types/ast';
 import { theme } from '@/styles/theme';
 
 import ComponentFactory from '../component-factory';
@@ -19,12 +19,9 @@ const kickerBaseStyle = css`
 
 export type KickerProps = {
   argument: ASTNode[];
-}
+};
 
-const Kicker = ({
-  argument,
-  ...rest
-}: KickerProps) => {
+const Kicker = ({ argument, ...rest }: KickerProps) => {
   return (
     <Overline className={kickerBaseStyle}>
       {argument.map((child, i) => (

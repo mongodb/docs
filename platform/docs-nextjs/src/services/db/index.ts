@@ -4,17 +4,18 @@
  * Intended be called from Server Components, or Route Handlers
  */
 
-import { cache } from "react";
-import { Filter, FindOptions, MongoClient } from "mongodb";
-import { ASTDocument } from "@/services/db/types";
-import envConfig, { type Environments } from "@/utils/env-config";
-import { log } from "@/utils/logger";
+import { cache } from 'react';
+import type { Filter, FindOptions } from 'mongodb';
+import { MongoClient } from 'mongodb';
+import type { ASTDocument } from '@/services/db/types';
+import envConfig, { type Environments } from '@/utils/env-config';
+import { log } from '@/utils/logger';
 
 const URI = envConfig.MONGODB_URI as string;
-const COLLECTION_NAME = "documents";
+const COLLECTION_NAME = 'documents';
 
 if (!URI) {
-  throw new Error("MONGODB_URI is missing as an env variable");
+  throw new Error('MONGODB_URI is missing as an env variable');
 }
 
 let client: MongoClient | null;
@@ -22,7 +23,7 @@ let client: MongoClient | null;
 export function getClient() {
   if (!client) {
     client = new MongoClient(URI, {
-      appName: "docs-nextjs-" + envConfig.DB_ENV,
+      appName: 'docs-nextjs-' + envConfig.DB_ENV,
     });
   }
   return client;
@@ -30,14 +31,14 @@ export function getClient() {
 
 function getDbName(env: Environments) {
   switch (env) {
-    case "production":
-      return "snooty_prod";
-    case "dotcomstg":
-      return "snooty_dotcomstg";
-    case "dotcomprd":
-      return "snooty_dotcomprd";
+    case 'production':
+      return 'snooty_prod';
+    case 'dotcomstg':
+      return 'snooty_dotcomstg';
+    case 'dotcomprd':
+      return 'snooty_dotcomprd';
     default:
-      return "snooty_dev";
+      return 'snooty_dev';
   }
 }
 
@@ -52,31 +53,29 @@ async function getPagesDocumentCollection() {
  * This function retrieves the AST document for a given page path.
  * It uses caching to optimize performance.
  */
-const getPageAST = cache(
-  async (path: string | string[], prId?: number) => {
-    const collection = await getPagesDocumentCollection();
-    const pathString = typeof path === "string" ? path : path.join("/");
-    const query: Filter<ASTDocument> = {
-      page_path: pathString,
-    };
-    if (prId) {
-      query["pr_id"] = prId;
-    }
-    const DEFAULT_SORT: FindOptions = { sort: { id: -1 } };
-    try {
-      log({ message: `Querying db ${collection.namespace} for query ${JSON.stringify(query)}` });
-      const pageRes: ASTDocument | null = await collection.findOne(query, DEFAULT_SORT);
-      return pageRes;
-    } catch (e) {
-      log({ message: String(e), level: "error" });
-      throw e;
-    }
+const getPageAST = cache(async (path: string | string[], prId?: number) => {
+  const collection = await getPagesDocumentCollection();
+  const pathString = typeof path === 'string' ? path : path.join('/');
+  const query: Filter<ASTDocument> = {
+    page_path: pathString,
+  };
+  if (prId) {
+    query['pr_id'] = prId;
   }
-);
+  const DEFAULT_SORT: FindOptions = { sort: { id: -1 } };
+  try {
+    log({ message: `Querying db ${collection.namespace} for query ${JSON.stringify(query)}` });
+    const pageRes: ASTDocument | null = await collection.findOne(query, DEFAULT_SORT);
+    return pageRes;
+  } catch (e) {
+    log({ message: String(e), level: 'error' });
+    throw e;
+  }
+});
 
-export async function getPageDocFromParams(params: Promise<{ path?: string[] }>, prefix = "docs") {
+export async function getPageDocFromParams(params: Promise<{ path?: string[] }>, prefix = 'docs') {
   const { path } = await params;
-  const fullPagePath = [prefix, path?.join("/") ?? ""].join("/");
+  const fullPagePath = [prefix, path?.join('/') ?? ''].join('/');
   return getPageAST(fullPagePath);
 }
 
@@ -93,5 +92,5 @@ async function clearClient(signal?: string) {
   process.exit(0);
 }
 
-process.on("SIGINT", async () => clearClient("SIGINT"));
-process.on("SIGTERM", async () => clearClient("SIGTERM"));
+process.on('SIGINT', async () => clearClient('SIGINT'));
+process.on('SIGTERM', async () => clearClient('SIGTERM'));

@@ -73,12 +73,7 @@ type Group = {
   sharedSlugPrefix?: string;
 };
 
-type MetadataDatabaseName =
-  | 'snooty_stage'
-  | 'snooty_prod'
-  | 'snooty_dotcomstg'
-  | 'snooty_dotcomprd'
-  | 'snooty_dev';
+type MetadataDatabaseName = 'snooty_stage' | 'snooty_prod' | 'snooty_dotcomstg' | 'snooty_dotcomprd' | 'snooty_dev';
 type ReposDatabaseName = 'pool' | 'pool_test';
 
 type SiteMetadata = {
@@ -96,12 +91,7 @@ type SiteMetadata = {
   user: string;
 };
 
-type SnootyEnv =
-  | 'dotcomprd'
-  | 'production'
-  | 'dotcomstg'
-  | 'staging'
-  | 'development';
+type SnootyEnv = 'dotcomprd' | 'production' | 'dotcomstg' | 'staging' | 'development';
 
 type RemoteMetadata = {
   project: string;

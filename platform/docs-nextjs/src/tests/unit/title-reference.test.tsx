@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import TitleReference from '@/components/title-reference';
-import { TitleReferenceNode } from '@/types/ast';
+import type { TitleReferenceNode } from '@/types/ast';
 
 // data for this component
 import mockData from '../data/title-reference.test.json';

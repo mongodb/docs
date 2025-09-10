@@ -1,5 +1,5 @@
-import type { ASTNode } from "@/types/ast";
-import { isParentNode } from "@/types/ast-utils";
+import type { ASTNode } from '@/types/ast';
+import { isParentNode } from '@/types/ast-utils';
 
 /**
  * Recursively searches child nodes to find the specified string key/value pair.

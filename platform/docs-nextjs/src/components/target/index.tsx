@@ -1,14 +1,13 @@
-"use client"
+'use client';
 
-import { useRef } from "react";
-import { ASTNode } from "@/types/ast";
-import ComponentFactory from "../component-factory";
-import { css, cx } from "@leafygreen-ui/emotion";
-import { theme } from "@/styles/theme";
-import useHashAnchor from "@/utils/hooks/use-hash-anchor";
+import { useRef } from 'react';
+import type { ASTNode } from '@/types/ast';
+import ComponentFactory from '../component-factory';
+import { css, cx } from '@leafygreen-ui/emotion';
+import { theme } from '@/styles/theme';
+import useHashAnchor from '@/utils/hooks/use-hash-anchor';
 // TODO: DOP-6015 Add Permalink component
 // import Permalink from "../permalink";
-
 
 const headerBuffer = css`
   scroll-margin-top: ${theme.header.navbarScrollOffset};
@@ -21,14 +20,14 @@ const partition = (array: ASTNode[], isValid: (elem: ASTNode) => boolean) => {
     ([pass, fail], elem) => {
       return isValid(elem) ? [[...pass, elem], fail] : [pass, [...fail, elem]];
     },
-    [[] as ASTNode[], [] as ASTNode[]]
+    [[] as ASTNode[], [] as ASTNode[]],
   );
 };
 
 type DescriptionTermProps = {
   children?: ASTNode[];
   html_id: string;
-}
+};
 
 const DescriptionTerm = ({ children, html_id, ...rest }: DescriptionTermProps) => {
   return (
@@ -52,12 +51,11 @@ export type TargetProps = {
 };
 
 const Target = ({ nodeChildren, html_id, name, options, ...rest }: TargetProps) => {
-  const [, dictList] = partition(nodeChildren, (child) => child.type === "target_identifier");
+  const [, dictList] = partition(nodeChildren, (child) => child.type === 'target_identifier');
   const [[descriptionTerm], descriptionDetails] = partition(dictList, (elem) => elem.type === 'directive_argument');
   const hidden = options && options.hidden ? true : false;
   const targetRef = useRef<HTMLSpanElement>(null);
   useHashAnchor(html_id, targetRef.current);
-
 
   return (
     <>

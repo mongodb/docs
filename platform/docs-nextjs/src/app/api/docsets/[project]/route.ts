@@ -1,25 +1,20 @@
 import { withCORS } from '@/app/lib/with-cors';
-import { NextRequest, NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getClient } from '@/services/db';
-import { Docset } from '@/types/data';
+import type { Docset } from '@/types/data';
 
 export async function OPTIONS() {
   return withCORS(new NextResponse(null, { status: 204 }));
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ project: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ project: string }> }) {
   const searchParams = request.nextUrl.searchParams;
   const dbName = searchParams.get('dbName') ?? process.env.SNOOTY_DB_NAME;
   const project = (await params)?.project;
 
   if (!project) {
-    return withCORS(NextResponse.json(
-      { error: 'Project is required' },
-      { status: 400 }
-    ));
+    return withCORS(NextResponse.json({ error: 'Project is required' }, { status: 400 }));
   }
 
   try {
@@ -66,10 +61,7 @@ export async function GET(
         {
           $replaceRoot: {
             newRoot: {
-              $mergeObjects: [
-                { $arrayElemAt: ['$deployableRepo', 0] },
-                '$$ROOT',
-              ],
+              $mergeObjects: [{ $arrayElemAt: ['$deployableRepo', 0] }, '$$ROOT'],
             },
           },
         },
@@ -84,18 +76,12 @@ export async function GET(
       .toArray();
 
     if (!docsets || docsets.length === 0) {
-      return withCORS(NextResponse.json(
-        { error: `No docset found for project ${project}` },
-        { status: 404 }
-      ));
+      return withCORS(NextResponse.json({ error: `No docset found for project ${project}` }, { status: 404 }));
     }
 
     return withCORS(NextResponse.json(docsets[0]));
   } catch (err) {
     console.error(err);
-    return withCORS(NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    ));
+    return withCORS(NextResponse.json({ error: 'Internal Server Error' }, { status: 500 }));
   }
 }

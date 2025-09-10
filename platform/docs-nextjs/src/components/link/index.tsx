@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import Link from 'next/link';
@@ -9,7 +9,6 @@ import { Link as LGLink } from '@leafygreen-ui/typography';
 import { validateHTMAttributes } from '@/utils/validate-element-attributes';
 import Icon from '@leafygreen-ui/icon';
 import { isRelativeUrl } from '@/utils/is-relative-url';
-
 
 type LinkThemeStyle = {
   color: string;
@@ -92,9 +91,19 @@ type LinkProps = {
   showExternalIcon?: boolean;
   openInNewTab?: boolean;
   onClick?: () => void;
-}
+};
 
-const LinkComponent = ({ className, children, to, showLinkArrow, hideExternalIcon, showExternalIcon, openInNewTab, onClick, ...other }: LinkProps) => {
+const LinkComponent = ({
+  className,
+  children,
+  to,
+  showLinkArrow,
+  hideExternalIcon,
+  showExternalIcon,
+  openInNewTab,
+  onClick,
+  ...other
+}: LinkProps) => {
   if (!to) to = '';
   const anchor = to.startsWith('#');
 
@@ -104,7 +113,7 @@ const LinkComponent = ({ className, children, to, showLinkArrow, hideExternalIco
   const decoration = showLinkArrow ? (
     <span>
       {' '}
-      <Icon role='presentation' size={12} glyph='ArrowRight' />{' '}
+      <Icon role="presentation" size={12} glyph="ArrowRight" />{' '}
     </span>
   ) : (
     ''
@@ -142,7 +151,8 @@ const LinkComponent = ({ className, children, to, showLinkArrow, hideExternalIco
       hideExternalIcon={false}
       target={openInNewTab ? '_blank' : target}
       onClick={onClick}
-      {...anchorProps}>
+      {...anchorProps}
+    >
       {children}
       {decoration}
     </LGLink>

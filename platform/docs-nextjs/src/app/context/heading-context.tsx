@@ -1,6 +1,7 @@
-"use client"
+'use client';
 
-import { createContext, ReactNode, useContext } from 'react';
+import type { ReactNode } from 'react';
+import { createContext, useContext } from 'react';
 
 interface HeadingContextType {
   lastHeading: string;
@@ -26,13 +27,8 @@ type HeadingContextProviderProps = {
  * Designed to be called in the init, so each child node of sections
  * as consumers can access the section header.
  */
-const HeadingContextProvider = ({
-  children,
-  heading,
-  ignoreNextHeading = false,
-}: HeadingContextProviderProps) => {
-  const { lastHeading: prevHeading, ignoreNextHeading: skipHeading } =
-    useHeadingContext();
+const HeadingContextProvider = ({ children, heading, ignoreNextHeading = false }: HeadingContextProviderProps) => {
+  const { lastHeading: prevHeading, ignoreNextHeading: skipHeading } = useHeadingContext();
 
   const newHeading = skipHeading || !heading ? prevHeading : heading;
 

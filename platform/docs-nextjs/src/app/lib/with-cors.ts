@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import type { NextResponse } from 'next/server';
 
 function withCORS(response: NextResponse) {
   response.headers.set('Access-Control-Allow-Origin', '*');

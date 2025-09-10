@@ -1,11 +1,7 @@
-import ComponentFactory from "@/components/component-factory";
-import { getPageDocFromParams } from "@/services/db";
+import ComponentFactory from '@/components/component-factory';
+import { getPageDocFromParams } from '@/services/db';
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ path?: string[] }>;
-}) {
+export default async function Page({ params }: { params: Promise<{ path?: string[] }> }) {
   const pageDoc = await getPageDocFromParams(params);
   // const Component = getComponent(pageDoc.ast);
   if (!pageDoc) {

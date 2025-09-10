@@ -1,5 +1,6 @@
-import { createLogger, Logger, transports, format, LogEntry } from "winston";
-import envConfig, { type Environments } from "./env-config";
+import type { Logger, LogEntry } from 'winston';
+import { createLogger, transports, format } from 'winston';
+import envConfig, { type Environments } from './env-config';
 
 // Acts as global logger object as long as it's created by `initiaLogger` funciton
 let logger: Logger | null = null;
@@ -7,15 +8,15 @@ let logger: Logger | null = null;
 const getEnvLevel = (env: Environments) => {
   console.log(`env is: ${env}, returning debug for now`);
   switch (env) {
-    case "production":
-      return "warn";
-      case "dotcomstg":
+    case 'production':
+      return 'warn';
+    case 'dotcomstg':
       // TODO: revert to less verbose
-      return "debug";
-    case "dotcomprd":
-      return "warn";
+      return 'debug';
+    case 'dotcomprd':
+      return 'warn';
     default:
-      return "debug";
+      return 'debug';
   }
 };
 
@@ -40,12 +41,12 @@ const initiateLogger = () => {
     level: getEnvLevel(envConfig.DB_ENV),
   });
 
-  logger.info("Logger created");
+  logger.info('Logger created');
 
   return logger;
 };
 
-const getLevel = (level?: string) => level || "info";
+const getLevel = (level?: string) => level || 'info';
 
 type logParams = {
   message: string;
@@ -58,7 +59,7 @@ export const log = ({ message, level, ...rest }: logParams) => {
   const logEntry: LogEntry = {
     level: getLevel(level),
     message: message,
-    ...rest
+    ...rest,
   };
   _logger.log(logEntry);
 };

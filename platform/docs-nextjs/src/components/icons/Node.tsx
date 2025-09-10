@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useId } from 'react';
 import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';

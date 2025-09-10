@@ -12,10 +12,7 @@ interface NavigationData {
   slug: string;
 }
 
-type NavigationProjection = Pick<
-  NavigationData,
-  'breadcrumbs' | 'baseUrl' | 'slug'
->;
+type NavigationProjection = Pick<NavigationData, 'breadcrumbs' | 'baseUrl' | 'slug'>;
 
 export async function OPTIONS() {
   return withCORS(new NextResponse(null, { status: 204 }));
@@ -27,8 +24,7 @@ export async function GET(request: NextRequest) {
   const projectName = searchParams.get('project');
 
   if (!projectName) {
-    const errorMsg =
-      'Failed to retrieve breadcrumbs: project must be specified';
+    const errorMsg = 'Failed to retrieve breadcrumbs: project must be specified';
     console.error(errorMsg);
     return NextResponse.json({ error: errorMsg }, { status: 400 });
   }
@@ -42,33 +38,29 @@ export async function GET(request: NextRequest) {
     const query = { projectName };
     const projection = { _id: 0, breadcrumbs: 1, baseUrl: 1, slug: 1 };
 
-    const result: NavigationProjection | null = await collection.findOne(
-      query,
-      { projection: projection }
-    );
+    const result: NavigationProjection | null = await collection.findOne(query, { projection: projection });
 
     if (!result) {
-      return withCORS(NextResponse.json(
-        {
-          error: `Failed to retrieve navigation data for project ${projectName}`,
-        },
-        { status: 500 }
-      ));
+      return withCORS(
+        NextResponse.json(
+          {
+            error: `Failed to retrieve navigation data for project ${projectName}`,
+          },
+          { status: 500 },
+        ),
+      );
     }
 
-    const propertyUrl = result.slug
-      ? result.baseUrl + result.slug
-      : result.baseUrl;
+    const propertyUrl = result.slug ? result.baseUrl + result.slug : result.baseUrl;
 
-    return withCORS(NextResponse.json({
-      breadcrumbs: result.breadcrumbs ?? [],
-      propertyUrl,
-    }));
+    return withCORS(
+      NextResponse.json({
+        breadcrumbs: result.breadcrumbs ?? [],
+        propertyUrl,
+      }),
+    );
   } catch (err) {
     console.error(err);
-    return withCORS(NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    ));
+    return withCORS(NextResponse.json({ error: 'Internal Server Error' }, { status: 500 }));
   }
 }

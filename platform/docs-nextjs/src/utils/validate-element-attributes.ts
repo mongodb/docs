@@ -143,25 +143,25 @@ export const validateHTMAttributes = (elementType: string, props: Record<string,
   if (ele) {
     return props
       ? Object.keys(props).reduce((attributes, propKey) => {
-        // propKey values should be lowercase to account for
-        // React's HTML attributes in camelCase
-        if (ele.includes(propKey.toLocaleLowerCase())) {
-          (attributes as Record<string, unknown>)[propKey] = props[propKey];
-        } else {
-          const isDataOrAriaAttribute = dataAndRoleBasedAttributes.some((pattern) => pattern.test(propKey));
-          if (isDataOrAriaAttribute) {
+          // propKey values should be lowercase to account for
+          // React's HTML attributes in camelCase
+          if (ele.includes(propKey.toLocaleLowerCase())) {
             (attributes as Record<string, unknown>)[propKey] = props[propKey];
+          } else {
+            const isDataOrAriaAttribute = dataAndRoleBasedAttributes.some((pattern) => pattern.test(propKey));
+            if (isDataOrAriaAttribute) {
+              (attributes as Record<string, unknown>)[propKey] = props[propKey];
+            }
           }
-        }
 
-        return attributes;
-      }, {})
+          return attributes;
+        }, {})
       : {};
   }
 
   // Provide hint to user on available element and return the props in it's origin form
   console.error(
-    `Please check that you are using the correct elementType, available types are ${Object.keys(elements)}`
+    `Please check that you are using the correct elementType, available types are ${Object.keys(elements)}`,
   );
   return props;
 };

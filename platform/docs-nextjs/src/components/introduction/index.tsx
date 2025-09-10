@@ -1,8 +1,8 @@
-"use client"
+'use client';
 
 import styled from '@emotion/styled';
 import { theme } from '@/styles/theme';
-import { ASTNode } from '@/types/ast';
+import type { ASTNode } from '@/types/ast';
 import ComponentFactory from '../component-factory';
 
 const StyledIntroduction = styled('div')`
@@ -33,12 +33,9 @@ const StyledIntroduction = styled('div')`
 
 export type IntroductionProps = {
   nodeChildren: ASTNode[];
-}
+};
 
-const Introduction = ({
-  nodeChildren,
-  ...rest
-}: IntroductionProps) => {
+const Introduction = ({ nodeChildren, ...rest }: IntroductionProps) => {
   return (
     <StyledIntroduction className="introduction">
       {nodeChildren.map((child, i) => (

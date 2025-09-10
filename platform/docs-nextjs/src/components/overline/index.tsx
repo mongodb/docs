@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import type { ReactNode } from 'react';
 import { css, cx } from '@leafygreen-ui/emotion';
@@ -16,11 +16,7 @@ export type OverlineProps = {
 };
 
 const Overline = ({ className, children }: OverlineProps) => {
-  return (
-    <LGOverline className={cx(overlineBaseStyling, className)}>
-      {children}
-    </LGOverline>
-  );
+  return <LGOverline className={cx(overlineBaseStyling, className)}>{children}</LGOverline>;
 };
 
 export default Overline;

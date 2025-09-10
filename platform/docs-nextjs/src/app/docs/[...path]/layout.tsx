@@ -1,10 +1,10 @@
 /**
- * A layout is UI that is shared all pages prepended by /docs/<path>. 
+ * A layout is UI that is shared all pages prepended by /docs/<path>.
  * On navigation, layouts preserve state, remain interactive, and do not rerender.
  */
 
-import { getPageDocFromParams } from "@/services/db";
-import Template from "./custom-template";
+import { getPageDocFromParams } from '@/services/db';
+import Template from './custom-template';
 
 export default async function Layout({
   children,
@@ -18,8 +18,7 @@ export default async function Layout({
 
   return (
     <div className="docs-layout" style={{ gridArea: 'contents' }}>
-      <Template pageDoc={pageDoc!}>
-        {children}
-      </Template>
-    </div>)
+      <Template pageDoc={pageDoc!}>{children}</Template>
+    </div>
+  );
 }

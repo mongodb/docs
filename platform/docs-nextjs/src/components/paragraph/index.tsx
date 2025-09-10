@@ -1,8 +1,8 @@
-"use client"
+'use client';
 
 import { css, cx } from '@leafygreen-ui/emotion';
 import { Body } from '@leafygreen-ui/typography';
-import { ASTNode } from '@/types/ast';
+import type { ASTNode } from '@/types/ast';
 import { appendTrailingPunctuation } from '@/utils/append-trailing-punctuation';
 import ComponentFactory from '../component-factory';
 
@@ -19,18 +19,11 @@ export type ParagraphProps = {
   skipPTag?: boolean;
 };
 
-const Paragraph = ({
-  nodeChildren,
-  parentNode,
-  skipPTag = false,
-  ...rest
-}: ParagraphProps) => {
+const Paragraph = ({ nodeChildren, parentNode, skipPTag = false, ...rest }: ParagraphProps) => {
   const children = appendTrailingPunctuation(nodeChildren);
   // For paragraph nodes that appear inside certain containers, skip <p> tags and just render their contents
   if (skipPTag || (parentNode && SKIP_P_TAGS.has(parentNode))) {
-    return children.map((element, index) => (
-      <ComponentFactory nodeData={element} key={index} {...rest} />
-    ));
+    return children.map((element, index) => <ComponentFactory nodeData={element} key={index} {...rest} />);
   }
   return (
     <Body className={cx(paragraphStyling)}>

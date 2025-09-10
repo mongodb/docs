@@ -1,5 +1,5 @@
-import { Root } from "@/types/ast";
-import { WithId } from "mongodb";
+import type { Root } from '@/types/ast';
+import type { WithId } from 'mongodb';
 
 interface StaticAsset {
   checksum: string;

@@ -3,14 +3,13 @@ import { render } from '@testing-library/react';
 import Link from '@/components/link';
 import { TestWrapper } from '../utils/test-wrapper';
 
-const setup = ({ text, ...rest }: { text: string;[key: string]: unknown }) => {
+const setup = ({ text, ...rest }: { text: string; [key: string]: unknown }) => {
   return render(
     <TestWrapper>
       <Link {...rest}>{text}</Link>
-    </TestWrapper>
+    </TestWrapper>,
   );
 };
-
 
 describe('Link component renders a variety of strings correctly', () => {
   it('empty string', () => {

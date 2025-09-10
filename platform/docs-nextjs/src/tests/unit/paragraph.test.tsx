@@ -4,7 +4,7 @@ import { render } from '@testing-library/react';
 import mockData from '../data/paragraph.test.json';
 import mockDataFormat from '../data/paragraph-format.test.json';
 import Paragraph from '@/components/paragraph';
-import { ParagraphNode } from '@/types/ast';
+import type { ParagraphNode } from '@/types/ast';
 
 const typedMockData = mockData as ParagraphNode;
 const typedMockDataFormat = mockDataFormat as ParagraphNode;

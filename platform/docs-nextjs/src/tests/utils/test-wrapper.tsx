@@ -1,4 +1,5 @@
-import React, { ReactElement } from 'react';
+import type { ReactElement } from 'react';
+import React from 'react';
 import { CacheProvider } from '@emotion/react';
 import LGProvider from '@leafygreen-ui/leafygreen-provider';
 import { BaseFontSize } from '@leafygreen-ui/tokens';
@@ -16,10 +17,7 @@ interface TestWrapperProps {
 export function TestWrapper({ children, darkMode = false }: TestWrapperProps): ReactElement {
   return (
     <CacheProvider value={cache}>
-      <LGProvider
-        darkMode={darkMode}
-        baseFontSize={BaseFontSize.Body2}
-      >
+      <LGProvider darkMode={darkMode} baseFontSize={BaseFontSize.Body2}>
         {children}
       </LGProvider>
     </CacheProvider>
@@ -29,13 +27,10 @@ export function TestWrapper({ children, darkMode = false }: TestWrapperProps): R
 /**
  * Custom render function that wraps components with necessary providers
  */
-export function renderWithProviders(
-  ui: ReactElement,
-  { darkMode = false, ...renderOptions } = {}
-) {
+export function renderWithProviders(ui: ReactElement, { darkMode = false, ...renderOptions } = {}) {
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <TestWrapper darkMode={darkMode}>{children}</TestWrapper>
   );
-  
+
   return { Wrapper, ...renderOptions };
 }

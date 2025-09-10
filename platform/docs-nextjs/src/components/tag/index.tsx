@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import { palette } from '@leafygreen-ui/palette';
 import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
@@ -82,8 +82,7 @@ interface TagProps extends React.HTMLAttributes<HTMLSpanElement> {
 
 const Tag = ({ children, variant, className, ...rest }: TagProps) => {
   const { theme: siteTheme } = useDarkMode();
-  const variantStyle =
-    VARIANTS[siteTheme][variant] || VARIANTS[siteTheme]['green'];
+  const variantStyle = VARIANTS[siteTheme][variant] || VARIANTS[siteTheme]['green'];
 
   return (
     <span className={cx(baseStyle, variantStyle, className)} {...rest}>

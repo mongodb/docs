@@ -1,15 +1,15 @@
-import { ParentNode, TextNode } from '@/types/ast';
+import type { ParentNode, TextNode } from '@/types/ast';
 import { findKeyValuePair } from '@/utils/find-key-value-pair';
 
-const headingTextNode: TextNode =         {
-          type: 'text',
-          position: {
-            start: {
-              line: 0,
-            },
-          },
-          value: 'Heading This Way',
-        }
+const headingTextNode: TextNode = {
+  type: 'text',
+  position: {
+    start: {
+      line: 0,
+    },
+  },
+  value: 'Heading This Way',
+};
 
 const testNode: ParentNode = {
   type: 'section',
@@ -26,9 +26,7 @@ const testNode: ParentNode = {
           line: 0,
         },
       },
-      children: [
-        headingTextNode
-      ],
+      children: [headingTextNode],
     },
     {
       type: 'paragraph',

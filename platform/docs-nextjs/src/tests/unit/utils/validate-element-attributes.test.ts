@@ -44,7 +44,7 @@ describe('Validate Props', () => {
     expect(validateAnchorProps).toMatchObject(props);
     expect(errorLogSpy).toHaveBeenCalledTimes(1);
     expect(errorLogSpy).toHaveBeenCalledWith(
-      `Please check that you are using the correct elementType, available types are ${Object.keys(elements)}`
+      `Please check that you are using the correct elementType, available types are ${Object.keys(elements)}`,
     );
   });
 

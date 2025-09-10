@@ -1,5 +1,5 @@
-import { ASTNode } from "@/types/ast";
-import ComponentFactory from "../component-factory";
+import type { ASTNode } from '@/types/ast';
+import ComponentFactory from '../component-factory';
 
 interface SuperscriptProps {
   nodeChildren: ASTNode[];

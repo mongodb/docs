@@ -24,14 +24,7 @@ export type PageTemplateType =
   | 'product-landing';
 
 type ComponentType =
-  | Exclude<
-      NodeType,
-      | 'directive'
-      | 'directive_argument'
-      | 'role'
-      | 'target_identifier'
-      | 'inline_target'
-    >
+  | Exclude<NodeType, 'directive' | 'directive_argument' | 'role' | 'target_identifier' | 'inline_target'>
   | 'admonition'
   | 'banner'
   | 'blockquote'
@@ -355,8 +348,7 @@ type DismissibleSkillsCardOptions = {
   url: string;
 };
 
-interface DismissibleSkillsCardNode
-  extends Directive<DismissibleSkillsCardOptions> {
+interface DismissibleSkillsCardNode extends Directive<DismissibleSkillsCardOptions> {
   name: 'dismissible-skills-card';
   options: DismissibleSkillsCardOptions;
 }
@@ -615,14 +607,7 @@ interface ImageNode extends Directive<ImageNodeOptions> {
   options: ImageNodeOptions;
 }
 
-type AdmonitionName =
-  | 'example'
-  | 'note'
-  | 'tip'
-  | 'see'
-  | 'seealso'
-  | 'warning'
-  | 'important';
+type AdmonitionName = 'example' | 'note' | 'tip' | 'see' | 'seealso' | 'warning' | 'important';
 
 interface AdmonitionNode extends Directive {
   type: 'directive';
@@ -710,12 +695,7 @@ interface ComposableNode extends Directive {
   children: ASTNode[];
 }
 
-const highlightRoleNames = [
-  HIGHLIGHT_BLUE,
-  HIGHLIGHT_GREEN,
-  HIGHLIGHT_RED,
-  HIGHLIGHT_YELLOW,
-];
+const highlightRoleNames = [HIGHLIGHT_BLUE, HIGHLIGHT_GREEN, HIGHLIGHT_RED, HIGHLIGHT_YELLOW];
 type HighlightRoleNames = (typeof highlightRoleNames)[number];
 
 interface HighlightNode extends ParentNode {

@@ -1,6 +1,5 @@
 import { isObject, isString } from 'lodash';
-import {
-  roleNames,
+import type {
   Directive,
   ParentNode,
   TextNode,
@@ -12,15 +11,10 @@ import {
   ReferenceNode,
   RefRoleNode,
 } from './ast';
+import { roleNames } from './ast';
 
 const isTextNode = (node: unknown): node is TextNode => {
-  return (
-    isObject(node) &&
-    'type' in node &&
-    node.type === 'text' &&
-    'value' in node &&
-    isString(node.value)
-  );
+  return isObject(node) && 'type' in node && node.type === 'text' && 'value' in node && isString(node.value);
 };
 
 const isReferenceNode = (node: unknown): node is ReferenceNode => {
@@ -37,11 +31,7 @@ const isParentNode = (node: unknown): node is ParentNode => {
 
 const isDirectiveNode = (node: unknown): node is Directive => {
   return (
-    isParentNode(node) &&
-    'name' in node &&
-    isString(node.name) &&
-    'argument' in node &&
-    Array.isArray(node.argument)
+    isParentNode(node) && 'name' in node && isString(node.name) && 'argument' in node && Array.isArray(node.argument)
   );
 };
 
@@ -53,21 +43,15 @@ const isHeadingNode = (node: unknown): node is HeadingNode => {
   return isParentNode(node) && node.type === 'heading';
 };
 
-const isFootnoteReferenceNode = (
-  node: unknown
-): node is FootnoteReferenceNode => {
+const isFootnoteReferenceNode = (node: unknown): node is FootnoteReferenceNode => {
   return isParentNode(node) && node.type === 'footnote_reference';
 };
 
-const isWayfindingOptionNode = (
-  node: unknown
-): node is WayfindingOptionNode => {
+const isWayfindingOptionNode = (node: unknown): node is WayfindingOptionNode => {
   return isDirectiveNode(node) && node.name === 'wayfinding-option';
 };
 
-const isWayfindingDescriptionNode = (
-  node: unknown
-): node is WayfindingDescriptionNode => {
+const isWayfindingDescriptionNode = (node: unknown): node is WayfindingDescriptionNode => {
   return isDirectiveNode(node) && node.name === 'wayfinding-description';
 };
 

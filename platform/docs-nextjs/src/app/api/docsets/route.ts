@@ -1,7 +1,7 @@
 import { withCORS } from '@/app/lib/with-cors';
 import { type NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/services/db';
-import { Docset } from '@/types/data';
+import type { Docset } from '@/types/data';
 
 export async function OPTIONS() {
   return withCORS(new NextResponse(null, { status: 204 }));
@@ -51,10 +51,7 @@ export async function GET(request: NextRequest) {
         {
           $replaceRoot: {
             newRoot: {
-              $mergeObjects: [
-                { $arrayElemAt: ['$deployableRepo', 0] },
-                '$$ROOT',
-              ],
+              $mergeObjects: [{ $arrayElemAt: ['$deployableRepo', 0] }, '$$ROOT'],
             },
           },
         },
@@ -75,9 +72,6 @@ export async function GET(request: NextRequest) {
     return withCORS(NextResponse.json(docsets));
   } catch (err) {
     console.error(err);
-    return withCORS(NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    ));
+    return withCORS(NextResponse.json({ error: 'Internal Server Error' }, { status: 500 }));
   }
 }

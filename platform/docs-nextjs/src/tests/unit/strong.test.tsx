@@ -1,6 +1,6 @@
 import Strong from '@/components/strong';
 import { render } from '@testing-library/react';
-import { StrongNode } from '@/types/ast';
+import type { StrongNode } from '@/types/ast';
 
 import mockData from '../data/strong.test.json';
 const typedMockData = mockData as StrongNode;

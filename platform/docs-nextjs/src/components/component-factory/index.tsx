@@ -25,15 +25,19 @@ import Paragraph, { type ParagraphProps } from '../paragraph';
 import Kicker, { type KickerProps } from '../kicker';
 import TitleReference, { type TitleReferenceProps } from '../title-reference';
 import Time, { type TimeProps } from '../time';
-import Introduction, { IntroductionProps } from '../introduction';
+import type { IntroductionProps } from '../introduction';
+import Introduction from '../introduction';
 import Section, { type SectionProps } from '../section';
 import Cond, { type CondProps } from '../cond';
 import Strong from '../strong';
 import Subscript from '../subscript';
 import Superscript from '../superscript';
-import Rubric, { RubricProps } from '../rubric';
-import Target, { TargetProps } from '../target';
-import Literal, { FormatTextOptions, LiteralProps } from '../literal';
+import type { RubricProps } from '../rubric';
+import Rubric from '../rubric';
+import type { TargetProps } from '../target';
+import Target from '../target';
+import type { FormatTextOptions, LiteralProps } from '../literal';
+import Literal from '../literal';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -49,19 +53,11 @@ const IGNORED_NAMES = new Set([
   'facet',
 ]);
 
-const IGNORED_TYPES = new Set([
-  'comment',
-  'inline_target',
-  'named_reference',
-  'substitution_definition',
-]);
+const IGNORED_TYPES = new Set(['comment', 'inline_target', 'named_reference', 'substitution_definition']);
 
 const DEPRECATED_ADMONITIONS = new Set(['admonition', 'caution', 'danger']);
 
-const roleMap: Record<
-  RoleName,
-  React.ComponentType<SupportedComponentProps>
-> = {
+const roleMap: Record<RoleName, React.ComponentType<SupportedComponentProps>> = {
   // abbr: RoleAbbr,
   // class: RoleClass,
   // command: RoleCommand,
@@ -89,17 +85,14 @@ const roleMap: Record<
   // 'link-new-tab': RoleLinkNewTab,
 };
 
-type validComponentKey = Exclude<
-  ComponentType,
-  'toctree' | 'role' | 'tab' | 'selected-content'
->;
+type validComponentKey = Exclude<ComponentType, 'toctree' | 'role' | 'tab' | 'selected-content'>;
 
 const getComponent = (() => {
   let componentMap:
     | Record<
-      Exclude<ComponentType, 'toctree' | 'role' | 'tab' | 'selected-content'>,
-      React.ComponentType<SupportedComponentProps>
-    >
+        Exclude<ComponentType, 'toctree' | 'role' | 'tab' | 'selected-content'>,
+        React.ComponentType<SupportedComponentProps>
+      >
     | Record<string, React.ComponentType<SupportedComponentProps>>
     | undefined = undefined;
   return (key: validComponentKey) => {
@@ -139,8 +132,7 @@ const getComponent = (() => {
         // hlist: HorizontalList,
         // image: Image,
         // include: Include,
-        introduction:
-          Introduction as React.ComponentType<SupportedComponentProps>,
+        introduction: Introduction as React.ComponentType<SupportedComponentProps>,
         kicker: Kicker as React.ComponentType<SupportedComponentProps>,
         // line: Line,
         // line_block: LineBlock,
@@ -173,8 +165,7 @@ const getComponent = (() => {
         target: Target as React.ComponentType<SupportedComponentProps>,
         text: Text as React.ComponentType<SupportedComponentProps>,
         time: Time as React.ComponentType<SupportedComponentProps>,
-        title_reference:
-          TitleReference as React.ComponentType<SupportedComponentProps>,
+        title_reference: TitleReference as React.ComponentType<SupportedComponentProps>,
         // transition: Transition,
         // versionadded: VersionModified,
         // versionchanged: VersionModified,
@@ -185,13 +176,11 @@ const getComponent = (() => {
   };
 })();
 
-function getComponentType(
-  type: NodeType,
-  name?: NodeName
-): React.ComponentType<SupportedComponentProps> | undefined {
+function getComponentType(type: NodeType, name?: NodeName): React.ComponentType<SupportedComponentProps> | undefined {
   const lookup = (type === 'directive' ? name : type) as validComponentKey;
-  let ComponentType: React.ComponentType<SupportedComponentProps> | undefined =
-    lookup ? getComponent(lookup) : undefined;
+  let ComponentType: React.ComponentType<SupportedComponentProps> | undefined = lookup
+    ? getComponent(lookup)
+    : undefined;
 
   if (name) {
     if (type === 'role' && isRoleName(name)) {
@@ -221,7 +210,7 @@ export type ComponentFactoryProps = {
   /** Only used in Paragraph */
   parentNode?: string;
   /** Only used in Literal */
-  formatTextOptions?: FormatTextOptions;  
+  formatTextOptions?: FormatTextOptions;
 };
 
 type SupportedComponentProps =
@@ -242,7 +231,7 @@ type SupportedComponentProps =
 const renderComponentWithProps = (
   ComponentType: React.ComponentType<SupportedComponentProps>,
   nodeData: ASTNode,
-  props: ComponentFactoryProps
+  props: ComponentFactoryProps,
 ): React.ReactElement => {
   // Add all props that are needed at unknown depths
   const propsToDrill = {
@@ -259,36 +248,17 @@ const renderComponentWithProps = (
     return <ComponentType value={node.children[0].value} />;
   } else if (ComponentType === getComponent('paragraph')) {
     const paragraphNode = nodeData as ParagraphNode;
-    return (
-      <ComponentType
-        nodeChildren={paragraphNode.children}
-        parentNode={props.parentNode}
-        {...propsToDrill}
-      />
-    );
+    return <ComponentType nodeChildren={paragraphNode.children} parentNode={props.parentNode} {...propsToDrill} />;
   } else if (ComponentType === getComponent('introduction')) {
     const introductionNode = nodeData as ParentNode;
-    return (
-      <ComponentType
-        nodeChildren={introductionNode.children}
-        {...propsToDrill}
-      />
-    );
+    return <ComponentType nodeChildren={introductionNode.children} {...propsToDrill} />;
   } else if (ComponentType === roleMap.subscript) {
     const subscriptNode = nodeData as SubscriptNode;
-    return (
-      <ComponentType nodeChildren={subscriptNode.children} {...propsToDrill} />
-    );
+    return <ComponentType nodeChildren={subscriptNode.children} {...propsToDrill} />;
   } else if (ComponentType === roleMap.superscript) {
     const superscriptNode = nodeData as SuperscriptNode;
-    return (
-      <ComponentType
-        nodeChildren={superscriptNode.children}
-        {...propsToDrill}
-      />
-    );
-  }
-  else if (ComponentType === getComponent('literal')) {
+    return <ComponentType nodeChildren={superscriptNode.children} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('literal')) {
     const literalNode = nodeData as LiteralNode;
     return <ComponentType nodeChildren={literalNode.children} formatTextOptions={props.formatTextOptions} />;
   } else if (ComponentType === getComponent('kicker')) {
@@ -308,7 +278,15 @@ const renderComponentWithProps = (
     return <ComponentType nodeData={condNode} />;
   } else if (ComponentType === getComponent('target')) {
     const targetNode = nodeData as TargetNode;
-    return <ComponentType nodeChildren={targetNode.children} html_id={targetNode.html_id} name={targetNode.name} options={targetNode.options} {...propsToDrill} />;
+    return (
+      <ComponentType
+        nodeChildren={targetNode.children}
+        html_id={targetNode.html_id}
+        name={targetNode.name}
+        options={targetNode.options}
+        {...propsToDrill}
+      />
+    );
   }
 
   // Default: spread all props for other components
@@ -333,9 +311,7 @@ const ComponentFactory = (props: ComponentFactoryProps) => {
     // Warn on unexpected usage of domains, but don't break
     const validDomains = ['mongodb', 'std', 'landing'];
     if (domain && !validDomains.includes(domain)) {
-      console.warn(
-        `Domain '${domain}' not yet implemented ${name ? `for '${name}'` : ''}`
-      );
+      console.warn(`Domain '${domain}' not yet implemented ${name ? `for '${name}'` : ''}`);
     }
 
     const ComponentType = getComponentType(type, name);
@@ -349,9 +325,7 @@ const ComponentFactory = (props: ComponentFactoryProps) => {
           <span>
             {isParentNode(nodeData) &&
               nodeData.children.length > 0 &&
-              nodeData.children.map((child, index) => (
-                <ComponentFactory nodeData={child} key={`${slug}-${index}`} />
-              ))}
+              nodeData.children.map((child, index) => <ComponentFactory nodeData={child} key={`${slug}-${index}`} />)}
           </span>
         </span>
       );

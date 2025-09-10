@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 

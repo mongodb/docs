@@ -10,7 +10,9 @@ export async function GET(request: NextRequest) {
   const diffString = searchParams.get('diff');
   const isStaging = searchParams.get('staging') === 'true';
 
-  const url = `https://raw.githubusercontent.com/mongodb/openapi/${isStaging ? 'qa' : 'main'}/changelog/version-diff/${diffString}.json`;
+  const url = `https://raw.githubusercontent.com/mongodb/openapi/${
+    isStaging ? 'qa' : 'main'
+  }/changelog/version-diff/${diffString}.json`;
   try {
     const resp = await fetch(url);
     const diff = await resp.json();
@@ -18,9 +20,8 @@ export async function GET(request: NextRequest) {
     return withCORS(NextResponse.json(diff));
   } catch (err) {
     console.error(err);
-    return withCORS(NextResponse.json(
-      { error: `Failed to fetch OpenAPI Changelog diff from "${url}"` },
-      { status: 500 }
-    ));
+    return withCORS(
+      NextResponse.json({ error: `Failed to fetch OpenAPI Changelog diff from "${url}"` }, { status: 500 }),
+    );
   }
 }

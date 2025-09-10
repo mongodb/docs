@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import type { PropsWithChildren } from 'react';
 
@@ -6,11 +6,9 @@ import { CacheProvider } from '@emotion/react';
 import { useServerInsertedHTML } from 'next/navigation';
 
 import { cache } from '@leafygreen-ui/emotion';
-import LGProvider, {
-  LeafyGreenProviderProps,
-} from '@leafygreen-ui/leafygreen-provider';
+import type { LeafyGreenProviderProps } from '@leafygreen-ui/leafygreen-provider';
+import LGProvider from '@leafygreen-ui/leafygreen-provider';
 import { BaseFontSize } from '@leafygreen-ui/tokens';
-
 
 /**
  * Sets up everything we need to use MongoDB's design system LeafyGreen.
@@ -24,15 +22,10 @@ import { BaseFontSize } from '@leafygreen-ui/tokens';
  * @see https://github.com/emotion-js/emotion/issues/2928#issuecomment-1293012737
  */
 
-export function LeafyGreenProvider({
-  children,
-  baseFontSize,
-}: PropsWithChildren<LeafyGreenProviderProps>) {
+export function LeafyGreenProvider({ children, baseFontSize }: PropsWithChildren<LeafyGreenProviderProps>) {
   useServerInsertedHTML(() => (
     <style
-      data-emotion={`${cache.key} ${Object.keys(cache.inserted).join(
-        ' '
-      )}`}
+      data-emotion={`${cache.key} ${Object.keys(cache.inserted).join(' ')}`}
       dangerouslySetInnerHTML={{
         __html: Object.values(cache.inserted).join(' '),
       }}

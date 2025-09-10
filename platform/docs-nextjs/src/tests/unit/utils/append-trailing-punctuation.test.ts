@@ -1,5 +1,5 @@
-import { RefRoleNode, TextNode } from "@/types/ast";
-import { appendTrailingPunctuation } from "@/utils/append-trailing-punctuation";
+import type { RefRoleNode, TextNode } from '@/types/ast';
+import { appendTrailingPunctuation } from '@/utils/append-trailing-punctuation';
 
 describe('appendTrailingPunctuation()', () => {
   it('does not strip trailing periods from sentences ending with a link', () => {

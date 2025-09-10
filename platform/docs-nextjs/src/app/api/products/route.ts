@@ -28,19 +28,12 @@ export async function GET(request: NextRequest) {
     const sortParam: Sort = { title: 1 };
 
     // eslint-disable-next-line prefer-const
-    let result = await collection
-      .find(query, { projection })
-      .sort(sortParam)
-      .toArray();
+    let result = await collection.find(query, { projection }).sort(sortParam).toArray();
 
     // Custom ordering: "Atlas for Government" before "Atlas Kubernetes Operator"
-    const atlasForGovtIdx = result.findIndex(
-      (el) => el.title === 'Atlas for Government'
-    );
+    const atlasForGovtIdx = result.findIndex((el) => el.title === 'Atlas for Government');
     const atlasForGovtObj = result[atlasForGovtIdx];
-    const atlasK8sIdx = result.findIndex(
-      (el) => el.title === 'Atlas Kubernetes Operator'
-    );
+    const atlasK8sIdx = result.findIndex((el) => el.title === 'Atlas Kubernetes Operator');
 
     if (atlasForGovtIdx !== -1 && atlasK8sIdx !== -1) {
       result.splice(atlasForGovtIdx, 1);

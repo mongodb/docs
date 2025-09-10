@@ -8,7 +8,7 @@ const rubricStyle = css`
 
 export type RubricProps = {
   argument: ASTNode[];
-}
+};
 
 const Rubric = ({ argument, ...rest }: RubricProps) => (
   <p className={cx(rubricStyle)}>

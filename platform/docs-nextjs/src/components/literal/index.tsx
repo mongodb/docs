@@ -1,11 +1,11 @@
-"use client"
+'use client';
 
-import { InlineCode } from "@leafygreen-ui/typography";
-import { LiteralNode } from "@/types/ast";
-import ComponentFactory from "../component-factory";
-import { css } from "@leafygreen-ui/emotion";
-import { cx } from "@leafygreen-ui/emotion";
-import styled from "@emotion/styled";
+import { InlineCode } from '@leafygreen-ui/typography';
+import type { LiteralNode } from '@/types/ast';
+import ComponentFactory from '../component-factory';
+import { css } from '@leafygreen-ui/emotion';
+import { cx } from '@leafygreen-ui/emotion';
+import styled from '@emotion/styled';
 
 const inlineCodeStyling = css`
   /* Unset font size so it inherits it from its context */
@@ -34,7 +34,6 @@ export type FormatTextOptions = {
   literalEnableInline: boolean;
 };
 
-
 export type LiteralProps = {
   nodeChildren: LiteralNode['children'];
   formatTextOptions?: FormatTextOptions;
@@ -47,7 +46,7 @@ const Literal = ({ nodeChildren, formatTextOptions }: LiteralProps) => {
   return (
     <CurrInlineCode className={cx(navigationStyle ? '' : inlineCodeStyling, wordWrapStyle)}>
       {nodeChildren.map((node, i) => (
-        <ComponentFactory nodeData={node} key={i}/>
+        <ComponentFactory nodeData={node} key={i} />
       ))}
     </CurrInlineCode>
   );

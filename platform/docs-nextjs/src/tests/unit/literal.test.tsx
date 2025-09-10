@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import Literal from '@/components/literal';
-import { LiteralNode } from '@/types/ast';
+import type { LiteralNode } from '@/types/ast';
 
 // data for this component
 import mockData from '../data/literal.test.json';
