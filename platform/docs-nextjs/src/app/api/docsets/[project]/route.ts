@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getClient } from '@/services/db';
 import { Docset } from '@/types/data';
 
@@ -8,7 +8,16 @@ export async function GET(
 ) {
   const searchParams = request.nextUrl.searchParams;
   const dbName = searchParams.get('dbName') ?? process.env.SNOOTY_DB_NAME;
-  const project = (await params).project;
+  const project = (await params)?.project;
+
+  if (!project) {
+    const res = NextResponse.json(
+      { error: 'Project is required' },
+      { status: 400 }
+    );
+    res.headers.set('Access-Control-Allow-Origin', '*');
+    return res;
+  }
 
   try {
     const client = getClient();
@@ -70,17 +79,26 @@ export async function GET(
         },
       ])
       .toArray();
-    
+
     if (!docsets || docsets.length === 0) {
-      return NextResponse.json({ error: `No docset found for project ${project}` }, { status: 404 });
+      const res = NextResponse.json(
+        { error: `No docset found for project ${project}` },
+        { status: 404 }
+      );
+      res.headers.set('Access-Control-Allow-Origin', '*');
+      return res;
     }
 
-    return NextResponse.json(docsets[0]);
+    const res = NextResponse.json(docsets[0]);
+    res.headers.set('Access-Control-Allow-Origin', '*');
+    return res;
   } catch (err) {
     console.error(err);
-    return NextResponse.json(
+    const res = NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }
     );
+    res.headers.set('Access-Control-Allow-Origin', '*');
+    return res;
   }
 }

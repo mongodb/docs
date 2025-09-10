@@ -42,9 +42,16 @@ export async function GET(request: NextRequest) {
       result.splice(atlasK8sIdx, 0, atlasForGovtObj);
     }
 
-    return NextResponse.json(result.filter(Boolean));
+    const res = NextResponse.json(result.filter(Boolean));
+    res.headers.set('Access-Control-Allow-Origin', '*');
+    return res;
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    const res = NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
+    res.headers.set('Access-Control-Allow-Origin', '*');
+    return res;
   }
 }

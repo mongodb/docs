@@ -64,15 +64,21 @@ export async function GET(request: NextRequest) {
       .toArray();
 
     if (!docsets || docsets.length === 0) {
-      return NextResponse.json({ error: 'No docsets found' }, { status: 404 });
+      const res = NextResponse.json({ error: 'No docsets found' }, { status: 404 });
+      res.headers.set('Access-Control-Allow-Origin', '*');
+      return res;
     }
 
-    return NextResponse.json(docsets);
+    const res = NextResponse.json(docsets);
+    res.headers.set('Access-Control-Allow-Origin', '*');
+    return res;
   } catch (err) {
     console.error(err);
-    return NextResponse.json(
+    const res = NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }
     );
+    res.headers.set('Access-Control-Allow-Origin', '*');
+    return res;
   }
 }

@@ -43,27 +43,33 @@ export async function GET(request: NextRequest) {
     );
 
     if (!result) {
-      return NextResponse.json(
+      const res = NextResponse.json(
         {
           error: `Failed to retrieve navigation data for project ${projectName}`,
         },
         { status: 500 }
       );
+      res.headers.set('Access-Control-Allow-Origin', '*');
+      return res;
     }
 
     const propertyUrl = result.slug
       ? result.baseUrl + result.slug
       : result.baseUrl;
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       breadcrumbs: result.breadcrumbs ?? [],
       propertyUrl,
     });
+    res.headers.set('Access-Control-Allow-Origin', '*');
+    return res;
   } catch (err) {
     console.error(err);
-    return NextResponse.json(
+    const res = NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }
     );
+    res.headers.set('Access-Control-Allow-Origin', '*');
+    return res;
   }
 }
