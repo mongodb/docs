@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   if (!projectName) {
     const errorMsg = 'Failed to retrieve breadcrumbs: project must be specified';
     console.error(errorMsg);
-    return NextResponse.json({ error: errorMsg }, { status: 400 });
+    return withCORS(NextResponse.json({ error: errorMsg }, { status: 400 }));
   }
 
   try {

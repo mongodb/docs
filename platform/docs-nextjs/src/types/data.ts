@@ -21,6 +21,18 @@ type PageFacet = {
 
 type EOLType = 'download' | 'link';
 
+type ReposBranchesDocument = {
+  displayName?: string;
+  project: string;
+  branches: BranchData[];
+  hasEolVersions?: boolean;
+  repoName: string;
+  search?: { categoryTitle: string; categoryName?: string };
+  internalOnly: boolean;
+  prodDeployable: boolean;
+  groups: Group[] | null;
+};
+
 type BranchData = {
   gitBranchName: string;
   active: boolean;
@@ -32,7 +44,7 @@ type BranchData = {
   eol_type?: EOLType;
 };
 
-interface Docset {
+type Docset = ReposBranchesDocument & {
   prefix: {
     dotcomprd: string;
     dotcomstg: string;
@@ -47,15 +59,6 @@ interface Docset {
     stg: string;
     regression: string;
   };
-  displayName?: string;
-  project: string;
-  branches: BranchData[];
-  hasEolVersions?: boolean;
-  repoName: string;
-  search?: { categoryTitle: string; categoryName?: string };
-  internalOnly: boolean;
-  prodDeployable: boolean;
-  groups: Group[] | null;
   bucket: {
     dev: string;
     dotcomprd: string;
@@ -64,7 +67,7 @@ interface Docset {
     stg: string;
     regression: string;
   };
-}
+};
 
 type Group = {
   id?: string;
@@ -234,6 +237,7 @@ export type {
   PageContext,
   PageContextRepoBranches,
   RemoteMetadata,
+  ReposBranchesDocument,
   ReposDatabaseName,
   SiteMetadata,
   SlugToBreadcrumbLabel,
