@@ -547,8 +547,8 @@
        | (mongodb.atlas.latencyStats.total.count)
      - Counter
      - A 64-bit integer giving the number of operations 
-       performed on the collection since startup for read, 
-       write, command, and total requests.
+       performed on the collection since the last reporting interval 
+       for read, write, command, and total requests.
 
    * - | ``READ_HISTOGRAM_P50``
        | (mongodb.atlas.latencyStats.read.p50)
