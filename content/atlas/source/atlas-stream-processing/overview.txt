@@ -1,4 +1,3 @@
-.. _what-is-atlas-sp:
 .. _atlas-sp-overview:
 
 =================================
@@ -17,16 +16,19 @@
    :depth: 2
    :class: singlecol
 
-{+atlas-sp+} enables you to process streams of complex data using the
-same :manual:`query API </query-api>` used in {+service+} databases. {+atlas-sp+}
+{+atlas-sp+} enables you to read, write, and transform streams of data
+using the same :manual:`aggregation operations
+</aggregation-operations>` used in {+service+} databases. {+atlas-sp+}
 allows you to:
 
-- Build :ref:`aggregation pipelines <stream-aggregation>` to 
-  continuously operate on streaming data without the delays inherent in 
-  batch processing.
-- Perform continuous :ref:`schema validation
-  <streams-agg-pipeline-validate>` to check that messages are properly
+- Build :ref:`aggregation pipelines <atlas-sp-aggregation>` to 
+  continuously operate on streaming data.
+- Perform continuous :ref:`validation
+  <atlas-sp-agg-validate>` to check that messages are properly
   formed, detect message corruption, and detect late-arriving data.
+- Transform fields as documents flow through your pipelines and route
+  those documents to distinct databases, Kafka topics, or other
+  external sinks using fields or expressions in each document as keys.
 - Continuously publish results to 
   {+service+} collections or {+kafka+} clusters, ensuring up-to-date 
   views and analysis of data.
@@ -40,164 +42,101 @@ operate independent of |service| {+clusters+}.
 Streaming Data
 --------------
 
-A stream is a continuous flow of data originating from one or more
-sources, taking the form of an append-only log. Examples of data
-streams include temperature or pressure readings from sensors, records
-of financial transactions, or change data capture events.
+A stream is a continuous flow of immutable data originating from one
+or more sources. Examples of data streams include temperature or
+pressure readings from sensors, records of financial transactions, or
+change data capture events.
 
-Data streams originate from **sources** such as {+kafka-topics+} or 
-:manual:`change streams </changeStreams/>`. You can then write processed
-data to **sinks** such as {+kafka-topics+} or |service| collections.
+Data streams originate from **sources** such as {+kafka-topics+} or
+MongoDB :manual:`change streams </changeStreams/>`. You can then write
+processed data to **sinks** including {+kafka-topics+}, |service|
+collections, external functions, or cloud data stores.
 
-Streams of data originate in systems with rapidly changing state. 
 {+atlas-sp+} provides native stream processing capabilities to operate
-on continuous data without the time and computational constraints of an
-at-rest database.
+on continuous data without the time and computational constraints of
+an at-rest database.
 
-.. _atlas-sp-isolation:
-.. _atlas-sp-architecture:
-
-Architecture
-------------
-
-The core abstraction of {+atlas-sp+} is the stream processor. A stream
-processor is a MongoDB :manual:`aggregation pipeline
-</core/aggregation-pipeline>` query that operates continuously on
-streaming data from a specified source and writes the output to a
-sink. To learn more, see :ref:`atlas-sp-processor-detailed`.
-
-Stream processing takes place on {+spi+}s. Each {+spi+} is an
-|service| namespace that associates the following:
-
-- One or more **workers**, which provide the RAM and CPUs necessary
-  to run your stream processors.
-- A cloud provider and cloud region. 
-- A **connection registry**, which stores the list of available
-  sources and sinks of streaming data.
-- A security context in which to define user authorizations.
-- A :manual:`Connection String </reference/connection-string>` to
-  the {+spi+} itself.
-
-When you define a stream processor, it becomes available only for the
-{+spi+} in which you define it. Each worker can host up to four
-running stream processors; {+atlas-sp+} automatically scales your
-{+spi+} up as you start stream processors by provisioning workers
-as needed. You can deprovision a worker by stopping all stream
-processors on it. {+atlas-sp+} always prefers to assign a stream
-processor to an existing worker over provisioning new workers.
-
-.. example::
-
-   You have a {+spi+} running eight stream processors, named
-   ``proc01`` through ``proc08``. ``proc01`` through ``proc04`` run on
-   one worker, ``proc05`` through ``proc08`` run on a second
-   worker. You start a new stream processor named
-   ``proc09``. {+atlas-sp+} provisions a third worker to host
-   ``proc09``.
-
-   Later, you stop ``proc03`` on the first worker. When you stop
-   ``proc09`` and restart it, {+atlas-sp+} reassigns ``proc09`` to the
-   first worker and deprovisions the third worker.
-
-   If you start a new stream processor named ``proc10`` before you stop
-   and restart ``proc09``, {+atlas-sp+} assigns ``proc10`` to the first
-   worker in the slot previously allocated to ``proc03``.
-
-When scaling, {+atlas-sp+} only considers the number of currently
-running stream processors; it doesn't count defined stream processors
-that aren't running. The tier of the {+spi+} determines the RAM and
-CPU allotment of its workers.
-
-Connection registries store one or more connections. Each connection
-assigns a name to the combination of networking and security details
-that allow a stream processor to interact with external
-services. Connections exhibit the following behavior:
-
-- Only a connection defined in a given {+spi+}'s connection registry
-  can service stream processors hosted on that {+spi+}.
-- Each connection can service an arbitrary number of stream processors
-- Only a single connection can serve as a given stream processor's source.
-- Only a single connection can serve as a given stream processor's sink.
-- A connection is not innately defined as either a source or a sink. Any given
-  connection can serve either function depending on how a stream processor
-  invokes that connection.
-
-.. include:: includes/atlas-stream-processing/shared-infrastructure.rst
-
-.. _atlas-sp-processor-detailed:
+.. _atlas-sp-processor-structure:
 
 Structure of a Stream Processor
 -------------------------------
 
-Stream processors take the form of an aggregation pipeline. Each
-processor begins with a :pipeline:`$source` stage which connects to a
-source and begins receiving a continuous stream of data in the form of
-documents. These documents must be valid ``json`` or ``ejson``. Each
-aggregation stage after the ``$source`` consumes each record from the
-stream in turn, and can be grouped into three types:
+Stream processors take the form of a pipeline which can be
+conceptually divided into three phases.
 
-- **Validation** : The :pipeline:`$validate` stage allows you to
-  perform schema validation on ingested documents to ensure that only
-  correctly formatted documents continue on to further processing and
-  determine what happens to incorrectly formatted documents.
-  Validation is optional.
-- **Stateless Operations** : Aggregation stages or operators which
-  can act directly on the incoming data stream. These aggregations
-  consume, transform, and pass along each document in turn, and can
-  appear at any point between the ``$source`` and either
-  :ref:`$emit <streams-agg-pipeline-emit>` or
-  :ref:`$merge <streams-agg-pipeline-merge>` stages.
-- **Stateful Operations** : Aggregation stages or operators which can
-  act only on bounded sets of documents. These aggregations consume,
-  transform, and pass along entire sets of documents at once, and can
-  appear only inside :ref:`windows <atlas-sp-windows>`.
+.. _atlas-sp-processor-structure-source:
 
-Windows are pipeline stages that consume streaming data and partition
-it into time-delimited sets so that you can apply stages and operators
-inapplicable to infinite data such as :pipeline:`$group` and
-:manual:`$avg </reference/operator/aggregation/avg>`. Each stream processor
-can only have one window stage.
+Sources
+~~~~~~~
 
-After processing the ingested data, the stream processor writes it to
-either a streaming data platform using the ``$emit`` stage, or to an
-|service| database with the ``$merge`` stage. These stages are
-mutually exclusive with each other, and a stream processor can only
-have one such stage.
+Stream processors begin by ingesting documents from sources of
+streaming data to which {+atlas-sp+} is connected. These can be
+broker systems like {+kafka+}, or database change streams such as
+those generated by {+service+} read/write operations. These inputs
+must be valid ``json`` or ``ejson`` documents. Once the
+:pipeline:`$source` stage ingests a document, you can apply
+:manual:`MongoDB aggregation </aggregation>` to that document
+to transform it as needed.
 
-.. _atlas-sp-checkpointing:
+In addition to ingesting data from a streaming source, {+atlas-sp+}
+also supports enriching your documents with data from :ref:`HTTPS
+<atlas-sp-agg-https>` requests and :ref:`$lookup
+<atlas-sp-agg-lookup>` operations to join data from connected
+{+service+} clusters.
 
-Checkpoints
-~~~~~~~~~~~
+.. _atlas-sp-processor-structure-pipeline:
 
-{+atlas-sp+} captures the state of a stream processor using checkpoint
-documents. These documents have unique IDs and are subject to the flow
-of your stream processor logic. When the last operator of a stream
-processor finishes acting on a checkpoint document, {+atlas-sp+}
-commits the checkpoint, generating two types of records:
+Pipelines
+~~~~~~~~~
 
-- A single record that validates the checkpoint ID and the stream
-  processor to which it belongs
-- A set of records describing the state of each stateful operation
-  in the relevant stream processor at the instant {+atlas-sp+}
-  committed the checkpoint.
+A stream processor leverages :ref:`Aggregation pipeline stages
+<atlas-sp-aggregation>` and :ref:`Aggregation operators
+<atlas-sp-aggregation-operators>` in addition to the standard MongoDB
+suite of :manual:`aggregation operators and stages
+</aggregation-operations>` to transform ingested data and extract
+valuable insights. {+atlas-sp+} can write documents it can't process
+to a :ref:`Dead Letter Queue <atlas-sp-dlq>`.
 
-When you restart a stream processor after an interruption,
-{+atlas-sp+} queries the last committed checkpoint and resumes
-operation from the described state.
+You can enrich documents by restructuring them, adding or removing
+fields, looking up information from your collections, and
+more. {+atlas-sp+} also enables you to collect events using
+:ref:`windows <atlas-sp-processor-structure-window>` and execute
+arbitrary :ref:`functions <atlas-sp-processor-structure-function>`.
 
-.. _atlas-sp-dlq:
+.. _atlas-sp-processor-structure-window:
 
-Dead Letter Queue
------------------
+Windows
+```````
 
-{+atlas-sp+} supports the use of an |service| database collection as a 
-:term:`dead letter queue` (DLQ). When {+atlas-sp+} cannot process a 
-document from your data stream, it writes the content of the document 
-to the DLQ along with details of the processing failure. You can assign
-a collection as a DLQ in your stream processor definitions. 
+:ref:`Windows <atlas-sp-windows>` are pipeline stages that aggregate
+streaming data within a set time period. This enables you to group the
+data, take averages, find minima and maxima, and perform various other
+operations that are otherwise inapplicable to streaming data. Each
+stream processor can only have one window stage.
 
-To learn more, see :ref:`Create a Stream Processor 
-<streams-manage-create>`.
+.. _atlas-sp-processor-structure-function:
+
+Functions
+`````````
+
+{+atlas-sp+} supports calls to either custom JavaScript
+:ref:`functions <atlas-sp-agg-function>` or {+aws+} Lambda
+:ref:`functions <atlas-sp-agg-external-function>` that run against
+each document that the stream processes passes to them.
+
+.. _atlas-sp-processor-structure-sink:
+
+Sinks
+~~~~~
+
+After processing the ingested data, the stream processor persits it be
+writing it to a sink. {+atlas-sp+} offers the :ref:`$emit
+<atlas-sp-agg-emit>` and :ref:`$merge <atlas-sp-agg-merge>` stages for
+writing to different sink types. These stages are mutually exclusive
+with each other, and each stream processor can have only one sink
+stage. Your pipeline can include logic to write processed documents to
+different Kafka topics or |service| collections within the same sink
+connections.
 
 .. _atlas-sp-regions:
 
@@ -216,15 +155,26 @@ sections of the:
   feature reference.
 
 Stream processors can read from and write to {+clusters+} hosted on
-different cloud providers, or in different regions so long as they are in the same project as the host {+spi+}.
+different cloud providers, or in different regions.
+
+.. _atlas-sp-billing:
+
+Billing
+-------
+
+For information on billing, see the :ref:`Atlas Stream Processing
+<stream-processing-costs>` billing page.
 
 .. _atlas-sp-next:
 
 Next Steps
 ----------
 
+To begin working hands-on with {+atlas-sp+}, see
+:ref:`<atlas-sp-quickstart>`.
+
 For more detailed information on core {+atlas-sp+} concepts,
-read the following:
+see the following:
 
 - :ref:`<atlas-sp-windows>`
 - :ref:`<atlas-sp-security>`

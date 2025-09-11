@@ -23,7 +23,7 @@
       #. Provide a :guilabel:`Connection Name`. Each
 	 connection name must be unique within an {+spi+}. 
 	 This is the name used to reference the connection in 
-	 {+atlas-sp+} :ref:`aggregations <stream-aggregation>`.
+	 {+atlas-sp+} :ref:`aggregations <atlas-sp-aggregation>`.
 
       #. From the dropdown menu, select an :guilabel:`{+service+}
          {+Cluster+}`. {+atlas-sp+} can connect only to

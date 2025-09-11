@@ -75,7 +75,7 @@
 2 June 2025 Release
 -------------------
 
-- Adds support for :ref:`atlas-sp-s3-connection`.
+- Adds support for {+aws+} |s3| connections.
 
 .. _atlas-sp-20250430:
 
@@ -95,14 +95,14 @@
 
 - Adds a new :pipeline:`$externalFunction` {+atlas-sp+} pipeline stage
   that triggers processes in a specific AWS Lambda resource. To learn more,
-  see :ref:`$externalFunction <streams-agg-pipeline-external-function>`.
+  see :ref:`$externalFunction <atlas-sp-agg-external-function>`.
 
 .. _atlas-sp-20250312:
 
 12 March 2025 Release
 ---------------------
 
-- Supports :ref:`creating $https connections <atlas-sp-https-connection>`
+- Supports :ref:`creating $https connections <atlas-sp-add-connection>`
   in the {+atlas-ui+}.
 - Adds the ``parallelism`` field to :ref:`$merge <streams-agg-pipeline-merge>`.
   The field specifies the number of threads to which to distribute write
@@ -132,7 +132,7 @@
 14 February 2025 Release
 ------------------------
 
-- Allows you to :ref:`add a Kafka Private Link Connection <atlas-sp-kafka-connection-pl-add>`
+- Allows you to :ref:`add a Kafka Private Link Connection <atlas-sp-pl-kafka-add>`
   for {+aws-msk+} clusters.
 - Allows you to deploy Stream Processing Instances on AWS ``us-east-2``.
   To learn more, see :ref:`atlas-sp-regions`.

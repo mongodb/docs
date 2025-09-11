@@ -21,7 +21,7 @@
       #. Provide a :guilabel:`Connection Name`. Each
 	 connection name must be unique within a {+spi+}. 
 	 This is the name used to reference the connection in 
-	 {+atlas-sp+} :ref:`aggregations <stream-aggregation>`.
+	 {+atlas-sp+} :ref:`aggregations <atlas-sp-aggregation>`.
 
       #. Provide the :guilabel:`URL` to which to send the
 	 ``HTTP`` request.

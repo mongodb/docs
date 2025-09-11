@@ -1,3 +1,4 @@
+
 .. procedure::  
    :style: normal  
   
@@ -17,7 +18,7 @@
       a. Select a :guilabel:`Kafka` connection.  
   
       #. Provide a :guilabel:`Connection Name`. Each connection name must be unique within a {+spi+}.  
-         This is the name used to reference the connection in {+atlas-sp+} :ref:`aggregations <stream-aggregation>`.  
+         This is the name used to reference the connection in {+atlas-sp+} :ref:`aggregations <atlas-sp-aggregation>`.  
   
       #. Select a :guilabel:`Network Access` type. {+atlas-sp+}  
          supports :guilabel:`Public IP` or :guilabel:`VPC Peering`  
