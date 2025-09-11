@@ -13,7 +13,7 @@ Troubleshoot Private Endpoint Connection Issues
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 This page outlines common private endpoint connection issues and possible resolutions.
@@ -102,6 +102,197 @@ This page outlines common private endpoint connection issues and possible resolu
          Address: 10.0.30.194
          Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com
          Address: 10.0.20.54
+
+      Connection Refused Because There are Too Many Open Connections
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      - If your connections exceed the connection limits for your 
+        `cluster service limit <https://www.mongodb.com/docs/atlas/reference/atlas-limits/#connection-limits-and-cluster-tier>`__, 
+        you should increase the cluster tier.
+      - If your connection count is significantly higher than your
+        expected connection count, see section below :ref:`Gather More Information on the Client Making the Most Connections <pl-troubleshoot-gather-info>`.
+      - E.g. enforcement on a sharded cluster v7.0.22 using load balanced 
+        optimized connection string.
+
+      .. io-code-block:: 
+        :copyable: false
+
+        .. input:: 
+
+           $ mongosh "mongodb+srv://aws-replica-set-7-pl-0-lb.22qdu.mongodb-dev.net/" --apiVersion 1 --username sarah
+             Enter password: *****
+             Current Mongosh Log ID:	68910f1754be6d9adc74e399
+             Connecting to:		mongodb+srv://<credentials>@aws-replica-set-7-pl-0-lb.22qdu.mongodb-dev.net/?appName=mongosh+2.5.6
+             MongoNetworkError: Client network socket disconnected before secure TLS connection was established
+
+        .. output:: 
+
+           {"t":{"$date":"2025-08-04T19:48:17.649+00:00"},"s":"I", "c":"NETWORK", 
+           "id":22942, "ctx":"listener","msg":"Connection refused because there are 
+           too many open connections","attr":{"remote":"54.172.143.8:33205",
+           "isLoadBalanced":false,"uuid":{"uuid":{"$uuid":"e52e9c14-7648-430a-bc2e-95292347b7e0"}},
+           "connectionId":380,"connectionCount":58}}
+
+
+      Viewing the Client Source IP
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. note:: 
+
+         This feature is rolling out gradually. We expect it to be 
+         available for all the dedicated clusters in AWS by the end of September, 2025. 
+
+      - You can view the client source IP in the mongos logs for sharded 
+        clusters connecting via Private Endpoints.
+      - You can view the client source IP in the mongod logs for replica sets 
+        connecting via Private Endpoints.
+      - You can view the client source IP in the audit logs for both replica sets 
+        and sharded clusters connecting via Private Endpoints.
+      - This functionality is supported on AWS for the following versions:
+
+        - 8.1 and v8.1.0+
+        - 8.0 and v8.0.10+
+        - 7.0 and v7.0.22+
+
+      - The origin client IP address and port is indicated by the ``sourceClient`` field. 
+        That value is ``10.50.4.23`` in the above example.
+          
+        .. code-block::
+
+           {"t":{"$date":"2025-07-21T12:15:42.123+00:00"},"s":"I","c":"NETWORK",
+           "id":22943,"ctx":"listener","msg":"Connection accepted","attr":{"remote":"192.168.100.55:31245",
+           "isLoadBalanced":true,"sourceClient":"10.50.4.23:50123","uuid":{"uuid":{"$uuid":"12345678-abcd-4321-abcd-87654321abcd"}},
+           "connectionId":345,"connectionCount":19}}
+
+
+
+      .. _pl-troubleshoot-gather-info:
+
+      Gather More Information on the Client Making the Most Connections
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Gathering these details requires using the 
+      `jq tool <https://www.mongodb.com/docs/manual/reference/log-messages/#log-parsing-examples>`__, 
+      which can be downloaded from the `jq website <https://jqlang.github.io/jq/>`__.
+
+      Connections created from the client metadata
+      `````````````````````````````````````````````
+
+      The following query provides the number of connections created from a 
+      particular client IP address. You can now collect the exact source VPC Private IP address 
+      using the attribute ``sourceClient``.
+
+      .. io-code-block::
+
+         .. input::
+         
+            grep '"c":"NETWORK"' mongod.log | jq -c '.attr.sourceClient' | grep -v null | sort | uniq -c
+         
+         .. output:: 
+
+            1 "172.31.36.2:32958"
+            1 "172.31.36.2:52904"
+            1 "172.31.36.2:52908"
+            1 "172.31.36.2:52910"
+            1 "172.31.36.2:52918"
+
+      Drivers used by the applications to connect to the cluster
+      ```````````````````````````````````````````````````````````
+
+      The following query provides the number of connections created by each 
+      driver. This is useful in scenarios where customers might use different 
+      drivers for different applications.
+
+      .. io-code-block::
+
+         .. input::
+
+            more mongodb.log| grep 'NETWORK' | jq -r '.attr.doc.driver.name' | grep -v null | sort | uniq -c | sort -rn
+
+         .. output::
+
+            56447    mongo-go-driver
+            21633    mongo-java-driver|sync
+               75    mongo-java-driver|sync|Airbyte
+                4    nodejs|Mongoose
+
+      For a more detailed analysis of connection counts and driver details, 
+      you can use the following Python script, which provides comprehensive 
+      information on the number of connections created and terminated, along 
+      with the driver names and version details.
+
+      .. io-code-block::
+
+        .. input:: /includes/driver_details_and_connection_details.py
+
+        .. output::
+
+           Driver: ('mongo-go-driver', 'v1.12.0-cloud')
+           Connection Opened: 14368
+           Connection Closed: 14362
+
+           Driver: ('mongo-go-driver', 'v1.12.1')
+           Connection Opened: 42056
+           Connection Closed: 41958
+
+           Driver: ('mongo-java-driver|sync', '4.11.1')
+           Connection Opened: 18012
+           Connection Closed: 17987
+
+           Driver: ('mongo-java-driver|sync', '4.8.2')
+           Connection Opened: 3621
+           Connection Closed: 3610
+
+           Driver: ('nodejs|Mongoose', '4.17.1|6.12.0')
+           Connection Opened: 3
+           Connection Closed: 1
+
+           Driver: ('mongo-go-driver', 'v1.13.0')
+           Connection Opened: 23
+           Connection Closed: 20
+
+           Driver: ('mongo-java-driver|sync|Airbyte', '4.11.0')
+           Connection Opened: 75
+           Connection Closed: 75
+
+           Driver: ('nodejs|Mongoose', '4.17.2|6.13.0')
+           Connection Opened: 1
+           Connection Closed: 0
+           
+      Application names used by client applications to connect to the cluster
+      ```````````````````````````````````````````````````````````````````````
+      We can suggest that customers include the application name in the connection 
+      string to specify different applications connecting to the cluster. By using the 
+      ``appName``, we can identify which application is creating many connections 
+      to the cluster in the future. See the `Miscellaneous Configuration <https://www.mongodb.com/docs/v6.2/reference/connection-string/#miscellaneous-configuration>`__ 
+      section of our documentation for more details on using the ``appName`` in 
+      the connection string. Additionally, you can use the ``db.currentOp().appname`` 
+      command to see the current operations associated with the application name. 
+      The following query provides details of the ``appName`` with the number of 
+      connections created by that particular application.
+
+      .. io-code-block::
+
+         .. input:: 
+
+            more mongodb.log| grep 'NETWORK' | jq -r '.attr.doc.application.name' | grep -v null | sort | uniq -c | sort -rn
+
+         .. output::
+
+            10809   niyo-*******-api
+            8616    MongoDB CPS Module v13.17.2.8878 (git: 70c0b932f47f4f0b3e82a75e223f39ed9635b47f)
+            7203    niyo-ns*****
+            5752    MongoDB Automation Agent v13.17.2.8878 (git: 70c0b932f47f4f0b3e82a75e223f39ed9635b47f)
+            3601    *****-auth-service
+
+      The provided details help to pinpoint the specific factors 
+      contributing to the high number of connections. By analyzing Source Client 
+      IP, client metadata, driver usage, and application names, you can identify 
+      which elements are responsible for the increased connections and determine 
+      the necessary areas to investigate. This targeted approach allows you 
+      to disregard other less relevant factors and concentrate on 
+      addressing the issues with the highlighted information, ultimately 
+      streamlining the mitigation process and enhancing cluster performance.
 
       Multi-Region Private Endpoints 
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -420,5 +611,4 @@ This page outlines common private endpoint connection issues and possible resolu
             .. code-block:: bash
 
                telnet pl-0-<xyz>.mongodb.net 27017
-
 
