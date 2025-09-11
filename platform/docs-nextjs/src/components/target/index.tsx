@@ -6,8 +6,7 @@ import ComponentFactory from '../component-factory';
 import { css, cx } from '@leafygreen-ui/emotion';
 import { theme } from '@/styles/theme';
 import useHashAnchor from '@/utils/hooks/use-hash-anchor';
-// TODO: DOP-6015 Add Permalink component
-// import Permalink from "../permalink";
+import Permalink from '../permalink';
 
 const headerBuffer = css`
   scroll-margin-top: ${theme.header.navbarScrollOffset};
@@ -35,8 +34,7 @@ const DescriptionTerm = ({ children, html_id, ...rest }: DescriptionTermProps) =
       {children?.map((child, j) => (
         <ComponentFactory key={j} {...rest} nodeData={child} />
       ))}
-      {/* <Permalink id={html_id} description="definition" /> */}
-      <>PERMALINK html_id {html_id} description=definition</>
+      <Permalink id={html_id} description="definition" />
     </dt>
   );
 };
