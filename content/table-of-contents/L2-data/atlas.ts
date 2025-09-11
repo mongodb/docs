@@ -296,9 +296,14 @@ const tocData: TocItem[] = [
             label: "Cluster Sharding",
             contentSite: "cloud-docs",
             url: "/docs/atlas/cluster-sharding",
+          },          
+          {
+            label: "Auto-Scaling",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/cluster-autoscaling",
           },
           {
-            label: "Write Blocking",
+            label: "Write-Blocking",
             contentSite: "cloud-docs",
             url: "/docs/atlas/cluster-blocking-writes/",
           },
@@ -319,11 +324,6 @@ const tocData: TocItem[] = [
                 url: "/docs/atlas/reconfigure-replica-set-during-regional-outage",
               },
             ],
-          },
-          {
-            label: "Auto-Scaling",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/cluster-autoscaling",
           },
           {
             label: "Major MongoDB Version",
