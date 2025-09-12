@@ -29,16 +29,12 @@ export async function GET(request: NextRequest) {
       search: { $exists: true },
     };
 
-    const searchPropertyMapping: SearchPropertyMapping = {};
+    const repos = await collection.find(query).toArray();
 
-    collection
-      .find(query)
-      .toArray()
-      .then((repos) => {
-        repos.forEach((repo) => {
-          parseRepoForSearchProperties(searchPropertyMapping, repo);
-        });
-      });
+    const searchPropertyMapping: SearchPropertyMapping = {};
+    repos.forEach((repo) => {
+      parseRepoForSearchProperties(searchPropertyMapping, repo);
+    });
 
     return withCORS(NextResponse.json(searchPropertyMapping));
   } catch (err) {
