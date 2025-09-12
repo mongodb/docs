@@ -58,7 +58,7 @@ Options
      - true
      - Identifier of the Federated Database Instance.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - -o, --output
@@ -111,4 +111,3 @@ Examples
 
    # create data federation query limit:
    atlas dataFederation queryLimit create bytesProcessed.query --value 1000 --dataFederation DataFederation1
-

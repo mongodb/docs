@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for queryLimits
 
@@ -62,4 +62,3 @@ Related Commands
    delete </command/atlas-dataFederation-queryLimits-delete>
    describe </command/atlas-dataFederation-queryLimits-describe>
    list </command/atlas-dataFederation-queryLimits-list>
-

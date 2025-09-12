@@ -70,7 +70,7 @@ Options
      - false
      - Description of this database user.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - --ldapType
@@ -145,7 +145,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Database user '<Username>' successfully created.
-   
+
 
 Examples
 --------
@@ -156,21 +156,21 @@ Examples
    # Create an Atlas database admin user named myAdmin for the project with ID 5e2211c17a3e5a48f5497de3:
    atlas dbusers create atlasAdmin --username myAdmin  --projectId 5e2211c17a3e5a48f5497de3
 
-   
+
 .. code-block::
    :copyable: false
 
    # Create a database user named myUser with read/write access to any database for the project with ID 5e2211c17a3e5a48f5497de3:
    atlas dbusers create readWriteAnyDatabase --username myUser --projectId 5e2211c17a3e5a48f5497de3
 
-   
+
 .. code-block::
    :copyable: false
 
    # Create a database user named myUser with multiple roles for the project with ID 5e2211c17a3e5a48f5497de3:
    atlas dbusers create --username myUser --role clusterMonitor,backup --projectId 5e2211c17a3e5a48f5497de3
 
-   
+
 .. code-block::
    :copyable: false
 

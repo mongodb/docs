@@ -40,7 +40,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for PAGER_DUTY
    * - -o, --output
@@ -80,7 +80,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Pager Duty integration configured.
-   
+
 
 Examples
 --------

@@ -44,11 +44,11 @@ Options
      - false
      - Ending date and time for the range of log messages to retrieve, given in UNIX time. Defaults to the start date plus 24 hours, if the start date is set. If start date is not provided, ending time defaults to the current time.
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to overwrite the destination file.
    * - -h, --help
-     - 
+     -
      - false
      - help for logs
    * - --hostname
@@ -91,4 +91,3 @@ Inherited Options
      - string
      - false
      - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
-

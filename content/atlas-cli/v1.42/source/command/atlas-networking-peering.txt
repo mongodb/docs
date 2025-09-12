@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for peering
 
@@ -62,4 +62,3 @@ Related Commands
    delete </command/atlas-networking-peering-delete>
    list </command/atlas-networking-peering-list>
    watch </command/atlas-networking-peering-watch>
-

@@ -15,7 +15,7 @@ atlas dbusers
 Manage database users for your project.
 
 The dbusers command retrieves, creates and modifies the MongoDB database users in your project.
-Each user has a set of roles that provide access to the project’s databases. 
+Each user has a set of roles that provide access to the project’s databases.
 A user’s roles apply to all the clusters in the project.
 
 Options
@@ -30,7 +30,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for dbusers
 
@@ -70,4 +70,3 @@ Related Commands
    describe </command/atlas-dbusers-describe>
    list </command/atlas-dbusers-list>
    update </command/atlas-dbusers-update>
-

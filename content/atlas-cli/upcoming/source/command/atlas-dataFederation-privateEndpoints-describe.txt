@@ -14,7 +14,7 @@ atlas dataFederation privateEndpoints describe
 
 Return the details for the specified data federation private endpoint for your project.
 
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -54,7 +54,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for describe
    * - -o, --output
@@ -80,7 +80,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Examples
 --------
@@ -90,4 +90,3 @@ Examples
 
    # retrieves data federation private endpoint '507f1f77bcf86cd799439011':
    atlas dataFederation privateEndpoints describe 507f1f77bcf86cd799439011
-

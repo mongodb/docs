@@ -14,7 +14,7 @@ atlas organizations apiKeys accessLists delete
 
 Remove the specified IP access list entry from your API Key.
 
-To use this command, you must authenticate with a user account or an API key with the Read Write role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Read Write role.
 
 Syntax
 ------
@@ -58,11 +58,11 @@ Options
      - false
      - Unique 24-digit ID that identifies your API key.
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     - 
+     -
      - false
      - help for delete
    * - --orgId
@@ -84,7 +84,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -94,7 +94,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Access list entry '<Name>' deleted
-   
+
 
 Examples
 --------

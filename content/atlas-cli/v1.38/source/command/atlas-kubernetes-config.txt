@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for config
 
@@ -60,4 +60,3 @@ Related Commands
 
    apply </command/atlas-kubernetes-config-apply>
    generate </command/atlas-kubernetes-config-generate>
-

@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for search
 
@@ -56,4 +56,3 @@ Related Commands
    :titlesonly:
 
    indexes </command/atlas-deployments-search-indexes>
-

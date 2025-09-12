@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for projects
 
@@ -49,7 +49,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Related Commands
 ----------------
@@ -105,4 +105,3 @@ Related Commands
    updateProjectInvitationById </command/atlas-api-projects-updateProjectInvitationById>
    updateProjectRoles </command/atlas-api-projects-updateProjectRoles>
    updateProjectSettings </command/atlas-api-projects-updateProjectSettings>
-

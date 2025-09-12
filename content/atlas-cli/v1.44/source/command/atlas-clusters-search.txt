@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for search
 
@@ -58,4 +58,3 @@ Related Commands
 
    indexes </command/atlas-clusters-search-indexes>
    nodes </command/atlas-clusters-search-nodes>
-

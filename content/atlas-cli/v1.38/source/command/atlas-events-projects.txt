@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for projects
 
@@ -58,4 +58,3 @@ Related Commands
    :titlesonly:
 
    list </command/atlas-events-projects-list>
-

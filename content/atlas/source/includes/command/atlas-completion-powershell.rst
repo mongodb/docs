@@ -18,7 +18,7 @@ Generate the autocompletion script for powershell.
 
 To load completions in your current shell session:
 
-.. code-block::
+.. code-block:: console
 
    atlas completion powershell | Out-String | Invoke-Expression
 
@@ -70,5 +70,5 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 

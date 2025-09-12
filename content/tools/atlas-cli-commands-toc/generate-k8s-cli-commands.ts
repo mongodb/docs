@@ -266,38 +266,42 @@ async function copyCommandFilesFromGit(tagOrBranch: string): Promise<string[]> {
     console.log(`� Found ${files.length} Kubernetes command files`);
     
     // Create target directories
-    const atlasCliDir = path.join(__dirname, '../../atlas-cli/upcoming/source/command');
+    const atlasCliUpcomingDir = path.join(__dirname, '../../atlas-cli/upcoming/source/command');
+    const atlasCliCurrentDir = path.join(__dirname, '../../atlas-cli/current/source/command');
     const atlasDir = path.join(__dirname, '../../atlas/source/includes/command');
-    
+
     // Ensure directories exist
-    fs.mkdirSync(atlasCliDir, { recursive: true });
+    fs.mkdirSync(atlasCliUpcomingDir, { recursive: true });
+    fs.mkdirSync(atlasCliCurrentDir, { recursive: true });
     fs.mkdirSync(atlasDir, { recursive: true });
-    
+
     // Copy files
     console.log('📋 Copying Kubernetes command files...');
     for (const file of files) {
       const sourcePath = path.join(commandDir, file);
-      
+
       // Adjust filename for kubernetes commands
       const fileName = file.replace(/\//g, '-');
       // Avoid double-prefixing if file already starts with atlas-kubernetes
-      const k8sFileName = (fileName.startsWith('atlas-kubernetes-') || fileName.startsWith('atlas-kubernetes.')) 
-        ? fileName 
+      const k8sFileName = (fileName.startsWith('atlas-kubernetes-') || fileName.startsWith('atlas-kubernetes.'))
+        ? fileName
         : `atlas-kubernetes-${fileName}`;
-      
-      const atlasCliPath = path.join(atlasCliDir, k8sFileName);
-      
+
+      const atlasCliUpcomingPath = path.join(atlasCliUpcomingDir, k8sFileName);
+      const atlasCliCurrentPath = path.join(atlasCliCurrentDir, k8sFileName);
+
       // For atlas includes directory, kubernetes files should have .rst extension
       const atlasFileName = k8sFileName.replace(/\.txt$/, '.rst');
       const atlasPath = path.join(atlasDir, atlasFileName);
-      
+
       // Copy file content
       const content = fs.readFileSync(sourcePath, 'utf8');
-      fs.writeFileSync(atlasCliPath, content, 'utf8');
+      fs.writeFileSync(atlasCliUpcomingPath, content, 'utf8');
+      fs.writeFileSync(atlasCliCurrentPath, content, 'utf8');
       fs.writeFileSync(atlasPath, content, 'utf8');
     }
-    
-    console.log(`✅ Copied ${files.length} Kubernetes command files`);
+
+    console.log(`✅ Copied ${files.length} Kubernetes command files to upcoming, current, and atlas directories`);
     return files;
     
   } finally {

@@ -54,7 +54,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - --inheritedRole
@@ -98,7 +98,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Custom database role '<RoleName>' successfully created.
-   
+
 
 Examples
 --------
@@ -109,21 +109,21 @@ Examples
    # Create a custom database role
    atlas customDbRoles create customRole --privilege FIND@databaseName,UPDATE@databaseName.collectionName
 
-   
+
 .. code-block::
    :copyable: false
 
    # Create a custom database role on multiple collections
    atlas customDbRoles create customRole --privilege FIND@databaseName,UPDATE@databaseName.firstCollectionName,UPDATE@databaseName.secondCollectionName
 
-   
+
 .. code-block::
    :copyable: false
 
    # Create a customer database role with granted action on the cluster resource
    atlas customDbRoles create customRole --privilege GET_CMD_LINE_OPTS
 
-   
+
 .. code-block::
    :copyable: false
 

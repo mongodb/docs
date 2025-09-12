@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for scheduled
 
@@ -58,4 +58,3 @@ Related Commands
 
    create </command/atlas-backups-compliancePolicy-policies-scheduled-create>
    describe </command/atlas-backups-compliancePolicy-policies-scheduled-describe>
-

@@ -48,7 +48,7 @@ Options
      - int
      - false
      - Length of time expressed during which the query finds suggested indexes among the managed namespaces in the cluster. This parameter expresses its value in milliseconds.
-       
+
        - If you don't specify the **since** parameter, the endpoint returns data covering the duration before the current time.
        - If you specify neither the **duration** nor **since** parameters, the endpoint returns data from the previous 24 hours.
    * - --envelope
@@ -59,10 +59,10 @@ Options
      - string
      - true
      - Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-       
+
        **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
    * - -h, --help
-     - 
+     -
      - false
      - help for listSlowQueryNamespaces
    * - -o, --output
@@ -74,18 +74,18 @@ Options
      - false
      - file to write the api output to. This flag is required when the output of an endpoint is binary (ex: gzip) and the command is not piped (ex: atlas command > out.zip)
    * - --pretty
-     - 
+     -
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --processId
      - mongod
      - true
-     - Combination of host and port that serves the MongoDB process. The host must be the hostname, FQDN, IPv4 address, or IPv6 address of the host that runs the MongoDB process (mongod or `mongos`). The port must be the IANA port on which the MongoDB process listens for requests.
+     - Combination of host and port that serves the MongoDB process. The host must be the hostname, FQDN, IPv4 address, or IPv6 address of the host that runs the MongoDB process (mongod or ``mongos``). The port must be the IANA port on which the MongoDB process listens for requests.
    * - --since
      - int
      - false
      - Date and time from which the query retrieves the suggested indexes. This parameter expresses its value in the number of milliseconds that have elapsed since the [UNIX epoch](https://en.wikipedia.org/wiki/Unix_time).
-       
+
        - If you don't specify the **duration** parameter, the endpoint returns data covering from the **since** value and the current time.
        - If you specify neither the **duration** nor the **since** parameters, the endpoint returns data from the previous 24 hours.
    * - --version

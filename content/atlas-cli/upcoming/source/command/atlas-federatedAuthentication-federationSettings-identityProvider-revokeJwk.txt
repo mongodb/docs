@@ -14,7 +14,7 @@ atlas federatedAuthentication federationSettings identityProvider revokeJwk
 
 Revoke the JWK token from the specified identity provider from your federation settings.
 
-To use this command, you must authenticate with a user account or an API key with the Org Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Org Owner role.
 
 Syntax
 ------
@@ -58,7 +58,7 @@ Options
      - true
      - Unique 24-hexadecimal digit string that identifies the federation settings.
    * - -h, --help
-     - 
+     -
      - false
      - help for revokeJwk
    * - -o, --output
@@ -80,7 +80,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Examples
 --------
@@ -89,5 +89,4 @@ Examples
    :copyable: false
 
    # Revoke the Jwk from the identity provider with ID aa2223b25a115342acc1f108 and federation settings with federationSettingsId 5d1113b25a115342acc2d1aa.
- 	atlas federatedAuthentication federationSettings identityProvider revokeJwk aa2223b25a115342acc1f108 --federationSettingsId 5d1113b25a115342acc2d1aa
-
+   atlas federatedAuthentication federationSettings identityProvider revokeJwk aa2223b25a115342acc1f108 --federationSettingsId 5d1113b25a115342acc2d1aa

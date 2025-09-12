@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for databaseUsers
 
@@ -69,4 +69,3 @@ Related Commands
    getDatabaseUser </command/atlas-api-databaseUsers-getDatabaseUser>
    listDatabaseUsers </command/atlas-api-databaseUsers-listDatabaseUsers>
    updateDatabaseUser </command/atlas-api-databaseUsers-updateDatabaseUser>
-

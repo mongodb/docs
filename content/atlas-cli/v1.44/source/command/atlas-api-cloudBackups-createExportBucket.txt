@@ -107,12 +107,14 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-         .. literalinclude:: /includes/examples/atlas-api-cloudBackups-createExportBucket-2023-01-01-aws-payload.json
-            :language: shell
+      .. literalinclude:: /includes/examples/atlas-api-cloudBackups-createExportBucket-2023-01-01-aws-payload.json
+         :language: shell
+
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-cloudBackups-createExportBucket-2023-01-01-aws.sh
          :language: shell
+
    .. tab:: Example 1
       :tabid: 2024-05-30_aws
 
@@ -120,12 +122,14 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-         .. literalinclude:: /includes/examples/atlas-api-cloudBackups-createExportBucket-2024-05-30-aws-payload.json
-            :language: shell
+      .. literalinclude:: /includes/examples/atlas-api-cloudBackups-createExportBucket-2024-05-30-aws-payload.json
+         :language: shell
+
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-cloudBackups-createExportBucket-2024-05-30-aws.sh
          :language: shell
+
    .. tab:: Example 2
       :tabid: 2024-05-30_azure
 
@@ -133,12 +137,14 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-         .. literalinclude:: /includes/examples/atlas-api-cloudBackups-createExportBucket-2024-05-30-azure-payload.json
-            :language: shell
+      .. literalinclude:: /includes/examples/atlas-api-cloudBackups-createExportBucket-2024-05-30-azure-payload.json
+         :language: shell
+
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-cloudBackups-createExportBucket-2024-05-30-azure.sh
          :language: shell
+
    .. tab:: Example 3
       :tabid: 2024-05-30_gcp
 
@@ -146,8 +152,9 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-         .. literalinclude:: /includes/examples/atlas-api-cloudBackups-createExportBucket-2024-05-30-gcp-payload.json
-            :language: shell
+      .. literalinclude:: /includes/examples/atlas-api-cloudBackups-createExportBucket-2024-05-30-gcp-payload.json
+         :language: shell
+
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-cloudBackups-createExportBucket-2024-05-30-gcp.sh

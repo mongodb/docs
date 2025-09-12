@@ -14,7 +14,6 @@ This project generates TypeScript table of contents entries for MongoDB Atlas CL
 - **Type Safety**: Written in TypeScript with full type safety using proper XOR version constraint types
 - **Alphabetical Integration**: Kubernetes commands are seamlessly integrated alphabetically with main CLI commands
 - **File Synchronization**: Automatically copies command files to required documentation directories
-- **Serverless Filtering**: Automatically filters out deprecated serverless commands and cleans references
 
 ## Architecture
 
@@ -23,8 +22,6 @@ This project generates TypeScript table of contents entries for MongoDB Atlas CL
 - **`generate-cli-commands.ts`** - Main script that:
   - Clones the `mongodb/mongodb-atlas-cli` repository
   - Processes 900+ Atlas CLI commands
-  - **Filters out serverless commands** (files with "serverless" or "Serverless" in name)
-  - **Cleans serverless references** from remaining files (toctree entries and :ref: links)
   - Clones the `mongodb/atlas-cli-plugin-kubernetes` repository
   - Merges Kubernetes commands directly into main command hierarchy
   - Checks version availability across 10 version directories
@@ -38,20 +35,6 @@ This project generates TypeScript table of contents entries for MongoDB Atlas CL
   - Generates intermediate `atlas-cli-k8s-commands.ts` file for reference
   - Uses git-based approach to avoid API rate limits
   - **Note**: K8s commands are automatically merged by main script
-
-- **`fix_rst_syntax.py`** - Python script for comprehensive reStructuredText syntax fixing:
-  - Fixes single backticks to double backticks for monospace text
-  - Repairs broken tab directive structures with proper 6-space indentation
-  - Fixes literalinclude block indentation issues
-  - Removes duplicate language directives
-  - Handles completion files with tab-indented content
-  - Syncs files between atlas-cli and atlas directories with proper extensions
-
-- **`fix_rst_syntax.sh`** - Fast shell script for bulk syntax operations:
-  - Uses sed commands for rapid bulk text processing
-  - Handles indentation fixes and duplicate directive removal
-  - Provides colorized output for easy monitoring
-  - Ideal for quick fixes on large file sets
 
 ### Generated Files
 
@@ -82,6 +65,8 @@ The system automatically detects commands that don't exist in all versions and a
 - **Excludes**: Commands missing from older versions get `{"excludes":["v1.38","v1.39"]}`
 - **Includes**: Commands only in specific versions get `{"includes":["v1.45","current"]}`
 - **No Constraints**: Commands in all versions have no version property
+
+Version directories checked: `current`, `upcoming`, `v1.38`, `v1.39`, `v1.40`, `v1.41`, `v1.42`, `v1.43`, `v1.44`, `v1.45`
 
 ## Prerequisites
 
@@ -132,6 +117,26 @@ npm install
 # 3. Generate unified Atlas CLI commands (includes Kubernetes integration)
 npx tsx generate-cli-commands.ts atlascli/v1.46.2
 ```
+
+Generator script (generate-cli-commands.ts)
+-----------------------------------------
+
+The main generator is `generate-cli-commands.ts` and is the canonical way to produce the
+`atlas-cli-commands.ts` file used by the table-of-contents. Quick usage:
+
+```bash
+# from this directory
+npx tsx generate-cli-commands.ts <tag-or-branch>
+# example
+npx tsx generate-cli-commands.ts atlascli/v1.46.2
+```
+
+Notes:
+- The script clones the Atlas CLI repository and copies `.txt` command files into
+  `../../atlas-cli/upcoming/source/command/` and `../../atlas/source/includes/command/`.
+- The generator writes `../../table-of-contents/docset-data/atlas-cli-commands.ts`.
+- Run `npm install` first if the `tsx` runner or other dependencies are missing.
+
 
 **Note**: The main script automatically processes both repositories and merges all commands. Running the Kubernetes script separately is optional and only needed for debugging or development purposes.
 
@@ -219,69 +224,6 @@ npm run build
 - **Branch**: Uses `main` branch
 - **Commands**: Processes all `.txt` files from the repository
 
-### 7. Serverless Command Filtering
-
-The tool automatically filters out deprecated serverless commands during the generation process:
-
-#### File Filtering
-- **Removes files** with "serverless" or "Serverless" in the filename
-- **Logs filtered files** for transparency
-- Example: `atlas-serverless-list.txt` → filtered out
-
-#### Content Cleaning
-For remaining files, the tool automatically removes serverless references:
-
-**Toctree Entries Removed:**
-```rst
-# These lines are automatically removed from toctree sections:
-createServerlessBackupRestoreJob </command/atlas-api-cloudBackups-createServerlessBackupRestoreJob>
-getServerlessAutoIndexing </command/atlas-api-performanceAdvisor-getServerlessAutoIndexing>
-listServerlessBackups </command/atlas-api-cloudBackups-listServerlessBackups>
-```
-
-**Reference Links Removed:**
-```rst
-# These reference links are automatically removed:
-* :ref:`atlas-api-cloudBackups-createServerlessBackupRestoreJob` - Restores one snapshot...
-* :ref:`atlas-api-performanceAdvisor-getServerlessAutoIndexing` - Get whether the Serverless...
-```
-
-#### Testing Serverless Filtering
-```bash
-# Test the serverless filtering functionality
-npx tsx test-serverless-filtering.ts
-```
-
-### 8. RestructuredText Syntax Fixing
-
-After importing new command files, use these tools to fix common syntax issues:
-
-#### Python Script (Comprehensive)
-```bash
-# Fix all syntax issues with detailed processing
-python fix_rst_syntax.py
-
-# The script will automatically:
-# - Fix single backticks to double backticks for monospace text
-# - Repair broken tab directive structures 
-# - Fix literalinclude block indentation
-# - Remove duplicate language directives
-# - Sync files between directories with proper extensions
-```
-
-#### Shell Script (Fast Bulk Operations)
-```bash
-# Quick syntax fixes using sed commands
-./fix_rst_syntax.sh
-
-# Provides:
-# - Rapid bulk text processing
-# - Colorized output for monitoring
-# - Indentation and directive fixes
-```
-
-**Note**: Run these scripts after each command import to ensure proper reStructuredText syntax. See `RST_SYNTAX_FIXER_README.md` and `RST_SYNTAX_FIXES_README.md` for detailed documentation.
-
 ## Output and Statistics
 
 ### Generated Command Statistics
@@ -293,10 +235,40 @@ python fix_rst_syntax.py
 ### File Locations
 - **Primary Output**: `../../table-of-contents/docset-data/atlas-cli-commands.ts` (contains all commands)
 - **Reference Files**: `../../table-of-contents/docset-data/atlas-cli-k8s-commands.ts` (for development only)
-- **Command Files**: Copied to both directories with appropriate extensions:
-  - `../../atlas-cli/upcoming/source/command/` (maintains original `.txt` extension)
-  - `../../atlas/source/includes/command/` (converts to `.rst` extension for includes)
-  - **Note**: Atlas kubernetes files specifically converted from `.txt` to `.rst` in atlas includes directory
+- **Command Files**: Copied to both:
+  - `../../atlas-cli/upcoming/source/command/`
+  - `../../atlas/source/includes/command/`
+
+## RST Syntax Fixing
+
+This directory includes a Python script for fixing common reStructuredText syntax issues in generated Atlas CLI command files.
+
+### Fix Script Usage
+
+```bash
+# Fix syntax issues in default directories (recommended)
+python3 fix_rst_syntax.py
+
+# Fix syntax issues in specific directory
+python3 fix_rst_syntax.py /path/to/directory --pattern "*.txt"
+```
+
+### What It Fixes
+
+The `fix_rst_syntax.py` script automatically corrects:
+
+- **literalinclude Indentation**: Fixes literalinclude directives that need proper indentation within tab structures
+- **Language Field Placement**: Moves `:language: shell` lines to correct positions within code blocks
+- **Backtick Formatting**: Converts single backticks to double backticks for monospace text
+- **Atlas CLI Patterns**: Specifically targets common issues in atlas-api-*.txt and atlas-api-*.rst files
+
+### Default Processing
+
+When run without arguments, the script processes:
+- `../../atlas-cli/upcoming/source/command/` - Atlas CLI .txt files
+- `../../atlas/source/includes/command/` - Atlas includes .rst files
+
+This ensures both the main Atlas CLI documentation and included files maintain proper RST syntax.
 
 ## Troubleshooting
 

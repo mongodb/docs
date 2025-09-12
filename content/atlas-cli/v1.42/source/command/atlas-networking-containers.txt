@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for containers
 
@@ -58,4 +58,3 @@ Related Commands
 
    delete </command/atlas-networking-containers-delete>
    list </command/atlas-networking-containers-list>
-

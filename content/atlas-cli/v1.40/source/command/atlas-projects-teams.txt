@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for teams
 
@@ -62,4 +62,3 @@ Related Commands
    delete </command/atlas-projects-teams-delete>
    list </command/atlas-projects-teams-list>
    update </command/atlas-projects-teams-update>
-

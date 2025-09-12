@@ -14,7 +14,7 @@ atlas streams privateLinks delete
 
 Deletes an Atlas Stream Processing PrivateLink endpoint.
 
-To use this command, you must authenticate with a user account or an API key with any of the following roles: Project Owner, Project Stream Processing Owner.
+To use this command, you must authenticate with a user account, a service account, or an API key with any of the following roles: Project Owner, Project Stream Processing Owner.
 
 Syntax
 ------
@@ -54,11 +54,11 @@ Options
      - Required
      - Description
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     - 
+     -
      - false
      - help for delete
    * - --projectId
@@ -80,7 +80,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -90,7 +90,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Atlas Stream Processing PrivateLink endpoint '<Name>' deleted.
-   
+
 
 Examples
 --------
@@ -100,4 +100,3 @@ Examples
 
    # delete an Atlas Stream Processing PrivateLink endpoint:
    atlas streams privateLink delete 5e2211c17a3e5a48f5497de3
-

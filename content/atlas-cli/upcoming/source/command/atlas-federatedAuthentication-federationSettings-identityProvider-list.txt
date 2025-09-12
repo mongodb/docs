@@ -14,7 +14,7 @@ atlas federatedAuthentication federationSettings identityProvider list
 
 List the identity providers from your federation settings.
 
-To use this command, you must authenticate with a user account or an API key with the Org Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Org Owner role.
 
 Syntax
 ------
@@ -42,7 +42,7 @@ Options
      - true
      - Unique 24-hexadecimal digit string that identifies the federation settings.
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - --idpType
@@ -80,7 +80,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -91,7 +91,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     DISPLAY NAME    ISSUER URI    CLIENT ID    IDP TYPE
    <Id>   <DisplayName>   <IssuerUri>   <ClientId>   <IdpType>
-   
+
 
 Examples
 --------
@@ -100,5 +100,4 @@ Examples
    :copyable: false
 
    # List the identity providers from your federation settings with federationSettingsId 5d1113b25a115342acc2d1aa and idpType WORKLOAD
- 	atlas federatedAuthentication federationSettings identityProvider list --federationSettingsId 5d1113b25a115342acc2d1aa --idpType WORKLOAD
-
+   atlas federatedAuthentication federationSettings identityProvider list --federationSettingsId 5d1113b25a115342acc2d1aa --idpType WORKLOAD

@@ -56,7 +56,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for describe
    * - --orgId
@@ -93,7 +93,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     DESCRIPTION   PUBLIC KEY    PRIVATE KEY
    <Id>   <Desc>        <PublicKey>   <PrivateKey>
-   
+
 
 Examples
 --------

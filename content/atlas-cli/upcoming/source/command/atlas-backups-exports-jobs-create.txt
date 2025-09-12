@@ -14,7 +14,7 @@ atlas backups exports jobs create
 
 Export one backup snapshot for an M10 or higher Atlas cluster to an existing AWS S3 bucket.
 
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -50,7 +50,7 @@ Options
      - false
      - Custom data to include in the metadata file named .complete that Atlas uploads to the bucket when the export job finishes. Custom data can be specified as key and value pairs.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - -o, --output
@@ -80,7 +80,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -90,7 +90,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Export job '<Id>' created in a bucket with ID '<ExportBucketId>'.
-   
+
 
 Examples
 --------

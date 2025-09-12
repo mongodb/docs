@@ -15,10 +15,10 @@ atlas projects apiKeys delete
 Remove the specified organization API key from your project.
 
 The API key still exists at the organization level. To reassign the organization API key to a project, run the  atlas projects apiKeys assign command.
-		
+
 To view possible values for the ID argument, run atlas organizations apiKeys list.
 
-To use this command, you must authenticate with a user account or an API key with the Project User Admin role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project User Admin role.
 
 Syntax
 ------
@@ -58,11 +58,11 @@ Options
      - Required
      - Description
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     - 
+     -
      - false
      - help for delete
    * - --projectId
@@ -84,7 +84,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -94,7 +94,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    API Key '<Name>' deleted
-   
+
 
 Examples
 --------

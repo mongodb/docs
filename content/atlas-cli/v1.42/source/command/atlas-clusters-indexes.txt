@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for indexes
 
@@ -56,4 +56,3 @@ Related Commands
    :titlesonly:
 
    create </command/atlas-clusters-indexes-create>
-

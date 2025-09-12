@@ -14,7 +14,7 @@ atlas auditing update
 
 Updates the auditing configuration for the specified project
 
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -38,7 +38,7 @@ Options
      - Required
      - Description
    * - --auditAuthorizationSuccess
-     - 
+     -
      - false
      - Flag that indicates whether someone set auditing to track successful authentications. This only applies to the "atype" : "authCheck" audit filter. Setting this parameter to true degrades cluster performance.
    * - --auditFilter
@@ -48,7 +48,7 @@ Options
 
        Mutually exclusive with --file.
    * - --enabled
-     - 
+     -
      - false
      - Flag that indicates whether someone enabled database auditing for the specified project.
    * - -f, --file
@@ -58,7 +58,7 @@ Options
 
        Mutually exclusive with --auditFilter.
    * - -h, --help
-     - 
+     -
      - false
      - help for update
    * - -o, --output
@@ -84,7 +84,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -94,7 +94,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Auditing configuration successfully updated.
-   
+
 
 Examples
 --------
@@ -105,10 +105,9 @@ Examples
    # Audit all authentication events for known users:
    atlas auditing update --auditFilter '{"atype": "authenticate"}'
 
-   
+
 .. code-block::
    :copyable: false
 
    # Audit all authentication events for known user via a configuration file:
    atlas auditing update -f filter.json
-

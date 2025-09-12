@@ -58,7 +58,7 @@ Options
      - true
      - Name of the provider of the cloud service where Atlas can access the S3 bucket. Atlas supports only AWS.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - --iamRoleId
@@ -98,7 +98,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Export destination created using '<BucketName>'.
-   
+
 
 Examples
 --------

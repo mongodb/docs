@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for settings
 
@@ -46,7 +46,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Related Commands
 ----------------
@@ -72,4 +72,3 @@ Related Commands
    fields </command/atlas-alerts-settings-fields>
    list </command/atlas-alerts-settings-list>
    update </command/atlas-alerts-settings-update>
-

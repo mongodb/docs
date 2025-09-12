@@ -17,7 +17,7 @@ Create an organization API key and assign it to your project.
 MongoDB returns the private API key only once. After you run this command, immediately copy, save, and secure both the public and private API keys.
 If you don't provide an organization level role, the API Key defaults to organization member of the project parent organization.
 
-To use this command, you must authenticate with a user account or an API key with any of the following roles: Project User Admin or Organization User Admin to manage organization level roles.
+To use this command, you must authenticate with a user account, a service account, or an API key with any of the following roles: Project User Admin or Organization User Admin to manage organization level roles.
 
 Syntax
 ------
@@ -45,7 +45,7 @@ Options
      - true
      - Description of the API key.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - -o, --output
@@ -75,7 +75,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -87,7 +87,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
    API Key '<Id>' created.
    Public API Key <PublicKey>
    Private API Key <PrivateKey>
-   
+
 
 Examples
 --------
@@ -97,8 +97,8 @@ Examples
 
    # Create an organization API key with the GROUP_OWNER role and assign it to the project with ID 5e2211c17a3e5a48f5497de3:
    atlas projects apiKeys create --desc "My API key" --projectId 5e1234c17a3e5a48f5497de3 --role GROUP_OWNER --output json
-   
-   
+
+
 .. code-block::
    :copyable: false
 

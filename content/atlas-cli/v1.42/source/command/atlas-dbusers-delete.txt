@@ -58,11 +58,11 @@ Options
      - false
      - Authentication database name. If the user authenticates with AWS IAM, x.509, or LDAP, this value should be $external. If the user authenticates with SCRAM-SHA, this value should be admin. This value defaults to "admin".
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     - 
+     -
      - false
      - help for delete
    * - --projectId
@@ -94,7 +94,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    DB user '<Name>' deleted
-   
+
 
 Examples
 --------
@@ -105,14 +105,14 @@ Examples
    # Delete the SCRAM SHA-authenticating database user named dylan for the project with the ID 5e2211c17a3e5a48f5497de3:
    atlas dbusers delete dylan --projectId 5e2211c17a3e5a48f5497de3
 
-   
+
 .. code-block::
    :copyable: false
 
    # Delete the AWS IAM-authenticating database user with the ARN arn:aws:iam::123456789012:user/sales/enterprise/DylanBloggs for the project with ID 5e2211c17a3e5a48f5497de3. Prepend $external with \ to escape the special-use character:
    atlas dbusers delete arn:aws:iam::123456789012:user/sales/enterprise/DylanBloggs --authDB \$external --projectId 5e2211c17a3e5a48f5497de3
- 			
-   
+
+
 .. code-block::
    :copyable: false
 

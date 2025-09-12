@@ -16,7 +16,7 @@ Create an API Key for your organization.
 
 MongoDB returns the private API key only once. After you run this command, immediately copy, save, and secure both the public and private API keys.
 
-To use this command, you must authenticate with a user account or an API key with the Organization User Admin role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Organization User Admin role.
 
 Syntax
 ------
@@ -44,7 +44,7 @@ Options
      - true
      - Description of the API key.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - --orgId
@@ -74,7 +74,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -86,7 +86,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
    API Key '<Id>' created.
    Public API Key <PublicKey>
    Private API Key <PrivateKey>
-   
+
 
 Examples
 --------

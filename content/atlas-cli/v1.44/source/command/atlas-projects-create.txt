@@ -56,11 +56,11 @@ Options
      - Required
      - Description
    * - --govCloudRegionsOnly
-     - 
+     -
      - false
      - Flag that designates that the project uses only the AWS GovCloud region. Use this option only for Atlas for Government projects. If unspecified, the project uses only the AWS Standard region for AWS deployments. You can't deploy clusters across AWS GovCloud and AWS Standard regions in the same project.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - --orgId
@@ -80,7 +80,7 @@ Options
      - false
      - List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project.
    * - --withoutDefaultAlertSettings
-     - 
+     -
      - false
      - Flag that creates the new project without the default alert settings enabled. This flag defaults to false. This option is useful if you create projects programmatically and want to create your own alerts instead of using the default alert settings.
 
@@ -108,7 +108,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Project '<Id>' created.
-   
+
 
 Examples
 --------

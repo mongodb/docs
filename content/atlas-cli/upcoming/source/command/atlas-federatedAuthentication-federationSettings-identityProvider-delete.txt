@@ -14,7 +14,7 @@ atlas federatedAuthentication federationSettings identityProvider delete
 
 Remove the specified identity provider from your federation settings.
 
-To use this command, you must authenticate with a user account or an API key with the Org Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Org Owner role.
 
 Syntax
 ------
@@ -58,11 +58,11 @@ Options
      - true
      - Unique 24-hexadecimal digit string that identifies the federation settings.
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     - 
+     -
      - false
      - help for delete
    * - -o, --output
@@ -84,7 +84,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -94,7 +94,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Identity provider '<Name>' deleted
-   
+
 
 Examples
 --------
@@ -103,5 +103,4 @@ Examples
    :copyable: false
 
    # elete the identity provider with ID aa2223b25a115342acc1f108 from your federation settings with federationSettingsId 5d1113b25a115342acc2d1aa.
- 	atlas federatedAuthentication federationSettings identityProvider delete aa2223b25a115342acc1f108 --federationSettingsId 5d1113b25a115342acc2d1aa
-
+   atlas federatedAuthentication federationSettings identityProvider delete aa2223b25a115342acc1f108 --federationSettingsId 5d1113b25a115342acc2d1aa

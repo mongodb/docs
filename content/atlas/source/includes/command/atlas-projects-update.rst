@@ -14,7 +14,7 @@ atlas projects update
 
 Update a project.
 
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -58,7 +58,7 @@ Options
      - true
      - Path to the JSON configuration file that defines project configuration settings. Note: Unsupported fields in the JSON file are ignored. To learn more about project configuration files for the Atlas CLI, see https://dochub.mongodb.org/core/project-config-file.
    * - -h, --help
-     - 
+     -
      - false
      - help for update
    * - -o, --output
@@ -80,7 +80,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -90,7 +90,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Project '<Id>' updated.
-   
+
 
 Examples
 --------

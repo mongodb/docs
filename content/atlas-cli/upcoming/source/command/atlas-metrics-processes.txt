@@ -17,7 +17,7 @@ Return the process measurements for the specified host.
 To return the hostname and port needed for this command, run
 atlas processes list
 
-To use this command, you must authenticate with a user account or an API key with the Project Read Only role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Read Only role.
 
 Syntax
 ------
@@ -67,7 +67,7 @@ Options
      - true
      - ISO 8601-formatted duration that specifies the interval between measurement data points. Only the following subset of ISO 8601-formatted time periods are supported: PT10S, PT1M, PT5M, PT1H, P1D. When you specify granularity, you must specify either period or start and end.
    * - -h, --help
-     - 
+     -
      - false
      - help for processes
    * - --limit
@@ -117,7 +117,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Examples
 --------

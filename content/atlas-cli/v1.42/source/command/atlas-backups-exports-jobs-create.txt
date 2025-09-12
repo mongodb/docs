@@ -50,7 +50,7 @@ Options
      - false
      - Custom data to include in the metadata file named .complete that Atlas uploads to the bucket when the export job finishes. Custom data can be specified as key and value pairs.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - -o, --output
@@ -90,7 +90,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Export job '<Id>' created in a bucket with ID '<ExportBucketId>'.
-   
+
 
 Examples
 --------

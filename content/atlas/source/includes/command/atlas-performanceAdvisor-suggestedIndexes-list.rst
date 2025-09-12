@@ -16,7 +16,7 @@ Return the suggested indexes for collections experiencing slow queries.
 
 The Performance Advisor monitors queries that MongoDB considers slow and suggests new indexes to improve query performance.
 
-To use this command, you must authenticate with a user account or an API key with the Project Read Only role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Read Only role.
 
 Syntax
 ------
@@ -44,7 +44,7 @@ Options
      - false
      - Length of time in milliseconds for which you want to return results. If you specify the since option, the duration starts at the date and time specified. If you don't set the since option, this command returns data from the duration before the current time.
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - --nExamples
@@ -90,7 +90,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Examples
 --------

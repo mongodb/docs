@@ -14,7 +14,7 @@ atlas streams instances download
 
 Download a compressed file that contains the logs for the specified Atlas Stream Processing instance.
 
-This command downloads a file with a .gz extension. To use this command, you must authenticate with a user account or an API key with the Project Data Access Read/Write role.
+This command downloads a file with a .gz extension. To use this command, you must authenticate with a user account, a service account, or an API key with the Project Data Access Read/Write role.
 
 Syntax
 ------
@@ -58,11 +58,11 @@ Options
      - false
      - Ending date and time for the range of log messages to retrieve, given in UNIX time. Defaults to the start date plus 24 hours, if the start date is set. If start date is not provided, ending time defaults to the current time.
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to overwrite the destination file.
    * - -h, --help
-     - 
+     -
      - false
      - help for download
    * - --out
@@ -92,7 +92,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -102,7 +102,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Download of <Name> completed.
-   
+
 
 Examples
 --------

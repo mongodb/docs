@@ -38,11 +38,11 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - --includeDeleted
-     - 
+     -
      - false
      - Flag that indicates whether to include deleted organizations in the list. This option applies only to Ops Manager organizations. You can't return deleted Atlas or Cloud Manager organizations.
    * - --limit
@@ -54,7 +54,7 @@ Options
      - false
      - Organization name to perform a case-insensitive search for.
    * - --omitCount
-     - 
+     -
      - false
      - Flag that indicates whether the JSON response returns the total number of items (totalCount) in the JSON response.
    * - -o, --output
@@ -91,7 +91,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     NAME
    <Id>   <Name>
-   
+
 
 Examples
 --------
@@ -101,8 +101,8 @@ Examples
 
    # Return a JSON-formatted list of all organizations:
    atlas organizations list --output json
-   
-   
+
+
 .. code-block::
    :copyable: false
 

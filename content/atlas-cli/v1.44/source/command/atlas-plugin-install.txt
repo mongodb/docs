@@ -60,11 +60,11 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for install
    * - --skipSignatureVerification
-     - 
+     -
      - false
      - Skip signature verification.
 
@@ -93,8 +93,8 @@ Examples
    # Install the latest version of the plugin:
    atlas plugin install mongodb/atlas-cli-plugin-example
    atlas plugin install https://github.com/mongodb/atlas-cli-plugin-example
-   
-   
+
+
 .. code-block::
    :copyable: false
 

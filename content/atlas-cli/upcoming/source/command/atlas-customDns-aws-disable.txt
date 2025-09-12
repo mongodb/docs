@@ -14,7 +14,7 @@ atlas customDns aws disable
 
 Disable the custom DNS configuration of an Atlas cluster deployed to AWS in the specified project.
 
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -38,7 +38,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for disable
    * - -o, --output
@@ -64,7 +64,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -74,7 +74,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    DNS configuration disabled.
-   
+
 
 Examples
 --------
@@ -82,5 +82,5 @@ Examples
 .. code-block::
    :copyable: false
 
-   # Disable the custom DNS configuration deployed to AWS in the project with ID 618d48e05277a606ed2496fe:		
-   atlas customDns aws disable --projectId 618d48e05277a606ed2496fe 
+   # Disable the custom DNS configuration deployed to AWS in the project with ID 618d48e05277a606ed2496fe:
+   atlas customDns aws disable --projectId 618d48e05277a606ed2496fe

@@ -36,7 +36,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - -o, --output
@@ -70,7 +70,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Examples
 --------
@@ -81,7 +81,7 @@ Examples
    # List available regions for a given cloud provider and tier:
    atlas cluster availableRegions list --provider AWS --tier M50
 
-   
+
 .. code-block::
    :copyable: false
 

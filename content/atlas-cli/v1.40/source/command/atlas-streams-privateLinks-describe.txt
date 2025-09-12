@@ -54,7 +54,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for describe
    * - -o, --output
@@ -91,7 +91,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID  PROVIDER  REGION  VENDOR  STATE  INTERFACE_ENDPOINT_ID  SERVICE_ENDPOINT_ID  DNS_DOMAIN  DNS_SUBDOMAIN
    <Id>  <Provider>  <Region>  <Vendor>  <State>  <InterfaceEndpointId>  <ServiceEndpointId>  <DnsDomain>  <DnsSubDomain>
-   
+
 
 Examples
 --------
@@ -101,4 +101,3 @@ Examples
 
    # describe a PrivateLink endpoint for Atlas Stream Processing:
    atlas streams privateLink describe 5e2211c17a3e5a48f5497de3
-

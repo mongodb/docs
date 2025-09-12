@@ -14,7 +14,7 @@ atlas clusters search indexes create
 
 Create a search index for a cluster.
 
-To use this command, you must authenticate with a user account or an API key with the Project Data Access Admin role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Data Access Admin role.
 
 Syntax
 ------
@@ -62,7 +62,7 @@ Options
      - false
      - Name of the JSON index configuration file to use. To learn about the Atlas Search and Atlas Vector Search index configuration file, see https://dochub.mongodb.org/core/search-index-config-file-atlascli. To learn about the Atlas Search index syntax and options that you can define in your configuration file, see https://dochub.mongodb.org/core/index-definitions-fts. To learn about the Atlas Vector Search index syntax and options that you can define in your configuration file, see https://dochub.mongodb.org/core/index-definition-avs.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - -o, --output
@@ -88,7 +88,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -98,7 +98,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Index <Name> created.
-   
+
 
 Examples
 --------

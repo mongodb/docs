@@ -41,19 +41,19 @@ Options
      - Required
      - Description
    * - --atlasGov
-     - 
+     -
      - false
      - Flag that indicates whether to configure Atlas for Government as a target of the operator.
    * - --configOnly
-     - 
+     -
      - false
      - Flag that indicates whether to generate only the operator configuration files without installing the Operator
    * - -h, --help
-     - 
+     -
      - false
      - help for install
    * - --import
-     - 
+     -
      - false
      - Flag that indicates whether to import existing Atlas resources into the cluster for the operator to manage.
    * - --kubeContext
@@ -77,11 +77,11 @@ Options
      - false
      - Name of the project to create or use with the installed operator.
    * - --resourceDeletionProtection
-     - 
+     -
      - false
      - Toggle atlas operator deletion protection for resources like Projects, Deployments, etc. Read more: https://dochub.mongodb.org/core/ako-deletion-protection This value defaults to true.
    * - --subresourceDeletionProtection
-     - 
+     -
      - false
      - Toggle atlas operator deletion protection for subresources like Alerts, Integrations, etc. Read more: https://dochub.mongodb.org/core/ako-deletion-protection This value defaults to true.
    * - --targetNamespace
@@ -118,51 +118,51 @@ Examples
    # Install latest version of the operator into the default namespace:
    atlas kubernetes operator install
 
-   
+
 .. code-block::
    :copyable: false
 
    # Install the latest version of the operator targeting Atlas for Government instead of regular commercial Atlas:
    atlas kubernetes operator install --atlasGov
 
-   
+
 .. code-block::
    :copyable: false
 
    # Install a specific version of the operator:
    atlas kubernetes operator install --operatorVersion=1.7.0
 
-   
+
 .. code-block::
    :copyable: false
 
    # Install a specific version of the operator to a namespace and watch only this namespace and a second one:
    atlas kubernetes operator install --operatorVersion=1.7.0 --targetNamespace=<namespace> --watchNamespace=<namespace>,<secondNamespace>
 
-   
+
 .. code-block::
    :copyable: false
 
    # Install and import all objects from an organization:
    atlas kubernetes operator install --targetNamespace=<namespace> --orgID <orgID> --import
 
-   
+
 .. code-block::
    :copyable: false
 
    # Install and import objects from a specific project:
    atlas kubernetes operator install --targetNamespace=<namespace> --orgID <orgID> --projectName <project> --import
 
- 	
+
 .. code-block::
    :copyable: false
 
    # Install the operator and disable deletion protection:
- 	atlas kubernetes operator install --resourceDeletionProtection=false
+   atlas kubernetes operator install --resourceDeletionProtection=false
 
- 	
+
 .. code-block::
    :copyable: false
 
    # Install the operator and disable deletion protection for sub-resources (Atlas project integrations, private endpoints, etc.):
- 	atlas kubernetes operator install --subresourceDeletionProtection=false
+   atlas kubernetes operator install --subresourceDeletionProtection=false

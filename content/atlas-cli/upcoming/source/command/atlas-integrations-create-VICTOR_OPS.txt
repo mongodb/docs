@@ -15,10 +15,10 @@ atlas integrations create VICTOR_OPS
 Create or update a Splunk On-Call integration for your project.
 
 VictorOps is now Splunk On-Call.
-		
+
 The requesting API key must have the Organization Owner or Project Owner role to configure an integration with Splunk On-Call.
 
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -46,7 +46,7 @@ Options
      - true
      - Splunk On-Call API key that allows Atlas to access your Splunk On-Call account.
    * - -h, --help
-     - 
+     -
      - false
      - help for VICTOR_OPS
    * - -o, --output
@@ -76,7 +76,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -86,7 +86,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Victor Ops integration configured.
-   
+
 
 Examples
 --------

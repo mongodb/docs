@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for dataFederation
 
@@ -70,4 +70,3 @@ Related Commands
    privateEndpoints </command/atlas-dataFederation-privateEndpoints>
    queryLimits </command/atlas-dataFederation-queryLimits>
    update </command/atlas-dataFederation-update>
-

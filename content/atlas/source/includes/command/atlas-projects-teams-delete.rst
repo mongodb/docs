@@ -16,7 +16,7 @@ Remove the specified team from your project.
 
 After you remove a team from your project, the team still exists in the organization in which it was created.
 
-To use this command, you must authenticate with a user account or an API key with the Project User Admin role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project User Admin role.
 
 Syntax
 ------
@@ -56,11 +56,11 @@ Options
      - Required
      - Description
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     - 
+     -
      - false
      - help for delete
    * - --projectId
@@ -82,7 +82,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -92,7 +92,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Team '<Name>' deleted
-   
+
 
 Examples
 --------

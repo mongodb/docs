@@ -16,7 +16,7 @@ Upgrade a shared cluster's tier, disk size, and/or MongoDB version.
 
 This command is unavailable for dedicated clusters.
 
-To use this command, you must authenticate with a user account or an API key with the Project Cluster Manager role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Cluster Manager role.
 
 Syntax
 ------
@@ -56,7 +56,7 @@ Options
      - Required
      - Description
    * - --disableTerminationProtection
-     - 
+     -
      - false
      - Disables termination protection for your cluster. You can delete a cluster with termination protection disabled.
 
@@ -68,7 +68,7 @@ Options
 
        Mutually exclusive with --file.
    * - --enableTerminationProtection
-     - 
+     -
      - false
      - Enables termination protection for your cluster. You can't delete a cluster with termination protection enabled.
 
@@ -80,7 +80,7 @@ Options
 
        Mutually exclusive with --tier, --diskSizeGB, --mdbVersion, --enableTerminationProtection, --disableTerminationProtection, --tag.
    * - -h, --help
-     - 
+     -
      - false
      - help for upgrade
    * - --mdbVersion
@@ -124,7 +124,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -134,7 +134,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Upgrading cluster '<Name>'.
-   
+
 
 Examples
 --------

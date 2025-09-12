@@ -58,11 +58,11 @@ Options
      - false
      - Timestamp in UNIX epoch format when the logs end.
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to overwrite the destination file.
    * - -h, --help
-     - 
+     -
      - false
      - help for logs
    * - --out
@@ -102,4 +102,3 @@ Examples
 
    # download logs of data federation database 'DataFederation1':
    atlas dataFederation logs DataFederation1
-

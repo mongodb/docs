@@ -16,7 +16,7 @@ Create a project in your organization.
 
 Projects group clusters into logical collections that support an application environment, workload, or both. Each project can have its own users, teams, security, and alert settings.
 
-To use this command, you must authenticate with a user account or an API key with the Project Data Access Read/Write role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Data Access Read/Write role.
 
 Syntax
 ------
@@ -56,11 +56,11 @@ Options
      - Required
      - Description
    * - --govCloudRegionsOnly
-     - 
+     -
      - false
      - Flag that designates that the project uses only the AWS GovCloud region. Use this option only for Atlas for Government projects. If unspecified, the project uses only the AWS Standard region for AWS deployments. You can't deploy clusters across AWS GovCloud and AWS Standard regions in the same project.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - --orgId
@@ -80,7 +80,7 @@ Options
      - false
      - List that contains key-value pairs between 1 to 255 characters in length for tagging and categorizing the project.
    * - --withoutDefaultAlertSettings
-     - 
+     -
      - false
      - Flag that creates the new project without the default alert settings enabled. This flag defaults to false. This option is useful if you create projects programmatically and want to create your own alerts instead of using the default alert settings.
 
@@ -98,7 +98,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -108,7 +108,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Project '<Id>' created.
-   
+
 
 Examples
 --------

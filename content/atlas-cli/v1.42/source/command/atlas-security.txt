@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for security
 
@@ -58,4 +58,3 @@ Related Commands
 
    customerCerts </command/atlas-security-customerCerts>
    ldap </command/atlas-security-ldap>
-

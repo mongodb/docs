@@ -14,7 +14,7 @@ atlas clusters start
 
 Start the specified paused MongoDB cluster.
 
-To use this command, you must authenticate with a user account or an API key with the Project Cluster Manager role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Cluster Manager role.
 Atlas supports this command only for M10+ clusters.
 
 Syntax
@@ -59,7 +59,7 @@ Options
      - false
      - Mode in which the cluster scales. Valid values are clusterWideScaling or independentShardScaling. This value defaults to "clusterWideScaling".
    * - -h, --help
-     - 
+     -
      - false
      - help for start
    * - -o, --output
@@ -85,7 +85,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -95,7 +95,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Starting cluster '<Name>'.
-   
+
 
 Examples
 --------

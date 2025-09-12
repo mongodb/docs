@@ -42,7 +42,7 @@ Options
      - true
      - Identifier of the Federated Database Instance.
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - -o, --output
@@ -78,4 +78,3 @@ Examples
 
    # list all data federation query limits for the database federated instance "myInstance":
    atlas dataFederation queryLimits list --dataFederation myInstance
-

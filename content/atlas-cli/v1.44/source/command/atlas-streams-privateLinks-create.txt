@@ -42,7 +42,7 @@ Options
      - true
      - Path to a JSON configuration file that defines an Atlas Stream Processing PrivateLink endpoint. Note: Unsupported fields in the JSON file are ignored.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - -o, --output
@@ -82,7 +82,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Atlas Stream Processing PrivateLink endpoint <InterfaceEndpointId> created.
-   
+
 
 Examples
 --------
@@ -92,4 +92,3 @@ Examples
 
    # create a new PrivateLink endpoint for Atlas Stream Processing:
    atlas streams privateLink create -f endpointConfig.json
-

@@ -15,10 +15,10 @@ atlas organizations apiKeys assign
 Modify the roles or description for the specified organization API key.
 
 When you modify the roles for an organization API key with this command, the values you specify overwrite the existing roles assigned to the API key.
-		
+
 To view possible values for the apiKeyId argument, run atlas organizations apiKeys list.
 
-To use this command, you must authenticate with a user account or an API key with the Organization User Admin role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Organization User Admin role.
 
 Syntax
 ------
@@ -62,7 +62,7 @@ Options
      - false
      - Description of the API key.
    * - -h, --help
-     - 
+     -
      - false
      - help for assign
    * - --orgId
@@ -92,7 +92,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -102,7 +102,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    API Key '<Id>' successfully updated.
-   
+
 
 Examples
 --------

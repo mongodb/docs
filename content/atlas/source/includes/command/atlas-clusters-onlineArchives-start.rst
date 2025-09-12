@@ -14,7 +14,7 @@ atlas clusters onlineArchives start
 
 Start a paused online archive from a cluster.
 
-To use this command, you must authenticate with a user account or an API key with the Project Data Access Admin role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Data Access Admin role.
 
 Syntax
 ------
@@ -58,7 +58,7 @@ Options
      - true
      - Name of the cluster. To learn more, see https://dochub.mongodb.org/core/create-cluster-api.
    * - -h, --help
-     - 
+     -
      - false
      - help for start
    * - -o, --output
@@ -84,7 +84,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -94,5 +94,4 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Online archive '<Id>' started.
-   
 

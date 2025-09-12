@@ -14,7 +14,7 @@ atlas customDbRoles update
 
 Update a custom database role for your project.
 
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -54,11 +54,11 @@ Options
      - Required
      - Description
    * - --append
-     - 
+     -
      - false
      - Input action and inheritedRoles to append to the existing role.
    * - -h, --help
-     - 
+     -
      - false
      - help for update
    * - --inheritedRole
@@ -92,7 +92,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -102,5 +102,4 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Custom database role '<RoleName>' successfully updated.
-   
 

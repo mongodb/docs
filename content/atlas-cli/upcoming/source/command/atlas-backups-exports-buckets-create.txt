@@ -14,7 +14,7 @@ atlas backups exports buckets create
 
 Create an export destination for Atlas backups using an existing AWS S3 bucket.
 
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -58,7 +58,7 @@ Options
      - true
      - Name of the provider of the cloud service where Atlas can access the S3 bucket. Atlas supports only AWS.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - --iamRoleId
@@ -88,7 +88,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -98,7 +98,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Export destination created using '<BucketName>'.
-   
+
 
 Examples
 --------

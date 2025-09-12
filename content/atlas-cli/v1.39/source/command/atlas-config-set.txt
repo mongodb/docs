@@ -56,7 +56,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for set
 
@@ -82,6 +82,6 @@ Examples
 .. code-block::
    :copyable: false
 
-  
+
    Set the organization ID in the default profile to 5dd5aaef7a3e5a6c5bd12de4:
    atlas config set org_id 5dd5aaef7a3e5a6c5bd12de4

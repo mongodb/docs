@@ -52,10 +52,10 @@ Options
      - string
      - true
      - Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-       
+
        **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
    * - -h, --help
-     - 
+     -
      - false
      - help for deletePeeringConnection
    * - -o, --output
@@ -71,7 +71,7 @@ Options
      - true
      - Unique 24-hexadecimal digit string that identifies the network peering connection that you want to delete.
    * - --pretty
-     - 
+     -
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --version

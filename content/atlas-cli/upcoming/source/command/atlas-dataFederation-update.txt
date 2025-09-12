@@ -14,7 +14,7 @@ atlas dataFederation update
 
 Modify the details of the specified data federation database for your project.
 
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -72,7 +72,7 @@ Options
 
        Mutually exclusive with --region, --awsRoleId, --awsTestS3Bucket.
    * - -h, --help
-     - 
+     -
      - false
      - help for update
    * - -o, --output
@@ -104,7 +104,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -123,4 +123,3 @@ Examples
 
    # update data lake pipeline:
    atlas dataFederation update DataFederation1
-

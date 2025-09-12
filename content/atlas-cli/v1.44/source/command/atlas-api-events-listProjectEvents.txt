@@ -59,30 +59,30 @@ Options
      - stringArray
      - false
      - Category of incident recorded at this moment in time.
-       
+
        **IMPORTANT**: The complete list of event type values changes frequently.
    * - --excludedEventType
      - stringArray
      - false
      - Category of event that you would like to exclude from query results, such as CLUSTER_CREATED
-       
+
        **IMPORTANT**: Event type names change frequently. Verify that you specify the event type correctly by checking the complete list of event types.
    * - --groupId
      - string
      - true
      - Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-       
+
        **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
    * - -h, --help
-     - 
+     -
      - false
      - help for listProjectEvents
    * - --includeCount
-     - 
+     -
      - false
      - Flag that indicates whether the response returns the total number of items (**totalCount**) in the response.
    * - --includeRaw
-     - 
+     -
      - false
      - Flag that indicates whether to include the raw document in the output. The raw document contains additional meta information about the event.
    * - --itemsPerPage
@@ -110,7 +110,7 @@ Options
      - false
      - Number of the page that displays the current set of the total objects that the response returns.
    * - --pretty
-     - 
+     -
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --version

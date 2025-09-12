@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for maintenanceWindows
 
@@ -69,4 +69,3 @@ Related Commands
    resetMaintenanceWindow </command/atlas-api-maintenanceWindows-resetMaintenanceWindow>
    toggleMaintenanceAutoDefer </command/atlas-api-maintenanceWindows-toggleMaintenanceAutoDefer>
    updateMaintenanceWindow </command/atlas-api-maintenanceWindows-updateMaintenanceWindow>
-

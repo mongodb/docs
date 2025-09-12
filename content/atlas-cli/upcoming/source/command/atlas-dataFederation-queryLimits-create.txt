@@ -14,7 +14,7 @@ atlas dataFederation queryLimits create
 
 Creates a new Data Federation query limit.
 
-To learn more about the query limits, see https://dochub.mongodb.org/core/adf-query-limits.To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To learn more about the query limits, see https://dochub.mongodb.org/core/adf-query-limits.To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -58,7 +58,7 @@ Options
      - true
      - Identifier of the Federated Database Instance.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - -o, --output
@@ -92,7 +92,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -111,4 +111,3 @@ Examples
 
    # create data federation query limit:
    atlas dataFederation queryLimit create bytesProcessed.query --value 1000 --dataFederation DataFederation1
-

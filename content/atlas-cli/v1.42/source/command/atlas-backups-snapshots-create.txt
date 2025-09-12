@@ -61,7 +61,7 @@ Options
      - true
      - Description of the on-demand snapshot.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - -o, --output
@@ -101,7 +101,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Snapshot '<Id>' created.
-   
+
 
 Examples
 --------

@@ -14,7 +14,7 @@ atlas clusters indexes create
 
 Create a rolling index for the specified cluster for your project.
 
-To use this command, you must authenticate with a user account or an API key with the Project Data Access Admin role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Data Access Admin role.
 
 Syntax
 ------
@@ -76,7 +76,7 @@ Options
 
        Mutually exclusive with --db, --collection, --key.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - --key
@@ -90,7 +90,7 @@ Options
      - false
      - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
    * - --sparse
-     - 
+     -
      - false
      - Flag that creates a sparse index. To learn more, see https://dochub.mongodb.org/core/index-sparse-manual.
 
@@ -108,7 +108,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Examples
 --------
@@ -118,8 +118,8 @@ Examples
 
    # Create an index named bedrooms_1 on the listings collection of the realestate database:
    atlas clusters indexes create bedrooms_1 --clusterName Cluster0 --collection listings --db realestate --key bedrooms:1
-   
-   
+
+
 .. code-block::
    :copyable: false
 
@@ -127,7 +127,7 @@ Examples
    listings collection of the realestate database:
    atlas clusters indexes create property_room_bedrooms --clusterName Cluster0 --collection listings --db realestate --key property_type:1 --key room_type:1 --key bedrooms:1
 
-   
+
 .. code-block::
    :copyable: false
 

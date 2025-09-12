@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for users
 
@@ -56,4 +56,3 @@ Related Commands
    :titlesonly:
 
    list </command/atlas-organizations-users-list>
-

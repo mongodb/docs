@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for alerts
 
@@ -64,4 +64,3 @@ Related Commands
    list </command/atlas-alerts-list>
    settings </command/atlas-alerts-settings>
    unacknowledge </command/atlas-alerts-unacknowledge>
-

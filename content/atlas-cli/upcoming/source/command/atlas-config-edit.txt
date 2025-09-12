@@ -16,6 +16,8 @@ Opens the config file with the default text editor.
 
 Uses the default editor to open the config file. You can use EDITOR or VISUAL envs to change the default.
 
+Note: You can't modify authentication credentials directly in the config file if they are stored securely. To view all properties associated with a profile, use "atlas config describe". To modify authentication credentials stored securely, use "atlas config set".
+
 Syntax
 ------
 
@@ -38,7 +40,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for edit
 
@@ -56,7 +58,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Examples
 --------
@@ -70,5 +72,4 @@ Examples
 
 .. toctree::
    :titlesonly:
-
 

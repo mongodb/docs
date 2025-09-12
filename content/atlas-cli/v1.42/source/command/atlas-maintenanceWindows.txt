@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for maintenanceWindows
 
@@ -62,4 +62,3 @@ Related Commands
    defer </command/atlas-maintenanceWindows-defer>
    describe </command/atlas-maintenanceWindows-describe>
    update </command/atlas-maintenanceWindows-update>
-

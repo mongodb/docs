@@ -14,7 +14,7 @@ atlas security ldap save
 
 Save an LDAP configuration for your project.
 
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -38,11 +38,11 @@ Options
      - Required
      - Description
    * - --authenticationEnabled
-     - 
+     -
      - false
      - Flag that indicates whether to enable LDAP user authentication.
    * - --authorizationEnabled
-     - 
+     -
      - false
      - Flag that indicates whether to enable LDAP user authorization.
    * - --authzQueryTemplate
@@ -62,7 +62,7 @@ Options
      - false
      - Certificate Authority (CA) used to verify the identity of the LDAP server. To delete an assigned value, pass an empty string.
    * - -h, --help
-     - 
+     -
      - false
      - help for save
    * - --hostname
@@ -112,7 +112,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -123,7 +123,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    HOSTNAME          PORT          AUTHENTICATION                 AUTHORIZATION
    <Ldap.Hostname>   <Ldap.Port>   <Ldap.AuthenticationEnabled>   <Ldap.AuthorizationEnabled>
-   
+
 
 Examples
 --------
@@ -131,8 +131,8 @@ Examples
 .. code-block::
    :copyable: false
 
-   # Save an LDAP server configuration to authenticate and authorize MongoDB users for the host atlas-ldaps-01.ldap.myteam.com: 
-   atlas security ldap save --authenticationEnabled --authorizationEnabled 
-   --hostname atlas-ldaps-01.ldap.myteam.com --bindUsername 
-   "CN=Administrator,CN=Users,DC=atlas-ldaps-01,DC=myteam,DC=com" 
+   # Save an LDAP server configuration to authenticate and authorize MongoDB users for the host atlas-ldaps-01.ldap.myteam.com:
+   atlas security ldap save --authenticationEnabled --authorizationEnabled
+   --hostname atlas-ldaps-01.ldap.myteam.com --bindUsername
+   "CN=Administrator,CN=Users,DC=atlas-ldaps-01,DC=myteam,DC=com"
    --bindPassword changeMe

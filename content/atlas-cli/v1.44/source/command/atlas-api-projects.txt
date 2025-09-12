@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for projects
 
@@ -105,4 +105,3 @@ Related Commands
    updateProjectInvitationById </command/atlas-api-projects-updateProjectInvitationById>
    updateProjectRoles </command/atlas-api-projects-updateProjectRoles>
    updateProjectSettings </command/atlas-api-projects-updateProjectSettings>
-

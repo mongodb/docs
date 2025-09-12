@@ -55,18 +55,18 @@ Options
      - stringArray
      - false
      - Category of incident recorded at this moment in time.
-       
+
        **IMPORTANT**: The complete list of event type values changes frequently.
    * - -h, --help
-     - 
+     -
      - false
      - help for listOrganizationEvents
    * - --includeCount
-     - 
+     -
      - false
      - Flag that indicates whether the response returns the total number of items (**totalCount**) in the response.
    * - --includeRaw
-     - 
+     -
      - false
      - Flag that indicates whether to include the raw document in the output. The raw document contains additional meta information about the event.
    * - --itemsPerPage
@@ -98,7 +98,7 @@ Options
      - false
      - Number of the page that displays the current set of the total objects that the response returns.
    * - --pretty
-     - 
+     -
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --version

@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for auditing
 
@@ -58,4 +58,3 @@ Related Commands
 
    describe </command/atlas-auditing-describe>
    update </command/atlas-auditing-update>
-

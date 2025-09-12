@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for aws
 
@@ -60,4 +60,3 @@ Related Commands
    describe </command/atlas-customDns-aws-describe>
    disable </command/atlas-customDns-aws-disable>
    enable </command/atlas-customDns-aws-enable>
-

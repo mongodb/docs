@@ -14,6 +14,8 @@ atlas auth login
 
 Authenticate with MongoDB Atlas.
 
+This command allows you to authenticate with MongoDB Atlas using User Account, Service Account, or API Key authentication methods.
+
 Syntax
 ------
 
@@ -36,17 +38,17 @@ Options
      - Required
      - Description
    * - --gov
-     - 
+     -
      - false
      - Log in to Atlas for Government.
    * - -h, --help
-     - 
+     -
      - false
      - help for login
    * - --noBrowser
-     - 
+     -
      - false
-     - Don't try to open a browser session.
+     - Don't automatically open a browser session.
 
 Inherited Options
 -----------------
@@ -62,7 +64,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Examples
 --------
@@ -72,4 +74,3 @@ Examples
 
    # Log in to your MongoDB Atlas account in interactive mode:
    atlas auth login
-

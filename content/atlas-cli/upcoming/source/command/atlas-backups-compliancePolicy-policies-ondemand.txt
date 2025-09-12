@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for ondemand
 
@@ -44,7 +44,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Related Commands
 ----------------
@@ -60,4 +60,3 @@ Related Commands
    create </command/atlas-backups-compliancePolicy-policies-ondemand-create>
    describe </command/atlas-backups-compliancePolicy-policies-ondemand-describe>
    update </command/atlas-backups-compliancePolicy-policies-ondemand-update>
-

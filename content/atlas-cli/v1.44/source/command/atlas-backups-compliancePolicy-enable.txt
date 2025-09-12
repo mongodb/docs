@@ -48,11 +48,11 @@ Options
      - true
      - Last name of the user who is authorized to update the Backup Compliance Policy settings.
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     - 
+     -
      - false
      - help for enable
    * - -o, --output
@@ -64,7 +64,7 @@ Options
      - false
      - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
    * - -w, --watch
-     - 
+     -
      - false
      - Flag that indicates whether to watch the command until it completes its execution or the watch times out.
 
@@ -83,4 +83,3 @@ Inherited Options
      - string
      - false
      - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
-

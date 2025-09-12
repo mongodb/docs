@@ -14,7 +14,7 @@ atlas clusters describe
 
 Return the details for the specified cluster for your project.
 
-To use this command, you must authenticate with a user account or an API key with the Project Read Only role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Read Only role.
 
 Syntax
 ------
@@ -58,7 +58,7 @@ Options
      - false
      - Mode in which the cluster scales. Valid values are clusterWideScaling or independentShardScaling. This value defaults to "clusterWideScaling".
    * - -h, --help
-     - 
+     -
      - false
      - help for describe
    * - -o, --output
@@ -84,7 +84,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -95,7 +95,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     NAME     MDB VER            STATE
    <Id>   <Name>   <MongoDBVersion>   <StateName>
-   
+
 
 Examples
 --------

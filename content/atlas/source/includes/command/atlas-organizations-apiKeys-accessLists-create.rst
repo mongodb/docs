@@ -16,7 +16,7 @@ Create an IP access list entry for your API Key.
 
 To view possible values for the apiKey option, run atlas organizations apiKeys list.
 
-To use this command, you must authenticate with a user account or an API key with the Read Write role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Read Write role.
 
 Syntax
 ------
@@ -48,11 +48,11 @@ Options
      - false
      - Access list entry in CIDR notation to be added for your API key. To add more than one entry, you can specify each entry with a separate cidr flag or specify all the entries as a comma-separated list using one cidr flag. You can't set both cidr and ip in the same command.
    * - --currentIp
-     - 
+     -
      - false
      - Flag that adds the IP address from the host that is currently executing the command to the access list. Only applicable for type ipAddress entries. You don't need the entry argument when you use the currentIp option.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - --ip
@@ -82,7 +82,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -92,7 +92,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Created new access list entry(s).
-   
+
 
 Examples
 --------

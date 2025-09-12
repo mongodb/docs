@@ -56,10 +56,10 @@ Options
      - string
      - true
      - Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-       
+
        **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
    * - -h, --help
-     - 
+     -
      - false
      - help for updateProject
    * - -o, --output
@@ -71,7 +71,7 @@ Options
      - false
      - file to write the api output to. This flag is required when the output of an endpoint is binary (ex: gzip) and the command is not piped (ex: atlas command > out.zip)
    * - --pretty
-     - 
+     -
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --version
@@ -102,8 +102,9 @@ Update the value of the existing project to "MongoTube - Production" and change 
 
 Create the file below and save it as ``payload.json``
 
-   .. literalinclude:: /includes/examples/atlas-api-projects-updateProject-2023-01-01-update_project-payload.json
-      :language: shell
+.. literalinclude:: /includes/examples/atlas-api-projects-updateProject-2023-01-01-update_project-payload.json
+   :language: shell
+
 After creating ``payload.json``, run the command below in the same directory.
 
 .. literalinclude:: /includes/examples/atlas-api-projects-updateProject-2023-01-01-update_project.sh

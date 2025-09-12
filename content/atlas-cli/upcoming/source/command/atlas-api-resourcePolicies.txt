@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for resourcePolicies
 
@@ -49,28 +49,27 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Related Commands
 ----------------
 
-* :ref:`atlas-api-resourcePolicies-createAtlasResourcePolicy` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Create one Atlas Resource Policy for an org.
-* :ref:`atlas-api-resourcePolicies-deleteAtlasResourcePolicy` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Delete one Atlas Resource Policy for an org.
-* :ref:`atlas-api-resourcePolicies-getAtlasResourcePolicies` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Return all Atlas Resource Policies for the org.
-* :ref:`atlas-api-resourcePolicies-getAtlasResourcePolicy` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Return one Atlas Resource Policy for an org.
+* :ref:`atlas-api-resourcePolicies-createOrgResourcePolicy` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Create one Atlas Resource Policy for an org.
+* :ref:`atlas-api-resourcePolicies-deleteOrgResourcePolicy` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Delete one Atlas Resource Policy for an org.
+* :ref:`atlas-api-resourcePolicies-getOrgResourcePolicy` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Return one Atlas Resource Policy for an org.
 * :ref:`atlas-api-resourcePolicies-getResourcesNonCompliant` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Return all non-compliant resources for an org.
-* :ref:`atlas-api-resourcePolicies-updateAtlasResourcePolicy` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Update one Atlas Resource Policy for an org.
+* :ref:`atlas-api-resourcePolicies-listOrgResourcePolicies` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Return all Atlas Resource Policies for the org.
+* :ref:`atlas-api-resourcePolicies-updateOrgResourcePolicy` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Update one Atlas Resource Policy for an org.
 * :ref:`atlas-api-resourcePolicies-validateAtlasResourcePolicy` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Validate one Atlas Resource Policy for an org.
 
 
 .. toctree::
    :titlesonly:
 
-   createAtlasResourcePolicy </command/atlas-api-resourcePolicies-createAtlasResourcePolicy>
-   deleteAtlasResourcePolicy </command/atlas-api-resourcePolicies-deleteAtlasResourcePolicy>
-   getAtlasResourcePolicies </command/atlas-api-resourcePolicies-getAtlasResourcePolicies>
-   getAtlasResourcePolicy </command/atlas-api-resourcePolicies-getAtlasResourcePolicy>
+   createOrgResourcePolicy </command/atlas-api-resourcePolicies-createOrgResourcePolicy>
+   deleteOrgResourcePolicy </command/atlas-api-resourcePolicies-deleteOrgResourcePolicy>
+   getOrgResourcePolicy </command/atlas-api-resourcePolicies-getOrgResourcePolicy>
    getResourcesNonCompliant </command/atlas-api-resourcePolicies-getResourcesNonCompliant>
-   updateAtlasResourcePolicy </command/atlas-api-resourcePolicies-updateAtlasResourcePolicy>
+   listOrgResourcePolicies </command/atlas-api-resourcePolicies-listOrgResourcePolicies>
+   updateOrgResourcePolicy </command/atlas-api-resourcePolicies-updateOrgResourcePolicy>
    validateAtlasResourcePolicy </command/atlas-api-resourcePolicies-validateAtlasResourcePolicy>
-

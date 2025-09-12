@@ -36,91 +36,91 @@ Options
      - Required
      - Description
    * - --disableCollectDatabaseSpecificsStatistics
-     - 
+     -
      - false
      - Flag that disables the Collect Database Specific Statistics project setting.
 
        Mutually exclusive with --enableCollectDatabaseSpecificsStatistics.
    * - --disableDataExplorer
-     - 
+     -
      - false
      - Flag that disables the Data Explorer project setting.
 
        Mutually exclusive with --enableDataExplorer.
    * - --disableDataExplorerGenAIFeatures
-     - 
+     -
      - false
      - Flag that disables the Data Explorer GenAI Features project setting.
 
        Mutually exclusive with --enableDataExplorerGenAIFeatures.
    * - --disableDataExplorerGenAISampleDocumentPassing
-     - 
+     -
      - false
      - Flag that disables the Data Explorer GenAI Sample Document Passing project setting.
 
        Mutually exclusive with --enableDataExplorerGenAISampleDocumentPassing.
    * - --disablePerformanceAdvisor
-     - 
+     -
      - false
      - Flag that disables the Performance Advisor project setting.
 
        Mutually exclusive with --enablePerformanceAdvisor.
    * - --disableRealtimePerformancePanel
-     - 
+     -
      - false
      - Flag that disables the Real Time Performance Panel project setting.
 
        Mutually exclusive with --enableRealtimePerformancePanel.
    * - --disableSchemaAdvisor
-     - 
+     -
      - false
      - Flag that disables the Schema Advisor project setting.
 
        Mutually exclusive with --enableSchemaAdvisor.
    * - --enableCollectDatabaseSpecificsStatistics
-     - 
+     -
      - false
      - Flag that enables the Collect Database Specific Statistics project setting.
 
        Mutually exclusive with --disableCollectDatabaseSpecificsStatistics.
    * - --enableDataExplorer
-     - 
+     -
      - false
      - Flag that enables the Data Explorer project setting.
 
        Mutually exclusive with --disableDataExplorer.
    * - --enableDataExplorerGenAIFeatures
-     - 
+     -
      - false
      - Flag that enables the Data Explorer GenAI Features project setting.
 
        Mutually exclusive with --disableDataExplorerGenAIFeatures.
    * - --enableDataExplorerGenAISampleDocumentPassing
-     - 
+     -
      - false
      - Flag that enables the Data Explorer GenAI Sample Document Passing project setting.
 
        Mutually exclusive with --disableDataExplorerGenAISampleDocumentPassing.
    * - --enablePerformanceAdvisor
-     - 
+     -
      - false
      - Flag that enables the Performance Advisor project setting.
 
        Mutually exclusive with --disablePerformanceAdvisor.
    * - --enableRealtimePerformancePanel
-     - 
+     -
      - false
      - Flag that enables the Real Time Performance Panel project setting.
 
        Mutually exclusive with --disableRealtimePerformancePanel.
    * - --enableSchemaAdvisor
-     - 
+     -
      - false
      - Flag that enables the Schema Advisor project setting.
 
        Mutually exclusive with --disableSchemaAdvisor.
    * - -h, --help
-     - 
+     -
      - false
      - help for update
    * - -o, --output
@@ -156,7 +156,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Project settings updated.
-   
+
 
 Examples
 --------

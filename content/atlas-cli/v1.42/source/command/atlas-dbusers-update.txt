@@ -62,7 +62,7 @@ Options
      - false
      - Description of this database user.
    * - -h, --help
-     - 
+     -
      - false
      - help for update
    * - -o, --output
@@ -118,7 +118,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Successfully updated database user '<Username>'.
-   
+
 
 Examples
 --------
@@ -129,7 +129,7 @@ Examples
    # Update roles for a database user named myUser for the project with the ID 5e2211c17a3e5a48f5497de3:
    atlas dbuser update myUser --role readWriteAnyDatabase --projectId 5e2211c17a3e5a48f5497de3
 
-   
+
 .. code-block::
    :copyable: false
 

@@ -14,7 +14,7 @@ atlas dataFederation logs
 
 Returns logs of the specified data federation database for your project.
 
-To use this command, you must authenticate with a user account or an API key with the Project Read Only role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Read Only role.
 
 Syntax
 ------
@@ -58,11 +58,11 @@ Options
      - false
      - Timestamp in UNIX epoch format when the logs end.
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to overwrite the destination file.
    * - -h, --help
-     - 
+     -
      - false
      - help for logs
    * - --out
@@ -92,7 +92,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Examples
 --------
@@ -102,4 +102,3 @@ Examples
 
    # download logs of data federation database 'DataFederation1':
    atlas dataFederation logs DataFederation1
-

@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for ldapConfiguration
 
@@ -49,7 +49,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Related Commands
 ----------------
@@ -69,4 +69,3 @@ Related Commands
    getLdapConfigurationStatus </command/atlas-api-ldapConfiguration-getLdapConfigurationStatus>
    saveLdapConfiguration </command/atlas-api-ldapConfiguration-saveLdapConfiguration>
    verifyLdapConfiguration </command/atlas-api-ldapConfiguration-verifyLdapConfiguration>
-

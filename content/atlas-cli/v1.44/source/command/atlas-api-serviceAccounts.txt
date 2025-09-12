@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for serviceAccounts
 
@@ -103,4 +103,3 @@ Related Commands
    listServiceAccounts </command/atlas-api-serviceAccounts-listServiceAccounts>
    updateProjectServiceAccount </command/atlas-api-serviceAccounts-updateProjectServiceAccount>
    updateServiceAccount </command/atlas-api-serviceAccounts-updateServiceAccount>
-

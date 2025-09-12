@@ -36,11 +36,11 @@ Options
      - Required
      - Description
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     - 
+     -
      - false
      - help for logout
 
@@ -68,4 +68,3 @@ Examples
 
    # To log out from the CLI:
    atlas auth logout
-

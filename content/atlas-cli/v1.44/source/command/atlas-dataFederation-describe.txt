@@ -54,7 +54,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for describe
    * - -o, --output
@@ -90,4 +90,3 @@ Examples
 
    # retrieves data federation 'DataFederation1':
    atlas dataFederation describe DataFederation1
-

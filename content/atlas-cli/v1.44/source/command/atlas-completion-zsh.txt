@@ -19,21 +19,29 @@ Generate the autocompletion script for the zsh shell.
 If shell completion is not already enabled in your environment you will need
 to enable it.  You can execute the following once:
 
-	echo "autoload -U compinit; compinit" >> ~/.zshrc
+.. code-block:: console
+
+   echo "autoload -U compinit; compinit" >> ~/.zshrc
 
 To load completions in your current shell session:
 
-	source <(atlas completion zsh)
+.. code-block:: console
+
+   source <(atlas completion zsh)
 
 To load completions for every new session, execute once:
 
 #### Linux:
 
-	atlas completion zsh > "${fpath[1]}/_atlas"
+.. code-block:: console
+
+   atlas completion zsh > "${fpath[1]}/_atlas"
 
 #### macOS:
 
-	atlas completion zsh > $(brew --prefix)/share/zsh/site-functions/_atlas
+.. code-block:: console
+
+   atlas completion zsh > $(brew --prefix)/share/zsh/site-functions/_atlas
 
 You will need to start a new shell for this setup to take effect.
 

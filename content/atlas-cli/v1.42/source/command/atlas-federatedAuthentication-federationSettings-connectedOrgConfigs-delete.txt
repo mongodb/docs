@@ -40,11 +40,11 @@ Options
      - true
      - Unique 24-hexadecimal digit string that identifies the federation settings.
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     - 
+     -
      - false
      - help for delete
    * - --orgId
@@ -78,12 +78,11 @@ Examples
 .. code-block::
    :copyable: false
 
-   # Delete a connected org config from the current profile org and federationSettingsId 5d1113b25a115342acc2d1aa 
- 			atlas federatedAuthentication federationSettings connectedOrgConfigs delete --federationSettingsId 5d1113b25a115342acc2d1aa 
- 			
+   # Delete a connected org config from the current profile org and federationSettingsId 5d1113b25a115342acc2d1aa
+   atlas federatedAuthentication federationSettings connectedOrgConfigs delete --federationSettingsId 5d1113b25a115342acc2d1aa
+
 .. code-block::
    :copyable: false
 
-   # Delete a connected org config from the org with ID 7d1113b25a115342acc2d1aa and federationSettingsId 5d1113b25a115342acc2d1aa 
- 			atlas federatedAuthentication federationSettings connectedOrgConfigs delete --orgId 7d1113b25a115342acc2d1aa --federationSettingsId 5d1113b25a115342acc2d1aa 
- 		
+   # Delete a connected org config from the org with ID 7d1113b25a115342acc2d1aa and federationSettingsId 5d1113b25a115342acc2d1aa
+   atlas federatedAuthentication federationSettings connectedOrgConfigs delete --orgId 7d1113b25a115342acc2d1aa --federationSettingsId 5d1113b25a115342acc2d1aa

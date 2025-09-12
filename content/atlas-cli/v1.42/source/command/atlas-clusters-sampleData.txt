@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for sampleData
 
@@ -62,4 +62,3 @@ Related Commands
    describe </command/atlas-clusters-sampleData-describe>
    load </command/atlas-clusters-sampleData-load>
    watch </command/atlas-clusters-sampleData-watch>
-

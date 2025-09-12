@@ -14,7 +14,7 @@ atlas accessLogs list
 
 Retrieve the access logs of a cluster identified by the cluster's name or hostname.
 
-To use this command, you must authenticate with a user account or an API key with the Project Monitoring Admin role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Monitoring Admin role.
 
 Syntax
 ------
@@ -52,7 +52,7 @@ Options
      - false
      - Timestamp in the number of milliseconds that have elapsed, since the UNIX Epoch, for the last entry that Atlas returns from the database access logs.
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - --hostname
@@ -96,7 +96,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Examples
 --------
@@ -104,13 +104,12 @@ Examples
 .. code-block::
    :copyable: false
 
-   # Return a JSON-formatted list of all authentication requests made against the cluster named Cluster0 for the project with ID 618d48e05277a606ed2496fe:		
+   # Return a JSON-formatted list of all authentication requests made against the cluster named Cluster0 for the project with ID 618d48e05277a606ed2496fe:
    atlas accesslogs list --output json --projectId 618d48e05277a606ed2496fe --clusterName Cluster0
 
-   
+
 .. code-block::
    :copyable: false
 
    # Return a JSON-formatted list of all authentication requests made against the hostname named atlas-dqrlj4-shard-00-00.g1nxq.mongodb-dev.net for the project stored in the profile atlas-dev:
    atlas accesslogs list --hostname atlas-dqrlj4-shard-00-00.g1nxq.mongodb-dev.net --profile atlas-dev --output json
-

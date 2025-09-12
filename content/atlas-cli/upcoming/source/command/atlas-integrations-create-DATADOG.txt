@@ -17,10 +17,10 @@ Create or update a Datadog integration for your project.
 The requesting API key must have the Organization Owner or Project Owner role to configure an integration with Datadog.
 
 After you integrate with Datadog, you can send metric data about your project to your Datadog dashboard. To learn more about the metrics available to Datadog, see https://www.mongodb.com/docs/atlas/tutorial/datadog-integration/.
-		
+
 Datadog integration is available only for M10+ clusters.
 
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -48,7 +48,7 @@ Options
      - true
      - Datadog API key that allows Atlas to access your Datadog account.
    * - -h, --help
-     - 
+     -
      - false
      - help for DATADOG
    * - -o, --output
@@ -78,7 +78,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -88,7 +88,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Datadog integration configured.
-   
+
 
 Examples
 --------

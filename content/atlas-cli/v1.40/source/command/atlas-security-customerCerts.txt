@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for customerCerts
 
@@ -60,4 +60,3 @@ Related Commands
    create </command/atlas-security-customerCerts-create>
    describe </command/atlas-security-customerCerts-describe>
    disable </command/atlas-security-customerCerts-disable>
-

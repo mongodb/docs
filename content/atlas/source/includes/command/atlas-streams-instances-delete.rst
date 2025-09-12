@@ -17,7 +17,7 @@ Delete an Atlas Stream Processing instance.
 The command prompts you to confirm the operation when you run the command without the --force option.
 
 Before deleting an Atlas Streams Processing instance, you must first stop all processes associated with it.
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -57,11 +57,11 @@ Options
      - Required
      - Description
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     - 
+     -
      - false
      - help for delete
    * - --projectId
@@ -83,7 +83,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -93,7 +93,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Atlas Streams processor instance '<Name>' deleted
-   
+
 
 Examples
 --------
@@ -104,7 +104,7 @@ Examples
    # Remove an Atlas Stream Processing instance after prompting for a confirmation:
    atlas streams instance delete myProcessorInstance
 
-   
+
 .. code-block::
    :copyable: false
 

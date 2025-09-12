@@ -14,7 +14,7 @@ atlas streams privateLinks create
 
 Creates a PrivateLink endpoint that can be used as an Atlas Stream Processor connection.
 
-To use this command, you must authenticate with a user account or an API key with any of the following roles: Project Owner, Project Stream Processing Owner.
+To use this command, you must authenticate with a user account, a service account, or an API key with any of the following roles: Project Owner, Project Stream Processing Owner.
 
 Syntax
 ------
@@ -42,7 +42,7 @@ Options
      - true
      - Path to a JSON configuration file that defines an Atlas Stream Processing PrivateLink endpoint. Note: Unsupported fields in the JSON file are ignored.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - -o, --output
@@ -72,7 +72,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -82,7 +82,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Atlas Stream Processing PrivateLink endpoint <InterfaceEndpointId> created.
-   
+
 
 Examples
 --------
@@ -92,4 +92,3 @@ Examples
 
    # create a new PrivateLink endpoint for Atlas Stream Processing:
    atlas streams privateLink create -f endpointConfig.json
-

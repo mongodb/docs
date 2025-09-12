@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for create
 
@@ -56,4 +56,3 @@ Related Commands
    :titlesonly:
 
    oidc </command/atlas-federatedAuthentication-federationSettings-identityProvider-create-oidc>
-

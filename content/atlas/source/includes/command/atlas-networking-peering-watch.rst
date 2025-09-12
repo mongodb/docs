@@ -14,12 +14,12 @@ atlas networking peering watch
 
 Watch the specified peering connection in your project until it becomes available.
 
-This command checks the peering connection's status periodically until it becomes available. 
+This command checks the peering connection's status periodically until it becomes available.
 Once it reaches the expected state, the command prints "Network peering changes completed."
 If you run the command in the terminal, it blocks the terminal session until the resource is available.
 You can interrupt the command's polling at any time with CTRL-C.
 
-To use this command, you must authenticate with a user account or an API key with the Project Read Only role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Read Only role.
 
 Syntax
 ------
@@ -59,7 +59,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for watch
    * - -o, --output
@@ -85,7 +85,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -94,9 +94,9 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
 .. code-block::
 
-   
+
    Network peering changes completed.
-   
+
 
 Examples
 --------

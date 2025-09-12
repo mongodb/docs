@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for kubernetes
    * - -P, --profile
@@ -39,9 +39,9 @@ Options
 Related Commands
 ----------------
 
-* :ref:`atlas-kubernetes-config` - Manage Kubernetes configuration resources.
-* :ref:`atlas-kubernetes-dry-run` - Deploy and run Atlas Kubernetes Operator in dry-run mode
-* :ref:`atlas-kubernetes-operator` - Manage Atlas Kubernetes Operator.
+* :ref:``atlas-kubernetes-config`` - Manage Kubernetes configuration resources.
+* :ref:``atlas-kubernetes-dry-run`` - Deploy and run Atlas Kubernetes Operator in dry-run mode
+* :ref:``atlas-kubernetes-operator`` - Manage Atlas Kubernetes Operator.
 
 
 .. toctree::
@@ -50,4 +50,3 @@ Related Commands
    config </command/atlas-kubernetes-config>
    dry-run </command/atlas-kubernetes-dry-run>
    operator </command/atlas-kubernetes-operator>
-

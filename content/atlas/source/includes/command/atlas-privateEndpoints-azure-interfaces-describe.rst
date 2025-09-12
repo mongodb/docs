@@ -14,7 +14,7 @@ atlas privateEndpoints azure interfaces describe
 
 Return the details for the specified Azure private endpoint interface for your project.
 
-To use this command, you must authenticate with a user account or an API key with the Project Read Only role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Read Only role.
 
 Syntax
 ------
@@ -58,7 +58,7 @@ Options
      - true
      - Unique 24-character alphanumeric string that identifies the private endpoint in Atlas.
    * - -h, --help
-     - 
+     -
      - false
      - help for describe
    * - -o, --output
@@ -84,7 +84,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -95,7 +95,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID                            IP ADDRESS                   STATUS     ERROR
    <PrivateEndpointResourceId>   <PrivateEndpointIPAddress>   <Status>   <ErrorMessage>
-   
+
 
 Examples
 --------

@@ -58,7 +58,7 @@ Options
      - false
      - Optional description or comment for the entry.
    * - -h, --help
-     - 
+     -
      - false
      - help for unacknowledge
    * - -o, --output
@@ -94,7 +94,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Alert '<Id>' unacknowledged
-   
+
 
 Examples
 --------

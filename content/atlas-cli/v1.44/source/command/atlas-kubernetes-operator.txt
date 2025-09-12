@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for operator
 
@@ -58,4 +58,3 @@ Related Commands
    :titlesonly:
 
    install </command/atlas-kubernetes-operator-install>
-

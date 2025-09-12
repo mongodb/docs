@@ -36,7 +36,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - --limit
@@ -52,7 +52,7 @@ Options
      - false
      - Minimum created date. This option returns events whose created date is greater than or equal to the specified value. This parameter uses the ISO 8601 timestamp format in UTC.
    * - --omitCount
-     - 
+     -
      - false
      - Flag that indicates whether the JSON response returns the total number of items (totalCount) in the JSON response.
    * - -o, --output
@@ -97,7 +97,7 @@ Examples
    # Return a JSON-formatted list of events for the project with the ID 5e2211c17a3e5a48f5497de3:
    atlas events projects list --Id 5e2211c17a3e5a48f5497de3 --output json
 
-   
+
 .. code-block::
    :copyable: false
 

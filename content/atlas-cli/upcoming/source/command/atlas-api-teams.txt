@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for teams
 
@@ -49,7 +49,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Related Commands
 ----------------
@@ -58,6 +58,7 @@ Related Commands
 * :ref:`atlas-api-teams-addTeamUser` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Adds one or more MongoDB Cloud users from the specified organization to the specified team.
 * :ref:`atlas-api-teams-createTeam` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one team in the specified organization.
 * :ref:`atlas-api-teams-deleteTeam` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one team specified using its unique 24-hexadecimal digit identifier from the organization specified using its unique 24-hexadecimal digit identifier.
+* :ref:`atlas-api-teams-getProjectTeam` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one team to which the authenticated user has access in the project specified using its unique 24-hexadecimal digit identifier.
 * :ref:`atlas-api-teams-getTeamById` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one team that you identified using its unique 24-hexadecimal digit ID.
 * :ref:`atlas-api-teams-getTeamByName` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one team that you identified using its human-readable name.
 * :ref:`atlas-api-teams-listOrganizationTeams` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all teams that belong to the specified organization.
@@ -75,6 +76,7 @@ Related Commands
    addTeamUser </command/atlas-api-teams-addTeamUser>
    createTeam </command/atlas-api-teams-createTeam>
    deleteTeam </command/atlas-api-teams-deleteTeam>
+   getProjectTeam </command/atlas-api-teams-getProjectTeam>
    getTeamById </command/atlas-api-teams-getTeamById>
    getTeamByName </command/atlas-api-teams-getTeamByName>
    listOrganizationTeams </command/atlas-api-teams-listOrganizationTeams>
@@ -83,4 +85,3 @@ Related Commands
    removeTeamUser </command/atlas-api-teams-removeTeamUser>
    renameTeam </command/atlas-api-teams-renameTeam>
    updateTeamRoles </command/atlas-api-teams-updateTeamRoles>
-

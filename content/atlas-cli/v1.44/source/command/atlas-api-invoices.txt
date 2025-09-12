@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for invoices
 
@@ -73,4 +73,3 @@ Related Commands
    listInvoices </command/atlas-api-invoices-listInvoices>
    listPendingInvoices </command/atlas-api-invoices-listPendingInvoices>
    queryLineItemsFromSingleInvoice </command/atlas-api-invoices-queryLineItemsFromSingleInvoice>
-

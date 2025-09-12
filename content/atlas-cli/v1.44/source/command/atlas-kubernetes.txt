@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for kubernetes
    * - -P, --profile
@@ -50,4 +50,3 @@ Related Commands
    config </command/atlas-kubernetes-config>
    dry-run </command/atlas-kubernetes-dry-run>
    operator </command/atlas-kubernetes-operator>
-

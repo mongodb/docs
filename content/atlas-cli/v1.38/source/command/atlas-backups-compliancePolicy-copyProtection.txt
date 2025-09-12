@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for copyProtection
 
@@ -58,4 +58,3 @@ Related Commands
 
    disable </command/atlas-backups-compliancePolicy-copyProtection-disable>
    enable </command/atlas-backups-compliancePolicy-copyProtection-enable>
-

@@ -36,7 +36,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - -o, --output
@@ -50,13 +50,13 @@ Options
    * - --retentionUnit
      - string
      - true
-     - Unit of time in which Atlas measures snapshot retention: 'days' 'weeks' 'months'. 
+     - Unit of time in which Atlas measures snapshot retention: 'days' 'weeks' 'months'.
    * - --retentionValue
      - int
      - true
      - Duration in days, weeks, or months that Atlas retains the snapshot. For less frequent policy items, Atlas requires that you specify a value greater than or equal to the value specified for more frequent policy items.
    * - -w, --watch
-     - 
+     -
      - false
      - Flag that indicates whether to watch the command until it completes its execution or the watch times out.
 
@@ -74,7 +74,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Examples
 --------

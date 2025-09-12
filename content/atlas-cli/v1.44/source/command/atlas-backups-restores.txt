@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for restores
 
@@ -62,4 +62,3 @@ Related Commands
    list </command/atlas-backups-restores-list>
    start </command/atlas-backups-restores-start>
    watch </command/atlas-backups-restores-watch>
-

@@ -14,8 +14,8 @@ atlas deployments delete
 
 Delete a deployment.
 
-The command prompts you to confirm the operation when you run the command without the --force option. 
-		
+The command prompts you to confirm the operation when you run the command without the --force option.
+
 Deleting an Atlas deployment also deletes any backup snapshots for that cluster.
 Deleting a Local deployment also deletes any local data volumes.
 Deleting a deployment will not remove saved connections from MongoDB for VS Code. This must be done manually. To learn more, see https://www.mongodb.com/docs/mongodb-vscode/connect/#remove-a-connection.
@@ -60,11 +60,11 @@ Options
      - Required
      - Description
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     - 
+     -
      - false
      - help for delete
    * - --projectId
@@ -76,7 +76,7 @@ Options
      - false
      - Type of deployment. Valid values are ATLAS or LOCAL.
    * - -w, --watch
-     - 
+     -
      - false
      - Flag that indicates whether to watch the command until it completes its execution or the watch times out. To set the time that the watch times out, use the --watchTimeout option.
    * - --watchTimeout
@@ -108,7 +108,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Deployment '<Name>' deleted
-   
+
 
 Examples
 --------
@@ -118,15 +118,15 @@ Examples
 
    # Remove an Atlas deployment named myDeployment after prompting for a confirmation:
    atlas deployments delete myDeployment --type ATLAS
-   
-   
+
+
 .. code-block::
    :copyable: false
 
    # Remove an Atlas deployment named myDeployment without requiring confirmation:
    atlas deployments delete myDeployment --type ATLAS --force
 
-   
+
 .. code-block::
    :copyable: false
 

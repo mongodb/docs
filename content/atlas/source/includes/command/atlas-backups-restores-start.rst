@@ -16,7 +16,7 @@ Start a restore job for your project and cluster.
 
 If you create an automated or pointInTime restore job, Atlas removes all existing data on the target cluster prior to the restore.
 
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 Atlas supports this command only for Flex and M10+ clusters.
 Flex clusters support only automated restore jobs.
 
@@ -62,7 +62,7 @@ Options
      - true
      - Name of the cluster. To learn more, see https://dochub.mongodb.org/core/create-cluster-api.
    * - -h, --help
-     - 
+     -
      - false
      - help for start
    * - --oplogInc
@@ -112,7 +112,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -122,7 +122,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Restore job '<Id>' successfully started
-   
+
 
 Examples
 --------
@@ -132,38 +132,38 @@ Examples
 
    # Create an automated restore:
    atlas backup restore start automated \
-          --clusterName myDemo \
-          --snapshotId 5e7e00128f8ce03996a47179 \
-          --targetClusterName myDemo2 \
-          --targetProjectId 1a2345b67c8e9a12f3456de7
+   --clusterName myDemo \
+   --snapshotId 5e7e00128f8ce03996a47179 \
+   --targetClusterName myDemo2 \
+   --targetProjectId 1a2345b67c8e9a12f3456de7
 
-   
+
 .. code-block::
    :copyable: false
 
    # Create an automated restore for a Flex Cluster:
    atlas backup restore start automated \
-          --clusterName myFlexSource \
-          --snapshotId 5e7e00128f8ce03996a47179 \
-          --targetClusterName myFlexCluster \
-          --targetProjectId 1a2345b67c8e9a12f3456de7
+   --clusterName myFlexSource \
+   --snapshotId 5e7e00128f8ce03996a47179 \
+   --targetClusterName myFlexCluster \
+   --targetProjectId 1a2345b67c8e9a12f3456de7
 
-   
+
 .. code-block::
    :copyable: false
 
    # Create a point-in-time restore:
    atlas backup restore start pointInTime \
-          --clusterName myDemo \
-          --pointInTimeUTCSeconds 1588523147 \
-          --targetClusterName myDemo2 \
-          --targetProjectId 1a2345b67c8e9a12f3456de7
-   
-   
+   --clusterName myDemo \
+   --pointInTimeUTCSeconds 1588523147 \
+   --targetClusterName myDemo2 \
+   --targetProjectId 1a2345b67c8e9a12f3456de7
+
+
 .. code-block::
    :copyable: false
 
    # Create a download restore:
    atlas backup restore start download \
-          --clusterName myDemo \
-          --snapshotId 5e7e00128f8ce03996a47179
+   --clusterName myDemo \
+   --snapshotId 5e7e00128f8ce03996a47179

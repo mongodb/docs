@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for users
 
@@ -60,4 +60,3 @@ Related Commands
 
    describe </command/atlas-users-describe>
    invite </command/atlas-users-invite>
-

@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for fields
 
@@ -56,4 +56,3 @@ Related Commands
    :titlesonly:
 
    type </command/atlas-alerts-settings-fields-type>
-

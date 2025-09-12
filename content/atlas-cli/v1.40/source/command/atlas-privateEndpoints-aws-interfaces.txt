@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for interfaces
 
@@ -60,4 +60,3 @@ Related Commands
    create </command/atlas-privateEndpoints-aws-interfaces-create>
    delete </command/atlas-privateEndpoints-aws-interfaces-delete>
    describe </command/atlas-privateEndpoints-aws-interfaces-describe>
-

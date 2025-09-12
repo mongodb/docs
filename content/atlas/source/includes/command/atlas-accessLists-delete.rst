@@ -16,7 +16,7 @@ Remove the specified IP access list entry from your project.
 
 The command, when run without the force option, prompts you to confirm the operation.
 
-To use this command, you must authenticate with a user account or an API key with the Read Write role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Read Write role.
 
 Syntax
 ------
@@ -56,11 +56,11 @@ Options
      - Required
      - Description
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     - 
+     -
      - false
      - help for delete
    * - --projectId
@@ -82,7 +82,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -92,7 +92,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Project access list entry '<Name>' deleted
-   
+
 
 Examples
 --------
@@ -102,7 +102,7 @@ Examples
 
    # Remove the IP address 192.0.2.0 from the access list for the project with the ID 5e2211c17a3e5a48f5497de3 after prompting for a confirmation:
    atlas accessLists delete 192.0.2.0 --projectId 5e2211c17a3e5a48f5497de3
-   
+
 .. code-block::
    :copyable: false
 

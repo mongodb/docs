@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for collectionLevelMetrics
 
@@ -77,4 +77,3 @@ Related Commands
    pinNamespacesPatch </command/atlas-api-collectionLevelMetrics-pinNamespacesPatch>
    pinNamespacesPut </command/atlas-api-collectionLevelMetrics-pinNamespacesPut>
    unpinNamespaces </command/atlas-api-collectionLevelMetrics-unpinNamespaces>
-

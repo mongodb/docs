@@ -14,7 +14,7 @@ atlas clusters onlineArchives update
 
 Modify the archiving rule for the specified online archive for a cluster.
 
-To use this command, you must authenticate with a user account or an API key with the Project Data Access Admin role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Data Access Admin role.
 
 Syntax
 ------
@@ -76,7 +76,7 @@ Options
 
        Mutually exclusive with --archiveAfter, --expireAfterDays.
    * - -h, --help
-     - 
+     -
      - false
      - help for update
    * - -o, --output
@@ -102,7 +102,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -112,7 +112,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Online archive '<Id>' updated.
-   
+
 
 Examples
 --------

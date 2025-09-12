@@ -38,11 +38,11 @@ Options
      - Required
      - Description
    * - --authenticationEnabled
-     - 
+     -
      - false
      - Flag that indicates whether to enable LDAP user authentication.
    * - --authorizationEnabled
-     - 
+     -
      - false
      - Flag that indicates whether to enable LDAP user authorization.
    * - --authzQueryTemplate
@@ -62,7 +62,7 @@ Options
      - false
      - Certificate Authority (CA) used to verify the identity of the LDAP server. To delete an assigned value, pass an empty string.
    * - -h, --help
-     - 
+     -
      - false
      - help for save
    * - --hostname
@@ -123,7 +123,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    HOSTNAME          PORT          AUTHENTICATION                 AUTHORIZATION
    <Ldap.Hostname>   <Ldap.Port>   <Ldap.AuthenticationEnabled>   <Ldap.AuthorizationEnabled>
-   
+
 
 Examples
 --------
@@ -131,8 +131,8 @@ Examples
 .. code-block::
    :copyable: false
 
-   # Save an LDAP server configuration to authenticate and authorize MongoDB users for the host atlas-ldaps-01.ldap.myteam.com: 
-   atlas security ldap save --authenticationEnabled --authorizationEnabled 
-   --hostname atlas-ldaps-01.ldap.myteam.com --bindUsername 
-   "CN=Administrator,CN=Users,DC=atlas-ldaps-01,DC=myteam,DC=com" 
+   # Save an LDAP server configuration to authenticate and authorize MongoDB users for the host atlas-ldaps-01.ldap.myteam.com:
+   atlas security ldap save --authenticationEnabled --authorizationEnabled
+   --hostname atlas-ldaps-01.ldap.myteam.com --bindUsername
+   "CN=Administrator,CN=Users,DC=atlas-ldaps-01,DC=myteam,DC=com"
    --bindPassword changeMe

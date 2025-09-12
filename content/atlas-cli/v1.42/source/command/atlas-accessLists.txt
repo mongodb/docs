@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for accessLists
 
@@ -62,4 +62,3 @@ Related Commands
    delete </command/atlas-accessLists-delete>
    describe </command/atlas-accessLists-describe>
    list </command/atlas-accessLists-list>
-

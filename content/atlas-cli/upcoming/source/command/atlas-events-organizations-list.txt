@@ -36,7 +36,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - --limit
@@ -52,7 +52,7 @@ Options
      - false
      - Minimum created date. This option returns events whose created date is greater than or equal to the specified value. This parameter uses the ISO 8601 timestamp format in UTC.
    * - --omitCount
-     - 
+     -
      - false
      - Flag that indicates whether the JSON response returns the total number of items (totalCount) in the JSON response.
    * - --orgId
@@ -86,7 +86,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Examples
 --------
@@ -96,8 +96,8 @@ Examples
 
    # Return a JSON-formatted list of events for the organization with the ID 5dd5a6b6f10fab1d71a58495:
    atlas events organizations list --orgId 5dd5a6b6f10fab1d71a58495 --output json
-   
-   
+
+
 .. code-block::
    :copyable: false
 

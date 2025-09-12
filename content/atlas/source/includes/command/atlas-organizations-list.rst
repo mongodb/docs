@@ -14,7 +14,7 @@ atlas organizations list
 
 Return all organizations.
 
-To use this command, you must authenticate with a user account or an API key with the Organization Member role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Organization Member role.
 
 Syntax
 ------
@@ -38,11 +38,11 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - --includeDeleted
-     - 
+     -
      - false
      - Flag that indicates whether to include deleted organizations in the list. This option applies only to Ops Manager organizations. You can't return deleted Atlas or Cloud Manager organizations.
    * - --limit
@@ -54,7 +54,7 @@ Options
      - false
      - Organization name to perform a case-insensitive search for.
    * - --omitCount
-     - 
+     -
      - false
      - Flag that indicates whether the JSON response returns the total number of items (totalCount) in the JSON response.
    * - -o, --output
@@ -80,7 +80,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -91,7 +91,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     NAME
    <Id>   <Name>
-   
+
 
 Examples
 --------
@@ -101,8 +101,8 @@ Examples
 
    # Return a JSON-formatted list of all organizations:
    atlas organizations list --output json
-   
-   
+
+
 .. code-block::
    :copyable: false
 

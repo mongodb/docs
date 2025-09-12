@@ -14,7 +14,7 @@ atlas dbusers update
 
 Modify the details of a database user in your project.
 
-To use this command, you must authenticate with a user account or an API key with the Project Owner role.
+To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
 
 Syntax
 ------
@@ -62,7 +62,7 @@ Options
      - false
      - Description of this database user.
    * - -h, --help
-     - 
+     -
      - false
      - help for update
    * - -o, --output
@@ -108,7 +108,7 @@ Inherited Options
    * - -P, --profile
      - string
      - false
-     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see `https://dochub.mongodb.org/core/atlas-cli-save-connection-settings <https://dochub.mongodb.org/core/atlas-cli-save-connection-settings>`__.
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
 
 Output
 ------
@@ -118,7 +118,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Successfully updated database user '<Username>'.
-   
+
 
 Examples
 --------
@@ -129,7 +129,7 @@ Examples
    # Update roles for a database user named myUser for the project with the ID 5e2211c17a3e5a48f5497de3:
    atlas dbuser update myUser --role readWriteAnyDatabase --projectId 5e2211c17a3e5a48f5497de3
 
-   
+
 .. code-block::
    :copyable: false
 

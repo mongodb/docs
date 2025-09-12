@@ -18,11 +18,15 @@ Generate the autocompletion script for the fish shell.
 
 To load completions in your current shell session:
 
-	atlas completion fish | source
+.. code-block:: console
+
+   atlas completion fish | source
 
 To load completions for every new session, execute once:
 
-	atlas completion fish > ~/.config/fish/completions/atlas.fish
+.. code-block:: console
+
+   atlas completion fish > ~/.config/fish/completions/atlas.fish
 
 You will need to start a new shell for this setup to take effect.
 

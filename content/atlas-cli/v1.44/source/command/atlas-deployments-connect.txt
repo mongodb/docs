@@ -60,7 +60,7 @@ Options
      - false
      - Type of connection string. If you specify 'private', this option retrieves the connection string for the network peering endpoint. If you specify 'privateEndpoint', this option retrieves the shard optimized connection strings for the private endpoints. This value defaults to "standard".
    * - -h, --help
-     - 
+     -
      - false
      - help for connect
    * - --password
@@ -95,4 +95,3 @@ Inherited Options
      - string
      - false
      - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
-

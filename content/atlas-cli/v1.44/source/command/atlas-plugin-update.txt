@@ -57,15 +57,15 @@ Options
      - Required
      - Description
    * - --all
-     - 
+     -
      - false
      - update all plugins
    * - -h, --help
-     - 
+     -
      - false
      - help for update
    * - --skipSignatureVerification
-     - 
+     -
      - false
      - Skip signature verification.
 
@@ -94,8 +94,8 @@ Examples
    # Update a plugin:
    atlas plugin update mongodb/atlas-cli-plugin-example
    atlas plugin update atlas-cli-plugin-example
-   
-   
+
+
 .. code-block::
    :copyable: false
 
