@@ -65,6 +65,11 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: "Security Best Practices",
+        contentSite: "mcp-server",
+        url: "/docs/mcp-server/security-best-practices",
+      },
+      {
         label: "Tools",
         contentSite: "mcp-server",
         url: "/docs/mcp-server/tools",
