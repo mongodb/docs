@@ -4,7 +4,11 @@
  */
 
 import { getPageDocFromParams } from '@/services/db';
-import Template from './custom-template';
+import { DarkModeContextProvider } from '@/context/dark-mode-context';
+import Header from '@/components/header';
+import Footer from '@/components/footer';
+import ActionBar from '@/components/action-bar';
+import layoutStyles from '../../layout.module.scss';
 
 export default async function Layout({
   children,
@@ -18,7 +22,24 @@ export default async function Layout({
 
   return (
     <div className="docs-layout" style={{ gridArea: 'contents' }}>
-      <Template pageDoc={pageDoc!}>{children}</Template>
+      <DarkModeContextProvider>
+        <Header />
+        {/* TODO: return a sidenav here */}
+        <div
+          className={'sidenav-container'}
+          style={{
+            gridArea: 'sidenav',
+            width: '268px',
+          }}
+        >
+          REPLACE WITH SIDENAV
+        </div>
+        <div className={layoutStyles['content-container']}>
+          <ActionBar template="document" sidenav={true} />
+          {children}
+        </div>
+        <Footer />
+      </DarkModeContextProvider>
     </div>
   );
 }

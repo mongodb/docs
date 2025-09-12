@@ -1,10 +1,8 @@
-import type { Config } from 'jest';
-
-const config: Config = {
+/** @type {import('jest').Config} */
+const config = {
   displayName: 'unit-tests',
   verbose: true,
   testTimeout: 10000,
-  preset: 'ts-jest',
   testEnvironment: 'jest-environment-jsdom',
 
   testMatch: ['<rootDir>/src/**/*.test.(ts|tsx)'],
@@ -23,14 +21,16 @@ const config: Config = {
   },
 
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest',
+    '^.+\\.(ts|tsx)$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.jest.json',
+        useESM: false,
+      },
+    ],
   },
 
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.jest.json',
-    },
-  },
+  extensionsToTreatAsEsm: ['.ts', '.tsx'],
 };
 
-export default config;
+module.exports = config;

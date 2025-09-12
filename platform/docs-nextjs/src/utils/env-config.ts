@@ -2,7 +2,12 @@ const ENVIRONMENT_VALUES = ['production', 'dotcomprd', 'dotcomstg', 'dev'] as co
 
 export type Environments = (typeof ENVIRONMENT_VALUES)[number];
 
-const REQUIRED_ENV_VARS = ['MONGODB_URI'];
+const REQUIRED_ENV_VARS = [
+  'MONGODB_URI',
+  'CONTENTSTACK_API_KEY',
+  'CONTENTSTACK_DELIVERY_TOKEN',
+  'CONTENTSTACK_ENVIRONMENT',
+];
 
 /**
  * Validates the environment configuration.
@@ -24,11 +29,17 @@ validateEnvConfigs();
 type GlobalEnvConfig = {
   DB_ENV: Environments;
   MONGODB_URI: string;
+  CONTENTSTACK_API_KEY: string;
+  CONTENTSTACK_DELIVERY_TOKEN: string;
+  CONTENTSTACK_ENVIRONMENT: string;
 };
 
 const envConfig: GlobalEnvConfig = {
   DB_ENV: (process.env.DB_ENV ?? 'dev') as Environments,
   MONGODB_URI: process.env.MONGODB_URI ?? '',
+  CONTENTSTACK_API_KEY: process.env.CONTENTSTACK_API_KEY ?? '',
+  CONTENTSTACK_DELIVERY_TOKEN: process.env.CONTENTSTACK_DELIVERY_TOKEN ?? '',
+  CONTENTSTACK_ENVIRONMENT: process.env.CONTENTSTACK_ENVIRONMENT ?? '',
 };
 
 export default envConfig;

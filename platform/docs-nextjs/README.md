@@ -12,8 +12,8 @@ Use the above file with `nvm install` and `nvm use`.
 We will also use pnpm as the under the platform/ repository.
 Install with `npm install -g pnpm`
 
-### Compatiblity
-This project uses Next.js@15 with React@18 to ensure compatiblity with LeafyGreen components.
+### Compatibility
+This project uses Next.js@15 with React@18 to ensure compatibility with LeafyGreen components.
 
 ### PNPM
 

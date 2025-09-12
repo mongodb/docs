@@ -1,0 +1,79 @@
+import contentstack from '@contentstack/delivery-sdk';
+import envConfig from '@/utils/env-config';
+
+export interface ProductUpdateEntry {
+  uid: string;
+  title: string;
+  created_at: string;
+  multi_line: string;
+  is_featured: boolean;
+  tags: string[];
+  tags_category?: string[];
+  tags_offerings?: string[];
+  tags_product?: string[];
+  link_with_label?: LinkWithLabelItem[];
+  beamer_created_at?: string;
+}
+
+export interface LinkWithLabelItem {
+  link: {
+    title: string;
+    href: string;
+  };
+  label: string;
+}
+
+const stack = contentstack.stack({
+  apiKey: envConfig.CONTENTSTACK_API_KEY,
+  deliveryToken: envConfig.CONTENTSTACK_DELIVERY_TOKEN,
+  environment: envConfig.CONTENTSTACK_ENVIRONMENT,
+});
+
+let cachedEntries: ProductUpdateEntry[] | null = null;
+let lastFetchTime: number = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+export async function getProductUpdates(): Promise<ProductUpdateEntry[]> {
+  const now = Date.now();
+
+  // Return cached data if it's still fresh
+  if (cachedEntries && now - lastFetchTime < CACHE_DURATION) {
+    return cachedEntries;
+  }
+
+  try {
+    const result = await stack.contentType('product_update').entry().query().limit(1000).find();
+    const entries = (result.entries || []) as ProductUpdateEntry[];
+
+    // Sort entries by creation date (most recent first)
+    // Prioritize beamer_created_at if available, otherwise use created_at
+    const sortedEntries = entries.sort((a, b) => {
+      const dateA = a.beamer_created_at ? new Date(a.beamer_created_at) : new Date(a.created_at);
+      const dateB = b.beamer_created_at ? new Date(b.beamer_created_at) : new Date(b.created_at);
+      return dateB.getTime() - dateA.getTime(); // Most recent first
+    });
+
+    // Cache the results
+    cachedEntries = sortedEntries;
+    lastFetchTime = now;
+
+    return sortedEntries;
+  } catch (error) {
+    console.error('Error fetching product updates:', error);
+    throw error;
+  }
+}
+
+export async function getProductUpdateBySlug(slug: string): Promise<ProductUpdateEntry | null> {
+  const entries = await getProductUpdates();
+
+  return (
+    entries.find((entry: ProductUpdateEntry) => {
+      const entrySlug = entry.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+      return entrySlug === slug;
+    }) || null
+  );
+}
