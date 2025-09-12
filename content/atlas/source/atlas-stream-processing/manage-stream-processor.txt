@@ -1,9 +1,9 @@
 .. _streams-manage-processor:
 .. _atlas-sp-manage-processor:
 
-=====================================
+========================
 Manage Stream Processors
-=====================================
+========================
 
 .. meta::
    :description: Manage stream processors in Atlas Stream Processing by creating, starting, stopping, modifying, and viewing statistics for streaming data pipelines.
@@ -13,7 +13,7 @@ Manage Stream Processors
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 2
+   :depth: 1
    :class: singlecol
 
 .. facet::
@@ -63,8 +63,8 @@ Create a Stream Processor Interactively
 ---------------------------------------
 
 You can create a stream processor interactively with the
-``sp.process()`` method. Stream processors that you create
-interactively exhibit the following behavior:
+:method:`sp.process()` method in {+mongosh+}. Stream processors that you
+create interactively exhibit the following behavior:
 
 - Write output and dead letter queue documents to the shell
 - Begin running immediately upon creation
@@ -95,6 +95,8 @@ prototyping. To create a persistent stream processor, see
      - Required
      - :ref:`Stream aggregation pipeline <atlas-sp-aggregation>` you
        want to apply to your streaming data.
+
+To create a stream processor interactively: 
 
 .. procedure::
    :style: normal
@@ -159,27 +161,32 @@ prototyping. To create a persistent stream processor, see
 Create a Stream Processor
 -------------------------
 
-To create a stream processor: 
+To create a stream processor that persists until you drop it: 
 
 .. tabs::
 
    .. tab:: {+atlas-admin-api+}
-      :tabid: create-processor-api
+      :tabid: admin-api
 
       The {+atlas-admin-api+} provides an endpoint for 
       creating a stream processor.
 
       :oas-atlas-tag:`Create One Stream Processor </Streams/operation/createStreamProcessor>`
 
+   .. tab:: {+atlas-ui+} 
+      :tabid: atlas-ui
+
+      .. include:: /atlas-stream-processing/steps-create-stream-processor-ui.rst
+
    .. tab:: ``mongosh``
-      :tabid: create-processor-sh
+      :tabid: mongosh
 
       To create a new stream processor with {+mongosh+}, use the 
-      ``sp.createStreamProcessor()`` method. It has the following syntax:
+      :method:`sp.createStreamProcessor()` method. It has the following syntax:
 
       .. code-block:: sh
 
-        sp.createStreamProcessor(<name>, <pipeline>, <options>)
+         sp.createStreamProcessor(<name>, <pipeline>, <options>)
 
       .. list-table::
         :widths: 20 10 50 20
@@ -246,13 +253,34 @@ To create a stream processor:
             Use the connection string associated with your {+spi+}
             to connect using {+mongosh+}.
 
+            a. In the pane for your {+spi+}, click :guilabel:`Connect`.
+
+            #. In the :guilabel:`Connect to your instance` dialog, 
+               select the :guilabel:`Shell` tab.
+
+            #. Copy the connection string displayed in the dialog. It has
+               the following format, where
+               ``<atlas-stream-processing-url>`` is the URL of your {+spi+}
+               and ``<username>`` is the username of a database user with
+               the :atlasrole:`atlasAdmin` role:
+
+               .. code-block:: sh
+
+                  mongosh "mongodb://<atlas-stream-processing-url>/" 
+                  --tls --authenticationDatabase admin --username <username>  
+                  --password <password>   
+
+            #. Paste the connection string into your terminal and replace
+               the ``<password>`` placeholder with the credentials for
+               the user. Press Enter to run it to connect to your
+               {+spi+}.
+
             .. example::
 
               The following command connects to a {+spi+} as a user named
               ``streamOwner`` using `x.059 <https://www.mongodb.com/docs/manual/core/security-x.509/>`_
               authentication.
               
-
               .. code-block:: sh
 
                   mongosh "mongodb://atlas-stream-78xq9gi1v4b4288x06a73e9f-zi30g.virginia-usa.a.query.mongodb-qa.net/?authSource=%24external&authMechanism=MONGODB-X509" \\ 
@@ -266,7 +294,7 @@ To create a stream processor:
             aggregation stages you want to apply to a variable named 
             ``pipeline``. 
             
-            The following example uses the ``stuff`` topic in
+            The following example pipeline uses the ``stuff`` topic in
             the  ``myKafka`` connection in the connection registry as the 
             :pipeline:`$source`, matches records where the ``temperature`` 
             field has a value of ``46`` and emits the processed messages to 
@@ -332,33 +360,49 @@ To start a stream processor:
 .. tabs::
 
    .. tab:: {+atlas-admin-api+}
-      :tabid: start-processor-api
+      :tabid: admin-api
 
       The {+atlas-admin-api+} provides an endpoint for 
       starting a stream processor.
 
       :oas-atlas-tag:`Start One Stream Processor </Streams/operation/startStreamProcessor>`
 
+   .. tab:: {+atlas-ui+} 
+      :tabid: atlas-ui
+
+      To start a stream processor in the {+atlas-ui+}, go to the
+      :guilabel:`Stream Processing` page for your {+service+} project
+      and click :guilabel:`Configure` in the pane for your {+spi+} to
+      view the list of stream processors defined for it. 
+      
+      Then, click the :guilabel:`Start` icon for your stream processor.
+
    .. tab:: ``mongosh``
-      :tabid: create-processor-sh
+      :tabid: mongosh
 
       To start an existing stream processor with {+mongosh+}, use the 
-      ``sp.<streamprocessor>.start()`` method. ``<streamprocessor>`` must be 
-      the name of a stream processor defined for the current {+spi+}.
+      :method:`sp.processor.start()` method. 
 
       For example, to start a stream processor named ``proc01``, run the 
       following command:
 
-      .. code-block:: sh
+      .. io-code-block::
+         :copyable: true
 
-        sp.proc01.start()
+         .. input:: 
+            :language: shell 
 
-      This method returns: 
+            sp.proc01.start()
 
-      - ``true`` if the stream processor exists and isn't currently running. 
+         .. output::
+            :language: shell
 
-      - ``false`` if you try to start a stream processor that doesn't exist, 
-        or exists and is currently running.
+            { "ok" : 1 }
+
+      This method returns ``{ "ok": 1 }`` if the stream processor exists
+      and isn't currently running. If you invoke
+      ``sp.processor.start()`` for a stream processor that is not
+      ``STOPPED``, {+mongosh+} will return an error.
 
 .. _streams-manage-stop:
 .. _atlas-sp-manage-processor-stop:
@@ -373,34 +417,51 @@ To stop a stream processor:
 .. tabs::
 
    .. tab:: {+atlas-admin-api+}
-      :tabid: stop-processor-api
+      :tabid: admin-api
 
       The {+atlas-admin-api+} provides an endpoint for 
       stopping a stream processor.
 
       :oas-atlas-tag:`Stop One Stream Processor </Streams/operation/stopStreamProcessor>`
 
+   .. tab:: {+atlas-ui+} 
+      :tabid: atlas-ui
+
+      To pause a stream processor in the {+atlas-ui+}, go to the
+      :guilabel:`Stream Processing` page for your {+service+} project
+      and click :guilabel:`Configure` in the pane for your {+spi+} to
+      view the list of stream processors defined for it. 
+
+      Then, click the :guilabel:`Pause` icon for your stream processor.
+
    .. tab:: ``mongosh``
-      :tabid: create-processor-sh
+      :tabid: mongosh
 
       To stop an existing stream processor with {+mongosh+}, use the 
-      ``sp.<streamprocessor>.stop()`` method. ``<streamprocessor>`` must be 
-      the name of a currently running stream processor defined for the 
-      current {+spi+}.
+      :method:`sp.processor.stop()` method.
 
       For example, to stop a stream processor named ``proc01``, run the 
       following command:
 
-      .. code-block:: sh
+      .. io-code-block::
+         :copyable: true
 
-        sp.proc01.stop()
+         .. input:: 
+            :language: shell 
 
-      This method returns: 
+            sp.proc01.stop()
 
-      - ``true`` if the stream processor exists and is currently running. 
+         .. output::
+            :language: shell
 
-      - ``false`` if the stream processor doesn't exist, or if the stream 
-        processor isn't currently running.
+            { "ok" : 1 }
+
+      This method returns ``{ "ok": 1 }`` if the stream processor exists
+      and is currently running. If you invoke ``sp.processor.stop()``
+      for a stream processor that is not ``running``, {+mongosh+} will
+      return an error.
+
+.. _streams-manage-modify: 
 
 Modify a Stream Processor
 -------------------------
@@ -414,7 +475,7 @@ You can modify the following elements of an existing stream processor:
 To modify a stream processor, do the following:
 
 1. :ref:`Stop the stream processor <streams-manage-stop>`. 
-2. Apply your update to the stream processor. 
+2. :ref:`Modify the stream processor <streams-manage-modify-steps>`. 
 3. :ref:`Restart the stream processor <streams-manage-start>`.
 
 By default, modified processors restore from the last checkpoint. Alternatively, 
@@ -441,13 +502,23 @@ limitations apply:
 - Processors with windows may reprocess some data as a product of recalculating 
   the windows. 
 
+.. _streams-manage-modify-steps: 
+
 To modify a stream processor:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. tabs::
 
+   .. tab:: {+atlas-admin-api+}
+      :tabid: admin-api
+
+      The {+atlas-admin-api+} provides an endpoint for 
+      modifying a stream processor.
+
+      :oas-atlas-tag:`Modify One Stream Processor </Streams/operation/modifyStreamProcessor>`
+
    .. tab:: ``mongosh``
-      :tabid: modify-processor-sh
+      :tabid: mongosh
 
       Requires {+mongosh+} v2.3.4+. 
       
@@ -574,14 +645,6 @@ To modify a stream processor:
          ], {resumeFromCheckpoint: false});
          sp.foo.start();
 
-   .. tab:: {+atlas-admin-api+}
-      :tabid: modify-processor-api
-
-      The {+atlas-admin-api+} provides an endpoint for 
-      modifying a stream processor.
-
-      :oas-atlas-tag:`Modify One Stream Processor </Streams/operation/modifyStreamProcessor>`
-
 .. _streams-manage-drop:
 .. _atlas-sp-manage-processor-drop:
 
@@ -593,26 +656,38 @@ To drop a stream processor:
 .. tabs::
 
    .. tab:: {+atlas-admin-api+}
-      :tabid: delete-processor-api
+      :tabid: admin-api
 
       The {+atlas-admin-api+} provides an endpoint for 
       deleting a stream processor.
 
       :oas-atlas-tag:`Delete One Stream Processor </Streams/operation/deleteStreamProcessor>`
 
+   .. tab:: {+atlas-ui+} 
+      :tabid: atlas-ui
+
+      To delete a stream processor in the {+atlas-ui+}, go to the
+      :guilabel:`Stream Processing` page for your {+service+} project
+      and click :guilabel:`Configure` in the pane for your {+spi+} to
+      view the list of stream processors defined for it.
+
+      Then, click the :guilabel:`Delete` (:icon:`trash-alt`) icon for
+      your stream processor. In the confirmation dialog that appears,
+      type the name of the stream processor (``solarDemo``) to confirm
+      that you want to delete it, and then click :guilabel:`Delete`.
+
    .. tab:: ``mongosh``
-      :tabid: drop-processor-sh
+      :tabid: mongosh
 
       To delete an existing stream processor with {+mongosh+}, use the 
-      ``sp.<streamprocessor>.drop()`` method. ``<streamprocessor>`` must be 
-      the name of a stream processor defined for the current {+spi+}.
+      :method:`sp.processor.drop()` method.
 
       For example, to drop a stream processor named ``proc01``, run the 
       following command:
 
       .. code-block:: sh
 
-        sp.proc01.drop()
+         sp.proc01.drop()
 
       This method returns: 
 
@@ -634,25 +709,35 @@ To list all available stream processors:
 .. tabs::
 
    .. tab:: {+atlas-admin-api+}
-      :tabid: list-processor-api
+      :tabid: admin-api
 
       The {+atlas-admin-api+} provides an endpoint for 
       listing all available stream processors.
 
       :oas-atlas-tag:`List Stream Processors </Streams/operation/listStreamProcessors>`
 
-   .. tab:: ``mongosh``
-      :tabid: list-processor-sh
+   .. tab:: {+atlas-ui+} 
+      :tabid: atlas-ui
 
-      To list all available stream processors on the current {+spi+} with 
-      {+mongosh+}, use the ``sp.listStreamProcessors()`` method. It returns 
-      a list of documents containing the name, start time, current state, and 
-      pipeline associated with each stream processor. It has the following 
-      syntax:
+      To view the list of stream processors defined for your {+spi+} in
+      the {+atlas-ui+}, go to the :guilabel:`Stream Processing` page
+      for your {+service+} project and click :guilabel:`Configure` in
+      the pane for your {+spi+}.
+
+      The list of stream processors and their statuses displays.
+
+   .. tab:: ``mongosh``
+      :tabid: mongosh
+
+      To list all available stream processors on the current {+spi+}
+      with {+mongosh+}, use the :method:`sp.listStreamProcessors()`
+      method. This returns a list of documents containing the name,
+      start time, current state, and pipeline associated with each
+      stream processor. It has the following syntax:
 
       .. code-block:: sh
 
-        sp.listStreamProcessors(<filter>)
+         sp.listStreamProcessors(<filter>)
 
       ``<filter>`` is a document specifying which field(s) to filter the list 
       by.
@@ -672,6 +757,7 @@ To list all available stream processors:
 
             .. output:: 
               :language: json
+              :visible: false
               :linenos:
 
               {
@@ -742,6 +828,7 @@ To list all available stream processors:
 
             .. output:: 
               :language: json
+              :visible: false
               :linenos:
 
               {
@@ -778,12 +865,10 @@ To list all available stream processors:
 Sample from a Stream Processor
 ------------------------------
 
-To return an array of sampled results from an existing stream processor 
-to ``STDOUT`` with {+mongosh+}, use the 
-``sp.<streamprocessor>.sample()`` method. ``<streamprocessor>`` must be 
-the name of a currently running stream processor defined for the 
-current {+spi+}. For example, the following command samples from a 
-stream processor named ``proc01``.
+To return an array of sampled results from an existing stream processor
+to ``STDOUT`` with {+mongosh+}, use the :method:`sp.processor.sample()`
+method. For example, the following command samples from a stream
+processor named ``proc01``.
 
 .. code-block:: sh
 
@@ -832,25 +917,32 @@ To view statistics of a stream processor:
 .. tabs::
 
    .. tab:: {+atlas-admin-api+}
-      :tabid: get-status-processor-api
+      :tabid: admin-api
 
       The {+atlas-admin-api+} provides an endpoint for 
       viewing the statistics of a stream processor.
 
       :oas-atlas-tag:`Get One Stream Processor </Streams/operation/getStreamProcessor>`
+      
+   .. tab:: {+atlas-ui+} 
+      :tabid: atlas-ui
+
+      To view monitoring for your stream processor, go to the
+      :guilabel:`Stream Processing` page for your {+service+} project
+      and open the :guilabel:`Monitoring` tab. Then, select your stream
+      processor from the :guilabel:`Stream processor` drop-down list at
+      the top left of the page.
 
    .. tab:: ``mongosh``
-      :tabid: get-status-processor-sh
+      :tabid: mongosh
 
       To return a document summarizing the current status of an existing 
       stream processor with {+mongosh+}, use the 
-      ``sp.<streamprocessor>.stats()`` method. ``streamprocessor`` must be 
-      the name of a currently running stream processor defined for the 
-      current {+spi+}. It has the following syntax:
+      :method:`sp.processor.stats()` method. It has the following syntax:
 
       .. code-block:: sh
 
-        sp.<streamprocessor>.stats({options: {<options>}})
+         sp.<streamprocessor>.stats({options: {<options>}})
 
       Where ``options`` is an optional document with the following fields:
 
@@ -878,7 +970,7 @@ To view statistics of a stream processor:
       The output document has the following fields:
 
       .. list-table::
-        :widths: 20 20 60
+        :widths: 30 10 60
         :header-rows: 1
 
         * - Field
