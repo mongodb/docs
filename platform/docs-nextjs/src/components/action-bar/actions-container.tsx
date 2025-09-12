@@ -1,14 +1,15 @@
 'use client';
 
+import React, { Suspense, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Button from '@leafygreen-ui/button';
 import Icon from '@leafygreen-ui/icon';
 import IconButton from '@leafygreen-ui/icon-button';
-import React, { Suspense, useState } from 'react';
 import { cx } from '@leafygreen-ui/emotion';
 import type { Environments } from '@/utils/env-config';
 import { chatbotButtonStyling, ActionsBox as ActionsBoxStyled } from './styles';
 import { chatbotMobileButtonStyling } from './styles';
-import dynamic from 'next/dynamic';
+import DarkModeDropdown from './dark-mode-dropdown';
 
 const Chatbot = dynamic(() => import('mongodb-chatbot-ui').then((mod) => mod), {
   ssr: false,
@@ -55,6 +56,7 @@ const UIContainer = () => {
           </Chatbot>
         </Suspense>
       }
+      <DarkModeDropdown />
     </ActionsBoxStyled>
   );
 };

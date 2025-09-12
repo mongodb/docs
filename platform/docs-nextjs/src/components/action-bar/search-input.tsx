@@ -2,8 +2,8 @@
 
 import React from 'react';
 
-const SearchInput = ({ slug }: { slug: string | null }) => {
-  return <div>SearchInput {slug}</div>;
+const SearchInput = () => {
+  return <div>SearchInput</div>;
 };
 
 export default SearchInput;

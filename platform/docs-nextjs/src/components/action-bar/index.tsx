@@ -5,7 +5,6 @@ import UIContainer from './actions-container';
 
 interface ActionBarProps {
   template: PageTemplateType;
-  slug: string;
   sidenav: boolean;
   className?: string;
 }
@@ -46,7 +45,7 @@ const getContainerStyling = (template: string) => {
   return { containerClassname, fakeColumns, searchContainerClassname };
 };
 
-const ActionBar = ({ template, sidenav, className, slug }: ActionBarProps) => {
+const ActionBar = ({ template, sidenav, className }: ActionBarProps) => {
   const { fakeColumns, searchContainerClassname, containerClassname } = getContainerStyling(template);
 
   // const { darkMode } = useDarkMode();
@@ -62,7 +61,7 @@ const ActionBar = ({ template, sidenav, className, slug }: ActionBarProps) => {
           // </Overline>
           <div>TODO: Docs Menu with sidenav</div>
         )}
-        <SearchInput slug={slug} />
+        <SearchInput />
       </div>
       <UIContainer />
     </div>

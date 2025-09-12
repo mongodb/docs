@@ -8,7 +8,7 @@ import { isBrowser } from '@/utils/isBrowser';
 import { theme } from '@/styles/theme';
 import useCopyClipboard from '@/utils/hooks/use-copy-clipboard';
 import useHashAnchor from '@/utils/hooks/use-hash-anchor';
-import { usePageContext } from '@/app/context/page-context';
+import { usePageContext } from '@/context/page-context';
 
 const tooltipStyle = css`
   padding: 2px 8px;

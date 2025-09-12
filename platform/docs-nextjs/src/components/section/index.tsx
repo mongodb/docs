@@ -1,4 +1,4 @@
-import { HeadingContextProvider } from '@/app/context/heading-context';
+import { HeadingContextProvider } from '@/context/heading-context';
 import type { ASTNode, HeadingNode } from '@/types/ast';
 import { isHeadingNode } from '@/types/ast-utils';
 import { getPlaintext } from '@/utils/get-plaintext';
