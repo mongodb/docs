@@ -7,7 +7,8 @@
 
 Improvements
 ~~~~~~~~~~~~
-
+- Adds MongoDB 8.2 deployment support as a preview, not for production use. 
+  Full support available in Ops Manager 8.0.13.
 - Updates the MongoDB Agent to :ref:`108.0.12.8846-1
   <mongodb-108.0.12.8846-1>`.
 - Supports |bic-full| 2.14.24.
