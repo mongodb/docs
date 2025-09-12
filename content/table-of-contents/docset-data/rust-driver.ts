@@ -205,7 +205,7 @@ export const tocData: TocItem[] = [
                     url: "/docs/drivers/rust/:version/fundamentals/crud/read-operations/change-streams",
                   },
                   {
-                    label: "Search Text",
+                    label: "Query Text",
                     contentSite: "rust",
                     url: "/docs/drivers/rust/:version/fundamentals/crud/read-operations/text-search",
                   },
