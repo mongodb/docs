@@ -1,0 +1,463 @@
+.. _mcp-server-security-best-practices:
+
+==========================================
+MongoDB MCP Server Security Best Practices
+==========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. meta::
+   :keywords: MCP Server security, MCP, Model Context Protocol, AI, natural language, MCP Server, AI agents, Claude, Windsurf, Cursor, Visual Studio Code
+   :description: MongoDB MCP Server security best practices
+
+.. facet::
+   :name: genre
+   :values: reference
+
+This page describes security best practices for the MongoDB MCP Server.
+
+.. _mcp-server-security-best-practices-read-only-mode:
+
+MCP Server Read-Only Mode
+-------------------------
+
+The MCP Server ``--readOnly`` :ref:`option
+<mcp-server-configuration-options>` enables read-only mode.
+``--readOnly`` restricts the MCP Server to only run :ref:`tools
+<mcp-server-tools>` that perform read, connect, and metadata operations.
+
+By default, read-only mode isn't enabled and the MCP Server allows
+cluster write operations. To improve security, enable MCP Server
+read-only mode and use a read-only database user to connect to clusters.
+
+Read-only mode prevents accidental or malicious data modifications
+performed with the MCP Server.
+
+To enable read-only mode, include ``--readOnly`` in the MCP client
+application JSON configuration file or on the command line, or set the
+``MDB_MCP_READ_ONLY`` operating system environment variable to ``true``.
+The following sections show examples of each method.
+
+JSON Configuration File Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows ``--readOnly`` in the MCP client JSON
+configuration file for the Claude Desktop client application:
+
+.. code-block:: json
+   :emphasize-lines: 11
+
+   {
+      "mcpServers": {
+         "MongoDB": {
+            "type": "stdio",
+            "command": "npx",
+            "args": [
+               "-y",
+               "mongodb-mcp-server@latest",
+               "--connectionString",
+               "mongodb://localhost:27017/myDatabase",
+               "--readOnly"
+            ]
+         }
+      }
+   }
+
+For other example client JSON configuration files, see
+:ref:`mcp-get-started-configure`.
+
+Command Line Example
+~~~~~~~~~~~~~~~~~~~~
+
+The following example sets ``--readOnly`` with the ``npx`` command:
+
+.. code-block:: bash
+   :emphasize-lines: 3
+
+   npx -y mongodb-mcp-server@latest  \
+      --connectionString "mongodb://localhost:27017/myDatabase" \
+      --readOnly
+
+Secrets and Environment Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use environment variables to pass secrets and connection strings to the
+MCP Server.
+
+Environment variables are more secure because command line arguments can
+be tracked, cached, and appear in different places on the computer.
+
+The following example sets the ``MDB_MCP_READ_ONLY`` environment
+variable to ``true``:
+
+.. code-block:: json
+   :emphasize-lines: 9
+
+   "MongoDB": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+         "-y",
+         "mongodb-mcp-server@latest",
+      ],
+      "env": {
+         "MDB_MCP_READ_ONLY": true
+      }
+   }
+
+For more information about environment variables, see
+:ref:`mcp-server-configuration-environment-variables`.
+
+Read-Only Database Access
+-------------------------
+
+For a secure deployment, use read-only database access with the MCP
+Server:
+
+- Create dedicated read-only database users for MCP Server connections.
+- Use the database ``read`` role or create a custom read-only role for
+  the database users.
+- Never use database ``write`` credentials with the MCP Server.
+
+Use cases for read-only database access:
+
+- **Data analysis:** query and analyze production data without
+  modification risk.
+- **Reporting:** generate reports from live data.
+- **Monitoring:** examine database metrics and performance indicators.
+- **Development support:** allow developers to query production data for
+  debugging purposes without allowing write access.
+
+In addition, use the MCP Server ``--readOnly`` option to ensure
+read-only data access. For details, see the earlier section
+:ref:`mcp-server-security-best-practices-read-only-mode`.
+
+Read-only database access is recommended for production. But, consider
+limited write access for the following use cases:
+
+- Development and staging environments.
+- Perform administrative tasks with the correct authorization.
+- Isolated test clusters with non-critical data.
+
+MCP Server Deployment Options
+-----------------------------
+
+You can deploy the MCP Server locally or remotely.
+
+Local MCP Server
+~~~~~~~~~~~~~~~~
+
+In a local MCP Server, the MCP Server and the client application run
+on the same computer.
+
+A local MCP Server enables control over the installation environment:
+
+- **Configuration and dependencies:** you manage the MCP Server software
+  dependencies. To define the MCP Server parameters and database
+  connections, edit files on the local computer.
+- **Credentials security:** sensitive information for API keys and
+  connection strings are stored locally in configuration files or
+  environment variables. You secure the credentials.
+- **Manual software updates:** when a new MCP Server version is
+  available, users can download and install the MCP Server software.
+  This can cause users to run different MCP Server versions.
+
+When to Deploy MCP Server Locally
+`````````````````````````````````
+
+Deploy a local MCP Server for the following scenarios:
+
+- Require easy configuration to get started with MCP Server on your
+  computer.
+- Manage your own configuration and updates.
+
+Using Different Transport Protocols
+```````````````````````````````````
+
+The MCP transport protocols enable message communication between the
+client application and the MCP Server. For a local MCP Server, use one
+of the following transport protocols:
+
+- **STDIO (Standard Input/Output):** the client application launches the
+  MCP Server as a child process and communicates using operating system
+  standard pipes (``stdin`` and ``stdout``). MongoDB recommends the
+  STDIO transport protocol for local deployments.
+- **Streamable HTTP:** the MCP Server starts a server on ``localhost``.
+  The client communicates with the MCP Server using Streamable HTTP
+  requests, which creates a persistent session. A unique session ID is
+  included in a message header to maintain the state and context of the
+  interaction.
+
+.. warning::
+
+   With Streamable HTTP, the MCP Server is bound to ``localhost
+   (127.0.0.1)`` by default. This ensures the MCP Server only accepts
+   connections that originate on the same computer.
+   
+   Binding to ``0.0.0.0`` exposes the MCP Server to the entire local
+   network, which allows other devices on the same network to
+   potentially access the MCP Server. This is a security risk and could
+   allow unauthorized access to your database context. If you must
+   expose the MCP Server outside of ``localhost``, implement security
+   authentication described in
+   :ref:`mcp-server-security-best-practices-authentication`.
+
+Advantages and Disadvantages of Different Transport Protocols
+`````````````````````````````````````````````````````````````
+
+STDIO creates a direct link between the client application and the MCP
+Server. STDIO is best if only one application communicates with the MCP
+Server because the application and the MCP Server are closely linked
+together. When using STDIO, the MCP Server must run on the same computer
+as the client application.
+
+Streamable HTTP is flexible and operates like a private server on your
+computer. Multiple clients can connect to the MCP Server. Streamable
+HTTP is easy to test. Unlike STDIO, Streamable HTTP also allows
+you to remotely deploy and locally deploy the MCP Server.
+
+Remote MCP Server
+~~~~~~~~~~~~~~~~~
+
+In a remote MCP Server deployment, the MCP Server runs on a computer in
+the cloud or on an on-premises server.
+
+Client applications connect to the MCP Server over the network and use
+Streamable HTTP. This provides a central shared environment that is
+accessible to multiple users, automated systems, applications, and AI
+agents.
+
+Consider the following points for MCP Server remote deployments:
+
+- Remote deployment has extra security risks and requires a secure
+  configuration.
+- At minimum, you need to configure network isolation, authentication to
+  the MCP Server, and set up secrets management in the cloud or on
+  premises.
+
+Security Best Practices for Streamable HTTP
+```````````````````````````````````````````
+
+Communication in a remote MCP Server deployment typically uses
+Streamable HTTP. Consider the following points for Streamable HTTP:
+
+- Keep the MCP Server bound to ``localhost`` (``127.0.0.1``) for
+  connections, which is the default.
+- Binding to ``localhost`` requires administrators add a reverse
+  proxy in front of the MCP Server. For example, use an Nginx reverse
+  proxy.
+- The MCP Server relies on the reverse proxy to stop malicious traffic
+  before the traffic reaches the MCP Server.
+
+Remote MCP Server Advantages
+````````````````````````````
+
+- **Central management:** security policies, logging, versioning,
+  and access control are managed in one place.
+- **Supports automation:** :abbr:`CI/CD (Continuous
+  Integration/Continuous Deployment)` pipelines, automated testing
+  frameworks, and other agents can operate as clients for automated
+  workflows.
+
+Remote MCP Server Disadvantages
+```````````````````````````````
+
+- **Additional hardware:** requires dedicated server and network
+  infrastructure.
+- **Complex security:** requires network security, authentication,
+  authorization, and TLS certificate management.
+- **Single point of failure:** if the remote server crashes, it affects
+  all users. Consider implementing high availability for critical
+  environments.
+
+Remote MCP Server Security
+--------------------------
+
+In all MCP systems, authentication into the MCP Server is performed
+separately from authentication to the service that the MCP Server
+provides access to. The MongoDB MCP Server provides statically
+configured access to the MongoDB instances that the MCP Server protects.
+
+The MCP Server doesn't provide inbound authentication or authorization
+functionality and you must configure authentication and authorization.
+This is especially important to do for a remote MCP Server deployment
+because the MCP Server is available on a network.
+
+.. _mcp-server-security-best-practices-authentication:
+
+Protecting Connections to the MCP Server
+----------------------------------------
+
+All inbound connections to the MCP Server must be protected, otherwise
+the database is exposed.
+
+Connections must be protected even if the connection between the MCP
+Server and the database is fully secured as described in the following
+sections. This is because the MCP Server provides a separate connection
+point.
+
+Protecting inbound connections to the MCP Server requires an external
+service that operates in parallel with the MCP Server. This typically
+requires a reverse proxy to enforce access controls for inbound
+connections. The proxy maps the access rights of the incoming request to
+a specific MCP Server instance, which is statically configured to
+connect to a MongoDB database instance either locally to the MCP Server
+or to an Atlas cluster.
+
+Other methods to protect the MCP Server are possible. For simplicity,
+the following sections assume the use of a proxy pattern.
+
+Delegated Authorization
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In delegated authorization, the user delegates a subset of their
+authority to an agent. MongoDB recommends the use of OAuth 2.1 with
+the MCP Server.
+
+To operate with the MCP Server, a deployment must have an OAuth
+Authorization Server (AS) protected by authenticated user accounts, and
+a proxy in front of the MCP Server that operates as an OAuth Resource
+Server (RS). The agent operates as an OAuth client.
+
+OAuth delegation operates as follows:
+
+1. Agent requests access to the MCP Server. The MCP Server is protected
+   by a proxy.
+#. Proxy sends the agent to the AS, which starts an authorization
+   request
+#. User logs in to the AS and authorizes the agent to access the RS,
+   which is the proxy that protects the MCP Server.
+#. Agent is given an access token to access the RS.
+#. Agent uses the access token to call the MCP Server through the proxy.
+#. Proxy validates the access token and allows the call to the MCP
+   Server.
+#. MCP Server receives the proxy request and runs the command
+   on the database through the statically configured secure connection.
+
+The MCP Server and the database never read the access token. The proxy
+is trusted to protect the MCP Server. Bypassing the proxy risks access
+to the MCP Server and the databases that the MCP Server can access.
+
+The format of the token is hidden. :abbr:`JWTs (JSON Web Tokens)` are a
+common format that allow the proxy to independently verify the token
+issued by the AS.
+
+Direct Authentication
+~~~~~~~~~~~~~~~~~~~~~
+
+**Direct authentication isn't recommended.**
+
+With direct authentication, the agent provides credentials to the proxy.
+The proxy authenticates the credentials. The credentials can be an API
+key or other credential that identifies the agent. The pattern is simple
+but has the following problems:
+
+- Only the agent is identified, not the user for which the agent is
+  acting.
+- There is no method to audit who is taking which action through the MCP
+  Server.
+- Access is usually controlled centrally for all users, or directly at
+  the proxy.
+
+MCP Security Anti-Patterns
+--------------------------
+
+The following sections describe anti-patterns that you must not use.
+
+User Impersonation
+~~~~~~~~~~~~~~~~~~
+
+**Do not use user impersonation.**
+
+With user impersonation, the user provides their credentials directly to
+the agent. The agent sends the credentials to the proxy for
+authentication. User impersonation has the following problems:
+
+- Only the user is identified. The fact that the agent acts on the
+  user's behalf is hidden.
+- User credentials are leaked to intermediate systems. This puts user
+  accounts at risk.
+- Actions the user can perform are allowed for the agent, and limited
+  release of functions is impossible.
+- Disconnecting an agent requires rotation of user credentials, which
+  disrupts user accounts and systems.
+- Non-phishable and non-replayable credentials cannot operate.
+
+Pass-Through Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Do not use pass-through authentication.**
+
+In pass-through authentication, the agent obtains and passes credentials
+to access the database to the proxy. The proxy validates the credentials
+and passes the credentials to the MCP Server. The MCP Server uses the
+credentials to connect to the database. Pass-through authentication has
+the following problems:
+
+- Only copyable and replayable credentials can operate, which limits
+  connections to low security options.
+- The connection chain is hidden from the system.
+- Anyone can potentially omit the next part of the chain.
+
+Database and Network Security
+-----------------------------
+
+The method that the MCP Server uses to securely access the database are
+separate from the method used to protect access to the MCP Server. The
+following sections describe database and network security.
+
+Database Authentication and Authorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The MCP Server supports the following database authentication methods:
+
+- Enterprise authentication with LDAP, X.509 certificates, OIDC, and
+  Kerberos.
+- Default SCRAM-SHA-256 authentication to provide strong password
+  authentication.
+- :abbr:`mTLS (Mutual TLS)` certificate authentication for service
+  accounts and inter-cluster communication.
+
+The MongoDB database supports the following authorization methods:
+
+- :abbr:`RBAC (Role Based Access Control)` to limit database access.
+- Granular database permissions to limit access to specific databases,
+  individual collections, and operations like read, write, and
+  administrative actions.
+- Custom database roles for teams. For example, read-only access for
+  analytics team and read-write access for operations team.
+- Additional collection security to limit collection access.
+
+Network Security
+~~~~~~~~~~~~~~~~
+
+Recommendations for network isolation:
+
+- Deploy clusters in a private :abbr:`VPC (Virtual Private Cloud)` or
+  :abbr:`VNet (Virtual Network)` without direct Internet access.
+- Secure connections to cloud private network with VPC peering and
+  private endpoints.
+- Restrict database access to specific IP addresses or :abbr:`CIDR
+  (Classless Inter-Domain Routing)` blocks.
+
+Recommendations for firewall configuration:
+
+- Restrict access to MongoDB server port 27017 to authorized application
+  servers only.
+- Configure cloud firewall rules with security groups and an :abbr:`ACL
+  (Access Control List)` for incoming and outgoing network traffic.
+- Disable non-encrypted ports and enforce :abbr:`TLS (Transport Layer
+  Security)` 1.2+ for all connections.
+
+Learn More
+----------
+
+- :ref:`mcp-server-configuration-options`
+- :ref:`mcp-server-tools`
+- :ref:`mcp-server-configuration`

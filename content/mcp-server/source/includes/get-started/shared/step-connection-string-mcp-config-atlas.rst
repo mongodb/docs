@@ -29,7 +29,7 @@
       ...
       "args": [
          "-y",
-         "mongodb-mcp-server",
+         "mongodb-mcp-server@latest",
          "--connectionString",
          "<connection-string>",
          "--readOnly"
