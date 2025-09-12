@@ -58,7 +58,7 @@ export const log = ({ message, level, ...rest }: logParams) => {
   const _logger = initiateLogger();
   const logEntry: LogEntry = {
     level: getLevel(level),
-    message: message,
+    message,
     ...rest,
   };
   _logger.log(logEntry);

@@ -23,14 +23,19 @@ import { BaseFontSize } from '@leafygreen-ui/tokens';
  */
 
 export function LeafyGreenProvider({ children, baseFontSize }: PropsWithChildren<LeafyGreenProviderProps>) {
-  useServerInsertedHTML(() => (
-    <style
-      data-emotion={`${cache.key} ${Object.keys(cache.inserted).join(' ')}`}
-      dangerouslySetInnerHTML={{
-        __html: Object.values(cache.inserted).join(' '),
-      }}
-    />
-  ));
+  useServerInsertedHTML(() => {
+    const keys = Object.keys(cache.inserted);
+    if (keys.length === 0) return null;
+
+    return (
+      <style
+        data-emotion={`${cache.key} ${keys.join(' ')}`}
+        dangerouslySetInnerHTML={{
+          __html: Object.values(cache.inserted).join(' '),
+        }}
+      />
+    );
+  });
 
   return (
     <CacheProvider value={cache}>
