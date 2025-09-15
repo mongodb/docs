@@ -9,6 +9,7 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@leafygreen-ui/emotion'],
   },
+  assetPrefix: '/docs',
 };
 
 export default nextConfig;
