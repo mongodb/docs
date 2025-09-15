@@ -116,6 +116,11 @@ const tocData: TocItem[] = [{
       ]
     },
     {
+      label: "MongoDB MCP Server",
+      contentSite: "mongodb-vscode",
+      url: "/docs/mongodb-vscode/mcp-server",
+    },
+    {
       label: "MongoDB Extension for Github Copilot",
       contentSite: "mongodb-vscode",
       url: "/docs/mongodb-vscode/copilot",
@@ -151,7 +156,6 @@ const tocData: TocItem[] = [{
     {
       label: "Reference",
       contentSite: "mongodb-vscode",
-      url: "/docs/mongodb-vscode/reference",
       collapsible: true,
       items: [
         {
