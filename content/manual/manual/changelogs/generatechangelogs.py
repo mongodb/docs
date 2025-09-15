@@ -4,6 +4,7 @@ import os
 import yaml
 from jira import JIRA
 from rstcloth import RstCloth
+import re
 
 logger = logging.getLogger('generatechangelogs.py')
 
@@ -21,7 +22,6 @@ def get_config():
         except yaml.YAMLError as exc:
             print(exc)
 
-
 def get_jira_issues(fixVersion):
     """
     Authenticate to JIRA and return the list of tickets matching the
@@ -29,25 +29,19 @@ def get_jira_issues(fixVersion):
     """
     projects = '("SERVER", "TOOLS", "WiredTiger")'
 
-    oauth_dict = {}
-    credentialPath = os.path.join(
-        os.path.expanduser('~'), '.config/.mongodb-jira.yaml')
-    try:
-        stream = open(credentialPath)
-        jira_yaml = yaml.safe_load(stream)
-        oauth_dict = jira_yaml.get('jira')
-    except yaml.YAMLError as exc:
-        print("ERROR: Credentials YAML not properly formatted.")
-        print(exc)
-        raise
-    except IOError as e:
-        print(
-            "ERROR: Could not find JIRA OAuth credentials in ~/.config/.mongodb-jira.yaml")
-        raise
+    tokenPath = os.path.join(
+        os.path.expanduser('~'), '.config/mongodb-jira-pat.yaml'
+    )
 
-    # Connect to JIRA
-    auth_jira = JIRA(oauth=oauth_dict, options={
-                     'server': 'https://jira.mongodb.org'}, validate=True)
+    with open(tokenPath) as f:
+        for line in f:
+            result = re.search(r"personal_access_token=(.*)", line)
+            pat = result.groups()[0]
+
+    auth_jira = JIRA(
+        server='https://jira.mongodb.org',
+        token_auth=pat
+    )
 
     # Run the JIRA query
     # 

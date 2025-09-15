@@ -9,6 +9,22 @@ a. Add your AWS KMS Credentials
       :language: java
       :dedent:
 
+   .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+      .. replacement:: kms-provider
+
+          AWS
+                     
+      .. replacement:: kms-provider-name
+
+         "my_aws_provider"
+
+   .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/aws/named-kms/NamedKms.java
+      :language: java
+      :dedent:
+
+   .. include:: /includes/tutorials/automatic/aws/obtain-automatic-credentials.rst
+
 #. Add Your Key Information
 
    Update the following code to specify your {+cmk-long+}:

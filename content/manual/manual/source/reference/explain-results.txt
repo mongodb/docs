@@ -4,6 +4,9 @@
 Explain Results
 ===============
 
+.. meta::
+   :description: Understand how to interpret MongoDB's explain results for query plans and execution statistics, including key fields and stages.
+
 .. default-domain:: mongodb
 
 .. contents:: On this page
@@ -123,6 +126,8 @@ Stages are descriptive of the operation. For example:
 - ``BATCHED_DELETE`` for multiple document deletions that are batched
   together internally (starting in MongoDB 6.1)
 
+- ``EOF`` for when a stage is end-of-stream
+
 - ``EXPRESS`` stages for a limited set of queries that can bypass
   regular query planning to use optimized index scan plans *(New in
   version 8.0.)*
@@ -190,6 +195,7 @@ representative. Your output may differ significantly.
                   maxScansToExplodeReached: <boolean>,                                                                                                                                                                                            
                   winningPlan: {  
                     stage: <STAGE1>,
+                    type: <string>,
                     inputStage: {
                       stage: <string>,
                       ...
@@ -217,6 +223,7 @@ representative. Your output may differ significantly.
                      mongosPlannerVersion: <int>
                      winningPlan: {
                         stage: <STAGE1>,
+                        type: <string>,
                         shards: [
                         { 
                            shardName: <string>,
@@ -239,6 +246,7 @@ representative. Your output may differ significantly.
                            maxScansToExplodeReached: <boolean>,
                            winningPlan: {
                               stage: <STAGE1>,
+                              type: <string>,
                               inputStage: {
                                  stage: <string>,
                                  ...
@@ -357,6 +365,17 @@ representative. Your output may differ significantly.
       This field appears if the operation used the classic query
       execution engine. 
 
+   .. data:: explain.queryPlanner.winningPlan.type
+
+      If ``stage`` is set to ``"EOF"``, ``type`` is a string
+      that denotes the reason for the EOF stage:
+
+      - ``"nonExistentNamespace"``: indicates the query namespace 
+        does not exist.
+      - ``"predicateEvalsToFalse"``: indicates that 
+        expression simplification determines that
+        the query will not match any documents.
+
    .. data:: explain.queryPlanner.winningPlan.inputStage
 
       A document that describes the child stage, which provides the 
@@ -402,6 +421,16 @@ representative. Your output may differ significantly.
          Each stage consists of information specific to the stage. For
          example, an ``IXSCAN`` stage includes the index bounds along
          with other data specific to the index scan.
+
+      .. data:: explain.queryPlanner.winningPlan.queryPlan.type
+
+         If ``stage`` is set to ``"EOF"``, ``type`` is a string
+         that denotes the reason for the EOF stage:
+
+         - ``"nonExistentNamespace"``: indicates the query namespace 
+           does not exist.
+         - ``"predicateEvalsToFalse"``: indicates that expression 
+           simplification determines that the query will not match any documents.
 
       .. data:: explain.queryPlanner.winningPlan.queryPlan.planNodeId
 
@@ -507,6 +536,11 @@ representative. Your output may differ significantly.
                         ...
                         executionTimeMillisEstimate: <int>,
                         ...
+                        spills: <long long>,
+                        spilledBytes: <long long>,
+                        spilledRecords: <long long>,
+                        spilledDataStorageSize: <long long>,
+                        ...
                         inputStage: {
                            ...
                         }
@@ -590,6 +624,11 @@ representative. Your output may differ significantly.
                                  stage: <STAGE3>,
                                  ...
                                  numReads: <int>, // Starting in MongoDB 5.1
+                                 ...
+                                 spills: <long long>,
+                                 spilledBytes: <long long>,
+                                 spilledRecords: <long long>,
+                                 spilledDataStorageSize: <long long>,
                                  ...
                                  inputStage: {
                                     ...
@@ -815,6 +854,8 @@ representative. Your output may differ significantly.
          Each ``inputStage`` can have another ``inputStage`` as a field.
          See :ref:`explain-output-structure`.
 
+         .. _explain-results-table:
+
          .. list-table::                                    
             :widths: 30,40,30
             :header-rows: 1
@@ -850,25 +891,44 @@ representative. Your output may differ significantly.
               - The number of times that we had to seek the index cursor to
                 a new position in order to complete the index scan.
               - ``IXSCAN``
-            
-            * - ``spilledBytesApprox``
-              - The approximate number of in-memory bytes spilled to disk in 
-                the stage.
-
-                .. versionadded:: 5.3
-              - ``GROUP``
-
-            * - ``spilledRecords``
-              - The number of produced records spilled to disk in the stage.
-                
-                .. versionadded:: 5.3
-              - ``GROUP``
 
             * - ``usedDisk``
               - Whether the stage wrote to disk.
 
                 .. versionadded:: 5.3
               - ``GROUP``
+
+            * - ``spills``
+              - .. _explain-results-spills-table:
+
+                The number of times the stage spilled to disk.
+
+                .. versionadded:: 8.2
+              - ``GROUP``, ``SORT``
+
+            * - ``spilledBytes``
+              - .. _explain-results-spilledBytes-table:
+
+                The total amount of data written to disk in bytes.
+                
+                .. versionadded:: 8.2
+              - ``GROUP``, ``SORT``
+
+            * - ``spilledRecords``
+              - .. _explain-results-spilledRecords-table:
+
+                The total number of individual records spilled to disk.
+
+                .. versionadded:: 8.2
+              - ``GROUP``, ``SORT``
+
+            * - ``spilledDataStorageSize``
+              - .. _explain-results-spilledDataStorageSize-table:
+
+                The total disk space, in bytes, used by the spilled data.
+
+                .. versionadded:: 8.2
+              - ``GROUP``, ``SORT``
 
    .. data:: explain.executionStats.allPlansExecution
 
@@ -882,7 +942,13 @@ representative. Your output may differ significantly.
       Contains resource consumption statistics, as long as they 
       are not zero. The field is present only if ``explain`` 
       runs in ``executionStats`` verbosity mode or higher and if 
-      :parameter:`profileOperationResourceConsumptionMetrics` is enabled.
+      ``profileOperationResourceConsumptionMetrics`` is enabled.
+
+      .. warning::
+
+         MongoDB 8.2 removes ``profileOperationResourceConsumptionMetrics``.
+         Therefore, code depending on :ref:`operationMetrics <executionStats>`
+         does not work. 
 
 .. _serverInfo:
 
@@ -1011,6 +1077,30 @@ The other fields are:
 
    Estimated time in milliseconds for the query execution.
 
+.. _explain-results-search:
+
+Execution Plan Statistics for Search Queries
+--------------------------------------------
+
+.. versionadded:: 8.1
+
+The explain results includes :ref:`execution statistics <executionStats>` for 
+queries that use a :pipeline:`$search`, :pipeline:`$searchMeta`, or 
+:pipeline:`$vectorSearch` pipeline stage. To include execution statistics for 
+search queries, run the ``explain`` command in one of the following execution 
+verbosity modes:
+
+- :ref:`executionStats <explain-method-executionStats>`
+- :ref:`allPlansExecution <explain-method-allPlansExecution>`
+
+MongoDB returns execution statistics for search and vector search queries that 
+use the classic engine only. 
+
+For more details on search and vector search query explain results, see: 
+
+- :ref:`Explain Search Results <explain-ref>`
+- :ref:`avs-explain-ref`
+
 .. _explain-output-collection-scan:
 
 Collection Scan
@@ -1132,14 +1222,38 @@ additional output.
 
      - Whether the :pipeline:`$sort` stage wrote to disk. 
 
-   * - :pipeline:`$group`
+   * - :pipeline:`$sort` 
 
-     - ``totalOutputDataSizeBytes``
+     - ``spills``
+
+     - long long
+
+     - The number of times the :pipeline:`$sort` stage spilled to disk.
+
+   * - :pipeline:`$sort` 
+   
+     - ``spilledBytes``
+
+     - long long
      
-     - long
+     - An estimate of the number of bytes written to disk in the 
+       :pipeline:`$sort` stage before compression.
 
-     - An estimate of the total size of all documents output by the 
-       :pipeline:`$group` stage in bytes.
+   * - :pipeline:`$sort` 
+   
+     - ``spilledRecords``
+
+     - long long
+     
+     - The total number of individual records spilled to disk.
+      
+   * - :pipeline:`$sort`
+ 
+     - ``spilledDataStorageSize``
+
+     - long long
+
+     - The total disk space, in bytes, used by the spilled data.
 
    * - :pipeline:`$group`
  
@@ -1151,22 +1265,36 @@ additional output.
 
    * - :pipeline:`$group`
    
-     - ``spillFileSizeBytes``
+     - ``spills``
 
-     - long 
+     - long long
 
-     - The size of the spill file written to disk in the :pipeline:`$group` 
-       stage. Due to compression, the value of ``spillFileSizeBytes`` should be 
-       less than or equal to ``numBytesSpilledEstimate``.
+     - The number of times the :pipeline:`$group` stage spilled to disk.
 
    * - :pipeline:`$group` 
    
-     - ``numBytesSpilledEstimate``
+     - ``spilledBytes``
 
-     - long 
+     - long long
      
      - An estimate of the number of bytes written to disk in the 
        :pipeline:`$group` stage before compression.
+
+   * - :pipeline:`$group` 
+   
+     - ``spilledRecords``
+
+     - long long
+     
+     - The total number of individual records spilled to disk.
+
+   * - :pipeline:`$group` 
+   
+     - ``spilledDataStorageSize``
+
+     - long long
+
+     - The total disk space, in bytes, used by the spilled data.
 
 .. _explain-output-sort:
 

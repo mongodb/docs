@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # start-setup-application-variables
-# KMS provider name should be one of the following: "aws", "gcp", "azure", "kmip" or "local"
 kms_provider_name = "<KMS provider name>"
 
 uri = os.environ['MONGODB_URI']  # Your connection URI

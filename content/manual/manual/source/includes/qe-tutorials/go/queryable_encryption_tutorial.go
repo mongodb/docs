@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func main() {
@@ -16,7 +16,6 @@ func main() {
 	LoadEnv()
 
 	// start-setup-application-variables
-	// KMS provider name should be one of the following: "aws", "gcp", "azure", "kmip" or "local"
 	kmsProviderName := "<KMS provider name>"
 
 	uri := os.Getenv("MONGODB_URI") // Your connection URI
@@ -40,10 +39,11 @@ func main() {
 	)
 
 	// start-create-client
-	encryptedClient, err := mongo.Connect(
-		context.TODO(),
-		options.Client().ApplyURI(uri).SetAutoEncryptionOptions(autoEncryptionOptions),
-	)
+	opts := options.Client().
+		ApplyURI(uri).
+		SetAutoEncryptionOptions(autoEncryptionOptions)
+	encryptedClient, err := mongo.Connect(opts)
+
 	if err != nil {
 		panic(fmt.Sprintf("Unable to connect to MongoDB: %v\n", err))
 	}

@@ -12,8 +12,8 @@ of the method for your client or driver:
 - :ref:`MongoDB Shell <server-keyvault-rewrap-manydatakey-method>`
 - `{+pymongo+} <{+pymongo-api-docs+}/pymongo/encryption.html#pymongo.encryption.ClientEncryption.rewrap_many_data_key>`__
 - `{+node-driver-full+} <{+node-libmongocrypt-binding-docs+}/node#RewrapManyDataKeyResult>`__
-- `{+csharp-driver-full+} <{+csharp-api-docs+}/M_MongoDB_Driver_Encryption_ClientEncryption_RewrapManyDataKey.htm>`__
-- `{+java-driver-full+} <{+java-api-docs+}/mongodb-driver-sync/com/mongodb/client/vault/ClientEncryption.html#rewrapManyDataKey(org.bson.conversions.Bson)>`__
+- `{+csharp-driver-full+} <{+csharp-api-docs+}/MongoDB.Driver.Encryption/MongoDB.Driver.Encryption.ClientEncryption.RewrapManyDataKey.html>`__
+- `{+java-driver-full+} <{+java-api-docs+}/driver-sync/com/mongodb/client/vault/ClientEncryption.html#rewrapManyDataKey(org.bson.conversions.Bson)>`__
 - `{+go-driver-full+} <{+go-api-docs+}/mongo#ClientEncryption.RewrapManyDataKey>`__
 
 .. tip:: mongosh Specific Features

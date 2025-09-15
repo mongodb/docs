@@ -7,9 +7,9 @@ import (
 
 	"crypto/tls"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func Insert() error {
@@ -103,7 +103,7 @@ func Insert() error {
 	tlsConfig["kmip"] = kmipConfig
 	// end-create-tls
 
-	regularClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	regularClient, err := mongo.Connect(options.Client().ApplyURI(uri))
 	if err != nil {
 		return fmt.Errorf("Connect error for regular client: %v", err)
 	}

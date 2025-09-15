@@ -7,10 +7,9 @@ import (
 	"io/ioutil"
 	"log"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func Insert() error {
@@ -33,7 +32,7 @@ func Insert() error {
 
 	// start-retrieve-deks
 	uri := "<Your MongoDB URI>"
-	regularClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	regularClient, err := mongo.Connect(options.Client().ApplyURI(uri))
 	if err != nil {
 		panic(fmt.Errorf("Client connect error %v", err))
 	}
@@ -42,13 +41,13 @@ func Insert() error {
 	if err != nil {
 		panic(err)
 	}
-	var dataKeyID1 = foundDoc1["_id"].(primitive.Binary)
+	var dataKeyID1 = foundDoc1["_id"].(bson.Binary)
 	var foundDoc2 bson.M
 	err = regularClient.Database(keyVaultDb).Collection(keyVaultColl).FindOne(context.TODO(), bson.D{{"keyAltNames", "demoDataKey2"}}).Decode(&foundDoc2)
 	if err != nil {
 		panic(err)
 	}
-	var dataKeyID2 = foundDoc2["_id"].(primitive.Binary)
+	var dataKeyID2 = foundDoc2["_id"].(bson.Binary)
 	// end-retrieve-deks
 
 	// start-extra-options

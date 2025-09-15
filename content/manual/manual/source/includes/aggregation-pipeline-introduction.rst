@@ -1,18 +1,15 @@
 An aggregation pipeline consists of one or more :ref:`stages
-<aggregation-pipeline-operator-reference>` that process documents:
+<aggregation-pipeline-operator-reference>` that process documents. These 
+documents can come from a collection, a view, or a specially designed stage. 
 
-- Each stage performs an operation on the input documents.
-  For example, a stage can filter documents, group documents, and
-  calculate values.
+Each stage performs an operation on the input documents. For example, a stage 
+can :expression:`$filter` documents, :pipeline:`$group` documents, and calculate 
+values. The documents that a stage outputs are then passed to the next stage in 
+the pipeline.
 
-- The documents that are output from a stage are passed to the next
-  stage.
-
-- An aggregation pipeline can return results for groups of documents.
-  For example, return the total, average, maximum, and minimum values.
-
-You can update documents with an aggregation pipeline if you use the stages 
-shown in :ref:`updates-agg-pipeline`.
+An aggregation pipeline can return results for groups of documents. You can also 
+update documents with an aggregation pipeline using the stages shown in 
+:ref:`updates-agg-pipeline`.
 
 .. note::
 

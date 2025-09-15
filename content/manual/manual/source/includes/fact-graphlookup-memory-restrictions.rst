@@ -1,6 +1,8 @@
-The :pipeline:`$graphLookup` stage must stay within the 100 megabyte
-memory limit. If ``allowDiskUse: true`` is specified for the
-:method:`~db.collection.aggregate()` operation, the
-:pipeline:`$graphLookup` stage ignores the option. If there are other
-stages in the :method:`~db.collection.aggregate()` operation,
-``allowDiskUse: true`` option is in effect for these other stages.
+If the :pipeline:`$graphLookup` stage consumes more than 100 megabytes of 
+memory, it automatically writes temporary files to disk. You can see when 
+:pipeline:`$graphLookup` uses disk through the :dbcommand:`serverStatus`
+command and view an explanation of :pipeline:`$graphLookup` disk usage 
+through the :method:`~db.collection.explain()` command in :ref:`executionStats` verbosity mode. 
+
+If the :pipeline:`$graphLookup` stage exceeds 100 megabytes of memory and the 
+``allowDiskUse`` option is set to ``false``, :pipeline:`$graphLookup` returns an error.

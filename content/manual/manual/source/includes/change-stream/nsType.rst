@@ -11,4 +11,4 @@ event.
 ``"view"`` 
    Indicates the event creates a non-timeseries view.
 
-.. versionadded:: 8.0.5
+.. versionadded:: 8.1 (also available in 8.0.5).

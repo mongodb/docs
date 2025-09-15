@@ -2,6 +2,9 @@
 validate (database command)
 ===========================
 
+.. meta::
+   :description: Use the `validate` command to check and repair collection data and indexes for correctness, with options for thoroughness and BSON conformance.
+
 .. default-domain:: mongodb
 
 .. contents:: On this page
@@ -18,10 +21,8 @@ Definition
 .. dbcommand:: validate
 
    The :dbcommand:`validate` command checks a collection's data and
-   indexes for correctness and returns the results. If you don't run the
-   command in the :ref:`background <cmd-validate-background>`, the
-   command also repairs any inconsistencies in the count and data size
-   of a collection. 
+   indexes for correctness and returns the results. The command also repairs 
+   any inconsistencies in the count and data size of a collection. 
 
    .. |method| replace:: :method:`~db.collection.validate` helper method
    .. include:: /includes/fact-dbcommand-tip
@@ -71,7 +72,6 @@ The command has the following syntax:
       } 
    )
 
-
 Command Fields
 --------------
 
@@ -89,7 +89,7 @@ The command takes the following fields:
      - string
      - The name of the collection to validate.
      
-   * - :ref:`full <cmd-validate-full>`
+   * - ``full``
      - boolean
      - .. _cmd-validate-full:
      
@@ -110,33 +110,29 @@ The command takes the following fields:
 
        .. include:: /includes/fact-validate-wiredtiger-full-option.rst
 
-   * - :ref:`repair <cmd-validate-repair>`
+   * - ``repair``
      - boolean
      - .. _cmd-validate-repair:
 
        .. include:: /includes/fact-validate-repair-option.rst
 
-   * - :ref:`metadata <cmd-validate-metadata>`
+   * - ``metadata``
      - boolean
      - .. _cmd-validate-metadata:
 
        .. include:: /includes/fact-validate-metadata.rst
 
-   * - :ref:`checkBSONConformance <cmd-validate-checkBSONConformance>`
+   * - ``checkBSONConformance``
      - boolean
      - .. _cmd-validate-checkBSONConformance:
 
        .. include:: /includes/fact-validate-conformance.rst
 
-   * - ``background`` 
-     - boolean 
-     - .. _cmd-validate-background:
-     
-       *Optional*. If ``true``, MongoDB runs the ``validate`` command in the
-       background. If ``false``, the command repairs any inconsistencies
-       in the count and data size of a collection. 
-       
-       The default is ``false``.
+   * - ``fixMultikey`` 
+     - boolean
+     - .. _cmd-validate-fixmultikey:
+
+       .. include:: /includes/fact-validate-fixmultikey.rst
 
 Behavior
 --------
@@ -178,6 +174,35 @@ The :dbcommand:`validate` command no longer supports :ref:`afterClusterTime
 <afterClusterTime>`. As such, :dbcommand:`validate` cannot be
 associated with :ref:`causally consistent sessions
 <causal-consistency>`.
+
+Time series collections were introduced in MongoDB 5.0. Starting in v5.2, the default
+internal format for storing time series measurements changed. Due to this change:
+
+- Time series collections created before v5.2 might contain documents in both the 
+  old and new format. Internally, such collections are flagged as 
+  ``timeseriesBucketsMayHaveMixedSchemaData: true``.
+
+- Time series collections created in v5.2 or later will always contain documents 
+  in the new format. Internally, such collections are flagged as 
+  ``timeseriesBucketsMayHaveMixedSchemaData: false`` or not flagged at all. 
+
+When the flag is ``true``, time series queries take both the new and the old format
+into account. When the flag is ``false`` or missing, time series queries take
+only the new format into account.
+
+Due to a bug described in `SERVER-91194 <https://jira.mongodb.org/browse/SERVER-91194>`_,
+under some conditions the flag might be lost. When this happens for time series 
+collections created before v5.2, read query results may be incomplete. That is,
+some documents may be missed, even though they are still stored on the disk.
+
+To determine if you are impacted by this, run :dbcommand:`validate` on your time
+series collection. The command returns an error if the collection is affected
+by the bug. Your read query results may be incorrect if this is the case. 
+
+If affected, upgrade to a fixed version and set ``timeseriesBucketsMayHaveMixedSchemaData``
+to ``true`` for each affected collection to ensure that future queries on the 
+collection return correct results. The full steps for this process are located 
+`here <https://github.com/mongodb/support-tools/tree/master/timeseries-mixed-schema>`_.
 
 Index Key Format
 ~~~~~~~~~~~~~~~~
@@ -296,18 +321,22 @@ Specify :ref:`full: true <cmd-validate-full>` for more detailed output.
 
 .. data:: validate.indexDetails
    
+   .. versionchanged:: 8.1
+
    A document that contains the status of the index validation for each
-   index.
+   index and the index specification.
 
    .. code-block:: javascript
       :copyable: false
 
       "indexDetails" : {
          "_id_" : {
-            "valid" : <boolean>
+            "valid" : <boolean>,
+            "spec" : <document>
          },
          "<index2_name>" : {
-            "valid" : <boolean>  
+            "valid" : <boolean>,
+            "spec" : <document>
          },
          ...
       }
@@ -319,6 +348,18 @@ Specify :ref:`full: true <cmd-validate-full>` for more detailed output.
    - :data:`~validate.indexDetails` identifies the index by its name
      only. Earlier versions of MongoDB displayed the full namespace of
      the index; i.e. ``<db>.<collection>.$<index_name>``.
+
+   - The ``spec`` document is the index specification, which varies
+     depending on how the index is defined. Some example ``spec``
+     document fields include:
+
+     - ``spec.v``. The index version.
+     - ``spec.unique``. A Boolean value that indicates if the index is
+       unique.
+     - ``spec.key``. The index key identifier.
+     - ``spec.name``. The index name.
+
+     .. versionadded:: 8.1
 
 .. data:: validate.ns
 
@@ -336,6 +377,19 @@ Specify :ref:`full: true <cmd-validate-full>` for more detailed output.
 
    A boolean that is ``true`` if :dbcommand:`validate` repaired the
    collection.
+
+.. data:: validate.repairMode
+
+   .. versionadded:: 8.2 
+
+   A string that indicates what types of data inconsistencies the ``validate`` 
+   command attempted to repair, if detected. Possible ``repairMode`` values 
+   include: 
+
+   - ``None``: No repair actions are taken.
+   - ``FixErrors``: Attempts to fix any validation errors.
+   - ``AdjustMultikey``: Attempts to fix multikey inconsistencies by adjusting 
+     multikey metadata.
 
 .. data:: validate.warnings
 

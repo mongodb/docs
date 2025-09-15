@@ -16,6 +16,20 @@ a. Add your {+azure-kv+} Credentials
             :language: java
             :dedent:
 
+         .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+            .. replacement:: kms-provider
+
+               Azure
+                     
+            .. replacement:: kms-provider-name
+
+               "my_azure_provider"
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/azure/named-kms/NamedKms.java
+            :language: java
+            :dedent:
+
          .. include:: /includes/tutorials/automatic/azure/azure-vm-managed-identity.rst
 
       .. tab::
@@ -24,6 +38,20 @@ a. Add your {+azure-kv+} Credentials
          .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/azure/reader/make_data_key.js
             :start-after: start-kmsproviders
             :end-before: end-kmsproviders
+            :language: javascript
+            :dedent:
+
+         .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+            .. replacement:: kms-provider
+
+               Azure
+                     
+            .. replacement:: kms-provider-name
+
+               "my_azure_provider"
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/azure/named-kms/named-kms.js
             :language: javascript
             :dedent:
 
@@ -36,12 +64,40 @@ a. Add your {+azure-kv+} Credentials
             :language: python
             :dedent:
 
+         .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+            .. replacement:: kms-provider
+
+               Azure
+                     
+            .. replacement:: kms-provider-name
+
+               "my_azure_provider"
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/azure/named-kms/named-kms.py
+            :language: python
+            :dedent:
+
       .. tab::
          :tabid: csharp
 
          .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/azure/reader/CSFLE/MakeDataKey.cs
             :start-after: start-kmsproviders
             :end-before: end-kmsproviders
+            :language: csharp
+            :dedent:
+
+         .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+            .. replacement:: kms-provider
+
+               Azure
+                     
+            .. replacement:: kms-provider-name
+
+               "my_azure_provider"
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/azure/named-kms/NamedKms.cs
             :language: csharp
             :dedent:
 

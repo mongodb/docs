@@ -28,7 +28,7 @@
      - `C Driver Client-Side Field Level Encryption <https://mongoc.org/libmongoc/current/client-side-field-level-encryption.html>`__
 
    * - :driver:`Go </go>`
-     - `Go Driver Quickstart <https://pkg.go.dev/go.mongodb.org/mongo-driver/mongo?tab=doc#hdr-Client_Side_Encryption/>`__
+     - `Go Driver Quickstart <https://pkg.go.dev/go.mongodb.org/mongo-driver/v2/mongo#hdr-In_Use_Encryption>`__
  
    * - :driver:`Scala </scala>`
      - `Scala Documentation <https://mongodb.github.io/mongo-scala-driver/2.8/>`__

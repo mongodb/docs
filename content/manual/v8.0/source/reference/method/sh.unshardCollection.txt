@@ -1,0 +1,197 @@
+
+=====================================
+sh.unshardCollection (mongosh method)
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. method:: sh.unshardCollection( namespace, shardID )
+
+   .. include:: /includes/method/sh.unshardCollection
+
+   .. |dbcommand| replace:: :dbcommand:`unshardCollection` command
+   .. include:: /includes/fact-mongosh-shell-method-alt
+
+   The ``sh.unshardCollection`` method requires you to specify the shard
+   to receive the collection data. With the :dbcommand:`unshardCollection`
+   command, if you don't specify the destination shard, the cluster automatically
+   selects the shard with the least data.
+
+   If the collection uses :ref:`zone sharding <zone-sharding>`,
+   you must first remove the range associations and shard from
+   the zone before you unshard the collection. For more
+   information, see :ref:`sh-unshard-remove-zone-ranges`.
+
+   .. include:: /includes/fact-unshardCollection-oplog
+
+Syntax
+------
+
+``sh.unshardCollection`` has the following syntax:
+
+.. code-block:: text
+
+   sh.unshardCollection( namespace, shardID )
+
+Parameters
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``namespace``
+     - string
+     - Specifies the database and collection to unshard.
+
+   * - ``shardID``
+     - string
+     - Specifies the recipient shard ID. As MongoDB unshards the
+       collection, it moves the collection data from their
+       current shards to this specific shard.
+
+Compatibility
+-------------
+
+.. |command| replace:: method
+
+This method is available in deployments hosted in the following environments:
+
+.. |uc| replace:: ``sh.unshardCollection()``
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-no-serverless-or-shared
+
+Considerations
+--------------
+
+.. include:: /includes/uc-considerations.rst
+
+Requirements
+------------
+
+.. include:: /includes/uc-reqs
+
+Behavior
+--------
+
+.. _sh-unshard-remove-zone-ranges:
+
+Unshard Zones
+~~~~~~~~~~~~~
+
+.. include:: /includes/fact-unshard-zones
+
+For an example, see :ref:`unshard-method-zones`.
+
+Examples
+--------
+
+Unshard a Collection
+~~~~~~~~~~~~~~~~~~~~
+
+This example unshards a collection named ``inventory`` on the
+``app`` database to the ``shard02`` shard.
+
+.. code-block:: javascript
+
+   sh.unshardCollection( "app.inventory", "shard02" )
+
+.. include:: /includes/mc-sh-status.rst
+
+.. _unshard-method-zones:
+
+Unshard a Zone Sharded Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example unshards a collection that uses :ref:`zones
+<zone-sharding>`:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Stop the balancer
+
+      To stop the balancer, run the :method:`sh.stopBalancer`
+      method:
+   
+      .. code-block:: javascript
+   
+         sh.stopBalancer()
+
+   .. step:: Identify range associations.
+
+      To identify ranges associated with the zones, run the
+      :method:`sh.status` method and note the ranges in the
+      ``chunks`` field for each sharded collection:
+
+      .. code-block:: javascript
+
+         sh.status()
+
+   .. step:: Remove range from zones
+
+      To remove a range from a zone, use the
+      :method:`sh.removeRangeFromZone` method:
+
+      .. code-block:: javascript
+
+         sh.removeRangeFromZone( {
+            "app.inventory",
+            { size: 100 },
+            { size: 500 }
+         } )
+
+      Repeat this step until you have removed all ranges from
+      zones used by the collection.
+
+   .. step:: Remove shards from zones
+
+      To remove a shard from a zone, run the
+      :method:`sh.removeShardFromZone` method:
+   
+      .. code-block:: javascript
+   
+         sh.removeShardFromZone( "shard01", "mid" )
+   
+      Repeat until you have removed the shard from all zones.
+
+   .. step:: Restart the balancer
+
+      To restart the balancer, run the :method:`sh.startBalancer`
+      method:
+   
+      .. code-block:: javascript
+   
+         sh.startBalancer()
+   
+   .. step:: Unshard the collection
+
+      To unshard the collection, run the ``sh.unshardCollection``
+      method:
+   
+      .. code-block:: javascript
+   
+         sh.unshardCollection( "app.inventory", "shard01" )
+
+Learn More
+----------
+
+- :dbcommand:`unshardCollection`
+- :ref:`unshard-collection-task`

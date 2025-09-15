@@ -13,12 +13,40 @@ a. Add your Endpoint
             :language: java
             :dedent:
 
+         .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+            .. replacement:: kms-provider
+
+               KMIP
+                     
+            .. replacement:: kms-provider-name
+
+               "my_kmip_provider"
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/kmip/named-kms/NamedKms.java
+            :language: java
+            :dedent:
+
       .. tab::
          :tabid: nodejs
 
          .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/make_data_key.js
             :start-after: start-kmsproviders
             :end-before: end-kmsproviders
+            :language: javascript
+            :dedent:
+
+         .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+            .. replacement:: kms-provider
+
+               KMIP
+                     
+            .. replacement:: kms-provider-name
+
+               "my_kmip_provider"
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/kmip/named-kms/named-kms.js
             :language: javascript
             :dedent:
 
@@ -31,12 +59,40 @@ a. Add your Endpoint
             :language: python
             :dedent:
 
+         .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+            .. replacement:: kms-provider
+
+               KMIP
+                     
+            .. replacement:: kms-provider-name
+
+               "my_kmip_provider"
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/kmip/named-kms/named-kms.py
+            :language: python
+            :dedent:
+
       .. tab::
          :tabid: csharp
 
          .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/MakeDataKey.cs
             :start-after: start-kmsproviders
             :end-before: end-kmsproviders
+            :language: csharp
+            :dedent:
+
+         .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+            .. replacement:: kms-provider
+
+               KMIP
+                     
+            .. replacement:: kms-provider-name
+
+               "my_kmip_provider"
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/kmip/named-kms/NamedKms.cs
             :language: csharp
             :dedent:
 

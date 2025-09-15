@@ -1,0 +1,164 @@
+.. _sharding-procedure-add-member-to-shard:
+
+=======================
+Add a Member to a Shard
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can add members to an existing shard in a :term:`sharded cluster`.
+You might want to add a member to a shard for the same reasons you'd 
+want to add a member to any :term:`replica set <replica set>`. For example, 
+increasing the number of members provides additional candidates to replace 
+a primary in the event of a :ref:`failover <replication-auto-failover>`. 
+Additional members also increase data redundancy and replica set 
+availability.
+
+For more information, refer to :ref:`replica-set-architecture`.
+
+About This Task
+---------------
+
+.. include:: /includes/tip-repl-set-add-members.rst
+
+Before You Begin
+----------------
+
+To add a member to a shard replica set, you need:
+
+#. An active sharded cluster replica set.
+
+#. A new host server for the new member. The new host server must be able 
+   to support your sharded data set and be accessible by the active replica 
+   set through the network.
+
+.. include:: /includes/dSO-role-intro.rst
+
+.. include:: /includes/dSO-warning.rst
+
+Steps
+-----
+
+.. procedure::
+
+   .. step:: Prepare the Data Directory
+
+      Prepare the new member's :term:`data directory <dbpath>` using one of the
+      following strategies:
+
+      - Have the new member automatically sync data from an existing member.
+        This process takes time but does not require administrator intervention.
+
+        Make sure the new member's data directory *does not* contain data. The
+        new member will copy the data from an existing member.
+
+        If the new member is in a :term:`recovering` state, it must exit and
+        become a :term:`secondary` before MongoDB
+        can copy all data as part of the replication process.
+
+      - Manually copy the data directory from an existing member. The new
+        member becomes a secondary member and will catch up to the current
+        state of the replica set. Copying the data over may shorten the
+        amount of time it takes for the new member to sync with the other 
+        replica set members.
+
+        Ensure that you can copy the data directory to the new member and
+        begin replication within the :ref:`window allowed by the oplog
+        <replica-set-oplog-sizing>`. Otherwise, the new instance will have
+        to perform an initial sync, which completely resynchronizes the
+        data, as described in :ref:`resync-replica-member`.
+
+        To check the current state of replica set members with regards to the 
+        oplog, use :method:`rs.printReplicationInfo()`.
+
+      For background on replication deployment patterns, see the
+      :doc:`/core/replica-set-architectures` document.
+
+   .. step:: Start the new :binary:`~bin.mongod` instance
+
+      Specify the data directory
+      and the replica set name. The following example specifies the
+      ``/srv/mongodb/db0`` data directory and the ``rs0`` replica set:
+
+      .. code-block:: sh
+
+         mongod --dbpath /srv/mongodb/db0 --replSet rs0  --bind_ip localhost,<ip address of the mongod host>
+
+      .. include:: /includes/warning-bind-ip-security-considerations.rst
+
+      For more information on configuration options, see the
+      :binary:`~bin.mongod` manual page.
+
+      .. tip::
+
+         You can specify the data directory, replica set name, and the ip
+         binding in the ``mongod.conf`` :doc:`configuration file
+         </reference/configuration-options>`, and start the
+         :binary:`~bin.mongod` with the following command:
+
+         .. code-block:: sh
+
+            mongod --config /etc/mongod.conf
+
+   .. step:: Connect to the replica set's primary
+
+      You can only add members while connected to the primary. To connect to
+      the primary, use ``mongosh``. Replace the ``host`` and ``port`` values 
+      with relevant values for your deployment:
+      
+      .. code-block:: sh
+
+         mongosh --host mongodb0.example.com --port 28015
+
+      If you do not know which member is the primary, connect to any member 
+      of the replica set and issue the :method:`db.hello()` command.
+
+   .. step:: Use :method:`rs.add()` to add the new member to the replica set 
+   
+      Pass the :rsconf:`member configuration document <members>` to the
+      method.  For example, to add a member at host
+      ``mongodb3.example.net``, issue the following command:
+
+      .. code-block:: javascript
+
+         rs.add( { host: "mongodb3.example.net:27017", priority: 0, votes: 0 } )
+
+   .. step:: Ensure that the new member has reached :replstate:`SECONDARY` state
+
+      To check the state of the replica set members, run
+      :method:`rs.status()`:
+
+      .. code-block:: javascript
+
+         rs.status()
+
+Next Steps
+----------
+
+Once the newly added member has transitioned into
+:replstate:`SECONDARY` state, use :method:`rs.reconfig()` to update
+the newly added member's :rsconf:`~members[n].priority` and
+:rsconf:`~members[n].votes` if needed.
+
+.. include:: /includes/warning-rs-reconfig.rst
+
+Example
+~~~~~~~
+
+If :method:`rs.conf()` returns the configuration document for 
+``mongodb3.example.net:27017`` as the fifth element in the 
+:rsconf:`members` array, to update its priority and votes to
+``1``, use the following sequence of operations:
+
+.. code-block:: javascript
+
+   var cfg = rs.conf();
+   cfg.members[4].priority = 1
+   cfg.members[4].votes = 1
+   rs.reconfig(cfg)

@@ -17,7 +17,7 @@ namespace Key
 
 
             // start-kmsproviders
-            var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
+            var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             var provider = "azure";
             var azureKmsOptions = new Dictionary<string, object>
             {
@@ -28,7 +28,7 @@ namespace Key
             // end-kmsproviders
 
             // start-datakeyopts
-            kmsProviders.Add(provider, azureKmsOptions);
+            kmsProviderCredentials.Add(provider, azureKmsOptions);
             var dataKeyOptions = new DataKeyOptions(
             masterKey: new BsonDocument
             {
@@ -62,7 +62,7 @@ namespace Key
             var clientEncryptionOptions = new ClientEncryptionOptions(
                 keyVaultClient: keyVaultClient,
                 keyVaultNamespace: keyVaultNamespace,
-                kmsProviders: kmsProviders
+                kmsProviders: kmsProviderCredentials
                 );
 
             var clientEncryption = new ClientEncryption(clientEncryptionOptions);

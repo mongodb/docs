@@ -3,7 +3,7 @@ const { MongoClient, Binary, ClientEncryption } = mongodb;
 
 // start-kmsproviders
 const provider = "gcp";
-const kmsProviders = {
+const kmsProviderCredentials = {
   gcp: {
     email: "<Your GCP Email>",
     privateKey: "<Your GCP Private Key>",
@@ -51,7 +51,7 @@ async function main() {
 
   const encryption = new ClientEncryption(client, {
     keyVaultNamespace,
-    kmsProviders,
+    kmsProviderCredentials,
   });
   const key = await encryption.createDataKey(provider, {
     masterKey: masterKey,

@@ -17,14 +17,14 @@ namespace Key
 
 
             // start-kmsproviders
-            var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
+            var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             var provider = "aws";
             var awsKmsOptions = new Dictionary<string, object>
             {
                { "accessKeyId", "<Your AWS Access Key ID>" },
                { "secretAccessKey", "<Your AWS Secret Access Key>" }
             };
-            kmsProviders.Add(provider, awsKmsOptions);
+            kmsProviderCredentials.Add(provider, awsKmsOptions);
             // end-kmsproviders
 
             // start-datakeyopts
@@ -61,7 +61,7 @@ namespace Key
             var clientEncryptionOptions = new ClientEncryptionOptions(
                 keyVaultClient: keyVaultClient,
                 keyVaultNamespace: keyVaultNamespace,
-                kmsProviders: kmsProviders
+                kmsProviders: kmsProviderCredentials
                 );
 
             var clientEncryption = new ClientEncryption(clientEncryptionOptions);

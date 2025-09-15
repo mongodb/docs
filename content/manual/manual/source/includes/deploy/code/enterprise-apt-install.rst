@@ -14,27 +14,9 @@
    .. tab:: Specific Release
       :tabid: specific
 
-      To install a specific release, you must specify each component package
-      individually along with the version number.
-
-      .. code-block:: sh
-
-         sudo apt-get install -y \
-            {+package-name-enterprise+}={+release+} \
-            {+package-name-enterprise+}-database={+release+} \
-            {+package-name-enterprise+}-server={+release+} \
-            {+package-name+}-mongosh \
-            {+package-name-enterprise+}-shell={+release+} \
-            {+package-name-enterprise+}-mongos={+release+} \
-            {+package-name-enterprise+}-tools={+release+} \
-            {+package-name-enterprise+}-cryptd={+release+} \
-            {+package-name-enterprise+}-database-tools-extra={+release+}
-
-      If you only install
-      ``{+package-name-enterprise+}={+release+}`` and do not
-      include the component packages, the latest version of each
-      MongoDB package will be installed regardless of what
-      version you specified.
+      .. include:: /includes/release/pin-version-intro.rst
+      .. include:: /includes/release/pin-repo-to-version-deb-enterprise.rst
+      .. include:: /includes/release/pin-version-outro-enterprise.rst
 
       Although you can specify any available version of MongoDB,
       ``apt-get`` upgrades the packages when a newer version
@@ -49,7 +31,5 @@
          echo "{+package-name-enterprise+}-database hold" | sudo dpkg --set-selections
          echo "{+package-name+}-mongosh hold" | sudo dpkg --set-selections
          echo "{+package-name-enterprise+}-mongos hold" | sudo dpkg --set-selections
-         echo "{+package-name-enterprise+}-cryptd hold" | sudo dpkg --set-selections
          echo "{+package-name-enterprise+}-tools hold" | sudo dpkg --set-selections
-         echo "{+package-name-enterprise+}-databae-tools-extra hold" | sudo dpkg --set-selections
  

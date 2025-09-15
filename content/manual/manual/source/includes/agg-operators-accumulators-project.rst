@@ -12,6 +12,11 @@ as expressions which accept an array of values as input.
      - Returns an average of the specified expression or list of
        expressions for each document. Ignores non-numeric values.
 
+   * - :group:`$concatArrays`
+     - .. include:: /includes/concatArrays-accum-desc.rst
+
+       .. versionadded:: 8.1
+
    * - :group:`$first`
      - Returns the result of an :ref:`expression
        <aggregation-expressions>` for the first document in a group.
@@ -22,7 +27,7 @@ as expressions which accept an array of values as input.
 
    * - :group:`$max`
      - Returns the maximum of the specified expression or list of
-       expressions for each document.
+       expressions for each document
  
    * - :group:`$median`
      - .. include:: /includes/aggregation/fact-return-median.rst
@@ -31,12 +36,18 @@ as expressions which accept an array of values as input.
  
    * - :group:`$min`
      - Returns the minimum of the specified expression or list of
-       expressions for each document.
+       expressions for each document
  
    * - :group:`$percentile`
      - .. include:: /includes/aggregation/fact-return-percentile.rst
  
        .. versionadded:: 7.0
+ 
+   * - :group:`$setUnion`
+     - Takes two or more arrays and returns an array containing the 
+       elements that appear in any input array.
+
+       .. versionadded:: 8.1
 
    * - :group:`$stdDevPop`
      - Returns the population standard deviation of the input values.

@@ -8,5 +8,5 @@ the elements.
 .. set-output
 
 |set-operator-name| filters out duplicates in its result to output an
-array that contain only unique entries. The order of the elements in
+array that contains only unique entries. The order of the elements in
 the output array is unspecified.

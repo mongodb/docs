@@ -2,6 +2,9 @@
 serverStatus (database command)
 ===============================
 
+.. meta::
+   :description: Retrieve an overview of the database's state using the `serverStatus` command to monitor MongoDB instances.
+
 .. default-domain:: mongodb
 
 .. facet::
@@ -547,6 +550,7 @@ changeStreamPreImages
          bytesDeleted : <num>,
          scannedCollections : <num>,
          scannedInternalCollections : <num>,
+         maxTimestampEligibleForTruncate : <timestamp>,
          maxStartWallTimeMillis : <num>,
          timeElapsedMillis : <num>,
       },
@@ -595,6 +599,13 @@ A document that reports metrics related to
           purging job. Internal collections are the collections within the pre-image
           collections stored in ``config.system.preimages``.
    
+      * - ``maxTimestampEligibleForTruncate``
+        - Most recent timestamp up to which old pre-images can be
+          truncated to reduce storage space. Pre-images older than
+          ``maxTimestampEligibleForTruncate`` can be truncated.
+   
+          .. versionadded:: 8.1
+
       * - ``maxStartWallTimeMillis``
         - Maximum wall time in milliseconds from the first document of each 
           pre-image collection. 
@@ -1257,57 +1268,6 @@ globalLock
 
    The number of active client connections performing write operations.
 
-.. _server-status-hedgingMetrics:
-
-hedgingMetrics
-~~~~~~~~~~~~~~
-
-.. important::
-
-   .. include:: /includes/hedged-reads-deprecated.rst
-
-For :binary:`~bin.mongos` instances only.
-
-.. code-block:: javascript
-
-   hedgingMetrics : {
-      numTotalOperations : <num>,
-      numTotalHedgedOperations : <num>,
-      numAdvantageouslyHedgedOperations : <num>
-   },
-
-.. serverstatus:: hedgingMetrics
-
-   Provides metrics on :ref:`hedged reads <mongos-hedged-reads>` for
-   the :binary:`~bin.mongos` instance.
-
-   For :binary:`~bin.mongos` instances only.
-
-.. serverstatus:: hedgingMetrics.numTotalOperations
-
-   The total number of the operations issued with the :ref:`hedged read
-   option enabled <read-preference-hedged-read>` to this
-   :binary:`~bin.mongos` instance.
-
-   For :binary:`~bin.mongos` instances only.
-
-.. serverstatus:: hedgingMetrics.numTotalHedgedOperations
-
-   The number of all operations for which the :binary:`~bin.mongos`
-   instance :ref:`hedged the read operation <mongos-hedged-reads>`;
-   i.e. sent the operation to an additional member of each queried
-   shard.
-
-   For :binary:`~bin.mongos` instances only.
-
-.. serverstatus:: hedgingMetrics.numAdvantageouslyHedgedOperations
-
-   The total number of the operation where the additional read sent to
-   :ref:`hedge the read operation <mongos-hedged-reads>` fulfilled the
-   client request.
-
-   For :binary:`~bin.mongos` instances only.
-
 .. _server-status-indexBuilds:
 
 indexBuilds
@@ -1452,7 +1412,7 @@ indexStats
          id: { count: Long("<num>"), accesses: Long("<num>") },
          normal: { count: Long("<num>"), accesses: Long("<num>") },
          partial: { count: Long("<num>"), accesses: Long("<num>") },
-         prepareUnique: { count: Long("<num>"), accesses: Long("<num>") }, // Added in 8.0.4 (and 7.0.14)
+         prepareUnique: { count: Long("<num>"), accesses: Long("<num>") }, // Added in 8.1 (and 8.0.4 and 7.0.14)
          single: { count: Long("<num>"), accesses: Long("<num>") },
          sparse: { count: Long("<num>"), accesses: Long("<num>") },
          text: { count: Long("<num>"), accesses: Long("<num>") },
@@ -1881,7 +1841,8 @@ metrics
       operation : {
          killedDueToClientDisconnect : Long("<num>"),  // Added in MongoDB 7.1
          killedDueToDefaultMaxTimeMSExpired : Long("<num>"),
-         killedDueToMaxTimeMSExpired : Long("<num>"),  // Added in MongoDB 7.2 
+         killedDueToMaxTimeMSExpired : Long("<num>"),  // Added in MongoDB 7.2
+         killedDueToRangeDeletion: Long("<num>"), // Added in MongoDB 8.2 
          numConnectionNetworkTimeouts : Long("<num>"),  // Added in MongoDB 6.3
          scanAndOrder : Long("<num>"),
          totalTimeWaitingBeforeConnectionTimeoutMillis : Long("<num>"),  // Added in MongoDB 6.3
@@ -1899,6 +1860,12 @@ metrics
       query: {
          allowDiskUseFalse: Long("<num>"),
          updateOneOpStyleBroadcastWithExactIDCount: Long("<num>"),
+         bucketAuto: {
+            spilledBytes: Long("<num>"),
+            spilledDataStorageSize: Long("<num>"),
+            spilledRecords: Long("<num>"),
+            spills: Long("<num>")
+         },
          lookup: {
             hashLookup: Long("<num>"),
             hashLookupSpillToDisk: Long("<num>"),
@@ -2059,7 +2026,8 @@ metrics
          },
          waiters : {
             opTime : Long("<num>"),
-            replication : Long("<num>")
+            replication : Long("<num>"),
+            replCoordMutexTotalWaitTimeInOplogServerStatusMillis: Long("<num>")
          }
       },
       storage : {
@@ -2102,7 +2070,7 @@ metrics
 
    .. include:: /includes/session-pool.rst
 
-   .. versionadded:: 8.0.13
+   .. versionadded:: 8.1 *(also available in 8.0.13)*
 
 .. serverstatus:: metrics.abortExpiredTransactions.timedOutKills
 
@@ -2111,7 +2079,7 @@ metrics
 
    .. include:: /includes/session-pool.rst
 
-   .. versionadded:: 8.0.13
+   .. versionadded:: 8.1 *(also available in 8.0.13)*
 
 .. serverstatus:: metrics.aggStageCounters
 
@@ -2569,6 +2537,13 @@ metrics
    Total number of operations that timed out due to the operation-level
    timeout, :method:`cursor.maxTimeMS()`.
 
+.. serverstatus:: metrics.operation.killedDueToRangeDeletion
+
+   .. versionadded:: 8.2
+
+   Total number of operations terminated because of orphan range cleanup. 
+   To learn more, see :parameter:`terminateSecondaryReadsOnOrphanCleanup`.
+
 .. serverstatus:: metrics.operation.numConnectionNetworkTimeouts
 
    .. versionadded:: 6.3
@@ -2599,6 +2574,32 @@ metrics
 .. serverstatus:: metrics.operation.writeConflicts
 
    The total number of queries that encountered write conflicts.
+
+.. serverstatus:: metrics.query.bucketAuto.spilledBytes
+
+   The number of in-memory bytes spilled to disk by the :pipeline:`$bucketAuto`
+   stage.
+
+   .. versionadded:: 8.2
+
+.. serverstatus:: metrics.query.bucketAuto.spilledDataStorageSize
+
+   The total disk space, in bytes, used by the spilled data from the 
+   :pipeline:`$bucketAuto` stage.
+ 
+   .. versionadded:: 8.2
+
+.. serverstatus:: metrics.query.bucketAuto.spilledRecords
+
+   The number of records spilled to disk by the :pipeline:`$bucketAuto` stage.
+
+   .. versionadded:: 8.2
+
+.. serverstatus:: metrics.query.bucketAuto.spills
+
+   The number of times the :pipeline:`$bucketAuto` stage spilled to disk.
+
+   .. versionadded:: 8.2
 
 .. serverstatus:: metrics.query.lookup
 
@@ -2702,6 +2703,28 @@ metrics
 
    A histogram measuring the number of plans in the candidate set during
    an invocation of the |sbe-short| multiplanner.
+
+.. serverstatus:: query.planning.fastPath.express 
+
+   The number of queries that use an optimized index scan plan consisting of 
+   one of the following plan stages: 
+
+   - ``EXPRESS_CLUSTERED_IXSCAN``
+   - ``EXPRESS_DELETE``
+   - ``EXPRESS_IXSCAN``
+   - ``EXPRESS_UPDATE``
+
+   For more information on query plans, see :ref:`explain-results`.
+
+   .. versionadded:: 8.1 
+
+.. serverstatus:: query.planning.fastPath.idHack 
+
+   The number of queries that contain the ``_id`` field. For these queries, 
+   MongoDB uses the default index on the ``_id`` field and skips all query plan 
+   analysis. 
+
+   .. versionadded:: 8.1
 
 .. serverstatus:: query.queryFramework.aggregate
 
@@ -3201,6 +3224,20 @@ metrics
    Number of times a node could not find an available sync source when
    attempting to choose a node to sync from.
 
+.. serverstatus:: metrics.repl.timestamps
+   
+   A document that reports on the replication timestamps.
+
+   .. versionadded:: 8.1
+
+.. serverstatus:: metrics.repl.timestamps.oldestTimestamp
+   
+   The timestamp for the oldest :term:`snapshot`. A snapshot is a
+   copy of the data in a :binary:`mongod` instance at a specific point
+   in time.
+
+   .. versionadded:: 8.1
+
 .. serverstatus:: metrics.repl.waiters.replication
 
    The number of threads waiting for replicated or journaled :ref:`write concern
@@ -3213,6 +3250,15 @@ metrics
    The number of threads queued for local replication :term:`optime` assignments.
 
    .. versionadded:: 7.3
+
+.. serverstatus:: metrics.repl.waiters.replCoordMutexTotalWaitTimeInOplogServerStatusMillis
+
+   The average wait time in milliseconds to acquire the replication coordinator mutex.
+   MongoDB measures this time when it generates the server status oplog section. This 
+   metric helps you identify potential replication performance issues related to mutex 
+   contention.
+
+   .. versionadded:: 8.2
 
 .. serverstatus:: metrics.storage.freelist.search.bucketExhausted
 
@@ -3238,6 +3284,19 @@ metrics
 
    The total number of documents deleted from collections with a
    :ref:`ttl index <ttl-collections>`.
+
+.. serverstatus:: metrics.ttl.invalidTTLIndexSkips
+
+   Number of TTL deletes skipped due to a TTL :term:`secondary index 
+   <secondary index>` being present, but not valid for TTL deletion.
+
+   - ``0`` indicates all secondary TTL indexes are eligible for TTL deletion.
+   - A non-zero value indicates there is an invalid secondary TTL index. 
+
+   If there is an invalid secondary TTL index, you must manually modify 
+   the secondary index to use automatic TTL deletion. 
+
+   .. versionadded:: 8.1
 
 .. serverstatus:: metrics.ttl.passes
 
@@ -3450,6 +3509,13 @@ network
 .. code-block:: javascript
 
    network : {
+      egress : {
+         bytesIn : Long("<num>"),
+         bytesOut : Long("<num>"),
+         physicalBytesIn : Long("<num>"),
+         physicalBytesOut : Long("<num>"),
+         numRequests : Long("<num>"),
+      }
       bytesIn : Long("<num>"),
       bytesOut : Long("<num>"),
       physicalBytesIn : Long("<num>"),
@@ -3497,13 +3563,54 @@ network
 .. serverstatus:: network
 
    A document that reports data on MongoDB's network use. These
-   statistics measure *ingress connections* only, specifically the
+   statistics measure ingress and egress connections, specifically the
    traffic seen by the :binary:`~bin.mongod` or :binary:`~bin.mongos`
    over network connections initiated by clients or other
-   :binary:`~bin.mongod` or :binary:`~bin.mongos` instances. Traffic
-   from network connections initiated by this :binary:`~bin.mongod` or
-   :binary:`~bin.mongos` instance (specifically, *egress connections*)
-   is *not* measured in these statistics.
+   :binary:`~bin.mongod` or :binary:`~bin.mongos` instances.
+
+.. serverstatus:: network.egress
+
+   Reports data on the traffic from egress connections initiated by this 
+   ``mongod`` or ``mongos`` instance. In most cases, the egress connections 
+   are ``mongos`` communicating with ``mongod`` for sharding, or ``mongod`` 
+   communicating with ``mongod`` for replication. It is also possible that 
+   ``mongod`` or ``mongos`` are communicating with external services, 
+   such as ``mongot``.
+
+.. serverstatus:: network.egress.bytesIn
+
+   The total number of logical bytes that ``mongod`` 
+   or ``mongos`` instances have *received* over network connections that they have 
+   initiated to other nodes/services. Logical bytes are the exact number 
+   of bytes that a given file contains.
+
+.. serverstatus:: network.egress.bytesOut
+
+   The total number of logical bytes that ``mongod`` or
+   ``mongos`` instances have *sent* over network connections that they have 
+   initiated to other nodes/services. Logical bytes correspond to the number 
+   of bytes that a given file contains.
+
+.. serverstatus:: network.egress.physicalBytesIn
+
+   The total number of physical bytes that ``mongod`` or
+   ``mongos`` instances has *received* over network connections that they have 
+   initiated to other nodes/services. Physical bytes are the number
+   of bytes that actually reside on disk.
+
+.. serverstatus:: network.egress.physicalBytesOut
+
+   The total number of physical bytes that ``mongod`` or
+   ``mongos`` instances have *sent* over network connections that they have 
+   initiated to other nodes/services. Physical bytes are the number of bytes that actually reside on disk.
+
+.. serverstatus:: network.egress.numRequests
+
+   The total number of distinct requests that ``mongod`` or ``mongos`` have sent and
+   received responses to. Use this value to provide context for the
+   :serverstatus:`network.egress.bytesIn` and :serverstatus:`network.egress.bytesOut`
+   values to ensure that MongoDB's network utilization is consistent
+   with expectations and application use.
 
 .. serverstatus:: network.bytesIn
 
@@ -4500,12 +4607,14 @@ planCache
          hits : Long("<num>"), 
          misses : Long("<num>"),
          replanned : Long("<num>"),
+         replanned_plan_is_cached_plan : Long("<num>"),
          skipped : Long("<num>") 
       },
       sbe : { 
          hits : Long("<num>"), 
          misses: Long("<num>"),
          replanned : Long("<num>"),
+         replanned_plan_is_cached_plan : Long("<num>"),
          skipped : Long("<num>")  
       }
    }
@@ -4550,6 +4659,14 @@ planCache
 
    .. versionadded:: 8.0 *(Also available in 7.0.22)*
 
+.. serverstatus:: planCache.classic.replanned_plan_is_cached_plan
+
+   Number of times the server performed a replan operation for
+   the classic execution engine that produced a plan identical
+   to one already in the query cache.
+
+   .. versionadded:: 8.2
+
 .. serverstatus:: planCache.classic.skipped
 
    Number of classic execution engine query plans that were not found in the 
@@ -4569,10 +4686,18 @@ planCache
 
 .. serverstatus:: planCache.sbe.replanned
 
-   Number of |sbe-short| execution engine query plans that were
-   discarded and re-optimized.
+   Number of |sbe-short| query plans that were discarded and
+   re-optimized.
 
    .. versionadded:: 8.0 *(Also available in 7.0.22)*
+
+.. serverstatus:: planCache.sbe.replanned_plan_is_cached_plan
+   
+   Number of times the server performed a replan operation for
+   the |sbe-short| that produced a plan identical to one already
+   in the query cache.
+
+   .. versionadded:: 8.2
 
 .. serverstatus:: planCache.sbe.skipped
 
@@ -5434,6 +5559,9 @@ repl
             },
            ...
       ]
+      timestamps : {
+         oldestTimestamp: <timestamp>
+      }
    }
 
 .. serverstatus:: repl
@@ -6883,6 +7011,71 @@ shardedIndexConsistency
       - :parameter:`enableShardedIndexConsistencyCheck` parameter
       - :parameter:`shardedIndexConsistencyCheckIntervalMS` parameter
 
+.. _server-status-spill-wiredTiger:
+
+spillWiredTiger
+~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   spillWiredTiger: {
+     storageSize: <long>,
+     uri: <string>,
+     version: <string>,
+     'block-manager': {
+       'blocks read': <num>,
+       'blocks written': <num>,
+       'bytes read': <num>,
+       'bytes written': <num>
+     },
+     cache: {
+       'application thread time evicting (usecs)': <num>,
+       'application threads eviction requested with cache fill ratio < 25%': <num>,
+       'application threads eviction requested with cache fill ratio >= 75%': <num>,
+       'application threads page write from cache to disk count': <num>,
+       'application threads page write from cache to disk time (usecs)': <num>,
+       'bytes allocated for updates': <num>,
+       'bytes currently in the cache': <num>,
+       'bytes read into cache': <num>,
+       'bytes written from cache': <num>,
+       'eviction currently operating in aggressive mode': <num>,
+       'eviction empty score': <num>,
+       'eviction state': <num>,
+       'eviction walk target strategy clean pages': <num>,
+       'eviction walk target strategy dirty pages': <num>,
+       'eviction walk target strategy pages with updates': <num>,
+       'forced eviction - pages evicted that were clean count': <num>,
+       'forced eviction - pages evicted that were dirty count': <num>,
+       'forced eviction - pages selected count': <num>,
+       'forced eviction - pages selected unable to be evicted count': <num>,
+       'hazard pointer blocked page eviction': <num>,
+       'maximum bytes configured': <num>,
+       'maximum page size seen at eviction': <num>,
+       'number of times dirty trigger was reached': <num>,
+       'number of times eviction trigger was reached': <num>,
+       'number of times updates trigger was reached': <num>,
+       'page evict attempts by application threads': <num>,
+       'page evict failures by application threads': <num>,
+       'pages queued for eviction': <num>,
+       'pages queued for urgent eviction': <num>,
+       'tracked dirty bytes in the cache': <num>
+     }
+   }
+
+.. serverstatus:: spillWiredTiger
+
+   A document that contains metrics on the WiredTiger **spill instance**.
+   When MongoDB writes to disk to fulfill certain operations, it
+   utilizes a separate WiredTiger instance, which contains its own
+   in-memory cache. This separate cache isolates operations from the
+   main WiredTiger cache.
+   
+   The ``spillWiredTiger`` document contains a subset of the fields
+   reported in the :ref:`wiredTiger <server-status-wiredTiger>`
+   document. The ``spillWiredTiger`` document only appears when using
+   the WiredTiger storage engine. For details on the ``spillWiredTiger``
+   metrics, see the corresponding ``wiredTiger`` metric description.
+
 .. _server-status-storage-engine:
 
 storageEngine
@@ -7559,6 +7752,7 @@ wiredTiger
 
    {
       uri : 'statistics:',
+      version: <string>,
       async : {
          current work queue length : <num>,
          maximum work queue length : <num>,
@@ -8015,6 +8209,12 @@ wiredTiger
 .. serverstatus:: wiredTiger.uri
 
    A string. For internal use by MongoDB.
+
+.. serverstatus:: wiredTiger.version
+
+   A string that returns the WiredTiger storage engine version.
+
+   .. versionadded:: 8.1
 
 .. serverstatus:: wiredTiger.async
 

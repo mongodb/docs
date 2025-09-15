@@ -9,6 +9,20 @@ a. Add your AWS KMS Credentials
       :language: csharp
       :dedent:
 
+   .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+      .. replacement:: kms-provider
+
+          AWS
+                     
+      .. replacement:: kms-provider-name
+
+         "my_aws_provider"
+
+   .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/aws/named-kms/NamedKms.cs
+      :language: csharp
+      :dedent:
+
 #. Add Your Key Information
 
    Update the following code to specify your {+cmk-long+}:

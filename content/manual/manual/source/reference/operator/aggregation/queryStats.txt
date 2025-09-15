@@ -2,6 +2,9 @@
 $queryStats (aggregation)
 =========================
 
+.. meta::
+   :description: Explore how to use the `$queryStats` aggregation stage to collect runtime statistics for queries, including syntax, requirements, and output details.
+
 .. default-domain:: mongodb
 
 .. contents:: On this page
@@ -674,7 +677,7 @@ Each document in the output array contains the following fields:
      - Time that a query with the given key was first used since the last
        restart
 
-   * - ``metrics.lastSeenTimestamp``
+   * - ``metrics.latestSeenTimestamp``
      - Date
      - Literal
      - Time that a query with the given key was most recently used
@@ -684,6 +687,86 @@ Each document in the output array contains the following fields:
      - Literal
      - The operation execution time, excluding intentional pauses such 
        as time waiting on locks and flow control.
+
+   * - | ``metrics``
+       | ``.delinquentAcquisitions``
+     - NumberLong
+     - Literal
+     - Number of times that query operations exceeded the expected execution
+       ticket acquisition time.
+
+       .. versionadded:: 8.2
+
+   * - | ``metrics``
+       | ``.totalAcquisitionDelinquencyMillis``
+     - NumberLong
+     - Literal 
+     - Total time in milliseconds that query operations exceeded the expected 
+       execution ticket acquisition time. 
+
+       .. versionadded:: 8.2
+
+   * - | ``metrics``
+       | ``.maxAcquisitionDelinquencyMillis``
+     - NumberLong
+     - Literal
+     - Longest duration of time in milliseconds that a query operation exceeded
+       the expected execution ticket acquisition time.
+
+       .. versionadded:: 8.2
+
+   * - | ``metrics``
+       | ``.cpuNanos``
+     - Document
+     - Literal
+     - Contains metrics related to CPU usage for a query operation. This 
+       document is only available on Linux systems.
+
+       .. versionadded:: 8.2
+
+   * - | ``metrics``
+       | ``.cpuNanos``
+       | ``.sum``
+     - NumberLong
+     - Literal
+     - The total CPU time spent by a query operation in nanoseconds. This 
+       field is only available on Linux systems.
+
+       .. versionadded:: 8.2
+
+   * - | ``metrics``
+       | ``.cpuNanos``
+       | ``.max``
+     - NumberLong
+     - Literal
+     - The maximum CPU time spent on a query operation in nanoseconds. This 
+       field is only available on Linux systems.
+
+       .. versionadded:: 8.2
+
+   * - | ``metrics``
+       | ``.cpuNanos``
+       | ``.min``
+     - NumberLong
+     - Literal
+     - The minimum CPU time spent on a query operation in nanoseconds. This 
+       field is only available on Linux systems.
+
+       .. versionadded:: 8.2
+
+   * - | ``metrics``
+       | ``.cpuNanos``
+       | ``.sumOfSquares``
+     - NumberDecimal
+     - Literal
+     - Sum of squares of CPU time spent on query operations. This field is only 
+       available on Linux systems.
+
+       A high ``sumOfSquares`` value indicates high variance in the
+       CPU time for individual queries.
+
+       .. versionadded:: 8.2
+
 
 .. _queryStats-collectionType:
 
@@ -737,7 +820,8 @@ about query shapes, see :ref:`query-shapes`.
 
 The fields in ``key.queryShape`` vary based on the
 command that resulted in the query stats entry. ``$queryStats`` creates
-query stats entries for :dbcommand:`aggregate` and :dbcommand:`find` commands.
+query stats entries for :dbcommand:`aggregate`, :dbcommand:`find`,
+:dbcommand:`distinct`, and :dbcommand:`count` commands.
 
 Each query shape property corresponds to a query option. For example,
 ``key.queryShape.sort`` corresponds to the :method:`~cursor.sort()`
@@ -863,6 +947,111 @@ The following table describes the query shape properties for
      - Document
      - Normalized
 
+.. _queryStats-distinct-query-shape:
+
+distinct Command Query Shape
+````````````````````````````
+
+The following table describes the query shape properties for
+``distinct`` commands.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 10
+
+   * - Field
+     - Type
+     - Literal or Normalized
+
+   * - ``key.queryShape.collation``
+     - Document
+     - Normalized
+
+   * - ``key.queryShape.key``
+     - String
+     - Literal
+
+   * - ``key.queryShape.query``
+     - Document
+     - Normalized
+
+.. _queryStats-count-query-shape:
+
+count Command Query Shape
+`````````````````````````
+
+The following table describes the query shape properties for
+``count`` commands.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 10
+
+   * - Field
+     - Type
+     - Literal or Normalized
+
+   * - ``key.queryShape.collation``
+     - Document
+     - Normalized
+
+   * - ``key.queryShape.query``
+     - Document
+     - Normalized
+
+   * - ``key.queryShape.limit``
+     - Integer
+     - Normalized
+
+   * - ``key.queryShape.skip``
+     - Integer
+     - Normalized
+
+Supplemental Metrics
+~~~~~~~~~~~~~~~~~~~~
+
+Query stats entries may contain a ``metrics.supplementalMetrics`` document that
+provides additional information about your queries. 
+
+.. _queryStats-vectorSearch:
+
+$vectorSearch Metrics
+`````````````````````
+
+If your query shape contains :pipeline:`$vectorSearch`, ``$queryStats``
+outputs the following supplemental metrics:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 25 55
+
+   * - Field
+     - Type
+     - Description
+
+   * - | ``metrics``
+       | ``.supplementalMetrics``
+       | ``.vectorSearch``
+     - Document
+     - Supplemental metrics about a ``$vectorSearch`` aggregation stage
+
+   * - | ``metrics``
+       | ``.supplementalMetrics``
+       | ``.vectorSearch``
+       | ``.limit``
+     - Document
+     - Metrics related to the ``limit`` value of the ``$vectorSearch`` aggregation stage
+
+   * - | ``metrics``
+       | ``.supplementalMetrics``
+       | ``.vectorSearch``
+       | ``.numCandidatesLimitRatio``
+     - Document
+     - Metrics related to the ``numCandidates`` value of the ``$vectorSearch``
+       aggregation stage. ``$queryStats`` expresses these metrics as a ratio of
+       ``numCandidates`` divided by the ``limit`` value.
+
+     
 .. _queryStats-examples:
 
 Examples
@@ -904,6 +1093,9 @@ Examples
       - :ref:`queryStats-example-untransformed`
 
       - :ref:`queryStats-example-transformed`
+
+      The example ``$queryStats`` output in the following sections may vary
+      based on the execution of other commands.
 
       .. _queryStats-example-untransformed:
 

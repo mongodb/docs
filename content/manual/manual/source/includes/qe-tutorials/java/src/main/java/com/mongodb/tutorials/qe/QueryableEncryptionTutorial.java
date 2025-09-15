@@ -35,7 +35,6 @@ import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 public class QueryableEncryptionTutorial {
     public static void main(String[] args) throws Exception {
         // start-setup-application-variables
-        // KMS provider name should be one of the following: "aws", "gcp", "azure", "kmip" or "local"
         String kmsProviderName = "<KMS provider name>";
 
         String uri = QueryableEncryptionHelpers.getEnv("MONGODB_URI"); // Your connection URI

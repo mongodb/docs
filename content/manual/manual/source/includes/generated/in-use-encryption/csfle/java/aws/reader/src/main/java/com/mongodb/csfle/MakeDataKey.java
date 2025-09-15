@@ -49,12 +49,12 @@ public class MakeDataKey {
     public static void main(String[] args) throws Exception {
 
         // start-kmsproviders
-        Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
+        Map<String, Map<String, Object>> kmsProviderDetails = new HashMap<String, Map<String, Object>>();
         String kmsProvider = "aws";
         Map<String, Object> providerDetails = new HashMap<>();
         providerDetails.put("accessKeyId", new BsonString("<IAM User Access Key ID>"));
         providerDetails.put("secretAccessKey", new BsonString("<IAM User Secret Access Key>"));
-        kmsProviders.put(kmsProvider, providerDetails);
+        kmsProviderDetails.put(kmsProvider, providerDetails);
         // end-kmsproviders
 
         // start-datakeyopts
@@ -90,7 +90,7 @@ public class MakeDataKey {
                         .applyConnectionString(new ConnectionString(connectionString))
                         .build())
                 .keyVaultNamespace(keyVaultNamespace)
-                .kmsProviders(kmsProviders)
+                .kmsProviders(kmsProviderDetails)
                 .build();
         
         MongoClient regularClient = MongoClients.create(connectionString);

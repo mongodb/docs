@@ -11,7 +11,7 @@ In the example:
 
 - ``output``:
 
-  - Sets the ``orderDateArrayForState`` array field to ``orderDate``
+  - Sets the ``recentOrders`` field to an array of ``orderDate``
     values for the documents in each ``state``. The array elements are
     expanded with additions to the previous elements in the array.
 

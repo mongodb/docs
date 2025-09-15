@@ -25,7 +25,7 @@
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/node/current/fundamentals/indexes/#list-indexes
       :id: nodejs
 
-   .. wayfinding-option:: https://pkg.go.dev/go.mongodb.org/mongo-driver@v1.17.1/mongo#IndexView.List
+   .. wayfinding-option:: https://pkg.go.dev/go.mongodb.org/mongo-driver/v2/mongo#IndexView.List
       :id: go
 
    .. wayfinding-option:: https://www.mongodb.com/docs/php-library/current/indexes/#list-indexes

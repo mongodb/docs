@@ -14,6 +14,20 @@ a. Add your AWS KMS Credentials
             :language: java
             :dedent:
 
+            .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+               .. replacement:: kms-provider
+
+                  AWS
+                     
+               .. replacement:: kms-provider-name
+
+                  "my_aws_provider"
+
+            .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/aws/named-kms/NamedKms.java
+               :language: java
+               :dedent:
+
          .. include:: /includes/tutorials/automatic/aws/obtain-automatic-credentials.rst
 
       .. tab::
@@ -22,6 +36,20 @@ a. Add your AWS KMS Credentials
          .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/aws/reader/make_data_key.js
             :start-after: start-kmsproviders
             :end-before: end-kmsproviders
+            :language: javascript
+            :dedent:
+
+         .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+            .. replacement:: kms-provider
+
+               AWS
+                     
+            .. replacement:: kms-provider-name
+
+               "my_aws_provider"
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/aws/named-kms/named-kms.js
             :language: javascript
             :dedent:
 
@@ -34,12 +62,40 @@ a. Add your AWS KMS Credentials
             :language: python
             :dedent:
 
+         .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+            .. replacement:: kms-provider
+
+               AWS
+                     
+            .. replacement:: kms-provider-name
+
+               "my_aws_provider"
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/aws/named-kms/named-kms.py
+            :language: python
+            :dedent:
+
       .. tab::
          :tabid: csharp
 
          .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/aws/reader/CSFLE/MakeDataKey.cs
             :start-after: start-kmsproviders
             :end-before: end-kmsproviders
+            :language: csharp
+            :dedent:
+
+         .. include:: /includes/queryable-encryption/tutorials/automatic/named-kms-note.rst
+
+            .. replacement:: kms-provider
+
+               AWS
+                     
+            .. replacement:: kms-provider-name
+
+               "my_aws_provider"
+
+         .. literalinclude:: /includes/queryable-encryption/tutorials/automatic/aws/named-kms/NamedKms.cs
             :language: csharp
             :dedent:
 

@@ -12,7 +12,8 @@ Self-Managed Configuration File Options
 
 .. meta:: 
    :description: Specify configuration file options to manage large scale deployments and control MongoDB behavior.
-
+   :keywords: on-prem
+                 
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -1160,9 +1161,17 @@ Core Options
 
    *Type*: integer
 
+   .. versionchanged:: 8.1
+
    | *Default (Windows):* 1,000,000
    | *Default (Linux):* (`RLIMIT_NOFILE
-     <https://man7.org/linux/man-pages/man2/getrlimit.2.html>`__) * 0.8
+     <https://man7.org/linux/man-pages/man2/getrlimit.2.html>`__ / 2) * 0.8
+
+   .. note:: 
+
+      On Linux, ``net.maxIncomingConnections`` must be less than or equal to 
+      the value of (RLIMIT_NOFILE / 2) * 0.8. If you try to set a larger value, 
+      MongoDB automatically uses the default. 
 
    The maximum number of simultaneous connections that :binary:`~bin.mongos` or :binary:`~bin.mongod`
    accepts. This setting has no effect if it is higher than your operating
@@ -1172,8 +1181,6 @@ Core Options
    encounter errors during normal application operation.
 
    .. include:: /includes/fact-maxconns-mongos.rst
-
-
 
 .. setting:: net.wireObjectCheck
 
@@ -3384,6 +3391,7 @@ LDAP Parameters
       wiredTiger:
          engineConfig:
             cacheSizeGB: <number>
+            cacheSizePct: <number>
             journalCompressor: <string>
             directoryForIndexes: <boolean>
             maxCacheOverflowFileSizeGB: <number> 
@@ -3397,26 +3405,41 @@ LDAP Parameters
    *Type*: float
 
    Defines the maximum size of the internal cache that WiredTiger
-   uses for all data. The memory consumed by an index build (see
+   uses for all data. The memory that an index build consumes (see
    :parameter:`maxIndexBuildMemoryUsageMegabytes`) is separate from the
-   WiredTiger cache memory. 
+   WiredTiger cache memory.
 
-   Values can range from ``0.25`` GB to ``10000`` GB.
+   .. include:: /includes/extracts/wt-cache-default-values-mongod-config.rst
 
    .. include:: /includes/extracts/wt-cache-default-setting.rst
-   
-   Avoid increasing the WiredTiger internal cache size above its
-   default value.
    
    With WiredTiger, MongoDB utilizes both the WiredTiger internal cache
    and the filesystem cache.
    
    .. include:: /includes/extracts/wt-filesystem-cache.rst
-   
 
    .. include:: /includes/extracts/wt-cache-additional-constraints-mongod-config.rst
    
+.. setting:: storage.wiredTiger.engineConfig.cacheSizePct
 
+   *Type*: float
+
+   Defines the maximum amount of memory to allocate for cache as a 
+   percentage of physical RAM. The memory that an index build consumes
+   (see :parameter:`maxIndexBuildMemoryUsageMegabytes`) is separate from
+   the WiredTiger cache memory.
+
+   You can specify a percentage of up to 80% of available memory.
+   Values range from ``0.25`` GB to ``10000`` GB.
+
+   .. include:: /includes/extracts/wt-cache-default-setting.rst
+   
+   With WiredTiger, MongoDB utilizes both the WiredTiger internal cache
+   and the filesystem cache.
+   
+   .. include:: /includes/extracts/wt-filesystem-cache.rst
+
+   .. include:: /includes/extracts/wt-cache-pct-additional-constraints-mongod-config.rst
 
 .. setting:: storage.wiredTiger.engineConfig.journalCompressor
 
@@ -3443,7 +3466,8 @@ LDAP Parameters
 
    *Default*: false
 
-   When :setting:`storage.wiredTiger.engineConfig.directoryForIndexes` is ``true``, :binary:`~bin.mongod` stores indexes and collections in separate
+   When :setting:`storage.wiredTiger.engineConfig.directoryForIndexes` is ``true``,
+   :binary:`~bin.mongod` stores indexes and collections in separate
    subdirectories under the data (i.e. :setting:`storage.dbPath`) directory.
    Specifically, :binary:`~bin.mongod` stores the indexes in a subdirectory named
    ``index`` and the collection data in a subdirectory named
@@ -3462,20 +3486,37 @@ LDAP Parameters
 
    *Default*: 6
 
+   *New in version 5.0*
+
+   *Changed in version 8.2*
+
    Specifies the level of compression applied when using
    the :term:`zstd` compressor.
 
-   Values can range from 1 to 22.
+   Values can range from -7 to 22.
 
-   The higher the specified value for ``zstdCompressionLevel``
-   the higher the compression which is applied.
+   Positive values specify the compression level, where a higher 
+   value for ``zstdCompressionLevel`` results in a higher
+   compression ratio at the cost of slower compression and
+   decompression speeds.
+
+   Negative values provide faster compression and decompression 
+   speeds at the cost of the compression ratio.
+
+   Specifying a value of ``0`` uses zstd's internal default compression level 
+   of 3, which differs from the MongoDB default of 6.
 
    Only applicable when either
    :setting:`~storage.wiredTiger.collectionConfig.blockCompressor` 
    or :setting:`~storage.wiredTiger.engineConfig.journalCompressor` (or both) are
    set to ``zstd``.
 
-   *Available starting in MongoDB 5.0*
+   .. important::
+   
+      When downgrading to an earlier version of MongoDB, ensure that the
+      :setting:`storage.wiredTiger.engineConfig.zstdCompressionLevel` setting
+      is configured to a range supported by that version. For example, MongoDB 
+      8.0 supports a range of 1 to 22.
 
 .. setting:: storage.wiredTiger.collectionConfig.blockCompressor
 

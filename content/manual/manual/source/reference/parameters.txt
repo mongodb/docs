@@ -4,6 +4,10 @@
 MongoDB Server Parameters for a Self-Managed Deployment
 =======================================================
 
+.. meta:: 
+   :keywords: on-prem
+   :description: Explore various MongoDB server parameters for self-managed deployments, including configuration options for authentication, logging, replication, and storage.
+
 .. default-domain:: mongodb
 
 .. facet::
@@ -195,7 +199,22 @@ Authentication Parameters
    .. code-block:: javascript 
 
       mongod --setParameter enforceUserClusterSeparation=false
-      
+
+.. parameter:: JWKSMinimumQuiescePeriodSecs
+
+   |both|
+
+   *Default*: 60 seconds (1 minute)
+
+   Specifies the minimum time period that must pass between subsequent fetches of
+   a given IdP's ``JWKSetURI`` endpoint. If an RSA public key is changed multiple 
+   times within the quiesce period, that key may not work as expected 
+   for up to a minute unless the quiesce period is manually reduced. If this parameter
+   is set to zero, there is no quiesce period and the key can be refreshed repeatedly.
+
+   This parameter is available at both startup and runtime. To set the
+   parameter, use the :setting:`setParameter` setting. 
+
 .. parameter:: KeysRotationIntervalSec
    
    |both|
@@ -1261,12 +1280,6 @@ General Parameters
       :dbcommand:`refreshSessions` command. For details, see
       :ref:`<refresh-session-cursor-example>`.
 
-.. parameter:: disableJavaScriptJIT
-
-   .. important::
-
-      Starting in MongoDB 8.0, this parameter has no effect.
-
 .. parameter:: fassertOnLockTimeoutForStepUpDown
 
    .. versionadded:: 5.3
@@ -1494,36 +1507,30 @@ General Parameters
    
    |mongod-only|
 
-   *Default*: 200 
-   
-   Limits the amount of memory that simultaneous index
-   builds on one collection may consume for the duration of the
-   builds. The specified amount of memory is shared between all
-   indexes built using a single
+   | *Default (absolute)*: 200
+   | *Minimum (absolute)*: 50
+   | *Maximum (percent)*: 0.8
+
+   Limits the amount of memory that simultaneous :ref:`index builds <index-build-process>` 
+   on one collection may consume for their duration. The specified amount of
+   memory is shared between all indexes built using a single
    :dbcommand:`createIndexes` command or its shell helper
-   :method:`db.collection.createIndexes()`.
+   :method:`db.collection.createIndexes()`. Increasing the limit improves
+   sorting performance when the index build process generates and sorts index 
+   keys. The memory consumed by an index build is separate from the
+   WiredTiger cache memory (see :setting:`~storage.wiredTiger.engineConfig.cacheSizeGB`).
+
+   - Set this value to 0-0.8 to limit builds to a percentage of
+     memory.
+   
+   - Set this value to 1.0 or greater to limit builds to an absolute number of 
+     megabytes.
+
+   If this setting allocates less than 50 MB, ``mongod`` uses a minimum of 50
+   MB. If the percentage setting is greater than 0.8, ``mongod`` uses a maximum
+   of 80% of available memory.
 
    .. include:: /includes/fact-runtime-startup-parameter
-
-   The memory consumed by an index build is separate from the
-   WiredTiger cache memory (see
-   :setting:`~storage.wiredTiger.engineConfig.cacheSizeGB`).
-
-   ``maxIndexBuildMemoryUsageMegabytes`` sets a limit on how much 
-   memory the index build uses at once. This can impact performance 
-   when the :ref:`index build process <index-build-process>` generates 
-   and sorts keys for the index. Increasing the memory limit 
-   improves sorting performance during an index build.
-
-   .. include:: /includes/fact-index-build-memory-limit.rst
-
-   Changing ``maxIndexBuildMemoryUsageMegabytes`` does not affect an 
-   in progress index build if it has already started a collection scan. 
-   However, a forced replica set reconfiguration restarts the collection 
-   scan and uses the most current 
-   ``maxIndexBuildMemoryUsageMegabytes`` provided.
-
-   .. include:: /includes/extracts/4.2-index-limit.rst
 
 .. parameter:: maxNumActiveUserIndexBuilds
 
@@ -1708,20 +1715,16 @@ General Parameters
    Default: 0
 
    Specifies the `TCMalloc release rate <https://github.com/google/tcmalloc/blob/master/docs/tuning.md>`__
-   in bytes per second. "Release rate" refers to the *minimum* rate at which MongoDB 
-   releases unused memory to the system. To return memory back to the system more 
-   quickly, increase the release rate; to return memory more slowly, decrease 
-   the release rate.
+   in bytes per second. Release rate refers to the rate at which MongoDB 
+   releases unused memory to the system. If ``tcmallocReleaseRate`` is set to 
+   ``0`` MongoDB doesn't release memory back to the system. Increase 
+   this value to return memory faster; decrease it to return memory slower.
 
    .. include:: /includes/fact-background-thread-release-rate.rst
 
    Starting in MongoDB 8.0, the default value of ``tcmallocReleaseRate`` is 
    reduced to ``0`` due to a :ref:`tcmalloc upgrade <8.0-tcmalloc-upgrade>` 
-   that prioritizes CPU performance over memory release. Even if 
-   ``tcmallocReleaseRate`` is set to ``0``, ``tcmalloc`` may release memory 
-   back to the system, especially if it is near the heap limit. If 
-   :parameter:`tcmallocEnableBackgroundThread` is enabled, ``tcmalloc`` may also 
-   release memory from its intermediate caches.
+   that prioritizes CPU performance over memory release. 
    
    .. include:: /includes/fact-tcmalloc-release-rate-compatibility.rst
      
@@ -1855,10 +1858,11 @@ General Parameters
    support *or* is not configured to support TFO connections.
 
    .. include:: /includes/fact-startup-parameter
-
+   
    .. seealso::
 
       `RFC7413 <https://tools.ietf.org/html/rfc7413>`__.
+
 
 .. parameter:: ttlMonitorEnabled
 
@@ -2234,25 +2238,6 @@ Logging Parameters
    .. code-block:: bash
 
       mongod --setParameter maxLogSizeKB=20
-
-.. parameter:: profileOperationResourceConsumptionMetrics
-
-   |mongod-only|
-   
-   *Type*: boolean
-
-   *Default*: false
-
-   Flag that determines whether operations collect resource 
-   consumption metrics and report them in the slow query logs. 
-   If you enable :ref:`profiling <database-profiling>`, 
-   these metrics are also included.
-
-   If set to ``true``, running the :dbcommand:`explain` command
-   returns :ref:`operationMetrics <executionStats>` when the verbosity 
-   is ``executionStats`` or higher.
-
-   .. include:: /includes/fact-startup-parameter
 
 .. parameter:: quiet
 
@@ -2803,6 +2788,81 @@ Replication and Consistency
 
       mongod --setParameter heartBeatFrequencyMs=700
 
+.. parameter:: initialSyncIndexBuildMemoryPercentage
+
+   .. versionadded:: 8.2
+
+   |mongod-only|
+
+   *Type*: double
+
+   *Default*: 10.0
+
+   The percentage of system memory that MongoDB allocates for index builds 
+   during :ref:`initial sync <replica-set-initial-sync>`. The amount of system 
+   memory used is bound by the values of 
+   :parameter:`initialSyncIndexBuildMemoryMinMB` and 
+   :parameter:`initialSyncIndexBuildMemoryMaxMB`.
+
+   You can specify a value between ``0.0`` and ``80.0``, inclusive.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   For example, to set the ``initialSyncIndexBuildMemoryPercentage``
+   for a :binary:`~bin.mongod` instance to 40%:
+
+   .. code-block:: bash
+
+      mongod --setParameter initialSyncIndexBuildMemoryPercentage=40
+
+.. parameter:: initialSyncIndexBuildMemoryMaxMB
+
+   .. versionadded:: 8.2
+
+   |mongod-only|
+
+   *Type*: integer
+
+   *Default*: 16384
+
+   The maximum amount of system memory, in megabytes, that MongoDB can use for 
+   index builds during :ref:`initial sync <replica-set-initial-sync>`.
+
+   You can specify a value between ``50`` and ``10000000``. 
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   For example, to set the ``initialSyncIndexBuildMemoryMaxMB``
+   for a :binary:`~bin.mongod` instance to 20000 MB:
+
+   .. code-block:: bash
+
+      mongod --setParameter initialSyncIndexBuildMemoryMaxMB=20000
+
+.. parameter:: initialSyncIndexBuildMemoryMinMB
+
+   .. versionadded:: 8.2
+
+   |mongod-only|
+
+   *Type*: Integer
+
+   *Default*: 200
+
+   The minimum amount of system memory, in megabytes, that MongoDB can use for
+   index builds during :ref:`initial sync <replica-set-initial-sync>`.
+
+   You can specify a value between ``50`` and ``10000000``.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   For example, to set the ``initialSyncIndexBuildMemoryMinMB``
+   for a :binary:`~bin.mongod` instance to 60 MB:
+
+   .. code-block:: bash
+
+      mongod --setParameter initialSyncIndexBuildMemoryMinMB=60
+
 .. parameter:: initialSyncMethod                                            
 
    .. versionadded:: 5.2                                                    
@@ -3098,6 +3158,48 @@ Replication and Consistency
           The ``maxTimeMS`` for the mirrored reads is separate from the
           ``maxTimeMS`` of the original read being mirrored.
 
+      * - ``targetedMirroring``
+
+        - Contains fields to configure how you target specific nodes for 
+          cache warming. For more information on targeted 
+          mirroring, see :ref:`targeted-mirrored-reads`.
+           
+          Includes the following fields: 
+
+          .. list-table::
+             :widths: 40 60
+
+             * - ``tag``
+
+               - Defaults to an empty ``BSONObj``. The 
+                 :ref:`replica set tag <replica-set-configuration-tag-sets>` 
+                 that you can use to target nodes for mirroring. You can 
+                 configure a node for targeted mirroring using the following syntax: 
+
+                 ``tag: { "<tag1>": "<string1>" }``
+
+                 You can only supply one tag. All nodes within the same 
+                 replica set that have these tags are targeted. 
+
+             * - ``samplingRate``
+
+               - *Type*: Float 
+
+                 *Range*: ``0.0`` to ``1.0`` (inclusive)
+
+                 The rate at which targeted reads are mirrored to the host or hosts. 
+                 A rate of ``0.0`` means no reads are mirrored, and a rate of 
+                 ``1.0`` means all reads are mirrored. Although ``samplingRate`` defaults 
+                 to ``0.01``, the ``targetedMirroring`` feature is off by default, 
+                 since the ``tag`` field defaults to empty.
+
+             * - ``maxTimeMS``
+
+               - *Type*: int
+               
+                 The maximum time in milliseconds before the mirrored read times out. 
+                 The minumum value for ``maxTimeMS`` is ``0``. Defaults to ``1000``.
+
    .. include:: /includes/fact-runtime-startup-parameter
 
    If you specify from the configuration file or on the command
@@ -3124,6 +3226,21 @@ Replication and Consistency
    .. code-block:: javascript
 
       db.adminCommand( { setParameter: 1, mirrorReads: { samplingRate: 0.10 } } )
+
+.. parameter:: mirrorReadsMaxConnPoolSize
+
+   .. versionadded:: 8.2
+
+   *Type*: int 
+
+   *Default*: 4
+
+   Controls the maximum number of connections in the mirroring pool. This parameter
+   affects both :ref:`general <mirrored-reads>` and 
+   :ref:`targeted <targeted-mirrored-reads>` mirrored reads. 
+   ``mirrorReadsMaxConnPoolSize`` has a minimum value of 1.
+
+   .. include:: /includes/fact-runtime-startup-parameter
 
 .. parameter:: oplogBatchDelayMillis
 
@@ -3494,6 +3611,7 @@ Sharding Parameters
 
       db.adminCommand( { setParameter: 1, analyzeShardKeyNumMostCommonValues: 3 } )
 
+
 .. parameter:: analyzeShardKeyNumRanges
 
    .. versionadded:: 7.0
@@ -3624,7 +3742,7 @@ Sharding Parameters
 
 .. parameter:: catalogCacheCollectionMaxEntries
 
-   .. versionadded:: 8.0.10 (*also available starting in 7.0.22*)
+   .. versionadded:: 8.1 (*also available starting in 8.0.10, 7.0.22*)
 
    *Type*: integer
 
@@ -3639,7 +3757,7 @@ Sharding Parameters
 
 .. parameter:: catalogCacheDatabaseMaxEntries
 
-   .. versionadded:: 8.0.10 (*also available starting in 7.0.22*)
+   .. versionadded:: 8.1 (*also available starting in 8.0.10, 7.0.22*)
 
    *Type*: integer
 
@@ -3649,21 +3767,6 @@ Sharding Parameters
 
    Maximum number of entries allowed in the catalog cache for
    databases.
-
-   .. include:: /includes/fact-startup-parameter
-
-.. parameter:: catalogCacheIndexMaxEntries
-
-   .. versionadded:: 8.0.10 (*also available starting in 7.0.22*)
-
-   *Type*: integer
-
-   *Default*: 10000
-
-   |both|
-
-   Maximum number of entries allowed in the catalog cache for
-   indexes.
 
    .. include:: /includes/fact-startup-parameter
 
@@ -3707,15 +3810,14 @@ Sharding Parameters
 
    *Default*: false
 
-   If set on a shard's primary, specifies if range deletion is paused on
-   the shard. If set to ``true``, cleanup of :term:`ranges <range>`
-   containing :term:`orphaned documents <orphaned document>` is paused.
-   The shard can continue to donate chunks to other shards, but the
-   donated documents will not be removed from this shard until you set
-   this parameter to ``false``. This shard can continue to receive
-   chunks from other shards as long as it does not have a pending range
-   deletion task in the :data:`config.rangeDeletions` collection that
-   overlaps with the incoming chunk's range.
+   If set on a shard's primary, specifies if MongoDB pauses range deletion on
+   the shard. If set to ``true``, MongoDB pauses cleanup of :term:`ranges
+   <range>` containing :term:`orphaned documents <orphaned document>`. The shard
+   can continue to donate chunks to other shards, but the shard does not remove
+   donated documents until you set this parameter to ``false``. This shard can
+   continue to receive chunks from other shards as long as it does not have a
+   pending range deletion task in the :data:`config.rangeDeletions` collection
+   that overlaps with the incoming chunk's range.
 
    When :parameter:`disableResumableRangeDeleter` is ``true``, chunk
    migrations fail if :term:`orphaned documents <orphaned document>`
@@ -3733,11 +3835,20 @@ Sharding Parameters
       setting's value on the new primary dictates the behavior of the
       range deleter.
 
-   .. include:: /includes/fact-startup-parameter
+   Starting in MongoDB 8.2, you can set ``disableResumableRangeDeleter`` during
+   both startup and run time. 
+
+   To set ``disableResumableRangeDeleter`` at startup, use the following command:
 
    .. code-block:: javascript
 
       mongod --setParameter disableResumableRangeDeleter=false
+
+   To set ``disableResumableRangeDeleter`` during run time, use the following command:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, disableResumableRangeDeleter: false } )
 
 .. parameter:: enableFinerGrainedCatalogCacheRefresh
 
@@ -3903,48 +4014,19 @@ Sharding Parameters
 
 .. parameter:: maxTimeMSForHedgedReads
 
-   .. important::
-   
-      .. include:: /includes/hedged-reads-deprecated.rst
-
-   |mongos-only|
-
-   *Type*: integer
-
-   *Default*: 150
-
-   Specifies the maximum time limit (in milliseconds) for the
-   :ref:`hedged read <mongos-hedged-reads>`. That is, the additional
-   read sent to hedge the read operation uses the ``maxTimeMS`` value
-   of :parameter:`maxTimeMSForHedgedReads` while the read operation
-   that is being hedged uses the ``maxTimeMS`` value specified for the
-   operation.
-
-   .. include:: /includes/fact-runtime-startup-parameter
-
-   For example, to set the limit to 200 milliseconds, you can issue the
-   following during startup:
-
-   .. code-block:: bash
-
-      mongos --setParameter maxTimeMSForHedgedReads=200
-
-   Or if using the :dbcommand:`setParameter` command in a
-   :binary:`~bin.mongosh` session that is connected to a running
-   :binary:`~bin.mongos`:
-
-   .. code-block:: javascript
-
-      db.adminCommand( { setParameter: 1, maxTimeMSForHedgedReads: 200 } )
-
-   .. seealso::
-
-      - :parameter:`readHedgingMode`
-      - :ref:`mongos-hedged-reads`
+   .. include:: /includes/hedged-reads-removed-parameter.rst
 
 .. parameter:: metadataRefreshInTransactionMaxWaitBehindCritSecMS
 
+   **Deprecated**
+
+   .. note::
+    
+      .. include:: /includes/transaction-wait-time-parameter-deprecated.rst
+
    .. versionadded:: 5.2 (*Also available starting in 5.1.0, 5.0.4*)
+
+   .. versionchanged:: 8.1
 
    |mongod-only|
 
@@ -3988,6 +4070,57 @@ Sharding Parameters
    .. code-block:: javascript
 
       db.adminCommand( { setParameter: 1, metadataRefreshInTransactionMaxWaitBehindCritSecMS: 400 } )
+
+.. parameter:: metadataRefreshInTransactionMaxWaitMS
+
+   .. versionchanged:: 8.1
+
+   |mongod-only|
+
+   *Type*: integer
+
+   *Default*: 500
+
+   Limits the time a shard waits for a critical section within a
+   transaction. 
+
+   .. note::
+    
+      .. include:: /includes/transaction-wait-time-parameter-deprecated.rst
+
+   When a query accesses a shard, a :ref:`chunk migration
+   <migrate-chunks-sharded-cluster>` or :ref:`DDL operation
+   <transactions-operations-ddl>` may already hold the critical
+   section for the collection. If the query finds the critical
+   section is taken, the shard waits until the critical section has
+   been released. When the shard returns control to :binary:`mongos`,
+   :binary:`mongos` retries the query. However, if a multi-shard
+   transaction interacts with an operation that takes the critical
+   section on multiple shards, the interaction can result in a
+   distributed deadlock.
+
+   :parameter:`metadataRefreshInTransactionMaxWaitMS`
+   limits the maximum time a shard waits within a transaction for the
+   critical section to be released.
+
+   To reduce the maximum wait time for the critical section within a
+   transaction, lower the value of
+   :parameter:`metadataRefreshInTransactionMaxWaitMS`. 
+
+   .. warning::
+
+      If :parameter:`metadataRefreshInTransactionMaxWaitMS`
+      is too low, :binary:`mongos` could use all of its retry attempts
+      and return an error.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   For example, to set :parameter:`metadataRefreshInTransactionMaxWaitMS`
+   to 400 milliseconds:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, metadataRefreshInTransactionMaxWaitMS: 400 } )
 
 .. parameter:: migrateCloneInsertionBatchDelayMS
 
@@ -4083,68 +4216,28 @@ Sharding Parameters
 
 .. parameter:: opportunisticSecondaryTargeting
 
-   .. versionadded:: 6.1.0
-
-   |mongos-only|
-
-   *Type*: boolean
-
-   *Default*: ``false``
-
-   Determines whether ``mongos`` performs opportunistic reads against
-   replica sets.
-
-   When this parameter is set to ``true``, :program:`mongos` directs secondary 
-   reads to secondaries with active connections. It sends the request to the 
-   first secondary that accepts the connection. When this parameter is set to 
-   ``false``, :program:`mongos` holds secondary reads until it can establish 
-   a connection to a specific secondary, (except in the case of 
-   :ref:`hedged reads <read-preference-hedged-read>`).
-
-   .. note:: 
-
-      Under certain workloads, opportunistic reads may trigger the 
-      opening of unnecessary connections from :program:`mongos` to 
-      :program:`mongod` and reduce overall performance. 
-      This parameter should not be enabled unless your application has 
-      a specific need for the feature.
-
-   .. include:: /includes/fact-runtime-startup-parameter
-
-   For example, to set ``opportunisticSecondaryTargeting`` during startup:
-
-   .. code-block:: bash
-
-      mongos --setParameter opportunisticSecondaryTargeting=true
+   .. include:: /includes/hedged-reads-removed-parameter.rst
 
 .. parameter:: orphanCleanupDelaySecs
 
+   .. versionchanged:: 8.2
+
    |mongod-only|
 
-   Default: 900 (15 minutes)
+   Default: 3600 (60 minutes)
 
    Minimum delay before a migrated :term:`chunk` is deleted from the source
    shard.
 
-   Before deleting the chunk during chunk migration, MongoDB waits for
-   :parameter:`orphanCleanupDelaySecs` or for in-progress queries
-   involving the chunk to complete on the shard primary, whichever is
-   longer.
+   Before deleting a migrated chunk, MongoDB waits for 
+   in-progress queries involving the chunk to complete on the shard primary 
+   and then waits an additional :parameter:`orphanCleanupDelaySecs` seconds.
 
-   However, because the shard primary has no knowledge of in-progress queries
-   run on the shard secondaries, queries that use the chunk but are run on
-   secondaries may see documents disappear if these queries take longer than
-   the time to complete the shard primary queries and the
-   :parameter:`orphanCleanupDelaySecs`.
-
-   .. note::
-
-      This behavior only affects in-progress queries that start before the
-      chunk migration. Queries that start after the chunk migration starts
-      will not use the migrating chunk.
+   Starting in 8.2, the behavior of in-progress queries on shard secondaries 
+   is determined by :parameter:`terminateSecondaryReadsOnOrphanCleanup`.
 
    If a shard has storage constraints, consider reducing this value
-   temporarily. If running queries that exceed 15 minutes on shard
+   temporarily. If running queries that exceed 60 minutes on shard
    secondaries, consider increasing this value.
 
    .. include:: /includes/fact-runtime-startup-parameter
@@ -4488,60 +4581,7 @@ Sharding Parameters
 
 .. parameter:: readHedgingMode
 
-   |mongos-only|
-
-   *Type*: string
-
-   *Default*: on
-
-   Specifies whether :binary:`~bin.mongos` supports hedged reads for
-   those read operations whose :doc:`read preference
-   </core/read-preference>` have enabled the hedged read option.
-
-   Available values are:
-
-   .. list-table::
-      :header-rows: 1
-      :widths: 35 85
-
-      * - Value
-        - Description
-
-      * - ``on``
-
-        - The :binary:`~bin.mongos` instance supports hedged reads for
-          read operations whose :doc:`read preference
-          </core/read-preference>` have enabled the hedged read option.
-
-      * - ``off``
-
-        - The :binary:`~bin.mongos` instance does not support hedged
-          reads. That is, hedged reads are unavailable, even for read
-          operations whose read preference have enabled the hedged read
-          option.
-
-   .. include:: /includes/fact-runtime-startup-parameter
-
-   For example, to turn off hedged read support for a
-   :binary:`~bin.mongos` instance, you can issue the following during
-   startup:
-
-   .. code-block:: bash
-
-      mongos --setParameter readHedgingMode=off
-
-   Or if using the :dbcommand:`setParameter` command in a
-   :binary:`~bin.mongosh` session that is connected to a running
-   :binary:`~bin.mongos`:
-
-   .. code-block:: javascript
-
-      db.adminCommand( { setParameter: 1, readHedgingMode: "off" } )
-
-   .. seealso::
-
-      - :ref:`mongos-hedged-reads`
-      - :parameter:`maxTimeMSForHedgedReads`
+   .. include:: /includes/hedged-reads-removed-parameter.rst
 
 .. parameter:: routingTableCacheChunkBucketSize
 
@@ -5100,6 +5140,66 @@ Sharding Parameters
       - :parameter:`ShardingTaskExecutorPoolMaxSize`
       - :parameter:`ShardingTaskExecutorPoolMinSize`
 
+.. parameter:: terminateSecondaryReadsOnOrphanCleanup
+
+   |mongod-only|
+   
+   .. versionadded:: 8.2
+
+   Type: boolean
+   
+   *Default*: true
+
+   Controls whether long-running read operations on secondary nodes  
+   automatically terminate before :term:`orphaned document` 
+   deletion following a :term:`chunk` migration.
+
+   In sharded clusters, when a chunk successfully migrates from the source
+   shard to the destination shard, MongoDB does not immediately remove the 
+   migrated documents from the source shard. Instead, the primary of the 
+   source shard waits for any in-progress reads involving the namespace 
+   of the migrated chunk to complete, and after that, waits an additional 
+   period controlled by :parameter:`orphanCleanupDelaySecs` (default: 1 hour). 
+   This additional delay allows any long-running secondary reads to finish 
+   before orphaned documents are deleted from the source shard.
+
+   After the orphaned documents are deleted from the source shard, any ongoing 
+   reads running on secondary nodes that started before the chunk migration 
+   may silently miss documents without returning an error unless 
+   ``terminateSecondaryReadsOnOrphanCleanup`` is set to ``true``.
+   
+   When ``terminateSecondaryReadsOnOrphanCleanup`` is set to ``true``, read 
+   operations on secondary nodes that began before the chunk migration commit 
+   are automatically terminated before the orphaned documents are 
+   removed from the secondary node. This prevents long-running secondary reads 
+   from silently missing documents that were moved during migration.
+
+   When set to ``false``, read operations on secondary nodes continue executing 
+   even after orphaned documents are deleted. Operations may silently miss documents 
+   without returning an error. This matches the behavior in MongoDB versions before 8.2.
+
+   .. note::
+
+      This behavior only affects read operations that start before the
+      chunk migration commit. It applies to all read operations on secondaries, 
+      including queries, aggregations, and operations spanning multiple namespaces.
+   
+   .. include:: /includes/fact-runtime-startup-parameter
+   
+   Error Response
+   ``````````````
+   
+   When a read operation terminates due to ``terminateSecondaryReadsOnOrphanCleanup``, 
+   MongoDB returns the following error:
+
+   .. literalinclude:: /code-examples/reference/parameters/terminateSecondaryReadsOnOrphanCleanup-error-message.sh
+      :language: shell
+      :copyable: false
+   
+   This error is not retryable by design. To learn more about handling these 
+   errors, see :ref:`long-running-secondary-reads`.
+   
+
 .. parameter:: warmMinConnectionsInShardingTaskExecutorPoolOnStartup
 
    |mongos-only|
@@ -5243,6 +5343,28 @@ Health Manager Parameters
 
 Storage Parameters
 ~~~~~~~~~~~~~~~~~~
+
+.. parameter:: enableAutoCompaction
+
+   |both|
+
+   .. versionadded:: 8.1.0
+
+   *Type*: boolean
+
+   *Default*: false
+
+   Specifies whether the instance runs automatic background 
+   :ref:`compaction <compact>`.
+
+   .. include:: /includes/fact-startup-parameter
+   
+   The following example enables automatic background compaction on
+   the instance:
+
+   .. code-block:: bash
+
+      mongod --setParameter "enableAutoCompaction=true"
 
 .. parameter:: honorSystemUmask
 
@@ -5519,7 +5641,7 @@ Storage Parameters
 
    |both|
 
-   .. versionadded:: 8.0.11
+   .. versionadded:: 8.1.0
 
    Maximum number of retry attempts when an ``upsert`` operation
    encounters a duplicate key error. 
@@ -5539,9 +5661,9 @@ Storage Parameters
    error to ``50``.
 
    .. code-block:: bash
-
+      
       mongod --setParameter "upsertMaxRetryAttemptsOnDuplicateKeyError=50"
-
+   
    During run time, you can also set the parameter with the 
    ``setParameter`` command:
 
@@ -5550,7 +5672,7 @@ Storage Parameters
       db.adminCommand( { 
          setParameter: 1, 
          upsertMaxRetryAttemptsOnDuplicateKeyError: 50 
-      } )
+      } ) 
 
 WiredTiger Parameters
 ~~~~~~~~~~~~~~~~~~~~~
@@ -5650,6 +5772,20 @@ WiredTiger Parameters
    .. code-block:: bash 
 
       mongod --setParameter wiredTigerFileHandleCloseIdleTime=100000
+
+.. parameter:: wiredTigerSessionMax
+
+   .. versionadded:: 8.1
+
+   *Type*: 32-bit integer
+
+   *Default:* 33000
+
+   |mongod-only|
+
+   Maximum number of sessions allowed by WiredTiger.
+
+   .. include:: /includes/fact-startup-parameter
 
 See the WiredTiger documentation for all available
 :wtdocs-v5.0:`WiredTiger configuration options </struct_w_t___c_o_n_n_e_c_t_i_o_n.html#>`.
@@ -5773,10 +5909,9 @@ Auditing Parameters
 Transaction Parameters
 ~~~~~~~~~~~~~~~~~~~~~~
 
-
 .. parameter:: AbortExpiredTransactionsSessionCheckoutTimeout
 
-   .. versionadded:: 8.0.13
+   .. versionadded:: 8.1 *(also available in 8.0.13)*
 
    |mongod-only|
 
@@ -5893,58 +6028,6 @@ Transaction Parameters
 
       mongod --setParameter internalSessionsReapThreshold=500
 
-.. parameter:: maxTransactionLockRequestTimeoutMillis
-
-   |mongod-only|
-
-   *Type*: integer
-
-   *Default*: 5
-
-   The maximum amount of time in milliseconds that :doc:`multi-document
-   transactions </core/transactions>` should wait to acquire locks
-   required by the operations in the transaction.
-
-   If the transaction cannot acquire the locks after waiting
-   :parameter:`maxTransactionLockRequestTimeoutMillis`, the transaction
-   aborts.
-
-   By default, :ref:`multi-document transactions <transactions>`
-   wait ``5`` milliseconds. That is, if the transaction cannot acquire
-   the locks within ``5`` milliseconds, the transaction aborts. If an
-   operation provides a greater timeout in a lock request,
-   :parameter:`maxTransactionLockRequestTimeoutMillis` overrides the
-   operation-specific timeout.
-
-   You can set :parameter:`maxTransactionLockRequestTimeoutMillis` to:
-
-   - ``0`` such that if the transaction cannot acquire the required
-     locks immediately, the transaction aborts.
-
-   - A number greater than ``0`` to wait the specified time to acquire
-     the required locks. This can help obviate transaction aborts on
-     momentary concurrent lock acquisitions, like fast-running metadata
-     operations. However, this could possibly delay the abort of
-     deadlocked transaction operations.
-
-   - ``-1`` to use the operation specific timeout.
-
-   .. include:: /includes/fact-runtime-startup-parameter
-
-   The following sets the
-   :parameter:`maxTransactionLockRequestTimeoutMillis` to ``20``
-   milliseconds:
-
-   .. code-block:: javascript
-
-      db.adminCommand( { setParameter: 1, maxTransactionLockRequestTimeoutMillis: 20 } )
-
-   You can also set this parameter during start-up:
-
-   .. code-block:: bash
-
-      mongod --setParameter maxTransactionLockRequestTimeoutMillis=20
-
 .. parameter:: transactionLifetimeLimitSeconds
 
    |mongod-only|
@@ -6018,6 +6101,58 @@ Transaction Parameters
 
    For more information on WiredTiger storage, see:
    :ref:`wiredTiger-storage-options`.
+
+.. parameter:: maxTransactionLockRequestTimeoutMillis
+
+   |mongod-only|
+
+   *Type*: integer
+
+   *Default*: 5
+
+   The maximum amount of time in milliseconds that :doc:`multi-document
+   transactions </core/transactions>` should wait to acquire locks
+   required by the operations in the transaction.
+
+   If the transaction cannot acquire the locks after waiting
+   :parameter:`maxTransactionLockRequestTimeoutMillis`, the transaction
+   aborts.
+
+   By default, :ref:`multi-document transactions <transactions>`
+   wait ``5`` milliseconds. That is, if the transaction cannot acquire
+   the locks within ``5`` milliseconds, the transaction aborts. If an
+   operation provides a greater timeout in a lock request,
+   :parameter:`maxTransactionLockRequestTimeoutMillis` overrides the
+   operation-specific timeout.
+
+   You can set :parameter:`maxTransactionLockRequestTimeoutMillis` to:
+
+   - ``0`` such that if the transaction cannot acquire the required
+     locks immediately, the transaction aborts.
+
+   - A number greater than ``0`` to wait the specified time to acquire
+     the required locks. This can help obviate transaction aborts on
+     momentary concurrent lock acquisitions, like fast-running metadata
+     operations. However, this could possibly delay the abort of
+     deadlocked transaction operations.
+
+   - ``-1`` to use the operation specific timeout.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following sets the
+   :parameter:`maxTransactionLockRequestTimeoutMillis` to ``20``
+   milliseconds:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, maxTransactionLockRequestTimeoutMillis: 20 } )
+
+   You can also set this parameter during start-up:
+
+   .. code-block:: bash
+
+      mongod --setParameter maxTransactionLockRequestTimeoutMillis=20
 
 Slot-Based Execution Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

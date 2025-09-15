@@ -35,3 +35,6 @@
   - Do not create indexes while |uc| is in progress.
 
   - Do not call |uc| if there are ongoing index builds.
+
+- To avoid error, MongoDB automatically drops the zones in your collection 
+  when you run ``unshardCollection``. 

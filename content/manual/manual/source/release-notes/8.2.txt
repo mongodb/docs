@@ -1,0 +1,280 @@
+.. _release-notes-8.2:
+
+=============================
+Release Notes for MongoDB 8.2
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+This page describes changes and new features introduced in MongoDB 8.2.
+
+MongoDB 8.2 is a Minor Release, which means that it is supported for
+both MongoDB Atlas and on-premises deployments. MongoDB 8.2 introduces incremental 
+improvements within a |lts| version release cycle.
+
+To learn more about the differences between |lts|, Minor and Rapid releases,
+see :ref:`release-version-numbers`. 
+
+.. include:: /includes/rc-available.rst
+
+.. include:: /includes/minor-release.rst
+
+.. include:: /includes/mongosync-compatibility.rst
+
+Sharding
+--------
+
+terminateSecondaryReadsOnOrphanCleanup Parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.2 adds the :parameter:`terminateSecondaryReadsOnOrphanCleanup` 
+parameter, which controls whether long-running read operations on secondary 
+nodes automatically terminate before :term:`orphaned document` deletion 
+following a :term:`chunk` migration.
+
+By default, this parameter is set to ``true``. If a read operation 
+on a secondary node begins before the chunk migration commits,
+MongoDB automatically terminates the operation before deleting 
+the orphaned documents. In MongoDB versions before 8.2, these operations 
+continue executing after orphaned document deletion and may silently 
+miss documents without returning an error.
+
+To support this new behavior, the default value for :parameter:`orphanCleanupDelaySecs` 
+is now ``3600`` (previously ``900``).
+
+General Changes 
+---------------
+
+Index Builds During Initial Sync
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.2, index builds during :ref:`initial sync 
+<replica-set-initial-sync>` use 10% of available RAM by default. You can specify
+a different percentage of memory for MongoDB to use with the 
+:parameter:`initialSyncIndexBuildMemoryPercentage` parameter.
+
+By default, the amount of available memory must be between 200 MB and 16 GB, 
+inclusive. You use the following parameters to specify different minimum and 
+maximum thresholds for memory usage: 
+
+- :parameter:`initialSyncIndexBuildMemoryMinMB`
+- :parameter:`initialSyncIndexBuildMemoryMaxMB`
+
+Query Statistics 
+~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.2, the :pipeline:`$queryStats` output includes the
+following metrics on delinquent :ref:`tickets <storage-wiredtiger-concurrency>`:
+
+- ``metrics.delinquentAcquisitions``
+- ``metrics.totalAcquisitionDelinquencyMillis``
+- ``metrics.maxAcquisitionDelinquencyMillis``
+
+MongoDB considers an execution ticket as delinquent when acquisition takes too 
+long.
+
+WiredTiger Cache Size Configuration as a Percentage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.2, you can configure the
+:ref:`WiredTiger <storage-wiredtiger>` internal cache
+size using a new percentage-based option. In addition to the existing
+:option:`--wiredTigerCacheSizeGB <mongod --wiredTigerCacheSizeGB>`
+and :setting:`storage.wiredTiger.engineConfig.cacheSizeGB`
+gigabyte-based settings, you can now specify the cache size as a
+percentage of the available memory with the
+:option:`--wiredTigerCacheSizePct <mongod --wiredTigerCacheSizePct>`
+and :setting:`storage.wiredTiger.engineConfig.cacheSizePct` options.
+
+New Inconsistency Type: Range Deletion Missing Shard Key Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MonogDB 8.2, a new inconsistency type
+:data:`RangeDeletionMissingShardKeyIndex` is implemented. The
+inconsistency type indicates that a sharded collection exists that
+doesn't have an index compatible with the collection shard key and there
+is at least one remaining range deletion task to complete.
+
+New Aggregation Expression
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.2, you can use ``$currentDate`` with 
+:method:`~db.collection.aggregate()` to return the current time on the server.
+
+serverStatus Output Change
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:dbcommand:`serverStatus` includes the following new fields in its output:
+
+- :serverstatus:`metrics.operation.killedDueToRangeDeletion`
+- :serverstatus:`metrics.query.bucketAuto.spilledBytes`
+- :serverstatus:`metrics.query.bucketAuto.spilledDataStorageSize`
+- :serverstatus:`metrics.query.bucketAuto.spilledRecords`
+- :serverstatus:`metrics.query.bucketAuto.spills`
+- :serverstatus:`planCache.classic.replanned_plan_is_cached_plan`
+- :serverstatus:`planCache.sbe.replanned_plan_is_cached_plan`
+- :serverstatus:`spillWiredTiger`
+- :serverstatus:`connections.queuedForEstablishment`
+- :serverstatus:`connections.establishmentRateLimit`
+- :serverstatus:`connections.establishmentRateLimit.rejected`
+- :serverstatus:`connections.establishmentRateLimit.exempted`
+- :serverstatus:`connections.establishmentRateLimit.interruptedDueToClientDisconnect`
+- :serverstatus:`metrics.network.averageTimeToCompletedTLSHandshakeMicros`
+- :serverstatus:`metrics.network.averageTimeToCompletedHelloMicros`
+- :serverstatus:`metrics.network.averageTimeToCompletedAuthMicros`
+- :serverstatus:`queues.ingressSessionEstablishment`
+- :serverstatus:`queues.ingressSessionEstablishment.addedToQueue`
+- :serverstatus:`queues.ingressSessionEstablishment.removedFromQueue`
+- :serverstatus:`queues.ingressSessionEstablishment.interruptedInQueue`
+- :serverstatus:`queues.ingressSessionEstablishment.rejectedAdmissions`
+- :serverstatus:`queues.ingressSessionEstablishment.exemptedAdmissions`
+- :serverstatus:`queues.ingressSessionEstablishment.successfulAdmissions`
+- :serverstatus:`queues.ingressSessionEstablishment.attemptedAdmissions`
+- :serverstatus:`queues.ingressSessionEstablishment.averageTimeQueuedMicros`
+- :serverstatus:`queues.ingressSessionEstablishment.totalAvailableTokens`
+
+Explain Output for Disk Spilling Stages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.2, the :ref:`Explain Results <explain-results>` for stages that spill to
+disk now include standardized metrics under consistent field names. This update
+provides a more unified way to track disk usage for memory-intensive operations.
+
+The new fields include:
+
+- :ref:`spills <explain-results-spills-table>`
+
+- :ref:`spilledBytes <explain-results-spilledBytes-table>`
+
+- :ref:`spilledRecords <explain-results-spilledRecords-table>`
+
+- :ref:`spilledDataStorageSize <explain-results-spilledDataStorageSize-table>`
+
+Repair Mode Field in Validation Output 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.2, the :dbcommand:`validate` command and the 
+:method:`db.collection.validate()` helper method return a new 
+:data:`~validate.repairMode` field that indicates what types of data 
+inconsistencies the ``validate`` command attempted to repair, if detected.
+
+Support for zstd Fast Compression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.2, The :setting:`storage.wiredTiger.engineConfig.zstdCompressionLevel` 
+setting supports negative values for fast zstd compression. Negative values 
+provide faster compression and decompression speeds at the cost of the 
+compression ratio. The new supported range is -7 to 22.
+
+Targeted Mirrored Reads
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/sharding/targeted-mirror-reads-overview.rst
+
+Rate Limit Ingress Connection Establishment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.2, you can enable rate limiting for ingress 
+connections to preserve CPU resources during overload. When enabled, 
+you can see when the rate of incoming connections exceeds the connection 
+establishment rate they specified and configure parameters to specify 
+how your MongoDB deployment handles excess connections. 
+
+You can configure rate limiting using the following new fields: 
+
+-  :parameter:`ingressConnectionEstablishmentRateLimiterEnabled`
+-  :parameter:`ingressConnectionEstablishmentRatePerSec`
+-  :parameter:`ingressConnectionEstablishmentBurstCapacitySecs`
+-  :parameter:`ingressConnectionEstablishmentMaxQueueDepth`
+
+Rate Limit Ingress Connection Establishment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.2, you can enable rate limiting for ingress 
+connections to preserve CPU resources during overload. When enabled, 
+you can see when the rate of incoming connections exceeds the connection 
+establishment rate they specified and configure parameters to specify 
+how your MongoDB deployment handles excess connections. 
+
+You can configure rate limiting using the following new fields: 
+
+-  :parameter:`ingressConnectionEstablishmentRateLimiterEnabled`
+-  :parameter:`ingressConnectionEstablishmentRatePerSec`
+-  :parameter:`ingressConnectionEstablishmentBurstCapacitySecs`
+-  :parameter:`ingressConnectionEstablishmentMaxQueueDepth`
+
+.. _8.2-upgrade:
+
+Upgrade Procedures
+------------------
+
+.. important:: Feature Compatibility Version
+
+   To upgrade to MongoDB 8.2 from a 8.0 deployment, the 8.0 deployment
+   must have ``featureCompatibilityVersion`` set to ``8.0``. To check
+   the version:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
+
+To upgrade to MongoDB 8.2, refer to the upgrade instructions specific to
+your MongoDB deployment:
+
+- :ref:`<8.2-upgrade-standalone>`
+
+- :ref:`<8.2-upgrade-replica-set>`
+
+- :ref:`<8.2-upgrade-sharded-cluster>`
+
+If you need guidance on upgrading to 8.2, MongoDB professional services
+offer support to help ensure a smooth transition without interruption
+to your MongoDB application. To learn more, see
+:products:`MongoDB Consulting </consulting?tck=docs_server>`.
+
+.. _8.2-download:
+
+Download
+--------
+
+To download MongoDB 8.2, go to the `MongoDB Download Center
+<https://www.mongodb.com/try/download/community-edition?tck=docs_server>`__.
+
+.. _8.2-downgrade-considerations:
+
+Downgrade Considerations
+------------------------
+
+Only Single-Version Downgrades are Supported 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+.. include:: /includes/8.2-upgrade-replacements.rst
+
+.. include:: includes/downgrade/single-version-support.rst
+
+Downgrade Policy
+~~~~~~~~~~~~~~~~
+
+- Binary downgrades aren't supported for MongoDB Community Edition. 
+
+- You cannot downgrade your deployment's {+fcv+} to or from a
+  rapid release version of MongoDB.
+
+- If you upgrade or downgrade your deployment's {+fcv+}, you cannot
+  downgrade your Enterprise deployment's binary version without
+  assistance from support.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+   
+   Compatibility Changes </release-notes/8.2-compatibility>
+   Upgrade 8.0 to 8.2 </release-notes/8.2-upgrade>
+   Downgrade 8.2 to 8.0 </release-notes/8.2-downgrade>
+   Changelog </release-notes/8.2-changelog>

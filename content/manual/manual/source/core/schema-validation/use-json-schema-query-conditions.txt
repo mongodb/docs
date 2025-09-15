@@ -32,13 +32,11 @@ Create a sample collection ``inventory`` with the following documents:
 .. code-block:: javascript
 
    db.inventory.insertMany( [
-      { item: "journal", qty: NumberInt(25), size: { h: 14, w: 21, uom: "cm" }, instock: true },
-      { item: "notebook", qty: NumberInt(50), size: { h: 8.5, w: 11, uom: "in" }, instock: true },
-      { item: "paper", qty: NumberInt(100), size: { h: 8.5, w: 11, uom: "in" }, instock: 1 },
-      { item: "planner", qty: NumberInt(75), size: { h: 22.85, w: 30, uom: "cm" }, instock: 1 },
-      { item: "postcard", qty: NumberInt(45), size: { h: 10, w: 15.25, uom: "cm" }, instock: true },
-      { item: "apple", qty: NumberInt(45), status: "A", instock: true },
-      { item: "pears", qty: NumberInt(50), status: "A", instock: true }
+      { item: "journal", qty: 25, size: { h: 14, w: 21, unit: "cm" }, instock: true },
+      { item: "notebook", qty: 50, size: { h: 8.5, w: 11, unit: "in" }, instock: true },
+      { item: "paper", qty: 100, size: { h: 8.5, w: 11, unit: "in" }, instock: 1 },
+      { item: "apple", qty: 45, status: "A", instock: true },
+      { item: "pears", qty: 50, status: "A", instock: true }
    ] )
 
 Define a Schema Object
@@ -58,9 +56,9 @@ Define a sample schema object and store it in a variable called
             qty: { bsonType: "int" }, 
             size: { 
                bsonType: "object",
-               required: [ "uom" ], 
+               required: [ "unit" ], 
                properties: { 
-                  uom: { bsonType: "string" }, 
+                  unit: { bsonType: "string" }, 
                   h: { bsonType: "double" }, 
                   w: { bsonType: "double" } 
                }
@@ -69,6 +67,20 @@ Define a sample schema object and store it in a variable called
          } 
       }
    }
+
+The schema enforces the following validation:
+
+- Required fields:
+
+  - ``item`` must be BSON type ``string``.
+  - ``qty`` must be BSON type ``integer``.
+  - ``instock`` must be BSON type ``boolean``.
+
+- ``size``, if present:
+
+  - Must be BSON type ``object``.
+  - Must include ``unit`` as a required ``string`` field.
+  - If the embedded ``h`` and ``w`` fields are present, they must be type ``double``.
 
 Find Documents that Match the Schema
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -121,40 +133,29 @@ Output:
    :copyable: false
 
    [
+     // Neither size.h nor size.w are type double
      {
        _id: ObjectId("62b5cd5a14b92d148400f79e"),
        item: 'journal',
        qty: 25,
-       size: { h: 14, w: 21, uom: 'cm' },
+       size: { h: 14, w: 21, unit: 'cm' },
        instock: true
      },
+     // size.w is not a double
      {
        _id: ObjectId("62b5cd5a14b92d148400f79f"),
        item: 'notebook',
        qty: 50,
-       size: { h: 8.5, w: 11, uom: 'in' },
+       size: { h: 8.5, w: 11, unit: 'in' },
        instock: true
      },
+     // size.w is not a double and instock is not a boolean
      {
        _id: ObjectId("62b5cd5a14b92d148400f7a0"),
        item: 'paper',
        qty: 100,
-       size: { h: 8.5, w: 11, uom: 'in' },
+       size: { h: 8.5, w: 11, unit: 'in' },
        instock: 1
-     },
-     {
-       _id: ObjectId("62b5cd5a14b92d148400f7a1"),
-       item: 'planner',
-       qty: 75,
-       size: { h: 22.85, w: 30, uom: 'cm' },
-       instock: 1
-     },
-     {
-       _id: ObjectId("62b5cd5a14b92d148400f7a2"),
-       item: 'postcard',
-       qty: 45,
-       size: { h: 10, w: 15.25, uom: 'cm' },
-       instock: true
      }
    ]
 
@@ -191,7 +192,7 @@ Output:
        _id: ObjectId("62b5cd5a14b92d148400f79e"),
        item: 'journal',
        qty: 25,
-       size: { h: 14, w: 21, uom: 'cm' },
+       size: { h: 14, w: 21, unit: 'cm' },
        instock: true,
        isValid: false
      },
@@ -199,7 +200,7 @@ Output:
        _id: ObjectId("62b5cd5a14b92d148400f79f"),
        item: 'notebook',
        qty: 50,
-       size: { h: 8.5, w: 11, uom: 'in' },
+       size: { h: 8.5, w: 11, unit: 'in' },
        instock: true,
        isValid: false
      },
@@ -207,24 +208,8 @@ Output:
        _id: ObjectId("62b5cd5a14b92d148400f7a0"),
        item: 'paper',
        qty: 100,
-       size: { h: 8.5, w: 11, uom: 'in' },
+       size: { h: 8.5, w: 11, unit: 'in' },
        instock: 1,
-       isValid: false
-     },
-     {
-       _id: ObjectId("62b5cd5a14b92d148400f7a1"),
-       item: 'planner',
-       qty: 75,
-       size: { h: 22.85, w: 30, uom: 'cm' },
-       instock: 1,
-       isValid: false
-     },
-     {
-       _id: ObjectId("62b5cd5a14b92d148400f7a2"),
-       item: 'postcard',
-       qty: 45,
-       size: { h: 10, w: 15.25, uom: 'cm' },
-       instock: true,
        isValid: false
      },
      {

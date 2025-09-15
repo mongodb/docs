@@ -6,10 +6,9 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 const (
@@ -131,10 +130,10 @@ func main() {
 	fmt.Printf("Encrypted Document: %s\n", result)
 	nameDecrypted, err := clientEnc.Decrypt(
 		context.TODO(),
-		result["name"].(primitive.Binary))
+		result["name"].(bson.Binary))
 	foodsDecrypted, err := clientEnc.Decrypt(
 		context.TODO(),
-		result["foods"].(primitive.Binary))
+		result["foods"].(bson.Binary))
 	result["foods"] = foodsDecrypted
 	result["name"] = nameDecrypted
 	fmt.Printf("Decrypted Document: %s\n", result)
