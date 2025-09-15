@@ -2821,6 +2821,16 @@ const tocData: TocItem[] = [
             url: "/docs/:version/reference/operator/aggregation/sample",
           },
           {
+            label: "$score",
+            contentSite: "docs",
+            url: "/docs/:version/reference/operator/aggregation/score",
+          },
+          {
+            label: "$scoreFusion",
+            contentSite: "docs",
+            url: "/docs/:version/reference/operator/aggregation/scoreFusion",
+          },
+          {
             label: "$search",
             contentSite: "docs",
             url: "/docs/:version/reference/operator/aggregation/search",
@@ -3546,6 +3556,11 @@ const tocData: TocItem[] = [
             label: "$minN-array-element",
             contentSite: "docs",
             url: "/docs/:version/reference/operator/aggregation/minN-array-element",
+          },
+          {
+            label: "$minMaxScaler",
+            contentSite: "docs",
+            url: "/docs/:version/reference/operator/aggregation/minMaxScaler",
           },
           {
             label: "$millisecond",

@@ -23,3 +23,5 @@ These operators can be used with the :pipeline:`$setWindowFields` stage:
 
 - Rank operators: :group:`$denseRank`, :group:`$documentNumber`, and
   :group:`$rank`.
+
+- Range operator: :group:`$minMaxScaler`

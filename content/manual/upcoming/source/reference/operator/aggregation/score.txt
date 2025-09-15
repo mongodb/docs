@@ -1,0 +1,171 @@
+==========================
+$score (aggregation)
+==========================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. meta::
+   :description: Learn how to use an aggregation stage to normalize the score.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. versionadded:: 8.2 
+
+Definition
+----------
+
+.. pipeline:: $score
+
+   ``$score`` computes and returns a new score as metadata. It also
+   optionally normalizes the input scores, by default to a range between
+   zero and one. 
+
+Syntax 
+------
+
+The stage has the following syntax:
+
+.. code-block:: javascript
+
+   { 
+     $score: { 
+       score: <expression>,
+       normalization: "none|sigmoid|minMaxScaler",
+       weight: <expression>
+     } 
+   }
+
+Fields 
+------
+
+``$score`` takes the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+ 
+   * - Field
+     - Type
+     - Description
+
+   * - ``score``
+     - Expression
+     - Computes a new value from the input scores and stores the value
+       in the :expression:`$meta` keyword ``searchScore``. All other scores
+       are stored in the ``$meta`` keyword ``searchScoreDetails``.
+       Returns an error for non-numeric inputs.
+
+   * - ``normalization``
+     - String
+     - Optional. Normalizes the score to the range of ``0`` to ``1``.
+       Value can be:
+
+       - ``none`` - Doesn't normalize. 
+       - ``sigmoid`` - Applies the following :expression:`$sigmoid`
+         expression: 
+
+         .. code-block:: shell 
+            :copyable: false 
+
+            1 / (1 + e^-x)
+
+         Here, ``x`` is the score to normalize.
+
+         If omitted, defaults to ``none``.
+
+       - ``minMaxScaler`` - to apply the :group:`$minMaxScaler` window
+         function:
+
+         .. code-block:: shell 
+            :copyable: false 
+
+             (s - min_s) / (max_s - min_s)
+
+         Where: 
+
+         - ``s`` is the score.
+         - ``min_s`` is the minimum score. 
+         - ``max_s`` is the maximum score.
+
+   * - ``weight``
+     - Double 
+     - Optional. Number to multiply the ``score`` expression by after
+       normalization.  
+
+Behavior 
+--------
+
+The output documents from a :pipeline:`$score` are the same as the input
+documents, but includes additional computed score as metadata. 
+
+If you specify multiple :pipeline:`$score` stages in the pipeline, the
+last :pipeline:`$score` stage in the pipeline overrides the score
+metadata from previous :pipeline:`$score` stages.
+
+Example 
+-------
+
+Consider the following documents in a collection named ``articles``: 
+
+.. code-block:: json 
+
+   { "_id" : ObjectId("512bc95fe835e68f199c8686"), "author" : "dave", "score" : 80, "views" : 100 },
+   { "_id" : ObjectId("512bc962e835e68f199c8687"), "author" : "dave", "score" : 85, "views" : 521 }
+   { "_id" : ObjectId("55f5a192d4bede9ac365b257"), "author" : "ahn", "score" : 60, "views" : 1000 }
+   { "_id" : ObjectId("55f5a192d4bede9ac365b258"), "author" : "li", "score" : 55, "views" : 5000 }
+   { "_id" : ObjectId("55f5a1d3d4bede9ac365b259"), "author" : "annT", "score" : 60, "views" : 50 }
+   { "_id" : ObjectId("55f5a1d3d4bede9ac365b25a"), "author" : "li", "score" : 94, "views" : 999 }
+   { "_id" : ObjectId("55f5a1d3d4bede9ac365b25b"), "author" : "ty", "score" : 95, "views" : 1000 }
+
+The following query uses the: 
+
+- :pipeline:`$match` stage to filter the documents where the
+  ``views`` field value is greater than or equal to ``1000``. 
+- :pipeline:`$score` stage to compute a new score that is normalized
+  using :expression:`$sigmoid` expression and then multiplied by the
+  specified weight, ``1``.
+
+.. io-code-block::  
+   :copyable: true 
+
+   .. input::
+
+      db.articles.aggregate([  
+         {  
+            $match: {  
+               views: { $gte: 1000 }  
+            }  
+         },  
+         {  
+            $score: {  
+               score: "$score",        
+               normalization: "sigmoid", 
+               weight: 1   
+            }  
+         },
+         {
+            "$project": {
+               "_id": 0,
+               "author": 1,
+               "views": 1,
+               "score": 1,
+               "calculatedScore": { $meta: "score" }
+            }
+         }  
+      ])
+
+   .. output:: 
+
+      [
+         { author: 'ahn', score: 60, views: 1000, calculatedScore: 1 },
+         { author: 'li', score: 55, views: 5000, calculatedScore: 1 },
+         { author: 'ty', score: 95, views: 1000, calculatedScore: 1 }
+      ]
