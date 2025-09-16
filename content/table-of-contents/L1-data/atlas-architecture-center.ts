@@ -1,5 +1,6 @@
 import type { TocItem } from "../types";
 import solutionsLibrary from "../L2-data/solutions-library"
+import partnersLibrary from "../L2-data/partners-library"
 
 const tocData: TocItem[] = [
   {
@@ -259,6 +260,12 @@ const tocData: TocItem[] = [
     contentSite: "atlas-architecture",
     group: true,
     items: solutionsLibrary
+  },
+  {
+    label: "Partners Library",
+    contentSite: "atlas-architecture",
+    group: true,
+    items: partnersLibrary
   },
 ];
 
