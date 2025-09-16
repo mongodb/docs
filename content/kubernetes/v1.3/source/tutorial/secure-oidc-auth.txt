@@ -1,0 +1,213 @@
+:noprevnext:
+
+.. _secure-oidc-auth:
+
+=======================================
+Secure Client Authentication with OIDC
+=======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/facts/oidc-intro.rst
+
+Considerations
+--------------
+
+.. include:: /includes/facts/oidc-considerations.rst
+
+General Prerequisites
+---------------------
+
+Before you configure OIDC authentication for your MongoDB deployments,
+complete the following tasks:
+
+- Ensure that you deploy the MongoDB Enterprise database resource.
+  MongoDB Community databases don't support OIDC authentication.
+- :doc:`Deploy the replica set </tutorial/deploy-replica-set>` or
+  :doc:`deploy the sharded cluster </tutorial/deploy-sharded-cluster>`
+  whose client authentication you want to secure with |oidc|.
+
+OIDC Configuration Details
+--------------------------
+
+.. list-table::
+   :header-rows: 0
+   :stub-columns: 1
+   :widths: 35 15 25 25
+
+  * - Field
+    - Type and Necessity
+    - Description
+    - Example
+   
+  * - ``spec.security.authentication.modes``
+    - array of strings; required
+    - An array of authentication mechanisms to enable. 
+      Must include "OIDC" to enable OIDC authentication.
+    - ``["SCRAM", "OIDC"]``
+
+  * - ``spec.security.authentication.oidcProviderConfigs.configurationName``
+    - string; required
+    - A unique logical name for this provider configuration. 
+      This name is used when mapping roles.
+    - ``"example-provider"``
+
+  * - ``spec.security.authentication.oidcProviderConfigs.issuerURI``
+    - string; required
+    - The URI of the OIDC provider's discovery endpoint.
+    - ``"https://dev-12345.provider.com"``
+
+  * - ``spec.security.authentication.oidcProviderConfigs.clientId``
+    - string; required
+    - The client ID for the application registered with your OIDC provider.
+    - ``"0oa1b2c3d4e5f6g7h8"``
+
+  * - ``spec.security.authentication.oidcProviderConfigs.audience``
+    - string; required
+    - The audience claim for the JWT. This must match the audience of 
+      the token issued by the IdP.
+    - ``"api://default"``
+
+  * - ``spec.security.authentication.oidcProviderConfigs.userClaim``
+    - string; optional
+    - The JWT claim that MongoDB uses as the username. Defaults to ``sub``.
+    - ``"sub"``
+
+  * - ``spec.security.authentication.oidcProviderConfigs.groupsClaim``
+    - string; optional
+    - The JWT claim that contains the user's group memberships. 
+      Required if ``authorizationType`` is ``GroupMembership``.
+    - ``"groups"``
+
+  * - ``spec.security.authentication.oidcProviderConfigs.authorizationMethod``
+    - string; required
+    - The federation method. Can be ``WorkloadIdentityFederation`` or 
+      ``WorkforceIdentityFederation``.
+    - ``"WorkforceIdentityFederation"``
+
+  * - ``spec.security.authentication.oidcProviderConfigs.authorizationType``
+    - string; required
+    - The authorization model. Can be ``UserID`` or ``GroupMembership``.
+    - ``"GroupMembership"``
+
+  * - ``spec.security.authentication.oidcProviderConfigs.requestedScopes``
+    - array of strings; optional
+    - A list of additional scopes to request from the OIDC provider.
+    - ``["openid", "profile", "groups"]``
+
+Understanding OIDC Authorization Models
+---------------------------------------
+
+OIDC configuration in MongoDB combines two key concepts: the **Federation Method** 
+and the **Authorization Type**.
+
+Federation Method (``authorizationMethod``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This setting tells MongoDB about the type of identity being authenticated.
+
+- ``WorkforceIdentityFederation``: Use this for **human users**. 
+  This method is intended for people logging into systems, such as 
+  developers, analysts, or administrators who authenticate via an IdP.
+
+- ``WorkloadIdentityFederation``: Use this for **applications or services** 
+  (i.e., machine-to-machine communication). This method is for non-human 
+  identities, such as a microservice, a batch job, or an automation script 
+  that needs to connect to the database.
+
+Authorization Type (``authorizationType``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This setting defines how MongoDB should grant permissions after a user or 
+service is authenticated.
+
+- ``GroupMembership``: This is the most common and scalable approach. With 
+  this type, MongoDB uses a specific claim in the JWT (defined by ``groupsClaim``) 
+  that contains a list of groups the user belongs to. You then map 
+  these group names to MongoDB roles. Requires ``groupsClaim`` to be set.
+
+- ``UserID``: With this type, MongoDB uses a claim that uniquely identifies the 
+  user (defined by ``userClaim``, which defaults to ``sub``). You then map 
+  this specific, individual user ID to a MongoDBUser (you need to create the MongoDBUser 
+  separately). This is more granular and is useful for granting permissions to 
+  a single user or a specific service identity without using groups.
+
+Managing OIDC Roles and Permissions
+-----------------------------------
+
+After configuring an OIDC provider, you must grant permissions. The method 
+you use to do this depends on the ``authorizationType`` you selected.
+
+Method 1: Role Mapping for GroupMembership
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you use ``authorizationType: GroupMembership``, you grant permissions by 
+adding role mappings to the ``spec.security.roles`` array in your MongoDB resource.
+The role field must be formatted as ``<configurationName>/<groupNameFromToken>``.
+
+.. code-block:: yaml
+
+   roles:
+    - role: "idp-human-users/app-devs" # Maps the "app-devs" group from the IdP
+      db: "admin"
+      roles:
+        - role: "readWrite"
+          db: "app-data"
+
+Method 2: User Creation for UserID
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you use ``authorizationType: UserID``, you must create a separate 
+``MongoDBUser`` resource to grant permissions.
+
+To learn more, see `Authentication and Authorization with OIDC/OAuth 2.0 <https://www.mongodb.com/docs/manual/core/oidc/security-oidc/>`__.
+
+.. _configure-oidc-auth:
+
+Configure OIDC Client Authentication for a Replica Set
+-------------------------------------------------------
+
+Follow these steps to configure OIDC for a replica set.
+
+.. include:: /includes/steps-deploy-k8s-replica-set-oidc.rst
+
+Configure OIDC Client Authentication for a Sharded Cluster
+-----------------------------------------------------------
+Use the following example to configure OIDC for a sharded cluster. The principles and 
+configuration options are identical to a replica set.
+
+.. literalinclude:: /includes/code-examples/yaml-files/sharded-cluster-oidc.yaml
+   :language: yaml
+
+OIDC Troubleshooting
+--------------------
+
+- **Manually Validate JWT Token:** Use a tool to decode the OIDC token.
+   - **Core Claims:** Ensure the ``iss`` (issuer) and ``aud`` (audience) claims 
+     in the token exactly match your OIDC provider configuration. Check that 
+     the token is not expired (``exp`` claim).
+   - **Expected User/Group Claims:** Verify that the expected claims for user 
+     identity (``userClaim``) and groups (``groupsClaim``) are present in the token 
+     and contain the correct values.
+- **Verify Username Format for UserID Auth:** The ``MongoDBUser`` username must 
+  be in the exact format ``<configurationName>/<userClaimValue>``. The ``<configurationName>`` 
+  must match the name of the OIDC provider in your ``MongoDB`` resource. 
+- **Confirm $external Database is Used:** For ``UserID`` authorization, the 
+  ``MongoDBUser`` resource must specify ``db: "$external"``. Users authenticated 
+  by an external source are always resolved through this virtual database.
+- **Check Group Role Mapping for GroupMembership Auth:** Ensure the role defined 
+  in the MongoDB resource's ``spec.security.roles`` section is formatted 
+  correctly as ``<configurationName>/<groupName>``, where ``<groupName>`` exactly 
+  matches a group in the JWT's ``groupsClaim``.
+- **Validate Assigned Role Permissions:** Check that the MongoDB role(s) 
+  assigned to the OIDC user or group actually grant the necessary permissions 
+  (e.g., ``readWrite`` on the correct database).
+- **Verify MongoDBUser Resource Reference:** For ``UserID`` authorization, make 
+  sure the ``spec.mongodbResourceRef.name`` in the ``MongoDBUser`` resource 
+  correctly points to the name of your ``MongoDB`` deployment.

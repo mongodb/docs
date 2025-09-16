@@ -1,0 +1,279 @@
+:noprevnext:
+
+.. _k8s-use-fts-vs:
+
+=====================================
+Use |text-search| and |vector-search| 
+=====================================
+
+.. meta::
+   :description: Load data, create MongoDB Search and Vector Search indexes, and run queries using the indexes.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+If you installed ``MongoDBSearch`` resource successfully, you can create
+|text-search| and |vector-search| indexes as the ``mdb-user`` and run
+|text-search| and |vector-search| queries using the indexes. This page
+describes how to load sample data, create |text-search| and
+|vector-search| indexes for the data, and run |text-search| and
+|vector-search| queries against the data. 
+
+Prerequisites 
+-------------
+
+To use |text-search| and |vector-search|, you must have the following:
+
+- Successful deployment of ``MongoDB`` and ``MongoDBSearch``.
+
+  To learn more, see: 
+
+  - :ref:`k8s-fts-vs-install-enterprise`
+  - :ref:`k8s-fts-vs-install-external-enterprise`
+
+- User with permissions to create |text-search| and |vector-search| and
+  run |text-search| and |vector-search| queries.
+
+  To learn more, see :ref:`k8s-search-create-role-user`.
+
+- |k8s| command-line tool, ``kubectl``, configured to communicate with
+  your cluster.
+- Bash v5.1 or higher for running the commands in this tutorial. 
+
+Procedure 
+---------
+
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Set the environment variables. 
+
+      To set the environment variables for use in the subsequent steps
+      in this procedure, copy the following, set the values for the
+      environment variables, and then load the environment variables: 
+
+      .. literalinclude:: /includes/code-examples/search/03-search-query-usage/env_variables.sh 
+         :language: yaml 
+         :copyable: true 
+         :linenos: 
+
+   .. step:: Deploy a MongoDB tools pod.
+
+      Deploy a pod named ``mongodb-tools-pod`` to run MongoDB client
+      tools like ``mongosh`` and ``mongorestore`` from within the |k8s|
+      cluster. Running a pod inside the cluster simplifies connectivity
+      to mongodb without neeeding to expose the database externally. 
+
+      The following command deploys a pod named ``mongodb-tools-pod``
+      that runs a MongoDB Community Server image. The pod is kept
+      running with a ``sleep infinity`` command to allow you to use
+      ``kubectl exec`` to run MongoDB client tools. 
+
+      .. literalinclude:: /includes/code-examples/search/03-search-query-usage/code_snippets/03_0410_run_mongodb_tools_pod.sh
+         :language: shell 
+         :copyable: true 
+         :linenos: 
+
+   .. step:: Import the sample data. 
+
+      Import the ``sample_mflix`` database, which contains the following
+      collections: 
+
+      .. list-table::
+         :widths: 30 70
+         :header-rows: 1
+
+         * - Collection Name
+           - Description
+
+         * - ``comments``
+           - Contains comments associated with specific movies.
+
+         * - ``embedded_movies``
+           - Contains details on movies in the ``Western``, 
+             ``Action``, and ``Fantasy`` genres from the ``movies``
+             collection with the following additional fields: 
+
+             - ``plot_embedding_voyage_3_large`` - Contains 2048d embeddings
+               created from the ``plot`` field using |voyage|'s
+               ``voyage-3-large`` embedding model and converted to
+               ``binData`` for efficient storage and retrieval.  
+
+             - ``plot_embedding`` - Contains 1536d embeddings created from the
+               ``plot`` field using OpenAI's ``text-embedding-ada-002``
+               embedding model and converted to ``binData`` for efficient
+               storage and retrieval. 
+
+         * - ``movies``
+           - Contains movie information, including release year, director,
+             and reviews.
+
+         * - ``sessions``
+           - Metadata field. Contains users'
+             `JSON Web Tokens <https://en.wikipedia.org/wiki/JSON_Web_Token>`__.
+
+         * - ``theaters``
+           - Contains locations of movie theaters.
+
+         * - ``users``
+           - Contains user information.
+
+      The following command downloads the sample dataset and uses
+      ``mongorestore`` to load the data into the ``sample_mflix``
+      database in your MongoDB deployment, connecting as the
+      ``mdb-user``.  
+
+      .. literalinclude:: /includes/code-examples/search/03-search-query-usage/code_snippets/03_0420_import_movies_mflix_database.sh
+         :language: shell 
+         :copyable: true 
+         :linenos: 
+
+   .. step:: Create an index. 
+
+      You can create a |text-search| or a |vector-search| index. You
+      must create a |text-search| index to run :pipeline:`$search` and
+      :pipeline:`$searchMeta` queries and |vector-search| index to run
+      :pipeline:`$vectorSearch` queries. 
+      
+      - |text-search| provides flexible index definitions that support
+        dynamic and static field mappings, various analyzers (standard,
+        language-specific, custom), and features like synonyms and
+        faceted search. To learn more, see :ref:`fts-define-index`.
+      - |vector-search| provides simple index definition that supports
+        querying vector embeddings in your data based on semantic
+        similarity by using :abbr:`ANN (Approximate Nearest Neighbor)`
+        and :abbr:`ENN (Exact Nearest Neighbor)` search algorithm. To
+        learn more, see :ref:`Define Vector Search Index
+        <avs-types-vector-search>`. 
+
+      a. Copy, paste, and run the following command in your terminal to
+         create a |text-search| or a |vector-search| index. 
+        
+         The command uses ``kubectl exec`` to run ``mongosh`` in the
+         ``mongodb-tools-pod``. It connects to the ``sample_mflix``
+         ``db.<collection>.createSearchIndex()`` method to create an index. 
+    
+         .. tabs:: 
+
+            .. tab:: MongoDB Search Index 
+               :tabid: fts 
+
+               The following command creates a |text-search| index named
+               ``default`` with dynamic mappings on the ``movies``
+               collection. Dynamic mapping automatically indexes all
+               dynamically indexable field types.
+
+               .. literalinclude:: /includes/code-examples/search/03-search-query-usage/code_snippets/03_0430_create_search_index.sh
+                  :language: shell 
+                  :copyable: true 
+                  :linenos:
+
+            .. tab:: MongoDB Vector Search Index 
+               :tabid: vs
+     
+               The following command creates a |vector-search| index named
+               ``vector_index`` on the ``plot_embedding_voyage_3_large``
+               field with ``2048`` number of dimensions in the
+               ``embedded_movies`` collection for running :abbr:`ANN
+               (Approximate Nearest Neighbor)` queries. 
+
+               .. literalinclude:: /includes/code-examples/search/03-search-query-usage/code_snippets/03_0435_create_vector_search_index.sh
+                  :language: shell 
+                  :copyable: true 
+                  :linenos:
+
+      #. Wait for index creation to complete. 
+
+         Index creation is an asynchronous process. Run the following
+         script to wait for 60 seconds for the index creation to
+         complete. 
+         
+         .. literalinclude:: /includes/code-examples/search/03-search-query-usage/code_snippets/03_0440_wait_for_search_index_ready.sh
+            :language: shell 
+            :copyable: true 
+            :linenos:
+
+         Alternatively, run the following command to retrieve the list of
+         indexes for the collection.
+
+         .. tabs:: 
+
+            .. tab:: MongoDB Search Index 
+               :tabid: fts 
+
+               .. literalinclude:: /includes/code-examples/search/03-search-query-usage/code_snippets/03_0444_list_search_indexes.sh
+                  :language: shell 
+                  :copyable: true 
+                  :linenos:
+
+            .. tab:: MongoDB Vector Search Index 
+               :tabid: vs
+
+               .. literalinclude:: /includes/code-examples/search/03-search-query-usage/code_snippets/03_0445_list_vector_search_indexes.sh
+                  :language: shell 
+                  :copyable: true 
+                  :linenos:
+
+   .. step:: Query the data using the index. 
+
+      After the index creation is successful, you can run |text-search|
+      or |vector-search| queries using the index. You can also combine
+      |text-search| with |vector-search|. To learn more about running
+      |text-search| queries, see :ref:`fts-define-query`. To learn more
+      about |vector-search| queries, see :ref:`return-vector-search-results`. 
+
+      The following script defines the aggregation pipeline query
+      criteria and uses the ``kubectl exec`` command to load ``mongosh``
+      to execute the query. 
+
+      .. tabs:: 
+
+         .. tab:: MongoDB Search Query
+            :tabid: fts 
+
+            The following query searches the ``plot`` field for movie
+            plots that contain the term ``baseball``. It excludes movies
+            in the ``comedy`` and ``romance`` genres. 
+
+            .. io-code-block:: 
+               :copyable: true 
+              
+               .. input:: /includes/code-examples/search/03-search-query-usage/code_snippets/03_0450_execute_search_query.sh
+                  :language: shell 
+                  :linenos:
+
+               .. output:: /includes/code-examples/outputs/test_kind_search_community_snippets/03_0450_execute_search_query.out
+                  :language: shell
+                  :linenos:
+
+         .. tab:: MongoDB Vector Search Query
+            :tabid: vs 
+
+            The following query searches the
+            ``plot_embedding_voyage_3_large`` field using 2048 dimension 
+            vector embeddings for the string ``time travel``, generated
+            using Voyage AI's ``voyage-3-large`` model. 
+
+            .. io-code-block:: 
+               :copyable: true 
+              
+               .. input:: /includes/code-examples/search/03-search-query-usage/code_snippets/03_0455_execute_vector_search_query.sh
+                  :language: shell 
+                  :linenos:
+
+               .. output:: /includes/code-examples/outputs/test_kind_search_community_snippets/03_0455_execute_vector_search_query.out
+                  :language: shell
+                  :linenos:
+
+Resources 
+---------
+
+To learn more about creating indexes and running search queries, see:
+
+- :ref:`atlas-search`
+- :ref:`avs-overview`

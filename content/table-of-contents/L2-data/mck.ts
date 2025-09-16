@@ -472,6 +472,30 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: "Deploy Search & Vector Search",
+        contentSite: "mck",
+        url: "/docs/kubernetes/:version/fts-vs-deployment",
+        collapsible: true,
+        versions: { excludes: ["v1.1", "v1.2", "v1.3"] },
+        items: [
+          {
+            label: "Install and Use with MongoDB Enterprise Edition",
+            contentSite: "mck",
+            url: "/docs/kubernetes/:version/tutorial/install-fts-vs-with-enterprise",
+          },
+          {
+            label: "Install and Use with External MongoDB Enterprise Edition",
+            contentSite: "mck",
+            url: "/docs/kubernetes/:version/tutorial/install-fts-vs-with-external-enterprise",
+          },
+          {
+            label: "Use Search & Vector Search",
+            contentSite: "mck",
+            url: "/docs/kubernetes/:version/tutorial/fts-vs-quickstart"
+          },
+        ],
+      },
+      {
         label: "Deploy on Multiple Kubernetes Clusters",
         contentSite: "mck",
         url: "/docs/kubernetes/:version/multi-cluster",
@@ -787,6 +811,11 @@ const tocData: TocItem[] = [
             label: "CRD Log Rotation Settings",
             contentSite: "mck",
             url: "/docs/kubernetes/:version/reference/k8s-operator-crd-logging-specification",
+          },
+          {
+            label: "Search & Vector Search Settings",
+            contentSite: "mck",
+            url: "/docs/kubernetes/:version/reference/fts-vs-settings",
           },
           {
             label: "Third-Party Integrations",
