@@ -1,6 +1,6 @@
 import { TocItem } from "../types";
 
-const versionsBeforeV8_2 = ["v7.0", "manual", "rapid"];
+const versionsBeforeV8_2 = ["v7.0", "v8.0", "v8.1"];
 
 const tocData: TocItem[] = [
 
