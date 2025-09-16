@@ -278,6 +278,86 @@ content: |
        - Limits the output to ``10`` results only.
 
 ---
+ref: score-fusion-query-intro 
+content: | 
+  The sample query retrieves the scored search results from the
+  semantic and full-text searches and applies the ``sigmoid`` expression
+  to normalize the score before combining the results. It then combines
+  the score from the pipelines into a single aggregated score for each
+  document. 
+
+---
+ref: score-fusion-query-variables
+content: | 
+  The sample query applies weights to the normalized input pipeline
+  scores when combining the results. It applies the weights using a
+  custom aggregation expression. In this example, the query uses the ``$multiply`` expression to multiply the score from the ``searchOne`` pipeline by ``10``. This ensures that results from this pipeline contribute more to the final score than results from the ``searchTwo`` pipeline. It then uses the ``$sum``
+  aggregation operator to add the scores from the two pipeline stages.
+
+  .. code-block:: shell 
+     :copyable: false
+
+     Final Score = ($$searchOne * 10) + $$searchTwo
+
+  .. note::
+  
+     If you combine the query results using an expression
+     (``combination.method``: ``expression``), you can't use weight in your
+     query. We recommend using ``$multiply`` as demonstrated in the
+     preceding sample query.
+
+---
+ref: score-fusion-query-stages
+content: | 
+  The sample query uses the ``$scoreFusion`` stage to execute the
+  semantic and full text queries independently and then de-duplicate and
+  combine the input query results into a final scored results set. It
+  returns a set of documents based on the combined score from their
+  input pipelines and the combination weights. Specifically, this stage 
+  takes the following input pipelines:
+
+  .. list-table:: 
+     :widths: 30 70 
+
+     * - ``vectorPipeline``  
+       - This pipeline contains the :pipeline:`$vectorSearch` query. It
+         searches the ``plot_embedding_voyage_3_large`` field for the
+         string *star wars* specified as vector embeddings in the
+         ``queryVector`` field of the query. The query uses the
+         ``voyage-3-large`` embedding model from |voyage|, which is the 
+         same model used for the embeddings in the
+         ``plot_embedding_voyage_3_large`` field. The query also
+         specifies a search for up to ``100`` nearest neighbors and
+         limit the results to ``20`` documents only. This stage returns
+         the scored documents from the semantic search.
+
+     * - ``fullTextPipeline``  
+       - This pipeline contains the following stages: 
+        
+         - :pipeline:`$search` to search for movies that contain the term
+           ``star wars`` in the ``title`` field. This stage returns the
+           scored documents from the full-text search.
+         - :pipeline:`$limit` to limit the output of :pipeline:`$search`
+           stage to ``20`` results only. 
+
+  The sample query uses the following stages to return the results of the
+  semantic and text search as a single scored list of documents:
+
+  .. list-table:: 
+     :widths: 30 70 
+
+     * - :pipeline:`$project` 
+       - Includes only the following fields in the results:  
+
+         - ``_id`` 
+         - ``title`` 
+         - ``plot``
+         - ``scoreDetails``
+      
+     * - :pipeline:`$limit` 
+       - Limits the output to ``10`` results only.
+
+---
 ref: hybrid-search-learn
 content: | 
   Watch a demonstration of an application that showcases hybrid search

@@ -88,7 +88,25 @@ Specifically, {+avs+} supports the following use cases:
   To learn more, see the :ref:`avs-reciprocal-rank-fusion` tutorial,
   which demonstrates how to perform a semantic search and full-text
   search against the ``sample_mflix.embedded_movies`` namespace and
-  retrieve combined results by using reciprocal rank fusion.
+  retrieve combined ranked results by using reciprocal rank fusion. 
+
+  Alternatively, for a more granular hybrid search where the score
+  matters in addition to the relative ordering of results, you can use
+  the ``$scoreFusion`` pipeline stage. To learn more, see the
+  :ref:`avs-reciprocal-rank-fusion` tutorial, which demonstrates how to
+  perform a semantic search and full-text search against the
+  ``sample_mflix.embedded_movies`` namespace and retrieve input pipeline
+  results into a final scored results set. 
+
+  While ``$rankFusion`` ranks documents based on their positions
+  (relative ranks) in input pipelines using the Reciprocal Rank Fusion
+  algorithm, ``$scoreFusion`` ranks documents based on scores assigned
+  by the input pipelines, using mathematical expressions for combining the
+  results. 
+
+  In ``$rankFusion``, rankings are influenced by pipeline weights. In
+  ``$scoreFusion``, weights control the contribution of each pipeline's
+  scores to the final result. 
 
 - Multiple vector search queries in a single query: The MongoDB
   ``$rankFusion`` pipeline supports multiple sub-pipelines that contain
@@ -110,8 +128,8 @@ Specifically, {+avs+} supports the following use cases:
 Considerations 
 --------------
 
-When using the ``$rankFusion`` pipeline stage for hybrid search,
-consider the following.
+When using the ``$rankFusion`` or ``$scoreFusion``
+pipeline stage for hybrid search, consider the following.
 
 Disjoint Result Sets 
 ~~~~~~~~~~~~~~~~~~~~
@@ -136,10 +154,11 @@ Multiple Pipelines
 ~~~~~~~~~~~~~~~~~~
 
 You can combine an arbitrary number of sub-pipelines together in the
-``$rankFusion`` stage, but they must all execute against the
-same collection. You can't use the ``$rankFusion`` stage to
-search across collections. Use the :pipeline:`$unionWith` stage with
-:pipeline:`$vectorSearch` for cross-collection search. 
+``$rankFusion`` or ``$scoreFusion`` stage, but they must all execute
+against the same collection. You can't use the ``$rankFusion`` or
+``$scoreFusion`` stage to search across collections. Use the
+:pipeline:`$unionWith` stage with :pipeline:`$vectorSearch` for
+cross-collection search.
 
 Non-Search Pipelines
 ~~~~~~~~~~~~~~~~~~~~
@@ -153,9 +172,10 @@ Geospatial Relevance
 
 You can use the :pipeline:`$geoNear` and the :ref:`near <near-ref>` operator
 inside :pipeline:`$search` for a geographic location search within the
-``$rankFusion`` stage. However, the :pipeline:`$geoNear` and the
-:ref:`near <near-ref>` operator use different coordinate reference frames.
-Therefore, the result ordinals and scores might not be identical. 
+``$rankFusion`` or ``$scoreFusion`` stage. However, the
+:pipeline:`$geoNear` and the :ref:`near <near-ref>` operator use
+different coordinate reference frames. Therefore, the result ordinals
+and scores might not be identical.  
 
 Limit the Results 
 ~~~~~~~~~~~~~~~~~
@@ -167,19 +187,13 @@ Limitations
 -----------
 
 The following limitations apply to hybrid search using
-``$rankFusion``: 
+``$rankFusion`` and ``$scoreFusion``: 
 
 - ``$rankFusion`` is only supported on MongoDB 8.0.14 (including latest
   Rapid Release). 
 
-  .. note::
-  
-     When you upgrade to Rapid Releases from 8.0, you might have to pause executing 
-     ``rankFusion`` queries. MongoDB 8.0.14 is being released and it
-     might take up to two weeks. 
-
-- ``$rankFusion`` sub-pipeline can contain only the following 
-  stages in the sub-pipelines:  
+- ``$rankFusion`` and ``$scoreFusion`` sub-pipelines can contain only the
+  following stages:  
 
   - :pipeline:`$search`
   - :pipeline:`$vectorSearch`
@@ -187,18 +201,21 @@ The following limitations apply to hybrid search using
   - :pipeline:`$sort`
   - :pipeline:`$geoNear`
 
-- ``$rankFusion`` preserves a traceable link back to the
-  original input document for each sub-pipeline. Therefore, it
+- ``$rankFusion`` and ``$scoreFusion`` preserve a traceable link back to
+  the original input document for each sub-pipeline. Therefore, it
   doesn't support the following: 
   
   - :pipeline:`$project` stage 
   - :ref:`storedSource <fts-stored-source-definition>` fields
 
-- ``$rankFusion`` sub-pipelines run serially, not in parallel.
-- ``$rankFusion`` doesn't support pagination.
+- ``$rankFusion`` and ``$scoreFusion`` sub-pipelines run serially, not
+  in parallel. 
+
+- ``$rankFusion`` and ``$scoreFusion`` don't support pagination.
+
 - ``rankFusion`` can be run on :manual:`Views </core/views/>` only on
   clusters running MongoDB 8.0 or higher. You can't run ``rankFusion``
-  within a view definition or a on a time series collection.
+  within a view definition or on a time series collection.
 
 .. _avs-hybrid-search-prereqs:
 
