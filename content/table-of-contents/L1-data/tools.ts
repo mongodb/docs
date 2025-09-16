@@ -4,6 +4,7 @@ import MongoCliData from "../docset-data/mongocli";
 import DatabaseToolsData from "../docset-data/database-tools";
 import MongoDBShellData from "../docset-data/mongodb-shell";
 import BIConnectorData from "../docset-data/bi-connector";
+import SQLInterfaceData from "../docset-data/sql-interface";
 import KafkaConnectorData from "../docset-data/kafka-connector";
 import SparkConnectorData from "../docset-data/spark-connector";
 import AnalyzerData from "../docset-data/mongodb-analyzer";
@@ -58,6 +59,13 @@ const tocData: TocItem[] = [
     contentSite: "drivers",
     group: true,
     items: [
+      {
+        label: "SQL Interface",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/query/connect-with-sql-overview", //this file doesn't exist yet outside this PR: https://github.com/10gen/docs-mongodb-internal/pull/14050/files
+        showSubNav: true,
+        items: SQLInterfaceData,
+      },
       {
         label: "BI Connector",
         contentSite: "bi-connector",

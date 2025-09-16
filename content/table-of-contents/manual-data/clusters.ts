@@ -46,47 +46,9 @@ const tocData: TocItem[] = [
         url: "/docs/atlas/mongo-shell-connection",
       },
       {
-        label: "BI Connector",
+        label: "SQL Interface",
         contentSite: "cloud-docs",
-        url: "/docs/atlas/bi-connection",
-        collapsible: true,
-        items: [
-          {
-            label: "Transition to Atlas SQL",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/tutorial/transition-bic-to-atlas-sql",
-          },
-          {
-            label: "System DSN",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/tutorial/create-system-dsn",
-          },
-          {
-            label: "Excel",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/tutorial/connect-bic-excel",
-          },
-          {
-            label: "Tableau Desktop",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/tutorial/connect-bic-tableau",
-          },
-          {
-            label: "Qlik Sense",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/tutorial/connect-bic-qlik",
-          },
-          {
-            label: "MySQL Workbench",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/tutorial/connect-bic-workbench",
-          },
-          {
-            label: "Power BI Desktop",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/tutorial/connect-bic-powerbi",
-          },
-        ],
+        url: "https://www.mongodb.com/docs/atlas/data-federation/query/connect-with-sql-overview/",
       },
       {
         label: "Command Line Tools",
