@@ -78,7 +78,7 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 - Introduces the General Availability of 
-  :ref:`MongoDB 6.0 <release-notes-6.0>`.
+  MongoDB 6.0.
 
 .. _atlas_20220601:
 

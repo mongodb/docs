@@ -54,7 +54,7 @@
 04 October 2023 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports :term:`Push Live migration <Live Migration>` through
+- Supports Push Live migration through
   PrivateLink for MongoDB 6.0+ sharded |service| {+clusters+}. 
 - Decomissions :manual:`free monitoring </administration/free-monitoring/>`.
 
