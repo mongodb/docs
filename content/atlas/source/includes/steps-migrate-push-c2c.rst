@@ -279,7 +279,7 @@
 
             - Verify that your data is transferred to the destination {+cluster+}
               by comparing document counts and running hash comparisons.
-              To learn more, see |c2c-verification|.
+              To learn more, see |mongosync-verification|.
 
             - Click :guilabel:`Connect to your new cluster`. |service| redirects you
               to the :guilabel:`Connect to Atlas` page, where you can choose a connection method.

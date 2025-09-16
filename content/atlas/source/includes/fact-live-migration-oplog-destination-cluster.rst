@@ -18,4 +18,4 @@
   oplog window on the destination {+cluster+}, disable
   the :guilabel:`Verify data post-migration (recommended)` switch in the
   live migration UI and use one of the live migration verification
-  methods described in |c2c-verification|.
+  methods described in |mongosync-verification|.

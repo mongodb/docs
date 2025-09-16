@@ -27,7 +27,7 @@
 
   - :ref:`Scale a Cluster <scale-cluster-open-dialog>`
   - :ref:`cluster-config-options`
-  - |c2c-oplog-sizing| in the |c2c| documentation.
+  - |mongosync-oplog-sizing| in the |mongosync| documentation.
 
   If you are observing performance issues even after you've followed these
   recommendations, :ref:`contact support <request-support>`.
