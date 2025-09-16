@@ -25,16 +25,18 @@
      - Index is stale because of any of the following reasons: 
        
        - Replication stopped due to high disk utilization. 
-        
-         The pause replication threshold is 90% and the resume
-         replication threshold is 85% disk utilization. 
-         
+       
+         For dedicated ``mongot`` nodes, the pause replication threshold
+         is 90% and the resume replication threshold is 85% disk utilization. 
+         For colocated ``mongot`` nodes, the pause replication threshold
+         is 96% and the resume replication threshold is 94% disk utilization.
+
        - If replication stops for a long period, the |fts| ``mongot``
          process falls off the oplog. 
-         
+  
          This state commonly occurs when the current replication point
          is no longer available on the |mongod| oplog. |service|
-         rebuilds index if the ``mongot`` process falls of the oplog.
+         rebuilds index if the ``mongot`` process falls off the oplog.
 
        - Index reached the two billion document limit.
 
