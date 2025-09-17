@@ -1,9 +1,11 @@
 import '@testing-library/jest-dom';
 import { mockLeafyGreenIds, resetLeafyGreenIdCounter, restoreLeafyGreenIds } from './utils/mock-leafygreen-ids';
+import { mockWindows } from './utils/mock-windows';
 
 // Mock LeafyGreen ID generation for consistent snapshots
 beforeAll(() => {
   mockLeafyGreenIds();
+  mockWindows();
 });
 
 // Reset ID counter before each test for consistency

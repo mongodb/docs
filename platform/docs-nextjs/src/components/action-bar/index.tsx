@@ -2,6 +2,7 @@ import type { PageTemplateType } from '@/types/ast';
 import actionBarStyling from './action-bar.module.scss';
 import SearchInput from './search-input';
 import UIContainer from './actions-container';
+import { Suspense } from 'react';
 
 interface ActionBarProps {
   template: PageTemplateType;
@@ -45,7 +46,7 @@ const getContainerStyling = (template: string) => {
   return { containerClassname, fakeColumns, searchContainerClassname };
 };
 
-const ActionBar = ({ template, sidenav, className }: ActionBarProps) => {
+const ActionBar = ({ template, className }: ActionBarProps) => {
   const { fakeColumns, searchContainerClassname, containerClassname } = getContainerStyling(template);
 
   // const { darkMode } = useDarkMode();
@@ -54,14 +55,16 @@ const ActionBar = ({ template, sidenav, className }: ActionBarProps) => {
     <div className={[actionBarStyling['action-bar'], containerClassname, className].join(' ')}>
       {fakeColumns && <div></div>}
       <div className={[actionBarStyling['search-container'], searchContainerClassname].join(' ')}>
-        {sidenav && (
-          // <Overline className={cx(overlineStyling)} onClick={() => setHideMobile((state) => !state)}>
-          //   <Icon glyph={hideMobile ? 'ChevronDown' : 'ChevronUp'} />
-          //   Docs Menu
-          // </Overline>
-          <div>TODO: Docs Menu with sidenav</div>
-        )}
-        <SearchInput />
+        {/* TODO: Docs Menu with sidenav */}
+        {/* {sidenav && (
+        <Overline className={cx(overlineStyling)} onClick={() => setHideMobile((state) => !state)}>
+          <Icon glyph={hideMobile ? 'ChevronDown' : 'ChevronUp'} />
+          Docs Menu
+        </Overline>
+      )} */}
+        <Suspense fallback={null}>
+          <SearchInput />
+        </Suspense>
       </div>
       <UIContainer />
     </div>
