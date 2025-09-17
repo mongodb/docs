@@ -82,7 +82,7 @@ const lgLinkStyling = css`
   }
 `;
 
-type LinkProps = {
+export type LinkProps = {
   className?: string;
   children?: React.ReactNode;
   to?: string;

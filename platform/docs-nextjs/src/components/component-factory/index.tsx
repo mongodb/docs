@@ -15,6 +15,7 @@ import type {
   TextNode,
   TitleReferenceNode,
   TargetNode,
+  ButtonNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
 
@@ -38,6 +39,7 @@ import type { TargetProps } from '../target';
 import Target from '../target';
 import type { FormatTextOptions, LiteralProps } from '../literal';
 import Literal from '../literal';
+import Button, { type ButtonProps } from '../button';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -101,7 +103,7 @@ const getComponent = (() => {
         admonition: Admonition as React.ComponentType<SupportedComponentProps>,
         // banner: Banner,
         // blockquote: BlockQuote,
-        // button: Button,
+        button: Button as React.ComponentType<SupportedComponentProps>,
         // card: Card,
         // 'card-group': CardGroup,
         // chapter: Chapter,
@@ -226,7 +228,8 @@ type SupportedComponentProps =
   | RubricProps
   | AdmonitionProps
   | TargetProps
-  | LiteralProps;
+  | LiteralProps
+  | ButtonProps;
 
 const renderComponentWithProps = (
   ComponentType: React.ComponentType<SupportedComponentProps>,
@@ -287,6 +290,9 @@ const renderComponentWithProps = (
         {...propsToDrill}
       />
     );
+  } else if (ComponentType === getComponent('button')) {
+    const buttonNode = nodeData as ButtonNode;
+    return <ComponentType argument={buttonNode.argument} options={buttonNode.options} {...propsToDrill} />;
   }
 
   // Default: spread all props for other components
@@ -319,7 +325,7 @@ const ComponentFactory = (props: ComponentFactoryProps) => {
     // TODO: remove this when we have all components implemented
     if (!ComponentType) {
       return (
-        <span className={'component-container'} style={{ paddingTop: '3rem' }}>
+        <span className={'component-container'}>
           Component for {type} {name ? `"${name}" ` : ''}not yet implemented
           <br />
           <span>
