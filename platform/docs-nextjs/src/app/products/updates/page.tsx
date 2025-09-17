@@ -1,4 +1,4 @@
-import { getProductUpdates } from '@/app/products/updates/services/contentstack';
+import { type ProductUpdateEntry, getProductUpdates } from '@/app/products/updates/services/contentstack';
 import Header from './components/Header';
 import Featured from './components/Featured';
 import Updates from './components/Updates';
@@ -8,10 +8,18 @@ export const dynamic = 'force-dynamic';
 export default async function ProductsUpdatesPage() {
   try {
     // Initialize the Contentstack stack and fetch data
-    const testEntries = await getProductUpdates();
+    const contentStackEntries = await getProductUpdates();
 
-    const featuredEntries = testEntries.filter((entry) => entry.is_featured === true);
-    const nonFeaturedEntries = testEntries.filter((entry) => !entry.is_featured);
+    const featuredEntries: ProductUpdateEntry[] = [];
+    // We grab the first 3 is_featured entries as we only want to feature the 3 most recent entries
+    const nonFeaturedEntries = contentStackEntries.reduce((entries: ProductUpdateEntry[], entry) => {
+      if (featuredEntries.length < 3 && entry.is_featured) {
+        featuredEntries.push(entry);
+      } else {
+        entries.push(entry);
+      }
+      return entries;
+    }, []);
 
     return (
       <div style={{ width: '100vw' }}>

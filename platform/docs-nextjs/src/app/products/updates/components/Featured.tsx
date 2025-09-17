@@ -99,13 +99,8 @@ const chipStyle = css`
   padding: 2px;
 `;
 
-const Featured = ({ updates }: { updates: ProductUpdateEntry[] }) => {
+const Featured = ({ updates: limitedFeaturedUpdates }: { updates: ProductUpdateEntry[] }) => {
   const router = useRouter();
-
-  // Filter and limit to 3 most recent featured updates
-  const limitedFeaturedUpdates = updates
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 3);
 
   return (
     <div className={cx(featuredContainerStyle)}>
