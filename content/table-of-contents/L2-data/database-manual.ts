@@ -14,6 +14,8 @@ import InUseEncryptionData from '../manual-data/in-use-encryption';
 import InUseEncryptionDataVersion7 from '../manual-data/in-use-encryption-v7-only';
 import ReferenceData from '../manual-data/reference';
 
+const versionsBeforeV8_2 = ["v7.0", "v8.0", "v8.1"];
+
 const tocData: TocItem[] = [
   {
     label: "Overview",
@@ -556,6 +558,348 @@ const tocData: TocItem[] = [
     label: "Development Checklist",
     contentSite: "docs",
     url: "/docs/:version/administration/production-checklist-development",
+  },
+  {
+    label: "Replication",
+    contentSite: "docs",
+    url: "/docs/:version/replication",
+    collapsible: true,
+    items: [
+      {
+        label: "Oplog",
+        contentSite: "docs",
+        url: "/docs/:version/core/replica-set-oplog",
+      },
+      {
+        label: "Data Synchronization",
+        contentSite: "docs",
+        url: "/docs/:version/core/replica-set-sync",
+      },
+      {
+        label: "Replica Set Members",
+        contentSite: "docs",
+        url: "/docs/:version/core/replica-set-members",
+        collapsible: true,
+        items: [
+          {
+            label: "Primary",
+            contentSite: "docs",
+            url: "/docs/:version/core/replica-set-primary",
+          },
+          {
+            label: "Secondary",
+            contentSite: "docs",
+            url: "/docs/:version/core/replica-set-secondary",
+            collapsible: true,
+            items: [
+              {
+                label: "Priority 0 Members",
+                contentSite: "docs",
+                url: "/docs/:version/core/replica-set-priority-0-member",
+              },
+              {
+                label: "Hidden Members",
+                contentSite: "docs",
+                url: "/docs/:version/core/replica-set-hidden-member",
+              },
+              {
+                label: "Delayed Members",
+                contentSite: "docs",
+                url: "/docs/:version/core/replica-set-delayed-member",
+              },
+            ]
+          },
+          {
+            label: "Arbiter",
+            contentSite: "docs",
+            url: "/docs/:version/core/replica-set-arbiter",
+          },
+        ]
+      },
+      {
+        label: "High Availability",
+        contentSite: "docs",
+        collapsible: true,
+        items: [
+          {
+            label: "Elections",
+            contentSite: "docs",
+            url: "/docs/:version/core/replica-set-elections",
+          },
+          {
+            label: "Failover Rollbacks",
+            contentSite: "docs",
+            url: "/docs/:version/core/replica-set-rollbacks",
+          },
+        ]
+      },
+      {
+        label: "Read & Write Semantics",
+        contentSite: "docs",
+        url: "/docs/:version/applications/replication",
+        collapsible: true,
+        items: [
+          {
+            label: "Write Concern",
+            contentSite: "docs",
+            url: "/docs/:version/core/replica-set-write-concern",
+          },
+          {
+            label: "Read Preference",
+            contentSite: "docs",
+            url: "/docs/:version/core/read-preference",
+            collapsible: true,
+            items: [
+              {
+                label: "Use Cases",
+                contentSite: "docs",
+                url: "/docs/:version/core/read-preference-use-cases",
+              },
+              {
+                label: "Tag Sets",
+                contentSite: "docs",
+                url: "/docs/:version/core/read-preference-tags"
+              },
+              {
+                label: "maxStalenessSeconds",
+                contentSite: "docs",
+                url: "/docs/:version/core/read-preference-staleness",
+              },
+              {
+                label: "Hedged Reads",
+                contentSite: "docs",
+                url: "docs/:version/core/read-preference-hedge-option/",
+              }
+            ]
+          },
+          {
+            label: "Server Selection Algorithm",
+            contentSite: "docs",
+            url: "/docs/:version/core/read-preference-mechanics",
+          },
+        ]
+      },
+      {
+        label: "Replication Reference",
+        contentSite: "docs",
+        url: "/docs/:version/reference/replication",
+        collapsible: true,
+        items: [
+          {
+            label: "Member States",
+            contentSite: "docs",
+            url: "/docs/:version/reference/replica-states",
+          },
+          {
+            label: "local Database",
+            contentSite: "docs",
+            url: "/docs/:version/reference/local-database",
+          },
+        ],
+      },
+    ]
+  },
+  {
+    label: "Sharding",
+    contentSite: "docs",
+    collapsible: true,
+    url: "/docs/:version/sharding",
+    items: [
+      {
+        label: "Sharded Cluster Components",
+        contentSite: "docs",
+        url: "/docs/:version/core/sharded-cluster-components",
+        collapsible: true,
+        items: [
+          {
+            label: "Shards",
+            contentSite: "docs",
+            url: "/docs/:version/core/sharded-cluster-shards",
+          },
+          {
+            label: "Config Servers (metadata)",
+            contentSite: "docs",
+            url: "/docs/:version/core/sharded-cluster-config-servers",
+          },
+          {
+            label: "Router (mongos)",
+            contentSite: "docs",
+            url: "/docs/:version/core/sharded-cluster-query-router",
+          },
+        ]
+      },
+      {
+        label: "Shard Keys",
+        contentSite: "docs",
+        url: "/docs/:version/core/sharding-shard-key",
+        collapsible: true,
+        items: [
+          {
+            label: "Shard a Collection",
+            contentSite: "docs",
+            url: "/docs/:version/core/sharding-shard-a-collection",
+          },
+          {
+            label: "Choose Shard Key",
+            contentSite: "docs",
+            url: "/docs/:version/core/sharding-choose-a-shard-key",
+          },
+          {
+            label: "Change Shard Key",
+            contentSite: "docs",
+            url: "/docs/:version/core/sharding-change-a-shard-key",
+            collapsible: true,
+            items: [
+              {
+                label: "Refine a Shard Key",
+                contentSite: "docs",
+                url: "/docs/:version/core/sharding-refine-a-shard-key",
+              },
+              {
+                label: "Reshard a Collection",
+                contentSite: "docs",
+                url: "/docs/:version/core/sharding-reshard-a-collection",
+              },
+            ]
+          },
+          {
+            label: "Change Shard Key Value",
+            contentSite: "docs",
+            url: "/docs/:version/core/sharding-change-shard-key-value",
+          },
+          {
+            label: "Set Missing Key Fields",
+            contentSite: "docs",
+            url: "/docs/:version/core/sharding-set-missing-shard-key-fields",
+          },
+          {
+            label: "Find a Shard Key",
+            contentSite: "docs",
+            url: "/docs/:version/core/sharding-find-shard-key",
+          },
+          {
+            label: "Troubleshoot",
+            contentSite: "docs",
+            url: "/docs/:version/core/sharding-troubleshooting-shard-keys",
+          },
+        ]
+      },
+      {
+        label: "Hashed Sharding",
+        contentSite: "docs",
+        url: "/docs/:version/core/hashed-sharding",
+        items: [
+          {
+            label: "Drop Hashed Shard Key Index",
+            contentSite: "docs",
+            url: "/docs/:version/tutorial/drop-a-hashed-shard-key-index",
+          },
+        ]
+      },
+      {
+        label: "Ranged Sharding",
+        contentSite: "docs",
+        url: "/docs/:version/core/ranged-sharding",
+      },
+      {
+        label: "Data Partitioning",
+        contentSite: "docs",
+        url: "/docs/:version/core/sharding-data-partitioning",
+        collapsible: true,
+        items: [
+          {
+            label: "Create Ranges",
+            contentSite: "docs",
+            url: "/docs/:version/tutorial/create-chunks-in-sharded-cluster",
+          },
+          {
+            label: "Split Chunks",
+            contentSite: "docs",
+            url: "/docs/:version/tutorial/split-chunks-in-sharded-cluster",
+          },
+          {
+            label: "Merge Chunks",
+            contentSite: "docs",
+            url: "/docs/:version/tutorial/merge-chunks-in-sharded-cluster",
+          },
+          {
+            label: "Modify Range Size",
+            contentSite: "docs",
+            url: "/docs/:version/tutorial/modify-chunk-size-in-sharded-cluster",
+          },
+          {
+            label: "Moveable Collections",
+            contentSite: "docs",
+            url: "/docs/:version/core/moveable-collections",
+            collapsible: true,
+            items: [
+              {
+                label: "Move a Collection",
+                contentSite: "docs",
+                url: "/docs/:version/tutorial/move-a-collection",
+              },
+              {
+                label: "Multi-Tenant Architecture",
+                contentSite: "docs",
+                url: "/docs/:version/core/moveable-collections/multi-tenant",
+              },
+              {
+                label: "Stop Moving a Collection",
+                contentSite: "docs",
+                url: "/docs/:version/tutorial/stop-moving-a-collection",
+              },
+            ]
+          },
+        ]
+      },
+      {
+        label: "Unsharded Collections",
+        contentSite: "docs",
+        url: "/docs/:version/core/unsharded-collections",
+        collapsible: true,
+        items: [
+          {
+            label: "Unshard a Collection",
+            contentSite: "docs",
+            url: "/docs/:version/tutorial/unshard-collection",
+          },
+          {
+            label: "Stop Unsharding a Collection",
+            contentSite: "docs",
+            url: "/docs/:version/tutorial/stop-unsharding-collection",
+          },
+        ]
+      },
+      {
+        label: "Balancer",
+        contentSite: "docs",
+        url: "/docs/:version/core/sharding-balancer-administration",
+        collapsible: true,
+        items: [
+          {
+            label: "Manage",
+            contentSite: "docs",
+            url: "/docs/:version/tutorial/manage-sharded-cluster-balancer",
+          },
+          {
+            label: "Migrate Ranges",
+            contentSite: "docs",
+            url: "/docs/:version/tutorial/migrate-chunks-in-sharded-cluster",
+          },
+          {
+            label: "The AutoMerger",
+            contentSite: "docs",
+            url: "/docs/:version/core/automerger-concept",
+          },
+        ]
+      },
+      {
+        label: "Long-Running Secondary Reads",
+        contentSite: "docs",
+        url: "/docs/:version/core/long-running-secondary-reads/",
+        versions: { excludes: versionsBeforeV8_2 },
+      },
+    ]
   },
   {
     label: "Performance",
