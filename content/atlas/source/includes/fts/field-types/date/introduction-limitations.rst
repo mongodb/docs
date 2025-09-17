@@ -1,7 +1,7 @@
 You can use the |fts| ``date`` type to index date values. You can query
 fields of type ``date`` using the |fts| :ref:`range <range-ref>`,
 :ref:`near <near-ref>`, :ref:`in <in-ref>`, and :ref:`equals <equals-ref>` operators. You can
-also run a :ref:`fts-facet-ref` query on ``date`` type fields. 
+also run a :ref:`facet <fts-facet-ref>` query on ``date`` type fields. 
 
 You can also use the ``date`` type to index:
 

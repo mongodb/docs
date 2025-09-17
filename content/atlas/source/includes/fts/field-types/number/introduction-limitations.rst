@@ -1,13 +1,13 @@
 You can use the |fts| ``number`` type to index fields with numeric
 values of ``int32``, ``int64``, and ``double`` data types.
-You can use the :ref:`equals-ref`, :ref:`range-ref`, and :ref:`near-ref`
+You can use the :ref:`equals <equals-ref>`, :ref:`range <range-ref>`, and :ref:`near <near-ref>`
 operators to query indexed fields of type ``number``. You can also run a
-:ref:`fts-facet-ref` query on ``number`` type fields.
+:ref:`facet <fts-facet-ref>` query on ``number`` type fields.
 
 .. note::
-   
-   To query numeric values in arrays, you can use only the :ref:`range-ref` 
-   operator. 
+
+   To query numeric values in arrays, you can use only the :ref:`range <range-ref>` 
+   operator.
 
 |fts| automatically indexes all numeric fields in indexes created after
 :ref:`July 2023 <fts20230710>` for :ref:`sorting <sort-ref>` the |fts|
