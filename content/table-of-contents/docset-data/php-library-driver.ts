@@ -71,7 +71,6 @@ const tocData: TocItem[] = [
       {
         label: "CRUD Operations",
         contentSite: "php-library",
-        url: "/docs/php-library/:version/crud",
         collapsible: true,
         items: [
           {
@@ -82,7 +81,6 @@ const tocData: TocItem[] = [
           {
             label: "Query Documents",
             contentSite: "php-library",
-            url: "/docs/php-library/:version/crud/query",
             collapsible: true,
             items: [
               {
@@ -172,7 +170,6 @@ const tocData: TocItem[] = [
       {
         label: "Data Formats",
         contentSite: "php-library",
-        url: "/docs/php-library/:version/data-formats",
         collapsible: true,
         items: [
           {
@@ -261,7 +258,6 @@ const tocData: TocItem[] = [
       {
         label: "Logging and Monitoring",
         contentSite: "php-library",
-        url: "/docs/php-library/:version/monitoring-logging",
         collapsible: true,
         items: [
           {
@@ -325,7 +321,6 @@ const tocData: TocItem[] = [
       {
         label: "Reference",
         contentSite: "php-library",
-        url: "/docs/php-library/:version/references",
         collapsible: true,
         items: [
           {
@@ -348,7 +343,6 @@ const tocData: TocItem[] = [
       {
         label: "API Documentation",
         contentSite: "php-library",
-        url: "/docs/php-library/:version/reference",
         collapsible: true,
         items: [
           {
@@ -381,6 +375,7 @@ const tocData: TocItem[] = [
                 label: "bulkWrite()",
                 contentSite: "php-library",
                 url: "/docs/php-library/:version/reference/method/MongoDBClient-bulkWrite",
+                versions: {"excludes":["v1.x"]}
               },
               {
                 label: "createClientEncryption()",
@@ -469,6 +464,7 @@ const tocData: TocItem[] = [
             contentSite: "php-library",
             url: "/docs/php-library/:version/reference/class/MongoDBClientBulkWrite",
             collapsible: true,
+            versions: {"excludes":["v1.x"]},
             items: [
               {
                 label: "createWithCollection()",
@@ -994,13 +990,13 @@ const tocData: TocItem[] = [
           {
             label: "Result Classes",
             contentSite: "php-library",
-            url: "/docs/php-library/:version/reference/result-classes",
             collapsible: true,
             items: [
               {
                 label: "BulkWriteCommandResult",
                 contentSite: "php-library",
                 url: "/docs/php-library/:version/reference/class/MongoDBBulkWriteCommandResult",
+                versions: {"excludes":["v1.x"]}
               },
               {
                 label: "BulkWriteResult",
@@ -1240,6 +1236,7 @@ const tocData: TocItem[] = [
                     label: "isView()",
                     contentSite: "php-library",
                     url: "/docs/php-library/:version/reference/method/MongoDBModelCollectionInfo-isView",
+                    versions: {"excludes":["v1.x"]}
                   },
                 ]
               },
@@ -1324,7 +1321,6 @@ const tocData: TocItem[] = [
           {
             label: "Functions",
             contentSite: "php-library",
-            url: "/docs/php-library/:version/reference/functions",
             collapsible: true,
             items: [
               {
