@@ -179,7 +179,6 @@ const tocData: TocItem[] = [
       {
         label: "Data Formats",
         contentSite: "pymongo",
-        url: "/docs/languages/python/pymongo-driver/:version/data-formats",
         collapsible: true,
         items: [
           {
@@ -354,7 +353,6 @@ const tocData: TocItem[] = [
       {
         label: "Reference",
         contentSite: "pymongo",
-        url: "/docs/languages/python/pymongo-driver/:version/reference",
         collapsible: true,
         items: [
           {
