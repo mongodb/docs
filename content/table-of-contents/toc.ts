@@ -5,7 +5,7 @@ import ManagementData from './L1-data/management';
 import ClientLibData from './L1-data/client-libraries';
 import type { TocItem } from './types';
 
-// These are all the L1's for the ToC - BIANCA
+// These are all the L1's for the ToC
 export const toc: TocItem[] = [
   {
     label: 'Get Started',
