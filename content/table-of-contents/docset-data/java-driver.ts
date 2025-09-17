@@ -37,7 +37,6 @@ const tocData: TocItem[] = [
       {
         label: "Connect",
         contentSite: "java",
-        url: "/docs/drivers/java/sync/:version/connection",
         collapsible: true,
         items: [
           {
@@ -49,7 +48,6 @@ const tocData: TocItem[] = [
           {
             label: "Specify Connection Options",
             contentSite: "java",
-            url: "/docs/drivers/java/sync/:version/connection/specify-connection-options",
             collapsible: true,
             versions: { excludes: outdatedVersions },
             items: [
@@ -168,7 +166,6 @@ const tocData: TocItem[] = [
       {
         label: "CRUD Operations",
         contentSite: "java",
-        url: "/docs/drivers/java/sync/:version/crud",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
@@ -180,7 +177,6 @@ const tocData: TocItem[] = [
           {
             label: "Query Documents",
             contentSite: "java",
-            url: "/docs/drivers/java/sync/:version/crud/query-documents",
             collapsible: true,
             items: [
               {
@@ -487,7 +483,6 @@ const tocData: TocItem[] = [
       {
         label: "Data Formats",
         contentSite: "java",
-        url: "/docs/drivers/java/sync/:version/data-formats",
         collapsible: true,
         items: [
           {
@@ -555,7 +550,6 @@ const tocData: TocItem[] = [
       {
         label: "Logging and Monitoring",
         contentSite: "java",
-        url: "/docs/drivers/java/sync/:version/logging-monitoring",
         collapsible: true,
         items: [
           {
@@ -578,7 +572,6 @@ const tocData: TocItem[] = [
       {
         label: "Security",
         contentSite: "java",
-        url: "/docs/drivers/java/sync/:version/security",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
@@ -689,7 +682,6 @@ const tocData: TocItem[] = [
       {
         label: "Reference",
         contentSite: "java",
-        url: "/docs/drivers/java/sync/:version/reference",
         collapsible: true,
         items: [
           {
