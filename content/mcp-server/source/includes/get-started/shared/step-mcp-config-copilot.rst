@@ -16,6 +16,6 @@
 
    .. literalinclude:: /includes/get-started/shared/mcp-config-copilot.json
       :language: json
-      :emphasize-lines: 3-14
+      :emphasize-lines: 4-15
 
    .. include:: /includes/get-started/shared/connection-string-mcp-config.rst

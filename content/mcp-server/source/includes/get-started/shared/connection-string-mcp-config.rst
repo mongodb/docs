@@ -1,11 +1,11 @@
 The MongoDB MCP server can connect to your MongoDB deployment for you.
-
 However, if you do not want to expose your connection string to the
 LLM's context, or if you want to persist the connection across sessions,
 you can add your connection string to the configuration file.
 
 Replace ``<connection-string>`` with your specific connection string in
-the ``"args"`` section of the configuration file.
+the ``"env"`` section of the configuration file. For security reasons, 
+we recommend using environment variables for sensitive data.
 
 .. list-table::
    :widths: 30 70

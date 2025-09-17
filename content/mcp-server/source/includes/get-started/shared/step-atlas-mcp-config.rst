@@ -15,8 +15,8 @@
 
    #. Add the credentials to your MCP server configuration file.
 
-      Add your Atlas API client ID and secret as arguments in the
-      ``"args"`` section of your MCP server configuration. Replace the
+      Add your Atlas API client ID and secret as environment variables in the
+      ``"env"`` section of your MCP server configuration. Replace the
       placeholder values with your specific Atlas service account
       credentials:
 
@@ -34,18 +34,17 @@
            - Atlas API client secret for authentication.
 
       .. code-block:: json
-          :emphasize-lines: 7-10
+          :emphasize-lines: 9-10
 
           ...
           "args": [
             "-y",
             "mongodb-mcp-server@latest",
-            "--connectionString",
-            "<connection-string>",
-            "--apiClientId",
-            "<client-id>",
-            "--apiClientSecret",
-            "<client-secret>",
             "--readOnly"
-          ]
+          ],
+          "env": {
+            "MDB_MCP_CONNECTION_STRING": "<connection-string>",
+            "MDB_MCP_API_CLIENT_ID": "<client-id>",
+            "MDB_MCP_API_CLIENT_SECRET": "<client-secret>"
+          }
           ...
