@@ -41,23 +41,23 @@ Supported Query Types and Behavior
 For a list of supported query operators and behavior with encrypted fields, see :ref:`qe-supported-query-operators`.
 
 
-Client and Server Schema Validation
------------------------------------
+Schema Validation
+-----------------
 
-.. content copied from source/core/csfle/fundamentals/automatic-encryption.txt
+{+qe+} requires a server-side {+enc-schema+} to enforce encryption of specific
+fields in a collection. Clients using automatic {+qe+} behave differently
+depending on the database connection configuration:
 
-MongoDB supports using :ref:`schema validation <schema-validation-overview>`
-to enforce encryption of specific fields in a collection. Clients using
-automatic {+qe+} behave differently depending on the database connection configuration:
+- At minimum, local rules must encrypt the same fields as the remote schema on
+  the server.
 
 - If the connection ``encryptedFieldsMap`` object contains a key for the
   specified collection, the client uses that object to perform
-  automatic {+qe+}, rather than using the remote schema. At minimum, 
-  the local rules must encrypt all fields that the remote schema does.
+  automatic {+qe+}, rather than using the remote schema. 
 
 - If the connection ``encryptedFieldsMap`` object doesn't contain a
   key for the specified collection, the client downloads the
-  server-side remote schema for the collection and uses it instead.
+  remote schema for the collection and uses it instead.
 
   .. important:: Remote Schema Behavior
 
@@ -73,8 +73,8 @@ automatic {+qe+} behave differently depending on the database connection configu
 Considerations when Enabling Querying
 -------------------------------------
 
-You can make an encrypted field queryable. To change which fields are encrypted
-or queryable, rebuild the collection's {+enc-schema+} and re-create the
+Decide which fields should be encrypted and/or queryable prior to creating your
+collection. Changing which fields are encrypted or queryable requires rebuilding the collection's {+enc-schema+} and re-creating the
 collection.
 
 If you don't need to query an encrypted field, you may not need to enable
@@ -96,15 +96,11 @@ Configure Encrypted Fields for Optimal Search and Storage
 MongoDB provides the following parameters to facilitate debugging 
 and performance tuning:
 
-.. |equality| replace:: Equality queries only.
-.. |range| replace:: Range queries only.
-.. |both| replace:: Equality and range queries.
-
 .. _qe-field-min-max:
 
 .. parameter:: min, max
 
-   *Query Type*: |range|
+   *Query Type*: ``range``
 
    *Type*: Must match the field's ``bsonType``.
 
@@ -116,14 +112,86 @@ and performance tuning:
    field when possible, as smaller bounds improve query efficiency. If querying
    values outside of these bounds, MongoDB returns an error.
 
-.. important::
+.. _qe-substring-parameters:
+
+Substring Parameters
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: includes/queryable-encryption/qe-warning-public-preview.rst
+
+.. parameter:: strMaxLength
+
+   *Query Type*: ``substringPreview``
+
+   *Type*: Integer from 1-60, inclusive.
+
+   The maximum allowed length for a substring-indexed field. Attempting to
+   insert a longer string returns an error. 
    
-   The :ref:`sparsity<qe-field-sparsity>`, 
-   :ref:`precision<qe-field-precision>`, 
-   :ref:`trimFactor<qe-field-trimfactor>`, 
-   and :ref:`contention<qe-contention>` 
-   parameters are intended for advanced users only. The 
-   default values for these options are suitable for the majority
+   .. important::
+   
+      You can override the character limit by setting 
+      :parameter:`fleDisableSubstringPreviewParameterLimits`, but running
+      substring queries against longer strings has a significant impact on 
+      performance.
+
+.. parameter:: strMinQueryLength 
+
+   *Query Type*: ``prefixPreview``, ``suffixPreview``, ``substringPreview``
+
+   *Type*: Positive integer.
+
+   - Must be >= 1 for ``prefixPreview`` or ``suffixPreview`` queries.
+   - Must be >= 2 for ``substringPreview`` queries.
+
+   The minimum allowed prefix/suffix/substring length to query. Attempting to
+   query a shorter string returns an error.
+
+.. parameter:: strMaxQueryLength 
+
+   *Query Type*: ``prefixPreview``, ``suffixPreview``, ``substringPreview``
+
+   *Type*: Positive integer
+   - Must be >=1 for ``prefixPreview`` or ``suffixPreview`` queries.
+   - Must 2-10 inclusive for ``substringPreview`` queries.
+
+   The maximum allowed prefix/suffix/substring length to query. Attempting to
+   query a longer string returns an error.
+   
+   .. important::
+
+      This setting strongly impacts query performance. Limit the maximum query
+      length whenever possible.
+
+.. parameter:: caseSensitive
+
+   *Query Type*: ``prefixPreview``, ``suffixPreview``, ``substringPreview``
+
+   *Type*: Boolean
+
+   Optional. Defaults to ``true``.
+
+   Whether prefix/suffix/substring queries are case-sensitive. Set to ``false``
+   for case-insensitive matching.
+
+.. parameter:: diacriticSensitive
+
+   *Query Type*: ``prefixPreview``, ``suffixPreview``, ``substringPreview``
+
+   *Type*: Boolean
+
+   Optional. Defaults to ``true``.
+
+   Whether prefix/suffix/substring queries must match diacritical marks. Set to
+   ``false`` for diacritic-insensitive matching.
+
+Advanced Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. warning::
+   
+   These parameters are intended for advanced users only. The 
+   default values are suitable for the majority
    of use cases, and should only be modified if your use case 
    requires it.
 
@@ -131,11 +199,11 @@ and performance tuning:
 
 .. parameter:: sparsity
 
-   *Query Type*: |range|
+   *Query Type*: ``range``
 
-   *Type*: Integer from ``1``-``4``.
+   *Type*: Integer from 1-4.
 
-   Optional. Defaults to ``2``.
+   Optional. Defaults to 2.
 
    Affects how thoroughly MongoDB indexes range values. Low sparsity (dense
    indexing) improves query performance, but stores more documents in the
@@ -146,7 +214,7 @@ and performance tuning:
 
 .. parameter:: precision
 
-   *Query Type*: |range|
+   *Query Type*: ``range``
 
    *Type*: Integer.
    
@@ -156,7 +224,7 @@ and performance tuning:
    
    Limits how many digits after the decimal point are taken into account
    when querying a ``double`` or ``decimal`` field. Additional digits are
-   dropped, not rounded. For example, a ``precision`` of ``1`` treats ``10.18``
+   dropped, not rounded. For example, a ``precision`` of 1 treats ``10.18``
    as ``10.1`` for queries. The encrypted value is still stored as ``10.18``.
    
    Specify ``precision`` and limit it when possible. Every digit increases 
@@ -167,11 +235,11 @@ and performance tuning:
 
 .. parameter:: trimFactor
 
-   *Query Type*: |range|
+   *Query Type*: ``range``
 
    *Type*: Integer.
 
-   Optional. Defaults to ``6``.
+   Optional. Defaults to 6.
    
    The ``trimFactor`` controls the throughput of concurrent inserts and updates.
    A higher ``trimFactor`` increases the throughput of concurrent insert and 
@@ -182,16 +250,16 @@ and performance tuning:
 
 .. parameter:: contention
 
-   *Query Type*: |both|
+   *Query Type*: ``equality``, ``range``, ``prefixPreview``, ``suffixPreview``, ``substringPreview``
 
    *Type*: Integer.
 
-   Optional. Defaults to ``8``.
+   Optional. Defaults to 8.
 
    .. include:: /includes/queryable-encryption/qe-csfle-contention.rst
 
    You can optionally include ``contention`` on queryable fields to change the
-   value from its default of ``8``. 
+   value from its default of 8. 
 
    For more thorough information on contention factor and its cryptographic 
    implications, see "Section 9: Guidelines" in MongoDB's 

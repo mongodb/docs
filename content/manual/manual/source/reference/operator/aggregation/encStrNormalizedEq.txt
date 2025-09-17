@@ -1,0 +1,77 @@
+.. _qe-encstrnormalizedeq:
+
+====================================================
+$encStrNormalizedEq (encrypted aggregation operator)
+====================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. versionadded:: 8.2
+
+.. |command| replace:: ``$encStrNormalizedEq``
+
+.. include:: /includes/queryable-encryption/qe-aggregation-operator.rst
+
+.. expression:: $encStrNormalizedEq
+
+   Returns ``true`` if a :term:`normalized string` value matches the
+   :term:`normalized string` version of the specified string. The queried field
+   must have :ref:`substring queries enabled <qe-encryption-schema>`, and the
+   length of the query string must be between the configured minimum and
+   maximum number of characters, inclusive. 
+   
+   .. note::
+      
+      This operator must operate on a text search index.
+
+   The :expression:`$encStrNormalizedEq` expression has the following
+   :ref:`operator expression syntax <aggregation-expressions>`:
+
+   .. code-block:: javascript
+
+      { $encStrNormalizedEq: <string> }
+
+
+Behavior
+--------
+
+- Case sensitivity and diacritical mark sensitivity are determined by the
+  configuration of the associated text search index.
+
+.. include:: includes/queryable-encryption/qe-substring-search-behavior.rst
+
+Example
+--------
+
+Consider the character é, which can be represented two ways:
+
+- One code point, ``U+00E9`` (Latin small letter E with acute)
+- Two code points, ``U+0065`` (Latin small letter E) followed by ``U+0301``
+  (combining acute accent)
+
+When comparing these two different representations of the name Béatrice:
+
+- Using :expression:`$eq` evaluates to ``false``, because the binary 
+  representations are different.
+- Using ``$encStrNormalizedEq`` evaluates to ``true``, regardless of the
+  :parameter:`diacriticSensitive` setting, because the operator normalizes both
+  strings prior to comparing them.
+
+In :binary:`~bin.mongosh`:
+
+.. code-block:: shell
+
+   db.collection('MyCollection', function (err, collection) {
+      collection.aggregate([ 
+         $match: { 
+           'employeeLastName': { $encStrNormalizedEq: 'Béatrice' } 
+         }])

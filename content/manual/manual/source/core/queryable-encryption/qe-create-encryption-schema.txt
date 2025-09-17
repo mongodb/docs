@@ -43,13 +43,15 @@ see :ref:`qe-field-configuration`.
 
 .. _qe-specify-fields-for-encryption:
 
+.. _qe-enable-substring-queries:
+
 Steps
 -----
 
 .. procedure::
    :style: normal
 
-   .. step:: Create a JSON {+enc-schema+} document.
+   .. step:: Create the {+enc-schema+}.
 
       Include an ``encryptedFieldsObject`` with a nested ``fields`` array:
 
@@ -81,9 +83,15 @@ Steps
             You can specify any field for encryption except the
             ``_id`` field.
 
-      #. If you are using :ref:`{+manual-enc+}
-         <qe-fundamentals-manual-encryption>`, add a ``keyId`` field
-         with the {+dek-abbr+} ID:
+      #. Optionally, set a ``keyId`` field with the {+dek-abbr+} ID.
+
+         .. important::
+         
+            Key IDs must be unique, otherwise the server returns an error.
+         
+         By configuring ``AutoEncryptionSettings`` on the client, you can use
+         the ``createEncryptedCollection`` helper method to create keys
+         automatically.
 
          .. code-block:: javascript
             :emphasize-lines: 4
@@ -93,13 +101,6 @@ Steps
                bsonType: "int",
                keyId: "<unique data encryption key>"
             }
-
-         .. tip::
-         
-            With Automatic Encryption, MongoDB creates encryption keys for
-            each field. You configure ``AutoEncryptionSettings`` on the
-            client, then use the ``createEncryptedCollection`` helper method
-            to create your collections.
 
    .. step:: Enable equality queries on desired fields.
       
@@ -168,6 +169,88 @@ Steps
                           max: 1200
                }
             }
+
+   .. step:: Enable prefix, suffix, or substring queries on desired fields.
+
+      These query types are for ``string`` fields only. You can enable both
+      ``prefixPreview`` and ``suffixPreview`` on the same field, but can't
+      enable either if using ``substringPreview``.
+
+      .. include:: includes/queryable-encryption/qe-warning-public-preview.rst
+
+      - ``prefixPreview`` queries enable the :expression:`$encStrStartsWith`
+        and :expression:`$encStrNormalizedEq` aggregation expressions.
+      - ``suffixPreview`` queries enable the :expression:`$encStrEndsWith` 
+        and :expression:`$encStrNormalizedEq` aggregation expressions.
+      - ``substringPreview`` queries enable the :expression:`$encStrContains`
+        and :expression:`$encStrNormalizedEq` aggregation expressions.
+
+      a. Add the ``queries`` object and set ``queryType`` to 
+         ``"prefixPreview"``, ``"suffixPreview"``, or ``"substringPreview"``:
+                  
+         .. code-block:: javascript
+            :emphasize-lines: 4
+
+            {
+               path: "myDocumentStringField",
+               bsonType: "string",
+               queries: { queryType: "substringPreview" }
+            }
+            
+      #. Set the following fields.
+
+         For details on how they affect security and performance, see 
+         :ref:`qe-field-configuration`.
+      
+         .. list-table::
+            :header-rows: 1
+            :widths: 20 30 50
+
+            * - Field
+              - Type
+              - Description
+              
+            * - :parameter:`strMaxLength`
+              - integer
+              - ``substringPreview`` queries only. The maximum allowed length
+                for a substring-indexed field.
+
+            * - :parameter:`strMinQueryLength`
+              - integer
+              - The minimum allowed prefix/suffix/substring length to query.
+
+            * - :parameter:`strMaxQueryLength`
+              - integer
+              - The maximum allowed prefix/suffix/substring length to query.
+
+                :gold:`IMPORTANT:` This setting strongly impacts query
+                performance. Limit it whenever possible.
+
+            * - :parameter:`caseSensitive`
+              - Boolean
+              - Optional. Whether queries are case-sensitive. Defaults to
+                ``true``.
+              
+            * - :parameter:`diacriticSensitive`
+              - Boolean
+              - Optional. Whether queries are diacritic-sensitive. Defaults to
+                ``true``.
+
+         .. code-block:: javascript
+            :emphasize-lines: 6-7
+
+            {
+               path: "myDocumentStringField",
+               bsonType: "string",
+               queries: {
+                  "queryType": "substringPreview",
+                  "strMaxLength": 30,
+                  "strMinQueryLength": 1,
+                  "strMaxQueryLength": 20,
+                  "caseSensitive": false
+               }
+            }
+
 
 Example
 -------
