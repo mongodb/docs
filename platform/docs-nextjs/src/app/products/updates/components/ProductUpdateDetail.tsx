@@ -76,6 +76,7 @@ const bodyStyle = css`
   line-height: 28px;
   color: ${palette.black};
   margin-bottom: 40px;
+  white-space: pre-line;
 `;
 
 const relatedContentTitleStyle = css`
