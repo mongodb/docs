@@ -2,7 +2,7 @@
 - |uc| can only operate on sharded collections.
 - |uc| can only operate on a single collection at a time.
 - |uc| has a 5 minute minimum duration.
-- You must rebuild Atlas Search indexes after |uc| runs.
+- You must rebuild {+fts+} indexes after |uc| runs.
 - You cannot make topology changes, such as adding or removing shards
   or transitioning between embedded and dedicated config servers, until
   |uc| completes.

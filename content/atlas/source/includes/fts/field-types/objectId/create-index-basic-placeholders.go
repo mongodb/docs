@@ -24,7 +24,7 @@ func main() {
 	// Get a handle for your database
 	database := client.Database("<databaseName>")
 	
-	// Create an Atlas Search index on the objectId field
+	// Create a MongoDB Search index on the objectId field
 	indexDefinition := bson.D{
 		{"createSearchIndexes", "<collectionName>"},
 		{"indexes", bson.A{

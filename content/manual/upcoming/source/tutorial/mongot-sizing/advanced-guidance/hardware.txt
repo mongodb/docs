@@ -1,0 +1,239 @@
+.. _mongot-sizing-hardware:
+
+==============================================
+Hardware Considerations for mongot Deployments
+==============================================
+
+.. meta::
+   :description: Learn about key hardware components and their impact on mongot performance.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This section offers a comprehensive overview of hardware components and
+their influence on the ``mongot`` process. It provides sizing
+guidelines, essential monitoring recommendations, and practical scaling
+advice.
+
+CPU
+---
+
+Impact
+~~~~~~
+
+Increasing the number and quality of CPUs generally has a positive
+impact on replication throughput and query throughput (QPS). CPU is
+especially leveraged for queries using concurrent segment search.
+
+Sizing Guideline
+~~~~~~~~~~~~~~~~
+
+A useful estimate based on query throughput is 10 QPS per CPU core.
+This is a baseline, as actual QPS is influenced by query
+complexity and index mappings.
+
+Monitoring
+~~~~~~~~~~
+
+Consistently seeing CPU usage above 80% suggests a need to scale up
+(add CPU cores), while consistently below 20% may indicate an
+opportunity to scale down (reduce CPU cores).
+
+Scaling
+~~~~~~~
+
+Horizontal scaling (adding more ``mongot`` nodes) increases total CPU
+to increase QPS.
+
+.. note::
+
+   Horizontal scaling adds additional load to a replica set because
+   each ``mongot`` needs to replicate index data from a source
+   collection. Each search or vector search index creates a new change
+   stream per ``mongot`` which can degrade performance if the replica
+   set is not sized to handle the additional replication load.
+
+Vertical scaling primarily impacts query latency by being able to
+serve more queries in parallel and reducing query request queuing.
+
+Memory (RAM)
+------------
+
+Impact
+~~~~~~
+
+``mongot`` uses system memory for JVM heap (for Lucene-related data
+structures and caches) and filesystem cache (for efficiently accessing
+indexed data).
+
+Sizing Guideline
+~~~~~~~~~~~~~~~~
+
+For co-located architectures, the default settings offer a good balance.
+However, for dedicated infrastructure, adjusting the default JVM heap
+size can be beneficial. The following sections provide guidance on
+optimizing this setting for your specific hardware and workload.
+
+JVM Heap Sizing
+```````````````
+
+``mongot`` uses the JVM heap primarily for Lucene-related data
+structures and caches. In general, heap usage of ``mongot`` roughly
+scales with the number of fields indexed. Heap usage is not largely
+affected by the number of documents or number of vectors. Effective data
+modeling for full-text search and vector search generally minimizes the
+number of indexed fields.
+
+As an estimate, allocate 50% of the total available system memory,
+without exceeding a maximum of approximately 30GB. This allows enough
+memory to be used for the OS filesystem cache, which plays a vital role
+in Lucene's performance by caching frequently accessed index segments
+from disk. By default, ``mongot`` allocates up to 25% of the total
+available system memory for the JVM heap, up to 32GB (with 128GB of
+system memory). These sizing guidelines are an increase from this
+default.
+
+Additionally, keeping the heap sizes below about 30GB allows the JVM to
+use compressed object pointers, saving memory. If heap sizes are
+increased above this 30GB limit, it is recommended that the heap size is
+directly increased to 48GB or larger.
+
+To override the default heap size settings, specify the required size as
+arguments to the ``mongot`` start script. It is recommended to set
+minimum heap size (``Xms``) and maximum heap size (``Xmx``) to the same
+value. For example:
+
+.. code-block:: bash
+
+   /etc/mongot/mongot --config /etc/mongot/mongot.conf --jvm-flags "-Xms4g -Xmx4g"
+
+Filesystem Cache
+````````````````
+
+Index segments are accessed through memory-mapped files, so query
+latency and throughput heavily depend on the OS's filesystem cache. You
+must reserve sufficient memory for the filesystem cache workload. Using
+isolated hardware for ``mongot`` can reduce cache contention.
+
+.. note::
+
+   Increasing the JVM Heap size beyond 50% of available memory may
+   result in insufficient memory for filesystem cache usage.
+
+Vector Search Guidance
+```````````````````````
+
+For vector search, "Search Process Memory" is used for efficient storage of data
+structures like the HNSW graph. If the Vector Index Size exceeds 3GB, use
+:ref:`vector quantization <avs-quantization>`. When you quantize your vectors,
+only 4% of the index needs to be stored in memory, rather than the full index.
+
+Monitoring for Insufficient Memory
+``````````````````````````````````
+
+An increase in **Search Page Faults** and **Disk IOPS** indicates the
+operating system is frequently retrieving necessary pages from disk,
+suggesting low memory. Consistently seeing Page Faults over 1000/s is an
+indication to consider scaling up.
+
+Scaling
+~~~~~~~
+
+If the ``mongot`` process terminates with an ``OutOfMemoryError``, it
+means the JVM Heap is too small for your indexing and query workload.
+This is often caused by storing too many source fields, or a "mapping
+explosion" from dynamic mappings on unstructured data. The primary
+recommendations for resolving this issue are:
+
+1. Increase the Java Heap Size (Vertical Scaling)
+   
+   The most direct solution is to allocate more RAM to the mongot
+   process. If your host has available memory, you can increase the
+   maximum Java heap size. This provides more headroom for your existing
+   index and query patterns without changing your index definition. 
+
+#. Reduce the Index Memory Footprint
+
+   If scaling hardware isn't an option, or if you want to optimize for
+   efficiency, you can reduce the amount of memory your index requires.
+
+   a. Review your index definition and reduce storedSource fields and
+      remove all non-essential fields from the index to reduce heap
+      pressure.
+     
+   b. Use static mapping. A dynamic mapping will create an index field
+      for every unique field in a collection's documents. Being more
+      selective and only indexing essential fields will reduce heap
+      consumption.
+
+Disk Throughput and Storage
+---------------------------
+
+Impact
+~~~~~~
+
+Both read and write IOPS are crucial for ``mongot`` performance,
+affecting replication, initial sync, and query throughput. For most use
+cases, we recommend general-purpose SSDs.
+
+Generally, both read and write IOPS are important for mongot
+performance. Replicating data involves not only writes to disk, but also
+reads, as old index segments are merged into larger segments. Thus, disk
+throughput has various effects on all aspects of mongot performance, from
+query throughput to initial sync indexing throughput.
+
+Sizing Guideline
+~~~~~~~~~~~~~~~~
+
+See :ref:`Disk Sizing Guideline <mongot-indexes-data-characteristics>`.
+
+Index Rebuilds
+~~~~~~~~~~~~~~
+
+Creating or rebuilding an Atlas Search index is resource-intensive and
+can impact cluster performance. For no-downtime indexing, allocate free
+disk space equal to 125% of the disk space used by your old index. This
+headroom is important because the old index is kept on disk during a
+rebuild. As a general recommendation, you should double the disk
+allowance for ``mongot`` to accommodate index rebuilds.
+
+Monitoring
+~~~~~~~~~~
+
+To track current index consumption, monitor :guilabel:`Search Disk Space
+Used`. Sustained IOPS usage over 1K warrants investigation.
+
+.. note::
+
+   When the ``mongot`` host's storage utilization reaches 90%,
+   ``mongot`` enters a read-only state. While in this state, ``mongot``
+   continues to serve queries using the indexes in their present state.
+   Search results may be stale if changes are made to the source
+   collection without mitigation.
+   
+   To resume index synchronization with source collections, reduce
+   storage utilization to below 85% by either deleting index data or
+   increasing storage capacity.
+
+Scaling
+~~~~~~~
+
+When increasing index sizes and with larger volumes of index data,
+especially with binary quantization, ensure that instances have
+sufficient memory to support larger working sets of index data. However,
+the exact amount of memory required varies depending on workload.
+
+For example, large datasets that are rarely queried in their
+entirety may be able to service queries at a low latency with less
+memory than the same size dataset that is often queried in its entirety.
+
+If you use ``mongot`` with high storage-to-memory ratios, carefully
+monitor your memory usage. As an example, 64GB of memory might not be
+enough for 6400GB of storage.

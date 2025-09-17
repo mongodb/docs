@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    /* Create the Atlas Search index definition for the UUID field. */
+    /* Create the MongoDB Search index definition for the UUID field. */
     char *cmd_str = bson_strdup_printf (
         BSON_STR ({
             "createSearchIndexes": "%s",

@@ -13,7 +13,7 @@ async fn main() -> mongodb::error::Result<()> {
         .database("sample_mflix")
         .collection("movies");
 
-    // Defines your Atlas Search index for autocomplete
+    // Defines your MongoDB Search index for autocomplete
     let index = doc! {
         "mappings": doc! {
             "dynamic": false,

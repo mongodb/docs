@@ -5,7 +5,7 @@ uri = "<connection-string>"
 client = MongoClient(uri)
 database = client["sample_analytics"]
 collection = database["customers"]
-# Create the Atlas Search index definition for the geo field
+# Create the MongoDB Search index definition for the geo field
 search_index_model = SearchIndexModel(
     definition={
         "mappings": {

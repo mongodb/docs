@@ -33,7 +33,7 @@ int main() {
         )
     );
 
-    // Create the Atlas Search index definition
+    // Create the MongoDB Search index definition
     auto definition = make_document(
         kvp("mappings", make_document(
             kvp("dynamic", true))

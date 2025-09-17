@@ -23,7 +23,7 @@ int main() {
     auto companies = db["companies"];
     auto companies_siv = companies.search_indexes();
 
-    // Create the Atlas Search index definition for companies
+    // Create the MongoDB Search index definition for companies
     auto name = "default";
     auto definition = make_document(
         kvp("mappings", make_document(

@@ -12,7 +12,7 @@ atlas api atlasSearch deleteAtlasSearchIndexByName
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one Atlas Search index that you identified with its database, collection, and name.
+`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one MongoDB Search index that you identified with its database, collection, and name.
 
 The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
@@ -51,11 +51,11 @@ Options
    * - --collectionName
      - string
      - true
-     - Name of the collection that contains one or more Atlas Search indexes.
+     - Name of the collection that contains one or more {+fts+} indexes.
    * - --databaseName
      - string
      - true
-     - Label that identifies the database that contains the collection with one or more Atlas Search indexes.
+     - Label that identifies the database that contains the collection with one or more {+fts+} indexes.
    * - --envelope
      - envelope
      - false
@@ -73,7 +73,7 @@ Options
    * - --indexName
      - string
      - true
-     - Name of the Atlas Search index to delete.
+     - Name of the {+fts+} index to delete.
    * - -o, --output
      - string
      - false

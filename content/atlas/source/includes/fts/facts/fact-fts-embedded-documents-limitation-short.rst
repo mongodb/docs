@@ -1,7 +1,7 @@
 |fts| stops replicating changes for indexes larger than 2,100,000,000
 index objects per partition, on a replica set or single shard, where each indexed
-embedded parent document counts as a single object. Surpassing this limit causes 
-an index to transition to a ``stale`` queryable state, which may result in stale query results. 
+embedded parent document counts as a single object. Surpassing this limit may 
+result in stale query results. 
 
 Using the ``embeddedDocuments`` field type can result in indexing objects over
 this index size limit, because each indexed embedded document is counted as a single object. 

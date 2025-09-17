@@ -20,7 +20,7 @@ namespace MongoSearchExamples
                 var database = client.GetDatabase("sample_mflix");
                 var collection = database.GetCollection<BsonDocument>("movies");
 
-                // Define your Atlas Search index
+                // Define your MongoDB Search index
                 var indexDefinition = new BsonDocument
                 {
                     { "name", "partial-match-tutorial-autocomplete" },

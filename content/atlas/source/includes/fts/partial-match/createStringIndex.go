@@ -28,7 +28,7 @@ func main() {
 	database := client.Database("sample_mflix")
 	collection := database.Collection("movies")
 
-	// Define your Atlas Search index
+	// Define your MongoDB Search index
 	indexModel := mongo.SearchIndexModel{
 		Definition: bson.D{
 			{Key: "mappings", Value: bson.D{

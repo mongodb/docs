@@ -11,7 +11,7 @@ async function createSearchIndex() {
     await client.connect();
     const database = client.db('<databaseName>');
 
-    // Create an Atlas Search index on the objectId field
+    // Create a MongoDB Search index on the objectId field
     await database.command({
       createSearchIndexes: '<collectionName>',
       indexes: [{

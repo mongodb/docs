@@ -29,7 +29,7 @@ func main() {
 	const indexName = "monthlySalesIndex"
 	opts := options.SearchIndexes().SetName(indexName).SetType("search")
 
-	// Define the Atlas Search index
+	// Define the MongoDB Search index
 	searchIndexModel := mongo.SearchIndexModel{
 		Definition: bson.D{
 			{"mappings", bson.D{

@@ -5,7 +5,7 @@ var uri = "<connection-string>";
 var client = new MongoClient(uri);
 var db = client.GetDatabase("sample_analytics");
 var collection = db.GetCollection<BsonDocument>("customers");
-// Create the Atlas Search index definition for the boolean field
+// Create the MongoDB Search index definition for the boolean field
 var index =  new CreateSearchIndexModel(
   "default", new BsonDocument
   {

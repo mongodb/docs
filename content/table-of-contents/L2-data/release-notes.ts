@@ -175,21 +175,23 @@ const tocData: TocItem[] = [
         url: "/docs/atlas/atlas-stream-processing/changelog",
       },
       {
-        label: "Atlas Search",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/atlas-search/changelog",
-      },
-      {
-        label: "Atlas Vector Search",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/atlas-vector-search/changelog",
-      },
-      {
         label: "MongoDB Charts",
         contentSite: "charts",
         url: "/docs/charts/release-notes/",
       },
     ],
+  },
+  {
+    label: "Search Release Notes",
+    contentSite: "cloud-docs",
+    url: "/docs/atlas/atlas-search/changelog",
+    collapsible: false,
+  },
+  {
+    label: "Vector Search Release Notes",
+    contentSite: "cloud-docs",
+    url: "/docs/atlas/atlas-vector-search/changelog",
+    collapsible: false,
   },
 ]
 

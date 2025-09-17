@@ -20,7 +20,7 @@ public class CreateStaticIndex {
                             .append("source", new Document("collection", "synonymous_terms"))
             );
 
-            // Create the Atlas Search index definition for the plot field with synonyms
+            // Create the MongoDB Search index definition for the plot field with synonyms
             Document searchIdx = new Document(
                     "mappings",
                     new Document("dynamic", false)

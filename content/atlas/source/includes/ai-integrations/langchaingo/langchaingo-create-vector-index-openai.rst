@@ -42,7 +42,7 @@ in your ``main()`` function. Add the following code to the end of your
    :start-after: start-search-index-example
    :end-before: end-search-index-example
 
-Save the file, then run the following command to create your Atlas Vector Search
+Save the file, then run the following command to create your {+avs+}
 index.
 
 .. io-code-block::

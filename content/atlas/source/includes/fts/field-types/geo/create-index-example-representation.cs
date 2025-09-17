@@ -9,7 +9,7 @@ var client = new MongoClient(uri);
 var db = client.GetDatabase("sample_airbnb");
 var collection = db.GetCollection<BsonDocument>("listingsAndReviews");
 
-// Create the Atlas Search index definition for the geo field
+// Create the MongoDB Search index definition for the geo field
 var index =  new CreateSearchIndexModel(
   "default", new BsonDocument
   {

@@ -14,7 +14,7 @@ public class CreateObjectIdIndex {
             MongoDatabase database = mongoClient.getDatabase("<databaseName>");
             MongoCollection<Document> collection = database.getCollection("<collectionName>");
 
-            // Create Atlas Search index definition
+            // Create MongoDB Search index definition
             Document index = new Document("mappings",
                     new Document("dynamic", true | false)
                         .append("fields", new Document("<fieldName>", 

@@ -79,7 +79,7 @@ func main() {
 		log.Fatalf("Failed to create an embedder: %v", err)
 	}
 
-	// Creates a new MongoDB Atlas vector store
+	// Creates a new MongoDB vector store
 	store := mongovector.New(coll, embedder, mongovector.WithIndex(indexName), mongovector.WithPath("embeddings"))
 
 	// Checks if the collection is empty, and if empty, adds documents to the MongoDB Atlas database vector store

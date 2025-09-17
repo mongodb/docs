@@ -12,7 +12,7 @@ atlas deployments search indexes list
    :depth: 1
    :class: singlecol
 
-List all Atlas Search indexes for a deployment.
+List all {+fts+} Indexes for a deployment.
 
 Syntax
 ------

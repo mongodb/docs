@@ -10,7 +10,7 @@
 
       On the :guilabel:`Database` screen, click the ``sample_airbnb`` database, then click the ``airbnb_mat_view`` collection.
 
-   .. step:: Run the following Atlas Search query using the operator for which you created the index.
+   .. step:: Run the following MongoDB Search query using the operator for which you created the index.
 
       .. include:: /includes/fts/extracts/fts-query-intro.rst 
 

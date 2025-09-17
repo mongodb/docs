@@ -8,7 +8,7 @@ client = MongoClient(uri)
 database = client["sample_mflix"]
 collection = database["movies"]
 
-# Create the Atlas Search index definition
+# Create the MongoDB Search index definition
 search_index_model = SearchIndexModel(
     definition={
         "mappings": {

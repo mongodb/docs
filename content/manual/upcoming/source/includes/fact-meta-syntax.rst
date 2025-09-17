@@ -32,8 +32,8 @@ The |meta-object| expression can specify the following values as the
        ``$text`` query, returns a score of |empty-value|.
 
        ``$text`` provides text query capabilities for self-managed (non-Atlas) 
-       deployments. For data hosted on MongoDB Atlas, MongoDB offers an improved 
-       full-text query solution, :atlas:`Atlas Search </atlas-search/>`.
+       deployments. For data hosted on MongoDB, MongoDB also offers an improved 
+       full-text query solution, :atlas:`{+fts+} </atlas-search/>`.
 
    * - ``"indexKey"``
 
@@ -43,11 +43,11 @@ The |meta-object| expression can specify the following values as the
        application logic, and is preferred over
        :method:`cursor.returnKey()`.
 
-:atlas:`MongoDB Atlas Search </full-text-search>` provides
+:atlas:`{+fts+} </full-text-search>` provides
 additional ``$meta`` keywords, such as:
 
 - :atlas:`"searchScore" </atlas-search/scoring>`
 - :atlas:`"searchHighlights" </atlas-search/highlighting>`
 - :atlas:`"searchSequenceToken" </atlas-search/paginate-results>`
 
-Refer to the Atlas Search documentation for details.
+Refer to the {+fts+} documentation for details.

@@ -13,7 +13,7 @@ async function run() {
     const companiesCollection = database.collection("companies");
     const inspectionsCollection = database.collection("inspections");
 
-    // Create the Atlas Search index definition with dynamic mapping
+    // Create the MongoDB Search index definition with dynamic mapping
     const index = {
         name: "default",
         definition: {

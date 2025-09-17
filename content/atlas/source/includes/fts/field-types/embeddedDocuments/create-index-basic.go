@@ -29,7 +29,7 @@ func main() {
 	const indexName = "default"
 	opts := options.SearchIndexes().SetName(indexName).SetType("search")
 
-	// Define the Atlas Search index for the embeddedDocuments field
+	// Define the MongoDB Search index for the embeddedDocuments field
 	searchIndexModel := mongo.SearchIndexModel{
 		Definition: bson.D{
 			{"mappings", bson.D{

@@ -1,0 +1,116 @@
+.. _mongot-sizing-architecture-patterns:
+
+=======================================
+mongot Deployment Architecture Patterns
+=======================================
+
+.. meta::
+   :description: Learn about different mongot architecture patterns to decide the best topology for your use case.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+When designing MongoDB systems that utilize MongoDB Search and MongoDB
+Vector Search, there are two common deployment types:
+
+- A co-located architecture where ``mongod`` and ``mongot`` processes
+  share the same host. This architecture is suitable for development and
+  small search or vector search workloads.
+
+- A dedicated infrastructure model where ``mongod`` and ``mongot``
+  processes run on separate machines, each sized according to the needs
+  of each workload. This infrastructure is recommended for applications
+  that demand high availability, sharding, or substantial search or
+  vector workloads with heavy search queries and indexing.
+
+This section describes both deployment types. It also describes the
+implications of deploying ``mongot`` in sharded MongoDB clusters.
+
+Co-Located Architecture
+-----------------------
+
+This is the simplest architecture, recommended for development
+environments or any situation that requires quick iteration. It excels
+in rapid prototyping and requires the least amount of configuration.
+
+The deployment consists of a single machine running both
+``mongod`` and ``mongot`` processes.  All communication can take
+place over ``localhost`` addresses, and all authentication and
+security features can be disabled or made more permissive.
+
+For most small search workloads, you can expand this architecture to a
+multi-node replica set. Use caution when implementing a co-located
+architecture, and monitor for signs of resource contention.
+
+.. figure:: /images/mongot-sizing/colocated.png
+   :alt: Diagram showing a co-located mongot deployment
+   :figwidth: 700px
+
+Dedicated Infrastructure
+------------------------
+
+This is a general-purpose architecture, recommended for production
+environments. Dedicated infrastructure accommodates both
+horizontal and vertical scalability for both the database nodes
+and search nodes.
+
+The deployment consists of at least three machines running ``mongod`` in
+a replica set configuration, and at least two machines running
+``mongot``.  To provide high availability when querying Search, the
+``mongod`` nodes require an application-level load balancer. Consider a
+load balancer like Envoy, and use a load balancing strategy such as
+per-request round-robin.
+
+No load balancing is required in the opposite direction.
+``mongot`` automatically chooses a ``mongod`` node to communicate
+with for data replication and the index catalog data based on its
+configuration.
+
+.. figure:: /images/mongot-sizing/dedicated.png
+   :alt: Diagram showing a dedicated infrastructure mongot deployment
+   :figwidth: 700px
+
+Sharded Topology
+----------------
+
+This architecture is similar to the dedicated infrastructure
+architecture, but the replica set configuration is duplicated to
+each individual shard.
+
+.. note::
+   
+   Even though you should only configure ``mongot`` to replicate
+   from one shard, ``mongot`` still requires the router address
+   to be configured in order to access the index catalog.
+
+With the sharded topology architecture, ``mongot`` only belongs to
+a single shard at a time. As a result, load balancers within each
+shard should only be configured to direct traffic to that individual shard.
+
+If you add shards to a collection with an existing MongoDB Search
+index, an initial sync occurs on the newly added shards for that
+MongoDB Search index. Each shard's MongoDB Search index contains
+only the documents from the collection that exist on that shard.
+To learn more, see :ref:`shard-global-collection`.
+
+.. warning::
+
+	If you shard a collection that already has a MongoDB Search index,
+	you might experience a period of search query downtime while the
+	index builds on the new shards.
+	
+	Also, if you add a shard for an already sharded collection that
+	contains a MongoDB Search index, your search queries against that
+	collection will fail until the initial sync process completes on the
+	added shards. To learn more, see :ref:`troubleshoot-initial-sync`.
+
+.. figure:: /images/mongot-sizing/sharded.png
+   :alt: Diagram showing a sharded mongot deployment
+   :figwidth: 700px

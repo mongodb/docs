@@ -32,7 +32,7 @@
          # Define collection
          collection = client[db_name][collection_name]
    
-   .. step:: Define the Atlas Vector Search index.
+   .. step:: Define the A{+avs+} index.
 
       Run the following code to create an index of the :ref:`vectorSearch
       <avs-types-vector-search>` type. The ``embedding`` field

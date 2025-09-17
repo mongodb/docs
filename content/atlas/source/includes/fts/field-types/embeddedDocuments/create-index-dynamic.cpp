@@ -21,7 +21,7 @@ int main() {
     auto collection = db["sales"];
     auto siv = collection.search_indexes();
 
-    // Create the Atlas Search index definition for the embeddedDocuments field with dynamic mapping
+    // Create the MongoDB Search index definition for the embeddedDocuments field with dynamic mapping
     auto name = "default";
     auto definition = make_document(
         kvp("mappings", make_document(

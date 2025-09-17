@@ -11,7 +11,7 @@ public class CreateIndexExample {
             MongoCollection<Document> collection = database.getCollection("movies");
             String indexName = "default";
 
-            // Create the Atlas Search index definition for the document field
+            // Create the MongoDB Search index definition for the document field
             Document searchIdx = new Document(
                     "mappings",
                     new Document("dynamic", false)

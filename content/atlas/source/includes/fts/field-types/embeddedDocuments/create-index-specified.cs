@@ -9,7 +9,7 @@ var client = new MongoClient(uri);
 var db = client.GetDatabase("sample_supplies");
 var collection = db.GetCollection<BsonDocument>("sales");
 
-// Create the Atlas Search index definition for the embeddedDocuments field with specified fields
+// Create the MongoDB Search index definition for the embeddedDocuments field with specified fields
 var index =  new CreateSearchIndexModel(
   "default", new BsonDocument
   {

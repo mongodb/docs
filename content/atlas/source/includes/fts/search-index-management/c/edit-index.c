@@ -38,7 +38,7 @@ int main (void)
         goto cleanup;
     }
 
-    // Update the Atlas search index by running the command
+    // Update the MongoDB search index by running the command
     if (!mongoc_collection_command_simple (collection, &cmd, NULL, NULL, &error)) {
         fprintf(stderr, "Failed to run updateSearchIndex: %s\n", error.message);
         ok = false;

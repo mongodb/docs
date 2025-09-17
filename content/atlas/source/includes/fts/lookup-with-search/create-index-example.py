@@ -8,7 +8,7 @@ client = MongoClient(uri)
 database = client["sample_analytics"]
 collection = database["accounts"]
 
-# Create the Atlas Search index definition for the document field
+# Create the MongoDB Search index definition for the document field
 search_index_model = SearchIndexModel(
     definition={
         "mappings": {

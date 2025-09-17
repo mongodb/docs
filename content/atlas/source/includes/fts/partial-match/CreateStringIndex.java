@@ -14,7 +14,7 @@ public class CreateStringIndex {
             MongoDatabase database = mongoClient.getDatabase("sample_mflix");
             MongoCollection<Document> collection = database.getCollection("movies");
 
-            // define your Atlas Search index
+            // define your MongoDB Search index
             Document indexDefinition = new Document("mappings", 
                 new Document("dynamic", false)
                     .append("fields", 

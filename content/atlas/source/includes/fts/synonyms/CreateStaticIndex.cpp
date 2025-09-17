@@ -21,7 +21,7 @@ int main() {
     auto collection = db["movies"];
     auto siv = collection.search_indexes();
 
-    // Create the Atlas Search index definition for the plot field with synonyms
+    // Create the MongoDB Search index definition for the plot field with synonyms
     auto name = "default";
     auto synonyms = bsoncxx::builder::basic::make_array(
         make_document(

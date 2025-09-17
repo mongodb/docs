@@ -13,8 +13,8 @@
          { "title" : "Germany Pale Mother", "highlights" : [{ "path" : "title", "score" : 0.92276901006698608, "texts" : [{ "type" : "Hit", "value" : "Germany Pale Mother" }] }], "score" : 6.0822906494140625 }
          { "title" : "Gerhard Richter - Painting", "highlights" : [{ "path" : "title", "score" : 0.93867748975753784, "texts" : [{ "type" : "Hit", "value" : "Gerhard Richter - Painting" }] }], "score" : 6.0822906494140625 }
 
-      Atlas Search returns these results because the characters ``ger``
-      appear at the left side of a word in all the titles. Atlas Search
+      {+fts+}  returns these results because the characters ``ger``
+      appear at the left side of a word in all the titles. {+fts+}
       matches a highlight ``hit`` more coarsely to your query terms when
       a highlighted path is referenced only in the autocomplete
       operators of the highlighted query.
@@ -32,8 +32,8 @@
          { "title" : "Love and Anger", "highlights" : [{ "path" : "title", "score" : 0.91065597534179688, "texts" : [{ "type" : "Hit", "value" : "Love and Anger" }] }], "score" : 4.5206832885742188 }
          { "title" : "Save the Tiger", "highlights" : [{ "path" : "title", "score" : 0.91065597534179688, "texts" : [{ "type" : "Hit", "value" : "Save the Tiger" }] }], "score" : 4.5206832885742188 }
 
-      Atlas Search returns these results because the characters ``ger``
-      appear at the right side of a word in all the titles. Atlas Search
+      {+fts+}  returns these results because the characters ``ger``
+      appear at the right side of a word in all the titles. {+fts+}
       matches a highlight ``hit`` more coarsely to your query terms when
       a highlighted path is referenced only in the autocomplete
       operators of the highlighted query.
@@ -51,8 +51,8 @@
          { "title" : "When a Stranger Calls Back", "highlights" : [{ "path" : "title", "score" : 0.60086840391159058, "texts" : [{ "type" : "Hit", "value" : "When a Stranger Calls Back" }] }], "score" : 4.2667369842529297 }
          { "title" : "Carol Channing: Larger Than Life", "highlights" : [{ "path" : "title", "score" : 0.61540728807449341, "texts" : [{ "type" : "Hit", "value" : "Carol Channing: Larger Than Life" }] }], "score" : 4.2667369842529297 }
        
-      Atlas Search returns these results because the characters
-      ``ger`` appear at different positions in the titles. Atlas Search
+      {+fts+}  returns these results because the characters
+      ``ger`` appear at different positions in the titles. {+fts+}
       matches a highlight ``hit`` more coarsely to your query terms when
       a highlighted path is referenced only in the autocomplete
       operators of the highlighted query.

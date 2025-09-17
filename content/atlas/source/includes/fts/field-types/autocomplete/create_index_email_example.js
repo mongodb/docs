@@ -12,7 +12,7 @@ async function run() {
     const database = client.db("sample_mflix");
     const collection = database.collection("users");
 
-    // define your Atlas Search index
+    // define your MongoDB Search index
     const index = {
       name: "default",
       definition: {

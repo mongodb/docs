@@ -18,7 +18,7 @@ the materialized view each month.
 
 .. include:: /includes/fts/materialized-view/procedures/steps-fts-materialized-create-update-view-mongosh.rst
 
-Create an Atlas Search Index on the Materialized View
+Create a {+fts} Index on the Materialized View
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In this section, you can learn how to create an |fts| index on the ``monthlyPhoneTransactions``

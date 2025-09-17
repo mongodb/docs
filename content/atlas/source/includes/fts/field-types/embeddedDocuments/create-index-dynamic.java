@@ -11,7 +11,7 @@ public class CreateIndex {
             MongoCollection<Document> collection = database.getCollection("sales");
             String indexName = "default";
 
-            // Create the Atlas Search index definition for the embeddedDocuments field with dynamic mapping
+            // Create the MongoDB Search index definition for the embeddedDocuments field with dynamic mapping
             Document searchIdx = new Document(
                     "mappings",
                     new Document("dynamic", true)

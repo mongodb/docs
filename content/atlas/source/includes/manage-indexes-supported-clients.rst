@@ -1,3 +1,5 @@
+.. _fts-manage-indexes:
+
 Supported Clients
 -----------------
 

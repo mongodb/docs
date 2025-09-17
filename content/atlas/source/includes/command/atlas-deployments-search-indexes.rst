@@ -52,7 +52,7 @@ Related Commands
 * :ref:`atlas-deployments-search-indexes-create` - Create a search index for the specified deployment.
 * :ref:`atlas-deployments-search-indexes-delete` - Delete the specified search index from the specified deployment.
 * :ref:`atlas-deployments-search-indexes-describe` - Describe a search index for the specified deployment.
-* :ref:`atlas-deployments-search-indexes-list` - List all Atlas Search indexes for a deployment.
+* :ref:`atlas-deployments-search-indexes-list` - List all {+fts+} Indexes for a deployment.
 
 
 .. toctree::

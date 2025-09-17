@@ -5,7 +5,7 @@ fail.
 
 - Do not start the resharding process if there are ongoing index builds.
 
-If the collection you're resharding uses :atlas:`Atlas Search
+If the collection you're resharding uses :atlas:`{+fts+}
 </atlas-search>`, the search index becomes unavailable when the
 resharding operation completes. You need to manually rebuild the
 search index once the resharding operation completes.

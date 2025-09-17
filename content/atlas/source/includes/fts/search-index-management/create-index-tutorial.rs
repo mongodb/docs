@@ -14,7 +14,7 @@ async fn main() -> mongodb::error::Result<()> {
         .database("sample_mflix")
         .collection("movies");
 
-    // Defines your Atlas Search index
+    // Defines your MongoDB Search index
     let index = doc! {
         "mappings": doc! {
             "dynamic": true

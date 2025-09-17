@@ -2463,7 +2463,7 @@
    * - ``FTS_INDEX_DELETION_FAILED``
      - .. _atlas_event_fts_index_deletion_failed:
 
-       Failed to delete Atlas Search indexes
+       Failed to delete {+fts+} indexes
      - yes
 
    * - ``FTS_INDEX_UPDATED``

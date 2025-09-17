@@ -5,7 +5,7 @@ async function run() {
     const collection = database.collection("test");
     const dbConfig = {  
       collection: collection,
-      indexName: "vector_index", // The name of the Atlas Search index to use.
+      indexName: "vector_index", // The name of the MongoDB Search index to use.
       textKey: "text", // Field name for the raw text content. Defaults to "text".
       embeddingKey: "embedding", // Field name for the vector embeddings. Defaults to "embedding".
     };

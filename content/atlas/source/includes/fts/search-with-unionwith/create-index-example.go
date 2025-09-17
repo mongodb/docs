@@ -33,7 +33,7 @@ func main() {
 	const indexName = "default"
 	opts := options.SearchIndexes().SetName(indexName).SetType("search")
 
-	// Define the Atlas Search index with dynamic mapping
+	// Define the MongoDB Search index with dynamic mapping
 	searchIndexModel := mongo.SearchIndexModel{
 		Definition: bson.D{
 			{"mappings", bson.D{

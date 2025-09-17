@@ -44,7 +44,7 @@ Options
    * - -f, --file
      - string
      - true
-     - Name of the JSON index configuration file to use. To learn about the Atlas Search Nodes configuration file, see https://dochub.mongodb.org/core/search-nodes-config-file-atlascli.
+     - Name of the JSON index configuration file to use. To learn about the {+fts+} Nodes configuration file, see https://dochub.mongodb.org/core/search-nodes-config-file-atlascli.
    * - -h, --help
      -
      - false

@@ -12,7 +12,7 @@ atlas clusters search
    :depth: 1
    :class: singlecol
 
-Manage Atlas Search for your cluster.
+Manage {+fts+} for your cluster.
 
 Options
 -------
@@ -49,8 +49,8 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-clusters-search-indexes` - Manage Atlas Search indexes for your cluster.
-* :ref:`atlas-clusters-search-nodes` - Manage Atlas Search nodes for your cluster.
+* :ref:`atlas-clusters-search-indexes` - Manage {+fts+} Indexes for your cluster.
+* :ref:`atlas-clusters-search-nodes` - Manage MongoDB Search nodes for your cluster.
 
 
 .. toctree::

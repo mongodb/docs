@@ -1,0 +1,159 @@
+.. _verify-integrity-mongot-packages:
+
+===================================
+Verify Integrity of mongot Packages
+===================================
+
+.. meta::
+   :keywords: on-prem
+   :description: Verify mongot package integrity using PEM files with Cosign or PGP signatures.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The MongoDB search release team digitally signs all software packages to 
+certify that a particular ``mongot`` package is a valid and unaltered 
+``mongot`` release. Before installing ``mongot``, you should validate the
+container image or the tarball.
+
+Verify Docker Container Image
+-----------------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Download the PEM file
+
+      Run the following command to save the PEM file as ``mongodb-search-community.pem``:
+
+      .. code-block:: bash
+         :copyable: true
+         
+         curl -fsSL https://cosign.mongodb.com/mongodb-search-community.pem -o mongodb-search-community.pem
+      
+   .. step:: Verify the container image
+
+      .. code-block:: bash
+         :copyable: true
+
+         COSIGN_REPOSITORY=docker.io/mongodb/signatures cosign verify  --private-infrastructure --key=./mongodb-search-community.pem "docker.io/mongodb/mongodb-community-search:0.53.1"
+
+      The output should be similar to the following:
+
+      .. code-block:: none
+         :copyable: false
+
+         Verification for index.docker.io/mongodb/mongodb-community-search:0.53.1 --
+         The following checks were performed on each of these signatures:
+           - The cosign claims were validated
+           - The signatures were verified against the specified public key
+         
+         [{"critical":{"identity":{"docker-reference":"docker.io/mongodb/mongodb-community-search:0.53.1"},
+          "image":{"docker-manifest-digest":"sha256:b41f73a33aa62a62596b6aeaf4c177e47dc3a5901701f6d8d46f498a45f7ac53"},
+          "type":"cosign container image signature"},"optional":null}]
+
+
+Verify Tarball
+--------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Download the PGP key
+
+      Run the following command to save the PGP key as ``atlas-search.asc``:
+
+      .. code-block:: bash
+         :copyable: true
+
+         wget https://pgp.mongodb.com/atlas-search.asc
+
+   .. step:: Add the key to your keyring
+
+      .. code-block:: bash
+         :copyable: true
+
+         gpg --import atlas-search.asc
+
+   .. step:: Download the tarball signature
+
+      Download the tarball signature for the system architecture and version.
+
+      .. tabs::
+      
+         .. tab:: ARM Architectures
+            :tabid: arm-arch
+
+            .. code-block:: bash
+               :copyable: true
+
+               wget https://downloads.mongodb.org/mongodb-search-community/0.53.1/mongot_community_0.53.1_linux_aarch64.tgz.sig
+
+         .. tab:: AMD x86_64 Architectures
+            :tabid: amd-arch
+
+            .. code-block:: bash
+               :copyable: true
+
+               wget https://downloads.mongodb.org/mongodb-search-community/0.53.1/mongot_community_0.53.1_linux_x86_64.tgz.sig
+
+      To download a different version, replace instances of ``0.53.1`` with the desired version number.
+
+   .. step:: Download the tarball
+
+      .. tabs::
+      
+         .. tab:: ARM Architectures
+            :tabid: arm-arch
+
+            .. code-block:: bash
+               :copyable: true
+
+               wget https://downloads.mongodb.org/mongodb-search-community/0.53.1/mongot_community_0.53.1_linux_aarch64.tgz
+
+         .. tab:: AMD x86_64 Architectures
+            :tabid: amd-arch
+
+            .. code-block:: bash
+               :copyable: true
+
+               wget https://downloads.mongodb.org/mongodb-search-community/0.53.1/mongot_community_0.53._linux_x86_64.tgz
+
+      To download a different version, replace instances of ``0.53.1`` with the desired version number.
+
+   .. step:: Verify the tarball
+
+      .. tabs::
+      
+         .. tab:: ARM Architectures
+            :tabid: arm-arch
+
+            .. code-block:: bash
+               :copyable: true
+
+               gpg --verify mongot_community_0.53.1_linux_aarch64.tgz.sig mongot_community_0.53.1_linux_aarch64.tgz 
+
+         .. tab:: AMD x86_64 Architectures
+            :tabid: amd-arch
+
+            .. code-block:: bash
+               :copyable: true
+
+               gpg --verify mongot_community_0.53.1_linux_x86_64.tgz.sig mongot_community_0.53.1_linux_x86_64.tgz
+
+      To verify a different version, replace instances of ``0.53.1`` with the desired version number.
+
+      The output should be similar to the following:
+
+      .. code-block:: none
+         :copyable: false
+
+         gpg: Signature made Fri Sep  5 15:37:47 2025 PDT
+         gpg:                using RSA key 55C58636FD6CEE2B789B6F49516C2412904B6C26
+         gpg: Good signature from "MongoDB Atlas Search Release Signing Key <packaging@mongodb.com>" [unknown]
+         gpg: WARNING: This key is not certified with a trusted signature!
+         gpg:          There is no indication that the signature belongs to the owner.
+         Primary key fingerprint: 55C5 8636 FD6C EE2B 789B  6F49 516C 2412 904B 6C26

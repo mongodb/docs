@@ -20,7 +20,7 @@ public class CreateDynamicIndex {
                             .append("source", new Document("collection", "synonymous_terms"))
             );
 
-            // Create the Atlas Search index definition
+            // Create the MongoDB Search index definition
             Document searchIdx = new Document(
                     "mappings",
                     new Document("dynamic", true)

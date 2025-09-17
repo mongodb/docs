@@ -8,7 +8,7 @@ async function run() {
       const database = client.db("sample_mflix");
       const collection = database.collection("embedded_movies");
 
-      // Define your Atlas Search index
+      // Define your MongoDB Search index
       const index = {
           name: "hybrid-full-text-search",
           type: "search",

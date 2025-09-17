@@ -13,7 +13,7 @@ async function run() {
     const database = client.db("<database>");
     const collection = database.collection("<collection>");
     
-    // define your Atlas Search index
+    // define your MongoDB Search index
     const index = {
         name: "facet-tutorial",
         definition: {

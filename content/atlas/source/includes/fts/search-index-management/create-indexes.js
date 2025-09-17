@@ -10,7 +10,7 @@ async function run() {
     const database = client.db("<databaseName>");
     const collection = database.collection("<collectionName>");
 
-    // define an array of Atlas Search indexes
+    // define an array of MongoDB Search indexes
     const indexes = [
         {
             name: "<first-index-name>",

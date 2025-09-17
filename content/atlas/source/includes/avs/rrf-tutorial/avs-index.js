@@ -8,7 +8,7 @@ async function run() {
       const database = client.db("sample_mflix");
       const collection = database.collection("embedded_movies");
 
-      // Define your Atlas Vector Search index
+      // define your MongoDB Vector Search index
       const index = {
           name: "hybrid-vector-search",
           type: "vectorSearch",

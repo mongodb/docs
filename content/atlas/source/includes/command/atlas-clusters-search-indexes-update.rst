@@ -60,7 +60,7 @@ Options
    * - -f, --file
      - string
      - false
-     - Name of the JSON index configuration file to use. To learn about the Atlas Search and Atlas Vector Search index configuration file, see https://dochub.mongodb.org/core/search-index-config-file-atlascli. To learn about the Atlas Search index syntax and options that you can define in your configuration file, see https://dochub.mongodb.org/core/index-definitions-fts. To learn about the Atlas Vector Search index syntax and options that you can define in your configuration file, see https://dochub.mongodb.org/core/index-definition-avs.
+     - Name of the JSON index configuration file to use. To learn about the {+fts+} and {+avs+} index configuration file, see https://dochub.mongodb.org/core/search-index-config-file-atlascli. To learn about the MongoDB Search index syntax and options that you can define in your configuration file, see https://dochub.mongodb.org/core/index-definitions-fts. To learn about the MongoDB Vector Search index syntax and options that you can define in your configuration file, see https://dochub.mongodb.org/core/index-definition-avs.
    * - -h, --help
      -
      - false

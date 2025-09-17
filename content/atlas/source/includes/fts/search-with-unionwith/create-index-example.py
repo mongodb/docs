@@ -11,7 +11,7 @@ database = client["sample_training"]
 companies_collection = database["companies"]
 inspections_collection = database["inspections"]
 
-# Create the Atlas Search index definition with dynamic mapping
+# Create the MongoDB Search index definition with dynamic mapping
 search_index_model = SearchIndexModel(
     definition={
         "mappings": {

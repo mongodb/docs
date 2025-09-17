@@ -175,7 +175,7 @@ Related Commands
 * :ref:`atlas-api-accessTracking` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns access logs for authentication attempts made to Atlas database deployments.
 * :ref:`atlas-api-alertConfigurations` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns and edits the conditions that trigger alerts and how MongoDB Cloud notifies users.
 * :ref:`atlas-api-alerts` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns and acknowledges alerts that MongoDB Cloud triggers based on the alert conditions that you define.
-* :ref:`atlas-api-atlasSearch` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, edits, and removes Atlas Search indexes for the specified cluster.
+* :ref:`atlas-api-atlasSearch` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, edits, and removes {+fts+} Indexes for the specified cluster.
 * :ref:`atlas-api-auditing` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns and edits database auditing settings for MongoDB Cloud projects.
 * :ref:`atlas-api-awsClustersDns` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns and edits custom DNS configurations for MongoDB Cloud database deployments on AWS.
 * :ref:`atlas-api-cloudBackups` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Manages Cloud Backup snapshots, snapshot export buckets, restore jobs, and schedules.

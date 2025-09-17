@@ -6,7 +6,7 @@ async function run() {
   try {
     const database = client.db("<database>");
     const collection = database.collection("<collection>");
-    // Create the Atlas Search index definition for the boolean field
+    // Create the MongoDB Search index definition for the boolean field
     const index = {
         name: "default",
         definition: {

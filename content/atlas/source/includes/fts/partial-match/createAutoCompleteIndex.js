@@ -12,7 +12,7 @@ async function run() {
     const database = client.db("sample_mflix");
     const collection = database.collection("movies");
 
-    // define your Atlas Search index
+    // define your MongoDB Search index
     const index = {
       name: "partial-match-tutorial-autocomplete",
       definition: {

@@ -14,7 +14,7 @@ public class CreateBooleanIndex {
             MongoDatabase database = mongoClient.getDatabase("sample_analytics");
             MongoCollection<Document> collection = database.getCollection("customers");
 
-            // Create Atlas Search index definition
+            // Create MongoDB Search index definition
             Document index = new Document("mappings",
                     new Document("dynamic", false)
                         .append("fields", new Document("active", 

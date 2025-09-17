@@ -15,7 +15,7 @@ public class CreateIndexExample {
             
             String indexName = "default";
 
-            // Create the Atlas Search index definition with dynamic mapping
+            // Create the MongoDB Search index definition with dynamic mapping
             Document searchIdx = new Document(
                     "mappings",
                     new Document("dynamic", true)

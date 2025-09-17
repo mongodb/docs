@@ -1,6 +1,6 @@
 MongoDB also provides the following developer resources:
 
-- :website:`Building AI Applications with Microsoft Semantic Kernel and MongoDB Atlas Vector Search </developer/products/atlas/atlas-semantic-kernel/>`
+- :website:`Building AI Applications with Microsoft Semantic Kernel and MongoDB Vector Search </developer/products/atlas/atlas-semantic-kernel/>`
 - :github:`MongoDB Developer GitHub Repository </mongodb-developer>`
 
 .. seealso:: 

@@ -12,7 +12,7 @@ atlas clusters search indexes
    :depth: 1
    :class: singlecol
 
-Manage Atlas Search indexes for your cluster.
+Manage {+fts+} Indexes for your cluster.
 
 Options
 -------
@@ -52,7 +52,7 @@ Related Commands
 * :ref:`atlas-clusters-search-indexes-create` - Create a search index for a cluster.
 * :ref:`atlas-clusters-search-indexes-delete` - Delete the specified search index from the specified cluster.
 * :ref:`atlas-clusters-search-indexes-describe` - Return the details for the search index for a cluster.
-* :ref:`atlas-clusters-search-indexes-list` - List all Atlas Search indexes for a cluster.
+* :ref:`atlas-clusters-search-indexes-list` - List all {+fts+} Indexes for a cluster.
 * :ref:`atlas-clusters-search-indexes-update` - Modify a search index for a cluster.
 
 

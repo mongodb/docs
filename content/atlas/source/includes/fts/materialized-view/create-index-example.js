@@ -10,7 +10,7 @@ async function run() {
     const database = client.db("sample_supplies");
     const collection = database.collection("monthlyPhoneTransactions");
 
-    // Create the Atlas Search index definition
+    // Create the MongoDB Search index definition
     const index = {
         name: "monthlySalesIndex",
         definition: {

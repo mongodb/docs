@@ -3096,9 +3096,8 @@ Key Management Configuration Options
          enableLocalhostAuthBypass: false
    
 
-
-LDAP Parameters
-```````````````
+``setParameter`` LDAP Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. setting:: setParameter.ldapUserCacheInvalidationInterval
 
@@ -3125,6 +3124,135 @@ LDAP Parameters
 
    setParameter:
       ldapUserCacheInvalidationInterval: <int>
+
+.. _set-parameter-search-options:
+
+``setParameter`` MongoDB Search Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. setting:: setParameter.searchIndexManagementHostAndPort
+
+   *Type*: string
+
+   *Default*: ""
+
+   Search index management host address. This parameter specifies the hostname or IP address and port for the search index management server.
+
+   .. note::
+
+      This parameter must have the same value as :setting:`setParameter.mongotHost`.
+
+.. code-block:: yaml
+
+   setParameter:
+      searchIndexManagementHostAndPort: <hostname|IP:port>
+
+.. example::
+
+   .. code-block:: yaml
+
+      setParameter:
+         searchIndexManagementHostAndPort: localhost:27028
+
+.. setting:: setParameter.skipAuthenticationToSearchIndexManagementServer
+
+   *Type*: boolean
+
+   *Default*: true
+
+   Flag that determines whether or not to skip authentication for ``mongod`` for server to index management server connections, 
+   even if authentication is enabled on ``mongod``.
+
+   .. note::
+
+      As a security best practice, we recommend setting this parameter to ``false``.
+
+.. code-block:: yaml
+
+   setParameter:
+      skipAuthenticationToSearchIndexManagementServer: <true|false>
+
+.. setting:: setParameter.mongotHost
+
+   *Type*: string
+
+   *Default*: ""
+
+   ``mongot`` host address. This parameter specifies the hostname or IP address and port for the ``mongot`` server.
+
+   .. note::
+
+      This parameter must have the same value as :setting:`setParameter.searchIndexManagementHostAndPort`.
+
+.. code-block:: yaml
+
+   setParameter:
+      mongotHost: <hostname|IP:port>
+
+.. example::
+
+   .. code-block:: yaml
+
+      setParameter:
+         mongotHost: localhost:27028
+
+.. setting:: setParameter.skipAuthenticationToMongot
+
+   *Type*: boolean
+
+   *Default*: false
+
+   Specifies whether MongoDB skips authentication for ``mongod`` to ``mongot`` connections, even if authentication is enabled on ``mongod``.
+
+   .. note::
+
+      As a security best practice, we recommend leaving this parameter unset or setting it to ``false``.
+
+.. code-block:: yaml
+
+   setParameter:
+      skipAuthenticationToMongot: <true|false>
+
+.. setting:: setParameter.useGrpcForSearch
+
+   *Type*: boolean
+
+   *Default*: false
+
+   Specifies whether or not shards should communicate with ``mongot`` using gRPC.
+
+   .. note::
+
+      You must set this parameter to ``true`` if you're using ``mongot``.
+
+.. code-block:: yaml
+
+   setParameter:
+      useGrpcForSearch: <true|false>
+
+.. setting:: setParameter.searchTLSMode
+
+   *Type*: string
+
+   *Default*: ``globalTLS``
+
+   Sets the |tls| mode for ``mongod`` to ``mongot`` connection. 
+   Setting the ``globalTLS`` value uses 
+   the setting that you specified in :setting:`net.tls.mode`, 
+   while the other settings operate according to their usual behavior.
+
+   You can use the following values for this parameter:
+
+   - ``globalTLS``
+   - ``disabled``
+   - ``allowTLS``
+   - ``preferTLS``
+   - ``requireTLS``
+
+.. code-block:: yaml
+
+   setParameter:
+      searchTLSMode: <globalTLS|disabled|allowTLS|preferTLS|requireTLS>
 
 ``storage`` Options
 ~~~~~~~~~~~~~~~~~~~
@@ -4024,6 +4152,373 @@ LDAP Parameters
    .. |audit-schema-option| replace:: ``auditLog.schema``
 
    .. include:: /includes/security/auditLog-schema-description.rst
+
+.. _mongot-configuration-options:
+
+``mongot``\ Options
+-------------------
+
+Use the following options to configure ``mongot`` with ``mongod`` in Public Preview. 
+
+.. code-block:: yaml
+
+   syncSource:
+      replicaSet: <object>
+         hostAndPort: <string>
+         username: <string>
+         passwordFile: <string>
+         authSource: <string>
+         tls: <boolean>
+         readPreference: <string>
+      router: <object>
+         hostAndPort: <string>
+         username: <string>
+         passwordFile: <string>
+         tls: <boolean>
+      caFile: <string>
+   storage:
+      dataPath: <string>
+   server:
+      grpc:
+         address: <string>
+         tls:
+            mode: <string>
+            certificateKeyFile: <string>
+            caFile: <string>
+      address: <string>
+   metrics:
+      enabled: <boolean>
+      address: <boolean>
+   healthCheck:
+      address: <string>
+   logging:
+      verbosity: <string>
+      logPath: <string>
+
+.. setting:: syncSource.replicaSet
+
+   *Type*: Object
+
+   *Necessity*: Required
+
+   Replication connections to ``mongod`` for ``mongot``.
+
+.. setting:: syncSource.replicaSet.hostAndPort
+
+   *Type*: String
+
+   *Necessity*: Required
+
+   One or more host and port specifiers to use to construct the
+   seed list in ``mongod`` connection string. Regardless of the
+   number of host and port specifiers, the connection string
+   is in the replica set mode, not the standalone mode.
+
+.. setting:: syncSource.replicaSet.username
+
+   *Type*: String
+
+   *Necessity*: Required
+
+   Username to use to authenticate ``mongot`` with ``mongod``.
+   The specified user must have the :authrole:`searchCoordinator` role. 
+
+.. setting:: syncSource.replicaSet.passwordFile
+
+   *Type*: String
+
+   *Necessity*: Required
+
+   Path to the file that contains the password that ``mongot``
+   must use to authenticate with ``mongod``. 
+
+.. setting:: syncSource.replicaSet.authSource
+
+   *Type*: String
+
+   *Necessity*: Optional
+
+   Name of the database associated with the ``mongot`` authentication
+   credentials. If unspecified, ``authSource`` defaults to ``admin``.
+
+.. setting:: syncSource.replicaSet.tls
+
+   *Type*: Boolean
+
+   *Necessity*: Optional
+
+   *Default*: false
+
+   Direct passthrough to the :ref:`TLS <uri-options-tls>`
+   connection string option. If omitted, defaults to ``false``. 
+
+.. setting:: syncSource.replicaSet.readPreference
+
+   *Type*: String
+
+   *Necessity*: Optional
+
+   *Default*: secondaryPreferred
+
+   Direct passthrough to the :ref:`readPreference
+   <read-preference>` connection string option. If omitted,
+   defaults to ``secondaryPreferred`` for replica set. 
+
+.. setting:: syncSource.router
+
+   *Type*: Object
+
+   *Necessity*: Conditional
+
+   Replication connections to ``mongos`` for ``mongot``. If
+   omitted, ``mongot`` assumes that it is running in a
+   non-sharded environment. If ``mongot`` is running in a
+   sharded environment and you don't define this setting, the
+   resulting behavior will be undefined. Therefore, this is
+   *required* for sharded clusters.
+
+.. setting:: syncSource.router.hostAndPort
+
+   *Type*: String
+
+   *Necessity*: Required
+
+   One or more host and port specifiers to use to construct the
+   seed list in ``mongos`` connection string. Regardless of the
+   number of host and port specifiers, the connection string
+   is in the replica set mode, not the standalone mode.
+
+.. setting:: syncSource.router.username
+
+   *Type*: String
+
+   *Necessity*: Required
+
+   Username to use to authenticate ``mongot`` with ``mongos``.
+   The specified user must have the :authrole:`searchCoordinator`
+   role.
+
+.. setting:: syncSource.router.passwordFile
+
+   *Type*: String
+
+   *Necessity*: Required
+
+   Path to the file that contains the password that ``mongot``
+   must use to authenticate with ``mongos``. 
+
+.. setting:: syncSource.router.tls
+
+   *Type*: Boolean
+
+   *Necessity*: Optional
+
+   *Default*: false
+
+   Direct passthrough to the :ref:`TLS <uri-options-tls>`
+   connection string option. If omitted, defaults to ``false``. 
+
+.. setting:: syncSource.router.readPreference
+
+   *Type*: String
+
+   *Necessity*: Optional
+
+   Direct passthrough to the :ref:`readPreference
+   <read-preference>` connection string option.
+
+.. setting:: syncSource.caFile
+
+   *Type*: String
+
+   *Necessity*: Optional
+
+   Specifies the Certificate Authority (CA) file that contains trusted
+   certificates for verifying the certificate presented to the endpoint from
+   ``mongod``. The file must contain an X.509 certificate collection in PEM
+   format. If you specify this option, ``mongot`` uses this file instead of the
+   system keystore. 
+
+.. setting:: server
+   
+   *Type*: Object
+      
+   *Necessity*: Required
+
+   Settings for the ``mongot`` query servers. 
+
+.. setting:: server.grpc
+
+   *Type*: Object
+
+   *Necessity*: Optional
+
+   Listen server settings for gRPC communication between the
+   ``mongot`` and ``mongod`` processes. If omitted, MongoDB doesn't
+   start the gRPC listen server. 
+
+.. setting:: server.grpc.address
+
+   *Type*: String
+
+   *Necessity*: Required
+
+   Address on which the gRPC listen server will listen. Address
+   must be in the following format: 
+
+   .. code-block:: 
+
+      <host>:<port>
+
+   .. include:: /includes/search-in-community/global-interface-warning.rst
+   
+.. setting:: server.grpc.tls
+
+   *Type*: Object
+
+   *Necessity*: Optional
+
+   TLS configuration options for the gRPC listen server.
+
+   .. note:: 
+
+      For more information on ``tls`` configuration limitations, see
+      :ref:`mongot-tls-limitations`. 
+
+.. setting:: server.grpc.tls.mode
+
+   *Type*: String
+
+   *Necessity*: Required
+
+   The TLS mode for the gRPC server. Must be either ``"TLS"``, ``"mTLS"``, or
+   ``"disabled"``. 
+
+.. setting:: server.grpc.tls.certificateKeyFile
+
+   *Type*: String
+
+   *Necessity*: Conditional
+
+   Required when ``tls.mode`` is ``"TLS"`` or ``"mTLS"``. Specifies the PEM file
+   that contains a valid X.509 certificate for ``mongot`` using a PKCS#8 private key.
+   ``mongod`` validates this certificate using a Certificate
+   Authority (CA) file that you specify with the ``mongod`` ``--tlsCAFile`` option.
+   
+.. setting:: server.grpc.tls.caFile
+
+   *Type*: String
+
+   *Necessity*: Conditional
+
+   Required when ``tls.mode`` is ``"mTLS"``. Specifies the Certificate Authority
+   (CA) file that contains trusted certificates for verifying the certificate
+   presented to the endpoint from ``mongod``. The file must contain an X.509
+   certificate collection in PEM format.
+
+.. setting:: storage.dataPath
+   
+   *Type*:  String
+      
+   *Necessity*: Required
+      
+   Path that ``mongot`` must use as a base path for storing 
+   index data, and the local index catalog.   
+
+.. setting:: metrics
+
+   *Type*: Object
+
+   *Necessity*: Optional 
+
+   Settings for the ``mongot`` Prometheus metrics endpoint listener.
+
+.. setting:: metrics.enabled
+
+   *Type*: Boolean
+
+   *Necessity*: Required
+
+   Flag that enables the Prometheus metric endpoint. If
+   ``false``, MongoDB parses and validates the syntax of the other
+   configuration options in the metrics block, but doesn't start 
+   metrics listener. 
+
+.. setting:: metrics.address
+
+   *Type*: String
+
+   *Necessity*: Optional
+
+   Socket address (IPv4/6) on which the Prometheus ``/metrics``
+   endpoint is exposed. Address must be in the following
+   format: 
+
+   .. code-block:: shell
+
+      <host>:<port>
+
+   If omitted, defaults to the following address: 
+
+   .. code-block:: shell
+
+      localhost:9946
+      
+.. setting:: healthCheck
+
+   *Type*: Object
+
+   *Necessity*: Optional 
+
+   Setting for the ``mongot`` health check endpoint. You can't
+   disable the health check endpoint, but you can configure its
+   listen address.
+
+.. setting:: healthCheck.address
+   
+   *Type*: String
+      
+   *Necessity*: Optional
+      
+   Address on which the health check listen server listens. Address  
+   must be in the following format:   
+
+   .. code-block:: shell 
+
+      <host>:<port>
+
+   If omitted, defaults to the following address:
+
+   .. code-block:: shell 
+
+      localhost:8080
+
+.. setting:: logging
+
+   *Type*: Object
+
+   *Necessity*: Optional
+
+   Options for logging.
+
+.. setting:: logging.verbosity
+
+   *Type*: String
+
+   *Necessity*: Optional
+
+   Verbosity of logging. Value must be a valid Logback log
+   level. If omitted, defaults to ``INFO``. 
+
+.. setting:: logging.logPath
+
+   *Type*: String
+
+   *Necessity*: Optional
+
+   Path to a file where logs must be written using a Logback
+   file appender. If omitted, MongoDB doesn't create or configure 
+   log file appender.
 
 ``mongos``\ -only Options
 -------------------------

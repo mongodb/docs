@@ -13,11 +13,11 @@ This code also uses an await function to ensure that your search index has :ref:
    :copyable: true 
    :linenos: 
 
-   // Ensure index does not already exist, then create your Atlas Vector Search index
+   // Ensure index does not already exist, then create your MongoDB Vector Search index
    const indexes = await collection.listSearchIndexes("vector_index").toArray();
    if(indexes.length === 0){
 
-      // Define your Atlas Vector Search Index
+      // Define your MongoDB Vector Search Index
       const index = {
          name: "vector_index",
          type: "vectorSearch",

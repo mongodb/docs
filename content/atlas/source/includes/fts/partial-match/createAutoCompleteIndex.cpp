@@ -26,7 +26,7 @@ int main() {
         auto database = client["sample_mflix"];
         auto collection = database["movies"];
 
-        // Define your Atlas Search index
+    // Define your MongoDB Search index
         auto index_doc = document{} 
             << "name" << "partial-match-tutorial-autocomplete"
             << "definition" << open_document

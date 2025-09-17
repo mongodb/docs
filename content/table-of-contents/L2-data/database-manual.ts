@@ -117,14 +117,14 @@ const tocData: TocItem[] = [
     items: AggregationData,
   },
   {
-    label: "Atlas Search",
+    label: "Search",
     contentSite: "cloud-docs",
     url: "/docs/atlas/atlas-search",
     collapsible: true,
     items: SearchData,
   },
   {
-    label: "Atlas Vector Search",
+    label: "Vector Search",
     contentSite: "cloud-docs",
     url: "/docs/atlas/atlas-vector-search/vector-search-overview",
     collapsible: true,

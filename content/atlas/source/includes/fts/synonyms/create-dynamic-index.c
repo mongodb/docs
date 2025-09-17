@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    /* Create the Atlas Search index definition for a dynamic index with synonyms. */
+    /* Create the MongoDB Search index definition for a dynamic index with synonyms. */
     char *cmd_str = bson_strdup_printf (
         BSON_STR ({
             "createSearchIndexes": "%s",

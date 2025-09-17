@@ -21,7 +21,7 @@ int main() {
     auto collection = db["accounts"];
     auto siv = collection.search_indexes();
 
-    // Create the Atlas Search index definition
+    // Create the MongoDB Search index definition
     auto name = "lookup-with-search-tutorial";
     auto definition = make_document(
         kvp("mappings", make_document(

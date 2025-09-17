@@ -12,19 +12,19 @@ following:
      - The following scenarios can cause an index to be in the
        ``BUILDING`` state:
      
-       - Atlas is building the index or re-building the index after an
+       - MongoDB is building the index or re-building the index after an
          edit.
 
-       - Atlas Search cannot keep up with indexing changes to the
+       - {+fts+} cannot keep up with indexing changes to the
          collection. In this case, Atlas rebuilds the index in the
          background.
 
        When the index is in the ``BUILDING`` state:
 
-       - For a new index, Atlas Search cannot use the index for queries
+       - For a new index, {+fts+} cannot use the index for queries
          until the index build is complete.
 
-       - For an existing index, Atlas Search uses the old index
+       - For an existing index, {+fts+} uses the old index
          definition for queries until the index rebuild is complete.
 
        An index in the ``BUILDING`` state may be queryable or
@@ -36,7 +36,7 @@ following:
        An index in the ``DOES_NOT_EXIST`` state is always non-queryable. 
 
    * - ``DELETING``
-     - Atlas is deleting the index.
+     - MongoDB is deleting the index.
 
        An index in the ``DELETING`` state is always non-queryable. 
 
@@ -48,7 +48,7 @@ following:
        non-queryable. 
    
    * - ``PENDING``
-     - Atlas has not yet started building the index.
+     - MongoDB has not yet started building the index.
 
        An index in the ``PENDING`` state is always non-queryable. 
 

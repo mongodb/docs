@@ -12,7 +12,7 @@ atlas clusters search nodes list
    :depth: 1
    :class: singlecol
 
-List all Atlas Search nodes for a cluster.
+List all {+fts+} nodes for a cluster.
 
 To use this command, you must authenticate with a user account, a service account, or an API key with the Project Read Only role.
 
@@ -87,5 +87,5 @@ Examples
 .. code-block::
    :copyable: false
 
-   # Return the JSON-formatted list of Atlas search nodes in the cluster named myCluster:
+   # Return the JSON-formatted list of MongoDB search nodes in the cluster named myCluster:
    atlas clusters search nodes list --clusterName myCluster --output json

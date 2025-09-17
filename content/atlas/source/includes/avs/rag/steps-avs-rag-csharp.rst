@@ -143,7 +143,7 @@
    .. step:: Use {+avs+} to retrieve documents.
 
       In this section, you set up {+avs+} to :ref:`retrieve <rag-retrieval>` 
-      documents from your vector database. To create an Atlas Vector Search
+      documents from your vector database. To create a {+avs+}
       index for a collection using the :driver:`MongoDB C# driver v3.1.0 </csharp/current/quick-start/>`
       or later, perform the following steps:
       

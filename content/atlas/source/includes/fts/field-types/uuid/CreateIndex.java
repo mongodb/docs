@@ -11,7 +11,7 @@ public class CreateIndex {
             MongoCollection<Document> collection = database.getCollection("<collection>");
             String indexName = "default";
 
-            // Create the Atlas Search index definition for the UUID field
+            // Create the MongoDB Search index definition for the UUID field
             Document searchIdx = new Document(
                     "mappings",
                     new Document("dynamic", true|false)

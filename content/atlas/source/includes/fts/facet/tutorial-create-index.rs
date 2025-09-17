@@ -13,7 +13,7 @@ async fn main() -> mongodb::error::Result<()> {
         .database("sample_mflix")
         .collection("movies");
 
-    // Defines your Atlas Search index with facet configuration
+    // Defines your MongoDB Search index with facet configuration
     let index = doc! {
         "mappings": doc! {
             "dynamic": true,

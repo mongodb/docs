@@ -58,7 +58,7 @@ Currently, {+Serverless-instances+} don't support the following actions:
 - Perform :doc:`automated restores </backup-restore-cluster>`
   from backup snapshots.
 
-- Use :doc:`Atlas Search </atlas-search>`.
+- Use :doc:`{+fts+} </atlas-search>`.
 
 - Use :doc:`Online Archive </online-archive/overview>`.
 

@@ -12,7 +12,7 @@ atlas clusters search nodes
    :depth: 1
    :class: singlecol
 
-Manage Atlas Search nodes for your cluster.
+Manage {+fts+} nodes for your cluster.
 
 Options
 -------
@@ -51,7 +51,7 @@ Related Commands
 
 * :ref:`atlas-clusters-search-nodes-create` - Create a search node for a cluster.
 * :ref:`atlas-clusters-search-nodes-delete` - Delete a search node for a cluster.
-* :ref:`atlas-clusters-search-nodes-list` - List all Atlas Search nodes for a cluster.
+* :ref:`atlas-clusters-search-nodes-list` - List all MongoDB Search nodes for a cluster.
 * :ref:`atlas-clusters-search-nodes-update` - Update a search node for a cluster.
 
 

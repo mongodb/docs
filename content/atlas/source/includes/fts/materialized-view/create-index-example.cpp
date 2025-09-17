@@ -21,7 +21,7 @@ int main() {
     auto collection = db["monthlyPhoneTransactions"];
     auto siv = collection.search_indexes();
 
-    // Create the Atlas Search index definition
+    // Create the MongoDB Search index definition
     auto name = "monthlySalesIndex";
     auto definition = make_document(
         kvp("mappings", make_document(

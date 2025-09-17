@@ -13,7 +13,7 @@ async fn main() -> mongodb::error::Result<()> {
         .database("sample_mflix")
         .collection("movies");
 
-    // Defines your Atlas Search index for regex search
+    // Defines your MongoDB Search index for regex search
     let index = doc! {
         "mappings": doc! {
             "fields": doc! {

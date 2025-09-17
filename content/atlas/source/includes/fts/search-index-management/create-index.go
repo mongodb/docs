@@ -26,7 +26,7 @@ func main() {
 	// Set the namespace
 	coll := client.Database("<database-name>").Collection("<collection-name>")
 
-	// Define a simple Atlas Search index
+	// Define a simple MongoDB Search index
 	indexName := "<index-name>"
 
 	// Create the default definition for search index

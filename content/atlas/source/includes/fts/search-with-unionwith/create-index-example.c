@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    /* Create the Atlas Search index definitions. */
+    /* Create the MongoDB Search index definitions. */
     char *cmd_str1 = bson_strdup_printf (
         BSON_STR ({
             "createSearchIndexes": "%s",

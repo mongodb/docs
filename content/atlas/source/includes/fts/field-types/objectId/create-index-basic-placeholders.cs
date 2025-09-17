@@ -14,7 +14,7 @@ namespace MongoDBAtlasSearch
             var client = new MongoClient(connectionString);
             var database = client.GetDatabase("<databaseName>");
             
-            // Create an Atlas Search index on the objectId field
+            // Create a MongoDB Search index on the objectId field
             var indexDefinition = new BsonDocument
             {
                 { "createSearchIndexes", "<collectionName>" },

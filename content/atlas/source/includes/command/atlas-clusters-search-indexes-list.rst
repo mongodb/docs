@@ -12,7 +12,7 @@ atlas clusters search indexes list
    :depth: 1
    :class: singlecol
 
-List all Atlas Search indexes for a cluster.
+List all {+fts+} Indexes for a cluster.
 
 To use this command, you must authenticate with a user account, a service account, or an API key with the Project Data Access Read/Write role.
 
@@ -95,5 +95,5 @@ Examples
 .. code-block::
    :copyable: false
 
-   # Return the JSON-formatted list of Atlas search indexes on the sample_mflix.movies database in the cluster named myCluster:
+   # Return the JSON-formatted list of {+fts+} Indexes on the sample_mflix.movies database in the cluster named myCluster:
    atlas clusters search indexes list --clusterName myCluster --db sample_mflix --collection movies --output json

@@ -10,7 +10,7 @@ async function run() {
     const database = client.db("sample_mflix");
     const collection = database.collection("movies");
 
-    // Create the Atlas Search index definition for the plot field with synonyms
+    // Create the MongoDB Search index definition for the plot field with synonyms
     const index = {
         name: "default",
         definition: {

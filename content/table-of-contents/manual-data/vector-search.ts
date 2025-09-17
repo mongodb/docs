@@ -7,6 +7,11 @@ const tocData: TocItem[] = [
     url: "/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start",
   },
   {
+    label: "Compatibility & Limitations",
+    contentSite: "cloud-docs",
+    url: "/docs/atlas/atlas-vector-search/compatibility-limitations",
+  },
+  {
     label: "Create Embeddings",
     contentSite: "cloud-docs",
     url: "/docs/atlas/atlas-vector-search/create-embeddings",

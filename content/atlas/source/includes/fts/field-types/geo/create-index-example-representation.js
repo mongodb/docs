@@ -10,7 +10,7 @@ async function run() {
     const database = client.db("sample_airbnb");
     const collection = database.collection("listingsAndReviews");
 
-    // Create the Atlas Search index definition for the geo field
+    // Create the MongoDB Search index definition for the geo field
     const index = {
         name: "default",
         definition: {

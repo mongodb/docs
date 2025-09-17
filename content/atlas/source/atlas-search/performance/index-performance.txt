@@ -8,7 +8,7 @@
 
 .. meta::
    :keywords: reduce disk space, index intensive features, eventual consistency, index latency, avoid mapping explosions, partial document lookup, scale up
-   :description: Improve your Atlas Search index and cluster performance by following resource allocation and scaling recommendations.
+   :description: Improve your {+fts+} Search index and cluster performance by following resource allocation and scaling recommendations.
 
 .. contents:: On this page
    :local:
@@ -16,441 +16,108 @@
    :depth: 3
    :class: singlecol
 
-Resource Requirements
----------------------
-
-.. _index-size-and-config:
-
-Index Size and Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. warning::
-
-   .. include:: /includes/fts-index-size-limit.rst
-
-When you :ref:`create <ref-create-index>` an |fts| index, field mapping 
-defaults to :ref:`dynamic <static-dynamic-mappings>`, which means that 
-|fts| dynamically indexes all the :ref:`datatypes that can be 
-dynamically indexed <bson-data-chart>` in your collection. Other options
-such as enabling highlights can also result in your index taking up more
-disk space. You can reduce the size and performance footprint of your
-|fts| index by:
-
-- Specifying a custom :ref:`index definition
-  <ref-index-definitions>` to narrow the amount and type of data that is
-  indexed.
-
-- Setting the ``store`` option to ``false`` when specifying a 
-  :ref:`string <bson-data-types-string>` type in an index definition.
-
-.. note::
-
-   Some limitations apply to |fts| on ``M0`` and {+Flex-clusters+}
-   only. To learn more, see 
-   :ref:`Atlas Search Free and Flex Tier Limitations 
-   <atlas-fts-shared-tier-limitations>`.
-
-Considerations
-``````````````
-
-Some index configuration options can lead to indexes that take up a 
-significant proportion of your disk space. In some cases, your index 
-could be many times larger than the size of your data. Although this is 
-expected behavior, it's important to be aware of the following 
-indexing-intensive features:
-
-Autocomplete
-++++++++++++
-
-The |fts| :ref:`autocomplete <autocomplete-ref>` operator can be used to build
-functionality similar to search-as-you-type in your application. The 
-|fts| :ref:`autocomplete <bson-data-types-autocomplete>` field type
-can cause large indexes, especially in the following cases:
-
-- Using ``nGram`` tokenization.
-- Setting a wide ``minGrams`` to ``maxGrams``  range.
-- Setting a ``minGram`` value of ``1`` on a collection with millions of 
-  documents.
-
-You can reduce the space used by the ``autocomplete`` type index by
-doing the following:
-
-- Reduce the range of ``minGrams`` and ``maxGrams`` to the minimum.
-  Generally, we recommend setting ``maxGrams`` to the character count of
-  the longest word in the field that you want to query. If you are
-  unsure, for English language fields, we recommend starting with
-  ``maxGrams`` value of ``10``.
-- Avoid ``nGram`` tokenization strategy as, for a given string, |fts|
-  creates more tokens for ``nGram`` than for ``edgeGram`` or
-  ``rightEdgeGram`` tokenization. 
-
-When indexing a ``string`` field as the :ref:`autocomplete
-<bson-data-types-autocomplete>` type, we recommend that you index the
-field as the |fts| :ref:`string <bson-data-types-string>` type also for 
-the following advantages: 
-
-- Boost the score of exact matches when using the
-  :ref:`autocomplete <autocomplete-ref>` operator.
-- Query the same field in the same query using the 
-  :ref:`autocomplete <autocomplete-ref>` operator and another operator that supports
-  string search, such as the :ref:`text <text-ref>` operator. For an example,
-  see the :ref:`autocomplete-compound` example.
-
-Embedded Documents 
-++++++++++++++++++
-
-.. include:: /includes/fts/facts/fact-fts-embedded-documents-limitation.rst
-
-Faceted Search 
-++++++++++++++
-
-If you want to filter and facet your data using the same field, we
-recommend that you index the field as following |fts| types: 
-
-- :ref:`token <bson-data-types-token>`  
-- :ref:`number <bson-data-types-number>`
-- :ref:`date <bson-data-types-date>`
-
-For an example of filtering the data by another field for faceting, see
-the :ref:`facet-tutorial` tutorial.
-
-``multi`` Analyzers
-+++++++++++++++++++
-
-Using a ``multi`` analyzer to analyze the same field multiple 
-different ways can cause large indexes, especially when analyzing 
-fields with very long values.
-
-Multilingual Search 
-+++++++++++++++++++
-
-You can use the |fts| :ref:`ref-language-analyzers` to index many 
-languages. For the list of languages for which |fts| provides built-in
-analyzers, see the :ref:`ref-language-analyzers`. To index and query 
-languages that are currently not in the list of built-in
-:ref:`ref-language-analyzers`, you can create a :ref:`custom analyzer
-<custom-analyzers>`. For an example, see the 
-:ref:`custom-language-analyzer-eg`. 
-
-Suppose you have one document for each language in your collection.
-Consider the following:  
-
-- You can index the fields separately in the same index using the
-  :ref:`ref-language-analyzers`. A single index can support multiple
-  languages in the same query. 
-
-- Alternatively, you can create an index per language, which is useful
-  in isolating the different language documents. Note that each index
-  is a change stream cursor and so this might be expensive to
-  maintain.
-
-- If you have the language documents nested inside a parent document,
-  you can create a single index. However, your index definition payload 
-  might be large and your query might be complex. 
-
-To learn more about these data models and index definitions, see the
-`MongoDB blog <https://www.mongodb.com/developer/products/atlas/atlas-search-multi-language-data-modeling/>`__. 
-
-Synonym Collections
-+++++++++++++++++++
-
-Inserts and updates to a synonym source collection are fast only if the 
-synonym source collection is small. For best performance, we recommend 
-batching inserts and updates to synonym source collections. 
-
-A :ref:`synonym mapping <synonyms-ref>` definition doesn't require 
-additional disk space aside from the disk space utilized by the synonym 
-collection in the database. However, synonym mappings create artifacts 
-in memory and therefore, for synonym collections with many documents, 
-|fts| creates artifacts that occupy more memory.
-
-.. _fts-search-memory-management:
-
-Search Memory Management
-````````````````````````
-
-|fts| uses both filesystem cache and JVM heap memory. It stores
-various objects like query objects, searcher objects, and other
-temporary data used during indexing and search operations in the JVM 
-heap to process and track the query. It stores memory mapped
-files such as segment files, dictionary files, and the like in the
-filesystem cache to enhance its performance, especially when reading
-index files. 
-
-In deployments where both the ``mongod`` and ``mongot`` processes run on 
-the same node, the memory allocated to the ``mongod`` varies based on
-the {+cluster+} tier:  
-
-- For ``M40`` and higher tier {+clusters+}, ``mongod`` dedicates 50% or
-  more of the physical RAM for the WiredTiger cache and the remaining memory
-  is reserved for in-memory operations, underlying operation systems,
-  and other system services.
-- For ``M30`` and lower tier {+clusters+}, ``mongod`` dedicates 25% of
-  the physical RAM for the WiredTiger cache.
-
-Therefore, the memory allocated to ``mongot`` is a subset of the total
-RAM, which can result in resource contention issues between ``mongod``
-and ``mongot`` for not only memory, but also for CPU and Disk IO.
-
-In deployments where the ``mongot`` process runs on separate search
-nodes, |service| allocates a part of the available RAM to the JVM heap, and uses a small
-amount of memory processes like monitoring and
-automation, and the rest of the memory is available for search. 
-
-If your search indexes are large and available memory is low, you might
-observe performance degradation during indexing and querying due to
-insufficient memory. Search indexes might be large if you enable dynamic 
-mappings in your index for documents with arbitrary keys. This could
-cause :ref:`mapping explosions <index-document-mapping-explosions>`. The
-excessive memory consumption by ``mongot`` can also result in ``mongot``
-running :abbr:`OOM (Out Of Memory)`, which might also crash ``mongot``. 
-
-You can use the following metrics to determine if ``mongot`` is running
-:abbr:`OOM (Out Of Memory)`: 
-
-- An increase in the number of ``Search Page Faults`` and ``Disk IOPS``.
-  This happens if   the OS keeps retrieving the required pages from disk
-  and reads them into the RAM. 
-- Elevated levels of ``Normalized Process/System CPU`` and ``IOWait``,
-  which can result in degraded performance.
-
-We recommend :ref:`migrating to dedicated search nodes
-<fts-migrate-to-decoupled>` for your production-ready applications. It
-is important to right-size the Search Node because low memory can lead
-to performance issues.   
-
-.. _index-create-and-update:
-
-Creating and Updating an Atlas Search Index
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Creating an |fts| index is resource-intensive. The performance of your
-|service| cluster may be impacted while the index builds. 
-
-|service| replicates all writes on the collection. This means that for 
-each collection with |fts| indexes, the writes are amplified to the 
-amount of |fts| indexes defined for that collection. 
-
-In some instances, your |fts| index must be rebuilt. Rebuilding the 
-|fts| index also consumes resources and may affect database 
-performance. |fts| automatically rebuilds the index only in the event 
-of:
-
-- :ref:`Changes <ref-edit-index>` to the index definition :icon-fa5:`star`
-- |fts| version updates that include breaking changes
-- Hardware-related problems such as index corruption
-
-.. note:: 
-
-   |fts| supports no-downtime indexing, which means you can continue to 
-   run search queries while |fts| rebuilds your index. |fts| keeps your 
-   old index up-to-date while the new index is being built. We 
-   recommend allocating *free* disk space equal to 125% of the disk 
-   space used by your old index for this operation. You can view the 
-   amount of disk space currently used by your index in the 
-   :ref:`Search Disk Space Used <review-atlas-search-metrics>` 
-   metric. 
-
-   If your index rebuild fails due to insufficient disk space, we 
-   recommend that you temporarily expand your cluster capacity to meet 
-   the increased demand. You can make this change manually as described in 
-   :ref:`Fix Storage Issues <disk-space-used>`, 
-   even for clusters with autoscaling enabled.
-
-   If you deployed separate Search Nodes, for certain changes such as
-   :ref:`Java 21 upgrade <fts20240628>`, |service| automatically deploys
-   additional Search Nodes for the duration of the index rebuild and you
-   don't need to allocate any additional free disk space. |service|
-   doesn't deploy additional search nodes for an index rebuild that is
-   caused by changes made to that index's definition. 
-
-   Once |fts| rebuilds the index, the old index is automatically 
-   replaced without any further action from your side.
-
-.. _index-eventual-consistency-and-latency:
-
-Eventual Consistency and Indexing Latency 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-|fts| supports eventual consistency and does not provide any stronger 
-consistency guarantees. This means that data inserted into a MongoDB 
-collection and indexed by |fts| will not be available immediately for 
-``$search`` queries.
-
-|fts| reads data from MongoDB :manual:`change streams </changeStreams/>` and indexes that
-data in an asynchronous process. This process is typically very fast, but might sometimes
-be impacted by replication latency, system resource availability, and index definition
-complexity. A large number of |fts| indexes might also contribute to replication lag and
-latency for |fts| indexes. 
-
-.. include:: /includes/search-shared/fact-partial-indexing-performance-considerations.rst
-
-.. _index-document-mapping-explosions:
-
-Document Mapping Explosions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Mapping explosions occur when |fts| indexes a document with arbitrary 
-keys and you have a :ref:`dynamic mapping <static-dynamic-mappings>`. 
-The ``mongot`` process might consume increasing amounts of memory and 
-could crash. If you add too many fields to an index, mapping explosions 
-can occur. To address this issue, you can upgrade your cluster or use a 
-:ref:`static mapping <static-dynamic-mappings>` that does not index all 
-fields in your data.
-
-When searching over fields using a wildcard path, design your search to use 
-a tuple-like schema. If you perform a wildcard path search that uses a 
-key-value schema, |fts| indexes each key as its own field, 
-which can cause mapping explosions.
-
-.. example::
-
-   An example of a key-value schema 
-   is as follows:
-
-   .. code-block::
-
-      ruleBuilder: {
-        ruleName1: <data>, 
-        ruleName2: <data>,
-        ..... 
-        ruleName1025: <data>
-      }
+.. composable-tutorial::                                                
+   :options: deployment-type
+   :defaults: atlas
    
-   An example of the same data
-   restructured to use a tuple-like schema is as follows:
+   .. selected-content::
+      :selections: atlas
 
-   .. code-block::
+      Resource Requirements
+      ---------------------
+      
+      .. _index-size-and-config:
 
-      {
-        ruleBuilder: [
-          {name: ruleName1, data: <data>},
-          {name: ruleName2, data: <data>},
-          ...
-          {name: ruleName1025, data: <data>}
-        ]
-      } 
+      .. include:: /includes/index-performance/index-size-configuration.rst
+      
+      .. _fts-search-memory-management:
 
-.. _perf-ref-stored-source:
+      .. include:: /includes/index-performance/search-memory-management.rst
 
-Storing Source Fields 
-~~~~~~~~~~~~~~~~~~~~~
+      .. include:: /includes/index-performance/index-create-update.rst
 
-You can :ref:`configure <fts-stored-source-definition>` fields to 
-store on |fts| and improve performance of subsequent aggregation 
-pipeline stages like :pipeline:`$sort`, :pipeline:`$match`, 
-:pipeline:`$group`, and :pipeline:`$skip`. Use this optimization if 
-your original documents and matched dataset are so large that a full 
-data lookup is inefficient. To learn more about storing specific fields 
-on |fts| and returning those stored fields only, see 
-:ref:`fts-stored-source-definition` and 
-:ref:`fts-return-stored-source-option`.
+      .. _index-eventual-consistency-and-latency:
 
-We recommend storing only the minimum number of fields required for 
-subsequent stages. If necessary, you can use :pipeline:`$lookup` at 
-the end of the pipeline stage to retrieve entire documents as shown in 
-the :ref:`fts-return-stored-source-egs`. Storing unnecessary fields 
-increases disk utilization and could negatively impact performance 
-during indexing and querying. 
+      .. include:: /includes/index-performance/eventual-consistency-latency.rst
+      
+      .. _index-document-mapping-explosions:
 
-Scaling Considerations
-----------------------
+      .. include:: /includes/index-performance/mapping-explosions.rst
 
-.. _index-fts-upgrade:
+      .. include:: /includes/index-performance/storing-source-fields.rst
 
-|fts| Upgrade 
-~~~~~~~~~~~~~
+      Scaling Considerations
+      ----------------------
 
-|fts| is deployed on your |service| cluster. When a new version of 
-|fts| is deployed, your |service| cluster might experience brief 
-network failures in returning query results. To mitigate issues during 
-deployment and minimize impact to your application, consider the 
-following: 
+      .. _index-fts-upgrade:
 
-- Implement retry logic in your application.
-- Configure |service| :ref:`maintenance windows 
-  <configure-maintenance-window>`.
+      .. include:: /includes/index-performance/scaling-considerations.rst
 
-  .. note:: 
+      .. _index-scaling-up-perf:
 
-     |fts| upgrades start only during the maintenance window and might
-     continue after the maintenance window.
+      .. include:: /includes/index-performance/scaling-up.rst
 
-To learn more about the changes in each release, see :ref:`Atlas 
-Search Changelog <fts-changelog>`.
+      .. _index-search-nodes-perf:
 
-.. _index-scaling-up-perf:
+      .. include:: /includes/index-performance/config-change.rst
 
-Scaling Up Indexing Performance 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      Initial Sync in Progress 
+      ------------------------
 
-You can scale up your initial sync and steady state indexing for an 
-|fts| index by upgrading your cluster to a higher :ref:`tier 
-<create-cluster-instance>` with more cores. |fts| uses a percentage of 
-all available cores to run both initial sync and steady state indexing 
-and performance improves as new cores are made available by upgrading 
-your cluster.
+      .. _troubleshoot-initial-sync:
 
-.. _index-search-nodes-perf:
+      .. include:: /includes/index-performance/initial-sync.rst
+   
+   .. selected-content::
+      :selections: local
 
-|service| {+Cluster+} Configuration Change
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      Resource Requirements
+      ---------------------
 
-If you reconfigure your deployment to use the local |nvme| storage type
-or upscale an |nvme|-based {+cluster+}, |fts| performs an initial sync
-of all configured |fts| indexes after each node completes its underlying
-configuration or upscale action. If the |fts| index initial syncs take
-longer than the time it took to complete the {+cluster+} configuration
-change, you can't run :pipeline:`$search` queries until the initial
-sync completes on all the nodes in your |service| {+cluster+}. 
+      .. include:: /includes/index-performance/index-size-configuration.rst
+      
+      .. include:: /includes/index-performance/search-memory-management.rst
 
-We recommend deploying :ref:`dedicated Search Nodes
-<configure-search-nodes>` to scale your |service| {+cluster+} and
-:pipeline:`$search` workloads independently. Dedicated Search Nodes
-run only the ``mongot`` process and therefore improve the availability, 
-performance, and workload balancing of the ``mongot`` process.
+      .. include:: /includes/index-performance/index-create-update-on-prem.rst
 
-.. _troubleshoot-initial-sync:
+      .. include:: /includes/index-performance/eventual-consistency-latency.rst
+      
+      .. include:: /includes/index-performance/mapping-explosions.rst
+      
+      .. include:: /includes/index-performance/storing-source-fields-norefs.rst
 
-Initial Sync in Progress 
-------------------------
+      Scaling Considerations
+      ----------------------
+      
+      .. include:: /includes/index-performance/scaling-considerations-on-prem.rst
 
-|fts| starts the initial sync process in the following scenarios:
+      .. include:: /includes/index-performance/scaling-up.rst
 
-- When you create a new {+cluster+} or perform certain upgrades on a
-  {+cluster+}, an initial sync process occurs.  
-- If you add shards to a collection with an existing |fts| index, an
-  initial sync occurs on the added shards for that index. 
-- If you shard a collection that already has an |fts| index, an initial
-  sync occurs on shards where the collection begins to exist. 
+      .. include:: /includes/index-performance/config-change.rst
 
-The initial sync process includes the following steps:
-    
-1. The ``mongod`` performs an initial sync.
-2. The ``mongot`` performs an initial sync, which rebuilds the search indexes.
+   .. selected-content::
+      :selections: self
+   
+      Resource Requirements
+      ---------------------
 
-While a search index rebuilds, you can still perform ``$search`` queries 
-on the existing indexed fields. However, |fts| might return an error if you run a
-``$search`` query against a new field or a node that you've recently created. 
-In :ref:`coupled search <node-architecture>`, queries fail when mongot is rebuilding 
-search indexes on the primary node since search queries run against the primary node 
-by default. Try your query again after the initial syncs complete and ``mongot`` 
-rebuilds the indexes. You can check the status of the ``mongot`` initial 
-sync using the following steps:
+      .. include:: /includes/index-performance/index-size-configuration-on-prem.rst
+      
+      .. include:: /includes/index-performance/search-memory-management-on-prem.rst
 
-.. procedure::
-   :style: normal
+      .. include:: /includes/index-performance/index-create-update-on-prem.rst
 
-   .. include:: /includes/nav/steps-db-deployments-page.rst
+      .. include:: /includes/index-performance/eventual-consistency-latency.rst
+      
+      .. include:: /includes/index-performance/mapping-explosions.rst
+      
+      .. include:: /includes/index-performance/storing-source-fields-on-prem.rst
 
-   .. include:: /includes/nav/steps-atlas-search.rst
+      Scaling Considerations
+      ----------------------
 
-   .. step:: View the status details.
+      .. include:: /includes/index-performance/scaling-considerations-on-prem.rst
 
-      a. In the index's ``Status`` column, click 
-         :guilabel:`View Status Details`.
+      .. include:: /includes/index-performance/scaling-up-on-prem.rst
 
-      #. Check the state of the index for the node. During ``mongot`` 
-         initial sync, the status is ``INITIAL SYNC``. When ``mongot`` 
-         finishes rebuilding the index, the status is ``ACTIVE``.
-         
+      .. include:: /includes/index-performance/config-change.rst

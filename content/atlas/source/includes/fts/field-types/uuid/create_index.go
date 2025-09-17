@@ -29,7 +29,7 @@ func main() {
 	const indexName = "default"
 	opts := options.SearchIndexes().SetName(indexName).SetType("search")
 
-	// Define the Atlas Search index for the UUID field
+	// Define the MongoDB Search index for the UUID field
 	searchIndexModel := mongo.SearchIndexModel{
 		Definition: bson.D{
 			{"mappings", bson.D{

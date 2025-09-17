@@ -10,7 +10,7 @@ async function run() {
     const database = client.db("<database>");
     const collection = database.collection("<collection>");
 
-    // Create the Atlas Search index definition for the embeddedDocuments field
+    // Create the MongoDB Search index definition for the embeddedDocuments field
     const index = {
         name: "default",
         definition: {

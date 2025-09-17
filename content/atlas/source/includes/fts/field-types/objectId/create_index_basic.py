@@ -4,7 +4,7 @@ from pymongo import MongoClient
 client = MongoClient("mongodb+srv://<username>:<password>@<cluster-url>/sample_mflix")
 db = client.sample_mflix
 
-# Create an Atlas Search index on the objectId field
+# Create a MongoDB Search index on the objectId field
 r = db.command({
     "createSearchIndexes": "comments",
     "indexes": [{

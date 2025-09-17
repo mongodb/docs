@@ -12,7 +12,7 @@ atlas api atlasSearch deleteAtlasSearchIndex
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one Atlas Search index that you identified with its unique ID.
+`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one {+fts+} index that you identified with its unique ID.
 
 The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
@@ -65,7 +65,7 @@ Options
    * - --indexId
      - string
      - true
-     - Unique 24-hexadecimal digit string that identifies the Atlas Search index. Use the [Get All Atlas Search Indexes for a Collection API](https://docs.atlas.mongodb.com/reference/api/fts-indexes-get-all/) endpoint to find the IDs of all Atlas Search indexes.
+     - Unique 24-hexadecimal digit string that identifies the {+fts+} index. Use the [Get All {+fts+} Indexes for a Collection API](https://docs.atlas.mongodb.com/reference/api/fts-indexes-get-all/) endpoint to find the IDs of all {+fts+} indexes.
    * - -o, --output
      - string
      - false

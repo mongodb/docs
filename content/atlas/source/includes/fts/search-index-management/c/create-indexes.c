@@ -44,7 +44,7 @@ int main (void)
         goto cleanup;
     }
 
-    // Create the Atlas search indexes by running the command
+    // Create the MongoDB Search indexes by running the command
     if (!mongoc_collection_command_simple (collection, &cmd, NULL, NULL, &error)) {
         fprintf(stderr, "Failed to run createSearchIndexes: %s\n", error.message);
         ok = false;

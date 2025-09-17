@@ -8,7 +8,7 @@ client = MongoClient(uri)
 database = client["sample_supplies"]
 collection = database["sales"]
 
-# Create the Atlas Search index definition for the embeddedDocuments field with dynamic mapping
+# Create the MongoDB Search index definition for the embeddedDocuments field with dynamic mapping
 search_index_model = SearchIndexModel(
     definition={
         "mappings": {

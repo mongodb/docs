@@ -54,8 +54,8 @@
            }]
          }
 
-      Atlas Search returns these results because the characters ``ger``
-      appear at the left side of a word in all the titles. Atlas Search
+      {+fts+}  returns these results because the characters ``ger``
+      appear at the left side of a word in all the titles. {+fts+}
       matches a highlight ``hit`` more coarsely to your query terms when
       a highlighted path is referenced only in the autocomplete
       operators of the highlighted query.
@@ -115,8 +115,8 @@
            }]
          }
 
-      Atlas Search returns these results because the characters ``ger``
-      appear at the right side of a word in all the titles. Atlas Search
+      {+fts+}  returns these results because the characters ``ger``
+      appear at the right side of a word in all the titles. {+fts+}
       matches a highlight ``hit`` more coarsely to your query terms when
       a highlighted path is referenced only in the autocomplete
       operators of the highlighted query.
@@ -177,8 +177,8 @@
            }]
          }
 
-      Atlas Search returns these results because the characters
-      ``ger`` appear at different positions in the titles. Atlas Search
+      {+fts+}  returns these results because the characters
+      ``ger`` appear at different positions in the titles. {+fts+}
       matches a highlight ``hit`` more coarsely to your query terms when
       a highlighted path is referenced only in the autocomplete
       operators of the highlighted query.

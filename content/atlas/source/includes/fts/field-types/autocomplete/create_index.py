@@ -9,7 +9,7 @@ client = MongoClient(uri)
 database = client["<database>"]
 collection = database["<collection>"]
 
-# define your Atlas Search index
+# define your MongoDB Search index
 search_index_model = SearchIndexModel(
     definition={
         "mappings": {

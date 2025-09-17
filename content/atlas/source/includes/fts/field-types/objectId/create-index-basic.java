@@ -14,7 +14,7 @@ public class CreateObjectIdIndex {
             MongoDatabase database = mongoClient.getDatabase("sample_mflix");
             MongoCollection<Document> collection = database.getCollection("comments");
 
-            // Create Atlas Search index definition
+            // Create MongoDB Search index definition
             Document index = new Document("mappings",
                     new Document("dynamic", false)
                         .append("fields", new Document("movie_id", 

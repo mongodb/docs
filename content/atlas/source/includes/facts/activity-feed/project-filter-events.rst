@@ -483,9 +483,9 @@ Filter by event
           - Tag(s) were added/modified.
 
       * - Search
-        - Events related to :ref:`Atlas Search Indexes <ref-index-definitions>`. The following filters are available:
+        - Events related to :ref:`{+fts+} Indexes <ref-index-definitions>`. The following filters are available:
 
-          - Failed to delete Atlas Search indexes
+          - Failed to delete {+fts+} Indexes
           - Search Index Build Complete
           - Search Index Build Failed
           - Search Index Created

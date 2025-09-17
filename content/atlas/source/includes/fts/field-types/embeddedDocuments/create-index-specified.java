@@ -11,7 +11,7 @@ public class CreateIndex {
             MongoCollection<Document> collection = database.getCollection("sales");
             String indexName = "default";
 
-            // Create the Atlas Search index definition for the embeddedDocuments field with specified fields
+            // Create the MongoDB Search index definition for the embeddedDocuments field with specified fields
             Document searchIdx = new Document(
                     "mappings",
                     new Document("fields",

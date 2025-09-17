@@ -9,7 +9,7 @@ var client = new MongoClient(uri);
 var db = client.GetDatabase("sample_analytics");
 var collection = db.GetCollection<BsonDocument>("accounts");
 
-// define your Atlas Search index
+// define your MongoDB Search index
 var index =  new CreateSearchIndexModel(
   "default", new BsonDocument
   {

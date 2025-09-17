@@ -21,7 +21,7 @@ int main() {
     auto collection = db["<collection>"];
     auto siv = collection.search_indexes();
 
-    // Create the Atlas Search index definition for the UUID field
+    // Create the MongoDB Search index definition for the UUID field
     auto name = "default";
     auto definition = make_document(kvp("mappings", make_document(kvp("dynamic", true|false), kvp("fields", make_document(kvp("<field-name>", make_document(kvp("type", "uuid"))))))));
     auto model = mongocxx::search_index_model(name, definition.view());

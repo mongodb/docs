@@ -12,7 +12,7 @@ atlas api monitoringAndLogs listIndexMetrics
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the Atlas Search index metrics within the specified time range for one namespace in the specified process.
+`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the MongoDB Search index metrics within the specified time range for one namespace in the specified process.
 
 The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.

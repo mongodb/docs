@@ -10,7 +10,7 @@ async function run() {
      const database = client.db("<databaseName>");
      const collection = database.collection("<collectionName>");
     
-     // define your Atlas Vector Search index
+     // define your MongoDB Vector Search index
      const index = {
          name: "<indexName>",
          type: "vectorSearch",

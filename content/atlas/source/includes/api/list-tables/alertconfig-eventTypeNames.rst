@@ -59,7 +59,7 @@
 - | ``HOST_MONGOT_CRASHING_OOM``
   | Search process (``mongot``) ran out of memory.
   | To learn more and troubleshoot the issue that triggered this 
-  | alert, see :ref:`Atlas Search alerts <atlas-search-alerts>`.
+  | alert, see :ref:`{+fts+} alerts <atlas-search-alerts>`.
 
 - | ``MONGOT_NOT_CRASHING_OOM``
   | Search process (``mongot``) has enough memory.

@@ -5,11 +5,6 @@ MongoDB installations that:
 - Use default configuration settings.
 - Run on RHEL7 or later.
 
-If your installation does not meet these requirements, refer to the
-:ref:`SELinux Instructions
-<install-enterprise-tarball-rhel-configure-selinux>` for ``.tgz``
-packages.
-
 .. note::
 
    If your MongoDB deployment uses custom settings for any of the
@@ -21,8 +16,7 @@ packages.
    - :setting:`~processManagement.pidFilePath`
 
    You cannot use the MongoDB supplied SELinux policy. An alternative
-   is to create a :ref:`custom SELinux policy
-   <install-enterprise-tarball-rhel-configure-selinux>`, however an 
+   is to create a custom SELinux policy, however an 
    improperly written custom policy may be less secure or may stop your
    :binary:`mongod` instance from working.
 

@@ -29,7 +29,7 @@ func main() {
 	const indexName = "facet-tutorial"
 	opts := options.SearchIndexes().SetName(indexName).SetType("search")
 
-	// Define the Atlas Search index for the token field
+	// Define the MongoDB Search index for the token field
 	searchIndexModel := mongo.SearchIndexModel{
 		Definition: bson.D{
 			{"mappings", bson.D{

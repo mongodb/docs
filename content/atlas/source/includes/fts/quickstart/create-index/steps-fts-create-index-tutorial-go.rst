@@ -51,7 +51,7 @@ a. Set up and initialize the Go module.
        // Set the namespace
        coll := client.Database("sample_mflix").Collection("movies")
 
-       // Define a simple Atlas Search index
+       // Define a simple MongoDB Search index
        indexName := "default"
        
        // Create the default definition for search index

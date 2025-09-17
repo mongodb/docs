@@ -24,8 +24,8 @@ result, you cannot create, drop or re-build general indexes on a standard view
 directly, nor get a list of general indexes on the view. 
 
 MongoDB stores search indexes and vector search indexes on disk. Accordingly,
-you can create :atlas:`Atlas Search indexes
-</atlas-search/transform-documents-collections/>` and :atlas:`Atlas Vector Search
+you can create :atlas:`{+fts+} indexes
+</atlas-search/transform-documents-collections/>` and :atlas:`{+avs+}
 indexes </atlas-vector-search/transform-documents-collections/>` on compatible
 views that contain only the following stages:
 

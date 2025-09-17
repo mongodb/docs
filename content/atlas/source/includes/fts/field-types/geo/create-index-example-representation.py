@@ -8,7 +8,7 @@ client = MongoClient(uri)
 database = client["sample_airbnb"]
 collection = database["listingsAndReviews"]
 
-# Create the Atlas Search index definition for the geo field
+# Create the MongoDB Search index definition for the geo field
 search_index_model = SearchIndexModel(
     definition={
         "mappings": {

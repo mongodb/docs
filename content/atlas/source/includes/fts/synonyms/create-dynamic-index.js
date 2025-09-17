@@ -10,7 +10,7 @@ async function run() {
     const database = client.db("sample_mflix");
     const collection = database.collection("movies");
 
-    // Create the Atlas Search index definition with dynamic mapping and synonyms
+    // Create the MongoDB Search index definition with dynamic mapping and synonyms
     const index = {
         name: "default",
         definition: {

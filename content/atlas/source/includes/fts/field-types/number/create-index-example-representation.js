@@ -12,7 +12,7 @@ async function run() {
     const database = client.db("sample_analytics");
     const collection = database.collection("accounts");
 
-    // define your Atlas Search index
+    // define your MongoDB Search index
     const index = {
         name: "default",
         definition: {

@@ -1,0 +1,187 @@
+.. _mongot-sizing-intro:
+
+========================================
+Introduction to mongot Deployment Sizing
+========================================
+
+.. meta::
+   :description: Learn about sizing guidelines for deploying mongot.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+This guide helps you choose the right starting configuration for your
+``mongot`` deployment. Follow these steps to determine an effective
+starting configuration and refine it for your specific needs.
+
+Get Started
+-----------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Identify your primary workload class
+
+      First, determine whether your application fits into the
+      **High-CPU** or **Low-CPU** workload class. This is the most
+      important factor in selecting the right resources.
+      
+      High-CPU Workloads
+        Choose this class for general-purpose full-text search where
+        query performance is critical and CPU-intensive. These nodes
+        typically have a 2:1 RAM-to-CPU ratio.
+        
+      Low-CPU Workloads
+        This class is ideal for vector search applications,
+        especially with low data volumes, where memory is
+        prioritized over raw CPU power. These nodes usually have
+        an 8:1 RAM-to-CPU ratio.
+
+      .. tip::
+      
+         If you want to get started quickly or have a general use case, a
+         small or medium High-CPU node is typically a balanced and
+         effective starting point.
+
+   .. step:: Select a starting size
+
+      After you identify your workload class, use the following
+      table to find a recommended starting CPU size based on your
+      primary scaling dimension. These recommendations are a
+      starting point. Adjust your CPU size based on your actual
+      workload patterns.
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 15 20 20 20
+
+         * - Use Case
+           - Class
+           - Scaling dimension
+           - Size
+
+         * - Default
+           - High-CPU
+           - General purpose, Getting started
+           - Small or Medium
+
+         * - Vector Search, low data volumes
+           - Low CPU
+           - | <= 10GB of vectors
+             |
+             | 10GB - 50GB of vectors
+             |
+             | >= 50GB of vectors
+           - | Small
+             |
+             | Medium
+             |
+             | Large
+
+         * - General purpose full-text search with low data volumes
+           - High CPU
+           - | 20 - 40 :abbr:`QPS (queries per second)`, light
+               indexing
+             |
+             | 80 - 160 QPS
+             |
+             | 320 - 480 QPS, heavy indexing
+           - | Small
+             |
+             | Medium
+             |
+             | Large
+      
+      For example, if you expect to handle 100 queries per second (QPS)
+      for a full-text search application, a **Medium High-CPU** node is
+      a suitable choice.
+
+      Disk Sizing Guideline
+      ~~~~~~~~~~~~~~~~~~~~~
+
+      Due to index mapping, a collection's size and the resulting search
+      index's size are not always correlated. For example, if your
+      documents have 100 fields but your search index is configured for
+      only 5 of those fields, the index will be much smaller than the
+      collection. Conversely, mapping all fields or using features like
+      autocomplete can increase index size.
+
+      .. _mongot-sizing-intro-index-size:
+
+      Estimate Index Size
+      ~~~~~~~~~~~~~~~~~~~
+
+      To estimate the total index size based on your collection
+      size, perform these steps:
+
+      1. Insert 1-2 GB of data or create a small collection using
+         :pipeline:`$out`.
+
+      #. Create a search index with your chosen field mappings.
+
+      #. Observe the resulting index size and index-to-collection
+         size ratio. If you already use Atlas Search, you can find
+         the index size in cluster metrics or on the index list
+         page.
+
+      Use the index-to-collection size ratio to estimate the total
+      index size based on your expected collection size. For
+      example, if a 1GB collection yields a 250MB index (a
+      0.25:1 ratio), a 12GB collection would likely result in an
+      approximately 3GB index.
+
+   .. step:: Refine, deploy, and monitor
+
+      Sizing is an iterative process. After you deploy your
+      initial configuration, monitor its performance and adjust
+      accordingly.
+
+      1. **Refine your estimate**: Before deploying, review the
+         :ref:`Resource Allocation considerations
+         <mongot-sizing-resource-allocation>`. Carefully monitor factors
+         that can impact resource needs, such as your indexing strategy
+         (for example, nGram tokenization) or query complexity.
+         
+         For disk sizing, remember that index size is not directly
+         correlated to collection size.
+
+      #. **Deploy**: For a production-ready application, using
+         dedicated Search Nodes is highly recommended to ensure
+         resource isolation and high availability.
+
+      #. **Monitor key metrics**: After launch, monitor
+         performance to see if you need to scale up or down. For
+         example:
+
+         - **CPU**: If CPU usage is consistently above 80%, you
+           likely need to scale up.
+
+         - **Memory**: If ``Search Page Faults`` are consistently over
+           1000 per second, your system needs more memory. To measure
+           Search Page Faults, use the
+           ``mongot_system_process_majorPageFaults_operations`` metric.
+
+         - **Disk:** Ensure you have enough free disk space to
+           handle index rebuilds. Generally you should allocate
+           double the disk space your index requires. This extra
+           space allows indexes to be rebuilt when needed.
+           ``mongot`` becomes read-only when disk utilization
+           reaches 90%.
+
+Learn More
+----------
+
+- :ref:`mongot-sizing-quickstart`
+
+- :ref:`mongot-sizing-architecture-patterns`
+
+- :ref:`mongot-sizing-resource-allocation`
+
+- :ref:`mongot-sizing-hardware`

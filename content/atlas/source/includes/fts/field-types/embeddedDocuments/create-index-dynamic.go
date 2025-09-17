@@ -29,7 +29,7 @@ func main() {
 	const indexName = "defaultgo"
 	opts := options.SearchIndexes().SetName(indexName).SetType("search")
 
-	// Define the Atlas Search index for the embeddedDocuments field with dynamic mapping
+	// Define the MongoDB Search index for the embeddedDocuments field with dynamic mapping
 	searchIndexModel := mongo.SearchIndexModel{
 		Definition: bson.D{
 			{"mappings", bson.D{

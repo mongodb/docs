@@ -35,7 +35,7 @@
      Using any of the preceding commands during a resharding
      operation causes the resharding operation to fail.
 
-- If the collection you're resharding uses :atlas:`Atlas Search
+- If the collection you're resharding uses :atlas:`{+fts+}
   </atlas-search>`, the search index becomes unavailable when the
   resharding operation completes. You need to manually rebuild the
   search index once the resharding operation completes.
