@@ -230,7 +230,6 @@ const tocData: TocItem[] = [
       {
         label: "Monitor Your Application",
         contentSite: "scala",
-        url: "/docs/languages/scala/scala-driver/:version/monitoring",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
