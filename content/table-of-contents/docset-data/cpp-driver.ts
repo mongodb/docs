@@ -272,7 +272,6 @@ const tocData: TocItem[] = [
       {
         label: "Specialized Data Formats",
         contentSite: "cpp-driver",
-        url: "/docs/languages/cpp/cpp-driver/:version/data-formats",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
