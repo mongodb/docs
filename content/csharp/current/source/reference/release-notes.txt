@@ -21,6 +21,7 @@ Release Notes
 
 Learn what's new in:
 
+* :ref:`Version 3.5 <csharp-version-3.5>`
 * :ref:`Version 3.4 <csharp-version-3.4>`
 * :ref:`Version 3.3 <csharp-version-3.3>`
 * :ref:`Version 3.2 <csharp-version-3.2>`
@@ -35,13 +36,106 @@ Learn what's new in:
 
 .. _upcoming-breaking-changes:
 
-Upcoming Breaking Changes
--------------------------
+.. _csharp-version-3.5:
 
-In accordance with the `MongoDB Software Lifecycle Schedules
-<https://www.mongodb.com/legal/support-policy/lifecycles>`__, an upcoming minor
-version of {+driver-short+} will raise the minimum {+mdb-server+} version from
-4.0 to 4.2. {+driver-short+} will no longer support {+mdb-server+} 4.0.
+What's New in 3.5
+-----------------
+
+.. warning:: Breaking Changes in v3.5
+
+   {+driver-long+} 3.5 contains breaking changes. See :ref:`<csharp-breaking-changes-v3.5>`
+   for more information.
+
+The 3.5 driver release includes the following new features,
+improvements, and fixes:
+
+- Adds experimental support for Queryable Encryption prefix, suffix, and substring queries.
+  These features are unstable, and their security is not guaranteed until they're
+  generally available (GA). Use them in experimental workloads only.
+  To learn more about QE, see :ref:`In-Use Encryption <csharp-fle>`.
+
+- Adds the `CsfleSchemaBuilder
+  <{+api-root+}/MongoDB.Driver.Encryption/MongoDB.Driver.Encryption.CsfleSchemaBuilder.html>`__
+  class to the ``MongoDB.Driver.Encryption`` package. You can use this class to create
+  JSON schemas for Client-Side Field Level Encryption (CSFLE), as shown in the following
+  example:
+
+  .. code-block:: csharp
+
+     var builder = CsfleSchemaBuilder.Create(schemaBuilder =>
+     {
+         schemaBuilder.Encrypt<Patient>(_collectionNamespace, builder =>
+         {
+             builder
+                .EncryptMetadata(keyId: _keyId)
+                .Property(p => p.MedicalRecords, BsonType.Array,
+                    EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Random)
+                .Property("bloodType", BsonType.String,
+                    algorithm: EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Random)
+                .Property(p => p.Ssn, BsonType.Int32,
+                    EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic)
+                .Property(p => p.Insurance, innerBuilder =>
+                {
+                    innerBuilder
+                        .Property(i => i.PolicyNumber, BsonType.Int32,
+                            EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic);
+                })
+                .PatternProperty("_PIIString$", BsonType.String, EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic)
+                .PatternProperty("_PIIArray$", BsonType.Array, EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Random)
+                .PatternProperty(p => p.Insurance, innerBuilder =>
+                {
+                    innerBuilder
+                        .PatternProperty("_PIIString$", BsonType.String,
+                            EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic)
+                        .PatternProperty("_PIINumber$", BsonType.Int32,
+                            algorithm: EncryptionAlgorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic);
+                });
+         });
+     });
+
+    var schema = builder.Build();
+
+  To learn more about CSFLE, see :ref:`In-Use Encryption <csharp-fle>`.
+
+- Adds the following LINQ methods:
+
+  - ``Median()``: Computes the median of a sequence of values.
+  - ``Percentile()``: Computes multiple percentile of a sequence of values.
+
+  You can use these methods to perform calculations as part of the ``$group`` and
+  ``$setWindowFields`` aggregation stages.
+
+- Adds new `Ascending() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.SortDefinitionBuilder-1.Ascending.html#MongoDB_Driver_SortDefinitionBuilder_1_Ascending>`__
+  and `Descending() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.SortDefinitionBuilder-1.Descending.html#MongoDB_Driver_SortDefinitionBuilder_1_Descending>`__
+  method overloads to the ``SortDefinitionBuilder`` class. You can use these methods to
+  sort elements by value when using the ``$sort`` update operator.
+
+- Adds support for using a SOCKS5 proxy to connect to MongoDB. You can specify SOCKS5
+  connection settings in the connection string or by using the
+  `MongoClientSettings.Socks5ProxySettings
+  <{+api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClientSettings.Socks5ProxySettings.html#MongoDB_Driver_MongoClientSettings_Socks5ProxySettings>`__
+  property.
+
+- Adds support for the ``IAsyncEnumerable<T>`` interface in cursors and LINQ. You can
+  use ``await foreach`` syntax to asynchronously iterate over query results.
+
+- Adds big-endian support to the ``BinaryVectorReader`` and ``BinaryVectorWriter``
+  classes.
+
+- Changes internal subsystems in preparation for supporting client-side operations timeout
+  (CSOT) in an upcoming release. We expect these changes to be be backward-compatible and
+  not to affect existing driver behavior. Please contact MongoDB if you experience any of
+  the following issues:
+  
+  - Operations timing out unexpectedly or not timing out when expected
+  - Unusual delays or hangs in database calls
+  - Behavior differences when cancelling commands
+  
+  For the best ways to find support, see the :ref:`Issues & Help <csharp-issues-help>` page.
+  Please provide driver logs and a reproduction if possible.
+
+For more information about this release, see the :github:`v3.5 release notes
+</mongodb/mongo-csharp-driver/releases/tag/v3.5.0>` on GitHub.
 
 .. _csharp-version-3.4:
 
