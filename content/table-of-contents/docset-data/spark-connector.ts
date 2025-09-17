@@ -108,7 +108,6 @@ const tocData: TocItem[] = [
       {
         label: "API Documentation",
         contentSite: "spark-connector",
-        url: "/docs/spark-connector/:version/api-docs",
         collapsible: true,
         items: [
           {
