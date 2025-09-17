@@ -207,7 +207,8 @@ const Updates = ({ updates }: UpdatesProps) => {
   const [isTablet, setIsTablet] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   // Get the first 12 initially
-  const [filteredUpdates, getFilteredUpdates] = useState<ProductUpdateEntry[][]>([[...updates.slice(0, 12)]]);
+  const itemsPerPage = 12;
+  const [filteredUpdates, getFilteredUpdates] = useState<ProductUpdateEntry[][]>([[...updates.slice(0, itemsPerPage)]]);
 
   // Helper function to get available filters for a specific category
   const getAvailableFiltersForCategory = (category: FilterCategory): string[] => {
@@ -299,7 +300,7 @@ const Updates = ({ updates }: UpdatesProps) => {
       return true;
     });
 
-    const pagination = getPagination(filteredResults, 12);
+    const pagination = getPagination(filteredResults, itemsPerPage);
 
     getFilteredUpdates(pagination);
   }, [searchTerm, selectedFilters, updates]);
@@ -359,24 +360,20 @@ const Updates = ({ updates }: UpdatesProps) => {
 
   const filteredUpdatesIndex = currentPage - 1;
   const totalFilteredItems = filteredUpdates.flat().length;
-  const itemsPerPage = 12;
 
-  const areThereFilteredResultsOnCurrentPage = !!filteredUpdates[filteredUpdatesIndex];
+  const hasFilteredResultsOnCurrentPage = !!filteredUpdates[filteredUpdatesIndex];
   // checks if there are results if so, use those results, if not default to the first index
   // if all else fails just assign an empty array.
-  const _filteredUpdates = areThereFilteredResultsOnCurrentPage
-    ? filteredUpdates[filteredUpdatesIndex]
-    : filteredUpdates[0]
-    ? filteredUpdates[0]
-    : ([] as ProductUpdateEntry[]); // at the end just default to an empty array
+  const currentPageFilteredUpdates = filteredUpdates[filteredUpdatesIndex] ?? filteredUpdates[0] ?? []; // at the end just default to an empty array
 
   // Used to calculate the start number per page for the pagination
   // if there is no results after filtering or searching while on the current page
   // we result to the first index which represents the first page
-  const startItem = areThereFilteredResultsOnCurrentPage ? (currentPage - 1) * itemsPerPage + 1 : 0 * itemsPerPage + 1;
-  const validPageToCalculate = areThereFilteredResultsOnCurrentPage ? currentPage : 1;
-
-  const endItem = Math.min(validPageToCalculate * itemsPerPage, totalFilteredItems);
+  const startOfResultRange = hasFilteredResultsOnCurrentPage
+    ? (currentPage - 1) * itemsPerPage + 1
+    : 0 * itemsPerPage + 1;
+  const validPageToCalculate = hasFilteredResultsOnCurrentPage ? currentPage : 1;
+  const endOfResultRange = Math.min(validPageToCalculate * itemsPerPage, totalFilteredItems);
 
   return (
     <div className={cx(updatesContainerStyle)}>
@@ -434,7 +431,7 @@ const Updates = ({ updates }: UpdatesProps) => {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
             />
           </div>
-          {_filteredUpdates.map((update: ProductUpdateEntry) => {
+          {currentPageFilteredUpdates.map((update: ProductUpdateEntry) => {
             const created_at = update.beamer_created_at || update.created_at;
             const date = new Date(created_at).toLocaleDateString('en-US', {
               year: 'numeric',
@@ -465,12 +462,12 @@ const Updates = ({ updates }: UpdatesProps) => {
         </div>
         <div className={cx(newsItemsCountStyle)}>
           <Body className={cx(newsItemsCountTextStyle)}>
-            {totalFilteredItems > 0 ? `${startItem}-${endItem}` : '0'} of {totalFilteredItems} items
+            {totalFilteredItems > 0 ? `${startOfResultRange}-${endOfResultRange}` : '0'} of {totalFilteredItems} items
           </Body>
           <Pagination
             totalFilteredUpdates={filteredUpdates.length}
             setCurrentPage={setCurrentPage}
-            currentPage={areThereFilteredResultsOnCurrentPage ? currentPage : 1}
+            currentPage={hasFilteredResultsOnCurrentPage ? currentPage : 1}
           />
         </div>
       </div>
