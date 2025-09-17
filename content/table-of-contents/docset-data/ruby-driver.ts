@@ -48,7 +48,6 @@ const tocData: TocItem[] = [
       {
         label: "Connect",
         contentSite: "ruby-driver",
-        url: "/docs/ruby-driver/:version/connect",
         collapsible: true,
         items: [
           {
@@ -243,7 +242,6 @@ const tocData: TocItem[] = [
       {
         label: "Monitor Your Application",
         contentSite: "ruby-driver",
-        url: "/docs/ruby-driver/:version/monitoring",
         collapsible: true,
         items: [
           {
@@ -266,7 +264,6 @@ const tocData: TocItem[] = [
       {
         label: "Security",
         contentSite: "ruby-driver",
-        url: "/docs/ruby-driver/:version/security",
         collapsible: true,
         items: [
           {
@@ -312,7 +309,6 @@ const tocData: TocItem[] = [
       {
         label: "Data Formats",
         contentSite: "ruby-driver",
-        url: "/docs/ruby-driver/:version/data-formats",
         collapsible: true,
         items: [
           {
