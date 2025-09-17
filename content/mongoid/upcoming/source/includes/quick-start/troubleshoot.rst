@@ -1,6 +1,7 @@
 .. note::
 
    If you run into issues, ask for help in the
-   :community-forum:`MongoDB Community Forums <>` or submit feedback by using
-   the :guilabel:`{+feedback-widget-title+}` button in the upper right
-   corner of the page.
+   MongoDB `Stack Overflow tag <https://stackoverflow.com/questions/tagged/mongodb>`__ or 
+   the MongoDB `Reddit community <https://www.reddit.com/r/mongodb/>`__.
+   You can also submit feedback by using the :guilabel:`Rate this page`
+   tab on the right side of this page.
