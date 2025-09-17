@@ -124,7 +124,6 @@ const tocData: TocItem[] = [
       {
         label: "CRUD Operations",
         contentSite: "kotlin-sync",
-        url: "/docs/languages/kotlin/kotlin-sync-driver/:version/crud",
         collapsible: true,
         items: [
           {
@@ -135,7 +134,6 @@ const tocData: TocItem[] = [
           {
             label: "Query Documents",
             contentSite: "kotlin-sync",
-            url: "/docs/languages/kotlin/kotlin-sync-driver/:version/crud/query",
             collapsible: true,
             items: [
               {
@@ -249,7 +247,6 @@ const tocData: TocItem[] = [
           {
             label: "Custom Types",
             contentSite: "kotlin-sync",
-            url: "/docs/languages/kotlin/kotlin-sync-driver/:version/data-formats/custom-types",
             collapsible: true,
             items: [
               {
@@ -317,7 +314,6 @@ const tocData: TocItem[] = [
       {
         label: "Logging and Monitoring",
         contentSite: "kotlin-sync",
-        url: "/docs/languages/kotlin/kotlin-sync-driver/:version/logging-and-monitoring",
         collapsible: true,
         items: [
           {
@@ -340,7 +336,6 @@ const tocData: TocItem[] = [
       {
         label: "Security",
         contentSite: "kotlin-sync",
-        url: "/docs/languages/kotlin/kotlin-sync-driver/:version/security",
         collapsible: true,
         items: [
           {
@@ -401,7 +396,6 @@ const tocData: TocItem[] = [
       {
         label: "Reference",
         contentSite: "kotlin-sync",
-        url: "/docs/languages/kotlin/kotlin-sync-driver/:version/reference",
         collapsible: true,
         items: [
           {
