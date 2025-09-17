@@ -104,7 +104,7 @@ const Featured = ({ updates }: { updates: ProductUpdateEntry[] }) => {
 
   // Filter and limit to 3 most recent featured updates
   const limitedFeaturedUpdates = updates
-    .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 3);
 
   return (
