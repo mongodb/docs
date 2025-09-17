@@ -1,6 +1,7 @@
 .. note::
 
-   If you run into issues on this step, ask for help in the
-   :community-forum:`MongoDB Community Forums <tag/rust/>`
-   or submit feedback by using the :guilabel:`Feedback`
-   button on the top right side of this page.
+   If you run into issues on this step, see the MongoDB `Stack Overflow tag
+   <https://stackoverflow.com/questions/tagged/mongodb>`__ or 
+   the MongoDB `Reddit community <https://www.reddit.com/r/mongodb/>`__ for
+   general technical support, or see the  :ref:`rust-connection-troubleshooting`
+   guide.
