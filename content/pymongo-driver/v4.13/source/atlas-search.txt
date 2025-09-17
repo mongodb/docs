@@ -1,0 +1,153 @@
+.. _pymongo-atlas-search:
+
+============
+Atlas Search
+============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: search, atlas, read
+
+Overview
+--------
+
+In this guide, you can learn how to query an Atlas Search index and use advanced full-text
+search functionality in your {+driver-short+} applications. You can query a search index by 
+using a ``$search`` aggregation pipeline stage.
+
+To learn more about the ``$search`` pipeline stage, see the :manual:`$search
+</reference/operator/aggregation/search/>` guide in the {+mdb-server+} manual.
+
+.. note:: Only Available on Atlas for MongoDB v4.2 and Later
+
+   The ``$search`` aggregation-pipeline operator is available only for collections hosted
+   on :atlas:`MongoDB Atlas </>` clusters running MongoDB v4.2 or later that are
+   covered by an :atlas:`Atlas search index </reference/atlas-search/index-definitions/>`.
+   To learn more about the required setup and the functionality of this operator,
+   see the :ref:`Atlas Search <fts-top-ref>` documentation.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_mflix.movies`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see
+:ref:`<pymongo-get-started>`.
+
+Create an Atlas Search Index
+----------------------------
+
+Before you can perform a search on an Atlas collection, you must first create an **Atlas
+Search index** on the collection. An Atlas Search index is a data structure that
+categorizes data in a searchable format. To learn how to create an Atlas Search index,
+see :ref:`pymongo-atlas-search-index`.
+
+Search Your Data
+----------------
+
+To use the ``$search`` aggregation pipeline stage, you must specify an Atlas Search query
+operator that indicates the type of query you want to run. You can also optionally specify
+a collector that groups results by values or ranges. To view a table of all the operators
+and collectors available with Atlas Search, see :atlas:`Use Operators and Collectors in 
+Atlas Search Queries </atlas-search/operators-and-collectors>`. 
+
+The following example uses the ``compound`` operator to combine several operators into a
+single query. To learn more about the ``compound`` operator, see the :atlas:`Compound
+</atlas-search/compound>` operator guide in the MongoDB Atlas documentation. 
+
+The query has the following search criteria:
+
+- The ``genres`` field must not contain ``Comedy``.
+- The ``title`` field must contain the string ``New York``.
+
+The query also includes the following stages:
+
+- :pipeline:`$limit`, to limit the output to 10 results.
+- :pipeline:`$project`, to exclude all fields except
+  ``title`` and add a field named ``score``.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: python
+
+      client = pymongo.MongoClient("<connection-string>")
+      result = client["sample_mflix"]["movies"].aggregate([
+               {
+                  "$search": { 
+                    "index": "pymongoindex",
+                    "compound": {
+                    "mustNot": [
+                        {
+                            "text": {
+                                "query": [
+                                    "Comedy"
+                                ],
+                                "path": "genres"
+                            }
+                        }
+                    ],
+                    "must": [
+                        {
+                            "text": {
+                                "query": [
+                                    "New York"
+                                ],
+                                "path": "title"
+                              }     
+                           }
+                        ],
+                     }
+                  }
+               },
+               { "$limit": 10 },
+               {
+                 "$project": {
+                 "_id": 0,
+                 "title": 1,
+                 "score": { "$meta": "searchScore" }
+            }
+          }
+      ])
+
+      for i in result:
+         print(i)
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {'title': 'New York, New York', 'score': 6.786379814147949}
+      {'title': 'New York', 'score': 6.258603096008301}
+      {'title': 'New York Doll', 'score': 5.381444931030273}
+      {'title': 'Escape from New York', 'score': 4.719935417175293}
+      {'title': 'Autumn in New York', 'score': 4.719935417175293}
+      {'title': 'Sleepless in New York', 'score': 4.719935417175293}
+      {'title': 'Gangs of New York', 'score': 4.719935417175293}
+      {'title': 'Sherlock Holmes in New York', 'score': 4.203253746032715}
+      {'title': 'New York: A Documentary Film', 'score': 4.203253746032715}
+      {'title': 'An Englishman in New York', 'score': 4.203253746032715}
+
+Additional Information
+----------------------
+
+To learn more about the available Atlas Search operators, see the :atlas:`Operators and
+Collectors </atlas-search/operators-and-collectors>` guide in the MongoDB Atlas
+documentation.
+
+For more information about Atlas Search, and to view more query examples, see the
+:atlas:`Atlas Search documentation </atlas-search>`. 
+
+If you'd like to perform vector searches on your data stored in Atlas, you must use Atlas
+Vector Search. To learn more about Atlas Vector Search, see the :atlas:`Atlas Vector
+Search documentation </atlas-vector-search/vector-search-overview/>`. 
