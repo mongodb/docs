@@ -1,5 +1,7 @@
 import { TocItem } from "../types";
 
+const versionsBeforeV8_2 = ["v7.0", "v8.0", "v8.1"];
+
 const tocData: TocItem[] = [
   {
     label: "Cheat Sheet",
@@ -3381,6 +3383,30 @@ const tocData: TocItem[] = [
             label: "$documentNumber",
             contentSite: "docs",
             url: "/docs/:version/reference/operator/aggregation/documentNumber",
+          },
+          {
+            label: "$encStrContains",
+            contentSite: "docs",
+            url: "/docs/:version/reference/operator/aggregation/encStrContains",
+            versions: { excludes: versionsBeforeV8_2 },
+          },
+          {
+            label: "$encStrEndsWith",
+            contentSite: "docs",
+            url: "/docs/:version/reference/operator/aggregation/encStrEndsWith",
+            versions: { excludes: versionsBeforeV8_2 },
+          },
+          {
+            label: "$encStrNormalizedEq",
+            contentSite: "docs",
+            url: "/docs/:version/reference/operator/aggregation/encStrNormalizedEq",
+            versions: { excludes: versionsBeforeV8_2 },
+          },
+          {
+            label: "$encStrStartsWith",
+            contentSite: "docs",
+            url: "/docs/:version/reference/operator/aggregation/encStrStartsWith",
+            versions: { excludes: versionsBeforeV8_2 },
           },
           {
             label: "$eq",

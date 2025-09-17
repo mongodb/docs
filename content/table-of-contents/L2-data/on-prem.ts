@@ -687,6 +687,12 @@ const tocData: TocItem[] = [
                 contentSite: "docs",
                 url: "/docs/:version/reference/cluster-parameters/defaultMaxTimeMS",
               },
+              {
+                label: "fleDisableSubstringPreviewParameterLimits",
+                contentSite: "docs",
+                url: "/docs/:version/reference/cluster-parameters/fleDisableSubstringPreviewParameterLimits",
+                versions: { excludes: versionsBeforeV8_2 }
+              },
             ],
           },
           {

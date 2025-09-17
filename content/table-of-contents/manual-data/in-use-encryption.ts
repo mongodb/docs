@@ -20,6 +20,11 @@ const tocData: TocItem[] = [
     ],
   },
   {
+    label: "Cryptographic Primitives",
+    contentSite: "docs",
+    url: "/docs/:version/core/csfle/reference/cryptographic-primitives",
+  },
+  {
     label: "Keys and Key Vaults",
     contentSite: "docs",
     url: "/docs/:version/core/queryable-encryption/fundamentals/keys-key-vaults",
@@ -309,11 +314,6 @@ const tocData: TocItem[] = [
             label: "How CSFLE Decrypts Documents",
             contentSite: "docs",
             url: "/docs/:version/core/csfle/reference/decryption",
-          },
-          {
-            label: "CSFLE Cryptographic Primitives",
-            contentSite: "docs",
-            url: "/docs/:version/core/csfle/reference/cryptographic-primitives",
           },
           {
             label: "Install and Configure a CSFLE Query Analysis Component",
