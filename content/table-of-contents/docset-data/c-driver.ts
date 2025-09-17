@@ -17,7 +17,7 @@ const tocData: TocItem[] = [
         label: "Asynchronous C Driver: Public Preview",
         contentSite: "c",
         url: "/docs/languages/c/c-driver/:version/async-c-driver",
-        versions: { excludes: outdatedVersions },
+        versions: { excludes: [...outdatedVersions, "v1.29"] },
       },
       {
         label: "Get Started",
@@ -238,7 +238,6 @@ const tocData: TocItem[] = [
       {
         label: "Monitor Your Application",
         contentSite: "c",
-        url: "/docs/languages/c/c-driver/:version/monitoring",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
