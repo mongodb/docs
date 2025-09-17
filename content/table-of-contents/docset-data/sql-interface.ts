@@ -9,12 +9,12 @@ const tocData: TocItem[] = [
       {
         label: "Overview",
         contentSite: "cloud-docs",
-        url: "/docs/atlas/data-federation/query/connect-with-sql-overview", //this file doesn't exist yet outside this PR: https://github.com/10gen/docs-mongodb-internal/pull/14050/files
+        url: "/docs/atlas/data-federation/query/connect-with-sql-overview",
       },
       {
         label: "Enable SQL Access",
         contentSite: "cloud-docs",
-        url: "/docs/atlas/data-federation/query/connect-with-sql-composable", //this file doesn't exist yet outside this PR: https://github.com/10gen/docs-mongodb-internal/pull/14050/files
+        url: "/docs/atlas/data-federation/query/connect-with-sql-composable",
       },
       {
         label: "Migration Guide",
@@ -63,39 +63,6 @@ const tocData: TocItem[] = [
         label: "Query",
         contentSite: "cloud-docs",
         url: "/docs/atlas/data-federation/query/sql/query-with-asql-statements",
-      },
-      {
-        label: "Manage Schemas",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/data-federation/query/sql/schema-management",
-        collapsible: true,
-        items: [
-          {
-            label: "Create",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/data-federation/query/sql/schema/create",
-          },
-          {
-            label: "View",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/data-federation/query/sql/schema/view",
-          },
-          {
-            label: "Set",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/data-federation/query/sql/schema/set",
-          },
-          {
-            label: "Schedule Updates",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/data-federation/query/sql/schema/schedule-updates",
-          },
-          {
-            label: "Delete",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/data-federation/query/sql/schema/delete",
-          },
-        ],
       },
       {
         label: "SQL Tutorials",
