@@ -1,0 +1,479 @@
+==========================
+$scoreFusion (aggregation)
+==========================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. meta::
+   :description: Learn how to use an aggregation stage to combine the results of multiple scored aggregation pipelines.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. important::
+
+   ``$scoreFusion`` is only available for deployments that use MongoDB
+   8.2+. 
+
+Definition
+----------
+
+.. pipeline:: $scoreFusion
+
+   ``$scoreFusion`` first executes all input pipelines independently and then
+   de-duplicates and combines the input pipeline results into a final scored
+   results set.
+
+   ``$scoreFusion`` outputs a ranked set of documents based on the scores of
+   the documents and weights from their input pipelines. You can specify
+   an arithmetic expression to compute the score based on the input
+   scores from the pipeline stage. By default, it uses the average of
+   the scores for the documents from the different input pipeline stages.
+
+   Use ``$scoreFusion`` to search for documents in a single collection based on
+   multiple criteria and retrieve a final scored result set that factors in
+   all specified criteria.
+
+Syntax
+------
+
+The stage has the following syntax:
+
+.. code-block:: javascript
+
+   { $scoreFusion: { 
+       input: {
+         pipelines: { 
+               <input-pipeline-name>: <expression>,
+               <input-pipeline-name>: <expression>,
+               ...
+         },
+         normalization: "none|sigmoid|minMaxScaler"
+       },
+       combination: { 
+         weights: {
+               <input-pipeline-name>: <numeric expression>,
+               <input-pipeline-name>: <numeric expression>,
+               ...
+         },
+         method: "avg|expression",
+         expression: <expression>
+       }
+   } }
+
+Fields
+~~~~~~
+
+``$scoreFusion`` takes the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+ 
+   * - Field
+     - Type
+     - Description
+ 
+   * - ``input``
+     - Object
+     - Defines the input that ``$scoreFusion`` combines. 
+
+   * - ``input.pipelines``
+     - Object
+     - Contains a map of pipeline names to the aggregation stages that define
+       that pipeline. ``input.pipelines`` must contain at least one
+       pipeline. You must specify :pipeline:`$score` to the input
+       pipeline if the input pipeline doesn't return a score. All 
+       pipelines must operate on the same collection and must have a unique
+       name.
+
+       For more information on input pipeline restrictions, see
+       :ref:`scoreFusion-input-pipelines` and :ref:`scoreFusion-pipeline-names`. 
+
+   * - ``input.normalization``
+     - String 
+     - Normalizes the score to the range ``0`` to ``1`` before combining
+       the results. Value can be: 
+
+       - ``none`` - to not normalize. 
+       - ``sigmoid`` - to apply :expression:`$sigmoid` expression.
+       - ``minMaxScaler`` - to apply the :group:`$minMaxScaler` window operator.
+
+   * - ``combination``
+     - Object 
+     - Optional. Defines how to combine the ``input`` pipeline results.
+
+   * - ``combination.weights``
+     - Object
+     - Optional. Weights to apply to the normalized input pipeline
+       scores when combining the results. Corresponds to the input
+       pipelines, one per pipeline. The default weight is ``1`` if any
+       pipeline's weight is unspecified. Each weight value must be a
+       non-negative number (whole or decimal). Weight can be ``0``.  
+
+   * - ``combination.method`` 
+     - String
+     - Optional. Specifies method for combining scores. Value can be: 
+       
+       - ``avg`` - to calculate the average of the input scores. 
+       - ``expression`` - to apply a custom aggregation expression that
+         you specify in the ``combination.expression`` field.
+
+       If omitted, defaults to ``avg``.
+
+   * - ``combination.expression``
+     - Arithmetic Expression
+     - Optional. Specifies the logic for combining the input scores.
+       This is the custom expression that is used when
+       ``combination.method`` is set to ``expression``. Within the
+       expression, use the name of the input pipeline to represent the
+       corresponding input score for a document.
+       
+       Mutually exclusive with ``combination.weights``.
+
+   * - ``scoreDetails``
+     - Boolean
+     - Optional. Specifies whether to include detailed scoring
+       information from each input pipeline in the output document's
+       metadata. If omitted, default to ``false``.
+
+Behavior
+--------
+
+Collections
+~~~~~~~~~~~
+
+You can only use ``$scoreFusion`` with a single collection. You cannot use this
+aggregation stage at a database scope. 
+
+De-Duplication
+~~~~~~~~~~~~~~
+
+``$scoreFusion`` de-duplicates the results across multiple input pipelines in the
+final output. Each unique input document appears at most once in the
+``$scoreFusion`` output, regardless of the number of times that the document
+appears in input pipeline outputs. 
+
+.. _scoreFusion-input-pipelines:
+
+Input Pipelines
+~~~~~~~~~~~~~~~
+
+Each ``input`` pipeline must be both a Selection Pipeline and a Scoring Pipeline. 
+
+Selection Pipeline
+``````````````````
+
+A Selection Pipeline retrieves a set of documents from a collection without
+performing any modifications after retrieval. ``$scoreFusion`` compares documents
+across different input pipelines which requires that all input pipelines output
+the same unmodified documents. 
+
+A selection pipeline must only contain the following stages:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Type
+     - Stages
+
+   * - Search Stages
+     - - :pipeline:`$match`, including ``$match`` with :ref:`legacy text search
+         <perform-text-search-onprem>`
+         :pipeline:`$geoNear`
+       - :pipeline:`$search`
+       - :pipeline:`$vectorSearch`
+
+         .. note::
+
+            If you use ``$geoNear`` in a selection pipeline, you cannot specify
+            ``includeLogs`` or ``distanceField`` because those fields modify
+            documents. 
+
+   * - Ordering Stages
+     - - :pipeline:`$sort`
+
+   * - Pagination Stages
+     - - :pipeline:`$skip`
+       - :pipeline:`$limit`
+
+Scoring Pipeline
+````````````````
+
+A scoring pipeline sorts or orders documents based on the score of the
+documents. ``$scoreFusion`` uses the order of scored pipeline results to
+influence the output scores. Scoring pipelines must meet one of the
+following criteria: 
+
+- Begin with one of the following ordered stages:
+
+  - :pipeline:`$search`
+  - :pipeline:`$vectorSearch`
+  - :pipeline:`$match` with legacy text search
+  - :pipeline:`$geoNear`
+
+- Contain an explicit :pipeline:`$score` stage if the preceding pipeline
+  doesn't inherently return a score.
+
+.. _scoreFusion-pipeline-names:
+
+Input Pipeline Names
+~~~~~~~~~~~~~~~~~~~~
+
+Pipeline names in ``input`` must meet the following restrictions:
+
+- Must not be an empty string
+- Must not start with a ``$``
+- Must not contain the ASCII null character delimiter ``\0`` anywhere in the string
+- Must not contain a ``.``
+
+.. _scoreFusion-scoreDetails:
+
+scoreDetails
+~~~~~~~~~~~~
+
+If you set ``scoreDetails`` to ``true``, ``$scoreFusion`` creates a
+``scoreDetails`` metadata field for each document. The ``scoreDetails`` field
+contains information about the final ranking. 
+
+.. note::
+
+   When you set ``scoreDetails`` to ``true``, ``$scoreFusion`` sets the
+   ``scoreDetails`` metadata field for each document. By default, it
+   doesn't automatically output the ``scoreDetails`` metafield.
+
+   To view the ``scoreDetails`` metadata field, you must explicitly set
+   it through the :expression:`$meta` expression in a stage like
+   :pipeline:`$project`, :pipeline:`$addFields`, or :pipeline:`$set`.
+
+The ``scoreDetails`` field contains the following subfields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+ 
+   * - Field 
+     - Description
+
+   * - ``value``
+     - The numerical value of the score for this document.
+
+   * - ``description``
+     - A description of how ``$scoreFusion`` computed the final score.
+
+   * - ``normalization`` 
+     - The normalization method used to normalize the score.
+
+   * - ``combination``
+     - The combination method and expression used to combine the
+       pipeline results.
+
+   * - ``details`` 
+     - An array where each array entry contains information about the input
+       pipelines that output this document.
+
+Each array entry in the ``details`` field contains the following subfields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+ 
+   * - Field 
+     - Description
+
+   * - ``inputPipelineName``
+     - The name of the input pipeline that output this document.
+
+   * - ``inputPipelineRawScore``
+     - The score of the document from the pipeline before normalization.
+
+   * - ``weight``
+     - The weight of the input pipeline.
+
+   * - ``value``
+     - Optional. If the input pipeline outputs a ``{ $meta: 'score' }`` for this
+       document, ``value`` contains ``{ $meta: 'score' }``.
+
+   * - ``details``
+     - The ``scoreDetails`` field of the input pipeline. If the input pipeline
+       does not output a ``scoreDetails`` field, this field is an empty array.
+
+.. include:: /includes/fact-scoreDetails-output-format.rst
+
+.. example:: 
+
+   The following code blocks show the ``scoreDetails`` field for a
+   ``$scoreFusion`` operation with ``$search``, ``$vectorSearch``, and ``$match``
+   input pipelines:
+
+   .. code-block:: js
+      :copyable: false
+
+      scoreDetails: {
+      value: 7.847857250621068,
+      description: 'the value calculated by combining the scores (either normalized or raw) across input pipelines from which this document is output from:',
+      normalization: 'sigmoid',
+      combination: {
+        method: 'custom expression',
+        expression: "{ string: { $sum: [ { $multiply: [ '$$searchOne', 10 ] }, '$$searchTwo' ] } }"
+      },
+      details: [
+        {
+          inputPipelineName: 'searchOne',
+          inputPipelineRawScore: 0.7987099885940552,
+          weight: 1,
+          value: 0.6896984675751023,
+          details: []
+        },
+        {
+          inputPipelineName: 'searchTwo',
+          inputPipelineRawScore: 2.9629626274108887,
+          weight: 1,
+          value: 0.950872574870045,
+          details: []
+        }
+      ]
+    }
+
+Explain Results
+~~~~~~~~~~~~~~~
+
+MongoDB converts ``$scoreFusion`` operations into a set of existing aggregation
+stages that, in combination, compute the output result prior to query execution.
+The :ref:`Explain Results <explain-results>` for a ``$scoreFusion`` operation
+show the full execution of the underlying aggregation stages that
+``$scoreFusion`` uses to compose the final result. 
+
+Examples
+--------
+
+This example uses a collection with embeddings and text fields. Create 
+``search`` and ``vectorSearch`` type indexes on the collection. 
+
+The following index definition automatically indexes all the 
+dynamically indexable fields in the collection for running
+:pipeline:`$search` queries against the indexed fields.
+
+.. code-block:: js
+   :caption: search Index
+
+   db.embedded_movies.createSearchIndex(
+      "<INDEX_NAME>",
+      {
+         mappings: { dynamic: true }
+      }
+   )
+
+The following index definition indexes the field with the embeddings in
+the collection for running :pipeline:`$vectorSearch` queries against
+that field. 
+
+.. code-block:: js 
+   :caption: vectorSearch Index
+
+   db.embedded_movies.createSearchIndex(
+      "<INDEX_NAME>", 
+      "vectorSearch", 
+      {
+         "fields": [
+            {
+               "type": "vector",
+               "path": "<FIELD_NAME>",
+               "numDimensions": <NUMBER_OF_DIMENSIONS>,
+               "similarity": "dotProduct"
+            }
+         ]
+      }
+   );
+
+The following aggregation pipeline uses ``$scoreFusion`` with the following input
+pipelines:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Pipeline
+     - Number of Documents Returned
+     - Description
+
+   * - ``searchOne``
+     - 20
+     - Runs a vector search on the field indexed as ``vector`` type for
+       the term specified as embeddings. The query considers up to 500
+       nearest neighbors, but limits the results to 20 documents.
+
+   * - ``searchTwo``
+     - 20
+     - Runs a full-text search for the same term and limits the results to
+       20 documents. 
+
+.. code-block:: js
+   :linenos:
+
+   db.embedded_movies.aggregate( [
+      {
+         $scoreFusion: {
+            input: {
+               pipelines: {
+                  searchOne: [
+                     {
+                        "$vectorSearch": {
+                           "index": "<INDEX_NAME>",
+                           "path": "<FIELD_NAME>",
+                           "queryVector": <QUERY_EMBEDDINGS>,
+                           "numCandidates": <NUMBER_OF_NEAREST_NEIGHBORS_TO_CONSIDER>,
+                           "limit": <NUBMER_OF_DOCUMENTS_TO_RETURN>
+                        }
+                     }
+                  ],
+                  searchTwo: [
+                     {
+                        "$search": {
+                           "index": "<INDEX_NAME>",
+                           "text": {
+                              "query": "<QUERY_TERM>",
+                              "path": "<FIELD_NAME>"
+                           }
+                        }
+                     },
+                  ]
+               },
+               normalization: "sigmoid"
+            },
+            combination: {
+               method: "expression",
+               expression: {
+                  $sum: [
+                    {$multiply: [ "$$searchOne", 10]}, "$$searchTwo"
+                  ]
+               }
+            },
+            "scoreDetails": true
+         }
+      },
+      {
+         "$project": {
+            _id: 1,
+            title: 1,
+            plot: 1,
+            scoreDetails: {"$meta": "scoreDetails"}
+         }
+      },
+      { $limit: 20 }
+   ] )
+
+This pipeline performs the following actions:
+
+- Executes the ``input`` pipelines 
+- Combines the returned results
+- Outputs the first 20 documents which are the top 20 ranked results of
+  the ``$scoreFusion`` pipeline

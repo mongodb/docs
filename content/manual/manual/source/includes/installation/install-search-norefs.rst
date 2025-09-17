@@ -1,6 +1,13 @@
 Install MongoDB Search and MongoDB Vector Search
 ------------------------------------------------
 
+.. important:: 
+
+   |fts| and {+avs+} with MongoDB Community is in Preview. The feature and
+   the corresponding documentation might change at any time during the
+   Preview period. To learn more, see `Preview Features
+   <https://www.mongodb.com/docs/preview-features/>`__. 
+
 You can install the search process, ``mongot``, in MongoDB Community Edition. The search process
 is available for deployment as a tarball with the ``.tgz`` extension and as
 an image in Docker.
