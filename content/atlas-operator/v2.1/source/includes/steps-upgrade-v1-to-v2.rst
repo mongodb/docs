@@ -4,7 +4,7 @@
    .. step:: Deploy a new |k8s| cluster.
 
       With this new cluster deployed, you now have two |k8s| clusters. The 
-      following steps require that you run ``kubectl`` commmands against each of
+      following steps require that you run ``kubectl`` commands against each of
       these |k8s| clusters. To simplify this, you can configure each of the |k8s| 
       contexts with the following commands:
 
@@ -19,7 +19,7 @@
    .. step:: Deploy |ak8so| ``v2.x`` to your new K8s cluster.
 
       Replace the ``<version>`` placeholder in the following command with your 
-      desired |ak8so| version, and run the command to deploy |ak8so| to your newly provsioned 
+      desired |ak8so| version, and run the command to deploy |ak8so| to your newly provisioned 
       |k8s| cluster.
 
       .. code-block:: sh
