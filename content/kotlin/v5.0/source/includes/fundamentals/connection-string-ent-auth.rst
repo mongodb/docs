@@ -214,22 +214,6 @@ You must specify values that contain commas in a ``MongoCredential`` instance.
 .. literalinclude:: /examples/generated/EnterpriseAuthTest.snippet.oidc-gcp-connection-string.kt
    :language: kotlin
 
-Kubernetes
-++++++++++
-
-If your application runs on a Kubernetes cluster, you can authenticate
-to MongoDB by using the {+driver-short+}'s built-in Kubernetes support.
-
-To specify Kubernetes OIDC as the authentication mechanism, set the following 
-options in your connection string:
-
-- ``authMechanism``: Set to ``MONGODB-OIDC``.
-- ``authMechanismProperties``: Set to ``ENVIRONMENT:k8s``. 
-
-Replace the ``<percent-encoded audience>`` placeholder in the
-following code with the percent-encoded value of the audience server
-parameter configured on your MongoDB deployment.
-
 Custom Callback
 +++++++++++++++
 

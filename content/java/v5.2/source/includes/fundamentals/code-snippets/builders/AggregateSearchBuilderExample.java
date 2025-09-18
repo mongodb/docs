@@ -66,6 +66,34 @@ public class AggregateSearchBuilderExample {
         collection.aggregate(aggregateStages).forEach(result -> System.out.println(result));
     }
 
+    /*
+     * Atlas search aggregation
+     * Requires Atlas cluster and full text search index
+     * See https://www.mongodb.com/docs/atlas/atlas-search/tutorial/ for more info on requirements
+     */
+    private static void runAtlasSearchWithSearchHelperMethods(MongoCollection<Document> collection) {
+        // begin atlasHelperMethods
+        List<Bson> pipeline = new ArrayList<>();
+
+        pipeline.add(Aggregates.search(
+                SearchOperator.compound()
+                        .filter(
+                                List.of(
+                                        SearchOperator.in(fieldPath("genres"), "Comedy"),
+                                        SearchOperator.phrase(fieldPath("fullplot"), "new york"),
+                                        SearchOperator.numberRange(fieldPath("year")).gtLt(1950, 2000),
+                                        SearchOperator.wildcard(fieldPath("title"), "Love *")
+                                ))));
+
+        pipeline.add(Aggregates.project(
+                Projections.include("title", "year", "genres")
+        ));
+
+        AggregateIterable<Document> results = collection.aggregate(pipeline);
+        results.forEach(doc -> System.out.println(doc.toJson()));
+        // end atlasHelperMethods
+    }
+
     public static void main(String[] args) {
         String uri = CONNECTION_URI; 
 
