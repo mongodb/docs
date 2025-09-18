@@ -2,10 +2,11 @@ package compare
 
 import (
 	"fmt"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"os"
 	"path/filepath"
 	"reflect"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // BsonDocuments compares actual MongoDB results with expected output from a file
@@ -24,39 +25,57 @@ func compareDocumentsGeneric(expectedFilePath string, actualResults interface{},
 		options = &Options{}
 	}
 
-	// Handle absolute paths differently - don't modify them
-	finalPath := expectedFilePath
-	if !filepath.IsAbs(expectedFilePath) {
-		// For relative paths, try multiple resolution strategies
-		possiblePaths := []string{
-			expectedFilePath,
-			filepath.Join("../../../", expectedFilePath),
-			filepath.Join("../../", expectedFilePath),
-			filepath.Join("../", expectedFilePath),
+	// First, check if the provided path is absolute or exists as given
+	finalPath := ""
+	if filepath.IsAbs(expectedFilePath) {
+		if _, err := os.Stat(expectedFilePath); err == nil {
+			finalPath = expectedFilePath
 		}
+	} else {
+		if _, err := os.Stat(expectedFilePath); err == nil {
+			finalPath = expectedFilePath
+		}
+	}
 
-		var err error
-		for _, path := range possiblePaths {
-			if _, statErr := os.Stat(path); statErr == nil {
-				finalPath = path
-				break
-			} else {
-				err = statErr
+	// If not found, walk up from the current working directory until we find the 'driver' directory
+	if finalPath == "" {
+		wd, err := os.Getwd()
+		if err != nil {
+			return Result{
+				IsMatch: false,
+				Errors: []Error{{
+					Path:    "file",
+					Message: fmt.Sprintf("Failed to get working directory: %v", err),
+				}},
 			}
 		}
-
-		// If none of the paths work, use the original error
-		if finalPath == expectedFilePath && err != nil {
-			// Check if file exists at original path
-			if _, statErr := os.Stat(expectedFilePath); statErr != nil {
-				return Result{
-					IsMatch: false,
-					Errors: []Error{{
-						Path:    "file",
-						Message: fmt.Sprintf("Failed to find expected output file: %v", err),
-					}},
+		driverDir := "driver"
+		for {
+			if wd == "/" || wd == "." {
+				break
+			}
+			base := filepath.Base(wd)
+			if base == driverDir {
+				candidate := filepath.Join(wd, expectedFilePath)
+				if _, statErr := os.Stat(candidate); statErr == nil {
+					finalPath = candidate
+					break
 				}
 			}
+			parent := filepath.Dir(wd)
+			if parent == wd {
+				break
+			}
+			wd = parent
+		}
+	}
+	if finalPath == "" {
+		return Result{
+			IsMatch: false,
+			Errors: []Error{{
+				Path:    "file",
+				Message: fmt.Sprintf("Failed to read expected output: Failed to find expected output file: %s from any driver directory", expectedFilePath),
+			}},
 		}
 	}
 
@@ -146,10 +165,40 @@ func compareValues(expected, actual interface{}, options *Options, hasOmittedFie
 		return comparePrimitives(expected, actual, path)
 	}
 
-	// Handle arrays
+	// Handle arrays (support both []interface{} and bson.A)
 	if expectedVal.Kind() == reflect.Slice && actualVal.Kind() == reflect.Slice {
-		expectedSlice := expected.([]interface{})
-		actualSlice := actual.([]interface{})
+		var expectedSlice, actualSlice []interface{}
+
+		switch e := expected.(type) {
+		case []interface{}:
+			expectedSlice = e
+		case bson.A:
+			expectedSlice = []interface{}(e)
+		default:
+			return Result{
+				IsMatch: false,
+				Errors: []Error{{
+					Path:    path,
+					Message: "expected value is not a slice",
+				}},
+			}
+		}
+
+		switch a := actual.(type) {
+		case []interface{}:
+			actualSlice = a
+		case bson.A:
+			actualSlice = []interface{}(a)
+		default:
+			return Result{
+				IsMatch: false,
+				Errors: []Error{{
+					Path:    path,
+					Message: "actual value is not a slice",
+				}},
+			}
+		}
+
 		return compareArrays(expectedSlice, actualSlice, options, hasOmittedFields, path)
 	}
 
@@ -259,8 +308,10 @@ func compareArraysByBacktracking(expected, actual []interface{}, options *Option
 	return Result{
 		IsMatch: false,
 		Errors: []Error{{
-			Path:    path,
-			Message: "no matching arrangement found for unordered array compare",
+			Path:     path,
+			Expected: fmt.Sprintf("%#v", expected),
+			Actual:   fmt.Sprintf("%#v", actual),
+			Message:  "no matching arrangement found for unordered array compare",
 		}},
 	}
 }
@@ -396,8 +447,10 @@ func compareObjects(expected, actual interface{}, options *Options, hasOmittedFi
 		if !exists {
 			if !hasOmittedFields {
 				allErrors = append(allErrors, Error{
-					Path:    keyPath,
-					Message: "missing key in actual object",
+					Path:     keyPath,
+					Expected: fmt.Sprintf("%#v", expectedVal),
+					Actual:   "<missing>",
+					Message:  "missing key in actual object",
 				})
 			}
 			continue

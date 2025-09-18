@@ -2,8 +2,8 @@ package pipelines
 
 import (
 	"context"
-
 	"driver-examples/examples/aggregation/pipelines/filter"
+	"driver-examples/examples/aggregation/pipelines/group"
 	"driver-examples/utils"
 	"driver-examples/utils/compare"
 	"testing"
@@ -52,8 +52,8 @@ func TestAggregationPipelines(t *testing.T) {
 		testFunc func(t *testing.T)
 	}{
 		{"FilterTutorial", testFilterTutorial},
+		{"GroupTutorial", testGroupTutorial},
 		// Add more pipeline tests here as you create them:
-		// {"SortTutorial", testSortTutorial},
 		// {"GroupTutorial", testGroupTutorial},
 		// {"LookupTutorial", testLookupTutorial},
 	}
@@ -77,6 +77,28 @@ func testFilterTutorial(t *testing.T) {
 	filter.LoadData()
 	result := filter.RunPipeline()
 	expectedOutputFilepath := "examples/aggregation/pipelines/filter/output.txt"
+
+	// Compare the actual results with expected output
+	comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)
+
+	if !comparisonResult.IsMatch {
+		t.Errorf("Results do not match expected output: %s", comparisonResult.Error())
+
+		// Print detailed error information
+		for _, err := range comparisonResult.Errors {
+			t.Errorf("  Path: %s, Expected: %s, Actual: %s, Message: %s",
+				err.Path, err.Expected, err.Actual, err.Message)
+		}
+	}
+}
+
+func testGroupTutorial(t *testing.T) {
+	t.Helper() // Mark this as a helper function for better error reporting
+
+	// Run your test logic
+	group.LoadData()
+	result := group.RunPipeline()
+	expectedOutputFilepath := "examples/aggregation/pipelines/group/output.txt"
 
 	// Compare the actual results with expected output
 	comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)

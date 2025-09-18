@@ -2,11 +2,12 @@ package compare
 
 import (
 	"fmt"
-	"go.mongodb.org/mongo-driver/v2/bson"
 	"reflect"
 	"regexp"
 	"strings"
 	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // convertActualResults converts various types of slices to normalized []interface{}
@@ -75,6 +76,14 @@ func normalizeValue(value interface{}) interface{} {
 	}
 
 	switch v := value.(type) {
+	case bson.D:
+		return normalizeValue(bsonDToMap(v))
+	case bson.A:
+		arr := make([]interface{}, len(v))
+		for i, item := range v {
+			arr[i] = normalizeValue(item)
+		}
+		return arr
 	case bson.ObjectID:
 		return v.Hex()
 	case bson.Decimal128:

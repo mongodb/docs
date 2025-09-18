@@ -16,22 +16,18 @@ field, which contains customer email addresses.
 First, create a Go struct to model the data in the ``orders``
 collection:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.go
+.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/models.snippet.order.go
    :language: go
    :copyable: true
-   :start-after: start-structs
-   :end-before: end-structs
-   :dedent:
+   :category: usage example
 
 To create the ``orders`` collection and insert the sample data, add the
 following code to your application:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.go
+.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/load-data.snippet.example.go
    :language: go
    :copyable: true
-   :start-after: start-insert-orders
-   :end-before: end-insert-orders
-   :dedent:
+   :category: usage example
 
 .. end-prep-steps
 
@@ -45,12 +41,10 @@ following code to your application:
       First, add a :pipeline:`$match` stage that matches
       orders placed in 2020:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run-pipeline.snippet.match.go
          :language: go
          :copyable: true
-         :start-after: start-match
-         :end-before: end-match
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a sort stage to sort by order date.
 
@@ -58,12 +52,10 @@ following code to your application:
       ascending sort on the ``orderdate`` field to retrieve the earliest
       2020 purchase for each customer in the next stage:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run-pipeline.snippet.sort-orderdate.go
          :language: go
          :copyable: true
-         :start-after: start-sort1
-         :end-before: end-sort1
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a group stage to group by email address.
 
@@ -78,24 +70,20 @@ following code to your application:
       - ``orders``: the list of all the customer's purchases,
         including the date and value of each purchase
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run-pipeline.snippet.group.go
          :language: go
          :copyable: true
-         :start-after: start-group
-         :end-before: end-group
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a sort stage to sort by first order date.
-            
+
       Next, add another :pipeline:`$sort` stage to set an
       ascending sort on the ``first_purchase_date`` field:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run-pipeline.snippet.sort-first-purchase-date.go
          :language: go
          :copyable: true
-         :start-after: start-sort2
-         :end-before: end-sort2
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a set stage to display the email address.
 
@@ -103,56 +91,43 @@ following code to your application:
       ``customer_id`` field from the values in the ``_id`` field
       that were set during the ``$group`` stage:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run-pipeline.snippet.set.go
          :language: go
          :copyable: true
-         :start-after: start-set
-         :end-before: end-set
-         :dedent:
+         :category: syntax example
 
    .. step:: Add an unset stage to remove unneeded fields.
 
       Finally, add an :pipeline:`$unset` stage. The
       ``$unset`` stage removes the ``_id`` field from the result
       documents:
-            
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.go
+
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run-pipeline.snippet.unset.go
          :language: go
          :copyable: true
-         :start-after: start-unset
-         :end-before: end-unset
-         :dedent:
+         :category: syntax example
 
    .. step:: Run the aggregation pipeline.
 
       Add the following code to the end of your application to perform
       the aggregation on the ``orders`` collection:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/group-and-total/full-files/group_total.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run-pipeline.snippet.run-agg.go
          :language: go
          :copyable: true
-         :start-after: start-run-agg
-         :end-before: end-run-agg
-         :dedent:
+         :category: syntax example
 
-      Finally, run the following command in your shell to start your
-      application:
-
-      .. code-block:: bash
-      
-         go run agg_tutorial.go
+      Finally, run the application and inspect the results.
 
    .. step:: Interpret the aggregation results.
 
       The aggregation returns the following summary of customers' orders
       from 2020:
 
-      .. code-block:: none
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/output.txt
+         :language: text
          :copyable: false
-         
-         {"first_purchase_date":{"$date":"2020-01-01T08:25:37Z"},"total_value":63,"total_orders":1,"orders":[{"orderdate":{"$date":"2020-01-01T08:25:37Z"},"value":63}],"customer_id":"oranieri@warmmail.com"}
-         {"first_purchase_date":{"$date":"2020-01-13T09:32:07Z"},"total_value":436,"total_orders":4,"orders":[{"orderdate":{"$date":"2020-01-13T09:32:07Z"},"value":99},{"orderdate":{"$date":"2020-05-30T08:35:53Z"},"value":231},{"orderdate":{"$date":"2020-10-03T13:49:44Z"},"value":102},{"orderdate":{"$date":"2020-12-26T08:55:46Z"},"value":4}],"customer_id":"elise_smith@myemail.com"}
-         {"first_purchase_date":{"$date":"2020-08-18T23:04:48Z"},"total_value":191,"total_orders":2,"orders":[{"orderdate":{"$date":"2020-08-18T23:04:48Z"},"value":4},{"orderdate":{"$date":"2020-11-23T22:56:53Z"},"value":187}],"customer_id":"tj@wheresmyemail.com"}
+         :category: example return object
 
       The result documents contain details from all the orders from
       a given customer, grouped by the customer's email address.
