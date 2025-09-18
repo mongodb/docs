@@ -48,7 +48,7 @@ when applicable, and connection options.
       1. Log in to your Atlas account. 
       2. Navigate to the :guilabel:`Database` section on the sidebar and select :guilabel:`Clusters`. 
       3. Find the cluster you would like to connect to and click the :guilabel:`Connect` button.
-      4. Under :guilable:`Connect to your application`, click the :guilabel:`Drivers` option. 
+      4. Under :guilabel:`Connect to your application`, click the :guilabel:`Drivers` option. 
       5. Select "Go" from the :guilabel:`Driver` selection menu and the appropriate version from the :guilabel:`Version` selection menu.
       6. Copy the connection string clipboard.
 
