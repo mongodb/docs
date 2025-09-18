@@ -2,7 +2,7 @@
 import createMDX from '@next/mdx';
 
 const nextConfig = {
-  pageExtensions: ['mdx', 'tsx'],
+  pageExtensions: ['mdx', 'tsx', 'ts'],
   trailingSlash: true,
   compiler: {
     emotion: true,
