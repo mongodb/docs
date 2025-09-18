@@ -205,12 +205,6 @@ const tocData: TocItem[] = [
         versions: { excludes: outdatedVersions },
         items: [
           {
-            label: "Work with Indexes",
-            contentSite: "cpp-driver",
-            url: "/docs/languages/cpp/cpp-driver/:version/indexes/work-with-indexes",
-            versions: { excludes: outdatedVersions },
-          },
-          {
             label: "Single Field Indexes",
             contentSite: "cpp-driver",
             url: "/docs/languages/cpp/cpp-driver/:version/indexes/single-field-index",
