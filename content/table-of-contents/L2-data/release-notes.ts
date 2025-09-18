@@ -9,7 +9,7 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
-        label: "8.2 (Upcoming)",
+        label: "8.2 (Stable Release)",
         contentSite: "docs",
         url: "/docs/:version/release-notes/8.2",
         collapsible: true,
@@ -27,25 +27,7 @@ const tocData: TocItem[] = [
         ]
       },
       {
-        label: "8.1 (Rapid Release)",
-        contentSite: "docs",
-        url: "/docs/:version/release-notes/8.1",
-        collapsible: true,
-        items: [
-          {
-            label: "Compatibility Changes",
-            contentSite: "docs",
-            url: "/docs/:version/release-notes/8.1-compatibility",
-          },
-          {
-            label: "Changelog",
-            contentSite: "docs",
-            url: "/docs/:version/release-notes/8.1-changelog",
-          },
-        ],
-      },
-      {
-        label: "8.0 (Stable Release)",
+        label: "8.0",
         contentSite: "docs",
         url: "/docs/:version/release-notes/8.0",
         collapsible: true,
