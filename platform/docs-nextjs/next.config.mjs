@@ -10,7 +10,7 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@leafygreen-ui/emotion'],
   },
-  assetPrefix: '/docs',
+  assetPrefix: '/docs/docs_static_nextjs',
 };
 
 const withMDX = createMDX({
