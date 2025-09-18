@@ -23,7 +23,6 @@ const tocData: TocItem[] = [
       {
         label: "Connect",
         contentSite: "golang",
-        url: "/docs/drivers/go/:version/connect",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
@@ -107,7 +106,6 @@ const tocData: TocItem[] = [
       {
         label: "CRUD Operations",
         contentSite: "golang",
-        url: "/docs/drivers/go/:version/crud",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
@@ -120,7 +118,6 @@ const tocData: TocItem[] = [
           {
             label: "Query Documents",
             contentSite: "golang",
-            url: "/docs/drivers/go/:version/crud/query",
             collapsible: true,
             versions: { excludes: outdatedVersions },
             items: [
@@ -254,7 +251,6 @@ const tocData: TocItem[] = [
       {
         label: "Data Formats",
         contentSite: "golang",
-        url: "/docs/drivers/go/:version/data-formats",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
@@ -276,6 +272,12 @@ const tocData: TocItem[] = [
             url: "/docs/drivers/go/:version/data-formats/extended-json",
             versions: { excludes: outdatedVersions },
           },
+          {
+            label: "Geospatial Data",
+            contentSite: "golang",
+            url: "/docs/drivers/go/:version/data-formats/geo",
+            versions: { excludes: outdatedVersions },
+          }
         ]
       },
       {
@@ -311,7 +313,6 @@ const tocData: TocItem[] = [
       {
         label: "Monitoring & Logging",
         contentSite: "golang",
-        url: "/docs/drivers/go/:version/monitoring-and-logging",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
@@ -338,7 +339,6 @@ const tocData: TocItem[] = [
       {
         label: "Security",
         contentSite: "golang",
-        url: "/docs/drivers/go/:version/security",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
@@ -404,7 +404,6 @@ const tocData: TocItem[] = [
       {
         label: "Reference",
         contentSite: "golang",
-        url: "/docs/drivers/go/:version/reference",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
