@@ -36,7 +36,6 @@ const tocData: TocItem[] = [
           {
             label: "Find",
             contentSite: "kotlin",
-            url: "/docs/drivers/kotlin/coroutine/:version/usage-examples/find-operations",
             collapsible: true,
             items: [
               {
@@ -54,7 +53,6 @@ const tocData: TocItem[] = [
           {
             label: "Insert",
             contentSite: "kotlin",
-            url: "/docs/drivers/kotlin/coroutine/:version/usage-examples/insert-operations",
             collapsible: true,
             items: [
               {
@@ -70,9 +68,8 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: "Update & Replaces",
+            label: "Update & Replace",
             contentSite: "kotlin",
-            url: "/docs/drivers/kotlin/coroutine/:version/usage-examples/update-operations",
             collapsible: true,
             items: [
               {
@@ -95,7 +92,6 @@ const tocData: TocItem[] = [
           {
             label: "Delete",
             contentSite: "kotlin",
-            url: "/docs/drivers/kotlin/coroutine/:version/usage-examples/delete-operations",
             collapsible: true,
             items: [
               {
@@ -214,7 +210,6 @@ const tocData: TocItem[] = [
           {
             label: "Data Formats",
             contentSite: "kotlin",
-            url: "/docs/drivers/kotlin/coroutine/:version/fundamentals/data-formats",
             collapsible: true,
             items: [
               {
@@ -252,13 +247,11 @@ const tocData: TocItem[] = [
           {
             label: "CRUD Operations",
             contentSite: "kotlin",
-            url: "/docs/drivers/kotlin/coroutine/:version/fundamentals/crud",
             collapsible: true,
             items: [
               {
                 label: "Read",
                 contentSite: "kotlin",
-                url: "/docs/drivers/kotlin/coroutine/:version/fundamentals/crud/read-operations",
                 collapsible: true,
                 items: [
                   {
@@ -311,7 +304,6 @@ const tocData: TocItem[] = [
               {
                 label: "Write",
                 contentSite: "kotlin",
-                url: "/docs/drivers/kotlin/coroutine/:version/fundamentals/crud/write-operations",
                 collapsible: true,
                 items: [
                   {
@@ -374,6 +366,7 @@ const tocData: TocItem[] = [
                     label: "Atlas Vector Search",
                     contentSite: "kotlin",
                     url: "/docs/drivers/kotlin/coroutine/:version/fundamentals/builders/vector-search",
+                    versions: { excludes: ["5.1"] },
                   },
                 ],
               },
@@ -406,6 +399,7 @@ const tocData: TocItem[] = [
                 label: "Builders & Data Classes",
                 contentSite: "kotlin",
                 url: "/docs/drivers/kotlin/coroutine/:version/fundamentals/builders/builders-data-classes",
+                versions: { excludes: ["5.1", "5.2"] },
               },
             ],
           },
@@ -459,7 +453,6 @@ const tocData: TocItem[] = [
       {
         label: "API Documentation",
         contentSite: "kotlin",
-        url: "/docs/drivers/kotlin/coroutine/:version/api-documentation",
         collapsible: true,
         items: [
           {
