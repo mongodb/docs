@@ -263,7 +263,6 @@ const tocData: TocItem[] = [
       {
         label: "Security",
         contentSite: "java-rs",
-        url: "/docs/languages/java/reactive-streams-driver/:version/secure-your-data",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
@@ -296,7 +295,6 @@ const tocData: TocItem[] = [
       {
         label: "Data Formats",
         contentSite: "java-rs",
-        url: "/docs/languages/java/reactive-streams-driver/:version/data-formats",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
