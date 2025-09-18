@@ -1,7 +1,8 @@
 // import type { NextConfig } from "next";
+import createMDX from '@next/mdx';
 
 const nextConfig = {
-  /* config options here */
+  pageExtensions: ['mdx', 'tsx'],
   trailingSlash: true,
   compiler: {
     emotion: true,
@@ -12,4 +13,8 @@ const nextConfig = {
   assetPrefix: '/docs',
 };
 
-export default nextConfig;
+const withMDX = createMDX({
+  /* MDX plugins/config here */
+});
+
+export default withMDX(nextConfig);

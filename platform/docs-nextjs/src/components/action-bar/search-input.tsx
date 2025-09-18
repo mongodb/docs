@@ -23,7 +23,7 @@ interface SearchInputProps {
 
 const SearchInput = ({ className }: SearchInputProps) => {
   const searchParams = useSearchParams();
-  const [searchValue, setSearchValue] = useState(() => searchParams.get('q') || '');
+  const [searchValue, setSearchValue] = useState(() => searchParams?.get('q') || '');
   const searchBoxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [mobileSearchActive, setMobileSearchActive] = useState(() => false);
@@ -66,7 +66,7 @@ const SearchInput = ({ className }: SearchInputProps) => {
 
   // on init, populate search input field with search params (if any)
   useEffect(() => {
-    const searchTerm = searchParams.get('q');
+    const searchTerm = searchParams?.get('q');
     if (searchTerm) {
       setSearchValue(searchTerm);
     }
