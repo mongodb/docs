@@ -8,7 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import timeseries.QuickStart.Tutorial;
-import utils.TestUtils;
+import mongodb.comparison.OutputValidator;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -47,9 +47,9 @@ public class TimeSeriesTests {
         var tutorial = new Tutorial();
         tutorial.loadSampleData();
         var output = tutorial.runMetaFieldQuery(new String[]{"example arg"});
-        Path outputFilePath = Path.of("src/main/java/timeseries/QuickStart/MetaFieldOutput.txt");
-        List<Document> expected = TestUtils.loadDocumentsFromFile(outputFilePath);
-        assertEquals(expected, output, "The output from the Tutorial class does not match the expected contents!");
+
+        OutputValidator.expect(output)
+            .assertMatchesFile("src/main/java/timeseries/QuickStart/MetaFieldOutput.txt");
     }
 
     @Test
@@ -58,8 +58,8 @@ public class TimeSeriesTests {
         var tutorial = new Tutorial();
         tutorial.loadSampleData();
         var output = tutorial.runTimeFieldQuery(new String[]{"example arg"});
-        Path outputFilePath = Path.of("src/main/java/timeseries/QuickStart/TimeFieldOutput.txt");
-        List<Document> expected = TestUtils.loadDocumentsFromFile(outputFilePath);
-        assertEquals(expected, output, "The output from the Tutorial class does not match the expected contents!");
+
+        OutputValidator.expect(output)
+            .assertMatchesFile("src/main/java/timeseries/QuickStart/TimeFieldOutput.txt");
     }
 }

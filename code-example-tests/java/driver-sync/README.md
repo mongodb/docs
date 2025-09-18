@@ -11,48 +11,53 @@ The structure of this Java project is as follows:
 
 ## Overview
 
-1. [Set up environment](#set-up-environment)
-2. [Create a new code example](#to-create-a-new-code-example)
-3. [Add a test for a new code example](#to-add-a-test-for-a-new-code-example)
-4. Run tests [locally](#to-run-the-tests-locally) (optional) or in [CI](#to-run-the-tests-in-ci)
-5. [Snip code examples](#to-snip-code-examples-for-inclusion-in-docs) for inclusion in docs
+1. [First-time setup](#first-time-setup)
+2. [Set up environment](#set-up-environment)
+3. [Create a new code example](#to-create-a-new-code-example)
+4. [Add a test for a new code example](#to-add-a-test-for-a-new-code-example)
+5. Run tests [locally](#to-run-the-tests-locally) (optional) or in [CI](#to-run-the-tests-in-ci)
+6. [Snip code examples](#to-snip-code-examples-for-inclusion-in-docs) for inclusion in docs
 
 Refer to the README at the root of the `code-example-tests` directory for information
 about how to use the tested code examples in your documentation project after you complete the
 `snip` step.
 
-## Set up environment
+## First-time setup
+
+Before you can run tests or get Driver API hints in your IDE for new examples,
+you need to compile the project dependencies. This driver-sync project depends
+on utility libraries and dependencies that need to be built and loaded first.
 
 ### Install prerequisites
 
-This test suite was written with Java JDK Zulu v17 installed. If you
+This test suite was written with Java JDK Zulu v21 installed. If you
 do not yet have Java installed, install it. There are many ways to install Java,
 which is out of the scope of this README.
 
-Separately, you can install `Maven` if you want to run the test suite from the
-command line. For details about installing Maven, refer to
-[Installing Apache Maven](https://maven.apache.org/install.html). You don't
-need to install Maven if you plan to run the tests from within the IDE, or don't plan to run the tests at all.
+Separately, install `Maven` to build the utility libraries and load dependencies.
+For details about installing Maven, refer to
+[Installing Apache Maven](https://maven.apache.org/install.html).
 
-### Install project dependencies
+### Compile the utilities and driver-sync module
 
-You can install project dependencies through your IDE, or using `Maven` from the command line.
-
-#### Install Project Dependencies in the IDE
-
-Open the `pom.xml` file in the root of the `/java` directory in your IDE. The
-first time you load it, or when you change any dependencies, a `Sync` button
-appears. Press this button to download dependencies.
-
-#### Install Project Dependencies from the Command Line
-
-If you install `Maven`, you can install project dependencies from the command
-line. From the root of the `/java` directory, run the following command to
-install dependencies:
+From the **root of the `/java` directory** (not the `/driver-sync` directory), run:
 
 ```
-mvn install
+mvn clean install -DskipTests
 ```
+
+This command will:
+1. Compile the utility libraries (comparison tools and sample data helpers)
+2. Install them to your local Maven repository so they can be used by driver-sync
+3. Compile the driver-sync project code
+4. Ensure all dependencies are properly resolved
+
+You need to run this command:
+- The first time you work with the project
+- If you encounter dependency-related errors when running tests
+
+> **Note**: All Maven commands for running tests should be run from the `/driver-sync` directory,
+> but this initial compilation must be run from the parent `/java` directory.
 
 ## To create a new code example
 
@@ -139,11 +144,8 @@ void TestFilter() {
   example.loadSampleData();
   var output = example.runTutorial();
 
-  // Read the expected output file
-  Path outputFilePath = Path.of("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
-  List<Document> expected = TestUtils.loadDocumentsFromFile(outputFilePath);
-
-  assertEquals(expected, output, "The output from the Filter Tutorial class does not match the expected contents!");
+  OutputValidator.expect(output)
+    .assertMatchesFile("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
 }
 ```
 
@@ -174,7 +176,7 @@ Inside the test file, create a new class, similar to:
 package test.aggregation.pipelines;
 
 public class TutorialTests {
- 
+
 }
 ```
 
@@ -191,7 +193,7 @@ Then, add a function annotated with the `@Test` attribute to add an individual t
 case. Refer to the "Add a test case to an existing file" section of this README
 for details.
 
-Give it a descriptive `@Displayname` annotation. 
+Give it a descriptive `@Displayname` annotation.
 
 For an example you can copy/paste to stub out your own test case, refer to
 `test/java/test/example/ExampleStubTest.java`.
@@ -202,8 +204,8 @@ You can verify the output in a few different ways:
 
 1. Return a simple string from your example function, and use a strict match
    to confirm it matches expectations.
-2. Read expected output from a file, such as when we are showing the output
-   in the docs, and compare it to what the code returns.
+2. Use the **Comparison** library to validate output against the output we show
+   in the documentation.
 
 #### Verify a simple string match
 
@@ -221,26 +223,170 @@ that the code executed correctly:
 ```java
 var result = example.RunApp();
 String expectedReturn = 'some output to verify in a test';
-assertEquals(expectedReturn, result, "The output from the Tutorial class does not match the expected result!");
+OutputValidator.expect(result)
+  .assertMatches(expectedReturn);
 ```
 
 #### Verify output from a file
 
 If you are showing the output in the docs, write the output to a file whose
-filename matches the example - i.e. `TutorialOutput.txt`. Then, read the
-contents of the file in the test and verify that the output matches what the
-test returns.
+filename matches the example - i.e. `TutorialOutput.txt`. Then, use the
+**Comparison** library to validate that the actual output matches the expected
+output from the file:
 
 ```java
 var example = new aggregation.pipelines.filter.Tutorial();
 example.loadSampleData();
 var output = example.runTutorial();
 
-// Read the expected output file
-Path outputFilePath = Path.of("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
-List<Document> expected = TestUtils.loadDocumentsFromFile(outputFilePath);
+OutputValidator.expect(output)
+  .assertMatchesFile("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
+```
 
-assertEquals(expected, output, "The output from the Tutorial class does not match the expected contents!");
+## Using the Comparison Library
+
+This test suite includes a comprehensive **Comparison Library** (`mongodb.comparison.OutputValidator`)
+designed specifically for validating MongoDB Java Driver output against expected
+results.
+
+### Key Features
+
+- **MongoDB Type Support**: Automatically handles ObjectId, Decimal128, dates, and other MongoDB-specific types
+- **Multiple Input Formats**: Supports JSON, JSONL, MongoDB Extended JSON, and POJO syntax
+- **Flexible Matching**: Use ellipsis patterns (`...`) for dynamic content like timestamps or generated IDs
+- **Array Strategies**: Configure ordered vs unordered array comparisons
+- **Field Exclusion**: Ignore specific fields during comparison
+
+### Basic Usage
+
+```java
+import mongodb.comparison.OutputValidator;
+
+// Simple validation
+var example = new aggregation.pipelines.filter.Tutorial();
+example.loadSampleData();
+var output = example.runTutorial();
+OutputValidator.expect(results)
+    .assertMatchesFile("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
+```
+
+### Advanced Options
+
+```java
+// With comparison options
+OutputValidator.expect(results)
+    .withUnorderedArrays()                    // Arrays can be in any order
+    .withIgnoredFields("_id", "createdAt")   // Ignore dynamic fields
+    .assertMatchesFile("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
+
+// Ordered arrays (for aggregation pipelines, sorted results)
+OutputValidator.expect(results)
+    .withOrderedArrays()
+    .assertMatchesFile("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
+```
+
+### Expected Output File Formats
+
+The library supports multiple formats in your expected output files:
+
+**MongoDB Extended JSON:**
+```json
+{ "date" : { "$date" : "2021-12-18T15:55:00Z" }, "name" : "Alice" }
+{ "date" : { "$date" : "2021-12-18T15:56:00Z" }, "name" : "Bob" }
+```
+
+**JSONL (Line-delimited JSON):**
+```json
+{"date": {"$date": "2021-12-18T15:55:00Z"}, "name": "Alice"}
+{"date": {"$date": "2021-12-18T15:56:00Z"}, "name": "Bob"}
+```
+
+**Java Object Syntax:**
+```java
+{ date: new DateTime(2021, 12, 18, 15, 55, 0), name: "Alice" }
+{ date: new DateTime(2021, 12, 18, 15, 56, 0), name: "Bob" }
+```
+
+### Ellipsis Patterns for Dynamic Content
+
+Use `...` to match dynamic or variable content:
+
+**String truncation:**
+```
+"username_abc123..."  // Matches any string starting with "username_abc123"
+```
+
+**Object fields:**
+```json
+{ "name": "Alice", "profile": { "age": 30, ... } }  // Matches objects with at least these fields
+```
+
+**Array elements:**
+```json
+["first", "second", ...]  // Matches arrays starting with these elements
+```
+
+## Working with Sample Data
+
+This test suite includes a **Sample Data Utility** (`sampledatautil`) that
+allows tests to conditionally skip execution when MongoDB sample databases are
+not available. This provides a better experience for developers who may not have
+sample data loaded locally.
+
+### Basic Usage
+
+Mark tests that require sample data using the `@RequiresSampleData` annotation:
+
+```java
+import sampledatautil.RequiresSampleData;
+
+@Test
+@RequiresSampleData("sample_mflix")
+void testMovieAggregation() {
+    // Test code that uses sample_mflix database
+    var movies = collection.find(filter).into(new ArrayList<>());
+    // ... rest of test
+}
+```
+
+Alternatively, you can manually check sample data availability at the start of a test:
+
+```java
+import sampledatautil.SampleDataTestHelper;
+
+@Test
+void testMovieAggregation() {
+    // Check sample data availability (skips test if missing)
+    SampleDataTestHelper.ensureSampleDataOrSkip("sample_mflix");
+
+    // Test code that uses sample_mflix database
+    var movies = collection.find(filter).into(new ArrayList<>());
+    // ... rest of test
+}
+```
+
+### Multiple Databases and Collections
+
+For tests requiring specific collections within a database:
+
+```java
+@Test
+@RequiresSampleData(value = "sample_mflix", collections = {"movies", "comments"})
+void testCrossCollectionQuery() {
+    // Test code using both collections
+}
+```
+
+Or manually check for multiple databases:
+
+```java
+@Test
+void testCrossDatabaseQuery() {
+    SampleDataTestHelper.ensureSampleDataOrSkip("sample_mflix", "movies");
+    SampleDataTestHelper.ensureSampleDataOrSkip("sample_restaurants", "restaurants");
+
+    // Test code using both databases
+}
 ```
 
 ## To run the tests locally
@@ -291,6 +437,12 @@ the `/driver-sync` directory, run:
 ```
 mvn test
 ```
+
+This command runs only the tests in the driver-sync module.
+
+> **Important**: You must set the `CONNECTION_STRING` environment variable before running tests,
+> or the tests will fail to discover properly. See the [Create environment variables](#create-environment-variables)
+> section for details.
 
 #### Run a Test Class from the command line
 
@@ -377,3 +529,43 @@ automatically outputs to `content/code-examples/tested/java/driver-sync/aggregat
 
 This script will automatically create the specified output path if it does not
 exist.
+
+## Troubleshooting
+
+### Tests fail to discover or "TestEngine with ID 'junit-jupiter' failed to discover tests"
+
+This error typically occurs when the `CONNECTION_STRING` environment variable is not set.
+Make sure to set the environment variable before running tests:
+
+```bash
+export CONNECTION_STRING="your-mongodb-connection-string"
+mvn test
+```
+
+Or set it inline:
+
+```bash
+CONNECTION_STRING="your-mongodb-connection-string" mvn test
+```
+
+### [ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.3:test (default-test) on project driver-sync
+
+This error typically occurs when the `CONNECTION_STRING` environment variable is not set. If you run `mvn clean install`
+without the `-DskipTests` during first-time setup, Maven automatically runs all the tests and you may encounter
+this error.
+
+This should not prevent dependencies from installing correctly. You can safely ignore this error and configure the
+`CONNECTION_STRING` environment variable before you run tests manually.
+
+To set it in the terminal session where you're running tests to persist for subsequent test runs:
+
+```bash
+export CONNECTION_STRING="your-mongodb-connection-string"
+mvn test
+```
+
+Or set it inline when you run tests:
+
+```bash
+CONNECTION_STRING="your-mongodb-connection-string" mvn test
+```

@@ -8,7 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import utils.TestUtils;
+import mongodb.comparison.OutputValidator;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -36,8 +36,8 @@ public class TutorialTests {
         var output = AggTutorial.runExample(new String[]{"example arg"});
         var outputString = output.get(0).get("stringValue");
         var expectedOutput = "sample2";
-        assertEquals(expectedOutput, outputString,
-                "The output from the AggTutorial class does not match the expected output");
+        OutputValidator.expect(outputString)
+            .assertMatches(expectedOutput);
     }
 
     @Test
@@ -47,11 +47,8 @@ public class TutorialTests {
         example.loadSampleData();
         var output = example.runTutorial();
 
-        // Read the expected output file
-        Path outputFilePath = Path.of("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
-        List<Document> expected = TestUtils.loadDocumentsFromFile(outputFilePath);
-
-        assertEquals(expected, output, "The output from the Tutorial class does not match the expected contents!");
+        OutputValidator.expect(output)
+            .assertMatchesFile("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
     }
 
     @Test
@@ -61,11 +58,8 @@ public class TutorialTests {
         example.loadSampleData();
         var output = example.runTutorial();
 
-        // Read the expected output file
-        Path outputFilePath = Path.of("src/main/java/aggregation/pipelines/group/TutorialOutput.txt");
-        List<Document> expected = TestUtils.loadDocumentsFromFile(outputFilePath);
-
-        assertEquals(expected, output, "The output from the Tutorial class does not match the expected contents!");
+        OutputValidator.expect(output)
+            .assertMatchesFile("src/main/java/aggregation/pipelines/group/TutorialOutput.txt");
     }
 
     @Test
@@ -75,10 +69,8 @@ public class TutorialTests {
         example.loadSampleData();
         var output = example.runTutorial();
 
-        // Read the expected output file
-        Path outputFilePath = Path.of("src/main/java/aggregation/pipelines/unwind/TutorialOutput.txt");
-        List<Document> expected = TestUtils.loadDocumentsFromFile(outputFilePath);
-        TestUtils.validateUnorderedResults(expected, output);
+        OutputValidator.expect(output)
+            .assertMatchesFile("src/main/java/aggregation/pipelines/unwind/TutorialOutput.txt");
     }
 
     @Test
@@ -88,10 +80,8 @@ public class TutorialTests {
         example.loadSampleData();
         var output = example.runTutorial();
 
-        // Read the expected output file
-        Path outputFilePath = Path.of("src/main/java/aggregation/pipelines/join1to1/TutorialOutput.txt");
-        List<Document> expected = TestUtils.loadDocumentsFromFile(outputFilePath);
-        assertEquals(expected, output, "The output from the Tutorial class does not match the expected contents!");
+        OutputValidator.expect(output)
+            .assertMatchesFile("src/main/java/aggregation/pipelines/join1to1/TutorialOutput.txt");
     }
 
     @Test
@@ -101,9 +91,7 @@ public class TutorialTests {
         example.loadSampleData();
         var output = example.runTutorial();
 
-        // Read the expected output file
-        Path outputFilePath = Path.of("src/main/java/aggregation/pipelines/joinMultiField/TutorialOutput.txt");
-        List<Document> expected = TestUtils.loadDocumentsFromFile(outputFilePath);
-        assertEquals(expected, output, "The output from the Tutorial class does not match the expected contents!");
+        OutputValidator.expect(output)
+            .assertMatchesFile("src/main/java/aggregation/pipelines/joinMultiField/TutorialOutput.txt");
     }
 }
