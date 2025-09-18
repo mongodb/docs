@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { css, cx } from '@leafygreen-ui/emotion';
 import IconButton from '@leafygreen-ui/icon-button';

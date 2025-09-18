@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { UnifiedNav } from '@mdb/consistent-nav';
 import headingStyles from './header.module.scss';
 

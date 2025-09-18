@@ -1,4 +1,3 @@
-import React from 'react';
 import { render } from '@testing-library/react';
 import Admonition from '@/components/admonition';
 import type { AdmonitionNode } from '@/types/ast';

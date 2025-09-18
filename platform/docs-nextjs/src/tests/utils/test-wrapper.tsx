@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react';
-import React from 'react';
 import { CacheProvider } from '@emotion/react';
 import LGProvider from '@leafygreen-ui/leafygreen-provider';
 import { BaseFontSize } from '@leafygreen-ui/tokens';

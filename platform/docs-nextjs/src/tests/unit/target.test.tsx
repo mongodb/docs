@@ -1,4 +1,3 @@
-import React from 'react';
 import { render } from '@testing-library/react';
 import Target from '@/components/target';
 import { mockLocation } from '@/tests/utils/mock-location';

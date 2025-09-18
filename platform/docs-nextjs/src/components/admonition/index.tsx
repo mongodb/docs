@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import Callout, { Variant } from '@leafygreen-ui/callout';
 import { cx, css } from '@leafygreen-ui/emotion';
 import { Theme } from '@leafygreen-ui/lib';

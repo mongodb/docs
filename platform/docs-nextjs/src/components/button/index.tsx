@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import LeafyButton from '@leafygreen-ui/button';
 import Icon from '@leafygreen-ui/icon';
 import { css, cx } from '@leafygreen-ui/emotion';

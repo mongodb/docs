@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { UnifiedFooter } from '@mdb/consistent-nav';
 
 const Footer = () => {

@@ -8,7 +8,7 @@ function isIndexable(x: unknown): x is Record<string | number, unknown> {
   return typeof x === 'object' && x !== null;
 }
 
-export function getNestedValue<T extends object>(path: (string | number)[], obj: T): unknown {
+export function getNestedValue<T extends object>(path: (string | number)[], obj?: T): unknown {
   if (!obj) return undefined;
 
   return path.reduce<unknown>((xs, x) => {

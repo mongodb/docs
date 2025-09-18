@@ -1,4 +1,3 @@
-import React from 'react';
 import { render } from '@testing-library/react';
 import Link from '@/components/link';
 import { TestWrapper } from '../utils/test-wrapper';

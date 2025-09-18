@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { act, render } from '@testing-library/react';
 import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import type { DarkModePref } from '@/context/dark-mode-context';

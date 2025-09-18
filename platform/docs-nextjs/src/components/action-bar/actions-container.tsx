@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import { Suspense, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Button from '@leafygreen-ui/button';
 import Icon from '@leafygreen-ui/icon';

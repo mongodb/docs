@@ -1,6 +1,8 @@
 import type {
   ASTNode,
   ComponentType,
+  FootnoteNode,
+  FootnoteReferenceNode,
   Directive,
   LiteralNode,
   NodeName,
@@ -26,19 +28,18 @@ import Paragraph, { type ParagraphProps } from '../paragraph';
 import Kicker, { type KickerProps } from '../kicker';
 import TitleReference, { type TitleReferenceProps } from '../title-reference';
 import Time, { type TimeProps } from '../time';
-import type { IntroductionProps } from '../introduction';
-import Introduction from '../introduction';
+import Introduction, { type IntroductionProps } from '../introduction';
 import Section, { type SectionProps } from '../section';
 import Cond, { type CondProps } from '../cond';
 import Strong from '../strong';
 import Subscript from '../subscript';
 import Superscript from '../superscript';
-import type { RubricProps } from '../rubric';
-import Rubric from '../rubric';
-import type { TargetProps } from '../target';
-import Target from '../target';
-import type { FormatTextOptions, LiteralProps } from '../literal';
-import Literal from '../literal';
+import Rubric, { type RubricProps } from '../rubric';
+import Footnote, { type FootnoteNodeProps } from '../footnote';
+import FootnoteReference, { type FootnoteReferenceProps } from '../footnote/footnote-reference';
+import Target, { type TargetProps } from '../target';
+import type { FormatTextOptions } from '../literal';
+import Literal, { type LiteralProps } from '../literal';
 import Button, { type ButtonProps } from '../button';
 
 const IGNORED_NAMES = new Set([
@@ -126,8 +127,8 @@ const getComponent = (() => {
         // field: Field,
         // field_list: FieldList,
         // figure: Figure,
-        // footnote: Footnote,
-        // footnote_reference: FootnoteReference,
+        footnote: Footnote as React.ComponentType<SupportedComponentProps>,
+        footnote_reference: FootnoteReference as React.ComponentType<SupportedComponentProps>,
         // glossary: Glossary,
         // 'guide-next': GuideNext,
         // heading: Heading,
@@ -229,6 +230,8 @@ type SupportedComponentProps =
   | AdmonitionProps
   | TargetProps
   | LiteralProps
+  | FootnoteNodeProps
+  | FootnoteReferenceProps
   | ButtonProps;
 
 const renderComponentWithProps = (
@@ -290,6 +293,12 @@ const renderComponentWithProps = (
         {...propsToDrill}
       />
     );
+  } else if (ComponentType === getComponent('footnote')) {
+    const footnoteNode = nodeData as FootnoteNode;
+    return <ComponentType id={footnoteNode.id} name={footnoteNode.name} nodeChildren={footnoteNode.children} />;
+  } else if (ComponentType === getComponent('footnote_reference')) {
+    const footnoteReferenceNode = nodeData as FootnoteReferenceNode;
+    return <ComponentType id={footnoteReferenceNode.id} refname={footnoteReferenceNode.refname} />;
   } else if (ComponentType === getComponent('button')) {
     const buttonNode = nodeData as ButtonNode;
     return <ComponentType argument={buttonNode.argument} options={buttonNode.options} {...propsToDrill} />;

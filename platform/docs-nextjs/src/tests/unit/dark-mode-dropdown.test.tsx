@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, act } from '@testing-library/react';
 import LeafyGreenProvider from '@leafygreen-ui/leafygreen-provider';
 import type { DarkModePref } from '@/context/dark-mode-context';

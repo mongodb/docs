@@ -1,4 +1,3 @@
-import React from 'react';
 import MainColumn from './main-column';
 import RightColumn from './right-column';
 import documentStyling from './document.module.scss';

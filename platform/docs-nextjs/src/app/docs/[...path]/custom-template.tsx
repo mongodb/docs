@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ASTDocument } from '@/services/db/types';
 import DocumentTemplate from '@/components/templates/document';
 
