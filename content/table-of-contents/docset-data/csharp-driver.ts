@@ -23,7 +23,6 @@ const tocData: TocItem[] = [
       {
         label: "Connect",
         contentSite: "csharp",
-        url: "/docs/drivers/csharp/:version/connect",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
@@ -107,7 +106,6 @@ const tocData: TocItem[] = [
           {
             label: "Query Documents",
             contentSite: "csharp",
-            url: "/docs/drivers/csharp/:version/crud/query",
             collapsible: true,
             versions: { excludes: outdatedVersions },
             items: [
@@ -310,7 +308,6 @@ const tocData: TocItem[] = [
       {
         label: "Logging and Monitoring",
         contentSite: "csharp",
-        url: "/docs/drivers/csharp/:version/logging-and-monitoring",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
@@ -337,7 +334,6 @@ const tocData: TocItem[] = [
       {
         label: "Security",
         contentSite: "csharp",
-        url: "/docs/drivers/csharp/:version/security",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
@@ -436,7 +432,6 @@ const tocData: TocItem[] = [
       {
         label: "Document Formats",
         contentSite: "csharp",
-        url: "/docs/drivers/csharp/:version/document-formats",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
@@ -484,7 +479,6 @@ const tocData: TocItem[] = [
       {
         label: "Reference",
         contentSite: "csharp",
-        url: "/docs/drivers/csharp/:version/reference",
         collapsible: true,
         versions: { excludes: outdatedVersions },
         items: [
