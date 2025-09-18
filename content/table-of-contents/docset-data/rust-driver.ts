@@ -121,13 +121,11 @@ export const tocData: TocItem[] = [
       {
         label: "Fundamentals",
         contentSite: "rust",
-        url: "/docs/drivers/rust/:version/fundamentals",
         collapsible: true,
         items: [
           {
             label: "Connections",
             contentSite: "rust",
-            url: "/docs/drivers/rust/:version/fundamentals/connections",
             collapsible: true,
             items: [
               {
@@ -175,13 +173,11 @@ export const tocData: TocItem[] = [
           {
             label: "CRUD",
             contentSite: "rust",
-            url: "/docs/drivers/rust/:version/fundamentals/crud",
             collapsible: true,
             items: [
               {
                 label: "Read",
                 contentSite: "rust",
-                url: "/docs/drivers/rust/:version/fundamentals/crud/read-operations",
                 collapsible: true,
                 items: [
                   {
@@ -229,7 +225,6 @@ export const tocData: TocItem[] = [
               {
                 label: "Write",
                 contentSite: "rust",
-                url: "/docs/drivers/rust/:version/fundamentals/crud/write-operations",
                 collapsible: true,
                 items: [
                   {
@@ -340,7 +335,6 @@ export const tocData: TocItem[] = [
           {
             label: "Monitoring",
             contentSite: "rust",
-            url: "/docs/drivers/rust/:version/fundamentals/monitoring",
             collapsible: true,
             items: [
               {
