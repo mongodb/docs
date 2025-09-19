@@ -260,6 +260,12 @@ const tocData: TocItem[] = [
                 versions: {includes: ["current", "upcoming", "v2.8", "v2.9"]},
           },
           {
+            label: "AtlasOrgSettings",
+            contentSite: "atlas-operator",
+            url: "/docs/atlas/operator/:version/atlasorgsettings-custom-resource",
+                versions: {excludes: ["v2.4", "v2.5", "v2.6", "v2.7", "v2.8", "v2.9"]},
+          },
+          {
             label: "AtlasPrivateEndpoint",
             contentSite: "atlas-operator",
             url: "/docs/atlas/operator/:version/atlasprivateendpoint-custom-resource",
