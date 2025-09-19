@@ -28,7 +28,7 @@ CPython
      - CPython 3.5
      - CPython 3.4
 
-   * - 4.14
+   * - 4.14 to 4.15
      - ✓ 
      - ✓ 
      - ✓ 
