@@ -1,3 +1,11 @@
+.. _mongodb-107.0.18.8784-1:
+
+MongoDB Agent 107.0.18.8784-1
+-----------------------------
+
+:ref:`Released with Ops Manager 7.0.18 on 2025-09-10
+<opsmgr-server-7.0.18>`.
+
 .. _mongodb-107.0.17.8771-1:
 
 MongoDB Agent 107.0.17.8771-1
