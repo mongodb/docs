@@ -109,17 +109,17 @@
       
    .. step:: Upgrade your production cluster to the target MongoDB version.
 
-      Once you are confident in the performance and operation of
-      your staging cluster, repeating the :doc:`upgrade </scale-cluster>`
-      procedure for your production cluster.
-      
-      Once |service| completes the upgrade process, check that your
-      production applications are still connected and operating normally.
-      
-      If you upgraded your staging application with newer MongoDB drivers
-      *and* are satisfied with the performance and operation, consider
-      scheduling a maintenance period for upgrading your production
-      applications.
+      After you are confident in the performance and operation of your 
+      staging cluster, repeat the :doc:`upgrade </scale-cluster>` procedure 
+      for your production cluster:
+
+      a. Upgrade your production application with newer MongoDB drivers and 
+         test that it operates normally. This step ensures your application is 
+         compatible with the new MongoDB version before the database upgrade.
+
+      #. After you prepare your application, upgrade the MongoDB version 
+         on your production cluster. When |service| completes the upgrade, 
+         check that your applications connect and operate normally.
       
       If you encounter problems with the upgraded production cluster, file a
       High Priority support ticket using the procedure in the following
