@@ -1591,8 +1591,8 @@ Core Options
 
    Specifies a set of X.509 Distinguished Name (DN) attributes and values that
    the server expects cluster member nodes to contain in their certificate
-   subject names.  This lets you use certificates that don't contain DC,
-   O, and OU values to authenticate cluster members.
+   subject names.  This lets you use certificates that don't contain ``DC``,
+   ``O``, and ``OU`` values to authenticate cluster members.
 
    When ``attributes`` is set, MongoDB matches certificates using the DN
    and ignores extension values.
@@ -1605,13 +1605,36 @@ Core Options
    .. versionadded:: 7.0
 
    Specifies an extension value that corresponds to the MongoDB cluster
-   membership extension :abbr:`OID`, 1.3.6.1.4.1.34601.2.1.2, that the server expects cluster 
-   member nodes to contain in their certificates. This allows you 
-   to use certificates that don't contain DC, O, and OU values to authenticate 
-   cluster members.
+   membership extension :abbr:`OID (OpenID)`, ``1.3.6.1.4.1.34601.2.1.2``. The 
+   server expects cluster member nodes to contain this extension in their 
+   certificates. This lets you use certificates that don't contain ``DC``, 
+   ``O``, and ``OU`` values to authenticate cluster members.
 
-   When ``extensionValue`` is set, MongoDB matches certificates using
+   When you set ``extensionValue``, MongoDB matches certificates using
    certificate extension values and ignores the Distinguished Name (DN).
+
+   When you create a certificate with OID ``1.3.6.1.4.1.34601.2.1.2``, consider
+   the following guidelines:
+
+   - Keep the extension value below 128 bytes.
+
+   - Use a single UTF8String as the extension's inner value. ``mongod`` doesn't 
+     accept other string types.
+   
+   - If you use OpenSSL, you must explicitly specify the ASN.1 type, so it 
+     encodes a UTF8String. For example: 
+
+     - On the command line, specify 
+       ``-addext: 1.3.6.1.4.1.34601.2.1.2=ASN1:UTF8String:<your-value>``.
+
+     - In an OpenSSL config file, specify 
+       ``1.3.6.1.4.1.34601.2.1.2 = ASN1:UTF8String:<your-value>``.
+       
+     .. warning:: 
+      
+        If you omit ``ASN1:UTF8String:``, OpenSSL might choose a different 
+        encoding or raw octets, which ``mongod`` rejects with an "Unsupported 
+        tag" or "Unknown DER" tag.
 
 .. setting:: net.tls.CAFile
 
