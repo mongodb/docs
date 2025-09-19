@@ -5,7 +5,7 @@
    baseurl=https://repo.mongodb.org/yum/amazon/2023/mongodb-org/{+version+}/x86_64/
    gpgcheck=1
    enabled=1
-   gpgkey=https://pgp.mongodb.com/server-{+pgp-version+}.asc
+   gpgkey=https://pgp.mongodb.com/server-8.0.asc
 
 You can also download the ``.rpm`` files directly from the
 `MongoDB repository <https://repo.mongodb.org/yum/amazon/>`_.
