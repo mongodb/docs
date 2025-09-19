@@ -19,6 +19,7 @@ export default async function Layout({
 }) {
   console.log('docs layout');
   const pageDoc = await getPageDocFromParams(params);
+  console.log('pageDoc', pageDoc); // TODO: Remove this - just for linting
 
   return (
     <div className="docs-layout" style={{ gridArea: 'contents' }}>
