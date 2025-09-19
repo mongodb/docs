@@ -1,6 +1,5 @@
 import { TocItem } from "../types";
-
-const versionsBeforeV8_2 = ["v7.0", "v8.0", "v8.1"];
+import manualVersions from "../version-arrays/server-docs/manual";
 
 const tocData: TocItem[] = [
 
@@ -24,13 +23,13 @@ const tocData: TocItem[] = [
           {
             label: "Connect to Search",
             contentSite: "docs",
-            versions: { excludes: versionsBeforeV8_2 },
+            versions: { excludes: manualVersions.before("v8.2") },
             url: "/docs/:version/core/search-in-community/connect-to-search",
           },
           {
             label: "Deploy Replica Set for Search",
             contentSite: "docs",
-            versions: { excludes: versionsBeforeV8_2 },
+            versions: { excludes: manualVersions.before("v8.2") },
             url: "/docs/:version/core/search-in-community/deploy-rs-keyfile-mongot",
           },
         ],
@@ -177,7 +176,7 @@ const tocData: TocItem[] = [
         label: "Verify Package Integrity",
         contentSite: "docs",
         collapsible: true,
-        versions: { excludes: versionsBeforeV8_2 },
+        versions: { excludes: manualVersions.before("v8.2") },
         items: [
           {
             label: "Verify MongoDB Package Integrity",
@@ -488,13 +487,13 @@ const tocData: TocItem[] = [
                 label: "Disable Transparent Huge Pages",
                 contentSite: "docs",
                 url: "/docs/:version/tutorial/disable-transparent-huge-pages",
-                versions: { excludes: [ "v7.0" ] }
+                versions: { excludes: manualVersions.before("v8.0") }
               },
               {
                 label: "Disable Transparent Huge Pages",
                 contentSite: "docs",
                 url: "/docs/:version/tutorial/transparent-huge-pages",
-                versions: { includes: [ "v7.0" ] }
+                versions: { includes: manualVersions.before("v8.0") }
               },
             ]
           },
@@ -575,7 +574,7 @@ const tocData: TocItem[] = [
                 label: "fleDisableSubstringPreviewParameterLimits",
                 contentSite: "docs",
                 url: "/docs/:version/reference/cluster-parameters/fleDisableSubstringPreviewParameterLimits",
-                versions: { excludes: versionsBeforeV8_2 }
+                versions: { excludes: manualVersions.before("v8.2") }
               },
             ],
           },
@@ -901,7 +900,7 @@ const tocData: TocItem[] = [
                     label: "ShardCatalogCacheCollectionMetadataMismatch",
                     contentSite: "docs",
                     url: "/docs/:version/reference/inconsistency-type/ShardCatalogCacheCollectionMetadataMismatch/",
-                    versions: { excludes: versionsBeforeV8_2 },
+                    versions: { excludes: manualVersions.before("v8.2") },
                   },
                   {
                     label: "ShardMissingCollectionRoutingInfo",
@@ -955,7 +954,7 @@ const tocData: TocItem[] = [
         label: "mongot Deployment Sizing",
         contentSite: "docs",
         collapsible: true,
-        versions: { excludes: versionsBeforeV8_2 },
+        versions: { excludes: manualVersions.before("v8.2") },
         items: [
           {
             label: "Introduction",
