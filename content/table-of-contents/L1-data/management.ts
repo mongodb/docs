@@ -71,7 +71,7 @@ const tocData: TocItem[] = [
         isExternal: true,
       },
       {
-        label: "Verified HashiCorp Terraform Example",
+        label: "Get Started with Terraform",
         contentSite: "cloud-docs",
         url: "/docs/atlas/terraform",
       },
