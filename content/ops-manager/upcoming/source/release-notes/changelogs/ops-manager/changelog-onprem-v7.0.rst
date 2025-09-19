@@ -1,3 +1,44 @@
+.. _opsmgr-server-7.0.18:
+
+|onprem| Server 7.0.18
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-09-10*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`107.0.18.8784-1 <mongodb-107.0.18.8784-1>`
+- Supports MongoDB Database Tools 100.13.0
+- Redacts sensitive fields (passwords, keys, etc.) in the Public API, including
+  new endpoints ``GET /automationConfig/noSecrets`` and ``PUT /automationConfig/noSecrets``
+  to receive and partially update a redacted version of the existing ``/automationConfig``
+  endpoint
+- Makes additional SAML fields (Service Provider Base URL, Entity ID, and SLS/logout
+  redirect) configurable on the Admin Configuration page
+- Adds a ``New Server`` option in the ``Hostname`` dropdown for Standalone deployments; includes search
+- Logs ``mongod.lock`` contents in unexpected cases
+- The {+mdbagent+} detects the absence of the AVX instruction set and handles failures gracefully
+- For ThirdParty, ``GetValidRestoreTargets`` for replica sets that were previously shards now uses
+  ``hostCluster.getReplicaSetName`` for proper identification
+
+Bug Fixes
+~~~~~~~~~
+
+- ``AdjustRoles`` now accounts for role dependencies when creating roles
+- Fixes a memory spike when iterating the logs directory by introducing chunked iteration and logging
+- Diagnostics archive per group now includes disabled hosts
+- Fixes generation of outdated Java dependencies
+- Upgrades deprecated ``@babel/plugin-proposal-*`` dependencies to recommended packages
+- Removes deprecated ``@types/react-select`` and ``@types/classnames`` dependencies
+- Improves Javadoc for the ``CanonicalHost`` class
+- Bell icon now links to the Alerts page instead of the Activity Feed
+- Disables TRACE requests for the embedded Prometheus server
+- Fixes the following |cve|\s:
+
+  - `CVE-2025-5115 <https://nvd.nist.gov/vuln/detail/CVE-2025-5115>`__
+  - `CVE-2025-55163 <https://nvd.nist.gov/vuln/detail/CVE-2025-55163>`__
+  
 .. _opsmgr-server-7.0.17:
 
 |onprem| Server 7.0.17
