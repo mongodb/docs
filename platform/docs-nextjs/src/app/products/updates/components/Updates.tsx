@@ -70,13 +70,13 @@ const newsItemStyle = css`
 const newsItemDateStyle = css`
   font-size: 13px;
   line-height: 20px;
-  color: ${palette.gray.dark2};
+  color: var(--whats-new-gray-dark1);
 `;
 
 const newsItemTitleStyle = css`
   font-size: 18px;
   line-height: 24px;
-  color: ${palette.blue.base};
+  color: var(--whats-new-dark-blue);
   font-weight: 500;
   margin-bottom: 4px;
 

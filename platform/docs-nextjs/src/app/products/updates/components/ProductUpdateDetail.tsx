@@ -59,11 +59,11 @@ const dateStyle = css`
 `;
 
 const titleStyle = css`
-  font-size: 32px;
   line-height: 40px;
   margin-bottom: 12px;
   font-weight: 400;
   color: ${palette.black};
+  font-family: 'MongoDB Value Serif';
 
   @media ${theme.screenSize.largeAndUp} {
     font-size: 48px;

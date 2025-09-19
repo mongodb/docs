@@ -3,7 +3,6 @@ import { css, cx } from '@leafygreen-ui/emotion';
 import { H3 } from '@leafygreen-ui/typography';
 import { Body } from '@leafygreen-ui/typography';
 import Card from '@leafygreen-ui/card';
-import { palette } from '@leafygreen-ui/palette';
 import { Chip } from '@leafygreen-ui/chip';
 import type { ProductUpdateEntry } from '../services/contentstack';
 import { useRouter } from 'next/navigation';
@@ -26,6 +25,10 @@ const featuredContainerStyle = css`
   @media ${theme.screenSize['2XLargeAndUp']} {
     padding: 0 8px;
   }
+`;
+
+const featureHeaderStyle = css`
+  color: #000;
 `;
 
 const featuredContentStyle = css`
@@ -65,7 +68,7 @@ const featuredCardStyle = css`
 const dateStyle = css`
   font-size: 13px;
   line-height: 20px;
-  color: ${palette.gray.dark2};
+  color: var(--whats-new-gray-dark1);
   margin-bottom: 16px;
 `;
 
@@ -73,13 +76,13 @@ const titleStyle = css`
   font-size: 24px;
   line-height: 32px;
   margin-bottom: 8px;
-  color: ${palette.black};
+  color: var(--whats-new-black);
 `;
 
 const bodyStyle = css`
   font-size: 16px;
   line-height: 24px;
-  color: ${palette.black};
+  color: var(--whats-new-black);
   margin-bottom: 44px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -104,7 +107,7 @@ const Featured = ({ updates: limitedFeaturedUpdates }: { updates: ProductUpdateE
 
   return (
     <div className={cx(featuredContainerStyle)}>
-      <H3>Featured Updates</H3>
+      <H3 className={cx(featureHeaderStyle)}>Featured Updates</H3>
       <div className={cx(featuredContentStyle)}>
         {limitedFeaturedUpdates.map((update: ProductUpdateEntry) => {
           const createdAt = update.beamer_created_at || update.created_at;
