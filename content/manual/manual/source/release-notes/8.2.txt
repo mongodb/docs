@@ -4,8 +4,6 @@
 Release Notes for MongoDB 8.2
 =============================
 
-.. default-domain:: mongodb
-
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -15,8 +13,10 @@ Release Notes for MongoDB 8.2
 This page describes changes and new features introduced in MongoDB 8.2.
 
 MongoDB 8.2 is a Minor Release, which means that it is supported for
-both MongoDB Atlas and on-premises deployments. MongoDB 8.2 introduces incremental 
-improvements within a |lts| version release cycle.
+both MongoDB Atlas and on-premises deployments. MongoDB 8.2 introduces 
+incremental improvements within a |lts| version release cycle. MongoDB 8.2 also 
+includes changes introduced in MongoDB Rapid Release 8.1. This page 
+describes changes introduced in the Rapid Release and MongoDB 8.2.
 
 To learn more about the differences between |lts|, Minor and Rapid releases,
 see :ref:`release-version-numbers`. 
@@ -217,8 +217,8 @@ Security
 .. include:: includes/queryable-encryption/qe-warning-public-preview.rst
 
 MongoDB 8.2 lets you enable prefix, suffix, and substring queries on
-encrypted string fields in {+qe+} enabled collections. For details, see :ref:`enable
-substring queries <qe-enable-substring-queries>` and :ref:`Supported
+encrypted string fields in {+qe+} enabled collections. For details, see 
+:ref:`enable substring queries <qe-enable-substring-queries>` and :ref:`Supported
 Aggregation Expressions <qe-supported-aggregation-expressions>`.
 
 .. _8.2-known-issues:
@@ -263,6 +263,228 @@ status.
        spilling can experience server crashes if the number of actively spilling queries exceeds ``1000``.
        To mitigate this issue, raise the ``spillWiredTigerSessionMax`` ``setParameter`` value to a higher value. 
      - We are targeting a fix for this issue in MongoDB 8.2.1.
+
+.. _release-notes-8.1:
+
+Changes Introduced in MongoDB 8.1
+---------------------------------
+
+The following section describes changes and new features introduced in MongoDB 
+Rapid Release 8.1.
+
+Add Comments to Query Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1 (and 8.0.4), you can use
+:dbcommand:`setQuerySettings` to add comments to query settings. For
+example, add a comment that indicates why you added query settings.
+
+Aggregation Accumulators
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1, the following aggregation accumulators are 
+available:
+
+- :group:`$concatArrays`
+- :group:`$setUnion`
+
+Aggregation Stages
+~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1, the following aggregation stages are available:
+
+- :pipeline:`$listClusterCatalog`
+
+Audit Log Improvements
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/client-id-audit-logs.rst
+
+For details, see :ref:`event-audit-messages-ocsf` and
+:ref:`event-audit-messages-mongo`.
+
+``connectionStatus`` Connection UUID
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1, you can access the currently connected client's 
+UUID through :data:`connectionStatus.authInfo.UUID`.
+
+Disk Space
+~~~~~~~~~~
+
+Starting in MongoDB 8.1 (and 8.0.5), if disk space is running low,
+MongoDB will fail queries that are spilling to disk.
+
+$geoNear Improvements
+~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1, some previously failing :pipeline:`$geoNear` queries 
+with hidden 2d or 2dsphere indexes will now succeed. In previous releases, some 
+``$geoNear`` queries used to unnecessarily fail with an ``IndexNotFound`` error 
+when they included a hidden index due to confusion over which index to use.
+
+Improved Accuracy for Operation Duration Metric
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1, the ``durationMillis`` metric reported in
+:ref:`slow query logs <log-message-json-examples-slow-op>` accounts for
+time spent processing authorization and parsing the command. As a
+result, ``durationMillis`` more closely reflects the full command
+duration.
+
+Inconsistency Types
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1, the following inconsistency types are 
+available:
+
+- :data:`CollectionAuxiliaryMetadataMismatch` 
+
+``$lookup`` Support for Encrypted Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1, you can reference multiple encrypted collections in a 
+:pipeline:`$lookup` stage.
+
+To learn more, see: 
+
+- :ref:`$lookup with Encrypted Collections <lookup-behavior>`
+- :ref:`Supported Operations for Automatic Encryption <csfle-lookup-graphLookup-behavior>`
+- :ref:`Supported Operations for {+qe+} <qe-lookup-graphLookup-behavior>`
+
+$merge Missing Fields
+~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1, if the :pipeline:`$merge` aggregation stage's
+:ref:`supporting index <merge-on-supporting-index>` is not sparse, the fields 
+specified for the :ref:`on <merge-on>`
+option can be missing or contain a null value.
+
+Query Statistics
+~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1, query statistics are collected and reported for
+:dbcommand:`count` and :dbcommand:`distinct` commands. For details, see
+:ref:`queryStats-count-query-shape` and
+:ref:`queryStats-distinct-query-shape`.
+
+Server Parameters
+~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1, the following server parameters are available:
+
+- :parameter:`enableAutoCompaction`
+- :parameter:`upsertMaxRetryAttemptsOnDuplicateKeyError`
+- :parameter:`AbortExpiredTransactionsSessionCheckoutTimeout` *(also available in 8.0.13)*
+- :parameter:`JWKSMinimumQuiescePeriodSecs`
+- :parameter:`catalogCacheCollectionMaxEntries`
+- :parameter:`catalogCacheDatabaseMaxEntries`
+- ``catalogCacheIndexMaxEntries``
+- :parameter:`wiredTigerSessionMax`
+
+``serverStatus`` Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1 (and 8.0.4 and 7.0.14), the :serverstatus:`indexStats` 
+section of the :dbcommand:`serverStatus` command output tracks indexes in 
+``prepareUnique`` state.
+
+MongoDB 8.1 adds the following server status metrics:
+
+- ``maxTimestampEligibleForTruncate`` in
+  :serverstatus:`changeStreamPreImages.purgingJob`
+- :serverstatus:`metrics.ttl.invalidTTLIndexSkips`
+- :serverstatus:`metrics.repl.timestamps`
+- :serverstatus:`metrics.repl.timestamps.oldestTimestamp`
+- :serverstatus:`query.planning.fastPath.express`
+- :serverstatus:`query.planning.fastPath.idHack`
+- :serverstatus:`metrics.abortExpiredTransactions.successfulKills` *(also available in 8.0.13)*
+- :serverstatus:`metrics.abortExpiredTransactions.timedOutKills` *(also available in 8.0.13)*
+- :serverstatus:`wiredTiger.version`
+
+Slow Query Metrics for Disk Spilling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |disk-spilling-intro| replace:: Starting in MongoDB 8.1, :ref:`log messages for slow queries <log-message-slow-ops>`
+
+.. include:: /includes/disk-spilling-metrics-overview.rst
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20
+
+   * - Metric
+     - Description
+
+   * - ``<executionPart>Spills``
+     - Number of times the corresponding query execution stage wrote
+       temporary files to disk
+
+   * - ``<executionPart>SpilledBytes``
+     - Size, in bytes, of the memory released by writing temporary files
+       to disk
+     
+   * - ``<executionPart>SpilledDataStorageSize``
+     - Size, in bytes, of disk space used for temporary files
+
+   * - ``<executionPart>SpilledRecords``
+     - Number of records written to temporary files on disk
+
+For more information on writing temporary files to disk, see
+:method:`~cursor.allowDiskUse()`.
+
+Stable API
+~~~~~~~~~~
+
+Starting in MongoDB 8.1, the :dbcommand:`renameCollection` command and
+corresponding shell method, :method:`db.collection.renameCollection()`,
+are included in :ref:`Stable API <stable-api>` V1.
+
+Support for Search Stages in Explain Results 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1, the :ref:`explain results <explain-results>` include 
+execution stats for the :pipeline:`$search`, :pipeline:`$searchMeta`, and 
+:pipeline:`$vectorSearch` stages.
+
+To learn more, see: 
+
+- :ref:`explain-results-search`
+- :ref:`Explain Search Results <explain-ref>`
+- :ref:`avs-explain-ref`
+
+Support for Search Index Commands on Views
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1, you can run :dbcommand:`createSearchIndexes`,
+:dbcommand:`updateSearchIndex`, :dbcommand:`dropSearchIndex`, and
+:pipeline:`$listSearchIndexes` to create, modify, drop, and list Atlas Search
+indexes and Atlas Vector Search indexes on compatible standard :ref:`views
+<views-landing-page>`  that contain only the following stages:
+
+- :pipeline:`$addFields`
+- :pipeline:`$set`
+- :pipeline:`$match` wrapping an :query:`$expr` operation
+
+You can run aggregation pipelines that contain :pipeline:`$search` and
+:pipeline:`$searchMeta` stages on views that use a search index. You
+can also run aggregation pipelines that contain a :pipeline:`$vectorSearch`
+stage on views that contain a vector search index. 
+
+Validate Command Index Specifications Output
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1, the :dbcommand:`validate` command includes
+index specifications in the :data:`validate.indexDetails` output field.
+
+Validation Action for Handling Invalid Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1, you can set your schema's ``validationAction`` 
+option to ``errorAndLog``, in which MongoDB rejects any insert or update that 
+violates the validation criteria and logs the error to the ``mongod`` log file.
+
+For more information, see :ref:`schema-validation-handle-invalid-docs`.
 
 .. _8.2-upgrade:
 
