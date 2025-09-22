@@ -1,0 +1,454 @@
+.. _kotlin-sync-serialization:
+.. _kotlin-sync-custom-types:
+
+==================
+Data Serialization
+==================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, data model, conversion, polymorphism
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+You can use the ``kotlinx.serialization`` library when
+serializing and deserializing {+language+} objects in your application.
+
+The driver provides an efficient ``Bson`` serializer that you can use with 
+classes marked with the ``@Serializable`` annotation to handle the
+serialization of {+language+} objects to BSON data.
+
+Although you can use the {+language+} serialization ``Json`` 
+library, the ``Json`` serializer does *not* directly support BSON value types such
+as ``ObjectId``. You must provide a custom serializer that can handle the 
+conversion between BSON and JSON.
+
+We recommend installing the ``bson-kotlinx`` library to support
+custom codecs that have configurations to encode defaults, nulls, and
+define class discriminators.
+
+.. note::
+   
+   To learn how to use the ``Codec`` interface instead of the
+   ``kotlinx.serialization`` library to specify custom
+   serialization behavior, see the :ref:`kotlin-sync-codecs` guide.
+
+   You might choose to use {+language+} serialization if you
+   are already familiar with the library or if you prefer
+   to use an idiomatic approach.
+
+Supported Types
+~~~~~~~~~~~~~~~
+
+The {+driver-short+} supports the following types:
+
+- All {+language+} types that are supported by the ``kotlinx.serialization`` library
+- All :manual:`BSON types </reference/bson-types>`
+
+.. _kotlin-sync-add-serialization:
+
+Add the Serialization Dependencies to Your Project
+--------------------------------------------------
+
+You must install the official {+language+} serialization library,
+``kotlinx.serialization``, to serialize and deserialize data in your
+application. To learn more about this library, see the
+`kotlinx.serialization GitHub repository
+<https://github.com/Kotlin/kotlinx.serialization>`__.
+
+.. sharedinclude:: dbx/jvm/BOM-installation-tip.rst
+
+   .. replacement:: installation-guide
+
+      :ref:`Add the Driver Bill of Materials <kotlin-sync-get-started-install-bom>` step of the Get Started guide.
+
+
+Select from the following tabs to see how to add the serialization
+dependencies to your project by using either :guilabel:`Gradle` or
+:guilabel:`Maven`:
+
+.. tabs::
+
+   .. tab::
+      :tabid: Gradle
+
+      If you are using `Gradle <https://gradle.org/>`__ to manage your 
+      dependencies, add the following to your ``build.gradle.kts``
+      dependencies list:
+
+      .. include:: /includes/data-formats/serialization-gradle-versioned.rst
+
+   .. tab::
+      :tabid: Maven
+
+      If you are using `Maven <https://maven.apache.org/>`__ to manage your 
+      dependencies, add the following to your ``pom.xml`` dependencies
+      list:
+
+      .. include:: /includes/data-formats/serialization-maven-versioned.rst
+
+.. note:: bson-kotlin Dependency
+
+   You can also optionally install the ``bson-kotlin`` dependency
+   through the default codec registry. This dependency uses reflection
+   and the codec registry to support {+language+} data classes, but it does
+   not support certain POJO annotations such as ``BsonDiscriminator``,
+   ``BsonExtraElements``, and ``BsonConstructor``. To learn more, see
+   the `bson-kotlin API documentation <{+api-root+}/bson-kotlin/index.html>`__.
+
+   Generally, we recommend that you install and use the faster
+   ``bson-kotlinx`` library for codec configuration.
+
+.. _kotlin-sync-data-class-annotation:
+
+Annotate Data Classes
+---------------------
+
+To declare a class as serializable, annotate your {+language+} data
+classes with the ``@Serializable`` annotation.
+
+You can use your data classes in your code as you use any other data
+class after you mark them as serializable. The {+driver-short+} and the
+{+language+} serialization framework handle BSON serialization and
+deserialization.
+
+This example shows a sample data class with the following annotations:
+
+- ``@Serializable``: Marks the class as serializable.
+- ``@SerialName``: Specifies the name of the ``id`` and ``manufacturer`` properties 
+  in the BSON document. This annotation can be used in place of the ``@BsonId`` and 
+  ``@BsonProperty`` annotations, which are unsupported in serializable classes.
+- ``@Contextual``: Marks the BSON ``id`` property to use the built-in
+  ``ObjectIdSerializer``. This annotation is required for the driver to
+  serialize BSON types correctly.
+
+.. code-block:: kotlin
+
+   @Serializable
+   data class PaintOrder(
+       @SerialName("_id") // Use instead of @BsonId
+       @Contextual val id: ObjectId?,
+       val color: String,
+       val qty: Int,
+       @SerialName("brand")
+       val manufacturer: String? = null // Use instead of @BsonProperty
+   )
+
+.. note:: POJO Annotations Limitation
+
+   You cannot use annotations from the
+   ``org.bson.codecs.pojo.annotations`` package on a data class marked
+   with the ``@Serializable`` annotation.
+
+To learn more about serializable classes and available annotations,
+see `Serializable classes
+<https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/basic-serialization.md#serializable-classes>`__
+in the ``kotlinx.serialization`` library documentation.
+
+.. _kotlin-sync-data-class-query:
+
+Query Annotated Classes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can query annotated data classes by using the `Filters class
+<{+api-root+}/driver-kotlin-extensions/mongodb-driver-kotlin-extensions/com.mongodb.kotlin.client.model/-filters/index.html>`__
+from the ``mongodb-driver-kotlin-extensions`` package. This class allows
+you to create query filters on field names annotated with the
+``@SerialName`` annotation.
+
+.. tip::
+
+   To use the ``Filters`` class from the extension library, you must add the
+   ``mongodb-driver-kotlin-extensions`` dependency to your project. For more
+   information, see the :ref:`kotlin-sync-builders-install-dependency` section of the
+   Use Builders with Data Classes guide.
+
+The following example queries the ``orders`` collection for documents that
+have a ``brand`` field value of ``"Sherwin-Williams"``:
+
+.. literalinclude:: /includes/data-formats/serialization.kt
+   :language: kotlin
+   :start-after: start-query
+   :end-before: end-query
+   :dedent:
+
+The preceding code creates a query filter that references the
+``PaintOrder::manufacturer`` property but queries the ``brand``
+BSON field. The driver automatically converts the data class property name
+to the field name specified in the ``@SerialName`` annotation.
+
+Custom Serializer Example
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can create a custom serializer to handle how your data is
+represented in BSON. The {+driver-short+} uses the ``KSerializer``
+interface from the ``kotlinx.serialization`` library to implement custom
+serializers. You can specify the custom serializer as the parameter to
+the ``@Serializable`` annotation for a specific field.
+
+The following example shows how to create a custom
+``KSerializer`` instance to convert a ``kotlinx.datetime.Instant`` to a
+``BsonDateTime``:
+
+.. literalinclude:: /includes/data-formats/serialization.kt
+   :language: kotlin
+   :start-after: start-kserializer
+   :end-before: end-kserializer
+   :dedent:
+
+The following code shows the ``PaintOrder`` data class in which the
+``orderDate`` field has an annotation that specifies the custom
+serializer class defined in the preceding code:
+
+.. literalinclude:: /includes/data-formats/serialization.kt
+   :language: kotlin
+   :start-after: start-ks-dataclass
+   :end-before: end-ks-dataclass
+   :emphasize-lines: 5
+   :dedent:
+
+To learn more about the methods and classes mentioned in this section,
+see the following API documentation:
+
+- `KSerializer
+  <{+kotlin-docs+}/api/kotlinx.serialization/kotlinx-serialization-core/kotlinx.serialization/-k-serializer/>`__
+  in the {+language+} documentation
+
+- `Instant
+  <{+kotlin-docs+}/api/kotlinx-datetime/kotlinx-datetime/kotlinx.datetime/-instant/>`__ in the {+language+} documentation
+
+- `BsonEncoder
+  <{+api-root+}/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-bson-encoder/index.html>`__
+
+- `BsonDecoder
+  <{+api-root+}/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-bson-decoder/index.html>`__
+
+.. _kotlin-sync-custom-codec:
+
+Customize the Serializer Configuration
+--------------------------------------
+
+You can use the ``KotlinSerializerCodec`` class from the ``org.bson.codecs.kotlinx`` 
+package to create a codec for your ``@Serializable`` data classes and 
+customize what the driver stores in MongoDB.
+
+Use the ``BsonConfiguration`` class to define the configuration,
+which can include whether to encode defaults, encode nulls, or define
+class discriminators.
+
+To create a custom codec, your project must have the ``bson-kotlinx``
+dependency. See the :ref:`kotlin-sync-add-serialization` section of this
+guide for installation instructions.
+
+You can define your codec by using the `KotlinSerializerCodec.create()
+<{+api-root+}/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-kotlin-serializer-codec/-companion/index.html>`__
+method, then you can add the codec to the registry.
+
+Custom Codec Example
+~~~~~~~~~~~~~~~~~~~~
+
+The following example shows how to create a codec by using the 
+``KotlinSerializerCodec.create()`` method and then configure it to *not*
+encode defaults:
+
+.. literalinclude:: /includes/data-formats/serialization.kt
+   :language: kotlin
+   :start-after: start-codec
+   :end-before: end-codec
+   :dedent:
+
+.. _kotlin-sync-serialization-snake-case-eg:
+
+Implement Snake Case Naming Strategy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When using ``bson-kotlinx`` package v5.4 or later, you can direct the driver to
+serialize data class fields names written in camel case to snake case in MongoDB.
+The following example shows how to create and register a custom codec
+to convert data class field names into snake case by setting the
+``bsonNamingStrategy`` parameter in a codec:
+
+
+.. literalinclude:: /includes/data-formats/serialization.kt
+   :language: kotlin
+   :start-after: start-snake-case
+   :end-before: end-snake-case
+   :dedent:
+
+To learn more about the methods and classes mentioned in this section,
+see the following API documentation:
+
+- `KotlinSerializerCodec
+  <{+api-root+}/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-kotlin-serializer-codec/index.html>`__
+
+- `KotlinSerializerCodec.create()
+  <{+api-root+}/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-kotlin-serializer-codec/-companion/create.html>`__
+
+- `BsonConfiguration
+  <{+api-root+}/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-bson-configuration/index.html>`__
+
+- `BsonNamingStrategy <{+api-root+}/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-bson-naming-strategy/index.html>`__
+ 
+.. _kotlin-sync-polymorphic:
+
+Polymorphic Serialization
+-------------------------
+
+The {+driver-short+} natively supports serialization and deserialization
+of polymorphic classes. When you mark a sealed interface and data
+classes that inherit that interface with the ``@Serializable``
+annotation, the driver uses a ``KSerializer`` implementation to handle
+conversion of your types to and from BSON.
+
+When you insert an instance of a polymorphic data class into MongoDB,
+the driver adds the field ``_t``, the
+discriminator field. The value of this field is the data class name.
+
+Polymorphic Data Classes Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example creates an interface and two data classes that
+inherit that interface. In the data classes, the ``id`` field is marked
+with the annotations described in the
+:ref:`kotlin-sync-data-class-annotation` section:
+
+.. literalinclude:: /includes/data-formats/serialization.kt
+   :language: kotlin
+   :start-after: start-poly-classes
+   :end-before: end-poly-classes
+   :dedent:
+
+Then, you can perform operations with data classes as usual. The
+following example parametrizes the collection with the ``Person``
+interface, then performs operations with the polymorphic classes
+``Teacher`` and ``Student``. When you retrieve documents, the driver
+automatically detects the type based on the discriminator value and
+deserializes them accordingly.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/data-formats/serialization.kt
+      :language: kotlin
+      :start-after: start-poly-operations
+      :end-before: end-poly-operations
+      :dedent:
+
+   .. output::
+      :language: console
+
+      Retrieving by using data classes
+      Teacher(id=..., name=Vivian Lee, department=History)
+      Student(id=..., name=Kate Parker, grade=10)
+      
+      Retrieving by using Person interface
+      Teacher(id=..., name=Vivian Lee, department=History)
+      Student(id=..., name=Kate Parker, grade=10)
+      
+      Retrieving as Document type
+      Document{{_id=..., _t=Teacher, name=Vivian Lee, department=History}}
+      Document{{_id=..., _t=Student, name=Kate Parker, grade=10}}
+
+.. _kotlin-sync-datetime-serialization:
+
+Serialize Dates and Times
+-------------------------
+
+In this section, you can learn about using {+language+} serialization to
+work with date and time types.
+
+kotlinx-datetime Library
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+``kotlinx-datetime`` is a {+language+} library that offers
+a high level of control over how your date and time values
+are serialized. To use the library, add the ``kotlinx-datetime``
+dependency to your project's dependency list.
+
+Select from the following tabs to see how to add the ``kotlinx-datetime``
+dependency to your project by using the :guilabel:`Gradle` and
+:guilabel:`Maven` package managers:
+
+.. tabs::
+
+   .. tab::
+      :tabid: Gradle
+
+      .. code-block:: kotlin
+         :caption: build.gradle.kts
+
+         implementation("org.jetbrains.kotlinx:kotlinx-datetime:{+kotlinx-dt-version+}")
+
+   .. tab::
+      :tabid: Maven
+
+      .. code-block:: kotlin
+         :caption: pom.xml
+
+         <dependency>
+             <groupId>org.jetbrains.kotlinx</groupId>
+             <artifactId>kotlinx-datetime-jvm</artifactId>
+             <version>{+kotlinx-dt-version+}</version>
+         </dependency>
+
+To learn more about this library, see the :github:`kotlinx-datetime repository
+</Kotlin/kotlinx-datetime>` on GitHub.
+
+Example Data Class with Dates and Times
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you add the library dependency, you can implement serializers from
+the ``kotlinx-datetime`` library that map your data class field values
+to the expected types in BSON.
+
+In this example, the driver serializes the fields of
+the ``Appointment`` data class with the following behavior:
+
+- ``name``: The driver serializes the value as a string.
+
+- ``date``:  The driver uses the ``kotlinx-datetime`` serializer
+  because the field has the ``@Contextual`` annotation. ``LocalDate``
+  values are serialized as BSON dates.
+
+- ``time``: The driver serializes the value as a string because it does
+  not have the ``@Contextual`` annotation. This is the default
+  serialization behavior for ``LocalTime`` values.
+
+.. literalinclude:: /includes/data-formats/serialization.kt
+   :language: kotlin
+   :start-after: start-datetime-data-class
+   :end-before: end-datetime-data-class
+   :dedent:
+
+The following example inserts an instance of the ``Appointment`` data
+class into the ``appointments`` collection:
+
+.. literalinclude:: /includes/data-formats/serialization.kt
+   :language: kotlin
+   :start-after: start-datetime-insertone
+   :end-before: end-datetime-insertone
+   :dedent:
+
+In MongoDB, the ``LocalDate`` value is stored as a BSON date, and the
+``time`` field is stored as a string by default serialization:
+
+.. code-block:: json
+
+   {
+     "_id": ...,
+     "name": "Daria Smith",
+     "date": {
+       "$date": "2024-10-15T00:00:00.000Z"
+     },
+     "time": "11:30",
+   }

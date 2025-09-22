@@ -1,0 +1,245 @@
+.. _kotlin-sync-auth-kerberos:
+
+================================
+Kerberos (GSSAPI) Authentication
+================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: kerberos, gssapi, enterprise, authentication
+
+Overview
+--------
+
+The Generic Security Services API (``GSSAPI``) authentication mechanism
+allows you to authenticate to a Kerberos service by specifying your Kerberos
+principal name.
+
+.. note::
+
+   The page refers to the ``GSSAPI`` authentication mechanism instead
+   of ``Kerberos`` because the driver authenticates by using the
+   `GSSAPI RFC-4652 <https://tools.ietf.org/html/rfc4752>`__ SASL
+   mechanism.
+
+Specify Kerberos Authentication
+-------------------------------
+
+The examples in this section show how to specify the ``GSSAPI`` authentication mechanism
+and use the following placeholder values:
+
+- ``<Kerberos principal>``: Your :wikipedia:`URL-encoded <Percent-encoding>` principal name.
+- ``<hostname>``: The network address of your MongoDB deployment, accessible by your client.
+- ``<port>``: The port number of your MongoDB deployment. If you omit this parameter,
+  the driver uses the default port number (``27017``).
+
+Select the :guilabel:`Connection String` or the :guilabel:`MongoCredential`
+tab below for instructions and sample code for specifying this authentication
+mechanism:
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      To specify the GSSAPI authentication mechanism in your a connection
+      string, perform the following actions:
+
+      - Set the ``authMechanism`` URL parameter to ``GSSAPI``
+      - *(optional)* Set the ``authSource`` URL parameter to ``$external``
+
+      .. note::
+
+         If you specify the ``GSSAPI`` mechanism, you cannot assign
+         ``authSource`` to any value other than ``$external``.
+
+      The following example specifies the authentication mechanism in
+      a connection string:
+
+      .. literalinclude:: /includes/security/enterprise-auth.kt
+         :language: kotlin
+         :dedent:
+         :start-after:  start-gssapi-connect-string
+         :end-before: end-gssapi-connect-string
+
+   .. tab:: MongoCredential
+      :tabid: mongo-credential
+
+      To specify the GSSAPI authentication mechanism by using the
+      ``MongoCredential`` class, use the ``createGSSAPICredential()``
+      method as shown in the following example:
+
+      .. literalinclude:: /includes/security/enterprise-auth.kt
+         :language: kotlin
+         :dedent:
+         :start-after:  start-gssapi-mongo-cred
+         :end-before: end-gssapi-mongo-cred
+
+Acquiring a Kerberos Ticket
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to acquire a
+`Kerberos ticket <https://docs.oracle.com/en/java/javase/11/docs/api/java.security.jgss/javax/security/auth/kerberos/KerberosTicket.html>`__,
+the GSSAPI Java libraries require you to specify the realm and Key Distribution
+Center (KDC) system properties. 
+
+The following code shows sample values for these properties:
+
+.. code-block:: none
+
+   java.security.krb5.realm=MYREALM.ME
+   java.security.krb5.kdc=mykdc.myrealm.me
+
+Additional Properties
+~~~~~~~~~~~~~~~~~~~~~
+
+You may need to specify one or more of the following additional
+``MongoCredential`` mechanism properties depending on your Kerberos setup:
+
+- ``SERVICE_NAME``
+- ``CANONICALIZE_HOST_NAME``
+- ``JAVA_SUBJECT``
+- ``JAVA_SASL_CLIENT_PROPERTIES``
+- ``JAVA_SUBJECT_PROVIDER``
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      .. important::
+
+         You can only specify the following GSSAPI properties by using the
+         ``MongoCredential``:
+
+         - ``JAVA_SUBJECT``
+         - ``JAVA_SASL_CLIENT_PROPERTIES``
+         - ``JAVA_SUBJECT_PROVIDER``
+
+         Select the :guilabel:`MongoCredential` tab to see how to specify
+         them.
+
+      To specify one of the GSSAPI additional properties, include it in the
+      connection string as a URL parameter by using the format:
+      ``<PROPERTY_NAME>:<value>``.
+
+      Your code to instantiate a ``MongoClient`` using GSSAPI and additional
+      properties resembles the following example:
+
+      .. literalinclude:: /includes/security/enterprise-auth.kt
+         :language: kotlin
+         :dedent:
+         :start-after: start-gssapi-properties-connect-string
+         :end-before: end-gssapi-properties-connect-string
+
+   .. tab:: MongoCredential
+      :tabid: mongo-credential
+
+      To specify one of the GSSAPI additional properties, call the
+      ``withMechanismProperty()`` method on your ``MongoCredential``
+      instance and pass the property name and value as parameters. Use the
+      following property name constants defined in the ``MongoCredential`` class:
+
+      - `SERVICE_NAME_KEY <{+core-api+}/MongoCredential.html#SERVICE_NAME_KEY>`__
+      - `CANONICALIZE_HOST_NAME_KEY <{+core-api+}/MongoCredential.html#CANONICALIZE_HOST_NAME_KEY>`__
+      - `JAVA_SUBJECT_KEY <{+core-api+}/MongoCredential.html#JAVA_SUBJECT_KEY>`__
+      - `JAVA_SASL_CLIENT_PROPERTIES_KEY <{+core-api+}/MongoCredential.html#JAVA_SASL_CLIENT_PROPERTIES_KEY>`__
+      - `JAVA_SUBJECT_PROVIDER_KEY <{+core-api+}/MongoCredential.html#JAVA_SUBJECT_PROVIDER_KEY>`__
+
+      Select the **SERVICE_NAME_KEY** or **JAVA_SUBJECT_KEY** tab to
+      see sample code to instantiate a ``MongoCredential`` that uses GSSAPI and
+      the selected property:
+
+      .. tabs::
+
+         .. tab:: SERVICE_NAME_KEY
+            :tabid: service-name-key
+
+            .. literalinclude:: /includes/security/enterprise-auth.kt
+               :language: kotlin
+               :dedent:
+               :start-after: start-gssapi-service-name-key
+               :end-before: end-gssapi-service-name-key     
+
+         .. tab:: JAVA_SUBJECT_KEY
+            :tabid: java-subject-key
+
+            .. literalinclude:: /includes/security/enterprise-auth.kt
+               :language: kotlin
+               :dedent:
+               :start-after: start-gssapi-java-subject-key
+               :end-before: end-gssapi-java-subject-key      
+
+Ticket Caching
+~~~~~~~~~~~~~~
+
+By default, the Kotlin driver caches Kerberos tickets by ``MongoClient`` instance.
+If your deployment needs to frequently create and destroy ``MongoClient`` instances,
+you can change the default Kerberos ticket caching behavior to cache by process
+to improve performance.
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      To cache Kerberos tickets by process, you must use the ``MongoCredential`` authentication
+      mechanism, as the connection string authentication mechanism does not support the ``JAVA_SUBJECT_PROVIDER``
+      mechanism property. To view instructions, select the :guilabel:`MongoCredential`
+      tab.
+
+   .. tab:: MongoCredential
+      :tabid: mongo-credential
+
+      To cache Kerberos tickets by process, you must specify the ``JAVA_SUBJECT_PROVIDER``
+      mechanism property and provide a
+      `KerberosSubjectProvider <{+core-api+}/KerberosSubjectProvider.html>`__
+      in your ``MongoCredential`` instance. The following code configures the Kotlin driver
+      to cache Kerberos tickets by process:
+
+      .. literalinclude:: /includes/security/enterprise-auth.kt
+         :language: kotlin
+         :dedent:
+         :start-after: start-gssapi-java-subject-provider
+         :end-before: end-gssapi-java-subject-provider
+
+.. note::
+
+   On Windows, Oracle's JRE uses `LSA <https://docs.microsoft.com/en-us/windows/win32/secauthn/lsa-authentication>`__
+   rather than `SSPI <https://docs.microsoft.com/en-us/windows/win32/secauthn/sspi>`__
+   in its implementation of GSSAPI, which limits interoperability with
+   Windows Active Directory and implementations of single sign-on. See the
+   following articles for more information:
+
+   - `JDK-8054026 <https://bugs.openjdk.java.net/browse/JDK-8054026>`__
+   - `JDK-6722928 <https://bugs.openjdk.java.net/browse/JDK-6722928>`__
+   - `SO 23427343 <https://stackoverflow.com/questions/23427343/cannot-retrieve-tgt-despite-allowtgtsessionkey-registry-entry>`__
+
+Additional Information
+----------------------
+
+To learn more about authenticating to MongoDB, see
+:manual:`Authentication </core/authentication/>` in the {+mdb-server+} manual.
+
+To learn more about creating a ``MongoClient`` object by using the
+{+driver-short+}, see the :ref:`kotlin-sync-mongoclient` guide.
+
+API Documentation
+-----------------
+
+To learn more about the classes and methods for authenticating your application 
+with {+driver-short+}, see the following API documentation:
+
+- `MongoClient.create() <{+driver-api+}/-mongo-client/-factory/index.html>`__
+- `MongoClient <{+driver-api+}/-mongo-client/index.html>`__
+- `MongoClientSettings.Builder <{+core-api+}/MongoClientSettings.Builder.html>`__
+- `MongoCredential <{+core-api+}/MongoCredential.html>`__
