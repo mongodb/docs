@@ -1,3 +1,4 @@
+import type { WithId } from 'mongodb';
 import type { ASTNode, PageTemplateType, Root, TextNode, TocTreeEntry } from './ast';
 
 type AppData = {
@@ -42,6 +43,12 @@ type BranchData = {
   offlineUrl: string;
   noIndexing: boolean;
   eol_type?: EOLType;
+};
+
+type DocsetDocument = WithId<Document> & {
+  project: string;
+  prefix: Record<SnootyEnv, string>;
+  bucket: Record<SnootyEnv, string>;
 };
 
 type Docset = ReposBranchesDocument & {
@@ -216,11 +223,19 @@ interface IALinkedData {
   height: string;
 }
 
+type Viewport = {
+  scrollY: number;
+  scrollX: number;
+  width?: number;
+  height?: number;
+};
+
 export type {
   AppData,
   BranchData,
   BreadcrumbType,
   Docset,
+  DocsetDocument,
   EOLType,
   FacetOption,
   FacetValue,
@@ -243,4 +258,5 @@ export type {
   SlugToBreadcrumbLabel,
   SlugToTitle,
   SnootyEnv,
+  Viewport,
 };

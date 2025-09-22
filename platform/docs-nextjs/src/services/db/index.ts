@@ -5,11 +5,20 @@
  */
 
 import { cache } from 'react';
-import type { Filter, FindOptions } from 'mongodb';
+import type { Collection, Filter, FindOptions, Document } from 'mongodb';
 import { MongoClient } from 'mongodb';
-import type { ASTDocument } from '@/services/db/types';
+import type { DocsetDocument } from '@/types/data';
+import type {
+  ASTDocument,
+  FeedbackDocument,
+  ProjectDocument,
+  SlackChannelDocument,
+  TeamDocument,
+} from '@/services/db/types';
 import envConfig, { type Environments } from '@/utils/env-config';
 import { log } from '@/utils/logger';
+import type { FeedbackDbType } from '../feedback/feedback-types';
+import type { SnootyEnv } from '@/types/data';
 
 const URI = envConfig.MONGODB_URI as string;
 const COLLECTION_NAME = 'documents';
@@ -42,11 +51,56 @@ function getDbName(env: Environments) {
   }
 }
 
-async function getPagesDocumentCollection() {
+export function getFeedbackDbName(env: SnootyEnv): FeedbackDbType {
+  switch (env) {
+    case 'development':
+      return 'feedback_test';
+    case 'dotcomstg':
+    case 'staging':
+      return 'feedback_stage';
+    case 'production':
+    case 'dotcomprd':
+      return 'feedback_prod';
+    default:
+      throw new Error(`Unknown snootyEnv: ${env}`);
+  }
+}
+
+async function getCollection<T extends Document = Document>(
+  dbName: string,
+  collectionName: string,
+  logMessage?: string,
+): Promise<Collection<T>> {
   const client = getClient();
-  const dbName = getDbName(envConfig.DB_ENV);
-  log({ message: `Connecting to MongoDB database: ${dbName}` });
-  return client.db(dbName).collection<ASTDocument>(COLLECTION_NAME);
+  log({
+    message: logMessage || `Connecting to MongoDB ${collectionName} collection in db: ${dbName}`,
+  });
+  return client.db(dbName).collection<T>(collectionName);
+}
+
+export async function getFeedbackResponsesCollection(env: SnootyEnv): Promise<Collection<FeedbackDocument>> {
+  const dbName = getFeedbackDbName(env);
+  return getCollection<FeedbackDocument>(dbName, 'responses');
+}
+
+export async function getProjectsCollection(): Promise<Collection<ProjectDocument>> {
+  return getCollection<ProjectDocument>('docs_metadata', 'projects');
+}
+
+export async function getTeamsCollection(): Promise<Collection<TeamDocument>> {
+  return getCollection<TeamDocument>('docs_metadata', 'teams');
+}
+
+export async function getSlackChannelsCollection(): Promise<Collection<SlackChannelDocument>> {
+  return getCollection<SlackChannelDocument>('docs_metadata', 'slack_channels');
+}
+
+async function getPagesDocumentCollection(): Promise<Collection<ASTDocument>> {
+  return getCollection<ASTDocument>(getDbName(envConfig.DB_ENV), COLLECTION_NAME);
+}
+
+export async function getDocsetsCollection(): Promise<Collection<DocsetDocument>> {
+  return getCollection<DocsetDocument>('pool', 'docsets');
 }
 
 /**
@@ -64,7 +118,9 @@ const getPageAST = cache(async (path: string | string[], prId?: number) => {
   }
   const DEFAULT_SORT: FindOptions = { sort: { id: -1 } };
   try {
-    log({ message: `Querying db ${collection.namespace} for query ${JSON.stringify(query)}` });
+    log({
+      message: `Querying db ${collection.namespace} for query ${JSON.stringify(query)}`,
+    });
     const pageRes: ASTDocument | null = await collection.findOne(query, DEFAULT_SORT);
     return pageRes;
   } catch (e) {

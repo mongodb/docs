@@ -4,6 +4,9 @@ export type Environments = (typeof ENVIRONMENT_VALUES)[number];
 
 const REQUIRED_ENV_VARS = [
   'MONGODB_URI',
+  'JIRA_USERNAME',
+  'JIRA_PASSWORD',
+  'SLACK_QUOKKA_OAUTH_ACCESS_TOKEN',
   'CONTENTSTACK_API_KEY',
   'CONTENTSTACK_DELIVERY_TOKEN',
   'CONTENTSTACK_ENVIRONMENT',
@@ -27,19 +30,33 @@ const validateEnvConfigs = () => {
 validateEnvConfigs();
 
 type GlobalEnvConfig = {
+  AWS_ACCESS_KEY_ID: string;
+  AWS_SECRET_ACCESS_KEY: string;
+  AWS_KEY_REGION: string;
   DB_ENV: Environments;
   MONGODB_URI: string;
+  IPDATA_API_KEY: string;
+  JIRA_USERNAME: string;
+  JIRA_PASSWORD: string;
   CONTENTSTACK_API_KEY: string;
   CONTENTSTACK_DELIVERY_TOKEN: string;
   CONTENTSTACK_ENVIRONMENT: string;
+  SLACK_QUOKKA_OAUTH_ACCESS_TOKEN: string;
 };
 
 const envConfig: GlobalEnvConfig = {
+  AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID ?? '',
+  AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY ?? '',
+  AWS_KEY_REGION: process.env.AWS_KEY_REGION ?? 'us-east-2',
   DB_ENV: (process.env.DB_ENV ?? 'dev') as Environments,
   MONGODB_URI: process.env.MONGODB_URI ?? '',
+  IPDATA_API_KEY: process.env.IPDATA_API_KEY ?? '',
+  JIRA_USERNAME: process.env.JIRA_USERNAME ?? '',
+  JIRA_PASSWORD: process.env.JIRA_PASSWORD ?? '',
   CONTENTSTACK_API_KEY: process.env.CONTENTSTACK_API_KEY ?? '',
   CONTENTSTACK_DELIVERY_TOKEN: process.env.CONTENTSTACK_DELIVERY_TOKEN ?? '',
   CONTENTSTACK_ENVIRONMENT: process.env.CONTENTSTACK_ENVIRONMENT ?? '',
+  SLACK_QUOKKA_OAUTH_ACCESS_TOKEN: process.env.SLACK_QUOKKA_OAUTH_ACCESS_TOKEN ?? '',
 };
 
 export default envConfig;
