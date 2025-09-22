@@ -175,6 +175,7 @@ type NodeType =
   | 'title_reference';
 
 type RoleName = (typeof roleNames)[number];
+
 export const roleNames = [
   'abbr',
   'class',

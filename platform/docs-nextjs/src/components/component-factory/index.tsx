@@ -19,8 +19,25 @@ import type {
   TargetNode,
   CodeNode,
   ButtonNode,
+  HighlightNode,
+  AbbrRoleNode,
+  ClassRoleNode,
+  RoleIconNode,
+  RoleManualNode,
+  LinkNewTabNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
+
+// Union type for all role nodes
+// For roles without specific interfaces, they will extend ParentNode with optional target
+type RoleNode =
+  | AbbrRoleNode
+  | ClassRoleNode
+  | HighlightNode
+  | LinkNewTabNode
+  | RoleIconNode
+  | RoleManualNode
+  | (ParentNode & { type: 'role'; target?: string });
 
 import Admonition, { type AdmonitionProps } from '../admonition';
 import { admonitionMap } from '../admonition/constants';
@@ -42,6 +59,34 @@ import Target, { type TargetProps } from '../target';
 import type { FormatTextOptions } from '../literal';
 import Literal, { type LiteralProps } from '../literal';
 import Button, { type ButtonProps } from '../button';
+import {
+  RoleAbbr,
+  RoleClass,
+  RoleCommand,
+  RoleFile,
+  RoleGUILabel,
+  RoleIcon,
+  RoleHighlight,
+  RoleKbd,
+  RoleLinkNewTab,
+  RoleRed,
+  RoleRequired,
+  RoleGold,
+} from '@/components/roles';
+import type {
+  AbbrProps,
+  RoleClassProps,
+  RoleCommandProps,
+  RoleFileProps,
+  GoldProps,
+  RoleGUILabelProps,
+  RoleIconProps,
+  HighlightProps,
+  KbdProps,
+  LinkNewTabProps,
+  RedProps,
+  RoleManualProps,
+} from '@/components/roles';
 import Code from '../code';
 
 const IGNORED_NAMES = new Set([
@@ -62,32 +107,32 @@ const IGNORED_TYPES = new Set(['comment', 'inline_target', 'named_reference', 's
 
 const DEPRECATED_ADMONITIONS = new Set(['admonition', 'caution', 'danger']);
 
-const roleMap: Record<RoleName, React.ComponentType<SupportedComponentProps>> = {
-  // abbr: RoleAbbr,
-  // class: RoleClass,
-  // command: RoleCommand,
-  // file: RoleFile,
-  // guilabel: RoleGUILabel,
-  // icon: RoleIcon,
-  // 'highlight-blue': RoleHighlight,
-  // 'highlight-green': RoleHighlight,
-  // 'highlight-red': RoleHighlight,
-  // 'highlight-yellow': RoleHighlight,
-  // 'icon-fa5': RoleIcon,
-  // 'icon-fa5-brands': RoleIcon,
-  // 'icon-fa4': RoleIcon,
-  // 'icon-mms': RoleIcon,
-  // 'icon-charts': RoleIcon,
-  // 'icon-lg': RoleIcon,
-  // kbd: RoleKbd,
-  // red: RoleRed,
-  // gold: RoleGold,
-  // required: RoleRequired,
-  sub: Subscript as React.ComponentType<SupportedComponentProps>,
-  subscript: Subscript as React.ComponentType<SupportedComponentProps>,
-  sup: Superscript as React.ComponentType<SupportedComponentProps>,
-  superscript: Superscript as React.ComponentType<SupportedComponentProps>,
-  // 'link-new-tab': RoleLinkNewTab,
+const roleMap: Record<RoleName, React.ComponentType<RoleComponentProps>> = {
+  abbr: RoleAbbr as React.ComponentType<RoleComponentProps>,
+  class: RoleClass as React.ComponentType<RoleComponentProps>,
+  command: RoleCommand as React.ComponentType<RoleComponentProps>,
+  file: RoleFile as React.ComponentType<RoleComponentProps>,
+  guilabel: RoleGUILabel as React.ComponentType<RoleComponentProps>,
+  icon: RoleIcon as React.ComponentType<RoleComponentProps>,
+  'highlight-blue': RoleHighlight as React.ComponentType<RoleComponentProps>,
+  'highlight-green': RoleHighlight as React.ComponentType<RoleComponentProps>,
+  'highlight-red': RoleHighlight as React.ComponentType<RoleComponentProps>,
+  'highlight-yellow': RoleHighlight as React.ComponentType<RoleComponentProps>,
+  'icon-fa5': RoleIcon as React.ComponentType<RoleComponentProps>,
+  'icon-fa5-brands': RoleIcon as React.ComponentType<RoleComponentProps>,
+  'icon-fa4': RoleIcon as React.ComponentType<RoleComponentProps>,
+  'icon-mms': RoleIcon as React.ComponentType<RoleComponentProps>,
+  'icon-charts': RoleIcon as React.ComponentType<RoleComponentProps>,
+  'icon-lg': RoleIcon as React.ComponentType<RoleComponentProps>,
+  kbd: RoleKbd as React.ComponentType<RoleComponentProps>,
+  red: RoleRed as React.ComponentType<RoleComponentProps>,
+  gold: RoleGold as React.ComponentType<RoleComponentProps>,
+  required: RoleRequired as React.ComponentType<RoleComponentProps>,
+  sub: Subscript as React.ComponentType<RoleComponentProps>,
+  subscript: Subscript as React.ComponentType<RoleComponentProps>,
+  sup: Superscript as React.ComponentType<RoleComponentProps>,
+  superscript: Superscript as React.ComponentType<RoleComponentProps>,
+  'link-new-tab': RoleLinkNewTab as React.ComponentType<RoleComponentProps>,
 };
 
 type validComponentKey = Exclude<ComponentType, 'toctree' | 'role' | 'tab' | 'selected-content'>;
@@ -181,11 +226,15 @@ const getComponent = (() => {
   };
 })();
 
-function getComponentType(type: NodeType, name?: NodeName): React.ComponentType<SupportedComponentProps> | undefined {
+function getComponentType(
+  type: NodeType,
+  name?: NodeName,
+): React.ComponentType<SupportedComponentProps> | React.ComponentType<RoleComponentProps> | undefined {
   const lookup = (type === 'directive' ? name : type) as validComponentKey;
-  let ComponentType: React.ComponentType<SupportedComponentProps> | undefined = lookup
-    ? getComponent(lookup)
-    : undefined;
+  let ComponentType:
+    | React.ComponentType<SupportedComponentProps>
+    | React.ComponentType<RoleComponentProps>
+    | undefined = lookup ? getComponent(lookup) : undefined;
 
   if (name) {
     if (type === 'role' && isRoleName(name)) {
@@ -237,8 +286,24 @@ type SupportedComponentProps =
   | FootnoteReferenceProps
   | ButtonProps;
 
+type RoleComponentProps =
+  | AbbrProps
+  | RoleClassProps
+  | RoleCommandProps
+  | RoleFileProps
+  | GoldProps
+  | RoleGUILabelProps
+  | RoleIconProps
+  | HighlightProps
+  | KbdProps
+  | LinkNewTabProps
+  | RedProps
+  | RoleManualProps;
+
 const renderComponentWithProps = (
-  ComponentType: React.ComponentType<SupportedComponentProps>,
+  AmbiguousComponentType: React.ComponentType<SupportedComponentProps> | React.ComponentType<RoleComponentProps>,
+  type: NodeType,
+  name: NodeName | undefined,
   nodeData: ASTNode,
   props: ComponentFactoryProps,
 ): React.ReactElement => {
@@ -247,6 +312,27 @@ const renderComponentWithProps = (
     sectionDepth: props.sectionDepth,
     skipPTag: props.skipPTag,
   };
+
+  let ComponentType: React.ComponentType<SupportedComponentProps> | React.ComponentType<RoleComponentProps>;
+  if (type === 'role' && name && isRoleName(name as RoleName)) {
+    ComponentType = AmbiguousComponentType as React.ComponentType<RoleComponentProps>;
+    const roleNode = nodeData as RoleNode;
+
+    // Some role nodes have a target property, others don't
+    const roleProps: RoleComponentProps & { target?: string } = {
+      nodeChildren: roleNode.children,
+      name: name,
+    };
+
+    // Only add target if it exists on the node
+    if ('target' in roleNode) {
+      roleProps.target = roleNode.target;
+    }
+
+    return <ComponentType {...roleProps} />;
+  } else {
+    ComponentType = AmbiguousComponentType as React.ComponentType<SupportedComponentProps>;
+  }
 
   if (ComponentType === getComponent('code')) {
     const codeNode = nodeData as CodeNode;
@@ -321,6 +407,7 @@ const renderComponentWithProps = (
     return <ComponentType argument={buttonNode.argument} options={buttonNode.options} {...propsToDrill} />;
   }
 
+  console.log('ComponentType', ComponentType.name);
   // Default: spread all props for other components
   return <ComponentType {...props} />;
 };
@@ -365,7 +452,7 @@ const ComponentFactory = (props: ComponentFactoryProps) => {
       // return null;
     }
 
-    return renderComponentWithProps(ComponentType, nodeData, props);
+    return renderComponentWithProps(ComponentType, type, name, nodeData, props);
   };
 
   if (!nodeData) return null;

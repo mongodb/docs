@@ -1,0 +1,26 @@
+export { default as RoleAbbr } from './abbr';
+export { default as RoleClass } from './class';
+export { default as RoleCommand } from './command';
+export { default as RoleFile } from './file';
+export { default as RoleGold } from './gold';
+export { default as RoleGUILabel } from './gui-label';
+export { default as RoleHighlight } from './highlight';
+export { default as RoleIcon } from './icon';
+export { default as RoleKbd } from './kbd';
+export { default as RoleLinkNewTab } from './link-new-tab';
+export { default as RoleManual } from './manual';
+export { default as RoleRed } from './red';
+export { default as RoleRequired } from './required';
+
+export type { AbbrProps } from './abbr';
+export type { RoleClassProps } from './class';
+export type { RoleCommandProps } from './command';
+export type { RoleFileProps } from './file';
+export type { GoldProps } from './gold';
+export type { RoleGUILabelProps } from './gui-label';
+export type { HighlightProps } from './highlight';
+export type { RoleIconProps } from './icon';
+export type { KbdProps } from './kbd';
+export type { LinkNewTabProps } from './link-new-tab';
+export type { RoleManualProps } from './manual';
+export type { RedProps } from './red';

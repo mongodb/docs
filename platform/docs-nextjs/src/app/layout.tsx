@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-// import { cookies } from "next/headers";
-import './globals.css'; // TODO:
-import '../styles/mongodb-docs.css';
-import '../styles/global-dark-mode.css';
+import './globals.css';
+import '@/styles/mongodb-docs.css';
+import '@/styles/global-dark-mode.css';
+import '@/styles/icons.css';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import TrackJSProvider from '@/components/trackjs-provider';
