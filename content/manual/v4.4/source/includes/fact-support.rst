@@ -1,11 +1,15 @@
-MongoDB Community
-~~~~~~~~~~~~~~~~~
+MongoDB Communities
+~~~~~~~~~~~~~~~~~~~
 
-For questions, discussions, or general technical support, visit the
-`MongoDB Community Forums
-<https://community.mongodb.com/>`_.
-The MongoDB Community Forums are a centralized place to connect with
-other MongoDB users, ask questions, and get answers.
+For questions, discussions, or general technical support, visit the MongoDB 
+communities on `Reddit <https://www.reddit.com/r/mongodb/>`__ or 
+`Stack Overflow <https://stackoverflow.com/questions/tagged/mongodb>`__. 
+These platforms are great places to connect with other MongoDB users, 
+ask questions, and get answers.
+
+To showcase your MongoDB projects, share content, learn about our community 
+programs, get feedback from peers, and connect with other developers, 
+visit the `MongoDB Community Forum <https://www.mongodb.com/community/forums/>`_.
 
 MongoDB Atlas or Cloud Manager
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
