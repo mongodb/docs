@@ -4,6 +4,7 @@ import (
 	"context"
 	"driver-examples/examples/aggregation/pipelines/filter"
 	"driver-examples/examples/aggregation/pipelines/group"
+	"driver-examples/examples/aggregation/pipelines/unwind"
 	"driver-examples/utils"
 	"driver-examples/utils/compare"
 	"testing"
@@ -53,6 +54,7 @@ func TestAggregationPipelines(t *testing.T) {
 	}{
 		{"FilterTutorial", testFilterTutorial},
 		{"GroupTutorial", testGroupTutorial},
+		{"UnwindTutorial", testUnwindTutorial},
 		// Add more pipeline tests here as you create them:
 		// {"GroupTutorial", testGroupTutorial},
 		// {"LookupTutorial", testLookupTutorial},
@@ -102,6 +104,31 @@ func testGroupTutorial(t *testing.T) {
 
 	// Compare the actual results with expected output
 	comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)
+
+	if !comparisonResult.IsMatch {
+		t.Errorf("Results do not match expected output: %s", comparisonResult.Error())
+
+		// Print detailed error information
+		for _, err := range comparisonResult.Errors {
+			t.Errorf("  Path: %s, Expected: %s, Actual: %s, Message: %s",
+				err.Path, err.Expected, err.Actual, err.Message)
+		}
+	}
+}
+
+func testUnwindTutorial(t *testing.T) {
+	t.Helper() // Mark this as a helper function for better error reporting
+
+	// Run your test logic
+	unwind.LoadData()
+	result := unwind.RunPipeline()
+	expectedOutputFilepath := "examples/aggregation/pipelines/unwind/output.txt"
+
+	// Compare the actual results with expected output
+	options := compare.Options{
+		ComparisonType: "unordered",
+	}
+	comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, &options)
 
 	if !comparisonResult.IsMatch {
 		t.Errorf("Results do not match expected output: %s", comparisonResult.Error())

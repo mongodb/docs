@@ -103,7 +103,7 @@ func compareDocumentsGeneric(expectedFilePath string, actualResults interface{},
 		}
 	}
 
-	// Compare the document arrays - documents should be compared in order
+	// Compare the document arrays
 	if len(expectedDocs) != len(actualNormalized) {
 		return Result{
 			IsMatch: false,
@@ -116,20 +116,38 @@ func compareDocumentsGeneric(expectedFilePath string, actualResults interface{},
 		}
 	}
 
-	// Compare each document pair in order
-	var allErrors []Error
-	for i := 0; i < len(expectedDocs); i++ {
-		docPath := fmt.Sprintf("[%d]", i)
-		result := compareValues(expectedDocs[i], actualNormalized[i], options, false, docPath)
-		if !result.IsMatch {
-			allErrors = append(allErrors, result.Errors...)
+	// Check if we should compare documents in order or allow unordered comparison
+	if options.ComparisonType == "ordered" {
+		// Compare each document pair in order
+		var allErrors []Error
+		for i := 0; i < len(expectedDocs); i++ {
+			docPath := fmt.Sprintf("[%d]", i)
+			result := compareValues(expectedDocs[i], actualNormalized[i], options, false, docPath)
+			if !result.IsMatch {
+				allErrors = append(allErrors, result.Errors...)
+			}
+		}
+
+		return Result{
+			IsMatch: len(allErrors) == 0,
+			Errors:  allErrors,
 		}
 	}
 
-	return Result{
-		IsMatch: len(allErrors) == 0,
-		Errors:  allErrors,
+	// Default to unordered comparison for document arrays
+	// Convert documents to interface{} slices for unordered comparison
+	expectedInterfaces := make([]interface{}, len(expectedDocs))
+	actualInterfaces := make([]interface{}, len(actualNormalized))
+
+	for i, doc := range expectedDocs {
+		expectedInterfaces[i] = doc
 	}
+	for i, doc := range actualNormalized {
+		actualInterfaces[i] = doc
+	}
+
+	// Use the same unordered comparison logic as arrays
+	return compareArraysByBacktracking(expectedInterfaces, actualInterfaces, options, false, "")
 }
 
 // compareValues is the main compare function

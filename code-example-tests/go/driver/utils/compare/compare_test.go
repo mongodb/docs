@@ -139,6 +139,126 @@ func TestFieldValueIgnoring(t *testing.T) {
 	}
 }
 
+func TestDocumentLevelUnorderedComparison(t *testing.T) {
+	tempDir := t.TempDir()
+
+	tests := []struct {
+		name         string
+		expectedFile string
+		actual       []bson.D
+		options      *Options
+		shouldMatch  bool
+	}{
+		{
+			name:         "Unordered documents (default behavior)",
+			expectedFile: "unordered_docs.txt",
+			actual: []bson.D{
+				{{Key: "product", Value: "Karcher Hose Set"}, {Key: "total_value", Value: 66}, {Key: "quantity", Value: 3}, {Key: "product_id", Value: "def45678"}},
+				{{Key: "product", Value: "Russell Hobbs Chrome Kettle"}, {Key: "total_value", Value: 16}, {Key: "quantity", Value: 1}, {Key: "product_id", Value: "xyz11228"}},
+			},
+			shouldMatch: true,
+		},
+		{
+			name:         "Unordered documents (explicit unordered)",
+			expectedFile: "unordered_docs.txt",
+			actual: []bson.D{
+				{{Key: "product", Value: "Karcher Hose Set"}, {Key: "total_value", Value: 66}, {Key: "quantity", Value: 3}, {Key: "product_id", Value: "def45678"}},
+				{{Key: "product", Value: "Russell Hobbs Chrome Kettle"}, {Key: "total_value", Value: 16}, {Key: "quantity", Value: 1}, {Key: "product_id", Value: "xyz11228"}},
+			},
+			options: &Options{
+				ComparisonType: "unordered",
+			},
+			shouldMatch: true,
+		},
+		{
+			name:         "Ordered documents should fail when order is wrong",
+			expectedFile: "unordered_docs.txt",
+			actual: []bson.D{
+				{{Key: "product", Value: "Karcher Hose Set"}, {Key: "total_value", Value: 66}, {Key: "quantity", Value: 3}, {Key: "product_id", Value: "def45678"}},
+				{{Key: "product", Value: "Russell Hobbs Chrome Kettle"}, {Key: "total_value", Value: 16}, {Key: "quantity", Value: 1}, {Key: "product_id", Value: "xyz11228"}},
+			},
+			options: &Options{
+				ComparisonType: "ordered",
+			},
+			shouldMatch: false,
+		},
+	}
+
+	// Create test file with documents in specific order
+	createTestFile(t, filepath.Join(tempDir, "unordered_docs.txt"), `{"product":"Russell Hobbs Chrome Kettle","total_value":16,"quantity":1,"product_id":"xyz11228"}
+{"product":"Karcher Hose Set","total_value":66,"quantity":3,"product_id":"def45678"}`)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := BsonDocuments(filepath.Join(tempDir, tt.expectedFile), tt.actual, tt.options)
+
+			if result.IsMatch != tt.shouldMatch {
+				t.Errorf("Expected match=%v, got match=%v. Errors: %v", tt.shouldMatch, result.IsMatch, result.Errors)
+			}
+		})
+	}
+}
+
+func TestFieldOrderingWithinDocuments(t *testing.T) {
+	tempDir := t.TempDir()
+
+	tests := []struct {
+		name         string
+		expectedFile string
+		actual       []bson.D
+		shouldMatch  bool
+		description  string
+	}{
+		{
+			name:         "Fields in different order should match",
+			expectedFile: "field_order_test.txt",
+			actual: []bson.D{
+				// Fields in different order than expected file
+				{{Key: "quantity", Value: 1}, {Key: "product_id", Value: "xyz11228"}, {Key: "total_value", Value: 16}, {Key: "product", Value: "Russell Hobbs Chrome Kettle"}},
+			},
+			shouldMatch: true,
+			description: "Object fields should match regardless of order",
+		},
+		{
+			name:         "Nested object fields in different order should match",
+			expectedFile: "nested_field_order_test.txt",
+			actual: []bson.D{
+				{{Key: "user", Value: map[string]interface{}{
+					"age":    30,
+					"active": true,
+					"name":   "John",
+					"profile": map[string]interface{}{
+						"email":   "john@example.com",
+						"address": "123 Main St",
+					},
+				}}},
+			},
+			shouldMatch: true,
+			description: "Nested object fields should match regardless of order",
+		},
+	}
+
+	// Create test files with fields in specific order
+	createTestFile(t, filepath.Join(tempDir, "field_order_test.txt"), `{"product":"Russell Hobbs Chrome Kettle","total_value":16,"quantity":1,"product_id":"xyz11228"}`)
+	createTestFile(t, filepath.Join(tempDir, "nested_field_order_test.txt"), `{"user":{"name":"John","age":30,"active":true,"profile":{"address":"123 Main St","email":"john@example.com"}}}`)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := BsonDocuments(filepath.Join(tempDir, tt.expectedFile), tt.actual, nil)
+
+			if result.IsMatch != tt.shouldMatch {
+				t.Errorf("Expected match=%v, got match=%v for %s", tt.shouldMatch, result.IsMatch, tt.description)
+				if !result.IsMatch {
+					for _, err := range result.Errors {
+						t.Errorf("  Error: Path=%s, Expected=%s, Actual=%s, Message=%s",
+							err.Path, err.Expected, err.Actual, err.Message)
+					}
+				}
+			}
+		})
+	}
+}
+
 func TestArrayComparisonStrategies(t *testing.T) {
 	tempDir := t.TempDir()
 
