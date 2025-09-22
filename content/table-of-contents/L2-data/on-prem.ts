@@ -169,12 +169,6 @@ const tocData: TocItem[] = [
       {
         label: "Verify Package Integrity",
         contentSite: "docs",
-        url: "/docs/:version/tutorial/verify-mongodb-packages",
-        versions: { excludes: ["upcoming"] },
-      },
-      {
-        label: "Verify Package Integrity",
-        contentSite: "docs",
         collapsible: true,
         versions: { excludes: manualVersions.before("v8.2") },
         items: [
