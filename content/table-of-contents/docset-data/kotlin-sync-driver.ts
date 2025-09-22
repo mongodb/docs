@@ -1,6 +1,7 @@
 import type { TocItem } from "../types";
+import docsVersions from "../version-arrays/drivers/kotlin-sync-versions";
 
-const outdatedVersions = ["v5.0", "v5.1", "v5.2"];
+const outdatedVersions = docsVersions.before("v5.2", {inclusive: true});
 
 const tocData: TocItem[] = [
   {
@@ -424,23 +425,23 @@ const tocData: TocItem[] = [
           {
             label: "Kotlin Sync Driver",
             contentSite: "kotlin-sync",
-            url: "https://mongodb.github.io/mongo-java-driver/5.5/apidocs/driver-kotlin-sync/index.html",
+            url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-kotlin-sync/index.html",
           },
           {
             label: "BSON kotlinx.serialization",
             contentSite: "kotlin-sync",
-            url: "https://mongodb.github.io/mongo-java-driver/5.5/apidocs/bson-kotlinx/index.html",
+            url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/bson-kotlinx/index.html",
           },
           {
             label: "Kotlin Driver Extensions",
             contentSite: "kotlin-sync",
-            url: "https://mongodb.github.io/mongo-java-driver/5.5/apidocs/driver-kotlin-extensions/index.html",
+            url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-kotlin-extensions/index.html",
             versions: { excludes: outdatedVersions },
           },
           {
             label: "Driver Core",
             contentSite: "kotlin-sync",
-            url: "https://mongodb.github.io/mongo-java-driver/5.5/apidocs/driver-core/index.html",
+            url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-core/index.html",
           },
         ]
       },

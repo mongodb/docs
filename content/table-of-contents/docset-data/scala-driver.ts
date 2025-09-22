@@ -1,6 +1,7 @@
 import type { TocItem } from "../types";
+import docsVersions from "../version-arrays/drivers/scala-versions";
 
-const outdatedVersions = ["v5.0", "v5.1", "v5.2"];
+const outdatedVersions = docsVersions.before("v5.2", {inclusive: true});
 
 const tocData: TocItem[] = [
   {
@@ -307,7 +308,7 @@ const tocData: TocItem[] = [
       {
         label: "API Documentation",
         isExternal: true,
-        url: "https://mongodb.github.io/mongo-java-driver/5.5/apidocs/driver-scala/index.html",
+        url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-scala/index.html",
         versions: { excludes: outdatedVersions },
       },
       {

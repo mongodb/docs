@@ -1,6 +1,7 @@
 import type { TocItem } from "../types";
+import docsVersions from "../version-arrays/drivers/java-versions";
 
-const outdatedVersions = ["v5.0", "v5.1", "v5.2", "v5.3"];
+const outdatedVersions = docsVersions.before("v5.3", {inclusive: true});
 
 const tocData: TocItem[] = [
   {
@@ -715,27 +716,27 @@ const tocData: TocItem[] = [
           {
             label: " BSON",
             isExternal: true,
-            url: "https://mongodb.github.io/mongo-java-driver/5.5/apidocs/bson/index.html",
+            url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/bson/index.html",
           },
           {
             label: " BSON Record Codec",
             isExternal: true,
-            url: "https://mongodb.github.io/mongo-java-driver/5.5/apidocs/bson-record-codec/index.html",
+            url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/bson-record-codec/index.html",
           },
           {
             label: " Core",
             isExternal: true,
-            url: "https://mongodb.github.io/mongo-java-driver/5.5/apidocs/driver-core/index.html",
+            url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-core/index.html",
           },
           {
             label: " Java Driver (modern API)",
             isExternal: true,
-            url: "https://mongodb.github.io/mongo-java-driver/5.5/apidocs/driver-sync/index.html",
+            url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-sync/index.html",
           },
           {
             label: " Java Driver (legacy API)",
             isExternal: true,
-            url: "https://mongodb.github.io/mongo-java-driver/5.5/apidocs/driver-legacy/index.html",
+            url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-legacy/index.html",
           },
         ],
       },

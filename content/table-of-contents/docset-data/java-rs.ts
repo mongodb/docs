@@ -1,6 +1,7 @@
 import type { TocItem } from "../types";
+import docsVersions from "../version-arrays/drivers/java-rs-versions";
 
-const outdatedVersions = [ "v5.0", "v5.1" ];
+const outdatedVersions = docsVersions.before("v5.1", {inclusive: true});
 
 const tocData: TocItem[] = [
   {
@@ -363,7 +364,7 @@ const tocData: TocItem[] = [
       {
         label: "API Documentation",
         isExternal: true,
-        url: "https://mongodb.github.io/mongo-java-driver/5.5/apidocs/driver-reactive-streams/",
+        url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-reactive-streams/",
         versions: { excludes: outdatedVersions },
       },
       // Outdated ToC below

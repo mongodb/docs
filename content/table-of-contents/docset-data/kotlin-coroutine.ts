@@ -1,4 +1,5 @@
 import type { TocItem } from "../types";
+import docsVersions from "../version-arrays/drivers/kotlin-coroutine-versions";
 
 const tocData: TocItem[] = [
   {
@@ -458,22 +459,22 @@ const tocData: TocItem[] = [
           {
             label: " Kotlin Coroutine Driver",
             isExternal: true,
-            url: "https://mongodb.github.io/mongo-java-driver/5.5/apidocs/driver-kotlin-coroutine/index.html",
+            url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-kotlin-coroutine/index.html",
           },
           {
             label: " BSON kotlinx.serialization",
             isExternal: true,
-            url: "https://mongodb.github.io/mongo-java-driver/5.5/apidocs/bson-kotlinx/index.html",
+            url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/bson-kotlinx/index.html",
           },
           {
             label: " Kotlin Driver Extensions",
             isExternal: true,
-            url: "https://mongodb.github.io/mongo-java-driver/5.5/apidocs/driver-kotlin-extensions/index.html",
+            url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-kotlin-extensions/index.html",
           },
           {
             label: " Driver Core",
             isExternal: true,
-            url: "https://mongodb.github.io/mongo-java-driver/5.5/apidocs/driver-core/index.html",
+            url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-core/index.html",
           },
         ],
       },
