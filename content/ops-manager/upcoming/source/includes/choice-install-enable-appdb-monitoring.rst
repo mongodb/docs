@@ -13,8 +13,8 @@
 
             .. include:: /includes/agents/binaries-removed-from-path.rst
 
-            On x86_64 architecture running Debian 10 or 11, and
-            Ubuntu 18.04, 20.04, 22.04, or 24.04:
+            On x86_64 architecture running Debian 11, and
+            Ubuntu 22.04, or 24.04:
 
             .. include:: /includes/steps/monitor-appdb-on-amd64.ubuntu1604-deb.rst
 
@@ -81,7 +81,7 @@
             :tabid: ppc
 
             On RHEL / CentOS (7.x) on PowerPC architecture (managing
-            MongoDB 3.4 or later deployments):
+            MongoDB 6.0 or later deployments):
 
             .. tabs::
 
@@ -104,7 +104,7 @@
          .. tab:: IBM zSeries
             :tabid: s390x
 
-            On zSeries architecture (managing MongoDB 4.4 or later
+            On zSeries architecture (managing MongoDB 6.0 or later
             deployments), use RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 
             8.x):
 

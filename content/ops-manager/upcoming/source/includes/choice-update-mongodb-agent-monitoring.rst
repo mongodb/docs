@@ -18,8 +18,8 @@
          .. tab:: Intel/AMD
             :tabid: x86
 
-            On x86_64 architecture running Debian 9, Ubuntu 18.04,
-            Ubuntu 20.04, Ubuntu 22.04, or Ubuntu 24.04:
+            On x86_64 architecture running Debian 11, Ubuntu 22.04, 
+            or Ubuntu 24.04:
 
             .. include:: /includes/steps/update-monitoring-to-mongodb-agent-amd64.ubuntu1604-deb.rst
 
@@ -99,7 +99,7 @@
          .. tab:: IBM ZSeries
             :tabid: s390x
 
-            On zSeries architecture (managing MongoDB 4.4 or
+            On zSeries architecture (managing MongoDB 6.0 or
             later deployments):
 
             Running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x) 

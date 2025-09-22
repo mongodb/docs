@@ -1,7 +1,6 @@
 .. warning:: Upgrade Managed Databases to MongoDB
 
-   |onprem| 6.0 doesn't support MongoDB 3.4. If you are using
-   MongoDB 3.4 or earlier and want to upgrade to |onprem| 6.0, you must
-   upgrade to at least MongoDB 3.6. However, we recommend that you upgrade
-   to at least MongoDB 4.4 before upgrading to |onprem| 6.0.
+   |onprem| 6.0 doesn't support MongoDB versions earlier to 6.0. If you are using
+   MongoDB earlier than 6.0 and want to upgrade to a version later than |onprem| 6.0,
+   you must upgrade to at least MongoDB 6.0.
    
