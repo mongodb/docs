@@ -6,8 +6,9 @@ import '../styles/global-dark-mode.css';
 import Header from '@/components/header';
 import Footer from '@/components/footer';
 import TrackJSProvider from '@/components/trackjs-provider';
-import { LeafyGreenProvider } from './emotion';
+import { LeafyGreenProviderWrapper } from './emotion';
 import layoutStyles from './layout.module.scss';
+import { DarkModeContextProvider } from '@/context/dark-mode-context';
 
 const faviconUrl = `https://www.mongodb.com/docs/assets/favicon.ico`;
 
@@ -24,19 +25,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // TODO: handle dark mode here using cookies or local storage
-  // const cookiesObj = await cookies();
-  console.log('RootLayout cookies', 'TODO: handle dark mode here using cookies or local storage');
   return (
     <html lang="en">
       <body>
         <TrackJSProvider />
         <div className={layoutStyles.layout}>
-          <LeafyGreenProvider>
-            <Header />
-            {children}
-            <Footer />
-          </LeafyGreenProvider>
+          <DarkModeContextProvider>
+            <LeafyGreenProviderWrapper>
+              <Header />
+              {children}
+              <Footer />
+            </LeafyGreenProviderWrapper>
+          </DarkModeContextProvider>
         </div>
       </body>
     </html>

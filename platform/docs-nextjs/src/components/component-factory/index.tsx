@@ -17,6 +17,7 @@ import type {
   TextNode,
   TitleReferenceNode,
   TargetNode,
+  CodeNode,
   ButtonNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
@@ -41,6 +42,7 @@ import Target, { type TargetProps } from '../target';
 import type { FormatTextOptions } from '../literal';
 import Literal, { type LiteralProps } from '../literal';
 import Button, { type ButtonProps } from '../button';
+import Code from '../code';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -109,7 +111,7 @@ const getComponent = (() => {
         // 'card-group': CardGroup,
         // chapter: Chapter,
         // chapters: Chapters,
-        // code: Code,
+        code: Code as React.ComponentType<SupportedComponentProps>,
         // collapsible: Collapsible,
         // 'community-driver': CommunityPillLink,
         // 'composable-tutorial': ComposableTutorial,
@@ -230,6 +232,7 @@ type SupportedComponentProps =
   | AdmonitionProps
   | TargetProps
   | LiteralProps
+  | CodeNode
   | FootnoteNodeProps
   | FootnoteReferenceProps
   | ButtonProps;
@@ -245,7 +248,21 @@ const renderComponentWithProps = (
     skipPTag: props.skipPTag,
   };
 
-  if (ComponentType === getComponent('text')) {
+  if (ComponentType === getComponent('code')) {
+    const codeNode = nodeData as CodeNode;
+    return (
+      <ComponentType
+        value={codeNode.value}
+        lang={codeNode.lang}
+        linenos={codeNode.linenos}
+        emphasize_lines={codeNode.emphasize_lines}
+        copyable={codeNode.copyable}
+        source={codeNode.source}
+        lineno_start={codeNode.lineno_start}
+        caption={codeNode.caption}
+      />
+    );
+  } else if (ComponentType === getComponent('text')) {
     const textNode = nodeData as TextNode;
     return <ComponentType value={textNode.value} />;
   } else if (ComponentType === getComponent('strong') || ComponentType === getComponent('title_reference')) {

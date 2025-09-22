@@ -8,8 +8,7 @@
  */
 
 import type { ReactNode } from 'react';
-import { createContext, useMemo, useEffect, useRef, useState, useCallback } from 'react';
-import LeafyGreenProvider from '@leafygreen-ui/leafygreen-provider';
+import React, { createContext, useMemo, useEffect, useRef, useState, useCallback } from 'react';
 import useMedia from '@/hooks/use-media';
 import { setLocalValue } from '@/utils/browser-storage';
 import { isBrowser } from '@/utils/is-browser';
@@ -20,11 +19,13 @@ export type DarkModePref = 'light-theme' | 'dark-theme' | 'system';
 interface DarkModeContextType {
   darkModePref: DarkModePref;
   setDarkModePref: React.Dispatch<React.SetStateAction<DarkModePref>>;
+  isDarkMode: boolean;
 }
 
 const DarkModeContext = createContext<DarkModeContextType>({
   darkModePref: 'light-theme',
   setDarkModePref: () => {},
+  isDarkMode: false,
 });
 
 export const DARK_THEME_CLASSNAME = 'dark-theme';
@@ -56,6 +57,12 @@ const DarkModeContextProvider = ({ children }: DarkModeContextProviderProps) => 
   }, []);
 
   const darkPref = useMedia(theme.colorPreference.dark);
+
+  // Calculate the actual dark mode state
+  const isDarkMode = useMemo(() => {
+    return darkModePref === DARK_THEME_CLASSNAME || (darkModePref === SYSTEM_THEME_CLASSNAME && darkPref);
+  }, [darkModePref, darkPref]);
+
   // save to local value when darkmode changes, besides initial load
   // also updates document classlist if darkModePref or darkPref changes
   useEffect(() => {
@@ -86,15 +93,8 @@ const DarkModeContextProvider = ({ children }: DarkModeContextProviderProps) => 
   }, []);
 
   return (
-    <DarkModeContext.Provider value={{ setDarkModePref, darkModePref }}>
-      <LeafyGreenProvider
-        baseFontSize={16}
-        darkMode={
-          darkModePref === DARK_THEME_CLASSNAME || (darkModePref === SYSTEM_THEME_CLASSNAME && darkPref) ? true : false
-        }
-      >
-        {children}
-      </LeafyGreenProvider>
+    <DarkModeContext.Provider value={{ setDarkModePref, darkModePref, isDarkMode }}>
+      {children}
     </DarkModeContext.Provider>
   );
 };
