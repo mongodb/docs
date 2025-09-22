@@ -54,6 +54,6 @@
       a. Specify :guilabel:`Username`. 
       b. Enter :guilabel:`Password` or click :guilabel:`Autogenerate secure 
          password`.
-      c. Click :guilabel:`Create database uer`.
+      c. Click :guilabel:`Create database user`.
       
    .. step:: Click :guilabel:`Next` to get the connection string for your online archive.
