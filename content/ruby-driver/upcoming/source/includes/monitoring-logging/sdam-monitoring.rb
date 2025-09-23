@@ -1,12 +1,17 @@
 # start-available-subscriber
+require 'mongo'
+
 subscriber = Mongo::Monitoring::ServerOpeningLogSubscriber.new
 
 # Globally subscribes to ServerOpening events by using the SERVER_OPENING monitoring topic
 Mongo::Monitoring::Global.subscribe(Mongo::Monitoring::SERVER_OPENING, subscriber)
-client = Mongo::Client.new(['127.0.0.1:27017'])
+
+# Replace with your connection string and connect to your client
+uri = '<connection string>'
+client = Mongo::Client.new(uri)
 
 # Subscribes to ServerOpening events at the client level by using the SERVER_OPENING monitoring topic
-client.subscribe( Mongo::Monitoring::SERVER_OPENING, subscriber )
+client.subscribe(Mongo::Monitoring::SERVER_OPENING, subscriber)
 # end-available-subscriber
 
 # start-sdam
