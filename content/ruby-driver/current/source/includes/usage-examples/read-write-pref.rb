@@ -75,6 +75,16 @@ Mongo::Client.new(uri) do |client|
   client = Mongo::Client.new(uri, options)
   myDB = client.database
   # end-read-preference-cluster
+
+  # start-retry-reads-writes
+  uri = 'mongodb+srv://<user>:<password>@<cluster-url>'
+  options = { 
+    retry_reads: false, 
+    retry_writes: false 
+  }
+  client = Mongo::Client.new(uri, options)
+  myDB = client.database
+  # end-retry-reads-writes
 end
 
 

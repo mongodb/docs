@@ -16,34 +16,6 @@ const tocData: TocItem[] = [
         label: "Get Started",
         contentSite: "ruby-driver",
         url: "/docs/ruby-driver/:version/get-started",
-        collapsible: true,
-        items: [
-          {
-            label: "Download & Install",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/get-started/download-and-install",
-          },
-          {
-            label: "Create a Deployment",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/get-started/create-a-deployment",
-          },
-          {
-            label: "Create a Connection String",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/get-started/create-a-connection-string",
-          },
-          {
-            label: "Connect to MongoDB",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/get-started/connect-to-mongodb",
-          },
-          {
-            label: "Next Steps",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/get-started/next-steps",
-          },
-        ],
       },
       {
         label: "Connect",
@@ -56,11 +28,6 @@ const tocData: TocItem[] = [
             url: "/docs/ruby-driver/:version/connect/mongoclient",
           },
           {
-            label: "Stable API",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/connect/stable-api",
-          },
-          {
             label: "Choose a Connection Target",
             contentSite: "ruby-driver",
             url: "/docs/ruby-driver/:version/connect/connection-targets",
@@ -69,16 +36,34 @@ const tocData: TocItem[] = [
             label: "Connection Options",
             contentSite: "ruby-driver",
             url: "/docs/ruby-driver/:version/connect/connection-options",
-          },
-          {
-            label: "Configure TLS",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/connect/tls",
-          },
-          {
-            label: "Limit Server Execution Time",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/connect/csot",
+            collapsible: true,
+            items: [
+              {
+                label: "Compress Network Traffic",
+                contentSite: "ruby-driver",
+                url: "/docs/ruby-driver/:version/connect/network-compression",
+              },
+              {
+                label: "Stable API",
+                contentSite: "ruby-driver",
+                url: "/docs/ruby-driver/:version/connect/stable-api",
+              },
+              {
+                label: "Limit Server Execution Time",
+                contentSite: "ruby-driver",
+                url: "/docs/ruby-driver/:version/connect/csot",
+              },
+              {
+                label: "Connection Pools",
+                contentSite: "ruby-driver",
+                url: "/docs/ruby-driver/:version/connect/connection-pools",
+              },
+              {
+                label: "Server Selection",
+                contentSite: "ruby-driver",
+                url: "/docs/ruby-driver/:version/connect/server-selection",
+              },
+            ],
           },
           {
             label: "AWS Lambda",
@@ -94,112 +79,136 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-            label: "Run a Command",
+            label: "Run a Database Command",
             contentSite: "ruby-driver",
             url: "/docs/ruby-driver/:version/databases-collections/run-command",
           },
         ],
       },
       {
-        label: "Read Data",
+        label: "CRUD Operations",
         contentSite: "ruby-driver",
-        url: "/docs/ruby-driver/:version/read",
-        collapsible: true,
-        items: [
-          {
-            label: "Retrieve Data",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/read/retrieve",
-          },
-          {
-            label: "Specify a Query",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/read/specify-a-query",
-          },
-          {
-            label: "Specify Documents to Return",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/read/specify-documents-to-return",
-          },
-          {
-            label: "Specify Fields to Return",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/read/project",
-          },
-          {
-            label: "Distinct Field Values",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/read/distinct",
-          },
-          {
-            label: "Count Documents",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/read/count",
-          },
-          {
-            label: "Cursors",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/read/cursors",
-          },
-          {
-            label: "Monitor Changes",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/read/change-streams",
-          },
-          {
-            label: "Collations",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/read/collations",
-          },
-        ],
-      },
-      {
-        label: "Write Data",
-        contentSite: "ruby-driver",
-        url: "/docs/ruby-driver/:version/write",
         collapsible: true,
         items: [
           {
             label: "Insert Documents",
             contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/write/insert",
+            url: "/docs/ruby-driver/:version/crud/insert",
           },
           {
-            label: "Replace Documents",
+            label: "Query Documents",
             contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/write/replace",
+            url: "/docs/ruby-driver/:version/crud/query",
+            collapsible: true,
+            items: [
+              {
+                label: "Specify a Query",
+                contentSite: "ruby-driver",
+                url: "/docs/ruby-driver/:version/crud/query/specify-a-query",
+              },
+              {
+                label: "Find Documents",
+                contentSite: "ruby-driver",
+                url: "/docs/ruby-driver/:version/crud/query/find",
+              },
+              {
+                label: "Specify Documents to Return",
+                contentSite: "ruby-driver",
+                url: "/docs/ruby-driver/:version/crud/query/specify-documents-to-return",
+              },
+              {
+                label: "Specify Fields to Return",
+                contentSite: "ruby-driver",
+                url: "/docs/ruby-driver/:version/crud/query/project",
+              },
+              {
+                label: "Distinct Field Values",
+                contentSite: "ruby-driver",
+                url: "/docs/ruby-driver/:version/crud/query/distinct",
+              },
+              {
+                label: "Count Documents",
+                contentSite: "ruby-driver",
+                url: "/docs/ruby-driver/:version/crud/query/count",
+              },
+              {
+                label: "Access Data From a Cursor",
+                contentSite: "ruby-driver",
+                url: "/docs/ruby-driver/:version/crud/query/cursors",
+              },
+            ],
           },
           {
             label: "Update Documents",
             contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/write/update",
+            url: "/docs/ruby-driver/:version/crud/update",
+            collapsible: true,
+            items: [ 
+              {
+                label: "Replace Documents",
+                contentSite: "ruby-driver",
+                url: "/docs/ruby-driver/:version/crud/replace",
+              },
+            ],
           },
           {
             label: "Delete Documents",
             contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/write/delete",
+            url: "/docs/ruby-driver/:version/crud/delete",
           },
           {
             label: "Bulk Write Operations",
             contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/write/bulk-write",
+            url: "/docs/ruby-driver/:version/crud/bulk-write",
           },
           {
             label: "Transactions",
             contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/write/transactions",
+            url: "/docs/ruby-driver/:version/crud/transactions",
           },
           {
-            label: "Store Large Files by Using GridFS",
+            label: "Configure CRUD Operations",
             contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/write/gridfs",
+            url: "/docs/ruby-driver/:version/crud/configure-crud",
+          },
+          {
+            label: "Store Large Files",
+            contentSite: "ruby-driver",
+            url: "/docs/ruby-driver/:version/crud/gridfs",
+          },
+          {
+            label: "Collations",
+            contentSite: "ruby-driver",
+            url: "/docs/ruby-driver/:version/crud/collations",
           },
         ],
       },
       {
-        label: "Operations on Replica Sets",
+        label: "Aggregation",
         contentSite: "ruby-driver",
-        url: "/docs/ruby-driver/:version/read-write-pref",
+        url: "/docs/ruby-driver/:version/aggregation",
+      },
+      {
+        label: "Data Formats",
+        contentSite: "ruby-driver",
+        collapsible: true,
+        items: [
+          {
+            label: "BSON",
+            contentSite: "ruby-driver",
+            url: "/docs/ruby-driver/:version/data-formats/bson",
+          },
+          {
+            label: "Extended JSON",
+            contentSite: "ruby-driver",
+            url: "/docs/ruby-driver/:version/data-formats/extended-json",
+          },
+          {
+            label: "Time Series Data",
+            contentSite: "ruby-driver",
+            url: "/docs/ruby-driver/:version/data-formats/time-series",
+          },
+        ],
       },
       {
         label: "Indexes",
@@ -240,26 +249,36 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: "Monitor Your Application",
+        label: "Atlas Search",
         contentSite: "ruby-driver",
-        collapsible: true,
-        items: [
-          {
-            label: "Cluster Monitoring",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/monitoring/cluster-monitoring",
-          },
-        ],
-      },
-      {
-        label: "Data Aggregation",
-        contentSite: "ruby-driver",
-        url: "/docs/ruby-driver/:version/aggregation",
+        url: "/docs/ruby-driver/:version/atlas-search",
       },
       {
         label: "Atlas Vector Search",
         contentSite: "ruby-driver",
         url: "/docs/ruby-driver/:version/vector-search",
+      },
+      {
+        label: "Monitoring and Logging",
+        contentSite: "ruby-driver",
+        collapsible: true,
+        items: [
+          {
+            label: "Monitoring",
+            contentSite: "ruby-driver",
+            url: "/docs/ruby-driver/:version/logging-and-monitoring/monitoring",
+          },
+          {
+            label: "Logging",
+            contentSite: "ruby-driver",
+            url: "/docs/ruby-driver/:version/logging-and-monitoring/logging",
+          },
+          {
+            label: "Change Streams",
+            contentSite: "ruby-driver",
+            url: "/docs/ruby-driver/:version/logging-and-monitoring/change-streams",
+          },
+        ],
       },
       {
         label: "Security",
@@ -300,6 +319,11 @@ const tocData: TocItem[] = [
             ],
           },
           {
+                label: "TLS",
+                contentSite: "ruby-driver",
+                url: "/docs/ruby-driver/:version/security/tls",
+          },
+          {
             label: "In-Use Encryption",
             contentSite: "ruby-driver",
             url: "/docs/ruby-driver/:version/security/in-use-encryption",
@@ -307,31 +331,8 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: "Data Formats",
-        contentSite: "ruby-driver",
-        collapsible: true,
-        items: [
-          {
-            label: "Time Series Data",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/data-formats/time-series",
-          },
-          {
-            label: "BSON",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/data-formats/bson",
-          },
-        ],
-      },
-      {
-        label: "API Documentation",
-        isExternal: true,
-        url: "https://www.mongodb.com/docs/ruby-driver/current/api/",
-      },
-      {
         label: "Reference",
         contentSite: "ruby-driver",
-        url: "/docs/ruby-driver/:version/reference",
         collapsible: true,
         items: [
           {
@@ -357,14 +358,14 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: "API Documentation",
+        isExternal: true,
+        url: "https://www.mongodb.com/docs/ruby-driver/current/api/",
+      },
+      {
         label: "Issues & Help",
         contentSite: "ruby-driver",
         url: "/docs/ruby-driver/:version/issues-and-help",
-      },
-      {
-        label: "Common Errors",
-        contentSite: "ruby-driver",
-        url: "/docs/ruby-driver/:version/common-errors",
       },
     ],
   },

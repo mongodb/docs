@@ -1,46 +1,125 @@
-.. _ruby-cluster-monitoring:
+.. _ruby-monitoring:
 
-==================
-Cluster Monitoring
-==================
+===========================
+Monitor Application Events
+===========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. meta::
+  :keywords: event
+  :description: Explore cluster, command, and connection pool monitoring in the MongoDB Node.js Driver.
 
 .. facet::
    :name: genre
    :values: reference
 
-.. meta::
-   :keywords: code example, server, topology
-
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 2
-   :class: singlecols
-
 Overview
 --------
 
-This guide shows you how to use the {+driver-short+} to monitor server discovery 
-and monitoring (SDAM) events in a MongoDB instance, replica set, or sharded 
-cluster by using custom subscribers or available subscriber methods. These events 
-occur when there are changes in the state of the MongoDB instance or cluster 
-that you are connected to.
+In this guide, you can learn how to set up and configure **monitoring** in the
+{+driver-long+}.
 
-You can use information about SDAM events in your application to understand 
-cluster changes, assess cluster health, or perform capacity planning.
+Monitoring involves collecting information about the activities of a running
+program, which you can use with an application performance management
+library.
 
-SDAM Subscribers
-----------------
+Monitoring the {+driver-short+} lets you understand the driver's resource usage
+and performance. This information can help you make informed decisions when designing and
+debugging your application.
+
+In this guide, you can learn how to perform the following tasks:
+
+- :ref:`Monitor Command Events <ruby-command-monitoring>`
+- :ref:`Monitor Server Discovery and Monitoring (SDAM) Events <ruby-cluster-monitoring>`
+- :ref:`Monitor Connection Pool Events <ruby-connection-pool-monitoring>`
+
+This guide shows how to use information about the activity of the driver in code.
+To learn how to record events in the driver, see the {+driver-short+}'s 
+:ref:`Logging <ruby-logging>` guide. 
+
+.. _ruby-command-monitoring:
+
+Monitor Command Events
+----------------------
+
+A command event is an event related to a MongoDB database command. You can
+access one or more command monitoring events using the driver by subscribing to
+them in your application.
+
+To learn more about MongoDB database commands, see the
+:manual:`Database Commands </reference/command/>` guide in the {+mdb-server+} manual.
+
+Subscribe to Command Events
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can access details about command events by subscribing to them in your 
+application. You can subscribe to events at a global level, 
+which monitors all clients of a cluster, or at the client level. This example 
+demonstrates the following actions: 
+
+- Instantiates a ``CommandLogSubscriber``
+- Uses the ``Mongo::Monitoring::Global.subscribe`` method to subscribe to command events at the global level
+- Uses the ``Mongo::Client.subscribe`` method to subscribe to command events at the client level
+
+.. literalinclude:: /includes/monitoring-logging/command-monitoring.rb
+   :language: ruby
+
+Event Descriptions
+~~~~~~~~~~~~~~~~~~
+
+You can subscribe to any of the following command monitoring events:
+
+.. list-table::
+   :widths: 33 67
+   :header-rows: 1
+
+   * - Event Name
+     - Description
+
+   * - `CommandStarted <{+api-root+}/Mongo/Monitoring/Event/CommandStarted.html>`__
+     - Created when a command is started.
+
+   * - `CommandSucceeded <{+api-root+}/Mongo/Monitoring/Event/CommandSucceeded.html>`__
+     - Created when a command succeeded.
+
+   * - `CommandFailed <{+api-root+}/Mongo/Monitoring/Event/CommandFailed.html>`__
+     - Created when a command failed.
+
+.. _ruby-cluster-monitoring:
+
+Monitor Server Discovery and Monitoring (SDAM) Events
+-----------------------------------------------------
+
+The {+driver-short+} creates topology events, also known as SDAM events, when
+there is a change in the state of the instance or cluster that you connected to.
+For example, the driver creates an event when you establish a new connection or
+if the cluster elects a new primary node.
+
+To learn more about topology events, see the :manual:`Replication </replication>` guide in the Server Manual.
+
+The following sections demonstrate how to record topology changes in your application
+and explore the information provided in these events.
+
+Subscribe to SDAM Events
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can use the {+driver-short+}'s ``subscribe`` method to subscribe to events. 
 Pass a monitoring topic, which defines the monitoring event type, and a subscriber 
-object as arguments to the ``subscribe`` method.
+object as arguments to the ``subscribe`` method. You can subscribe to events at a global level, 
+which monitors all clients of a cluster, or at the client level.
 
-The following code uses the ``ServerOpeningLogSubscriber`` subscriber to monitor a connection
-to a server instance. You can subscribe to events at a global level, which monitors 
-all clients of a cluster, or at the client level:
+This example demonstrates the following actions: 
 
-.. literalinclude:: /includes/monitoring/monitoring.rb
+- Instantiates a ``ServerOpeningLogSubscriber`` subscriber 
+- Uses the ``Mongo::Monitoring::Global.subscribe`` method to subscribe to ``ServerOpening`` events at the global level
+- Uses the ``Mongo::Client.subscribe`` method to subscribe to ``ServerOpening`` events at the client level
+
+.. literalinclude:: /includes/monitoring-logging/sdam-monitoring.rb
    :start-after: start-available-subscriber
    :end-before: end-available-subscriber
    :language: ruby
@@ -51,7 +130,7 @@ The following table provides available subscribers and their monitoring topic:
 
 .. list-table::
    :header-rows: 1
-   :widths: 35 20 45
+   :widths: 37 20 43
 
    * - Subscriber Name
      - Monitoring Topic
@@ -85,7 +164,7 @@ You can find a table of SDAM event descriptions in the :ref:`Event Descriptions 
 section on this page. 
 
 Custom SDAM Monitoring
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
 You can create a custom SDAM subscriber to access details about server
 and topology events. Create a separate class for each event type, as available
@@ -95,7 +174,7 @@ For all events, the subscriber calls the ``succeeded`` method and passes the eve
 as an argument. A simple SDAM logging subscriber can look 
 like the following code:
 
-.. literalinclude:: /includes/monitoring/monitoring.rb
+.. literalinclude:: /includes/monitoring-logging/sdam-monitoring.rb
    :start-after: start-sdam
    :end-before: end-sdam
    :language: ruby
@@ -106,7 +185,7 @@ To subscribe to events, create the appropriate subscriber and
 subscribe to the correct monitoring topic. The following code shows how 
 to subscribe to SDAM events globally:
 
-.. literalinclude:: /includes/monitoring/monitoring.rb
+.. literalinclude:: /includes/monitoring-logging/sdam-monitoring.rb
    :start-after: start-sdam-subscriber-global
    :end-before: end-sdam-subscriber-global
    :language: ruby
@@ -116,7 +195,7 @@ to subscribe to SDAM events globally:
 The following code shows how to subscribe to SDAM events for a single client 
 by using the ``sdam-proc`` client option:
 
-.. literalinclude:: /includes/monitoring/monitoring.rb
+.. literalinclude:: /includes/monitoring-logging/sdam-monitoring.rb
    :start-after: start-sdam-subscriber-client
    :end-before: end-sdam-subscriber-client
    :language: ruby
@@ -158,7 +237,7 @@ outputs messages such as the following:
   D, [2018-10-09T13:58:05.342693 #22079] DEBUG -- : SDAM | Topology type 'ReplicaSetWithPrimary' closed.
 
 Server Heartbeats
-~~~~~~~~~~~~~~~~~
+`````````````````
 
 You can also create a custom subscriber to monitor server heartbeats, which occur 
 when the server monitor sends a ``hello`` command to the server.
@@ -172,7 +251,7 @@ as they must implement the following three methods:
 
 The following example shows a heartbeat event subscriber:
 
-.. literalinclude:: /includes/monitoring/monitoring.rb
+.. literalinclude:: /includes/monitoring-logging/sdam-monitoring.rb
    :start-after: start-heartbeat
    :end-before: end-heartbeat
    :language: ruby
@@ -182,7 +261,7 @@ The following example shows a heartbeat event subscriber:
 You can subscribe to heartbeat events globally or for a specific client, 
 as shown in the following example:
 
-.. literalinclude:: /includes/monitoring/monitoring.rb
+.. literalinclude:: /includes/monitoring-logging/sdam-monitoring.rb
    :start-after: start-heartbeat-subscribe
    :end-before: end-heartbeat-subscribe
    :language: ruby
@@ -201,7 +280,7 @@ outputs messages such as the following:
 .. _SDAM-event-descriptions:
 
 Event Descriptions
-------------------
+~~~~~~~~~~~~~~~~~~
 
 The following table provides the name and description of each SDAM event:
 
@@ -238,6 +317,87 @@ The following table provides the name and description of each SDAM event:
 
    * - `TopologyOpening <{+api-root+}/Mongo/Monitoring/Event/TopologyOpening.html>`__ 
      - Event created before the driver attempts to connect to an instance.
+
+.. _ruby-connection-pool-monitoring:
+
+Monitor Connection Pool Events
+------------------------------
+
+A connection pool is a set of open TCP connections your driver maintains with a
+MongoDB instance. Connection pools help reduce the number of network handshakes
+your application needs to perform and can help your application run faster.
+
+The following sections demonstrate how to record connection pool events in your
+application and explore the information provided in these events.
+
+Subscribe to Connection Pool Events
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can access details about all connection pool events by subscribing to them in your application. 
+You can subscribe to events at a global level, which monitors all clients of a cluster, 
+or at the client level:
+
+This example demonstrates the following actions: 
+
+- Instantiates a ``CmapLogSubscriber`` subscriber 
+- Uses the ``Mongo::Monitoring::Global.subscribe`` method to subscribe to all connection pool events at the global level
+- Uses the ``Mongo::Client.subscribe`` method to subscribe to all connection pool events at the client level
+
+.. literalinclude:: /includes/monitoring-logging/cp-monitoring.rb
+   :language: ruby
+
+Event Descriptions
+~~~~~~~~~~~~~~~~~~
+
+You can subscribe to any of the following connection pool monitoring events:
+
+.. list-table::
+   :widths: 33 67
+   :header-rows: 1
+
+   * - Event Name
+     - Description
+
+   * - `ConnectionCheckOutFailed <{+api-root+}/Mongo/Monitoring/Event/Cmap/ConnectionCheckOutFailed.html>`__
+     - Created when an operation fails to acquire a connection for
+       execution.
+
+   * - `ConnectionCheckOutStarted <{+api-root+}/Mongo/Monitoring/Event/Cmap/ConnectionCheckOutStarted.html>`__
+     - Created when an operation attempts to acquire a connection for
+       execution.
+
+   * - `ConnectionCheckedIn <{+api-root+}/Mongo/Monitoring/Event/Cmap/ConnectionCheckedIn.html>`__
+     - Created when a connection is checked back into the pool after an operation
+       is executed.
+
+   * - `ConnectionCheckedOut <{+api-root+}/Mongo/Monitoring/Event/Cmap/ConnectionCheckedOut.html>`__
+     - Created when an operation successfully acquires a connection for
+       execution.
+
+   * - `ConnectionClosed <{+api-root+}/Mongo/Monitoring/Event/Cmap/ConnectionClosed.html>`__
+     - Created when a connection is closed.
+
+   * - `ConnectionCreated <{+api-root+}/Mongo/Monitoring/Event/Cmap/ConnectionCreated.html>`__
+     - Created when a connection is created, but not necessarily
+       when it is used for an operation.
+
+   * - `ConnectionReady <{+api-root+}/Mongo/Monitoring/Event/Cmap/ConnectionReady.html>`__
+     - Created after a connection has successfully completed a
+       handshake and is ready to be used for operations.
+
+    * - `PoolCleared <{+api-root+}/Mongo/Monitoring/Event/Cmap/PoolCleared.html>`__
+    - Created when all connections are closed and the connection pool is
+      cleared.
+
+   * - `PoolClosed <{+api-root+}/Mongo/Monitoring/Event/Cmap/PoolClosed.html>`__
+     - Created when a connection pool is closed before server
+       instance destruction.
+
+   * - `PoolCreated <{+api-root+}/Mongo/Monitoring/Event/Cmap/PoolCreated.html>`__
+     - Created when a connection pool is created.
+
+   * - `PoolReady <{+api-root+}/Mongo/Monitoring/Event/Cmap/PoolReady.html>`__
+     - Created when a connection pool is ready.
 
 API Documentation
 -----------------
