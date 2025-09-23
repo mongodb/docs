@@ -1,6 +1,7 @@
 from datetime import datetime
 from pymongo import MongoClient
 
+
 def example(CONNECTION_STRING):
     client = MongoClient(CONNECTION_STRING)
     try:
@@ -110,12 +111,12 @@ def example(CONNECTION_STRING):
         aggregation_result = person_coll.aggregate(pipeline)
         # :snippet-end:
 
-        document_list = [] # :remove:
+        document_list = []  # :remove:
         for document in aggregation_result:
             print(document)
-            document_list.append(document) # :remove:
+            document_list.append(document)  # :remove:
 
-        return document_list # :remove:
+        return document_list  # :remove:
 
     finally:
         client.close()

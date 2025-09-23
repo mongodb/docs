@@ -4,6 +4,7 @@
 
 from pymongo import MongoClient
 
+
 # Write your code example inside a function that you can call from a corresponding test.
 # When you call the function in the test, this executes the code example.
 # The function can return output, which the test can validate to confirm that the code works.
@@ -17,7 +18,7 @@ def example(CONNECTION_STRING):
         # :snippet-start: stub-print
         print("Stub example. Do not use in a literal include.")
 
-        print("Unnecessary code for tests. Use # :remove:") # :remove:
+        print("Unnecessary code for tests. Use # :remove:")  # :remove:
 
         # Be careful of whitespace when using :remove: There will be 2 newlines above this.
 

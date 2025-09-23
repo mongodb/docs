@@ -1,6 +1,7 @@
 from datetime import datetime
 from pymongo import MongoClient
 
+
 def example(CONNECTION_STRING):
     client = MongoClient(CONNECTION_STRING)
     try:

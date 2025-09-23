@@ -1,12 +1,11 @@
 import unittest
-import utils.test_helper as test_helper
+from utils.comparison.assert_helpers import assert_expected_file_matches_output
 import examples.timeseries.ts_quick_start as ts_quick_start
 import examples.sample_app as sample_app
 import os
-import io
-from contextlib import redirect_stdout
 from dotenv import load_dotenv
 from pymongo import MongoClient
+
 
 class TestTimeseries(unittest.TestCase):
     CONNECTION_STRING = None
@@ -18,40 +17,58 @@ class TestTimeseries(unittest.TestCase):
         TestTimeseries.CONNECTION_STRING = os.getenv("CONNECTION_STRING")
 
         if TestTimeseries.CONNECTION_STRING is None:
-            raise Exception("Could not retrieve CONNECTION_STRING - make sure you have created the .env file at the root of the PyMongo directory and the variable is correctly named as CONNECTION_STRING.")
+            raise Exception(
+                "Could not retrieve CONNECTION_STRING - make sure you have created the .env file at the root of the PyMongo directory and the variable is correctly named as CONNECTION_STRING."
+            )
         try:
-            TestTimeseries.client = MongoClient(TestTimeseries.CONNECTION_STRING) 
+            TestTimeseries.client = MongoClient(TestTimeseries.CONNECTION_STRING)
         except:
-            raise Exception("CONNECTION_STRING invalid - make sure your connection string in your .env file matches the one for your MongoDB deployment.")
-    
-    def setUp(self):
+            raise Exception(
+                "CONNECTION_STRING invalid - make sure your connection string in your .env file matches the one for your MongoDB deployment."
+            )
+
+    # Drop the database after each test to ensure clean test state
+    def tearDown(self):
         TestTimeseries.client.drop_database("timeseries")
-    
+
     def test_sample_app(self):
-        print("----------Sample app test: should connect to client without errors----------")
+        print(
+            "----------Sample app test: should connect to client without errors----------"
+        )
         result = sample_app.example(TestTimeseries.CONNECTION_STRING)
         self.assertEqual("Connected successfully", result)
         print("----------Test complete----------")
 
-    def test_quickstart(self):
-        print("----------Time Series quick start test: should metafield and timefield query and match----------")
+    def test_quickstart_metafield(self):
+        print(
+            "----------Time Series quick start test: should metafield query and match----------"
+        )
+        ts_quick_start.load_sample_data(TestTimeseries.CONNECTION_STRING)
+        metafild_query_output = ts_quick_start.metafield_query(
+            TestTimeseries.CONNECTION_STRING
+        )
+        expected_metafield_output_filepath = (
+            "examples/timeseries/ts-quick-start-metafield-output.txt"
+        )
+        assert_expected_file_matches_output(
+            self, expected_metafield_output_filepath, metafild_query_output
+        )
+        print("----------Test complete----------")
 
-        with redirect_stdout(io.StringIO()) as stdout:
-            ts_quick_start.example(TestTimeseries.CONNECTION_STRING)
-        actual_output = stdout.getvalue()
-
-        output_filepath = "examples/timeseries/ts-quick-start-metafield-output.txt"
-        expected_metafield_output = test_helper.get_expected_output(output_filepath)
-
-        output_filepath = "examples/timeseries/ts-quick-start-timefield-output.txt"
-        expected_timefield_output = test_helper.get_expected_output(output_filepath)
-
-        # Combine the expected output so that it matches the actual print,
-        # which is both of the queries
-        expected_output = expected_metafield_output + expected_timefield_output
-
-        self.assertEqual(expected_output, actual_output, "expected != actual")
-
+    def test_quickstart_timefield(self):
+        print(
+            "----------Time Series quick start test: should timefield query and match----------"
+        )
+        ts_quick_start.load_sample_data(TestTimeseries.CONNECTION_STRING)
+        timefield_query_output = ts_quick_start.timefield_query(
+            TestTimeseries.CONNECTION_STRING
+        )
+        expected_timefield_output_filepath = (
+            "examples/timeseries/ts-quick-start-timefield-output.txt"
+        )
+        assert_expected_file_matches_output(
+            self, expected_timefield_output_filepath, timefield_query_output
+        )
         print("----------Test complete----------")
 
     @classmethod

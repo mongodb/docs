@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 
+
 def example(CONNECTION_STRING):
     client = MongoClient(CONNECTION_STRING)
     # :snippet-start: app
@@ -18,9 +19,9 @@ def example(CONNECTION_STRING):
 
         # end example code here
 
-        client.admin.command("ping") # :remove:
+        client.admin.command("ping")  # :remove:
         client.close()
-        return "Connected successfully" # :remove:
+        return "Connected successfully"  # :remove:
 
     except Exception as e:
         raise Exception("The following error occurred: ", e)

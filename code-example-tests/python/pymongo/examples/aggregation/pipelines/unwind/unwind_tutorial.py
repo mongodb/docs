@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 
+
 def example(CONNECTION_STRING):
     client = MongoClient(CONNECTION_STRING)
     try:
@@ -105,7 +106,7 @@ def example(CONNECTION_STRING):
         pipeline.append({"$unset": ["_id"]})
         # :snippet-end:
 
-        pipeline.append({"$sort": {"product": 1}}) # :remove:
+        pipeline.append({"$sort": {"product": 1}})  # :remove:
 
         # :snippet-start: run-agg
         aggregation_result = orders_coll.aggregate(pipeline)
