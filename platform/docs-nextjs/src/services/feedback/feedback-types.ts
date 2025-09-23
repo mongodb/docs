@@ -58,9 +58,7 @@ export interface Page {
   docs_property: string;
 }
 export interface User {
-  stitch_id: string;
-  segment_id: string;
-  isAnonymous: boolean;
+  id: string;
   email: string;
 }
 

@@ -21,9 +21,9 @@ export async function getAttachment({
   attachment: Attachment;
 }): Promise<Attachment | S3ScreenshotAttachment> {
   const s3 = new S3({
-    accessKeyId: envConfig.AWS_ACCESS_KEY_ID,
-    secretAccessKey: envConfig.AWS_SECRET_ACCESS_KEY,
-    region: 'us-east-2',
+    accessKeyId: envConfig.AWS_S3_ACCESS_KEY_ID,
+    secretAccessKey: envConfig.AWS_S3_SECRET_ACCESS_KEY,
+    region: envConfig.AWS_KEY_REGION,
   });
 
   switch (attachment.type) {
@@ -58,7 +58,7 @@ async function saveScreenshot(
   const { dataUri } = attachment;
   const fileType = 'image/png';
   const bucket = 'docs-feedback-screenshots';
-  const region = 'us-east-2';
+  const region = envConfig.AWS_KEY_REGION;
   const fileName = `screenshot-${feedback._id}.png`;
   const ETag = await uploadScreenshot({ dataUri, bucket, fileName, s3 });
 
@@ -88,13 +88,14 @@ async function uploadScreenshot({
     })
     .promise();
 
-  if (s3Response) {
+  const { ETag } = s3Response;
+
+  if (!s3Response || !ETag) {
     console.error('Failed to upload screenshot to S3 bucket');
     throw new Error('Failed to upload screenshot to S3 bucket');
   }
   console.log('Uploaded screenshot to S3 bucket');
 
-  const { ETag } = s3Response;
   return ETag;
 }
 

@@ -30,8 +30,8 @@ const validateEnvConfigs = () => {
 validateEnvConfigs();
 
 type GlobalEnvConfig = {
-  AWS_ACCESS_KEY_ID: string;
-  AWS_SECRET_ACCESS_KEY: string;
+  AWS_S3_ACCESS_KEY_ID: string;
+  AWS_S3_SECRET_ACCESS_KEY: string;
   AWS_KEY_REGION: string;
   DB_ENV: Environments;
   MONGODB_URI: string;
@@ -45,8 +45,8 @@ type GlobalEnvConfig = {
 };
 
 const envConfig: GlobalEnvConfig = {
-  AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID ?? '',
-  AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY ?? '',
+  AWS_S3_ACCESS_KEY_ID: process.env.AWS_S3_ACCESS_KEY_ID ?? '',
+  AWS_S3_SECRET_ACCESS_KEY: process.env.AWS_S3_SECRET_ACCESS_KEY ?? '',
   AWS_KEY_REGION: process.env.AWS_KEY_REGION ?? 'us-east-2',
   DB_ENV: (process.env.DB_ENV ?? 'dev') as Environments,
   MONGODB_URI: process.env.MONGODB_URI ?? '',

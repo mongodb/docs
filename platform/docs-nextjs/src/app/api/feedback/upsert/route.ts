@@ -46,9 +46,7 @@ export async function POST(request: NextRequest) {
     submittedAt: new Date(),
     page,
     user: {
-      stitch_id: user.stitch_id || '',
-      segment_id: user.segment_id,
-      isAnonymous: user.isAnonymous,
+      id: user.id,
       email: user.email,
     },
     // TODO change this to empty string instead?
