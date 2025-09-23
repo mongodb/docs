@@ -465,6 +465,11 @@ const tocData: TocItem[] = [
             contentSite: "node",
             url: "/docs/drivers/node/:version/integrations/mongoose-get-started",
           },
+          {
+            label: "Integrate with Prisma",
+            contentSite: "node",
+            url: "/docs/drivers/node/:version/integrations/prisma",
+          }
         ]
       },
       {
