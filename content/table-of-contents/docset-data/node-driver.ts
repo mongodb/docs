@@ -99,7 +99,6 @@ const tocData: TocItem[] = [
       {
         label: "CRUD Operations",
         contentSite: "node",
-        url: "/docs/drivers/node/:version/crud",
         collapsible: true,
         items: [
           {
@@ -110,7 +109,6 @@ const tocData: TocItem[] = [
           {
             label: "Query Documents",
             contentSite: "node",
-            url: "/docs/drivers/node/:version/crud/query",
             collapsible: true,
             items: [
               {
@@ -287,7 +285,6 @@ const tocData: TocItem[] = [
       {
         label: "Data Formats",
         contentSite: "node",
-        url: "/docs/drivers/node/:version/data-formats",
         collapsible: true,
         items: [
           {
@@ -331,32 +328,34 @@ const tocData: TocItem[] = [
       {
         label: "Monitoring and Logging",
         contentSite: "node",
-        url: "/docs/drivers/node/:version/monitoring-and-logging",
         collapsible: true,
         items: [
           {
             label: "Monitoring",
             contentSite: "node",
             url: "/docs/drivers/node/:version/monitoring-and-logging/monitoring",
+            versions: { excludes: outdatedVersions },
+          },
+          {
+            label: "Monitoring",
+            contentSite: "node",
             collapsible: true,
+            versions: { includes: outdatedVersions },
             items: [
               {
                 label: "Cluster",
                 contentSite: "node",
                 url: "/docs/drivers/node/:version/monitoring-and-logging/monitoring/cluster-monitoring",
-                versions: { includes: outdatedVersions },
               },
               {
                 label: "Command",
                 contentSite: "node",
                 url: "/docs/drivers/node/:version/monitoring-and-logging/monitoring/command-monitoring",
-                versions: { includes: outdatedVersions },
               },
               {
                 label: "Connection Pool",
                 contentSite: "node",
                 url: "/docs/drivers/node/:version/monitoring-and-logging/monitoring/connection-monitoring",
-                versions: { includes: outdatedVersions },
               }
             ]
           },
@@ -375,7 +374,6 @@ const tocData: TocItem[] = [
       {
         label: "Security",
         contentSite: "node",
-        url: "/docs/drivers/node/:version/security",
         collapsible: true,
         items: [
           {
@@ -456,7 +454,6 @@ const tocData: TocItem[] = [
       {
         label: "Third-Party Integrations",
         contentSite: "node",
-        url: "/docs/drivers/node/:version/integrations",
         collapsible: true,
         versions: { excludes: [...outdatedVersions, "v6.16"] },
         items: [
@@ -576,7 +573,6 @@ const tocData: TocItem[] = [
       {
         label: "Reference",
         contentSite: "node",
-        url: "/docs/drivers/node/:version/reference",
         collapsible: true,
         items: [
           {
