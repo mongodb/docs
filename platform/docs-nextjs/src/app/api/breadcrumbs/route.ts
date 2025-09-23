@@ -41,14 +41,7 @@ export async function GET(request: NextRequest) {
     const result: NavigationProjection | null = await collection.findOne(query, { projection: projection });
 
     if (!result) {
-      return withCORS(
-        NextResponse.json(
-          {
-            error: `Failed to retrieve navigation data for project ${projectName}`,
-          },
-          { status: 500 },
-        ),
-      );
+      return withCORS(NextResponse.json(null));
     }
 
     const propertyUrl = result.slug ? result.baseUrl + result.slug : result.baseUrl;
