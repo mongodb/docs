@@ -31,19 +31,8 @@ export async function GET(request: NextRequest) {
 
     const result: BannerData | null = await collection.findOne({});
 
-    if (!result) {
-      return withCORS(
-        NextResponse.json(
-          {
-            error: 'Failed to retrieve banner data',
-          },
-          { status: 500 },
-        ),
-      );
-    }
-
-    if (!result.isEnabled) {
-      return withCORS(NextResponse.json(null));
+    if (!result || !result?.isEnabled) {
+      return withCORS(NextResponse.json({}));
     }
 
     return withCORS(
