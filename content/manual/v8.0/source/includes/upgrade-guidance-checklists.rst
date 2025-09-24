@@ -48,5 +48,3 @@ Downgrade Consideration
 
 You cannot downgrade your deployment's binary version without assistance from 
 support.
-
-To learn more, see :ref:`8.0-downgrade`.
