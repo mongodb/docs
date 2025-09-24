@@ -1,8 +1,10 @@
+.. _install-mdb-community-windows-msiexec:
+
 .. meta::
-   :description: Install MongoDB Community Edition on Windows using a zip file.
+   :description: Install MongoDB Community Edition on Windows using msiexec.exe for unattended, automated deployment.
 
 ==========================================================
-Install MongoDB Community on Windows using the Zip File
+Install MongoDB Community on Windows using ``msiexec.exe``
 ==========================================================
 
 .. |arrow| unicode:: U+27A4
@@ -14,8 +16,10 @@ Install MongoDB Community on Windows using the Zip File
 Overview
 --------
 
-Use this tutorial to install MongoDB Community on Windows by downloading and 
-extracting the zip file.
+Use this tutorial to install MongoDB {+version+} |edition| Edition on
+Windows in an unattended fashion using ``msiexec.exe`` from the command
+line. This is useful for system administrators who wish to
+deploy MongoDB using automation.
 
 MongoDB Version
 ~~~~~~~~~~~~~~~
@@ -28,9 +32,9 @@ Installation Method
 This tutorial installs MongoDB on Windows by extracting from a zip file. You can 
 also install MongoDB on Windows by these other methods:
 
-- :ref:`Install MongoDB using msiexec.exe <install-mdb-community-windows-msiexec>`
-
 - :ref:`Install MongoDB using the MSI Installer <install-mdb-community-windows>`
+
+- :ref:`Install MongoDB from the zip file <install-mdb-community-windows-zip>`
 
 
 Considerations
@@ -65,14 +69,17 @@ detailed information, see :ref:`Full Time Diagnostic Data Capture <ftdc-stub>`.
 .. include:: /includes/fact-ftdc-windows-user-permissions.rst
 
 Install MongoDB Community Edition
-----------------------------------
+---------------------------------
 
 Procedure
 ~~~~~~~~~
 
-Follow these steps to install MongoDB |edition| Edition from the zip file.
+Follow these steps to install MongoDB |edition| Edition unattended on
+Windows from the `Windows command prompt/interpreter
+<https://docs.microsoft.com/en-us/windows-server/administration/windows-
+commands/cmd>`__ (``cmd.exe``) using ``msiexec.exe``.
 
-.. include:: /includes/steps/install-mongodb-on-windows-zip.rst
+.. include:: /includes/steps/install-mongodb-on-windows-unattended.rst
 
 Start MongoDB Community Edition from the Command Interpreter
 ------------------------------------------------------------
@@ -87,4 +94,4 @@ Run MongoDB Community Edition as a Windows Service
 Additional Considerations
 -------------------------
 
-.. include:: /includes/community-on-windows-considerations.rst
+.. include:: /includes/community-on-windows-considerations

@@ -10,7 +10,7 @@ Install MongoDB Search and MongoDB Vector Search
 
 You can install the search process, ``mongot``, in MongoDB Community Edition. The search process
 is available for deployment as a tarball with the ``.tgz`` extension and as
-an image in Docker.
+an image in Docker. 
 
 .. note::
 
@@ -71,4 +71,10 @@ Procedure
       Perform the following steps to deploy the search process, ``mongot``, 
       with Docker.
 
-      .. include:: /includes/search-in-community/docker-deploy-procedure-norefs.rst
+      .. include:: /includes/search-in-community/docker-deploy-procedure.rst
+
+Next Steps
+~~~~~~~~~~
+
+- Create :atlas:`MongoDB Search indexes </atlas-search/searching/>`
+- Create :atlas:`MongoDB Vector Search indexes </atlas-vector-search/vector-search-stage/>`

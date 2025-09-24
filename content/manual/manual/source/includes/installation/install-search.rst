@@ -79,4 +79,4 @@ Next Steps
 ~~~~~~~~~~
 
 - Create :atlas:`MongoDB Search indexes </atlas-search/searching/>`
-- Create :atlas:`MongoDB Vector Search indexes </atlas-vector-search/vector-search-type/>`
+- Create :atlas:`MongoDB Vector Search indexes </atlas-vector-search/vector-search-stage/>`

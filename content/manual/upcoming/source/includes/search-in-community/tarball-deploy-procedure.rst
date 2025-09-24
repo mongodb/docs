@@ -11,13 +11,13 @@
             :tabid: arm-arch
 
             For ``ARM`` architectures, use the `ARM-compatible tarball
-            <https://downloads.mongodb.org/mongodb-search-community/0.53.1/mongot_community_0.53.1_linux_aarch64.tgz>`_.
+            <https://downloads.mongodb.org/mongodb-search-community/0.53.0/mongot_community_0.53.0_linux_aarch64.tgz>`_.
 
          .. tab:: AMD x86_64 Architectures
             :tabid: amd-arch
 
             For ``AMD x86_64`` architectures, use the `AMD x86-64-compatible 
-            tarball <https://downloads.mongodb.org/mongodb-search-community/0.53.1/mongot_community_0.53.1_linux_x86_64.tgz>`_.
+            tarball <https://downloads.mongodb.org/mongodb-search-community/0.53.0/mongot_community_0.53.0_linux_x86_64.tgz>`_.
 
    .. step:: Extract the tarball from the downloaded file.
 
@@ -30,14 +30,14 @@
 
             .. code-block:: shell
 
-               tar -zxvf mongot_community_0.53.1_linux_aarch64.tgz
+               tar -zxvf mongot_community_0.53.0_linux_aarch64.tgz
 
          .. tab:: AMD x86_64 Architectures
             :tabid: amd-arch
       
             .. code-block:: shell
 
-               tar -zxvf mongot_community_0.53.1_linux_x86_64.tgz
+               tar -zxvf mongot_community_0.53.0_linux_x86_64.tgz
 
       .. note::
       
