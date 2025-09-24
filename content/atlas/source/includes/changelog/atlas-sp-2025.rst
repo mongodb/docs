@@ -1,3 +1,16 @@
+.. _atlas-sp-20250827:
+
+27 August 2025 Release
+----------------------
+
+- Adds the :guilabel:`Test Connection` button in the Connection Registry
+  UI to initiate a connectivity test for each connection.
+- Adds the ``tenant_name``, ``project_name``, and ``org_name`` fields
+  to {+atlas-sp+} metrics, including those exported to Datadog.
+- Adds ``lifetime cache hit/miss`` statistics to the 
+  :ref:`stats.operatorStats <atlas-sp-manage-processor-stats>` of the
+  :ref`atlas-sp-agg-cachedlookup` stage.
+
 .. _atlas-sp-20250821:
 
 21 August 2025 Release
