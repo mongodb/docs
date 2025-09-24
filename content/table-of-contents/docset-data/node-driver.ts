@@ -1,6 +1,7 @@
 import type { TocItem } from "../types";
+import docsVersions from "../version-arrays/drivers/node-versions";
 
-const outdatedVersions = ["v6.9", "v6.10", "v6.11", "v6.12", "v6.13", "v6.14", "v6.15"];
+const outdatedVersions = docsVersions.before("v6.15", {inclusive: true});
 
 const tocData: TocItem[] = [
   {
