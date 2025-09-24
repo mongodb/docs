@@ -1,10 +1,11 @@
 import contentstack from '@contentstack/delivery-sdk';
 import envConfig from '@/utils/env-config';
+import { normalizeDate } from '../utils/to-date';
 
 export interface ProductUpdateEntry {
   uid: string;
   title: string;
-  created_at: string;
+  created_at: string; // "2025-09-17T14:01:31.391Z"
   multi_line: string;
   is_featured: boolean;
   tags: string[];
@@ -12,7 +13,7 @@ export interface ProductUpdateEntry {
   tags_offerings?: string[];
   tags_product?: string[];
   link_with_label?: LinkWithLabelItem[];
-  beamer_created_at?: string;
+  beamer_created_at?: string; // "2025-09-17"
 }
 
 export interface LinkWithLabelItem {
@@ -48,8 +49,10 @@ export async function getProductUpdates(): Promise<ProductUpdateEntry[]> {
     // Sort entries by creation date (most recent first)
     // Prioritize beamer_created_at if available, otherwise use created_at
     const sortedEntries = entries.sort((a, b) => {
-      const dateA = a.beamer_created_at ? new Date(a.beamer_created_at) : new Date(a.created_at);
-      const dateB = b.beamer_created_at ? new Date(b.beamer_created_at) : new Date(b.created_at);
+      // We need to normalize the beamer_created_at date since that is a string date and not an actual Date type
+      // and in some cases the output can result in a day behind
+      const dateA = a.beamer_created_at ? normalizeDate(a.beamer_created_at) : new Date(a.created_at);
+      const dateB = b.beamer_created_at ? normalizeDate(b.beamer_created_at) : new Date(b.created_at);
       return dateB.getTime() - dateA.getTime(); // Most recent first
     });
 

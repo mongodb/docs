@@ -1,6 +1,7 @@
 'use client';
 import type { ProductUpdateEntry } from '../services/contentstack';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export enum LinkTag {
   Docs = 'Docs',
@@ -10,13 +11,14 @@ export enum LinkTag {
   Web = 'Web',
   GitHub = 'GitHub',
 }
+
 import Icon from '@leafygreen-ui/icon';
 import { palette } from '@leafygreen-ui/palette';
 import { Body, H3 } from '@leafygreen-ui/typography';
 import { css, cx } from '@leafygreen-ui/emotion';
 import { theme } from '@/styles/theme';
 import Card from '@leafygreen-ui/card';
-import { useRouter } from 'next/navigation';
+import { normalizeDate } from '../utils/to-date';
 
 const containerStyle = css`
   width: 100vw;
@@ -157,7 +159,7 @@ const ProductUpdateDetail = ({ update }: { update: ProductUpdateEntry }) => {
   const router = useRouter();
 
   const createdAt = update.beamer_created_at || update.created_at;
-  const date = new Date(createdAt).toLocaleDateString('en-US', {
+  const date = normalizeDate(createdAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

@@ -7,6 +7,7 @@ import { Chip } from '@leafygreen-ui/chip';
 import type { ProductUpdateEntry } from '../services/contentstack';
 import { useRouter } from 'next/navigation';
 import { theme } from '@/styles/theme';
+import { normalizeDate } from '../utils/to-date';
 
 const featuredContainerStyle = css`
   max-width: 1440px;
@@ -111,7 +112,7 @@ const Featured = ({ updates: limitedFeaturedUpdates }: { updates: ProductUpdateE
       <div className={cx(featuredContentStyle)}>
         {limitedFeaturedUpdates.map((update: ProductUpdateEntry) => {
           const createdAt = update.beamer_created_at || update.created_at;
-          const date = new Date(createdAt).toLocaleDateString('en-US', {
+          const date = normalizeDate(createdAt).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
