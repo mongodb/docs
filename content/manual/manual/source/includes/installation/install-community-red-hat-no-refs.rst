@@ -13,6 +13,8 @@ Install MongoDB Community Edition on Red Hat or CentOS
 .. |package-manager| replace:: ``yum``
 .. |executable-name| replace:: ``mongod``
 
+.. include:: /includes/minor-release.rst
+
 Overview
 --------
 
