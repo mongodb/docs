@@ -72,15 +72,13 @@
 
    .. step:: Configure the LDAP Authorization Settings. (Optional)
       
-      .. important::
-      
-         Starting with MongoDB 3.4, you can 
-         authenticate users using LDAP, Kerberos, or X.509 certificates 
-         without requiring local user documents in the ``$external`` 
-         database as long as you enable LDAP authorization first. When such a user successfully
-         authenticates, MongoDB performs a query against the LDAP server to
-         retrieve all groups which that LDAP user possesses and transforms those
-         groups into their equivalent MongoDB roles.
+      :red:`WARNING:` Starting with MongoDB 3.4, you can 
+      authenticate users using LDAP, Kerberos, or X.509 certificates 
+      without requiring local user documents in the ``$external`` 
+      database as long as you enable LDAP authorization first. When such a user successfully
+      authenticates, MongoDB performs a query against the LDAP server to
+      retrieve all groups which that LDAP user possesses and transforms those
+      groups into their equivalent MongoDB roles.
       
       Skip this step if you selected :guilabel:`Saslauthd` in the previous
       step.
@@ -185,10 +183,8 @@
       
    .. step:: Configure the Agents to use {{mechanism}} to connect to your MongoDB deployment.
       
-      .. note:: Remember
-         
-         |mms| limits Agents to using one :term:`mechanism <authentication
-         mechanism>` per deployment.
+      :gold:`IMPORTANT:` Remember |mms| limits Agents to using one 
+      :term:`mechanism <authentication mechanism>` per deployment.
       
       a. Select the {{mechanism}} option from the :guilabel:`Agent Auth Mechanism` 
          section.

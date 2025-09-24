@@ -62,12 +62,10 @@
 
    .. step:: *Optional.* If you use the :guilabel:`Visual Editor`, you can save or delete your index definition draft.
 
-      .. note::
-
-         You can't save the :ref:`default index definition <fts-manage-indexes>` as a draft.
-         If you use the :guilabel:`Visual Editor` and your index definition 
-         contains :ref:`static mappings <static-dynamic-mappings>`, you can 
-         save an index definition as a draft. 
+      :gold:`IMPORTANT:` You can't save the :ref:`default index definition <fts-manage-indexes>` as a draft.
+      If you use the :guilabel:`Visual Editor` and your index definition 
+      contains :ref:`static mappings <static-dynamic-mappings>`, you can 
+      save an index definition as a draft. 
       
       a. Click :guilabel:`Cancel`.
       

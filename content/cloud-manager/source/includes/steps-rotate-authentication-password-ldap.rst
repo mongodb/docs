@@ -72,17 +72,15 @@
 
    .. step:: Rotate the LDAP Authorization Passwords. (Optional)
       
-      .. important::
-      
-         You can authenticate users using LDAP, Kerberos, or X.509 certificates
-         without requiring local user documents in the ``$external`` database
-         as long as you enable LDAP authorization first. When such a user successfully
-         authenticates, MongoDB performs a query against the LDAP server to
-         retrieve all groups which that LDAP user possesses and transforms those
-         groups into their equivalent MongoDB roles.
+      :gold:`IMPORTANT:` You can authenticate users using LDAP, Kerberos, 
+      or X.509 certificates without requiring local user documents in
+      the ``$external`` database as long as you enable LDAP authorization first.
+      When such a user successfully authenticates, MongoDB performs a query 
+      against the LDAP server to retrieve all groups which that LDAP user 
+      possesses and transforms those groups into their equivalent MongoDB roles.
 
-         Ensure you selected :guilabel:`Native LDAP Authentication`,
-         and then complete the following steps:
+      Ensure you selected :guilabel:`Native LDAP Authentication`,
+      and then complete the following steps:
       
       a. Provide the following values:
       
@@ -193,10 +191,8 @@
       
    .. step:: Configure the Agents to use {{mechanism}} to connect to your MongoDB deployment.
       
-      .. note:: Remember
-         
-         |mms| limits Agents to using one :term:`mechanism <authentication
-         mechanism>` per deployment.
+      :gold:`IMPORTANT:` Remember |mms| limits Agents to using one :term:`mechanism <authentication
+      mechanism>` per deployment.
       
       a. Select the {{mechanism}} option from the :guilabel:`Agent Auth Mechanism` 
          section.
@@ -222,14 +218,13 @@
 
    .. step:: Click :guilabel:`Save Settings`.
 
-      .. note:: 
-
-         While you save the settings with a new password, MongoDB tries
-         both passwords. After completing this procedure, you can change
-         the password in your LDAP server. After you rotate the password
-         on the LDAP server side, move the contents of the
-         :guilabel:`New Query Password` field into the :guilabel:`Query Password`
-         field and make the :guilabel:`New Query Password` field empty.
+      :gold:`IMPORTANT:`  While you save the settings with a new password,
+      MongoDB tries
+      both passwords. After completing this procedure, you can change
+      the password in your LDAP server. After you rotate the password
+      on the LDAP server side, move the contents of the
+      :guilabel:`New Query Password` field into the :guilabel:`Query Password`
+      field and make the :guilabel:`New Query Password` field empty.
 
    .. step:: Click :guilabel:`Review & Deploy` to review your changes.
 

@@ -49,7 +49,5 @@
 
    .. step:: Review the response.
 
-      .. note:: 
-
-         {+service+} doesn't create the index if the collection 
-         doesn't exist, but it still returns a ``200`` status.
+      :gold:`IMPORTANT:` {+service+} doesn't create the index if the collection 
+      doesn't exist, but it still returns a ``200`` status.

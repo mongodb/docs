@@ -12,11 +12,9 @@
       
       Click the :guilabel:`Add Private Endpoint` button. 
 
-      .. note::
-
-         You must provide the billing information in the :guilabel:`Edit
-         Payment Method` form if you don't have payment method already
-         configured for your organization.
+      :gold:`IMPORTANT:` You must provide the billing information in the 
+      :guilabel:`Edit Payment Method` form if you don't have payment method already
+      configured for your organization.
       
    .. step:: Choose a cloud provider.
       
@@ -28,9 +26,8 @@
          in which you want to create the private endpoint. 
       #. Click :guilabel:`Next`.
       
-      .. note::
-         If your organization has no payment information stored, |service| 
-         prompts you to add it before continuing.
+      :gold:`IMPORTANT:` If your organization has no payment information stored,
+      |service| prompts you to add it before continuing.
       
    .. step:: Configure your private endpoint.
 
@@ -61,13 +58,11 @@
       #. Copy the command the dialog box displays and run it using 
          the |aws| CLI.
 
-         .. note::
-
-            If you skip this step, the interface endpoint for the 
-            Private Endpoint service isn't created.
+         :gold:`IMPORTANT:` If you skip this step, the interface endpoint for the 
+         Private Endpoint service isn't created.
         
-            You can't copy the command until |service| finishes 
-            creating |vpc| resources in the background.
+         You can't copy the command until |service| finishes 
+         creating |vpc| resources in the background.
 
          See :aws:`Creating an Interface Endpoint 
          </vpc/latest/userguide/vpce-interface.html#create-interface-endpoint>` 

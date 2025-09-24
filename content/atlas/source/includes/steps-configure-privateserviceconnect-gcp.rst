@@ -15,9 +15,8 @@
          in which you want to create the private endpoint. 
       #. Click :guilabel:`Next`.
       
-      .. note::
-         If your organization has no payment information stored, |service| 
-         prompts you to add it before continuing.
+      :gold:`IMPORTANT:` If your organization has no payment information stored,
+      |service| prompts you to add it before continuing.
       
    .. step:: Configure your private endpoint.
 

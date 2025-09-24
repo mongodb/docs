@@ -18,11 +18,9 @@ To edit an {+fts+} index using the :driver:`Java Driver </java/sync/current/>`:
       - ``<connection-string>`` - Your |service| connection string. To
         learn more, see :ref:`connect-via-driver`. 
 
-        .. note:: 
-
-           In your connection string, don't include the
-           :manual:`writeConcern </manual/reference/write-concern/>`
-           setting. 
+        :gold:`IMPORTANT:` In your connection string, don't include the
+        :manual:`writeConcern </manual/reference/write-concern/>`
+        setting. 
 
       - ``<database-name>`` - The name of the database that contains the
         collection. 

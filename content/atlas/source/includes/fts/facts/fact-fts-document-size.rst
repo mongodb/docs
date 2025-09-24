@@ -1,4 +1,4 @@
-If your collection contains documents that are 16MB or larger, 
+:gold:`IMPORTANT:` If your collection contains documents that are 16MB or larger, 
 |fts| fails to index your data. This issue can also occur 
 when update operations on large documents cause the change stream
 event to exceed the 16MB |bson| limit. To avoid this, consider the 

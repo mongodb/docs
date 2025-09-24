@@ -10,7 +10,5 @@
    :guilabel:`Build in Progress`. When the index is finished building,
    the :guilabel:`Status` field reads :guilabel:`Active`.
 
-   .. note::
-
-      Larger collections take longer to index. You will receive an email
-      notification when your index is finished building.
+   :gold:`IMPORTANT:` Larger collections take longer to index. You will receive 
+   an email notification when your index is finished building.

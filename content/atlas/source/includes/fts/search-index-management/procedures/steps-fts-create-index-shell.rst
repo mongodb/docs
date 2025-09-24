@@ -25,24 +25,24 @@ To create an {+fts+} index using {+mongosh+}:
               }
          )
 
-      .. example::
+      For example:
 
-         To create an index named ``example-index`` that 
-         dynamically indexes the fields in the ``movies`` 
-         collection, run the following command:
+      To create an index named ``example-index`` that 
+      dynamically indexes the fields in the ``movies`` 
+      collection, run the following command:
 
-         .. io-code-block::
-            :copyable: true
+      .. io-code-block::
+         :copyable: true
 
-            .. input::
-               :language: shell
+         .. input::
+            :language: shell
 
-               db.movies.createSearchIndex(
-                   "example-index",
-                   { mappings: { dynamic: true } }
-               )
+            db.movies.createSearchIndex(
+                "example-index",
+                { mappings: { dynamic: true } }
+            )
 
-            .. output::
+         .. output::
 
-               example-index
+            example-index
     

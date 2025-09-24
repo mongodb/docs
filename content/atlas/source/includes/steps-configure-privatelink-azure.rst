@@ -12,11 +12,9 @@
       
       Click the :guilabel:`Add Private Endpoint` button. 
 
-      .. note::
-
-         You must provide the billing information in the 
-         :guilabel:`Edit Payment Method` form if you don't have payment 
-         method already configured for your organization.
+      :gold:`IMPORTANT:` You must provide the billing information in the 
+      :guilabel:`Edit Payment Method` form if you don't have payment 
+      method already configured for your organization.
       
    .. step:: Choose a cloud provider.
       
@@ -28,9 +26,8 @@
          in which you want to create the private endpoint. 
       #. Click :guilabel:`Next`.
       
-      .. note::
-         If your organization has no payment information stored, |service| 
-         prompts you to add it before continuing.
+      :gold:`IMPORTANT:` If your organization has no payment information stored, |service| 
+      prompts you to add it before continuing.
       
    .. step:: Configure your private endpoint.
 
@@ -65,13 +62,11 @@
          ``az network private-endpoint create`` command the dialog box 
          displays and running it using the |azure| CLI.
 
-         .. note::
-        
-            You can't copy the command until |service| finishes
-            creating VNet resources in the background.
+         :gold:`IMPORTANT:` You can't copy the command until |service| finishes
+         creating VNet resources in the background.
 
-            For more information about this command, see the 
-            `Azure documentation <https://docs.microsoft.com/en-us/cli/azure/network/private-endpoint?view=azure-cli-latest#az_network_private_endpoint_create>`__.
+         For more information about this command, see the 
+         `Azure documentation <https://docs.microsoft.com/en-us/cli/azure/network/private-endpoint?view=azure-cli-latest#az_network_private_endpoint_create>`__.
 
       #. You might receive an error like the following when you create 
          the private endpoint:
