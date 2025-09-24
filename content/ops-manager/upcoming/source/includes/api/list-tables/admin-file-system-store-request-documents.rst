@@ -44,10 +44,11 @@
        |mms| accepts ``NONE`` or ``GZIP``. |mms| sets this value to
        ``NONE`` by default.
 
-       If the MongoDB runs |fcv-link| 4.2 or later, |onprem| ignores
+       If the MongoDB runs |fcv-link| 6.0 or later, |onprem| ignores
        this setting.
 
-       :gold:`IMPORTANT:` MongoDB removed support for the MMAPv1 storage engine in MongoDB 4.2.
+       :gold:`IMPORTANT:` MongoDB removed support for the MMAPv1 storage engine 
+       for MongoDB versions before 6.0.
        If you :doc:`edit your deployment's configuration </tutorial/edit-deployment>` 
        to change your storage engine to :ref:`storage-wiredtiger`, |mms|
        restarts the MongoDB processes.
@@ -68,5 +69,5 @@
        |mms| accepts ``NONE`` or ``GZIP``. |mms| sets this value to
        ``GZIP`` by default.
 
-       If the MongoDB runs |fcv-link| 4.2 or later, |onprem| ignores
+       If the MongoDB runs |fcv-link| 6.0 or later, |onprem| ignores
        this setting.

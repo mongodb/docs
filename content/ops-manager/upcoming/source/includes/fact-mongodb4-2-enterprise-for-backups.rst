@@ -1,2 +1,2 @@
-Backup of MongoDB 4.2 databases requires
+Backup of MongoDB 6.0 databases requires
 :dl:`MongoDB Enterprise <enterprise>`.
