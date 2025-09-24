@@ -16,9 +16,72 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "Install on Linux",
+            contentSite: "docs",
+            url: "/docs/:version/administration/install-on-linux",
+            collapsible: true,
+            versions: { excludes: manualVersions.after("v8.0") },
+            items: [
+              {
+                label: "Install on Red Hat",
+                contentSite: "docs",
+                url: "/docs/:version/tutorial/install-mongodb-on-red-hat",
+              },
+              {
+                label: "Install on Ubuntu",
+                contentSite: "docs",
+                url: "/docs/:version/tutorial/install-mongodb-on-ubuntu",
+                collapsible: true,
+                items: [
+                  {
+                    // NOTE: this page appears twice this file because it 
+                    // appears in different places on the TOC pending version
+                    label: "Troubleshoot Ubuntu Installation",
+                    contentSite: "docs",
+                    url: "/docs/:version/reference/installation-ubuntu-community-troubleshooting"
+                  }
+                ]
+              },
+              {
+                label: "Install on Debian",
+                contentSite: "docs",
+                url: "/docs/:version/tutorial/install-mongodb-on-debian",
+              },
+              {
+                label: "Install on SUSE",
+                contentSite: "docs",
+                url: "/docs/:version/tutorial/install-mongodb-on-suse",
+              },
+              {
+                label: "Install on Amazon",
+                contentSite: "docs",
+                url: "/docs/:version/tutorial/install-mongodb-on-amazon",
+              }
+            ]
+          },
+          {
+            label: "Install on macOS",
+            contentSite: "docs",
+            url: "/docs/:version/tutorial/install-mongodb-on-os-x",
+            versions: { excludes: manualVersions.after("v8.0") },
+          },
+          {
+            label: "Install on Windows",
+            contentSite: "docs",
+            url: "/docs/:version/tutorial/install-mongodb-on-windows",
+            versions: { excludes: manualVersions.after("v8.0") },
+          },
+          {
+            label: "Install with Docker",
+            contentSite: "docs",
+            url: "/docs/:version/tutorial/install-mongodb-community-with-docker",
+            versions: { excludes: manualVersions.after("v8.0") },
+          },
+          {
             label: "Troubleshoot Ubuntu Installation",
             contentSite: "docs",
             url: "/docs/:version/reference/installation-ubuntu-community-troubleshooting",
+            versions: { includes: manualVersions.after("v8.0") },
           },
           {
             label: "Connect to Search",
