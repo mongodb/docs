@@ -494,12 +494,7 @@ const tocData: TocItem[] = [
             url: "/docs/drivers/csharp/:version/reference/release-notes",
             versions: { excludes: outdatedVersions },
           },
-          {
-            label: "Compatibility",
-            contentSite: "csharp",
-            url: "/docs/drivers/csharp/:version/reference/compatibility",
-            versions: { excludes: outdatedVersions },
-          },
+
           {
             label: "Upgrade",
             contentSite: "csharp",
@@ -528,6 +523,12 @@ const tocData: TocItem[] = [
             versions: { excludes: outdatedVersions },
           },
         ]
+      },
+      {
+        label: "Compatibility",
+        contentSite: "drivers",
+        url: "/docs/drivers/compatibility",
+        versions: { excludes: outdatedVersions },
       },
       {
         label: "API Documentation",
@@ -929,10 +930,11 @@ const tocData: TocItem[] = [
           },
         ]
       },
+
       {
         label: "API Documentation",
         contentSite: "csharp",
-        url: "https://mongodb.github.io/mongo-csharp-driver/2.30.0/api/index.html",
+        url: "https://mongodb.github.io/mongo-csharp-driver/3.5.0/api/index.html",
         versions: { includes: outdatedVersions },
       },
       {

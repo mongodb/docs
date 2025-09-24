@@ -1,30 +1,20 @@
+The following table shows compatibility between the .NET/C# driver and {+mdb-server+}:
+
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
    :class: compatibility-large
 
-   * - {+driver-short+} Version
+   * - .NET/C# Driver Version
      - MongoDB 8.1
      - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.0
      - MongoDB 5.0
      - MongoDB 4.4
-     - MongoDB 4.2
-     - MongoDB 4.0
-
-   * - 3.5
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     -
+     - MongoDB 4.2 
 
    * - 2.29 to 3.4
-     - ✓
      - ✓
      - ✓
      - ✓
@@ -41,13 +31,11 @@
      - ✓
      - ✓
      - ✓
-     - ✓
 
    * - 2.16 to 2.19
      - ⊛
      - ⊛
      - ⊛
-     - ✓
      - ✓
      - ✓
      - ✓
@@ -61,7 +49,6 @@
      - ✓
      - ✓
      - ✓
-     - ✓
 
    * - 2.7 to 2.14
      - ✗ [#8.1-note]_
@@ -69,7 +56,6 @@
      - ⊛
      - ⊛
      - ⊛
-     - ✓
      - ✓
      - ✓
 
@@ -81,6 +67,5 @@
      -
      -
      - ✓
-     - ✓
 
-.. [#8.1-note] These driver versions are not compatible with MongoDB 8.1 or later because of an authentication issue. To learn more, see :ref:`csharp-server-8.1-incompatibility`.
+.. [#8.1-note] These driver versions are not compatible with {+mdb-server+} 8.1 or later because of an authentication issue.
