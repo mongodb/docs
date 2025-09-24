@@ -1,4 +1,5 @@
 import type { TocItem } from "../types";
+import manualVersions from "../version-arrays/server-docs/manual";
 
 
 const tocData: TocItem[] = [
@@ -13,11 +14,40 @@ const tocData: TocItem[] = [
         contentSite: "docs",
         url: "/docs/:version/release-notes/8.2",
         collapsible: true,
+        versions: { excludes: manualVersions.before("v8.2")},
         items: [
           {
             label: "Compatibility Changes",
             contentSite: "docs",
             url: "/docs/:version/release-notes/8.2-compatibility",
+          },
+          {
+            label: "Upgrade 8.0 to 8.2",
+            contentSite: "docs",
+            url: "/docs/:version/release-notes/8.2-upgrade",
+            collapsible: true,
+            items: [
+              {
+                label: "Standalone",
+                contentSite: "docs",
+                url: "/docs/:version/release-notes/8.2-upgrade-standalone",
+              },
+              {
+                label: "Replica Set",
+                contentSite: "docs",
+                url: "/docs/:version/release-notes/8.2-upgrade-replica-set",
+              },
+              {
+                label: "Sharded Cluster",
+                contentSite: "docs",
+                url: "/docs/:version/release-notes/8.2-upgrade-sharded-cluster",
+              },
+            ],
+          },
+          {
+            label: "Downgrade 8.2 to 8.0",
+            contentSite: "docs",
+            url: "/docs/:version/release-notes/8.0-downgrade",
           },
           {
             label: "Changelog",
