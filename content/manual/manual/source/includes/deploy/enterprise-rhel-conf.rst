@@ -28,6 +28,3 @@ Downloads are organized by Red Hat / CentOS
 version (e.g. ``9``), then MongoDB
 :ref:`release version <release-version-numbers>`
 (e.g. ``{+version+}``), then architecture (e.g. ``x86_64``).
-
-.. include:: /includes/5.0-changes/fact-odd-number-releases.rst
-
