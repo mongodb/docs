@@ -11,7 +11,11 @@ const tocData: TocItem[] = [
         contentSite: "database-tools",
         url: "/docs/database-tools",
       },
-
+      {
+        label: "Installation",
+        contentSite: "database-tools",
+        url: "/docs/database-tools/installation"
+      },
       {
         label: "mongodump",
         contentSite: "database-tools",
@@ -179,53 +183,30 @@ const tocData: TocItem[] = [
         url: "/docs/database-tools/mongofiles",
       },
       {
-        label: "Installation",
+        label: "Verify Packages",
         contentSite: "database-tools",
-        url: "/docs/database-tools/installation",
+        url: "/docs/database-tools/verify",
         collapsible: true,
         items: [
           {
-            label: "Install on Linux",
+            label: "macOS",
             contentSite: "database-tools",
-            url: "/docs/database-tools/installation/installation-linux",
+            url: "/docs/database-tools/verify/macos",
           },
           {
-            label: "Install on macOS",
+            label: "Linux",
             contentSite: "database-tools",
-            url: "/docs/database-tools/installation/installation-macos",
+            url: "/docs/database-tools/verify/gpg",
           },
           {
-            label: "Install on Windows",
+            label: "RHEL",
             contentSite: "database-tools",
-            url: "/docs/database-tools/installation/installation-windows",
+            url: "/docs/database-tools/verify/rpm",
           },
           {
-            label: "Verify Packages",
+            label: "Windows",
             contentSite: "database-tools",
-            url: "/docs/database-tools/installation/verify",
-            collapsible: true,
-            items: [
-              {
-                label: "macOS",
-                contentSite: "database-tools",
-                url: "/docs/database-tools/installation/verify/macos",
-              },
-              {
-                label: "Linux",
-                contentSite: "database-tools",
-                url: "/docs/database-tools/installation/verify/gpg",
-              },
-              {
-                label: "RHEL",
-                contentSite: "database-tools",
-                url: "/docs/database-tools/installation/verify/rpm",
-              },
-              {
-                label: "Windows",
-                contentSite: "database-tools",
-                url: "/docs/database-tools/installation/verify/windows",
-              },
-            ],
+            url: "/docs/database-tools/verify/windows",
           },
         ],
       },
