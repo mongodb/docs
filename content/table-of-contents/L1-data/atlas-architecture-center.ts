@@ -103,6 +103,12 @@ const tocData: TocItem[] = [
             contentSite: "atlas-architecture",
             url: "/docs/atlas/architecture/:version/monitoring-alerts",
           },
+          {
+            label: "Development and Testing",
+            contentSite: "atlas-architecture",
+            url: "/docs/atlas/architecture/:version/dev-test",
+            versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+          },
         ],
       },
       {
