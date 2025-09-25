@@ -311,12 +311,6 @@ const tocData: TocItem[] = [
         url: "https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-scala/index.html",
         versions: { excludes: outdatedVersions },
       },
-      {
-        label: "Previous Versions",
-        isExternal: true,
-        url: "https://mongodb.github.io/mongo-java-driver/",
-        versions: { excludes: outdatedVersions },
-      },
       // Outdated ToC below
       {
         label: "Installation",
@@ -564,12 +558,6 @@ const tocData: TocItem[] = [
         label: "API Documentation",
         contentSite: "scala",
         url: "https://mongodb.github.io/mongo-java-driver/5.2/apidocs/mongo-scala-driver/index.html",
-        versions: { includes: outdatedVersions },
-      },
-      {
-        label: "Previous Versions",
-        contentSite: "scala",
-        url: "https://mongodb.github.io/mongo-java-driver/",
         versions: { includes: outdatedVersions },
       },
     ],
