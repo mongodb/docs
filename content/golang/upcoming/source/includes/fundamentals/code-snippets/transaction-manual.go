@@ -1,4 +1,4 @@
-// Perform a multi-document transaction by using the Go driver
+// Perform a manual transaction by using the Go driver
 package main
 
 import (
@@ -9,7 +9,6 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
-	"go.mongodb.org/mongo-driver/v2/mongo/readconcern"
 	"go.mongodb.org/mongo-driver/v2/mongo/writeconcern"
 )
 
@@ -22,7 +21,6 @@ type Book struct {
 // end-struct
 
 func main() {
-
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
 		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/")
@@ -36,7 +34,6 @@ func main() {
 
 	database := client.Database("db")
 	coll := database.Collection("myColl")
-
 	// start-session
 	wc := writeconcern.Majority()
 	txnOptions := options.Transaction().SetWriteConcern(wc)
@@ -49,26 +46,34 @@ func main() {
 	// Defers ending the session after the transaction is committed or ended
 	defer session.EndSession(context.TODO())
 
-	// Inserts multiple documents into a collection within a transaction,
-	// then commits or ends the transaction
-	result, err := session.WithTransaction(context.TODO(), func(ctx context.Context) (any, error) {
-		result, err := coll.InsertMany(ctx, []any{
-			Book{Title: "The Bluest Eye", Author: "Toni Morrison"},
-			Book{Title: "Sula", Author: "Toni Morrison"},
-			Book{Title: "Song of Solomon", Author: "Toni Morrison"},
-		})
-		return result, err
-	}, txnOptions)
+	err = mongo.WithSession(context.TODO(), session, func(ctx context.Context) error {
+		if err = session.StartTransaction(txnOptions); err != nil {
+			return err
+		}
+
+		docs := []any{
+			Book{Title: "The Year of Magical Thinking", Author: "Joan Didion"},
+			Book{Title: "Play It As It Lays", Author: "Joan Didion"},
+			Book{Title: "The White Album", Author: "Joan Didion"},
+		}
+		result, err := coll.InsertMany(ctx, docs)
+		if err != nil {
+			return err
+		}
+
+		if err = session.CommitTransaction(ctx); err != nil {
+			return err
+		}
+
+		fmt.Println(result.InsertedIDs)
+		return nil
+	})
+	if err != nil {
+		if err := session.AbortTransaction(context.TODO()); err != nil {
+			panic(err)
+		}
+		panic(err)
+	}
 	// end-session
 
-	fmt.Printf("Inserted _id values: %v\n", result)
-
-	// begin-session-txn-options
-	txnOpts := options.Transaction().SetReadConcern(readconcern.Majority())
-	sessOpts := options.Session().SetDefaultTransactionOptions(txnOpts)
-	session, err := client.StartSession(sessOpts)
-	if err != nil {
-		return err
-	}
-	// end-session-txn-options
 }
