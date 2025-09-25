@@ -54,6 +54,8 @@
            - Type the name of the group as it is displayed in your |idp| in
              this field. |service| assigns this group to your |service|
              role.
+
+             Note that the name of the group can't exceed 200 characters. 
       
              If the |idp| group doesn't exist, you can't enter a new
              group name to create a new |idp| group.
