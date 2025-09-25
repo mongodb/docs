@@ -106,6 +106,38 @@ those fields in the projection:
 For more information on using projections, see
 :ref:`read-operations-projection`.
 
+Example
+~~~~~~~
+
+To achieve a covered query, you must index projected fields. The :ref:`ESR (Equality, Sort, Range) rule <esr-indexing-guideline>`
+applies to the order of fields in the index.
+
+For example, consider the following index on an ``inventory`` collection:
+
+.. code-block:: javascript
+
+   db.inventory.createIndex( { type: 1, _id: 1, price: 1, item: 1, expiryDate: 1} )
+
+The above query, while technically correct, is not structured to optimize query 
+performance.
+
+The following query uses the ESR (Equality, Sort, Range) rule to create a more efficient
+compound index and improve query response times. 
+
+.. code-block:: javascript
+
+   db.inventory.aggregate([
+     { $match: {type: "food", expiryDate: { $gt: ISODate("2025-07-10T00:00:00Z") }}},
+     { $sort: { item: 1 }},
+     { $project: { _id: 1, price: 1} }
+   ])
+
+The index and query follow the ESR rule:
+
+- ``type`` is used for an equality match (E), so it is the first field in the index.
+- ``item`` is used for sorting (S), so it is after ``type`` in the index.
+- ``expiryDate`` is used for a range query (R), so it is the last field in the index.
+
 Limit Query Results
 -------------------
 
