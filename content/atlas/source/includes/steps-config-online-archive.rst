@@ -27,11 +27,11 @@
       #. Select the cloud provider region where you want to store your
          archived data.
       
-         .. tip:: 
+          
       
-            We recommend that you select the same region as your {+cluster+}
-            if possible because you might incur higher data transfer cost if
-            you choose a different region.
+         :gold:`IMPORTANT:` We recommend that you select the same region as 
+         your {+cluster+} if possible because you might incur higher data 
+         transfer cost if you choose a different region.
       
          |service| displays the cloud provider regions based on the cloud
          provider where your cluster is deployed. For multi-cloud clusters,
@@ -60,14 +60,12 @@
                archived data, you can only select |aws| or |gcp| regions for any new
                {+Online-Archive+}\s on that {+cluster+}. 
       
-               .. note::
-      
-                  For a {+cluster+} deployed on |azure|, if you have existing
-                  {+Online-Archive+}\s that use |aws| or |gcp| and you delete them, 
-                  you must wait five days before you can create a new 
-                  {+Online-Archive+} that uses |azure|. Within this five-day period, 
-                  any attempts to create a new {+Online-Archive+} still default to 
-                  the cloud provider that you originally selected.
+               :gold:`IMPORTANT:` For a {+cluster+} deployed on |azure|, if you
+               have existing {+Online-Archive+}\s that use |aws| or |gcp| and 
+               you delete them, you must wait five days before you can create a new 
+               {+Online-Archive+} that uses |azure|. Within this five-day period, 
+               any attempts to create a new {+Online-Archive+} still default to 
+               the cloud provider that you originally selected.
       
                For |service| {+cluster+}\s deployed on |azure|, you can select one 
                of the following regions: 
@@ -84,24 +82,20 @@
                archived data, you can only select |aws| or |azure| regions for any new
                {+Online-Archive+}\s on that {+cluster+}. 
       
-               .. note::
-      
-                  For a {+cluster+} deployed on |gcp|, if you have existing
-                  {+Online-Archive+}\s that use |aws| or |azure| and you delete them, 
-                  you must wait five days before you can create a new 
-                  {+Online-Archive+} that uses |gcp|. Within this five-day period, 
-                  any attempts to create a new {+Online-Archive+} still default to 
-                  the cloud provider that you originally selected.
+               :gold:`IMPORTANT:` For a {+cluster+} deployed on |gcp|, if you 
+               have existing {+Online-Archive+}\s that use |aws| or |azure| and 
+               you delete them, you must wait five days before you can create a new 
+               {+Online-Archive+} that uses |gcp|. Within this five-day period, 
+               any attempts to create a new {+Online-Archive+} still default to 
+               the cloud provider that you originally selected.
             
                For |service| {+cluster+}\s deployed on |gcp|, you can select one 
                of the following regions: 
       
                .. include:: /includes/list-table-adf-supported-gcp-regions.rst
       
-         .. note:: 
-      
-            Once |service| creates the online archive, you can't modify the
-            storage region. 
+         :gold:`IMPORTANT:` Once |service| creates the online archive, you can't
+         modify the storage region. 
       
       #. Specify the criteria for selecting documents to archive for the 
          type of collection you want to archive.
@@ -145,10 +139,8 @@
                        - ``EPOCH_MILLIS``
                        - ``EPOCH_NANOSECONDS``
                 
-                       .. important::
-      
-                          You can't modify the date field once the online 
-                          archive is created.
+                       :gold:`IMPORTANT:` You can't modify the date field once 
+                       the online archive is created.
       
                   .. tab:: Custom Criteria
                      :tabid: custom
@@ -166,14 +158,12 @@
                      to take advantage of all of the aggregation 
                      operators as shown in the following examples. 
       
-                     .. note::
-      
-                        The following examples assume that all documents
-                        include ``bucket_end_date`` fields with datetime
-                        values. In the following examples, |service| archives 
-                        all documents that don't include a ``bucket_end_date``
-                        field and all documents where the ``bucket_end_date``
-                        is not a datetime value.
+                     :gold:`IMPORTANT:` The following examples assume that all documents
+                     include ``bucket_end_date`` fields with datetime
+                     values. In the following examples, |service| archives 
+                     all documents that don't include a ``bucket_end_date``
+                     field and all documents where the ``bucket_end_date``
+                     is not a datetime value.
       
                      .. example:: 
       
@@ -235,8 +225,7 @@
                - Date format of the specified date field. The date field 
                  value must be in :term:`ISODate` format. 
       
-         .. note:: 
-      
+            :gold:`IMPORTANT:`
             .. include:: /includes/fact-online-archive-index-sufficiency-warning.rst
       
    .. step:: Specify how many days you want to store data in the online archive and a time window when you want |service| to run the archiving job.
@@ -250,9 +239,7 @@
          days you specify here. This data expiration rule takes effect 
          ``24`` hours after you set the :guilabel:`Data Retention Period`. 
       
-         .. warning:: 
-      
-            Once |service| deletes the data, you can't recover the data.
+         :red:`WARNING:` Once |service| deletes the data, you can't recover the data.
       
       #. (Optional) Specify a :guilabel:`Schedule Archiving Window`.
       
@@ -277,9 +264,7 @@
       
    .. step:: Specify the two most frequently queried fields in your collection to create partitions in your online archive.
       
-      .. note::
-      
-         Archive must have at least one partition field. 
+      :gold:`IMPORTANT:` Archive must have at least one partition field. 
       
       .. tabs:: 
          :hidden:
@@ -375,14 +360,12 @@
         But if you frequently query on another field, then that field 
         should be in the first position. 
       
-      .. note:: 
-      
-         For {+Online-Archive+}\s created before June 2023, MongoDB doesn't
-         recommend ``string`` type fields with high cardinality as a query
-         field for {+Online-Archive+}\s. For fields of type ``string`` with
-         high cardinality, |service| creates a large number of partitions.
-         This doesn't apply to {+Online-Archive+}\s created after June 2023.
-         To learn more, read the :website:`MongoDB blog post </blog/post/new-online-archive-performance-improvements-enhanced-metrics>`.
+      :gold:`IMPORTANT:` For {+Online-Archive+}\s created before June 2023, 
+      MongoDB doesn't recommend ``string`` type fields with high cardinality as
+      a query field for {+Online-Archive+}\s. For fields of type ``string`` with
+      high cardinality, |service| creates a large number of partitions.
+      This doesn't apply to {+Online-Archive+}\s created after June 2023.
+      To learn more, read the :website:`MongoDB blog post </blog/post/new-online-archive-performance-improvements-enhanced-metrics>`.
       
       |service| supports the following partition attribute types: 
       
@@ -397,12 +380,10 @@
       To learn more about the supported partition attribute types, see 
       :ref:`Partition Attribute Types <adf-path-attribute-types>`.
       
-      .. note:: 
-      
-         You can use the :manual:`explain
-         </reference/command/explain/>` command to return information
-         about the data partitions used to satisfy a query. To learn more,
-         see :ref:`adf-diagnostic-cmd-explain`.
+      :gold:`IMPORTANT:` You can use the :manual:`explain
+      </reference/command/explain/>` command to return information
+      about the data partitions used to satisfy a query. To learn more,
+      see :ref:`adf-diagnostic-cmd-explain`.
       
       While partitions improve query performance, queries that don't 
       contain these fields require a full collection scan of all archived 
@@ -443,8 +424,6 @@
       b. Click :guilabel:`Confirm` in the :guilabel:`Begin Archiving` 
          window.
       
-      .. note:: 
-      
-         Once your document is queued for archiving, you can no longer edit 
-         the document. See :ref:`restore-archived-data` to move archived 
-         data back into the live |service| cluster.
+      :red:`WARNING:` Once your document is queued for archiving, you can no 
+      longer edit the document. See :ref:`restore-archived-data` to move archived 
+      data back into the live |service| cluster.
