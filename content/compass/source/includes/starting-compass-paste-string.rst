@@ -62,6 +62,6 @@
       .. important:: Required Access
         
         Once you are connected to your MongoDB deployment, you may require 
-        specific :manual:`user roles <reference/built-in-roles/>` to access 
+        specific :ref:`user roles <built-in-roles>` to access 
         various |compass-short| features. For more information on the required 
         roles for |compass-short| features, see :ref:`required-access`.
