@@ -4,6 +4,7 @@ import (
 	"context"
 	"driver-examples/examples/aggregation/pipelines/filter"
 	"driver-examples/examples/aggregation/pipelines/group"
+	"driver-examples/examples/aggregation/pipelines/join_multi_field"
 	"driver-examples/examples/aggregation/pipelines/join_one_to_one"
 	"driver-examples/examples/aggregation/pipelines/unwind"
 	"driver-examples/utils"
@@ -57,6 +58,7 @@ func TestAggregationPipelines(t *testing.T) {
 		{"GroupTutorial", testGroupTutorial},
 		{"UnwindTutorial", testUnwindTutorial},
 		{"JoinOneToOneTutorial", testJoinOneToOneTutorial},
+		{"JoinMultiFieldTutorial", testJoinMultiFieldTutorial},
 	}
 
 	for _, tt := range tests {
@@ -144,6 +146,28 @@ func testJoinOneToOneTutorial(t *testing.T) {
 	join_one_to_one.LoadData()
 	result := join_one_to_one.RunPipeline()
 	expectedOutputFilepath := "examples/aggregation/pipelines/join_one_to_one/output.txt"
+
+	// Compare the actual results with expected output
+	comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)
+
+	if !comparisonResult.IsMatch {
+		t.Errorf("Results do not match expected output: %s", comparisonResult.Error())
+
+		// Print detailed error information
+		for _, err := range comparisonResult.Errors {
+			t.Errorf("  Path: %s, Expected: %s, Actual: %s, Message: %s",
+				err.Path, err.Expected, err.Actual, err.Message)
+		}
+	}
+}
+
+func testJoinMultiFieldTutorial(t *testing.T) {
+	t.Helper() // Mark this as a helper function for better error reporting
+
+	// Run your test logic
+	join_multi_field.LoadData()
+	result := join_multi_field.RunPipeline()
+	expectedOutputFilepath := "examples/aggregation/pipelines/join_multi_field/output.txt"
 
 	// Compare the actual results with expected output
 	comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)

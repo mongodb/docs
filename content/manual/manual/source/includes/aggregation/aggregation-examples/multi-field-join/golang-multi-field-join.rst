@@ -23,22 +23,18 @@ to the ``product_name`` and ``product_variation`` fields in documents in the
 First, create Go structs to model the data in the ``products`` and ``orders``
 collections:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.go
+.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/models.snippet.product-order.go
    :language: go
    :copyable: true
-   :start-after: start-structs
-   :end-before: end-structs
-   :dedent:
+   :category: usage example
 
 To create the ``products`` and ``orders`` collections and insert the
 sample data, add the following code to your application:
 
-.. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.go
+.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/load-data.snippet.example.go
    :language: go
    :copyable: true
-   :start-after: start-insert-sample-data
-   :end-before: end-insert-sample-data
-   :dedent:
+   :category: usage example
 
 .. end-prep-steps
 
@@ -53,38 +49,32 @@ sample data, add the following code to your application:
       ``orders`` collection to the ``products`` collection by two
       fields in each collection. The lookup stage contains an
       embedded pipeline to configure the join.
-            
+
       Within the embedded pipeline, add a :pipeline:`$match` stage to match the
       values of two fields on each side of the join. Note that the following
       code uses aliases for the ``name`` and ``variation`` fields
       set when :ref:`creating the $lookup stage <golang-multi-field-agg-lookup-stage>`:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run-pipeline.snippet.embedded-pl-match-product-info.go
          :language: go
          :copyable: true
-         :start-after: start-embedded-pl-match1
-         :end-before: end-embedded-pl-match1
-         :dedent:
+         :category: syntax example
 
       Within the embedded pipeline, add another :pipeline:`$match` stage to match
       orders placed in 2020:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run-pipeline.snippet.embedded-pl-match-order-date.go
          :language: go
          :copyable: true
-         :start-after: start-embedded-pl-match2
-         :end-before: end-embedded-pl-match2
-         :dedent:
+         :category: syntax example
 
       Within the embedded pipeline, add an :pipeline:`$unset` stage to remove
       unneeded fields from the ``orders`` collection side of the join:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run-pipeline.snippet.embedded-pl-unset.go
          :language: go
          :copyable: true
-         :start-after: start-embedded-pl-unset
-         :end-before: end-embedded-pl-unset
-         :dedent:
+         :category: syntax example
 
       .. _golang-multi-field-agg-lookup-stage:
 
@@ -93,12 +83,10 @@ sample data, add the following code to your application:
       Configure this stage to store the processed lookup fields in
       an array field called ``orders``:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run-pipeline.snippet.lookup.go
          :language: go
          :copyable: true
-         :start-after: start-lookup
-         :end-before: end-lookup
-         :dedent:
+         :category: syntax example
 
    .. step:: Add a match stage for products ordered in 2020.
 
@@ -106,44 +94,33 @@ sample data, add the following code to your application:
       products for which there is at least one order in 2020,
       based on the ``orders`` array calculated in the previous step:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run-pipeline.snippet.match.go
          :language: go
          :copyable: true
-         :start-after: start-match
-         :end-before: end-match
-         :dedent:
+         :category: syntax example
 
    .. step:: Add an unset stage to remove unneeded fields.
 
       Finally, add an :pipeline:`$unset` stage. The
       ``$unset`` stage removes the ``_id`` and ``description``
       fields from the result documents:
-            
-      .. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.go
+
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run-pipeline.snippet.unset.go
          :language: go
          :copyable: true
-         :start-after: start-unset
-         :end-before: end-unset
-         :dedent:
+         :category: syntax example
 
    .. step:: Run the aggregation pipeline.
 
       Add the following code to the end of your application to perform
       the aggregation on the ``products`` collection:
 
-      .. literalinclude:: /includes/aggregation/aggregation-examples/multi-field-join/full-files/multi_field_join.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run-pipeline.snippet.run-agg.go
          :language: go
          :copyable: true
-         :start-after: start-run-agg
-         :end-before: end-run-agg
-         :dedent:
+         :category: syntax example
 
-      Finally, run the following command in your shell to start your
-      application:
-
-      .. code-block:: bash
-      
-         go run agg_tutorial.go
+      Finally, run the application and inspect the results.
 
    .. step:: Interpret the aggregation results.
 
@@ -152,11 +129,10 @@ sample data, add the following code to your application:
       Each document contains an ``orders`` array field that lists details
       about each order for that product:
 
-      .. code-block:: none
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/output.txt
+         :language: text
          :copyable: false
-         
-         {"name":"Asus Laptop","variation":"Standard Display","category":"ELECTRONICS","orders":[{"customer_id":"elise_smith@myemail.com","orderdate":{"$date":"2020-05-30T08:35:52Z"},"value":431.42999267578125},{"customer_id":"jjones@tepidmail.com","orderdate":{"$date":"2020-12-26T08:55:46Z"},"value":429.6499938964844}]}
-         {"name":"Morphy Richards Food Mixer","variation":"Deluxe","category":"KITCHENWARE","orders":[{"customer_id":"oranieri@warmmail.com","orderdate":{"$date":"2020-01-01T08:25:37Z"},"value":63.130001068115234}]}
+         :category: example return object
 
       The result documents contain details from documents in the
       ``orders`` collection and the ``products`` collection, joined by
