@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use MongoDB\Laravel\Eloquent\Model;
-use MongoDB\Laravel\Eloquent\Prunable;
+use Illuminate\Database\Eloquent\Prunable;
 
 class Planet extends Model
 {
