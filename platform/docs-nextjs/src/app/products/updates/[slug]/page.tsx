@@ -20,7 +20,6 @@ export default async function ProductUpdatePage({ params }: PageProps) {
 
     if (!entry) {
       notFound();
-      return <div />;
     }
     return <ProductUpdateDetail update={entry} />;
   } catch (error) {

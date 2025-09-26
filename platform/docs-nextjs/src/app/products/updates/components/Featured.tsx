@@ -126,6 +126,7 @@ const Featured = ({ updates: limitedFeaturedUpdates }: { updates: ProductUpdateE
           return (
             <Card
               key={update.uid}
+              data-testid="featured-update"
               className={cx(featuredCardStyle)}
               onClick={() => router.push(`/products/updates/${slug}`)}
             >

@@ -13,7 +13,7 @@ export interface ProductUpdateEntry {
   tags_offerings?: string[];
   tags_product?: string[];
   link_with_label?: LinkWithLabelItem[];
-  beamer_created_at?: string; // "2025-09-17"
+  beamer_created_at?: string | null; // "2025-09-17"
 }
 
 export interface LinkWithLabelItem {

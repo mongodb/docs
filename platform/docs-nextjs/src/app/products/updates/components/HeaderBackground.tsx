@@ -93,7 +93,7 @@ const desktopImageStyle = css`
 
 const HeaderBackground = () => {
   return (
-    <div className={cx(headerBackgroundStyle)}>
+    <div className={cx(headerBackgroundStyle)} data-testid="header-background-img">
       {/* Left image container */}
       <div className={cx(leftImageStyle)}>
         <Image
