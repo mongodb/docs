@@ -132,13 +132,11 @@ const tocData: TocItem[] = [
       {
         label: "Fundamentals",
         contentSite: "laravel",
-        url: "/docs/drivers/php/laravel-mongodb/:version/fundamentals",
         collapsible: true,
         items: [
           {
             label: "Connections",
             contentSite: "laravel",
-            url: "/docs/drivers/php/laravel-mongodb/:version/fundamentals/connection",
             collapsible: true,
             items: [
               {
