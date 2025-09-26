@@ -1,6 +1,5 @@
 'use client';
 
-import { useContext } from 'react';
 import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import { palette } from '@leafygreen-ui/palette';
 import { css, cx } from '@leafygreen-ui/emotion';
@@ -9,7 +8,7 @@ import ComponentFactory from '../component-factory';
 import { getNestedValue } from '@/utils/get-nested-value';
 import { intersperse } from '@/utils/intersperse';
 import type { ASTNode } from '@/types/ast';
-import FootnoteContext from './footnote-context';
+import { useFootnotes } from './footnote-context';
 
 const tableStyling = (darkMode: boolean) => css`
   border: 0;
@@ -50,7 +49,7 @@ export type FootnoteNodeProps = {
 };
 
 const Footnote = ({ id, name, nodeChildren }: FootnoteNodeProps) => {
-  const { footnotes } = useContext(FootnoteContext);
+  const { footnotes } = useFootnotes();
   const { darkMode } = useDarkMode();
   const ref = name || id.replace('id', '');
   const label = getNestedValue([ref, 'label'], footnotes) as number;

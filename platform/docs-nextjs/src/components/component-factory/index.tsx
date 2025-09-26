@@ -27,18 +27,6 @@ import type {
   LinkNewTabNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
-
-// Union type for all role nodes
-// For roles without specific interfaces, they will extend ParentNode with optional target
-type RoleNode =
-  | AbbrRoleNode
-  | ClassRoleNode
-  | HighlightNode
-  | LinkNewTabNode
-  | RoleIconNode
-  | RoleManualNode
-  | (ParentNode & { type: 'role'; target?: string });
-
 import Admonition, { type AdmonitionProps } from '../admonition';
 import { admonitionMap } from '../admonition/constants';
 import Text, { type TextProps } from '../text';
@@ -106,6 +94,17 @@ const IGNORED_NAMES = new Set([
 const IGNORED_TYPES = new Set(['comment', 'inline_target', 'named_reference', 'substitution_definition']);
 
 const DEPRECATED_ADMONITIONS = new Set(['admonition', 'caution', 'danger']);
+
+// Union type for all role nodes
+// For roles without specific interfaces, they will extend ParentNode with optional target
+type RoleNode =
+  | AbbrRoleNode
+  | ClassRoleNode
+  | HighlightNode
+  | LinkNewTabNode
+  | RoleIconNode
+  | RoleManualNode
+  | (ParentNode & { type: 'role'; target?: string });
 
 const roleMap: Record<RoleName, React.ComponentType<RoleComponentProps>> = {
   abbr: RoleAbbr as React.ComponentType<RoleComponentProps>,

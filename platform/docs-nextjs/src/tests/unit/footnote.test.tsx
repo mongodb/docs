@@ -1,20 +1,18 @@
 import { render } from '@testing-library/react';
 import type { ASTNode } from '@/types/ast';
 import Footnote from '../../../src/components/footnote';
-import FootnoteContext, { type FootnoteType } from '../../../src/components/footnote/footnote-context';
+import { FootnoteProvider } from '../../../src/components/footnote/footnote-context';
 
 import mockData from '../data/footnote.test.json';
 
-const mountFootnotes = (footnotes: Record<string, FootnoteType>) =>
+const mountFootnotes = () =>
   render(
-    <FootnoteContext.Provider value={{ footnotes: footnotes }}>
+    <FootnoteProvider pageNodes={mockData.children as ASTNode[]}>
       <Footnote id={mockData.id} name={mockData.name} nodeChildren={mockData.children as ASTNode[]} />
-    </FootnoteContext.Provider>,
+    </FootnoteProvider>,
   );
 
-const mockFootnotes = { 1: { label: 1, references: ['id1'] } };
-
 it('renders correctly', () => {
-  const footnotes = mountFootnotes(mockFootnotes);
+  const footnotes = mountFootnotes();
   expect(footnotes.asFragment()).toMatchSnapshot();
 });

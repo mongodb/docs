@@ -1,13 +1,21 @@
-import { getPageDocFromParams } from '@/services/db';
-import { Document } from './document';
+import { getPageDocFromParams, getSnootyMetadata } from '@/services/db';
+import { CustomTemplate } from './custom-template';
 
-export default async function Page({ params }: { params: Promise<{ path?: string[] }> }) {
-  const pageDoc = await getPageDocFromParams(params);
+interface PageProps {
+  params: {
+    path?: string[];
+  };
+}
+
+export default async function Page({ params: { path } }: PageProps) {
+  const pageDoc = await getPageDocFromParams({ path });
+  const metadata = await getSnootyMetadata(pageDoc?.build_id);
+
   // const Component = getComponent(pageDoc.ast);
   if (!pageDoc) {
     // TODO: create a default 404 page
     return <div>404</div>;
   }
 
-  return <Document pageDoc={pageDoc} />;
+  return <CustomTemplate pageDoc={pageDoc} metadata={metadata} />;
 }

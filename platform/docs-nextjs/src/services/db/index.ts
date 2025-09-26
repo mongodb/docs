@@ -5,7 +5,7 @@
  */
 
 import { cache } from 'react';
-import type { Collection, Filter, FindOptions, Document } from 'mongodb';
+import { ObjectId, type Collection, type Filter, type FindOptions, type Document } from 'mongodb';
 import { MongoClient } from 'mongodb';
 import type { DocsetDocument } from '@/types/data';
 import type {
@@ -18,7 +18,7 @@ import type {
 import envConfig, { type Environments } from '@/utils/env-config';
 import { log } from '@/utils/logger';
 import type { FeedbackDbType } from '../feedback/feedback-types';
-import type { SnootyEnv } from '@/types/data';
+import type { SnootyEnv, RemoteMetadata } from '@/types/data';
 
 const URI = envConfig.MONGODB_URI as string;
 const COLLECTION_NAME = 'documents';
@@ -99,6 +99,10 @@ async function getPagesDocumentCollection(): Promise<Collection<ASTDocument>> {
   return getCollection<ASTDocument>(getDbName(envConfig.DB_ENV), COLLECTION_NAME);
 }
 
+async function getSnootyMetadataCollection(): Promise<Collection<Document>> {
+  return getCollection<Document>(getDbName(envConfig.DB_ENV), 'metadata');
+}
+
 export async function getDocsetsCollection(): Promise<Collection<DocsetDocument>> {
   return getCollection<DocsetDocument>('pool', 'docsets');
 }
@@ -121,19 +125,47 @@ const getPageAST = cache(async (path: string | string[], prId?: number) => {
     log({
       message: `Querying db ${collection.namespace} for query ${JSON.stringify(query)}`,
     });
-    const pageRes: ASTDocument | null = await collection.findOne(query, DEFAULT_SORT);
-    return pageRes;
+    const pageRes = await collection.findOne<ASTDocument>(query, DEFAULT_SORT);
+    if (!pageRes) return;
+    // we need to parse then stringify the pageRes to ensure it's a plain object
+    return JSON.parse(JSON.stringify(pageRes));
   } catch (e) {
     log({ message: String(e), level: 'error' });
     throw e;
   }
 });
 
-export async function getPageDocFromParams(params: Promise<{ path?: string[] }>, prefix = 'docs') {
-  const { path } = await params;
+interface GetPageDocFromParamsArgs {
+  path?: string[];
+  prefix?: string;
+}
+
+export async function getPageDocFromParams({ path, prefix = 'docs' }: GetPageDocFromParamsArgs) {
   const fullPagePath = [prefix, path?.join('/') ?? ''].join('/');
   return getPageAST(fullPagePath);
 }
+
+/** This will return the snooty metadata for a given build_id, returning the first match (sorted by latest created_at) */
+async function _getSnootyMetadata(build_id: string) {
+  const collection = await getSnootyMetadataCollection();
+  const query: Filter<Document> = { build_id: new ObjectId(build_id) };
+  const options: FindOptions = { sort: { _id: -1 } };
+
+  try {
+    log({ message: `Querying db ${collection.namespace} for metadata with build_id=${build_id.toString()}` });
+
+    const metadataDoc = await collection.findOne<RemoteMetadata>(query, options);
+    if (!metadataDoc) return;
+    // we need to parse then stringify the metadataDoc to ensure it's a plain object
+    return JSON.parse(JSON.stringify(metadataDoc));
+  } catch (e) {
+    log({ message: String(e), level: 'error' });
+    throw e;
+  }
+}
+
+/** This will return the snooty metadata for a given build_id, returning the first match (sorted by latest created_at) and is cached */
+export const getSnootyMetadata = cache(_getSnootyMetadata);
 
 // TODO: revisit this logic when deploying Next on Netlify.
 // see if we have to clear sockets to MDB connections, or if Netlify handles these

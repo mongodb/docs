@@ -1,11 +1,10 @@
 'use client';
 
-import { useContext } from 'react';
 import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import { css, cx } from '@leafygreen-ui/emotion';
 import { palette } from '@leafygreen-ui/palette';
 import { getNestedValue } from '@/utils/get-nested-value';
-import FootnoteContext from './footnote-context';
+import { useFootnotes } from './footnote-context';
 
 const refStyles = css`
   color: ${palette.blue.light1};
@@ -21,7 +20,7 @@ export type FootnoteReferenceProps = {
 };
 
 const FootnoteReference = ({ id, refname }: FootnoteReferenceProps) => {
-  const { footnotes } = useContext(FootnoteContext);
+  const { footnotes } = useFootnotes();
   const { darkMode } = useDarkMode();
   const ref = refname || id.replace('id', '');
   const uid = refname ? `${refname}-${id}` : id;
