@@ -1,7 +1,8 @@
 How to get help
 ---------------
 
-- Ask questions on our :community-forum:`MongoDB Community Forums <>`.
+- Ask for help in the MongoDB `Stack Overflow page <https://stackoverflow.com/questions/tagged/mongodb>`__
+  or in the MongoDB `Reddit community <https://www.reddit.com/r/mongodb/>`__.
 - Visit our :technical-support:`Support Channels </>`.
 - See our :issue:`SWIFT <SWIFT>` JIRA project to raise issues or request 
   features.
