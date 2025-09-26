@@ -7,7 +7,7 @@
 
    .. step:: Click the name of the index that you want to update. 
 
-       :red:`WARNING:` If an index requires an update to enable a new feature,
+      :red:`WARNING:` If an index requires an update to enable a new feature,
       the {+atlas-ui+} shows a warning icon next to the index name. 
 
    .. step:: Update your index to use the new feature. 
