@@ -18,6 +18,25 @@ the file paths of the files in the PR per the breakdown above.
 
 ## When working on content
 
+### Documentation Project Structure
+
+The `content/` directory contains multiple documentation projects:
+
+**Versioned Projects** (e.g., `content/golang/`, `content/node/`):
+- Each subdirectory represents a specific version: `current`, `upcoming`, `v1.12`, `v1.13`, etc.
+- Each version has its own `source/` directory containing all documentation files for that version
+- **Version isolation**: Files in `current/source/` are completely separate from `v1.12/source/`
+- **Build scope**: When building documentation, only files within that version's `source/` directory are processed
+- **Include files**: Files in `version/source/includes/` are only shared within that specific version
+
+**Non-Versioned Projects** (e.g., `content/atlas/`, `content/manual/`):
+- `source/` directory is at the project root
+- No version isolation - all content builds together
+
+**Critical Implication**: When updating or checking references to include files, scope your search to the specific version's `source/` directory. A file like `content/golang/current/source/includes/example.go` is unrelated to `content/golang/v1.12/source/includes/example.go` - they are separate files that can be modified independently.
+
+### Content Guidelines
+
 - DO NOT remove any .rST or custom formatting.
 - If you see text wrapped in "{+" and "+}", or "|" leave it as is. E.g. Do not change "{+avs+}", "|fts|", or "|service|".
 - For headers, length of underlines must match the heading length. For example:
