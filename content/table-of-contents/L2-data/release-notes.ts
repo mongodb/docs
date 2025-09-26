@@ -61,6 +61,7 @@ const tocData: TocItem[] = [
         contentSite: "docs",
         url: "/docs/:version/release-notes/8.0",
         collapsible: true,
+        versions: { excludes: manualVersions.before("v8.0")},
         items: [
           {
             label: "Compatibility Changes",
