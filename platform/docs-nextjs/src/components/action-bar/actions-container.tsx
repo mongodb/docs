@@ -10,7 +10,7 @@ import type { Environments } from '@/utils/env-config';
 import { chatbotButtonStyling, ActionsBox as ActionsBoxStyled } from './styles';
 import { chatbotMobileButtonStyling } from './styles';
 import DarkModeDropdown from './dark-mode-dropdown';
-
+import { reportAnalytics } from '@/utils/report-analytics';
 const Chatbot = dynamic(() => import('mongodb-chatbot-ui').then((mod) => mod), {
   ssr: false,
 });
@@ -31,7 +31,7 @@ const UIContainer = () => {
 
   const openChatbot = () => {
     // TODO: report analytics DOP-6213
-    // reportAnalytics('Chatbot button clicked');
+    reportAnalytics('Chatbot button clicked');
     setChatbotClicked((currVal) => !currVal);
   };
 

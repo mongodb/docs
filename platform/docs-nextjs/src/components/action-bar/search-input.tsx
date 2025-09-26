@@ -12,6 +12,7 @@ import useScreenSize from '@/hooks/use-screen-size';
 import { theme } from '@/styles/theme';
 import { isBrowser } from '@/utils/is-browser';
 import { searchIconStyling, searchInputStyling, StyledInputContainer, StyledSearchBoxRef } from './styles';
+import { reportAnalytics } from '@/utils/report-analytics';
 
 export const PLACEHOLDER_TEXT = `Search MongoDB Docs`;
 const PLACEHOLDER_TEXT_MOBILE = 'Search';
@@ -73,10 +74,10 @@ const SearchInput = ({ className }: SearchInputProps) => {
   }, [searchParams]);
 
   const onSubmit = () => {
-    // reportAnalytics('Search bar used', {
-    //   type: 'docs-search',
-    //   query: searchValue,
-    // });
+    reportAnalytics('Search bar used', {
+      type: 'docs-search',
+      query: searchValue,
+    });
     inputRef.current?.blur();
     router.push(`/search/?q=${searchValue}`);
   };
@@ -92,9 +93,9 @@ const SearchInput = ({ className }: SearchInputProps) => {
           onChange={(e) => {
             setSearchValue(e.target.value);
           }}
-          // onFocus={() => {
-          //   reportAnalytics('Search bar focused');
-          // }}
+          onFocus={() => {
+            reportAnalytics('Search bar focused');
+          }}
           onSubmit={onSubmit}
           ref={inputRef}
         />

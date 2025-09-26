@@ -8,7 +8,7 @@ import { Menu, MenuItem } from '@leafygreen-ui/menu';
 import type { DarkModePref } from '@/context/dark-mode-context';
 import { DarkModeContext } from '@/context/dark-mode-context';
 import { theme } from '@/styles/theme';
-// import { reportAnalytics } from '@/utils/report-analytics';
+import { reportAnalytics } from '@/utils/report-analytics';
 import IconDarkmode from '../icons/DarkMode';
 
 const iconStyling = css`
@@ -50,9 +50,9 @@ const DarkModeDropdown = () => {
 
   const select = useCallback(
     (selectedPref: DarkModePref) => {
-      // reportAnalytics('DarkModeSelection', {
-      //   value: selectedPref,
-      // });
+      reportAnalytics('DarkModeSelection', {
+        value: selectedPref,
+      });
       setDarkModePref(selectedPref);
       setOpen(false);
     },
@@ -73,9 +73,9 @@ const DarkModeDropdown = () => {
         align={'bottom'}
         open={open}
         setOpen={() => {
-          // reportAnalytics('DarkModeMenu', {
-          //   action: open ? 'closed' : 'opened',
-          // });
+          reportAnalytics('DarkModeMenu', {
+            action: open ? 'closed' : 'opened',
+          });
           setOpen((e) => !e);
         }}
         trigger={

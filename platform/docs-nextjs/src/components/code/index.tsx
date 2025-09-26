@@ -10,7 +10,7 @@ import Tooltip from '@leafygreen-ui/tooltip';
 import { palette } from '@leafygreen-ui/palette';
 // TODO: DOP-6025 replace with tab-context component
 // import { TabContext } from '../Tabs/tab-context';
-// import { reportAnalytics } from '../../utils/report-analytics';
+import { reportAnalytics } from '@/utils/report-analytics';
 // import { usePageContext } from '@/context/page-context';
 import type { DriverMap } from '@/components/icons/DriverIconMap';
 import { DRIVER_ICON_MAP } from '@/components/icons/DriverIconMap';
@@ -124,11 +124,11 @@ const Code = ({
   }
 
   const reportCodeCopied = useCallback(() => {
-    // reportAnalytics('CodeblockCopied', { code });
-  }, []);
-  // }, [code]);
+    reportAnalytics('CodeblockCopied', { code });
+  }, [code]);
 
   const softwareSourceCodeSd = useMemo(() => {
+    // TODO: DOP-5971: implement structured data
     // const sd = new SoftwareSourceCodeSd({ code, lang, slug });
     // return sd.isValid() ? sd.toString() : undefined;
     return undefined;

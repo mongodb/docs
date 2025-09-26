@@ -5,10 +5,12 @@
 
 import ActionBar from '@/components/action-bar';
 import layoutStyles from '../../layout.module.scss';
+import Analytics from '@/components/head-scripts/anayltics';
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      <Analytics />
       {/* TODO: return a sidenav here */}
       <div
         className={layoutStyles['sidenav-container']}
