@@ -1,5 +1,3 @@
-.. NOTE: we need to update this to include self-hosted deployments when Search Community edition releases
-
 Replace ``<connection-string>`` with the connection string for your 
 |service| cluster or local |service| deployment.
 
@@ -12,7 +10,7 @@ Replace ``<connection-string>`` with the connection string for your
 
       To learn more, see :ref:`connect-via-driver`.
 
-   .. tab:: Local Deployment
+   .. tab:: Local or Self-Managed
       :tabid: local
 
       Your connection string should use the 

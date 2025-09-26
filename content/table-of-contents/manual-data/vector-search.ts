@@ -17,20 +17,68 @@ const tocData: TocItem[] = [
     url: "/docs/atlas/atlas-vector-search/create-embeddings",
   },
   {
-    label: "Create and Manage Indexes",
+    label: "Queries & Indexes",
     contentSite: "cloud-docs",
-    url: "/docs/atlas/atlas-vector-search/vector-search-type",
-  },
-  {
-    label: "Create and Run Queries",
-    contentSite: "cloud-docs",
-    url: "/docs/atlas/atlas-vector-search/vector-search-stage",
     collapsible: true,
     items: [
+       {
+         label: "Index Reference",
+         contentSite: "cloud-docs",
+         url: "/docs/atlas/atlas-vector-search/vector-search-type",
+       },
+       {
+         label: "Query Reference",
+         contentSite: "cloud-docs",
+         url: "/docs/atlas/atlas-vector-search/vector-search-stage",
+         collapsible: true,
+         items: [
+           {
+             label: "Explain Query Results",
+             contentSite: "cloud-docs",
+             url: "/docs/atlas/atlas-vector-search/explain",
+           },
+         ],
+       },
+       {
+         label: "Use Compatible Views",
+         contentSite: "cloud-docs",
+         url: "/docs/atlas/atlas-vector-search/view-support",
+       },
+    ],
+  },
+  {
+    label: "Use Cases & Design Patterns",
+    contentSite: "cloud-docs",
+    collapsible: true,
+    url: "/docs/atlas/atlas-vector-search/use-cases",
+    items: [
       {
-        label: "Explain Query Results",
+        label: "Retrieval-Augmented Generation (RAG)",
         contentSite: "cloud-docs",
-        url: "/docs/atlas/atlas-vector-search/explain",
+        url: "/docs/atlas/atlas-vector-search/rag",
+        collapsible: true,
+        items: [
+          {
+            label: "Playground Chatbot Demo Builder",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/atlas-vector-search/vector-search-playground/",
+          },
+        ],
+      },
+      {
+        label: "AI Agents",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/atlas-vector-search/ai-agents",
+      },
+      {
+        label: "Local RAG",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/atlas-vector-search/tutorials/local-rag",
+      },
+      {
+        label: "Semantic Search for Text",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial",
       },
     ],
   },
@@ -53,29 +101,6 @@ const tocData: TocItem[] = [
     ],
   },
   {
-    label: "Use Compatible Views",
-    contentSite: "cloud-docs",
-    url: "/docs/atlas/atlas-vector-search/view-support",
-  },
-  {
-    label: "Retrieval-Augmented Generation (RAG)",
-    contentSite: "cloud-docs",
-    url: "/docs/atlas/atlas-vector-search/rag",
-    collapsible: true,
-    items: [
-      {
-        label: "Playground Chatbot Demo Builder",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/atlas-vector-search/vector-search-playground/",
-      },
-    ],
-  },
-  {
-    label: "Build AI Agents",
-    contentSite: "cloud-docs",
-    url: "/docs/atlas/atlas-vector-search/ai-agents",
-  },
-  {
     label: "Review Deployment Options",
     contentSite: "cloud-docs",
     url: "/docs/atlas/atlas-vector-search/deployment-options",
@@ -84,34 +109,14 @@ const tocData: TocItem[] = [
     label: "Vector Quantization",
     contentSite: "cloud-docs",
     url: "/docs/atlas/atlas-vector-search/vector-quantization",
-  },
-  {
-    label: "Tutorials",
-    contentSite: "cloud-docs",
-    url: "/docs/atlas/atlas-vector-search/tutorials",
     collapsible: true,
     items: [
       {
-        label: "Semantic Search for Text",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/atlas-vector-search/tutorials/vector-search-tutorial",
-      },
-      {
-        label: "Local RAG",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/atlas-vector-search/tutorials/local-rag",
-      },
-      {
-        label: "Automatic Quantization with Voyage AI Embeddings",
+        label: "Automatic Quantization with Voyage AI",
         contentSite: "cloud-docs",
         url: "/docs/atlas/atlas-vector-search/tutorials/auto-quantize-with-voyage-ai",
       },
     ],
-  },
-  {
-    label: "AI Integrations",
-    contentSite: "cloud-docs",
-    url: "https://www.mongodb.com/docs/atlas/ai-integrations/",
   },
   {
     label: "Improve Accuracy",
@@ -145,6 +150,11 @@ const tocData: TocItem[] = [
     label: "Multi-Tenant Architecture",
     contentSite: "cloud-docs",
     url: "/docs/atlas/atlas-vector-search/multi-tenant-architecture",
+  },
+  {
+    label: "AI Integrations",
+    contentSite: "cloud-docs",
+    url: "https://www.mongodb.com/docs/atlas/ai-integrations/",
   },
   {
     label: "Troubleshooting",
