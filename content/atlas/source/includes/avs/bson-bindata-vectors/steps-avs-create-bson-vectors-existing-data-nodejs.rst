@@ -313,7 +313,7 @@
             
                Embeddings with BSON vectors have been saved to query-embeddings.json
 
-   .. step:: Run an {+avs+} query.
+   .. step:: Run a {+avs+} query.
 
       a. Create a file named ``run-query.js``.
 

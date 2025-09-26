@@ -2,7 +2,7 @@
    :style: normal
 
 
-   .. step:: Set up the file to run an |fts| facet query.
+   .. step:: Set up the file to run a |fts| facet query.
 
       a. In the ``src`` directory of your project, copy and paste the following
          code into the ``main.rs`` file.

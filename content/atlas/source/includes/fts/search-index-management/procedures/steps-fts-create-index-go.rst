@@ -1,4 +1,4 @@
-To create an |fts| index through the :driver:`Go Driver </go/current/>`:
+To create a |fts| index through the :driver:`Go Driver </go/current/>`:
 
 1. Define the search index from your application.
 
@@ -18,7 +18,7 @@ To create an |fts| index through the :driver:`Go Driver </go/current/>`:
 
    .. step:: Copy the following code example into the file. 
 
-      The following sample application creates an |fts| index on a
+      The following sample application creates a |fts| index on a
       collection.
 
       .. literalinclude:: /includes/fts/search-index-management/create-index.go

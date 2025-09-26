@@ -8,8 +8,8 @@
    .. step:: On the index you'd like to query, click the :guilabel:`Query` button on 
       the righthand side of the card.
 
-      If you have no |fts| search indexes, click :guilabel::ref:`Create Search Index` to create an |fts| index. 
-      To build an |fts| index that optimizes your |fts| query, see :ref:`fts-plan-index`. 
+      If you have no |fts| search indexes, click :guilabel::ref:`Create Search Index` to create a |fts| index. 
+      To build a |fts| index that optimizes your |fts| query, see :ref:`fts-plan-index`. 
 
       The :guilabel:`Search Tester` displays. 
 

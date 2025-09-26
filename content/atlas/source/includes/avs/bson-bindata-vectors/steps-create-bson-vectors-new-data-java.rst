@@ -63,10 +63,10 @@
       To learn more about generating embeddings and converting the
       embeddings to ``binData`` vectors, see :ref:`create-vector-embeddings`.
 
-   .. step:: Ingest the data and create an {+avs+} index. 
+   .. step:: Ingest the data and create a {+avs+} index. 
 
       You must upload your data and embeddings to a collection in your
-      |service| {+cluster+} and create an {+avs+} index on the data to
+      |service| {+cluster+} and create a {+avs+} index on the data to
       run :pipeline:`$vectorSearch` queries against the data. 
 
       a. Create a new file named ``UploadDataAndCreateIndex.java``
@@ -83,7 +83,7 @@
 
          - Uploads the data in the ``embeddings.json`` file to your
            |service| {+cluster+}. 
-         - Creates an {+avs+} index on the ``embeddings_float32``,
+         - Creates a {+avs+} index on the ``embeddings_float32``,
            ``embeddings_int8``, and ``embeddings_int1`` fields. 
 
          .. literalinclude:: /includes/avs/bson-bindata-vectors/java/upload-create-index-new-data.java

@@ -1,7 +1,7 @@
 Create the |fts| Index for Facet 
 --------------------------------
 
-In this section, you will create an |fts| index on the ``genres``, 
+In this section, you will create a |fts| index on the ``genres``, 
 ``year``, and ``released`` fields in the ``sample_mflix.movies`` 
 collection. 
 

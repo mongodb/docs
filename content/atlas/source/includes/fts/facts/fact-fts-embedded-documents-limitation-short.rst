@@ -5,6 +5,6 @@ result in stale query results.
 
 Using the ``embeddedDocuments`` field type can result in indexing objects over
 this index size limit, because each indexed embedded document is counted as a single object. 
-If you create an |fts| index that has or will soon
+If you create a |fts| index that has or will soon
 have more than 2.1 billion index objects, use the :ref:`numPartitions <fts-index-partition>` index option 
 to partition your index (supported only on Search Nodes deployments) or :ref:`shard your cluster <create-cluster-sharding>`.

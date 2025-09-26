@@ -14,7 +14,7 @@
          or :guilabel:`Edit With JSON Editor` to edit the raw index definition.
       #. Review the current configuration settings and edit them as needed. 
          
-         To learn more about the fields in an {+avs+} index, see
+         To learn more about the fields in a {+avs+} index, see
          :ref:`avs-types-vector-search`. 
       
       #. Click :guilabel:`Save` to apply the changes. 

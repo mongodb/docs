@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal
 
-   .. step:: Set up the file to run an |fts| facet query.
+   .. step:: Set up the file to run a |fts| facet query.
   
       a. Create a file named ``FacetQuery.java``.
       #. Copy and paste the following code into the ``FacetQuery.java`` file.

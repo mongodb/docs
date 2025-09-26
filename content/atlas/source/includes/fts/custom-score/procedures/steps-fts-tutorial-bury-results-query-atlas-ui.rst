@@ -3,7 +3,7 @@
 
    .. include:: /includes/nav/steps-search-tester.rst 
 
-   .. step:: Run an |fts| query with the ``compound`` operator on the ``movies`` collection. 
+   .. step:: Run a |fts| query with the ``compound`` operator on the ``movies`` collection. 
 
       a. Copy and paste the following query into the :guilabel:`Query
          Editor`. 

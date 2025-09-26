@@ -20,7 +20,7 @@ Yo.. include:: /includes/fts/tutorials/embedded-documents/search-meta-query-intr
       Click :guilabel:`Edit Query` to view a default query
       syntax sample in |json| format.
       
-   .. step:: Run an |fts| query with the ``embeddedDocument`` operator on the ``schools`` collection.
+   .. step:: Run a |fts| query with the ``embeddedDocument`` operator on the ``schools`` collection.
 
       .. include:: /includes/fts/extracts/fts-embedded-document-facet-query-intro.rst
       

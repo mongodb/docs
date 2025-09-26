@@ -54,7 +54,7 @@
          replace the ``<connectionString>`` placeholder value. The following index
          definition indexes the ``plot_embedding_voyage_3_large`` field as the
          ``vector`` type and the ``genres`` and ``year`` fields as the
-         ``filter`` type in an {+avs+} index. The ``plot_embedding_voyage_3_large``
+         ``filter`` type in a {+avs+} index. The ``plot_embedding_voyage_3_large``
          field contains embeddings created using |voyage|'s
          ``voyage-3-large`` embedding model. The index
          definition specifies ``2048`` vector dimensions and measures

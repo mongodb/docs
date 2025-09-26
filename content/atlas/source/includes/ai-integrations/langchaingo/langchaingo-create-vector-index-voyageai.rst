@@ -1,4 +1,4 @@
-To enable vector search queries on your vector store, create an {+avs+} index on
+To enable vector search queries on your vector store, create a {+avs+} index on
 the ``langchaingo_db.test`` collection.
 
 Add the following imports to the top of your ``main.go`` file:

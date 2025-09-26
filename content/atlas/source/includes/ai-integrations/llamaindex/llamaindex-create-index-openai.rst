@@ -1,5 +1,5 @@
 To enable vector search queries on your vector store,
-create an {+avs+} index on the ``llamaindex_db.test`` collection.
+create a {+avs+} index on the ``llamaindex_db.test`` collection.
 
 In your notebook, run the following code to create
 an index of the :ref:`vectorSearch <avs-types-vector-search>` type

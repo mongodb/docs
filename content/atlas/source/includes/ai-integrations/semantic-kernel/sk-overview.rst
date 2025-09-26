@@ -8,6 +8,6 @@ Specifically, you perform the following actions:
 
 #. Set up the environment.
 #. Store custom data in MongoDB.
-#. Create an {+avs+} index on your data.
+#. Create a {+avs+} index on your data.
 #. Run a semantic search query on your data.
 #. Implement RAG by using {+avs+} to answer questions on your data.

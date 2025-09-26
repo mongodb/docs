@@ -7,7 +7,7 @@ To delete an {+fts+} index using the :driver:`Go Driver </go/current/>`:
 
    .. step:: Copy the following code example into the file. 
 
-      The following sample application deletes an |fts| index on the
+      The following sample application deletes a |fts| index on the
       specified collection.
 
       .. literalinclude:: /includes/fts/search-index-management/delete-index.go

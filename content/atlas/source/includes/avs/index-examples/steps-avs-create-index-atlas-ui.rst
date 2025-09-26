@@ -58,7 +58,7 @@
          .. tab:: JSON Editor 
             :tabid: jsoneditor 
 
-            An {+avs+} index resembles the following example: 
+            a {+avs+} index resembles the following example: 
 
             .. code-block:: json
                :copyable: true 

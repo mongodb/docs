@@ -7,7 +7,7 @@ To edit an {+fts+} index using the :driver:`Go Driver </go/current/>`:
 
    .. step:: Copy the following code example into the file. 
 
-      The following sample application edits an |fts| index on the
+      The following sample application edits a |fts| index on the
       specified collection.
 
       .. literalinclude:: /includes/fts/search-index-management/edit-index.go

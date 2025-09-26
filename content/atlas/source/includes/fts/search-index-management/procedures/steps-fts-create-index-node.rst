@@ -1,4 +1,4 @@
-To create an |fts| index through the :driver:`Node Driver </node/current/>`:
+To create a |fts| index through the :driver:`Node Driver </node/current/>`:
 
 1. Define the search index from your application.
 
@@ -25,7 +25,7 @@ To create an |fts| index through the :driver:`Node Driver </node/current/>`:
 
             Replace the placeholder values in the following example application named
             ``create-index.js``, which uses the ``createSearchIndex`` command to define 
-            an |fts| index:
+            a |fts| index:
 
             .. list-table::
                :widths: 20 80
@@ -85,7 +85,7 @@ To create an |fts| index through the :driver:`Node Driver </node/current/>`:
 
             Replace the placeholder values in the following example application named
             ``create-index.js``, which uses the ``createSearchIndexes`` command to define 
-            an |fts| index:  
+            a |fts| index:  
 
             .. literalinclude:: /includes/fts/search-index-management/create-indexes.js
                :caption: create-index.js

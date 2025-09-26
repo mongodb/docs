@@ -16,7 +16,7 @@ This tutorial takes you through the following steps:
    that retrieves data from the ``sample_supplies.sales`` and ``sample_supplies.purchaseOrders``
    collections.
 
-#. Create an |fts| index on the ``monthlyPhoneTransactions`` 
+#. Create a |fts| index on the ``monthlyPhoneTransactions`` 
    materialized view.
 
 #. Run a query on the ``monthlyPhoneTransactions`` materialized view.

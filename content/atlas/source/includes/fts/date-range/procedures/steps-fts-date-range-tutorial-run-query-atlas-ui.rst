@@ -15,7 +15,7 @@
       Click :guilabel:`Edit Query` to view a default query syntax 
       sample in |json| format.
       
-   .. step:: Run an |fts| ``compound`` query with two clauses on the ``movies`` collection.
+   .. step:: Run a |fts| ``compound`` query with two clauses on the ``movies`` collection.
       
       The following example uses the ``compound`` operator with subqueries 
       to search for movies between the years ``2010`` to ``2015``. The 
@@ -149,7 +149,7 @@
       
       .. include:: /includes/fts/extracts/fts-date-range-results.rst
       
-   .. step:: Run an |fts| ``compound`` query with three clauses on the ``movies`` collection.
+   .. step:: Run a |fts| ``compound`` query with three clauses on the ``movies`` collection.
       
       The following example adds on to the previous example. 
       

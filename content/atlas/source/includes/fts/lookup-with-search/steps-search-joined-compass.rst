@@ -1,7 +1,7 @@
 Create the |fts| Index
 ~~~~~~~~~~~~~~~~~~~~~~
 
-Create an |fts| index named ``lookup-with-search-tutorial`` on all the
+Create a |fts| index named ``lookup-with-search-tutorial`` on all the
 fields in the ``sample_analytics.accounts`` collection.
 
 .. include:: /includes/fts/lookup-with-search/procedures/steps-fts-lookup-tutorial-create-index-compass.rst

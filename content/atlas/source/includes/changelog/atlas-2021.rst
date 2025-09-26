@@ -349,5 +349,5 @@
 - Changes the cluster-level navigation UI so that |fts| is now a top
   level tab.
 - Introduces a visual editor for :ref:`creating <ref-create-index>`
-  an |fts| index.
+  a |fts| index.
 - Allows users of the |bic| to download |bic-short| logs.

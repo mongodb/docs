@@ -1,6 +1,6 @@
 .. _fts-tutorial-run-query:
 
-Build an |fts| Query
+Build a |fts| Query
 --------------------
 
 .. collapsible::
@@ -12,7 +12,7 @@ Build an |fts| Query
    which must be the first stage in the query pipeline. You can also use 
    this stage in conjunction with other stages in your pipeline.
 
-   When you run an |fts| query, |fts| uses the search index to
+   When you run a |fts| query, |fts| uses the search index to
    locate and retrieve relevant data from the collection. 
    |fts| also provides the :pipeline:`$searchMeta` stage, 
    multiple sub-pipelines, and several query 

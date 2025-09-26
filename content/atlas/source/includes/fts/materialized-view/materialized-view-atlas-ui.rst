@@ -40,7 +40,7 @@ the following sections to view the steps for each trigger:
 Create a {+fts} Index on the Materialized View
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this section, you can learn how to create an |fts| index on the ``monthlyPhoneTransactions``
+In this section, you can learn how to create a |fts| index on the ``monthlyPhoneTransactions``
 collection.
 
 .. include:: /includes/fts/materialized-view/procedures/steps-fts-materialized-create-index-atlas-ui.rst

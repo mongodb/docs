@@ -15,7 +15,7 @@
       Click :guilabel:`Edit Query` to view a default query syntax 
       sample in |json| format.
       
-   .. step:: Run an |fts| query with the compound operator to search the ``users`` collection.
+   .. step:: Run a |fts| query with the compound operator to search the ``users`` collection.
 
       The following query searches only for users that do not have a
       ``null`` value in the ``password`` field. The query specifies the

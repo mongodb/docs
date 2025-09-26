@@ -34,12 +34,12 @@ a. Copy and paste the sample cURL request in your preferred text editor.
         - string
         - Unique 24-hexadecimal character string that identifies the
           project that contains the cluster that contains the collection 
-          for which you want to create an |fts| index.
+          for which you want to create a |fts| index.
 
       * - CLUSTER_NAME
         - string
         - Human-readable label that identifies the cluster that contains 
-          the collection for which you want to create an |fts| index.
+          the collection for which you want to create a |fts| index.
 
           Use the :oas-atlas-op:`API </listClusters>` to get 
           the **CLUSTER_NAME**. For each cluster, |service| returns the 

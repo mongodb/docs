@@ -15,7 +15,7 @@ Define the Index for the |fts-field-type| Type
 
       Replace the following values in the ``curl`` command below. This 
       command sends a ``POST`` request to your |service| cluster to 
-      create an |fts| index with the |fts-field-type| field type.
+      create a |fts| index with the |fts-field-type| field type.
 
       - Replace {``ACCESS-TOKEN``} with the output from the preceding step
       - Replace {``groupId``} with the project ID of the project where 

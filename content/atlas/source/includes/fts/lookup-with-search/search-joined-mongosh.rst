@@ -6,7 +6,7 @@ Search Joined Collections
 Create the |fts| Index
 ~~~~~~~~~~~~~~~~~~~~~~
 
-In this section, you can learn how to create an |fts| index named ``lookup-with-search-tutorial``
+In this section, you can learn how to create a |fts| index named ``lookup-with-search-tutorial``
 on all the fields in the ``sample_analytics.accounts`` collection.
 
 .. include:: /includes/fts/lookup-with-search/procedures/steps-fts-lookup-tutorial-create-index-mongosh.rst

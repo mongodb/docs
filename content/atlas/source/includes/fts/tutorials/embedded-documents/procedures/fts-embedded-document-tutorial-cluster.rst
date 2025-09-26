@@ -204,10 +204,10 @@ and collection, and loading the sample data into your collection.
               }
             }
 
-Create an |fts| Index 
+Create a |fts| Index 
 ~~~~~~~~~~~~~~~~~~~~~
 
-In this section, you will create an |fts| index for the fields in the 
+In this section, you will create a |fts| index for the fields in the 
 embedded documents in the ``local_school_district.schools`` collection. 
 
 Procedure 

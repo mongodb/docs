@@ -9,7 +9,7 @@
          * - ``mongodb-driver-kotlin-coroutine``
            - 4.10.0 or higher version
 
-   .. step:: Set up the file to run an |fts| facet query.
+   .. step:: Set up the file to run a |fts| facet query.
 
       a. Create a file named ``FacetQuery.kt``.
       #. Copy and paste the following code into the ``FacetQuery.kt`` file.

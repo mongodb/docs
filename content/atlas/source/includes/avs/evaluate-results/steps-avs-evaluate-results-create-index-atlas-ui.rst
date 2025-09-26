@@ -13,7 +13,7 @@
 
          This index definition indexes the ``plot_embedding_voyage_3_large`` field as the
          ``vector`` type with automatic binary ``quantization`` enabled
-         and the ``genres`` field as the ``filter`` type in an {+avs+}
+         and the ``genres`` field as the ``filter`` type in a {+avs+}
          index. The ``plot_embedding_voyage_3_large`` field contains embeddings created
          using |voyage|'s ``voyage-3-large`` embedding model. The
          index definition specifies ``2048`` vector dimensions and measures

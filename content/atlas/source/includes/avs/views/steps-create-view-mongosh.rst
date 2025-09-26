@@ -34,7 +34,7 @@
            ]
          )
 
-   .. step:: Create an {+avs+} index on the View.
+   .. step:: Create a {+avs+} index on the View.
 
       .. code-block:: sh
 

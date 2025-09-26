@@ -5,7 +5,7 @@ The synonym mapping in a collection's :ref:`index <synonyms-ref>`
 specifies the synonyms source collection and the analyzer to use 
 with the collection. 
 
-In this section, you create an |fts| index that defines one or many synonym
+In this section, you create a |fts| index that defines one or many synonym
 mappings for the ``sample_mflix.movies`` collection. The mapping definition
 in the index references the synonyms source collection that you created
 in the ``sample_mflix`` database. 

@@ -21,7 +21,7 @@ the materialized view each month.
 Create a {+fts} Index on the Materialized View
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this section, you can learn how to create an |fts| index on the ``monthlyPhoneTransactions``
+In this section, you can learn how to create a |fts| index on the ``monthlyPhoneTransactions``
 collection.
 
 .. include:: /includes/fts/materialized-view/procedures/steps-fts-materialized-create-index-cpp.rst

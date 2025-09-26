@@ -1,4 +1,4 @@
-To use the :driver:`Python Driver </python-drivers/>` to create an |fts| index,
+To use the :driver:`Python Driver </python-drivers/>` to create a |fts| index,
 define the search index from your application and call the ``create_search_index()``
 method.
 

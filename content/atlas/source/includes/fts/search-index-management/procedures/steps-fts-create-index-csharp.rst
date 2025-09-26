@@ -1,4 +1,4 @@
-To use the :driver:`.NET/C# Driver </csharp/current/>` to create an |fts| index:
+To use the :driver:`.NET/C# Driver </csharp/current/>` to create a |fts| index:
 
 1. Construct a ``BsonDocument`` that defines the index.
 
@@ -52,7 +52,7 @@ To use the :driver:`.NET/C# Driver </csharp/current/>` to create an |fts| index:
             :tabid: create-one
 
             Replace the placeholder values in the following example 
-            application, which uses the ``SearchIndexes.CreateOne`` command to define an |fts| index:
+            application, which uses the ``SearchIndexes.CreateOne`` command to define a |fts| index:
 
             .. list-table::
                :widths: 30 70
@@ -85,7 +85,7 @@ To use the :driver:`.NET/C# Driver </csharp/current/>` to create an |fts| index:
             :tabid: create-multiple
 
             Replace the placeholder values in the following example 
-            application, which uses the ``SearchIndexes.CreateMany`` command to define an |fts| index:
+            application, which uses the ``SearchIndexes.CreateMany`` command to define a |fts| index:
             
             .. list-table::
                :widths: 20 80

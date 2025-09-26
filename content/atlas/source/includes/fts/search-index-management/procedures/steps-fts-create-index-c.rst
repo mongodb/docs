@@ -1,4 +1,4 @@
-To use the :driver:`C Driver </c/>` to create an |fts| index, define the
+To use the :driver:`C Driver </c/>` to create a |fts| index, define the
 search index in your application and call the
 ``mongoc_collection_command_simple()`` method.
 

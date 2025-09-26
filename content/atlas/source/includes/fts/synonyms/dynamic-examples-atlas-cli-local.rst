@@ -20,7 +20,7 @@ Use Dynamic Mappings
       {+atlas-cli+}. To learn more, see 
       :atlascli:`Connect from the Atlas CLI </connect-atlas-cli/>`.
 
-   .. step:: Create an |fts| index.
+   .. step:: Create a |fts| index.
 
       Run the :atlascli:`atlas deployments search indexes create </command/atlas-deployments-search-indexes-create/>`
       command in your terminal, replacing ``<path-to-file>`` with the 

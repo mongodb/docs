@@ -149,7 +149,7 @@
       system using {+avs+} to get relevant documents from your vector database. 
       Paste and run each of the following code snippets in your notebook:
 
-      a. Create an {+avs+} index on your vector embeddings.
+      a. Create a {+avs+} index on your vector embeddings.
       
          Run the following code to create the index directly
          from your application with the :driver:`PyMongo Driver </pymongo/>`.

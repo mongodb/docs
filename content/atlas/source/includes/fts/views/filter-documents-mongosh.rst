@@ -16,7 +16,7 @@
       .. literalinclude:: /includes/fts/views/filter-documents-create-view.sh
          :language: sh
 
-   .. step:: Create an |fts| index on the View.
+   .. step:: Create a |fts| index on the View.
 
       .. literalinclude:: /includes/fts/views/filter-documents-create-index.sh
          :language: sh

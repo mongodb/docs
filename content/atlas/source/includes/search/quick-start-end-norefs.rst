@@ -56,7 +56,7 @@ learn more about |fts|:
 
    Watch an overview of |service| and |fts| and get started setting up
    |fts| for your data. The video demonstrates how to load sample data on
-   your {+cluster+}, create an |fts| index, and run a sample query using
+   your {+cluster+}, create a |fts| index, and run a sample query using
    :guilabel:`Search Tester` and :guilabel:`Data Explorer`. 
 
    *Duration: 10 Minutes*

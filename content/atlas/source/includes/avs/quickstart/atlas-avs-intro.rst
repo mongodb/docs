@@ -1,6 +1,6 @@
 This quick start describes how to load sample documents that contain
 vector embeddings into an |service| {+cluster+} or local |service| deployment,
-create an {+avs+} index on those embeddings, and then perform
+create a {+avs+} index on those embeddings, and then perform
 semantic search to return documents that are similar to your query.
 
 *Time required: 15 minutes*
@@ -18,7 +18,7 @@ In this quick start, you complete the following steps:
    definition specifies ``2048`` vector dimensions and measures 
    similarity using ``dotProduct``.
 
-#. Run an {+avs+} query that searches the sample 
+#. Run a {+avs+} query that searches the sample 
    ``sample_mflix.embedded_movies`` collection. The query uses the 
    :pipeline:`$vectorSearch` stage to search the
    ``plot_embedding_voyage_3_large`` field, which contains embeddings

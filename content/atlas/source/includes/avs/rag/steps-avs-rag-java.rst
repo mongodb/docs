@@ -243,7 +243,7 @@
       a. Create a file named ``VectorIndex.java`` and paste the following
          code.
 
-         This code creates an {+avs+} index on your collection using the
+         This code creates a {+avs+} index on your collection using the
          following index definition:
 
          - Index the ``embedding`` field in a :ref:`vector

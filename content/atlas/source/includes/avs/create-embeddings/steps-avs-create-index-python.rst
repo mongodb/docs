@@ -1,5 +1,5 @@
 To enable vector search queries on your data,
-you must create an {+avs+} index on your
+you must create a {+avs+} index on your
 collection.
 
 a. Paste the following code in your notebook.

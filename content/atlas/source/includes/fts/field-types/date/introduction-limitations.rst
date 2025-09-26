@@ -22,7 +22,7 @@ You can also use the ``date`` type to index:
    
    To query indexed date values inside arrays, you must use the :ref:`range <range-ref>` 
    operator. You can't use the :ref:`near <near-ref>` operator
-   to query date values stored in an array, even if you have an |fts|
+   to query date values stored in an array, even if you have a |fts|
    index on the date values inside the array.
 
 .. include:: /includes/fts/extracts/fts-ib-enable-dynamic-mappings.rst 

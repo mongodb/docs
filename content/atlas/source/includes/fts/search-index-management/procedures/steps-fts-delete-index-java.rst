@@ -1,4 +1,4 @@
-To delete an |fts| index on a collection using the :driver:`Java 
+To delete a |fts| index on a collection using the :driver:`Java 
 Driver </java/sync/current/fundamentals/indexes/#atlas-search-indexes>`,
 use the ``dropSearchIndex()`` method:
 

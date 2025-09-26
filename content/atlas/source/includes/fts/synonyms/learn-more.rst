@@ -2,7 +2,7 @@ Learn More
 ----------
 
 To learn how to add a collection that configures words as synonyms to your {+cluster+}, and use this collection to 
-create an |fts| index and run |fts| queries using synonyms, see :ref:`synonyms-tutorial`.
+create a |fts| index and run |fts| queries using synonyms, see :ref:`synonyms-tutorial`.
 
 To see examples of ``text`` queries that use synonyms, see :ref:`text-ref-synonyms-eg` in the :ref:`text <text-ref>` reference page. 
 

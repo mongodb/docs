@@ -15,7 +15,7 @@
       Click :guilabel:`Edit Query` to view a default query syntax 
       sample in |json| format.
       
-   .. step:: Run an |fts| query with the ``compound`` and ``autocomplete`` operators on the ``movies`` collection.
+   .. step:: Run a |fts| query with the ``compound`` and ``autocomplete`` operators on the ``movies`` collection.
       
       Copy and paste the following query into the :guilabel:`Query Editor`, 
       and then click the :guilabel:`Search` button in the 

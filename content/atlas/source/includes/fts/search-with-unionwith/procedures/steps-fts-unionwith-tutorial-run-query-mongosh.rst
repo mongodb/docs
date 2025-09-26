@@ -24,7 +24,7 @@
 
             switched to db sample_training
 
-   .. step:: Run the following :pipeline:`$unionWith` with an |fts| :pipeline:`$search` query.
+   .. step:: Run the following :pipeline:`$unionWith` with a |fts| :pipeline:`$search` query.
 
       .. include:: /includes/fts/extracts/search-with-unionwith-query-desc.rst
 

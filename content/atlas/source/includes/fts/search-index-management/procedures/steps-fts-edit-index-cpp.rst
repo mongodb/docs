@@ -1,4 +1,4 @@
-To use the :driver:`C++ Driver </cxx/>` to edit an |fts| index, call the
+To use the :driver:`C++ Driver </cxx/>` to edit a |fts| index, call the
 ``update_one()`` method on a search index view.
 
 Example 

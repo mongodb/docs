@@ -25,7 +25,7 @@ a. Create and save the JSON index definition in a file.
 
    The sample {+atlas-cli+} requests use these variables. Replace these 
    variables with your desired values before running the command to 
-   create an |fts| index.
+   create a |fts| index.
 
    .. list-table::
       :header-rows: 1
@@ -39,12 +39,12 @@ a. Create and save the JSON index definition in a file.
         - string
         - Unique 24-hexadecimal character string that identifies the
           project that contains the cluster. The cluster contains the collection
-          for which you want to create an |fts| index.
+          for which you want to create a |fts| index.
       * - CLUSTER_NAME
         - string
         - Unique 24-hexadecimal character string that identifies the
           cluster. The cluster contains the collection for which you want to
-          create an |fts| index.
+          create a |fts| index.
       * - FILE_PATH
         - string
         - Path to the JSON index file that you created and saved in the previous

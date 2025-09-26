@@ -7,7 +7,7 @@ To create an {+fts+} index using {+mongosh+}:
 
       To learn more, see :ref:`connect-mongo-shell`.
 
-   .. step:: Create an |fts| index.
+   .. step:: Create a |fts| index.
 
       Use the :method:`db.collection.createSearchIndex() 
       <db.collection.createSearchIndex()>` method.

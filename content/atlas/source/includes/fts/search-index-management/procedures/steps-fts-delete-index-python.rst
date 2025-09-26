@@ -11,7 +11,7 @@ Example
 
    .. step:: Copy the following code example into the file. 
 
-      The following sample application passes an |fts| index name to
+      The following sample application passes a |fts| index name to
       the ``drop_search_index()`` method to delete the index.
 
       .. literalinclude:: /includes/fts/search-index-management/python/delete_index.py

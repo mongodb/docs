@@ -6,7 +6,7 @@ Combine Query Results
 Create the |fts| Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this section, you can learn how to create an |fts| index named ``default`` on 
+In this section, you can learn how to create a |fts| index named ``default`` on 
 all the fields in the ``companies`` collection in the 
 ``sample_training`` database. You will create another |fts| index 
 named ``default`` on all the fields in the ``inspections`` 

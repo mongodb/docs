@@ -18,7 +18,7 @@ Define the Index for the |fts-field-type| Type
       {+atlas-cli+}. To learn more, see 
       :atlascli:`Connect from the Atlas CLI </connect-atlas-cli/>`.
 
-   .. step:: Create an |fts| index.
+   .. step:: Create a |fts| index.
 
       Run the :atlascli:`atlas clusters search indexes create </command/atlas-clusters-search-indexes-create/>`
       command in your terminal, replacing ``<path-to-file>`` with the 

@@ -2,7 +2,7 @@
    :style: normal
 
 
-   .. step:: Set up the file to run an |fts| facet query.
+   .. step:: Set up the file to run a |fts| facet query.
 
       a. Create a file named ``facet-query.py``. 
 

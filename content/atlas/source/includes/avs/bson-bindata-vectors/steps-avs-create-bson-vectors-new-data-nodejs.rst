@@ -155,7 +155,7 @@
 
    .. step:: Create the {+avs+} index on the collection.
 
-      a. Create a file named ``create-index.js`` to define an {+avs+}
+      a. Create a file named ``create-index.js`` to define a {+avs+}
          index on the collection.
 
          .. code-block:: shell 
@@ -260,7 +260,7 @@
             
                Embeddings with BSON vectors have been saved to query-embeddings.json
 
-   .. step:: Run an {+avs+} query.
+   .. step:: Run a {+avs+} query.
 
       a. Create a file named ``run-query.js``.
 

@@ -1,4 +1,4 @@
-To use the :driver:`.NET/C# Driver </csharp/current/>` to delete an |fts| index,
+To use the :driver:`.NET/C# Driver </csharp/current/>` to delete a |fts| index,
 use the ``DropOne()`` or ``DropOneAsync()`` method.
 
 Example

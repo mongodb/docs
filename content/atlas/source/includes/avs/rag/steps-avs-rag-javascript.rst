@@ -93,7 +93,7 @@
       In this section, you set up {+avs+} to :ref:`retrieve <rag-retrieval>` 
       documents from your vector database. Complete the following steps:
       
-      a. Create an {+avs+} index on your vector embeddings.
+      a. Create a {+avs+} index on your vector embeddings.
       
          Create a new file named ``rag-vector-index.js`` and paste the following code. 
          This code connects to your MongoDB deployment and creates an 

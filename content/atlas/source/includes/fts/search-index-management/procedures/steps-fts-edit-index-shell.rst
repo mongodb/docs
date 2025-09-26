@@ -1,4 +1,4 @@
-To edit an |fts| index through {+mongosh+}, use 
+To edit a |fts| index through {+mongosh+}, use 
 the :method:`db.collection.updateSearchIndex() 
 <db.collection.updateSearchIndex()>` method.
 

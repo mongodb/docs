@@ -11,7 +11,7 @@
       On the :guilabel:`Database` screen, click the ``sample_mflix``
       database, then click the ``movies`` collection. 
 
-   .. step:: Run an |fts| facet query that groups the genre and year fields into buckets.
+   .. step:: Run a |fts| facet query that groups the genre and year fields into buckets.
     
       The query uses the following ``searchMeta`` operator clauses:
   

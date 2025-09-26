@@ -15,7 +15,7 @@
 
          use sample_mflix
 
-   .. step:: Run an |fts| query against the ``movies`` collection.
+   .. step:: Run a |fts| query against the ``movies`` collection.
 
       .. tabs::
 

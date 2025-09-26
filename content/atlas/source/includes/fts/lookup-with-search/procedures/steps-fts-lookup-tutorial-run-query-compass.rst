@@ -11,7 +11,7 @@
       On the :guilabel:`Database` screen, click the ``sample_analytics``
       database and then click the ``customers`` collection.
 
-   .. step:: Run an |fts| query against the collection.
+   .. step:: Run a |fts| query against the collection.
 
       .. include:: /includes/fts/lookup-with-search/query-intro.rst
 

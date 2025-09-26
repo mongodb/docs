@@ -15,7 +15,7 @@
       Click :guilabel:`Edit $search Query` to view a default query
       syntax sample in |json| format. 
 
-   .. step:: Run an |fts| query against the indexed field.
+   .. step:: Run a |fts| query against the indexed field.
 
       To run the query, copy and paste the following query into the the
       :guilabel:`Query Editor`, then click :guilabel:`Search`. 

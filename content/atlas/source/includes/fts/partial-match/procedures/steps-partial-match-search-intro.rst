@@ -21,7 +21,7 @@ for more fine-grained control over partial matching. To learn more, see
 
 This tutorial takes you through the following steps: 
 
-1. Set up an |fts| index on the ``plot`` field in the 
+1. Set up a |fts| index on the ``plot`` field in the 
    ``sample_mflix.movies`` collection.
    
 #. Run |fts| query for a partial string against the ``plot`` field in 

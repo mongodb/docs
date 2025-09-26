@@ -1,4 +1,4 @@
-To delete an |fts| index through {+mongosh+}, use 
+To delete a |fts| index through {+mongosh+}, use 
 the :method:`db.collection.dropSearchIndex() 
 <db.collection.dropSearchIndex()>` method.
 

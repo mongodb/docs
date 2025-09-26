@@ -14,7 +14,7 @@ Example
       The following sample application uses the ``search_indexes()`` method
       on the target collection to instantiate a search index view. Then,
       the application calls the ``drop_one()`` method on the view and passes
-      an |fts| index name as a parameter to delete the index.
+      a |fts| index name as a parameter to delete the index.
 
       .. literalinclude:: /includes/fts/search-index-management/cpp/delete-index.cpp
          :language: cpp

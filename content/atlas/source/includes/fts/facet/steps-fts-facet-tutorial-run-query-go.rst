@@ -43,7 +43,7 @@
     
       .. include:: /includes/fts/facts/fact-fts-driver-connection-string.rst
   
-   .. step:: Run an |fts| facet query that groups the genre and year fields into buckets.
+   .. step:: Run a |fts| facet query that groups the genre and year fields into buckets.
   
       .. io-code-block::
          :copyable: true

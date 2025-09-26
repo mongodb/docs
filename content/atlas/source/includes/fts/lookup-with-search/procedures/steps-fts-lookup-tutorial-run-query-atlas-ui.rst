@@ -12,7 +12,7 @@
       #. Click the :guilabel:`Aggregation` tab for the
          collection.
 
-   .. step:: Run an |fts| ``lookup`` query on the ``customers`` and ``accounts`` collections.
+   .. step:: Run a |fts| ``lookup`` query on the ``customers`` and ``accounts`` collections.
       
       .. include:: /includes/fts/lookup-with-search/query-intro.rst
       

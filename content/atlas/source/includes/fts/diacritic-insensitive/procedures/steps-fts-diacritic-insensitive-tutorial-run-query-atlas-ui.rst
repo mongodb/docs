@@ -15,7 +15,7 @@
       Click :guilabel:`Edit Query` to view a default query syntax 
       sample in |json| format.
       
-   .. step:: Run an |fts| diacritic-insensitive query.
+   .. step:: Run a |fts| diacritic-insensitive query.
 
       This query uses the :pipeline:`$search` stage to query the collection
       using the ``compound`` operator. The ``compound`` operator uses

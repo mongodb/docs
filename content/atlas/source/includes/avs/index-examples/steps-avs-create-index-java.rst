@@ -35,7 +35,7 @@
 
       - Index the ``plot_embedding_voyage_3_large`` field as the
         ``vector`` type and the ``genres`` and ``year`` fields as the
-        ``filter`` type in an {+avs+} index.
+        ``filter`` type in a {+avs+} index.
       - Specifies the ``plot_embedding_voyage_3_large`` field as the
         vector embeddings field, which contains embeddings created using
         |voyage|'s ``voyage-3-large`` embedding model. 

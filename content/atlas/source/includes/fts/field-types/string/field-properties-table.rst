@@ -112,7 +112,7 @@ The |fts| ``string`` type takes the following parameters:
       
        If value is ``include``, |fts| uses the length of the field to 
        determine the higher score when scoring. For example, if two 
-       documents match an |fts| query, the document with the shorter 
+       documents match a |fts| query, the document with the shorter 
        field length scores higher than the document with the longer 
        field length.
 

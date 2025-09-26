@@ -15,7 +15,7 @@
 
          use sample_mflix
 
-   .. step:: Run an |fts| facet query that groups the genre and year fields into buckets.
+   .. step:: Run a |fts| facet query that groups the genre and year fields into buckets.
 
       The sample query uses the following to query the collection:
 

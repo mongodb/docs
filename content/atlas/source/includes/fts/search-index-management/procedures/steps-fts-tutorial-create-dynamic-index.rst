@@ -9,7 +9,7 @@
    
    .. step:: Specify an index definition.
       
-      You can create an |fts| index that uses :ref:`dynamic mappings 
+      You can create a |fts| index that uses :ref:`dynamic mappings 
       <static-dynamic-mappings>` or :ref:`static mappings 
       <static-dynamic-mappings>`. To learn more about dynamic and static 
       mappings, see :ref:`static-dynamic-mappings`.

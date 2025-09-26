@@ -1,4 +1,4 @@
-To use the :driver:`.NET/C# Driver </csharp/current/>` to edit an |fts| index,
+To use the :driver:`.NET/C# Driver </csharp/current/>` to edit a |fts| index,
 use the ``Update()`` or ``UpdateAsync()`` method.
 
 Example

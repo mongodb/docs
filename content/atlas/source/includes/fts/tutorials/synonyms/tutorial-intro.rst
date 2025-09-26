@@ -7,7 +7,7 @@ The tutorial takes you through the following steps:
 
 1. Load one or more sample synonyms source collections in the 
    ``sample_mflix`` database.
-#. Create an |fts| index with one or more synonym mappings for the 
+#. Create a |fts| index with one or more synonym mappings for the 
    ``sample_mflix.movies`` collection.
 #. Run |fts| queries against the ``title`` field in the 
    ``sample_mflix.movies`` collection for words configured as synonyms 

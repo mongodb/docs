@@ -15,7 +15,7 @@
       #. Click the :guilabel:`Aggregation` tab for the
          collection.
 
-   .. step:: Run an |fts| ``$unionWith`` query on the ``companies`` and ``inspections`` collections.
+   .. step:: Run a |fts| ``$unionWith`` query on the ``companies`` and ``inspections`` collections.
       
       .. include:: /includes/fts/extracts/search-with-unionwith-query-desc.rst
       

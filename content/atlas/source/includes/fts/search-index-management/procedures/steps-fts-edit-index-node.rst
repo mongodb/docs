@@ -1,4 +1,4 @@
-To edit an |fts| index through the :driver:`Node Driver </node/current/>`,
+To edit a |fts| index through the :driver:`Node Driver </node/current/>`,
 use the ``updateSearchIndex`` helper method.
 
 Example

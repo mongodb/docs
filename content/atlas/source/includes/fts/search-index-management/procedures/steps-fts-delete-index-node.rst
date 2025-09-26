@@ -1,4 +1,4 @@
-To delete an |fts| index through the :driver:`Node Driver </node/current/>`,
+To delete a |fts| index through the :driver:`Node Driver </node/current/>`,
 use the ``dropSearchIndex`` helper method.
 
 Example
