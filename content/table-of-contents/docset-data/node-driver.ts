@@ -582,11 +582,6 @@ const tocData: TocItem[] = [
             url: "/docs/drivers/node/:version/reference/release-notes",
           },
           {
-            label: "Compatibility",
-            contentSite: "node",
-            url: "/docs/drivers/node/:version/reference/compatibility",
-          },
-          {
             label: "Upgrade Guides",
             contentSite: "node",
             url: "/docs/drivers/node/:version/reference/upgrade",
@@ -597,6 +592,11 @@ const tocData: TocItem[] = [
             url: "/docs/drivers/node/:version/reference/quick-reference",
           },
         ]
+      },
+      {
+        label: "Compatibility",
+        contentSite: "drivers",
+        url: "/docs/drivers/compatibility",
       },
       {
         label: "TypeScript",
