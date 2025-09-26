@@ -1,7 +1,24 @@
-# Github Actions
+# MongoDB Documentation
 
-These GH Actions are meant for the private repo, and will not be copied over to the public repo. This is meant for security and vulnerability issues, to prevent malicious code from being run. There is also an added security measure in the public repo to disable actions completely.
+This repository contains the MongoDB documentation, accessible at https://www.mongodb.com/docs/
 
-## Omitted Actions
 
-See the workflow for repo-sync that instructs the action to copy over to the public repo. This action specifies which files to be copied over. See [example ticket](https://jira.mongodb.org/browse/SECBUG-503)
+## Contribute
+
+The MongoDB Documentation Project is governed by the terms of the [MongoDB Contributor Agreement](https://www.mongodb.com/legal/contributor-agreement).
+
+To contribute to the documentation, 
+
+- If you have not done so already, please sign the [MongoDB Contributor Agreement](https://www.mongodb.com/legal/contributor-agreement).
+
+- Fork this repository on GitHub and issue a pull request. 
+
+
+## Report Issues
+
+To file issues or requests regarding the documentation, use the "Rate this page" feedback widget on the right side of docs pages and leave a comment.
+
+
+## License
+
+All documentation is available under the terms of a [Creative Commons License](https://creativecommons.org/licenses/by-nc-sa/3.0/).
