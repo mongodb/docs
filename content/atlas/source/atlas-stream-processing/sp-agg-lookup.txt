@@ -47,9 +47,8 @@ To learn more, see :manual:`$lookup Syntax
 .. warning::
 
    Using ``$lookup`` to enrich a stream can reduce stream processing
-   speed. Consider whether :pipeline:`$cachedLookup` may better suit
-   your use case.
-
+   speed.
+   
 The following prototype form illustrates all available fields:
 
 .. code-block:: json
@@ -72,7 +71,9 @@ The following prototype form illustrates all available fields:
       "pipeline": [ 
         <pipeline to run> 
       ],
-      "as": "<output-array-field>"
+      "as": "<output-array-field>",
+      "parallelism": <integer>,
+      "partitionBy": <expression>
     }  
   } 
 
@@ -184,6 +185,27 @@ The ``$lookup`` stage takes a document with the following fields:
        new array field contains the matching documents from the 
        ``from`` collection. If the specified name already exists as a 
        field in the input document, that field is overwritten.
+
+   * - ``parallelism``
+     - integer
+     - Optional
+     - Maximum number of parallel requests made to the ``$lookup``
+       target. Higher parallelism values may increase ``$lookup``
+       throughput. However, higher values may also use more resources
+       on the ``$lookup`` target cluster.
+ 
+       Must be an integer between ``1`` and ``16``. Defaults to ``1``. 
+
+   * - ``partitionBy``
+     - expression
+     - Optional
+     - Expression used to partition the input stream into parallel threads.
+       {+atlas-sp+} allocates each input document with the same ``partitionBy``
+       expression result to the same thread.
+
+       If this field is unspecified, input documents are sent to parallel
+       threads by round-robin.
+
 
 .. _atlas-sp-agg-lookup-behavior:
 
