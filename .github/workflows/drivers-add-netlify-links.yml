@@ -6,6 +6,7 @@ on:
       - content/cpp-driver/**
       - content/csharp/**
       - content/django-mongodb/**
+      - content/drivers/**
       - content/entity-framework/**
       - content/golang/**
       - content/hibernate/**
@@ -42,8 +43,10 @@ jobs:
       - name: Get Changed Files and Folders
         id: changed-files
         run: |
-          # Get all changed files in content/
-          changed_files=$(git diff --name-only origin/${{ github.base_ref }} ${{ github.event.pull_request.head.sha }} | grep '^content/' | sed 's|^|/|')
+          # Get base commit for PR
+          base_commit=$(git merge-base ${{ github.event.pull_request.head.sha }} origin/${{ github.base_ref }})
+          # Get added, modified, and renamed files in content/
+          changed_files=$(git diff --diff-filter=AMR --name-only $base_commit ${{ github.event.pull_request.head.sha }} | grep '^content/' | sed 's|^|/|')
           # Convert to comma-separated list
           changed_files_csv=$(echo "$changed_files" | tr '\n' ',')
           driver_folders=$(echo "$changed_files" | cut -d/ -f3 | sort -u | tr '\n' ',' | sed 's/,$//')
@@ -60,6 +63,7 @@ jobs:
           url_segments["c-driver"]="languages/c/c-driver"
           url_segments["cpp-driver"]="languages/cpp/cpp-driver"
           url_segments["csharp"]="drivers/csharp"
+          url_segments["drivers"]="drivers"
           url_segments["entity-framework"]="entity-framework"
           url_segments["golang"]="drivers/go"
           url_segments["hibernate"]="languages/java/mongodb-hibernate"
@@ -87,9 +91,13 @@ jobs:
           # Build links for each driver folder
           for folder in $(echo "$DRIVER_FOLDERS" | tr ',' '\n'); do
             segment="${url_segments[$folder]}"
+            # Skip if no matching URL segment
+            if [ -z "$segment" ]; then
+              continue
+            fi
             base_link="https://deploy-preview-${{ github.event.number }}--mongodb-${folder}.netlify.app/docs/${segment}"
             for file in $(echo "$CHANGED_FILES" | tr ',' '\n'); do
-              if [[ $file == "/content/$folder"* ]]; then
+              if [[ $file == "/content/$folder"* && $file == *.txt ]]; then
                 if (! grep -s "includes/"  <<< "$file") && 
                     (! grep -s "images/"  <<< "$file") && 
                     (! grep -s "examples/"  <<< "$file"); then
