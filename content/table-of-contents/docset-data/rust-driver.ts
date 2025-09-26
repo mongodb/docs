@@ -1,5 +1,7 @@
 import type { TocItem } from "../types";
 
+const outdatedVersions = ["v2.7", "v2.8", "v3.0", "v3.1"];
+
 export const tocData: TocItem[] = [
   {
     label: "Rust Driver",
@@ -258,6 +260,7 @@ export const tocData: TocItem[] = [
                 label: "Tutorial: CRUD Web App",
                 contentSite: "rust",
                 url: "/docs/drivers/rust/:version/fundamentals/crud/web-app-tutorial",
+                versions: { excludes: outdatedVersions },
               },
             ],
           },
