@@ -69,7 +69,7 @@ public class Tutorial {
                         new Document("id", "pqr678st")
                                 .append("name", "Karcher Hose Set")
                                 .append("category", "GARDEN")
-                                .append("description", "Hose + nosels + winder for tidy storage")
+                                .append("description", "Hose + nozzles + winder for tidy storage")
                 )
         );
         // :snippet-end:

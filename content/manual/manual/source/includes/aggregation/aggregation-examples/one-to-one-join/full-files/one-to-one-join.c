@@ -92,7 +92,7 @@ int main(void)
             "id", BCON_UTF8("pqr678st"),
             "name", BCON_UTF8("Karcher Hose Set"),
             "category", BCON_UTF8("GARDEN"),
-            "description", BCON_UTF8("Hose + nosels + winder for tidy storage"));
+            "description", BCON_UTF8("Hose + nozzles + winder for tidy storage"));
 
         bson_error_t error;
         if (!mongoc_collection_insert_many(products, (const bson_t **)product_docs, num_docs, NULL, NULL, &error))

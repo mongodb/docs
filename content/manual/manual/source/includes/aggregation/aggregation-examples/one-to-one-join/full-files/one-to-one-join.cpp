@@ -72,7 +72,7 @@ int main() {
             "id": "pqr678st",
             "name": "Karcher Hose Set",
             "category": "GARDEN",
-            "description": "Hose + nosels + winder for tidy storage"
+            "description": "Hose + nozzles + winder for tidy storage"
         })")
     };
 

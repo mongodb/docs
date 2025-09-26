@@ -4,6 +4,7 @@ import (
 	"context"
 	"driver-examples/examples/aggregation/pipelines/filter"
 	"driver-examples/examples/aggregation/pipelines/group"
+	"driver-examples/examples/aggregation/pipelines/join_one_to_one"
 	"driver-examples/examples/aggregation/pipelines/unwind"
 	"driver-examples/utils"
 	"driver-examples/utils/compare"
@@ -55,9 +56,7 @@ func TestAggregationPipelines(t *testing.T) {
 		{"FilterTutorial", testFilterTutorial},
 		{"GroupTutorial", testGroupTutorial},
 		{"UnwindTutorial", testUnwindTutorial},
-		// Add more pipeline tests here as you create them:
-		// {"GroupTutorial", testGroupTutorial},
-		// {"LookupTutorial", testLookupTutorial},
+		{"JoinOneToOneTutorial", testJoinOneToOneTutorial},
 	}
 
 	for _, tt := range tests {
@@ -125,10 +124,29 @@ func testUnwindTutorial(t *testing.T) {
 	expectedOutputFilepath := "examples/aggregation/pipelines/unwind/output.txt"
 
 	// Compare the actual results with expected output
-	options := compare.Options{
-		ComparisonType: "unordered",
+	comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)
+
+	if !comparisonResult.IsMatch {
+		t.Errorf("Results do not match expected output: %s", comparisonResult.Error())
+
+		// Print detailed error information
+		for _, err := range comparisonResult.Errors {
+			t.Errorf("  Path: %s, Expected: %s, Actual: %s, Message: %s",
+				err.Path, err.Expected, err.Actual, err.Message)
+		}
 	}
-	comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, &options)
+}
+
+func testJoinOneToOneTutorial(t *testing.T) {
+	t.Helper() // Mark this as a helper function for better error reporting
+
+	// Run your test logic
+	join_one_to_one.LoadData()
+	result := join_one_to_one.RunPipeline()
+	expectedOutputFilepath := "examples/aggregation/pipelines/join_one_to_one/output.txt"
+
+	// Compare the actual results with expected output
+	comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)
 
 	if !comparisonResult.IsMatch {
 		t.Errorf("Results do not match expected output: %s", comparisonResult.Error())

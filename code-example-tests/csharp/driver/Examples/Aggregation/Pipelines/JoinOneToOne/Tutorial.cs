@@ -91,7 +91,7 @@ public class Tutorial
                 Id = "pqr678st",
                 Name = "Karcher Hose Set",
                 Category = "GARDEN",
-                Description = "Hose + nosels + winder for tidy storage"
+                Description = "Hose + nozzles + winder for tidy storage"
             }
         });
         // :snippet-end:

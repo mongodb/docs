@@ -60,7 +60,7 @@ suspend fun main() {
                     "KITCHENWARE",
                     "Luxury mixer turning good cakes into great"
                 ),
-                Product("pqr678st", "Karcher Hose Set", "GARDEN", "Hose + nosels + winder for tidy storage")
+                Product("pqr678st", "Karcher Hose Set", "GARDEN", "Hose + nozzles + winder for tidy storage")
             )
         )
         // end-insert-sample-data

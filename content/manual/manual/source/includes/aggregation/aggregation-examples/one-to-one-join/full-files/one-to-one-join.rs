@@ -90,7 +90,7 @@ async fn main() -> mongodb::error::Result<()> {
             id: "pqr678st".to_string(),
             name: "Karcher Hose Set".to_string(),
             category: "GARDEN".to_string(),
-            description: "Hose + nosels + winder for tidy storage".to_string(),
+            description: "Hose + nozzles + winder for tidy storage".to_string(),
         },
     ];
     products.insert_many(product_docs).await?;
