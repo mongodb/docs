@@ -257,7 +257,10 @@ async function copyCommandFilesFromGit(tagOrBranch: string): Promise<string[]> {
     }
     deleteExtraFiles(upcomingCommandDir, copiedUpcoming);
     deleteExtraFiles(currentCommandDir, copiedCurrent);
-    deleteExtraFiles(atlasCommandDir, copiedAtlas);
+    // commenting out Atlas removals. We might remove files here that are still used
+    // and don't want to introduce errors into Atlas build.
+    // revisit later for way to capture list of files and notify writing team
+    //  deleteExtraFiles(atlasCommandDir, copiedAtlas);
 
     console.log(`✅ Copied ${files.length} command files to upcoming directory`);
     console.log(`✅ Copied ${files.length} command files to current directory`);
@@ -470,7 +473,7 @@ function treeToArray(tree: CommandTree, basePath: string = '', versionAvailabili
       items.push({
         label: key.replace(/-/g, ' '),
         contentSite: "atlas-cli" as const,
-        url: `/command/${currentPath}`,
+        url: `/docs/atlas/cli/:version/command/${currentPath}`,
         ...(versionConstraint && { versions: versionConstraint })
       });
     } else {
