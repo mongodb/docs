@@ -1,0 +1,290 @@
+.. _ak8so-migrate-ptr:
+
+=================================================
+Migrate Parameters to Custom Resource Definitions
+=================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Beginning with |ak8so| version 2.6, various resource configurations
+that previously took the form of parameters have transitioned to CRDs
+of their own. Support for the parameter-based parent resource
+configuration is deprecated. Existing parameter-based parent resource 
+configurations will continue to work, but support for these 
+configurations will be removed in a future release. 
+
+To continue managing these resources
+through |ak8so| in the future, migrate to the appropriate CRD.
+
+.. _ak8so-migrate-ptr-affected-list:
+
+Affected Configurations
+-----------------------
+
+The following configurations are affected:
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Parameter
+     - CRD
+
+   * - :setting:`spec.customRoles`
+     - :ref:`atlascustomrole-custom-resource`
+
+   * - :setting:`spec.privateEndpoints`
+     - :ref:`atlasprivateendpoint-custom-resource`
+
+   * - :setting:`spec.projectIpAccessList`
+     - :ref:`atlasipaccesslist-custom-resource`
+
+   * - :setting:`spec.networkPeers`
+     - :ref:`atlasnetworkpeering-custom-resource`
+
+   * - ``spec.networkPeers.containerId``
+     - :ref:`atlasnetworkcontainer-custom-resource`
+
+   * - ``spec.integrations``
+     - :ref:`atlasthirdpartyintegration-custom-resource`
+
+
+.. _ak8so-migrate-ptr-considerations:
+
+Resource-Specific Considerations
+--------------------------------
+
+Before you migrate parameters to resources, consider any
+implementation details specific to those parameters.
+
+.. _ak8so-migrate-ptr-considerations-networkpeering:
+
+Network Peering
+~~~~~~~~~~~~~~~
+
+The following considerations apply to ``atlasNetworkPeering``
+resources:
+
+- An ``atlasNetworkPeering`` CRD can refer to its corresponding
+  ``atlasNetworkContainer`` by a |k8s| name reference or ID.
+
+- An ``atlasNetworkPeering`` CRD can refer to the ``atlasProject``
+  that hosts it by a |k8s| name reference or ID.
+
+- The :setting:`spec.networkPeers` parameter of an ``atlasProject``
+  CRD contains details of both the peering connection itself and the
+  container that supports it. When you migrate from this parameter to
+  an ``atlasNetworkPeering`` CRD, you might need to create an
+  ``atlasNetworkContainer`` CRD for the container that supports
+  it. To learn more, see :ref:`ak8so-migrate-ptr-considerations-networkcontainer`.
+
+.. _ak8so-migrate-ptr-considerations-networkcontainer:
+
+Network Container
+~~~~~~~~~~~~~~~~~
+
+The following considerations apply to ``atlasNetworkContainer``
+resources:
+
+- You don't need to create a new ``atlasNetworkContainer`` resource
+  when you migrate the ``atlasNetworkPeering`` connection from a
+  parameter to a resource if either:
+
+  - You manage the network container supporting an ``atlasNetworkPeering``
+    connection outside of the |ak8so| ``atlasProject`` in which you
+    manage the ``atlasNetworkPeering`` connection
+  - An ``atlasNetworkContainer`` resource for the
+    ``atlasNetworkPeering`` connection's container already exists.
+
+- An ``atlasNetworkContainer`` CRD can refer to its host
+  ``atlasProject`` by a |k8s| name reference or ID.
+
+.. _ak8so-migrate-ptr-considerations-thirdpartyintegrations:
+
+Third-Party Integrations
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following considerations apply to ``AtlasThirdPartyIntegration``
+resources:
+
+- Each third-party integration requires its own
+  ``AtlasThirdPartyIntegration`` resource. You can't define multiple
+  integrations in the same resource.
+
+- Each project can have only one instance of a particular type of
+  third-party integration, whether configured by a
+  ``spec.integrations`` entry of that type in your ``AtlasProject``
+  resource, or by an ``AtlasThirdPartyIntegration`` resource with a
+  ``spec.type`` of that value.
+
+  For example, if you have an ``AtlasThirdPartyIntegration`` CRD of
+  ``spec.type`` ``DATADOG``, you cannot declare a
+  ``spec.integrations.type`` of ``DATADOG`` in your ``AtlasProject``
+  resource.
+
+.. _ak8so-migrate-ptr-procedure:
+
+Migration Procedure
+-------------------
+
+To migrate from parameter-level resource management to CRD management:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Disable project reconciliation and edit subresource
+      references.
+
+      a. Add the ``mongodb.com/atlas-reconciliation-policy: "skip"``
+         annotation to the parent resource's ``metadata``. This
+         prevents |ak8so| from attempting to reconcile the parent
+         resource and its subresources. 
+         
+      #. To prevent conflicts with the new CRD you create, you must
+         delete the parameters corresponding to the resource you want to
+         migrate from the parent resource.
+         
+      Consider the following example
+      of an ``atlasProject`` with a ``customRoles`` configuration:
+
+      .. code-block::
+         :copyable: false
+
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasProject
+         metadata:
+           name: my-project
+         spec:
+           name: Test project
+           connectionSecretRef:
+             name: my-atlas-key
+           customRoles:
+             role:
+               name: my-role
+               actions:
+                 - name: getShardMap
+                   resources:
+                     cluster: true
+                 - name: shardingState
+                   resources:
+                     cluster: true
+                 - name: connPoolStats
+                   resources:
+                     cluster: true
+                 - name: getLog
+                   resources:
+                     cluster: true
+                 inheritedRoles:
+                   - name: operator-role-1
+                     role: backup
+            projectIpAccessList:
+              - cidrBlock: "203.0.113.0/24"
+                comment: "CIDR block for Application Server B - D"
+
+      Ensure that you have added the ``annotations`` block in lines 5 and 6 and remove the 
+      ``customRoles`` block shown in the previous example.
+
+      .. code-block::
+         :emphasize-lines: 5-6
+
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasProject
+         metadata:
+           name: my-project
+         annotations: 
+           mongodb.com/atlas-reconciliation-policy: "skip"
+         spec:
+           name: Test project
+           connectionSecretRef:
+             name: my-atlas-key
+           projectIpAccessList:
+             - cidrBlock: "203.0.113.0/24"
+               comment: "CIDR block for Application Server B - D"
+
+      .. warning::
+
+         If you do not apply this annotation, |ak8so| will continue
+         to attempt reconciliation as you modify your other
+         resources. For users with :ref:`<deletion-protection>`
+         disabled, this can result in |ak8so| removing the
+         |service| project when you remove the ``atlasProject``
+         resource, or entering a blocked state attempting to remove
+         a project with active subresources such as database users
+         or deployments.
+
+   .. step:: Delete the parameters from the parent CRD.
+
+      To prevent conflicts with the new CRD you create, you must first
+      delete the parameters corresponding to the resource you want to
+      migrate from the parent resource. For example, remove the
+      ``customRoles`` parameter from the ``atlasProject`` CRD shown
+      previously:
+
+      .. code-block::
+
+        apiVersion: atlas.mongodb.com/v1
+        kind: AtlasProject
+        metadata:
+         name: my-project
+         annotations: 
+           mongodb.com/atlas-reconciliation-policy: "skip"
+        spec:
+          name: Test project
+          connectionSecretRef:
+            name: my-atlas-key
+          projectIpAccessList:
+            - cidrBlock: "203.0.113.0/24"
+          comment: "CIDR block for Application Server B - D"          
+
+   .. step:: Create the new CRD.
+
+      Create a CRD of the appropriate ``kind`` for the parameter you
+      want to migrate, according to its syntax. For example, to
+      migrate the ``customRoles`` parameter of the ``atlasProject``
+      CRD shown previously, create a
+      :ref:`atlascustomrole-custom-resource`.
+
+      .. code-block::
+
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasCustomRole
+         metadata:
+           name: shard-operator-role
+           namespace: mongodb-atlas-system
+         labels:
+           mongodb.com/atlas-reconciliation-policy: keep
+         spec:
+           projectRef:
+             name: my-project
+             namespace: my-operator-namespace
+         role:
+           name: my-role
+           actions:
+             - name: getShardMap
+               resources:
+                 cluster: true
+             - name: shardingState
+               resources:
+                 cluster: true
+             - name: connPoolStats
+               resources:
+                 cluster: true
+             - name: getLog
+               resources:
+                 cluster: true
+           inheritedRoles:
+             - name: operator-role-1
+               role: backup
+
+   .. step:: Wait for |ak8so| to sync the new resource status.
+
+   .. step:: Remove the ``atlas-reconciliation-policy: "skip"`` annotation.
+
+Additionally, you can now configure this resource as an
+:ref:`Independent CRD <ak8so-independent-crd>`.
