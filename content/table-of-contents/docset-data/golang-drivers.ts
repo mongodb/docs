@@ -164,7 +164,7 @@ const tocData: TocItem[] = [
                 versions: { excludes: outdatedVersions },
               },
               {
-                label: "Search Text",
+                label: "Query Text",
                 contentSite: "golang",
                 url: "/docs/drivers/go/:version/crud/query/text",
                 versions: { excludes: outdatedVersions },
