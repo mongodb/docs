@@ -168,7 +168,7 @@ const tocData: TocItem[] = [
                 url: "/docs/drivers/php/laravel-mongodb/:version/fundamentals/read-operations/retrieve",
               },
               {
-                label: "Search Text",
+                label: "Query Text",
                 contentSite: "laravel",
                 url: "/docs/drivers/php/laravel-mongodb/:version/fundamentals/read-operations/search-text",
               },
