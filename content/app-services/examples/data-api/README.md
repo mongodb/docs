@@ -71,7 +71,7 @@ You can also run the tests through GitHub Actions by either:
 To generate snippets for inclusion in the docs, run the Bluehawk script:
 
 ```sh
-./bluehawk.sh
+./snip.sh
 ```
 
 Or manually run bluehawk on the test file(s):

@@ -1,0 +1,48 @@
+
+name: Go SDK Code Examples - Unit Tests
+
+on:
+  pull_request:
+    paths:
+      - "code-example-tests/go/atlas-sdk/**" # IMPORTANT: update if project structure changes
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_PATH: "code-example-tests/go/atlas-sdk/" # IMPORTANT: update if project structure changes
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go version based on go.mod version
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: '${{ env.PROJECT_PATH }}go.mod'
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('code-example-tests/go/atlas-sdk/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Install dependencies
+        run: |
+          cd ${{ env.PROJECT_PATH }}
+          go mod download
+      - name: Run tests
+        run: |
+          cd ${{ env.PROJECT_PATH }}
+
+          # NOTE: Test runner supports parallel processing. Code order determines
+          # sequence of tests, but parallel-enabled tests will run concurrently.
+
+          # Test internal packages
+          go test -v ./internal/...
+
+          # Test examples only if test files exist
+          if find ./examples -name "*_test.go" -type f | grep -q .; then
+            echo "Running examples tests..."
+            go test -v ./examples/...
+          else
+            echo "No test files found in examples directory, skipping..."
+          fi
