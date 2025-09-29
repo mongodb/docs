@@ -1,0 +1,1 @@
+*Community supported and not supported by MongoDB.*
