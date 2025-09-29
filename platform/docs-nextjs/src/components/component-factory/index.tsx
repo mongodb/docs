@@ -25,6 +25,7 @@ import type {
   RoleIconNode,
   RoleManualNode,
   LinkNewTabNode,
+  BlockQuoteNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
 import Admonition, { type AdmonitionProps } from '../admonition';
@@ -76,6 +77,8 @@ import type {
   RoleManualProps,
 } from '@/components/roles';
 import Code from '../code';
+import type { BlockQuoteProps } from '../block-quote';
+import BlockQuote from '../block-quote';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -149,7 +152,7 @@ const getComponent = (() => {
       componentMap = {
         admonition: Admonition as React.ComponentType<SupportedComponentProps>,
         // banner: Banner,
-        // blockquote: BlockQuote,
+        blockquote: BlockQuote as React.ComponentType<SupportedComponentProps>,
         button: Button as React.ComponentType<SupportedComponentProps>,
         // card: Card,
         // 'card-group': CardGroup,
@@ -267,6 +270,7 @@ export type ComponentFactoryProps = {
 };
 
 type SupportedComponentProps =
+  | BlockQuoteProps
   | ComponentFactoryProps
   | CondProps
   | SectionProps
@@ -333,7 +337,10 @@ const renderComponentWithProps = (
     ComponentType = AmbiguousComponentType as React.ComponentType<SupportedComponentProps>;
   }
 
-  if (ComponentType === getComponent('code')) {
+  if (ComponentType === getComponent('blockquote')) {
+    const blockquoteNode = nodeData as BlockQuoteNode;
+    return <ComponentType nodeChildren={blockquoteNode.children} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('code')) {
     const codeNode = nodeData as CodeNode;
     return (
       <ComponentType
