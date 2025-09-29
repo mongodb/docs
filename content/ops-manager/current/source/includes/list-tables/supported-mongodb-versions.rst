@@ -8,6 +8,11 @@
      - |onprem| 7.0
      - |onprem| 6.0
 
+   * - MongoDB 8.2
+     - Supported
+     -
+     -
+
    * - MongoDB 8.0
      - Supported
      - 
