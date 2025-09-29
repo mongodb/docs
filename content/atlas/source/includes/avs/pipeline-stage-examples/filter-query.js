@@ -24,7 +24,9 @@ async function run() {
               {
                 'year': {
                   '$gt': 1955
-                }, 
+                }
+              }, 
+              {
                 'year': {
                   '$lt': 1975
                 }
