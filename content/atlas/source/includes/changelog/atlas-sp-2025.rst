@@ -1,3 +1,10 @@
+.. _atlas-sp-20250901:
+
+1 September 2025 Release
+-------------------------------------
+
+- Adds support for the {+aws+} |s3| private link connection type.
+
 .. _atlas-sp-20250827:
 
 27 August 2025 Release
