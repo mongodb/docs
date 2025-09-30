@@ -1,11 +1,9 @@
-'use client';
-
 import type { ASTDocument } from '@/services/db/types';
 import type { RemoteMetadata } from '@/types/data';
-import { MetadataProvider } from '@/utils/use-snooty-metadata';
-import { FootnoteProvider } from '@/components/footnote/footnote-context';
 import DocumentTemplate from '@/components/templates/document';
+import type { ASTNode } from '@/types/ast';
 import ComponentFactory from '@/components/component-factory';
+import RootProvider from '@/components/root-provider';
 
 function getTemplate(templateOption: string): React.ComponentType<{ children?: React.ReactNode }> {
   switch (templateOption) {
@@ -22,16 +20,18 @@ interface CustomTemplateProps {
   metadata?: RemoteMetadata;
 }
 
-export const CustomTemplate = ({ metadata, pageDoc }: CustomTemplateProps) => {
+const CustomTemplate = ({ pageDoc, metadata }: CustomTemplateProps) => {
   const TemplateComponent = getTemplate(pageDoc?.ast?.options?.template || 'document');
+  const pageNodes: ASTNode[] = pageDoc.ast.children || [];
+  const headingNodes = pageDoc.ast.options.headings || [];
 
   return (
-    <MetadataProvider value={metadata}>
-      <FootnoteProvider pageNodes={pageDoc?.ast?.children ?? []}>
-        <TemplateComponent>
-          <ComponentFactory nodeData={pageDoc.ast} slug={pageDoc.page_path} key={pageDoc.page_id} />
-        </TemplateComponent>
-      </FootnoteProvider>
-    </MetadataProvider>
+    <RootProvider headingNodes={headingNodes} pageNodes={pageNodes} metadata={metadata}>
+      <TemplateComponent>
+        <ComponentFactory nodeData={pageDoc.ast} slug={pageDoc.page_path} key={pageDoc.page_id} />
+      </TemplateComponent>
+    </RootProvider>
   );
 };
+
+export default CustomTemplate;

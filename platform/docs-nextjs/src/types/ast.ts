@@ -229,6 +229,13 @@ interface ParentNode extends Node {
 
 type PageOptionsKey = keyof PageOptions;
 
+type HeadingOption = {
+  depth: number;
+  id: string;
+  selector_ids: HeadingNodeSelectorIds;
+  title: TextNode[];
+};
+
 type PageOptions = {
   template: PageTemplateType;
   default_tabs?: ActiveTabs;
@@ -245,6 +252,7 @@ type PageOptions = {
   selectors?: Selectors;
   'tabs-selector-position'?: string;
   time_required?: number;
+  headings?: HeadingNode[];
 };
 
 interface Root extends ParentNode {
@@ -1000,6 +1008,7 @@ export type {
   GuideNextNode,
   HeadingNode,
   HeadingNodeSelectorIds,
+  HeadingOption,
   HighlightNode,
   HighlightRoleNames,
   HorizontalListNode,

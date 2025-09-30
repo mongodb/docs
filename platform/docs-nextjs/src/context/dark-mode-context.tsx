@@ -8,7 +8,7 @@
  */
 
 import type { ReactNode } from 'react';
-import React, { createContext, useMemo, useEffect, useRef, useState, useCallback } from 'react';
+import { createContext, useMemo, useEffect, useRef, useState, useCallback } from 'react';
 import useMedia from '@/hooks/use-media';
 import { setLocalValue } from '@/utils/browser-storage';
 import { isBrowser } from '@/utils/is-browser';

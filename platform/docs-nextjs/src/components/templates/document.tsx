@@ -1,7 +1,8 @@
 import MainColumn from './main-column';
-import RightColumn from './right-column';
+import RightColumn from '@/components/right-column';
 import documentStyling from './document.module.scss';
 import { theme } from '@/styles/theme';
+import Contents from '@/components/contents';
 
 const MAX_ON_THIS_PAGE_WIDTH = '200px';
 const MAX_CONTENT_WIDTH = '775px';
@@ -24,8 +25,8 @@ export default function DocumentTemplate({ children }: { children?: React.ReactN
           )} */}
         </div>
       </MainColumn>
-      <RightColumn hasDismissibleSkillsCard={false}>
-        <div>CONTENTS HERE</div>
+      <RightColumn hasDismissibleSkillsCard={false} className={documentStyling['right-column']}>
+        <Contents />
       </RightColumn>
     </div>
   );

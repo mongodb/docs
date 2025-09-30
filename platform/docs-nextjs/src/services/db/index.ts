@@ -128,7 +128,7 @@ const getPageAST = cache(async (path: string | string[], prId?: number) => {
     const pageRes = await collection.findOne<ASTDocument>(query, DEFAULT_SORT);
     if (!pageRes) return;
     // we need to parse then stringify the pageRes to ensure it's a plain object
-    return JSON.parse(JSON.stringify(pageRes));
+    return JSON.parse(JSON.stringify(pageRes)) as ASTDocument;
   } catch (e) {
     log({ message: String(e), level: 'error' });
     throw e;
@@ -152,7 +152,7 @@ async function _getSnootyMetadata(build_id: string) {
   const options: FindOptions = { sort: { _id: -1 } };
 
   try {
-    log({ message: `Querying db ${collection.namespace} for metadata with build_id=${build_id.toString()}` });
+    log({ message: `Querying db ${collection.namespace} for metadata with build_id=${build_id}` });
 
     const metadataDoc = await collection.findOne<RemoteMetadata>(query, options);
     if (!metadataDoc) return;

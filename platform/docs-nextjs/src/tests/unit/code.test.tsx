@@ -1,4 +1,3 @@
-import React from 'react';
 import { render } from '@testing-library/react';
 import Code from '@/components/code';
 // import { CodeProvider } from '@/components/code/code-context';
