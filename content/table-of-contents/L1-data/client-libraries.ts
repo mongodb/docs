@@ -233,6 +233,41 @@ const tocData: TocItem[] = [
       },
     ],
   },
+  {
+    label: "Compatibility",
+    contentSite: "drivers",
+    group: true,
+    items: [
+      {
+        label: "Driver Compatibility Tables",
+        contentSite: "drivers",
+        url: "/docs/drivers/compatibility",
+      },
+      {
+        label: "Other Document Database Compatibility",
+        contentSite: "drivers",
+        url: "/docs/drivers/other-document-dbs",
+        collapsible: true,
+        items: [
+          {
+            label: "Amazon DocumentDB Compatibility",
+            contentSite: "drivers",
+            url: "/docs/drivers/documentdb-support",
+          },
+          {
+            label: "Azure Cosmos DB Compatibility",
+            contentSite: "drivers",
+            url: "/docs/drivers/cosmosdb-support",
+          },
+          {
+            label: "ORMs, ODMs, and Libraries",
+            contentSite: "drivers",
+            url: "/docs/drivers/odm",
+          },
+        ],
+      },
+    ]
+  }
 ];
 
 export default tocData;
