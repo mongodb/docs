@@ -110,7 +110,6 @@ const tocData: TocItem[] = [
           label: "Configure Independent Shard Scaling",
           contentSite: "atlas-cli",
           url: "/docs/atlas/cli/:version/atlas-cli-independent-shard-scaling",
-          versions: {excludes: ["v1.38", "v1.39", "v1.40", "v1.41", "v1.42", "v1.43", "v1.44"]}
         },
         {
           label: "Local & Cloud Deployments",
@@ -132,7 +131,6 @@ const tocData: TocItem[] = [
               label: "Deploy from Private Registry",
               contentSite: "atlas-cli",
               url: "/docs/atlas/cli/:version/atlas-cli-deploy-pvt-registry",
-              versions: {excludes: ["v1.38", "v1.39", "v1.40", "v1.41"]}
             },
             {
               label: "Use Atlas Search",
@@ -155,7 +153,6 @@ const tocData: TocItem[] = [
           label: "Run Commands with the Admin API",
           contentSite: "atlas-cli",
           url: "/docs/atlas/cli/:version/atlas-cli-admin-api",
-          versions: {excludes: ["v1.38", "v1.39", "v1.40", "v1.41"]}
         },
       ]
     },
@@ -243,7 +240,6 @@ const tocData: TocItem[] = [
     {
       label: "Plugin Changelogs",
       contentSite: "atlas-cli",
-      versions: {excludes: ["v1.38", "v1.39", "v1.40", "v1.41"]},
       url: "/docs/atlas/cli/:version/plugin-changelogs",
     },
   ]

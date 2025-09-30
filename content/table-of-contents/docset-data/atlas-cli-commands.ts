@@ -23,13 +23,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -43,13 +36,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -63,13 +49,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -83,13 +62,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -110,13 +82,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -137,13 +102,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -157,13 +115,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -177,13 +128,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -202,13 +146,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -222,13 +159,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -242,13 +172,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -262,13 +185,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -282,13 +198,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -307,13 +216,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -329,13 +231,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -349,13 +244,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -371,13 +259,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -403,13 +284,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -423,13 +297,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -450,13 +317,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -470,13 +330,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -490,13 +343,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -510,13 +356,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -530,13 +369,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -550,13 +382,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -570,13 +395,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -590,13 +408,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -617,13 +428,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -637,13 +441,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -657,13 +454,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -677,13 +467,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -704,13 +487,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -724,13 +500,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -744,13 +513,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -764,13 +526,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -784,13 +539,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -804,13 +552,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -824,13 +565,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -844,13 +578,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -864,13 +591,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -884,13 +604,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -904,13 +617,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -924,13 +630,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -944,13 +643,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -964,13 +656,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -984,13 +669,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1004,13 +682,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1024,13 +695,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1044,13 +708,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1071,13 +728,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1091,13 +741,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1118,13 +761,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1138,13 +774,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1165,13 +794,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1185,13 +807,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1205,13 +820,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1225,13 +833,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1245,13 +846,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1265,13 +859,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1285,13 +872,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1305,13 +885,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1325,13 +898,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1345,13 +911,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1365,13 +924,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1385,13 +937,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1405,13 +950,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1425,13 +963,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1445,13 +976,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1465,13 +989,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1485,13 +1002,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1505,13 +1015,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1525,13 +1028,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1545,13 +1041,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1565,13 +1054,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1585,13 +1067,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1605,13 +1080,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1625,13 +1093,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1645,13 +1106,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1672,13 +1126,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1692,13 +1139,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1712,13 +1152,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1732,13 +1165,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1752,13 +1178,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1772,13 +1191,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1792,13 +1204,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1812,13 +1217,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1839,13 +1237,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1859,13 +1250,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1879,13 +1263,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1899,13 +1276,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1919,13 +1289,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1946,13 +1309,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1966,13 +1322,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -1986,13 +1335,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2013,10 +1355,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2030,13 +1368,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2050,13 +1381,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2070,13 +1394,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2090,13 +1407,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2110,13 +1420,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2130,13 +1433,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2150,13 +1446,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2170,13 +1459,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2190,13 +1472,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2210,13 +1485,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2230,13 +1498,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2250,13 +1511,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2270,13 +1524,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2290,13 +1537,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2310,13 +1550,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2330,13 +1563,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2350,13 +1576,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2370,13 +1589,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2397,13 +1609,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2417,13 +1622,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2437,13 +1635,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2457,13 +1648,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2477,13 +1661,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2497,13 +1674,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2517,13 +1687,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2537,13 +1700,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2557,13 +1713,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2584,13 +1733,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2604,13 +1746,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2624,13 +1759,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2644,13 +1772,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2664,13 +1785,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2691,13 +1805,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2711,13 +1818,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2731,13 +1831,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2751,13 +1844,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2771,13 +1857,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2798,13 +1877,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2818,13 +1890,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2838,13 +1903,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2858,13 +1916,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2878,13 +1929,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2898,13 +1942,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2918,13 +1955,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2938,13 +1968,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2958,13 +1981,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2978,13 +1994,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -2998,13 +2007,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3018,13 +2020,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3038,13 +2033,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3058,13 +2046,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3083,13 +2064,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-createPipeline",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3101,13 +2075,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-deletePipeline",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3119,13 +2086,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-deletePipelineRunDataset",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3137,13 +2097,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-getPipeline",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3155,13 +2108,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-getPipelineRun",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3173,13 +2119,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-listPipelineRuns",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3191,13 +2130,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-listPipelines",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3209,13 +2141,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-listPipelineSchedules",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3227,13 +2152,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-listPipelineSnapshots",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3245,13 +2163,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-pausePipeline",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3263,13 +2174,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-resumePipeline",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3281,13 +2185,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-triggerSnapshotIngestion",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3299,13 +2196,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-updatePipeline",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3326,13 +2216,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3346,13 +2229,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3366,13 +2242,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3386,13 +2255,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3406,13 +2268,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3426,13 +2281,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3453,13 +2301,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3473,13 +2314,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3493,13 +2327,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3513,13 +2340,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3533,13 +2353,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3560,13 +2373,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3580,13 +2386,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3600,13 +2399,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3620,13 +2412,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3640,13 +2425,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3660,13 +2438,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3680,13 +2451,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3700,13 +2464,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3720,13 +2477,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3740,13 +2490,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3760,13 +2503,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3780,13 +2516,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3800,13 +2529,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3820,13 +2542,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3840,13 +2555,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3860,13 +2568,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3880,13 +2581,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3900,13 +2594,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3927,13 +2614,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3947,13 +2627,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3967,13 +2640,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -3987,13 +2653,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4007,13 +2666,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4027,13 +2679,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4054,13 +2699,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4074,13 +2712,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4094,13 +2725,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4121,13 +2745,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4141,13 +2758,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4161,13 +2771,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4188,13 +2791,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4208,13 +2804,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4228,13 +2817,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4248,13 +2830,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4268,13 +2843,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4295,13 +2863,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4315,13 +2876,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4335,13 +2889,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4355,13 +2902,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4375,13 +2915,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4395,13 +2928,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4415,13 +2941,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4442,13 +2961,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4462,13 +2974,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4482,13 +2987,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4502,13 +3000,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4522,13 +3013,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4549,13 +3033,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4569,13 +3046,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4589,13 +3059,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4609,13 +3072,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4629,13 +3085,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4649,13 +3098,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4669,13 +3111,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4689,13 +3124,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4709,13 +3137,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4729,13 +3150,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4749,13 +3163,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4776,13 +3183,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4796,13 +3196,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4816,13 +3209,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4836,13 +3222,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4856,13 +3235,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4883,13 +3255,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4903,13 +3268,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4923,13 +3281,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4943,13 +3294,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4963,13 +3307,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -4983,13 +3320,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5003,13 +3333,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5023,13 +3346,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5043,13 +3359,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5063,13 +3372,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5083,10 +3385,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5100,10 +3398,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5117,10 +3411,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5134,13 +3424,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5154,10 +3437,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5171,13 +3450,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5191,10 +3463,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5208,13 +3476,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5228,13 +3489,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5255,13 +3509,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5275,13 +3522,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5295,13 +3535,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5315,13 +3548,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5335,13 +3561,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5355,13 +3574,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5375,13 +3587,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5395,13 +3600,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5415,13 +3613,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5435,13 +3626,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5455,13 +3639,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5475,13 +3652,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5495,13 +3665,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5515,13 +3678,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5542,13 +3698,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5562,13 +3711,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5582,13 +3724,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5602,13 +3737,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5622,13 +3750,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5642,13 +3763,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5662,13 +3776,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5682,13 +3789,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5702,13 +3802,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5722,13 +3815,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5742,13 +3828,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5762,13 +3841,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5782,13 +3854,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5809,13 +3874,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5829,13 +3887,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5849,13 +3900,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5869,13 +3913,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5889,13 +3926,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5909,13 +3939,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5936,13 +3959,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5956,13 +3972,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5976,13 +3985,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -5996,13 +3998,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6016,13 +4011,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6036,13 +4024,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6056,13 +4037,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6076,13 +4050,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6096,13 +4063,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6116,13 +4076,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6136,13 +4089,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6156,13 +4102,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6176,13 +4115,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6196,13 +4128,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6216,13 +4141,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6243,13 +4161,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6263,13 +4174,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6283,13 +4187,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6303,13 +4200,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6323,13 +4213,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6343,13 +4226,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6363,13 +4239,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6383,13 +4252,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6403,13 +4265,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6430,13 +4285,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6450,13 +4298,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6470,13 +4311,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6490,13 +4324,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6510,13 +4337,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6530,13 +4350,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6550,13 +4363,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6570,13 +4376,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6590,13 +4389,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6617,13 +4409,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6637,13 +4422,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6657,13 +4435,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6677,13 +4448,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6697,13 +4461,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6717,13 +4474,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6737,13 +4487,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6757,13 +4500,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6777,13 +4513,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6797,13 +4526,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6817,13 +4539,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6837,13 +4552,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6857,13 +4565,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6877,13 +4578,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6904,13 +4598,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6924,13 +4611,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6944,13 +4624,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6964,13 +4637,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -6984,13 +4650,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7011,13 +4670,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7031,13 +4683,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7051,13 +4696,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7071,13 +4709,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7091,13 +4722,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7111,13 +4735,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7131,13 +4748,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7151,13 +4761,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7171,13 +4774,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7191,13 +4787,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7211,13 +4800,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7231,13 +4813,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7251,13 +4826,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7271,13 +4839,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7291,13 +4852,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7311,13 +4865,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7331,13 +4878,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7351,13 +4891,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7371,13 +4904,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7391,13 +4917,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7411,13 +4930,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7431,13 +4943,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7451,13 +4956,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7478,13 +4976,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7498,13 +4989,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7518,13 +5002,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7538,13 +5015,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7594,13 +5064,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-createAtlasResourcePolicy",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7624,13 +5087,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-deleteAtlasResourcePolicy",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7654,13 +5110,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-getAtlasResourcePolicies",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7672,13 +5121,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-getAtlasResourcePolicy",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7704,13 +5146,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7734,13 +5169,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-updateAtlasResourcePolicy",
             versions: {
               includes: [
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7766,13 +5194,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7793,13 +5214,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7820,13 +5234,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7840,13 +5247,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7867,13 +5267,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7887,13 +5280,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7907,13 +5293,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7927,13 +5306,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7947,13 +5319,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7967,13 +5332,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -7987,13 +5345,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8007,13 +5358,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8027,13 +5371,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8047,13 +5384,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8067,13 +5397,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8087,13 +5410,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8107,13 +5423,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8127,13 +5436,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8147,13 +5449,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8167,13 +5462,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8187,13 +5475,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8207,13 +5488,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8227,13 +5501,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8247,13 +5514,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8267,13 +5527,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8287,13 +5540,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8314,13 +5560,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8334,13 +5573,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8354,13 +5586,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8381,13 +5606,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8401,13 +5619,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8421,13 +5632,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8448,13 +5652,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8468,13 +5665,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8488,13 +5678,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8508,13 +5691,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8528,13 +5704,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8548,13 +5717,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8568,13 +5730,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8588,13 +5743,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8608,13 +5756,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8628,13 +5769,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8648,13 +5782,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8668,13 +5795,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8688,13 +5808,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8708,12 +5821,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8727,13 +5834,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8747,13 +5847,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8767,13 +5860,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8787,13 +5873,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8807,13 +5886,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8827,13 +5899,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8847,13 +5912,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8867,13 +5925,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8887,13 +5938,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8907,13 +5951,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8927,13 +5964,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8947,13 +5977,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8967,8 +5990,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -8982,13 +6003,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9002,13 +6016,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9022,13 +6029,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9049,13 +6049,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9069,13 +6062,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9089,13 +6075,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9109,13 +6088,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9141,13 +6113,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9161,13 +6126,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9181,13 +6139,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9201,13 +6152,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9221,13 +6165,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9241,13 +6178,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9261,13 +6191,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9281,13 +6204,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9308,13 +6224,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9328,13 +6237,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9348,13 +6250,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9368,13 +6263,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9388,13 +6276,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9415,13 +6296,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9435,13 +6309,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9455,13 +6322,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9484,13 +6344,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -9504,13 +6357,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -9531,13 +6377,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -9551,13 +6390,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -9571,13 +6403,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -9591,13 +6416,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -9628,13 +6446,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -9648,13 +6459,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -9670,13 +6474,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9690,13 +6487,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9715,13 +6505,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -9735,13 +6518,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -9762,13 +6538,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -9789,13 +6558,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -9814,13 +6576,6 @@ export const atlasCliCommands: TocItem[] = [
                       includes: [
                         "current",
                         "upcoming",
-                        "v1.38",
-                        "v1.39",
-                        "v1.40",
-                        "v1.41",
-                        "v1.42",
-                        "v1.43",
-                        "v1.44",
                         "v1.45",
                         "v1.46"
                       ]
@@ -9834,13 +6589,6 @@ export const atlasCliCommands: TocItem[] = [
                       includes: [
                         "current",
                         "upcoming",
-                        "v1.38",
-                        "v1.39",
-                        "v1.40",
-                        "v1.41",
-                        "v1.42",
-                        "v1.43",
-                        "v1.44",
                         "v1.45",
                         "v1.46"
                       ]
@@ -9854,13 +6602,6 @@ export const atlasCliCommands: TocItem[] = [
                       includes: [
                         "current",
                         "upcoming",
-                        "v1.38",
-                        "v1.39",
-                        "v1.40",
-                        "v1.41",
-                        "v1.42",
-                        "v1.43",
-                        "v1.44",
                         "v1.45",
                         "v1.46"
                       ]
@@ -9881,13 +6622,6 @@ export const atlasCliCommands: TocItem[] = [
                       includes: [
                         "current",
                         "upcoming",
-                        "v1.38",
-                        "v1.39",
-                        "v1.40",
-                        "v1.41",
-                        "v1.42",
-                        "v1.43",
-                        "v1.44",
                         "v1.45",
                         "v1.46"
                       ]
@@ -9901,13 +6635,6 @@ export const atlasCliCommands: TocItem[] = [
                       includes: [
                         "current",
                         "upcoming",
-                        "v1.38",
-                        "v1.39",
-                        "v1.40",
-                        "v1.41",
-                        "v1.42",
-                        "v1.43",
-                        "v1.44",
                         "v1.45",
                         "v1.46"
                       ]
@@ -9925,13 +6652,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -9957,13 +6677,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -9977,13 +6690,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -9997,13 +6703,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -10017,13 +6716,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -10044,13 +6736,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -10064,13 +6749,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -10084,13 +6762,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -10104,13 +6775,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -10133,13 +6797,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10153,13 +6810,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10173,13 +6823,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10193,13 +6836,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10220,13 +6856,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10240,13 +6869,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10260,13 +6882,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10287,13 +6902,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10307,13 +6915,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10327,13 +6928,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10347,13 +6941,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10367,13 +6954,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10387,13 +6967,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10426,13 +6999,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -10446,13 +7012,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -10466,13 +7025,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -10488,13 +7040,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10522,13 +7067,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10542,13 +7080,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10569,13 +7100,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10596,13 +7120,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10618,13 +7135,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -10638,13 +7148,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -10658,13 +7161,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -10678,13 +7174,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -10703,13 +7192,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10725,13 +7207,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -10750,13 +7225,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10770,13 +7238,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10790,13 +7251,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10810,13 +7264,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10830,13 +7277,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10850,13 +7290,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10870,13 +7303,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10890,13 +7316,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10912,13 +7331,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -10937,13 +7349,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10957,13 +7362,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -10977,13 +7375,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -11009,13 +7400,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -11029,13 +7413,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -11049,13 +7426,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -11069,13 +7439,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -11089,13 +7452,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -11116,13 +7472,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -11136,13 +7485,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -11156,13 +7498,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -11176,13 +7511,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -11200,13 +7528,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11220,13 +7541,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11240,13 +7554,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11260,13 +7567,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11287,13 +7587,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11307,13 +7600,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11327,13 +7613,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11347,13 +7626,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11372,13 +7644,6 @@ export const atlasCliCommands: TocItem[] = [
         url: "/docs/atlas/cli/:version/command/atlas-config-delete",
         versions: {
           includes: [
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11392,13 +7657,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11412,13 +7670,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11430,13 +7681,6 @@ export const atlasCliCommands: TocItem[] = [
         url: "/docs/atlas/cli/:version/command/atlas-config-init",
         versions: {
           includes: [
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11450,13 +7694,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11470,13 +7707,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11490,13 +7720,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11517,13 +7740,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11537,13 +7753,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11557,13 +7766,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11577,13 +7779,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11597,13 +7792,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11629,13 +7817,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -11649,13 +7830,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -11669,13 +7843,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -11698,13 +7865,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11718,13 +7878,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11738,13 +7891,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11758,13 +7904,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11778,13 +7917,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -11803,13 +7935,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -11823,13 +7948,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -11843,13 +7961,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -11863,13 +7974,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -11890,13 +7994,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -11910,13 +8007,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -11930,13 +8020,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -11950,13 +8033,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -11972,13 +8048,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12004,13 +8073,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -12024,13 +8086,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -12046,13 +8101,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12066,13 +8114,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12086,13 +8127,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12106,13 +8140,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12126,13 +8153,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12153,13 +8173,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12173,13 +8186,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12193,13 +8199,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12213,13 +8212,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12233,13 +8225,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12263,13 +8248,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -12283,13 +8261,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -12303,13 +8274,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -12323,13 +8287,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -12347,13 +8304,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12367,13 +8317,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12399,13 +8342,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -12426,13 +8362,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -12465,13 +8394,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -12485,13 +8407,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -12505,13 +8420,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -12525,13 +8433,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -12545,13 +8446,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -12565,13 +8459,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -12587,13 +8474,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -12617,13 +8497,6 @@ export const atlasCliCommands: TocItem[] = [
                       includes: [
                         "current",
                         "upcoming",
-                        "v1.38",
-                        "v1.39",
-                        "v1.40",
-                        "v1.41",
-                        "v1.42",
-                        "v1.43",
-                        "v1.44",
                         "v1.45",
                         "v1.46"
                       ]
@@ -12639,13 +8512,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -12659,13 +8525,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -12679,13 +8538,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -12699,13 +8551,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -12724,13 +8569,6 @@ export const atlasCliCommands: TocItem[] = [
                       includes: [
                         "current",
                         "upcoming",
-                        "v1.38",
-                        "v1.39",
-                        "v1.40",
-                        "v1.41",
-                        "v1.42",
-                        "v1.43",
-                        "v1.44",
                         "v1.45",
                         "v1.46"
                       ]
@@ -12762,13 +8600,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -12782,13 +8613,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -12802,13 +8626,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -12822,13 +8639,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -12842,13 +8652,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -12864,13 +8667,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12884,13 +8680,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12904,13 +8693,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -12936,13 +8718,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -12956,13 +8731,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -12983,10 +8751,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13007,13 +8771,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13036,13 +8793,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -13056,13 +8806,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -13076,13 +8819,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -13101,13 +8837,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13121,13 +8850,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13148,13 +8870,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13168,13 +8883,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13197,13 +8905,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -13224,13 +8925,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -13244,13 +8938,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -13264,13 +8951,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -13284,13 +8964,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -13316,13 +8989,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13336,13 +9002,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13363,13 +9022,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13383,13 +9035,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13405,13 +9050,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -13437,13 +9075,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13457,13 +9088,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13489,13 +9113,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -13509,13 +9126,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -13529,13 +9139,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -13551,13 +9154,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13571,13 +9167,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13591,13 +9180,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13630,13 +9212,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -13650,13 +9225,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -13670,13 +9238,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -13692,13 +9253,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13712,13 +9266,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13732,13 +9279,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13752,13 +9292,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13772,13 +9305,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13794,13 +9320,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -13814,13 +9333,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -13834,13 +9346,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -13859,13 +9364,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13879,13 +9377,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13899,13 +9390,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13919,13 +9403,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13939,13 +9416,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -13961,13 +9431,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -13986,13 +9449,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14020,13 +9476,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14047,13 +9496,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14067,13 +9509,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14094,13 +9529,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14121,13 +9549,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14150,13 +9571,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -14170,13 +9584,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -14190,13 +9597,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -14210,13 +9610,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -14242,13 +9635,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14262,13 +9648,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14282,13 +9661,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14307,13 +9679,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -14327,13 +9692,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -14347,13 +9705,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -14369,13 +9720,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14389,13 +9733,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14416,13 +9753,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14436,13 +9766,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14456,13 +9779,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14481,13 +9797,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -14501,13 +9810,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -14521,13 +9823,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -14543,13 +9838,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14563,13 +9851,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14590,13 +9871,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14610,13 +9884,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14630,13 +9897,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14655,13 +9915,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -14675,13 +9928,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -14695,13 +9941,6 @@ export const atlasCliCommands: TocItem[] = [
                   includes: [
                     "current",
                     "upcoming",
-                    "v1.38",
-                    "v1.39",
-                    "v1.40",
-                    "v1.41",
-                    "v1.42",
-                    "v1.43",
-                    "v1.44",
                     "v1.45",
                     "v1.46"
                   ]
@@ -14717,13 +9956,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14737,13 +9969,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14764,13 +9989,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14784,13 +10002,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14804,13 +10015,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14833,13 +10037,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -14853,13 +10050,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -14885,13 +10075,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14905,13 +10088,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14925,13 +10101,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14945,13 +10114,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -14967,13 +10129,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -14987,13 +10142,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -15007,13 +10155,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -15027,13 +10168,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -15052,13 +10186,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15072,13 +10199,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15099,13 +10219,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15119,13 +10232,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15139,13 +10245,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15159,13 +10258,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15181,13 +10273,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -15206,13 +10291,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15226,13 +10304,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15260,13 +10331,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15280,13 +10344,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15300,13 +10357,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15327,13 +10377,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15347,13 +10390,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15367,13 +10403,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15397,13 +10426,6 @@ export const atlasCliCommands: TocItem[] = [
                       includes: [
                         "current",
                         "upcoming",
-                        "v1.38",
-                        "v1.39",
-                        "v1.40",
-                        "v1.41",
-                        "v1.42",
-                        "v1.43",
-                        "v1.44",
                         "v1.45",
                         "v1.46"
                       ]
@@ -15425,13 +10447,6 @@ export const atlasCliCommands: TocItem[] = [
       includes: [
         "current",
         "upcoming",
-        "v1.38",
-        "v1.39",
-        "v1.40",
-        "v1.41",
-        "v1.42",
-        "v1.43",
-        "v1.44",
         "v1.45",
         "v1.46"
       ]
@@ -15455,13 +10470,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15475,13 +10483,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15495,13 +10496,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15515,13 +10509,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15535,13 +10522,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15562,13 +10542,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15582,13 +10555,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15602,13 +10568,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15622,13 +10581,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15642,13 +10594,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15662,13 +10607,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15689,12 +10627,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15708,11 +10640,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15726,11 +10653,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15744,11 +10666,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15771,13 +10688,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -15791,13 +10701,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -15811,13 +10714,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -15831,13 +10727,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -15851,13 +10740,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -15876,13 +10758,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15896,13 +10771,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15916,13 +10784,6 @@ export const atlasCliCommands: TocItem[] = [
               includes: [
                 "current",
                 "upcoming",
-                "v1.38",
-                "v1.39",
-                "v1.40",
-                "v1.41",
-                "v1.42",
-                "v1.43",
-                "v1.44",
                 "v1.45",
                 "v1.46"
               ]
@@ -15945,13 +10806,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
@@ -15965,13 +10819,6 @@ export const atlasCliCommands: TocItem[] = [
           includes: [
             "current",
             "upcoming",
-            "v1.38",
-            "v1.39",
-            "v1.40",
-            "v1.41",
-            "v1.42",
-            "v1.43",
-            "v1.44",
             "v1.45",
             "v1.46"
           ]
