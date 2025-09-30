@@ -233,16 +233,6 @@ const tocData: TocItem[] = [
                 collapsible: true,
                 items: [
                   {
-                    label: "Configure Encryption",
-                    contentSite: "docs",
-                    url: "/docs/:version/tutorial/configure-encryption"
-                  },
-                  {
-                    label: "Rotate Encryption Keys",
-                    contentSite: "docs",
-                    url: "/docs/:version/tutorial/rotate-encryption-key",
-                  },
-                  {
                     label: "AWS KMS",
                     contentSite: "cloud-docs",
                     url: "/docs/atlas/security-aws-kms",
