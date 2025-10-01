@@ -308,6 +308,7 @@ interface ParagraphNode extends ParentNode {
 
 interface EmphasisNode extends ParentNode {
   type: 'emphasis';
+  children: [TextNode];
 }
 
 interface StrongNode extends TextParentNode {

@@ -26,6 +26,7 @@ import type {
   RoleManualNode,
   LinkNewTabNode,
   BlockQuoteNode,
+  EmphasisNode,
   SubstitutionReferenceNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
@@ -78,10 +79,9 @@ import type {
   RoleManualProps,
 } from '@/components/roles';
 import Code from '../code';
-import type { BlockQuoteProps } from '../block-quote';
-import BlockQuote from '../block-quote';
-import type { SubstitutionReferenceProps } from '../substitution-reference';
-import SubstitutionReference from '../substitution-reference';
+import BlockQuote, { type BlockQuoteProps } from '../block-quote';
+import Emphasis, { type EmphasisProps } from '../emphasis';
+import SubstitutionReference, { type SubstitutionReferenceProps } from '../substitution-reference';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -174,7 +174,7 @@ const getComponent = (() => {
         // deprecated: VersionModified,
         // 'deprecated-version-selector': DeprecatedVersionSelector,
         // describe: Describe,
-        // emphasis: Emphasis,
+        emphasis: Emphasis as React.ComponentType<SupportedComponentProps>,
         // extract: Extract,
         // field: Field,
         // field_list: FieldList,
@@ -291,6 +291,7 @@ type SupportedComponentProps =
   | FootnoteNodeProps
   | FootnoteReferenceProps
   | ButtonProps
+  | EmphasisProps
   | SubstitutionReferenceProps;
 
 type RoleComponentProps =
@@ -361,9 +362,13 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('text')) {
     const textNode = nodeData as TextNode;
     return <ComponentType value={textNode.value} />;
-  } else if (ComponentType === getComponent('strong') || ComponentType === getComponent('title_reference')) {
+  } else if (
+    ComponentType === getComponent('strong') ||
+    ComponentType === getComponent('title_reference') ||
+    ComponentType === getComponent('emphasis')
+  ) {
     // All nodes that pass on first child's text value
-    const node = nodeData as StrongNode | TitleReferenceNode;
+    const node = nodeData as StrongNode | TitleReferenceNode | EmphasisNode;
     return <ComponentType value={node.children[0].value} />;
   } else if (ComponentType === getComponent('paragraph')) {
     const paragraphNode = nodeData as ParagraphNode;
