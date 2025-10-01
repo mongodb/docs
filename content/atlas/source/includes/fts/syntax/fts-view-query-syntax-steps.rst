@@ -39,7 +39,7 @@
          Click :icon-fa4:`files-o` to copy the query syntax in |json| 
          format to your clipboard. You can run the copied query in 
          {+mongosh+} or |compass| after :ref:`connecting <atlas-connect-to-deployment>` 
-         to your |service| {+cluster+}.
+         to your cluster.
 
    .. step:: Click :guilabel:`Exit Query Editor` to exit the :guilabel:`Query Editor` modal.
 

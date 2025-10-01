@@ -65,8 +65,7 @@
 
    .. step:: Ingest the data and create a {+avs+} index. 
 
-      You must upload your data and embeddings to a collection in your
-      |service| {+cluster+} and create a {+avs+} index on the data to
+      You must upload your data and embeddings to a collection in your cluster and create a {+avs+} index on the data to
       run :pipeline:`$vectorSearch` queries against the data. 
 
       a. Create a new file named ``UploadDataAndCreateIndex.java``
@@ -81,8 +80,7 @@
       
          This code does the following:
 
-         - Uploads the data in the ``embeddings.json`` file to your
-           |service| {+cluster+}. 
+         - Uploads the data in the ``embeddings.json`` file to your cluster. 
          - Creates a {+avs+} index on the ``embeddings_float32``,
            ``embeddings_int8``, and ``embeddings_int1`` fields. 
 
@@ -99,7 +97,7 @@
             :stub-columns: 1
 
             * - ``<DATABASE-NAME>``
-              - Name of the database in your |service| {+cluster+}. 
+              - Name of the database in your cluster. 
 
             * - ``<COLLECTION-NAME>``
               - Name of the collection where you want to upload the data. 
@@ -131,7 +129,7 @@
                Polling to confirm the index has changed from the BUILDING status.
                <INDEX_NAME> index is ready to query
 
-      #. Log in to your |service| {+cluster+} and verify the following:
+      #. Log in to your cluster and verify the following:
       
          - Data in the namespace.
          - {+avs+} index for the collection.
@@ -179,7 +177,7 @@
             :stub-columns: 1
 
             * - ``<DATABASE-NAME>``
-              - Name of the database in your |service| {+cluster+}. 
+              - Name of the database in your cluster. 
 
             * - ``<COLLECTION-NAME>``
               - Name of the collection where you ingested the data. 

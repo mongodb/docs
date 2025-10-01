@@ -2,7 +2,7 @@ Create a Sample Collection and Load the Data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You must begin by creating a collection named ``schools`` in an 
-existing or new database on your |service| {+cluster+}. After creating the 
+existing or new database on your cluster. After creating the 
 collection, you must upload the sample data into your collection. To
 learn more about the documents in the sample collection, see
 :ref:`embedded-documents-tutorial-sample-collection`. 

@@ -48,7 +48,7 @@
       ``<VOYAGE-API-KEY>`` in the sample code with the API key before
       running the code.  
 
-   #. To access |service| {+cluster+}, set the ``MONGODB_URI``
+   #. To access your cluster, set the ``MONGODB_URI``
       environment variable. 
 
       .. code-block::  

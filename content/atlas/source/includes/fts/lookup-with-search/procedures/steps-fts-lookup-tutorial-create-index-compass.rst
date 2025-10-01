@@ -3,7 +3,7 @@
 
    .. step:: Connect to your deployment by using |compass|.
 
-      Open {+Compass+} and connect to your |service| cluster or local deployment. For
+      Open {+Compass+} and connect to your cluster. For
       detailed instructions, see :ref:`atlas-connect-via-compass`. 
 
    .. step:: Specify the database and collection.

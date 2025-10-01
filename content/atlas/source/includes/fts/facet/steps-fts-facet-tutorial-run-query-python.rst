@@ -20,7 +20,7 @@
            using a |dns| seed list connection string. 
 
          - Creates an instance of the ``MongoClient`` class to establish a 
-           connection to your |service| cluster.
+           connection to your cluster.
 
          - Uses the following to query the collection: 
 

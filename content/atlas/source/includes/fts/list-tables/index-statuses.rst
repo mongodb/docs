@@ -56,7 +56,7 @@
        :ref:`atlas-search-alerts`.
 
    * - Deleting
-     - |service| is deleting the index from the {+cluster+} nodes.
+     - MongoDB is deleting the index from the cluster nodes.
 
    * - Does not Exist
      - Index is invalid because the collection for the index no longer

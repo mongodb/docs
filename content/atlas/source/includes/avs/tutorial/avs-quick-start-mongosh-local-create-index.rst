@@ -1,4 +1,4 @@
-a. Connect to the |service| {+cluster+} using {+mongosh+}.
+a. Connect to the cluster using {+mongosh+}.
 
    In a terminal window, run ``atlas deployments connect`` and follow the prompts
    to connect to your local |service| deployment via {+mongosh+}. 

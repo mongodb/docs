@@ -83,7 +83,7 @@
 
       In the command, replace the following placeholder values:
       
-      - ``cluster_name`` is the name of the |service| {+cluster+} that
+      - ``cluster_name`` is the name of the cluster that
         contains the collection for which you want to create the index.
       - ``vector_index`` is the name of the |json| file that contains the
         index definition for the {+avs+} index.

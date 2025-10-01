@@ -1,7 +1,7 @@
 This quick start describes how to load sample documents that contain
-vector embeddings into an |service| {+cluster+} or local |service| deployment,
-create a {+avs+} index on those embeddings, and then perform
-semantic search to return documents that are similar to your query.
+vector embeddings into your cluster, create a {+avs+} index on those
+embeddings, and then perform semantic search to return documents that
+are similar to your query. 
 
 *Time required: 15 minutes*
 

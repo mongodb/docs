@@ -12,8 +12,7 @@
             :emphasize-lines: 28-64
             :caption: MongoDBDataService.cs
 
-         This code performs a vector query on your local |service|
-         {+deployment+} or your |service| {+cluster+}.
+         This code performs a vector query on your cluster.
 
       #. Create another file called ``PerformTestQuery.cs`` and paste the
          following code into it:

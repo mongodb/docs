@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Connect to the |service| {+cluster+} using {+mongosh+}. 
+   .. step:: Connect to the cluster using {+mongosh+}. 
 
       To learn more, see :ref:`connect-mongo-shell`.
 

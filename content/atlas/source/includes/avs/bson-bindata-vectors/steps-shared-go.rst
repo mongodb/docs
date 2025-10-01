@@ -39,7 +39,7 @@
 
          export VOYAGE_API_KEY="<VOYAGE-API-KEY>"
 
-   #. To access |service| {+cluster+}, set the ``MONGODB_URI``
+   #. To access your cluster, set the ``MONGODB_URI``
       environment variable. 
 
       .. code-block:: shell 

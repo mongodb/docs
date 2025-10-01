@@ -5,7 +5,7 @@
 
    .. include:: /includes/nav/steps-data-explorer.rst
 
-   .. step:: Load the collection to a database in your |service| {+cluster+}. 
+   .. step:: Load the collection to a database in your cluster. 
 
       You can load the collection from your {+atlas-ui+} or {+mongosh+}:
 

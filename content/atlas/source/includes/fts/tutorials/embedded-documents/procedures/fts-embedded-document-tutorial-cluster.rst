@@ -2,7 +2,7 @@ Create a Sample Collection and Load the Data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You must begin by creating a collection named ``schools`` in an 
-existing or new database on your |service| {+cluster+}. After creating the 
+existing or new database on your cluster. After creating the 
 collection, you must upload the sample data into your collection. To
 learn more about the documents in the sample collection, see
 :ref:`embedded-documents-tutorial-sample-collection`. 
@@ -353,7 +353,7 @@ You can run queries against the embedded document fields. This
 tutorial uses :ref:`embeddedDocument <embedded-document-ref>` and :ref:`text <text-ref>` 
 operators inside the :ref:`compound <compound-ref>` operator in the queries. 
 
-In this section, you will connect to your |service| {+cluster+} and run 
+In this section, you will connect to your cluster and run 
 the sample queries using the operators against the fields in the 
 ``schools`` collection. 
 

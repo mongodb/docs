@@ -7,10 +7,10 @@
          :stub-columns: 1 
 
          * - ``clusterName``
-           - The name of the |service| {+cluster+}.
+           - The name of the cluster.
 
          * - ``db``
-           - The name of the database on the |service| {+cluster+} that
+           - The name of the database on the cluster that
              contains your indexed collection.
          
          * - ``collection``
@@ -28,7 +28,7 @@
 
       In the command, replace the following placeholder values:
       
-      - ``cluster-name`` - the name of the |service| {+cluster+} that
+      - ``cluster-name`` - the name of the cluster that
         contains the indexed collection.
       - ``db-name`` - the name of the database that contains the
         collection for which you want to retrieve the indexes.

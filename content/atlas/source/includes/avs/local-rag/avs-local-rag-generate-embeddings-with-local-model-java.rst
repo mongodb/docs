@@ -45,7 +45,7 @@
       This code uses the ``getEmbeddings()`` method and the MongoDB
       :driver:`Java Sync Driver </java/sync/>` to do the following:
 
-      a. Connect to your local |service| deployment or |service| {+cluster+}.
+      a. Connect to your cluster.
 
       #. Get a subset of documents from the ``sample_airbnb.listingsAndReviews``
          collection that have a non-empty ``summary`` field.

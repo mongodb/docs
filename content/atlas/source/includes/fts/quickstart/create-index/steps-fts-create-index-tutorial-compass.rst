@@ -1,9 +1,9 @@
 .. procedure:: 
    :style: normal
 
-   .. step:: Connect to your |service| {+cluster+} via |compass|.
+   .. step:: Connect to your cluster via |compass|.
       
-      Open {+Compass+} and connect to your |service| {+cluster+}. For
+      Open {+Compass+} and connect to your cluster. For
       detailed instructions, see :ref:`atlas-connect-via-compass`. 
    
    .. step:: Specify the database and collection.

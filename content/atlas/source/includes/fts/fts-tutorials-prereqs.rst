@@ -1,6 +1,6 @@
 To complete the tutorials, you must have: 
 
-- An |service| {+cluster+} with MongoDB version 6.0 or higher or a MongoDB
+- An Atlas cluster with MongoDB version 6.0 or higher or a MongoDB
   self-managed cluster with MongoDB version 8.2 or higher.
 
 - The :ref:`sample data <sample-data>` loaded into your 

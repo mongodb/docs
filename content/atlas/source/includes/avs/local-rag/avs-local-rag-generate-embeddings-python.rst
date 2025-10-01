@@ -6,8 +6,8 @@
     
       This code performs the following actions:
 
-      - Connects to your local |service| {+deployment+} or 
-        |service| {+cluster+} and selects the ``sample_airbnb.listingsAndReviews`` collection. 
+      - Connects to your cluster and selects the
+        ``sample_airbnb.listingsAndReviews`` collection.  
       - Loads the `mixedbread-ai/mxbai-embed-large-v1
         <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__ model
         from the Hugging Face model hub and saves it locally.

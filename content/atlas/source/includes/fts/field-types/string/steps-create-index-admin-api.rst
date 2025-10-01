@@ -14,7 +14,7 @@ Define the Index for the |fts-field-type| Type
    .. step:: Make an |api| call.
 
       Replace the following values in the ``curl`` command below. This 
-      command sends a ``POST`` request to your |service| cluster to 
+      command sends a ``POST`` request to your cluster to 
       create a |fts| index with the |fts-field-type| field type.
 
       - Replace {``ACCESS-TOKEN``} with the output from the preceding step

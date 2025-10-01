@@ -10,7 +10,7 @@
            - The unique identifier of the index to delete.
 
          * - ``<clusterName>``
-           - The name of the |service| {+cluster+}.
+           - The name of the cluster.
 
          * - ``<projectId>``
            - The unique identifier of the project.

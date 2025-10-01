@@ -16,7 +16,7 @@ Use Static Mappings
 
    .. step:: Connect to the {+atlas-cli+} 
 
-      In your terminal, connect to your |service| cluster from the 
+      In your terminal, connect to your cluster from the 
       {+atlas-cli+}. To learn more, see 
       :atlascli:`Connect from the Atlas CLI </connect-atlas-cli/>`.
 

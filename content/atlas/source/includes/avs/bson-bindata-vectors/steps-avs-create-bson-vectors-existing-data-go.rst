@@ -47,7 +47,7 @@
             :stub-columns: 1
 
             * - ``MONGODB_URI``
-              - Your |service| {+cluster+} connection string if you
+              - Your cluster connection string if you
                 didn't set the environment variable. 
 
             * - ``VOYAGE_API_KEY``
@@ -80,7 +80,7 @@
    .. step:: Ingest the data and create a {+avs+} index. 
 
       You must upload your data and embeddings to a collection in your
-      |service| {+cluster+} and create a {+avs+} index on the data to
+      cluster and create a {+avs+} index on the data to
       run :pipeline:`$vectorSearch` queries against the data. 
 
       a. Create a new file named ``UploadDataAndCreateIndex.go``
@@ -96,7 +96,7 @@
          This code does the following:
 
          - Uploads the ``float32``, ``int8``, and ``int1`` embeddings in
-           the ``embeddings.json`` file to your |service| {+cluster+}. 
+           the ``embeddings.json`` file to your cluster. 
          - Creates a {+avs+} index on the ``embeddings.float32``,
            ``embeddings.int8``, and ``embeddings.int1`` fields.  
 
@@ -113,7 +113,7 @@
             :stub-columns: 1
 
             * - ``MONGODB_URI``
-              - Your |service| {+cluster+} connection string if you
+              - Your cluster connection string if you
                 didn't set the environment variable. 
 
             * - ``<INDEX-NAME>``
@@ -141,7 +141,7 @@
                NOTE: This may take up to a minute.
                Name of Index Created: <INDEX-NAME>
 
-      #. Log in to your |service| {+cluster+} and verify the following:
+      #. Log in to your cluster and verify the following:
       
          - Data in the namespace.
          - {+avs+} index for the collection.
@@ -189,14 +189,14 @@
             :stub-columns: 1
 
             * - ``MONGODB_URI``
-              - Your |service| {+cluster+} connection string if you
+              - Your cluster connection string if you
                 didn't set the environment variable. 
 
             * - ``VOYAGE_API_KEY``
               - Your |voyage| |api| key if you didn't set the environment variable. 
 
             * - ``<DATABASE-NAME>``
-              - Name of the database in your |service| {+cluster+}. For
+              - Name of the database in your cluster. For
                 this example, use ``sample_airbnb``. 
 
             * - ``<COLLECTION-NAME>``

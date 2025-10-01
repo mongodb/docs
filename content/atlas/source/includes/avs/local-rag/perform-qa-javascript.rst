@@ -11,8 +11,7 @@
          :language: javascript
          :caption: retrieve-documents.js
 
-      This code performs a vector query on your local |service|
-      {+deployment+} or your |service| {+cluster+}.
+      This code performs a vector query on your cluster.
 
       Run a test query to confirm you're getting the expected results. Create
       a new file called ``test-query.js``, and paste the following code into it:

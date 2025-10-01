@@ -6,9 +6,9 @@ Use Dynamic Mappings
 .. procedure:: 
    :style: normal
 
-   .. step:: Connect to your |service| cluster using |compass|.
+   .. step:: Connect to your cluster using |compass|.
 
-      Open {+Compass+} and connect to your |service| cluster. For
+      Open {+Compass+} and connect to your cluster. For
       detailed instructions, see :ref:`atlas-connect-via-compass`. 
 
    .. step:: Specify the database and collection.

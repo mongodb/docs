@@ -98,10 +98,9 @@
 
       #. Verify the generated |bson| embeddings in the ``embeddings.json`` file.
 
-   .. step:: Connect to the |service| {+cluster+} and upload the data to a collection.
+   .. step:: Connect to the cluster and upload the data to a collection.
 
-      a. Create a file named ``upload-data.js`` to connect to the
-         |service| {+cluster+} and create a collection  in a database
+      a. Create a file named ``upload-data.js`` to connect to your cluster and create a collection  in a database
          for the data in the ``embeddings.json`` file.
 
          .. code-block:: shell 
@@ -113,7 +112,7 @@
 
          This code does the following:
 
-         - Connects to your |service| {+cluster+} and creates a
+         - Connects to your cluster and creates a
            namespace with the database and collection name that you
            specify.  
          - Uploads the data including the embeddings in the
@@ -130,7 +129,7 @@
          .. list-table:: 
 
             * - ``<CONNECTION-STRING>``
-              - Connection string to connect to the |service| {+cluster+} where
+              - Connection string to connect to the cluster where
                 you want to create the database and collection. 
                 
                 Replace this value only if you didn't
@@ -150,8 +149,7 @@
 
             node upload-data.js
 
-      #. Verify that the documents exist in the collection on your
-         |service| {+cluster+}. 
+      #. Verify that the documents exist in the collection on your cluster. 
 
    .. step:: Create the {+avs+} index on the collection.
 
@@ -167,7 +165,7 @@
 
          The code does the following:
 
-         - Connects to the |service| {+cluster+} and creates an index
+         - Connects to the cluster and creates an index
            with the specified name for the specified namespace. 
          - Indexes the ``bsonEmbeddings.float32`` and 
            ``bsonEmbeddings.int8`` fields as ``vector`` type that uses 
@@ -186,7 +184,7 @@
          .. list-table:: 
 
             * - ``<CONNECTION-STRING>``
-              - Connection string to connect to the |service| {+cluster+} where
+              - Connection string to connect to the cluster where
                 you want to create the index. 
                 
                 Replace this value only if you didn't set the 
@@ -273,7 +271,7 @@
 
          The sample query does the following:
 
-         - Connects to your |service| {+cluster+} and runs the
+         - Connects to your cluster and runs the
            :pipeline:`$vectorSearch` query against the
            ``bsonEmbeddings.float32``, ``bsonEmbeddings.int8``, and
            ``bsonEmbeddings.int1`` fields in the specified collection by

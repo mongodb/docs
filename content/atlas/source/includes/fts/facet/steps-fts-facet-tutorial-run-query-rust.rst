@@ -13,7 +13,7 @@
            BSON types for handling dates and documents.
 
          - Creates an instance of the ``Client`` class to establish a 
-           connection to your |service| cluster.
+           connection to your cluster.
 
          - Uses the following to query the collection: 
 

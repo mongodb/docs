@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal
 
-   .. step:: Connect to the |service| {+cluster+} using {+mongosh+}.
+   .. step:: Connect to the cluster using {+mongosh+}.
 
       Open {+mongosh+} in a terminal window and connect to your |service|
       {+cluster+}. For detailed instructions on connecting, see

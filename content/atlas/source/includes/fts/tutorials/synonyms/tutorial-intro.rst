@@ -13,7 +13,7 @@ The tutorial takes you through the following steps:
    ``sample_mflix.movies`` collection for words configured as synonyms 
    in the synonyms source collection.
 
-Before you begin, ensure that your |service| cluster meets the 
+Before you begin, ensure that your cluster meets the 
 requirements described in the :ref:`fts-accuracy-tutorials-prereqs`. 
 
 .. note:: 

@@ -54,9 +54,9 @@
          .. tab:: Cloud {+Deployment+}
             :tabid: cloud
 
-            If you're using an |service| {+cluster+}, your connection string
+            If you're using a |service| cluster, your connection string
             follows this format, replacing ``"<connection-string>";``
-            with your |service| {+cluster+}'s |srv| :manual:`connection string 
+            with your cluster's |srv| :manual:`connection string 
             </reference/connection-string/#find-your-mongodb-atlas-connection-string>`:
             
             .. code-block::

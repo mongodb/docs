@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal
 
-   .. step:: Log in to |service| and connect to your {+cluster+} using {+mongosh+}.
+   .. step:: Log in and connect to your cluster using {+mongosh+}.
 
       Open {+mongosh+} in a terminal window and connect to your 
       {+cluster+}. For detailed instructions on connecting, see 

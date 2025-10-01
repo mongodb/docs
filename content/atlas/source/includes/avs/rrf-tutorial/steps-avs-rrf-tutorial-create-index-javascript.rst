@@ -49,7 +49,7 @@
          #. Replace the ``<connection-string>`` placeholder values with your |srv|
             :manual:`connection string 
             </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
-            for your |service| {+cluster+}. Your connection string should use
+            for your cluster. Your connection string should use
             the following format:
          
             .. code-block::

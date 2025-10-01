@@ -15,7 +15,7 @@
 
       - Imports ``mongodb``, the MongoDB Rust Driver.
       - Creates a ``Client`` instance to establish a 
-        connection to your |service| cluster.
+        connection to your cluster.
       - Runs a query that uses:
 
         - :pipeline:`$search` stage to look for a term

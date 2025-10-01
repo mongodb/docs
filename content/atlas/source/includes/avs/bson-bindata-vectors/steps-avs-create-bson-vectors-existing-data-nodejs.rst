@@ -3,7 +3,7 @@
 
    .. include:: /includes/avs/bson-bindata-vectors/steps-shared-nodejs.rst 
 
-   .. step:: Fetch the data from your |service| {+cluster+}.
+   .. step:: Fetch the data from your cluster.
 
       a. Create a file named ``get-data.js``.
 
@@ -13,11 +13,11 @@
 
       #. Copy and paste the following sample code to fetch the data from
          the ``sample_airbnb.listingsAndReviews`` namespace in your
-         |service| {+cluster+}.
+         cluster.
 
          The sample code does the following: 
 
-         - Connects to your |service| {+cluster+} and finds documents
+         - Connects to your cluster and finds documents
            with the ``summary`` field. 
          - Creates a file named ``subset.json`` to which it writes the
            data from the collection.
@@ -145,10 +145,10 @@
 
       #. Verify the generated |bson| embeddings in the ``embeddings.json`` file.
 
-   .. step:: Connect to the |service| {+cluster+} and upload the data to the namespace.
+   .. step:: Connect to the cluster and upload the data to the namespace.
 
-      a. Create a file named ``upload-data.js`` to connect to the
-         |service| {+cluster+} and upload the data to the
+      a. Create a file named ``upload-data.js`` to connect to 
+         your cluster and upload the data to the
          ``sample_airbnb.listingsAndReviews`` namespace. 
 
          .. code-block:: shell 
@@ -160,7 +160,7 @@
 
          This code does the following:
 
-         - Connects to your |service| {+cluster+} and creates a
+         - Connects to your cluster and creates a
            namespace with the database and collection name that you
            specify.  
          - Uploads the data including the embeddings into the
@@ -194,7 +194,7 @@
                ...
                Embeddings stored in MongoDB successfully.
 
-      #. Verify by logging into your |service| {+cluster+} and checking
+      #. Verify by logging into your cluster and checking
          the namespace in the :guilabel:`Data Explorer`.
 
    .. step:: Create the {+avs+} index on the collection.
@@ -210,7 +210,7 @@
 
          The code does the following:
 
-         - Connects to the |service| {+cluster+} and creates an index
+         - Connects to the cluster and creates an index
            with the specified name for the specified namespace. 
          - Indexes the ``bsonEmbeddings.float32`` and 
            ``bsonEmbeddings.int8`` fields as ``vector`` type by using
@@ -326,7 +326,7 @@
 
          The sample query does the following:
 
-         - Connects to your |service| {+cluster+} and runs the
+         - Connects to your cluster and runs the
            :pipeline:`$vectorSearch` query against the
            ``bsonEmbeddings.float32``, ``bsonEmbeddings.int8``, and
            ``bsonEmbeddings.int1`` fields in the ``sample_airbnb.listingsAndReviews``
@@ -347,7 +347,7 @@
          .. list-table:: 
 
             * - ``<CONNECTION-STRING>``
-              - Connection string to connect to the |service| {+cluster+} where
+              - Connection string to connect to the cluster where
                 you want to create the index. 
                 
                 Replace this value only if you didn't set the 

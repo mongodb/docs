@@ -6,7 +6,7 @@
       These code examples perform the following tasks:
 
       - Imports ``mongodb`` packages and dependencies.
-      - Establishes a connection to your |service| cluster.
+      - Establishes a connection to your cluster.
       - Iterates over the cursor to print the documents that match the 
         query.
 
@@ -152,7 +152,7 @@
       These code examples perform the following tasks:
 
       - Imports ``mongodb`` packages and dependencies.
-      - Establishes a connection to your |service| cluster.
+      - Establishes a connection to your cluster.
       - Iterates over the cursor to print the documents that match the 
         query.
 

@@ -1,4 +1,4 @@
-a. Connect to the |service| {+cluster+} using {+mongosh+}.
+a. Connect to the cluster using {+mongosh+}.
 
    Open {+mongosh+} in a terminal window and connect to your |service|
    {+cluster+}. For detailed instructions on connecting, see

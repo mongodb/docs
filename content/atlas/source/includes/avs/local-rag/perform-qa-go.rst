@@ -19,8 +19,7 @@
 
          This code uses the `mongovector.SimilaritySearch()
          <https://pkg.go.dev/github.com/tmc/langchaingo/vectorstores/mongovector#Store.SimilaritySearch>`__
-         method to perform a vector query on your local |service| {+deployment+}
-         or your |service| {+cluster+}.
+         method to perform a vector query on your cluster.
 
       #. Run a test query to confirm you're getting the expected results. Move
          back to the project root directory.

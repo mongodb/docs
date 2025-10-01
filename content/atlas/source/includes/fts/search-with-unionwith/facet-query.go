@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	// connect to the your MongoDB deployment and set a maximum operation time
+	// connect to your MongoDB deployment and set a maximum operation time
 	ctx := context.Background()
 	opts := options.Client().
 		SetTimeout(5 * time.Second).

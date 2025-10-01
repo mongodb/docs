@@ -12,7 +12,7 @@
 
          - Imports ``mongodb``, MongoDB's Node.js driver.
          - Creates an instance of the ``MongoClient`` class to establish a 
-           connection to your |service| cluster.
+           connection to your cluster.
          - Uses the following searchMeta clauses to query the collection: 
 
            .. include:: /includes/fts/extracts/fts-facet-constant-desc.rst 

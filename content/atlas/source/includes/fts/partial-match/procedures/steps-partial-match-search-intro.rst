@@ -29,7 +29,7 @@ This tutorial takes you through the following steps:
    :ref:`autocomplete <autocomplete-ref>`, :ref:`phrase <phrase-ref>`, :ref:`regex <regex-ref>`, and 
    :ref:`wildcard <wildcard-ref>` operators.
 
-Before you begin, ensure that your |service| cluster meets the following requirements.
+Before you begin, ensure that your cluster meets the following requirements.
 
 .. |query-type| replace:: |fts|
 .. |search-stage| replace:: :pipeline:`$search`

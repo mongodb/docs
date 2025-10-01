@@ -2,7 +2,7 @@ Create a Sample Collection and Load the Data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You must begin by creating a collection named ``schools`` in an 
-existing or new database on your |service| {+cluster+}. After creating the 
+existing or new database on your cluster. After creating the 
 collection, you must upload the sample data into your collection. To
 learn more about the documents in the sample collection, see
 :ref:`embedded-documents-tutorial-sample-collection`. 
@@ -15,9 +15,9 @@ Create and populate the ``schools`` collection:
 .. procedure:: 
   :style: normal
 
-  .. step:: Connect to your |service| cluster using |compass|.
+  .. step:: Connect to your cluster using |compass|.
 
-     Open {+Compass+} and connect to your |service| cluster. For
+     Open {+Compass+} and connect to your cluster. For
      detailed instructions, see :ref:`atlas-connect-via-compass`. 
 
   .. step:: Create the collection.

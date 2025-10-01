@@ -59,7 +59,7 @@
             :language: python 
             :linenos:
       
-   .. step:: Create documents and load to |service| cluster.
+   .. step:: Create documents and load to your cluster.
 
       You can load your data from the {+atlas-ui+} and programmatically. 
       To learn how to load your data from the {+atlas-ui+}, see
@@ -95,7 +95,7 @@
             :linenos:
             :emphasize-lines: 2-4, 13
 
-      #. Load your data into your |service| {+cluster+}.
+      #. Load your data into your cluster.
 
          Copy, paste, and run the sample code below after replacing the
          following placeholder values (highlighted in the code): 

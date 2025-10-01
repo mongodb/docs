@@ -9,7 +9,7 @@
          The code example performs the following tasks:
 
          - Imports ``mongodb`` packages and dependencies.
-         - Establishes a connection to your |service| cluster.
+         - Establishes a connection to your cluster.
          - Uses the following searchMeta clauses to query the collection: 
 
            .. include:: /includes/fts/extracts/fts-facet-constant-desc.rst 

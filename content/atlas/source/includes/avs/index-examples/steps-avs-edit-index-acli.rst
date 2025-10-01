@@ -39,7 +39,7 @@
 
       In the command, replace the following placeholder values:
       
-      - ``cluster_name`` - the name of the |service| {+cluster+} that
+      - ``cluster_name`` - the name of the cluster that
         contains the collection for which you want to update the index.
       - ``vector_index`` - the name of the |json| file that contains the
         modified index definition for the {+avs+} index.

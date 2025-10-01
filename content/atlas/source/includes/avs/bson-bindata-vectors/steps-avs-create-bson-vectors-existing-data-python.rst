@@ -3,11 +3,11 @@
 
    .. include:: /includes/avs/bson-bindata-vectors/steps-shared-python.rst 
 
-   .. step:: Connect to the |service| {+cluster+} and retrieve existing data. 
+   .. step:: Connect to the cluster and retrieve existing data. 
 
       You must provide the following: 
       
-      - Connection string to connect to your |service| {+cluster+} that
+      - Connection string to connect to your cluster that
         contains the database and collection for which you want to
         generate embeddings.
       - Name of the database that contains the collection for which you
@@ -58,8 +58,7 @@
          :ref:`create-vector-embeddings`. 
       #. Converts the embeddings to |bson| vectors (as shown 
          on line 7 in the following example). 
-      #. Uploads the embeddings to your collection on the
-         |service| {+cluster+}.
+      #. Uploads the embeddings to your collection on your cluster.
 
       These operation might take a few minutes to complete.
 

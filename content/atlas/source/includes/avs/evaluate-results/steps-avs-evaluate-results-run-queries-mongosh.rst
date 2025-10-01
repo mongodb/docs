@@ -9,7 +9,7 @@
          :language: javascript
          :copyable: true 
 
-   .. step:: Connect to your |service| {+cluster+} using {+mongosh+}. 
+   .. step:: Connect to your cluster using {+mongosh+}. 
 
       Open a terminal window and connect to your {+cluster+} by using
       {+mongosh+}. To learn more, see :ref:`connect-mongo-shell`.  

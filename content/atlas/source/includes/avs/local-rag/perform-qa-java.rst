@@ -8,7 +8,7 @@
       This code uses the ``getEmbedding()`` and ``retrieveDocuments`` methods and
       the Ollama ``chatmodel`` to do the following:
 
-      a. Connect to your local |service| {+deployment+} or your |service| {+cluster+}
+      a. Connect to your cluster
 
       #. Generate an embedding for the query string using the ``getEmbedding()``
          method you defined previously.
