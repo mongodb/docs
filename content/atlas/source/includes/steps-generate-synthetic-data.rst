@@ -49,7 +49,7 @@
       - ``<YOUR-ATLAS-URI>``: the connection string for your
         |service| {+cluster+}. To learn how to find your connection
         string, see :manual:`Find Your MongoDB Atlas Connection String
-        <reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
+        </reference/connection-string/#find-your-mongodb-atlas-connection-string>`.
       - ``<DATABASE-NAME>``: Name of the database to create
         in |service|.
       - ``<COLLECTION-NAME>``: Name of the collection to create in 
