@@ -1,4 +1,4 @@
-// Performs text searches by using the Go driver
+// Performs text queries by using the Go driver
 package main
 
 import (
@@ -162,7 +162,7 @@ func main() {
 		//end text score
 	}
 
-	fmt.Println("\nAggregation Text Search:\n")
+	fmt.Println("\nAggregation Text Query:\n")
 	{
 		// Uses an aggregation pipeline to retrieve documents containing
 		// the "herb" string in any fields associated with a text index
