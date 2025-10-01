@@ -10,10 +10,6 @@
      - :icon-fa5:`check`
      -
 
-   * - |service| Data Lake
-     - :icon-fa5:`check`
-     -   
-
    * - |service| Device SDKs
      - :icon-fa5:`check`
      - 
