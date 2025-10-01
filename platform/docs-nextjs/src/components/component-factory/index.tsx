@@ -26,6 +26,7 @@ import type {
   RoleManualNode,
   LinkNewTabNode,
   BlockQuoteNode,
+  SubstitutionReferenceNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
 import Admonition, { type AdmonitionProps } from '../admonition';
@@ -79,6 +80,8 @@ import type {
 import Code from '../code';
 import type { BlockQuoteProps } from '../block-quote';
 import BlockQuote from '../block-quote';
+import type { SubstitutionReferenceProps } from '../substitution-reference';
+import SubstitutionReference from '../substitution-reference';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -211,7 +214,7 @@ const getComponent = (() => {
         strong: Strong as React.ComponentType<SupportedComponentProps>,
         // superscript: Superscript,
         // subscript: Subscript,
-        // substitution_reference: SubstitutionReference,
+        substitution_reference: SubstitutionReference as React.ComponentType<SupportedComponentProps>,
         // tabs: Tabs,
         // 'tabs-selector': TabSelectors,
         target: Target as React.ComponentType<SupportedComponentProps>,
@@ -287,7 +290,8 @@ type SupportedComponentProps =
   | CodeNode
   | FootnoteNodeProps
   | FootnoteReferenceProps
-  | ButtonProps;
+  | ButtonProps
+  | SubstitutionReferenceProps;
 
 type RoleComponentProps =
   | AbbrProps
@@ -411,6 +415,15 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('button')) {
     const buttonNode = nodeData as ButtonNode;
     return <ComponentType argument={buttonNode.argument} options={buttonNode.options} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('substitution_reference')) {
+    const substitutionReferenceNode = nodeData as SubstitutionReferenceNode;
+    return (
+      <ComponentType
+        nodeChildren={substitutionReferenceNode.children}
+        name={substitutionReferenceNode.name}
+        {...propsToDrill}
+      />
+    );
   }
 
   console.log('ComponentType', ComponentType.name);
