@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useContext, useMemo } from 'react';
-import { css } from '@leafygreen-ui/emotion';
+import { css, cx } from '@leafygreen-ui/emotion';
 import styled from '@emotion/styled';
 import { default as CodeBlock, type LanguageOption } from '@leafygreen-ui/code';
 import Icon from '@leafygreen-ui/icon';
@@ -166,7 +166,7 @@ const Code = ({
           }}
         />
       )}
-      <div className={`${codeContainerStyle} ${captionAndWhitespaceStyle} intro-code-block`}>
+      <div className={cx(codeContainerStyle, captionAndWhitespaceStyle, 'intro-code-block')}>
         {captionSpecified && (
           <div>
             <CaptionContainer>

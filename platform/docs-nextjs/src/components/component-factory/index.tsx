@@ -79,6 +79,7 @@ import type {
   RoleManualProps,
 } from '@/components/roles';
 import Code from '../code';
+import Include, { type IncludeProps } from '../include';
 import BlockQuote, { type BlockQuoteProps } from '../block-quote';
 import Emphasis, { type EmphasisProps } from '../emphasis';
 import SubstitutionReference, { type SubstitutionReferenceProps } from '../substitution-reference';
@@ -186,7 +187,7 @@ const getComponent = (() => {
         // heading: Heading,
         // hlist: HorizontalList,
         // image: Image,
-        // include: Include,
+        include: Include as React.ComponentType<SupportedComponentProps>,
         introduction: Introduction as React.ComponentType<SupportedComponentProps>,
         kicker: Kicker as React.ComponentType<SupportedComponentProps>,
         // line: Line,
@@ -196,7 +197,7 @@ const getComponent = (() => {
         // 'list-table': ListTable,
         literal: Literal as React.ComponentType<SupportedComponentProps>,
         // literal_block: LiteralBlock,
-        // literalinclude: LiteralInclude,
+        literalinclude: Include as React.ComponentType<SupportedComponentProps>,
         // 'method-selector': MethodSelector,
         only: Cond as React.ComponentType<SupportedComponentProps>,
         // 'openapi-changelog': OpenAPIChangelog,
@@ -290,6 +291,7 @@ type SupportedComponentProps =
   | CodeNode
   | FootnoteNodeProps
   | FootnoteReferenceProps
+  | IncludeProps
   | ButtonProps
   | EmphasisProps
   | SubstitutionReferenceProps;
@@ -397,6 +399,9 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('section')) {
     const sectionNode = nodeData as ParentNode;
     return <ComponentType nodeChildren={sectionNode.children} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('include') || ComponentType === getComponent('literalinclude')) {
+    const includeNode = nodeData as ParentNode;
+    return <ComponentType nodeChildren={includeNode.children} {...propsToDrill} />;
   } else if (ComponentType === getComponent('cond')) {
     const condNode = nodeData as Directive;
     return <ComponentType nodeData={condNode} />;
