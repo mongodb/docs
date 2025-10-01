@@ -46,7 +46,7 @@
    },
    {
        "resource": { "db": "config", "collection": "settings" },
-       "actions": [ "find" ]
+       "actions": [ "find", "update" ]
    },
    {
        "resource": { "system_buckets": "" },

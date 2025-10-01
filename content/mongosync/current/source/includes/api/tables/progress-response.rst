@@ -16,8 +16,12 @@
    * - ``canCommit``
      - boolean
      - If ``true``, indicates that a :ref:`commit <c2c-api-commit>`
-       request will succeed. This also means that the initial sync has
-       completed and is applying change events. If you set :ref:`buildIndexes
+       request will succeed. This also means that:
+
+       - The initial sync has completed and is applying change events. 
+       - The embedded verifier is in an appropriate state for commit.
+       
+       If you set :ref:`buildIndexes
        <mongosync-build-indexes>` to ``"afterDataCopy"`` or ``"excludeHashedAfterCopy"``
        when calling ``start``, ``{canCommit: true}`` also indicates that 
        index builds are complete.
@@ -113,6 +117,15 @@
        ``estimatedCopiedBytes`` is not an accurate indicator of
        migration progress.  
 
+   * - ``destination.`` ``pingLatencyMs``
+     - integer
+     - Provides the last-known ping latency, in milliseconds, from ``mongosync`` to the destination cluster.
+       This field is refreshed every 30 seconds while replication is still in progress and reported in the response.
+       If latency is less than ``1`` millisecond or ``mongosync`` has not performed the ping yet, this field is absent.
+       This field has a value of ``-1`` if the last ping attempt failed.
+
+       .. versionadded:: 1.17
+
    * - ``directionMapping``
      - object
      - Describes the mapping direction for the synchronization, namely
@@ -163,6 +176,15 @@
          ``mongosync`` identifies the coordinator.
 
        .. versionadded:: 1.3
+
+   * - ``source.`` ``pingLatencyMs``
+     - integer
+     - Provides the last-known ping latency, in milliseconds, from ``mongosync`` to the source cluster.
+       This field is refreshed every 30 seconds while replication is still in progress and reported in the response.
+       If latency is less than ``1`` millisecond or ``mongosync`` has not performed the ping yet, this field is absent.
+       This field has a value of ``-1`` if the last ping attempt failed.
+
+       .. versionadded:: 1.17
 
    * - ``verification``
      - document

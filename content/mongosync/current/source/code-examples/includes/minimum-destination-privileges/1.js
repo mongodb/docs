@@ -59,7 +59,7 @@
    },
    {
       "resource": { "db": "config", "collection": "settings" },
-      "actions": [ "find" ]
+      "actions": [ "find", "update" ]
    },
    {
       "resource": { "db": "config", "collection": "shards" },

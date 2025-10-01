@@ -1,0 +1,222 @@
+.. _c2c-api-reverse:
+
+===========
+``reverse``
+===========
+
+.. meta::
+   :keywords: cluster to cluster sync, cluster-to-cluster sync
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Description
+-----------
+
+Reverses the direction of a committed sync operation.
+
+For example:
+
+- You have a ``COMMITTED`` sync operation.
+
+- ``cluster0`` is the source and ``cluster1`` is the destination.
+
+- After the sync operation is ``COMMITTED``, new writes occur only on
+  the destination cluster. The source cluster will not accept new
+  writes.
+
+In this scenario, you can use the ``reverse`` endpoint to sync
+writes from ``cluster1`` to ``cluster0``, including any writes
+that occurred on ``cluster1`` after ``mongosync`` reached
+``canWrite=true``.  To check the ``canWrite`` status during
+sync, use the :ref:`/progress <c2c-api-progress>` endpoint.
+
+For more information and a tutorial on using the ``reverse`` endpoint,
+see :ref:`c2c-reverse-process`. 
+
+Requirements
+------------
+
+To use the ``reverse`` endpoint:
+
+- ``mongosync`` must be configured when the initial sync begins. The
+  call to the :ref:`/start <c2c-api-start>` API endpoint must set:
+  
+  - ``reversible`` to ``true``
+  - ``enableUserWriteBlocking`` to ``"sourceAndDestination"``.
+
+.. note::
+
+   :ref:`Dual write-blocking <c2c-write-blocking>` is a 
+   prerequisite for running ``reverse``.
+
+You cannot update these options after the sync starts. 
+
+- ``mongosync`` must be in the ``COMMITTED`` state.
+- The destination cluster oplog must not roll over between 
+  ``mongosync`` reaching ``canWrite=true`` and receiving
+  the ``/reverse`` request.
+
+.. warning::
+
+   :ref:`Unique indexes <index-type-unique>` on the source cluster must not use
+   the legacy format.
+
+   To validate that collection indexes on the source cluster use the proper
+   formatting, see :ref:`c2c-validate-unique-index`.
+
+- .. include:: /includes/fact-reverse-limitation.rst
+- .. include:: /includes/fact-permissions-body.rst
+
+.. note::
+
+   .. include:: /includes/api/facts/multiple-mongosync-endpoints
+
+   For more information, see :ref:`Reverse Multiple Mongosyncs
+   <c2c-sharded-reverse>`. 
+
+.. _c2c-validate-unique-index:
+
+Validate Unique Indexes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to reverse direction, ``mongosync`` requires that all :ref:`unique
+<index-type-unique>` indexes on the source cluster (except for ``_id``) do not
+have legacy unique index keys.
+
+Before you Begin
+````````````````
+
+You can ensure that non-``_id`` unique indexes use the correct formatting on the
+source cluster with the :pipeline:`$collStats` aggregation stage. To run this
+aggregation pipeline on your collection, copy and paste the example code,
+replacing ``<collection>`` with the collection name and ``<field_name>`` with
+the name of the indexed field. You must run this on all nodes, for all
+collections that have unique indexes. Note that only the non-``_id`` unique
+indexes need to have formatVersion ``13`` or ``14``.
+
+.. io-code-block:: 
+   :copyable: true
+
+   .. input::
+      :language: javascript 
+
+       db.<collection>.aggregate( [ 
+         { $collStats: { storageStats: { } } },
+         { $project: { "storageStats.indexDetails.<field_name>.metadata.formatVersion": 1 } }
+       ] )
+
+   .. output:: 
+      :language: javascript
+
+      [
+        {
+          storageStats: {
+            indexDetails: { <field_name>: { metadata: { formatVersion: 14 } } }
+          }
+        }
+      ]
+
+Unique indexes with formatVersion ``13`` or ``14`` are guaranteed to not 
+have legacy keys.
+
+If you have unique indexes of a different formatVersion, you can also 
+use the :method:`db.collection.validate` method with ``full = false`` to 
+confirm if there are legacy index keys. You must run this on all nodes 
+for all collections with unique indexes. ``validate()`` returns a 
+warning if legacy format index keys are detected.
+
+Steps
+`````
+
+To update the format version of the indexes for compatibility with 
+``mongosync``, you must :ref:`resync <resync-replica-member>` all nodes
+in the original source cluster. To resync all nodes: 
+
+
+.. procedure::
+   :style: normal
+
+   .. step:: Resync all secondaries, one by one. 
+
+      For a tutorial on resyncing nodes, see :ref:`Resync a Member of a
+      Replica Set <resync-replica-member>`. 
+
+   .. step:: Step down the primary node and step up one of the secondary nodes.
+   
+   .. step:: Resync the old primary node from the new primary node. 
+
+Request
+-------
+
+.. literalinclude:: /code-examples/reference/api/reverse/1.txt
+   :language: http
+   :copyable: false
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: includes/api/facts/no-body-parameters.rst
+
+Response
+--------
+
+.. include:: /includes/api/tables/basic-response.rst
+
+Example
+-------
+
+The following example reverses the direction of a committed sync operation.
+
+Request
+~~~~~~~
+
+.. literalinclude:: /includes/api/requests/reverse.sh
+   :language: shell
+
+Response
+~~~~~~~~
+
+.. literalinclude:: /includes/api/responses/success.json
+   :language: json
+   :copyable: false
+
+Behavior
+--------
+
+The ``reverse`` endpoint starts the ``REVERSING`` state. ``mongosync`` swaps the 
+source and destination clusters and resumes applying change events.
+
+If the ``reverse`` sync is successful, ``mongosync`` enters the
+``RUNNING`` state. The synchronization continues in the reverse
+direction from the original sync job. You do not need to restart the
+entire sync process to copy the original data.
+
+To view the mapping direction for the synchronization of the source and
+destination clusters, use the :ref:`progress <c2c-api-progress>`
+endpoint and check the ``directionMapping`` object.
+
+Embedded Verifier
+~~~~~~~~~~~~~~~~~
+
+The embedded verifier is enabled by default for replica set
+migrations.
+
+Endpoint Protection
+~~~~~~~~~~~~~~~~~~~
+
+.. |endpoint| replace:: ``reverse``
+.. include:: /includes/fact-api-endpoint
+
+Limitations
+~~~~~~~~~~~
+
+The ``reverse`` endpoint does not support:
+
+- :ref:`filtered sync <c2c-filtered-sync>`.
+- migrations from :ref:`pre-6.0 source clusters <c2c-older-version-support>`.

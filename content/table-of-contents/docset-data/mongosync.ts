@@ -1,8 +1,5 @@
 import type { TocItem } from "../types";
-
-// Ex. use `versions: {excludes: versionsBeforeV1_16}` to add a page that 
-//   appears **only** in v1.16 and later.
-const versionsBeforeV1_16 = ["v1.9", "v1.10", "v1.11", "v1.12", "v1.13", "v1.14", "v1.15"];
+import mongosyncVersions from "../version-arrays/server-docs/mongosync";
 
 const tocData: TocItem[] = [
   {
@@ -226,7 +223,7 @@ const tocData: TocItem[] = [
             label: "Metrics",
             contentSite: "mongosync",
             url: "/docs/mongosync/:version/reference/metrics/",
-            versions: { excludes: versionsBeforeV1_16 },
+            versions: { excludes: mongosyncVersions.before("v1.16") },
           },
           {
             label: "User Permissions",
@@ -290,10 +287,16 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "1.17",
+            contentSite: "mongosync",
+            url: "/docs/mongosync/:version/release-notes/1.17",
+            versions: { excludes: mongosyncVersions.before("v1.17")},
+          },
+          {
             label: "1.16",
             contentSite: "mongosync",
             url: "/docs/mongosync/:version/release-notes/1.16",
-            versions: { excludes: versionsBeforeV1_16 },
+            versions: { excludes: mongosyncVersions.before("v1.16") },
           },
           {
             label: "1.15",

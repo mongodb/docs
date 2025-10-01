@@ -1,4 +1,4 @@
-If you set ``buildIndexes`` to |build-index-param| and set :ref:`createSupportingIndexes
+If the value of ``buildIndexes`` is |build-index-param| and you set :ref:`createSupportingIndexes
 <mongosync-create-supporting-indexes-param>` to ``false`` while migrating
 to a sharded cluster, ``mongosync`` creates a dummy index to support the shard key. 
 ``mongosync`` attempts to drop this dummy index after ``commit`` is called. 
