@@ -35,7 +35,7 @@
    ├── http_endpoints/
    │   ├── config.json
    │   ├── data_api_config.json
-   │   └── [Deprecated] <service name>/
+   │   └── <service name>/
    │       ├── config.json
    │       └── incoming_webhooks/
    │           ├── config.json
