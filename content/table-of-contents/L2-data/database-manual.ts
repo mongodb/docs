@@ -252,7 +252,7 @@ const tocData: TocItem[] = [
             collapsible: true,
             items: [
               {
-                label: "Build AI Agents",
+                label: "Build an AI Agent",
                 contentSite: "cloud-docs",
                 url: "/docs/atlas/ai-integrations/langgraph/build-agents",
               },
@@ -265,7 +265,7 @@ const tocData: TocItem[] = [
             collapsible: true,
             items: [
               {
-                label: "Build AI Agents",
+                label: "Build an AI Agent",
                 contentSite: "cloud-docs",
                 url: "/docs/atlas/ai-integrations/langgraph-js/build-agents",
               },
@@ -278,7 +278,7 @@ const tocData: TocItem[] = [
             collapsible: true,
             items: [
               {
-                label: "Build AI Agents",
+                label: "Build an AI Agent",
                 contentSite: "cloud-docs",
                 url: "/docs/atlas/ai-integrations/crewai/build-agents",
               },
@@ -338,6 +338,19 @@ const tocData: TocItem[] = [
             label: "MCP Server",
             contentSite: "cloud-docs",
             url: "https://www.mongodb.com/docs/mcp-server/",
+          },
+          {
+            label: "n8n",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/ai-integrations/n8n",
+            collapsible: true,
+            items: [
+              {
+                label: "Build an AI Agent",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/n8n/build-ai-agent",
+              },
+            ]
           },
         ]
       },

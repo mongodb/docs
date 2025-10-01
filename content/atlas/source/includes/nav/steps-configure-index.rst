@@ -8,5 +8,6 @@
    .. include:: /includes/search-shared/list-table-configure-index.rst
 
    :gold:`IMPORTANT:`  
+   
    .. include:: /includes/fts/facts/fact-default-index-name.rst
     

@@ -1,0 +1,186 @@
+.. _n8n-get-started:
+
+======================================
+Build an AI Agent with MongoDB and n8n
+======================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to build an AI agent without writing any code using n8n and MongoDB Atlas.
+   :keywords: n8n, AI agent, vector store, chat memory, MongoDB Atlas, vector search, automation, workflow
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This tutorial demonstrates how to quickly build an AI agent using n8n that 
+can answer questions about some sample data. The agent leverages 
+MongoDB as both a vector store for document retrieval and a chat memory store 
+for conversation persistence.
+
+.. _n8n-workflow-diagram:
+
+About the n8n Workflow with MongoDB
+-----------------------------------
+
+The following screenshot demonstrates the workflow that
+you will build in this tutorial. In this workflow, you create an AI agent
+that uses two MongoDB nodes:
+
+- :ref:`n8n-vector-store` to retrieve relevant documents from the sample data
+- :ref:`n8n-chat-memory` to store conversation history
+
+It also uses OpenAI as the LLM and embedding model provider.
+
+When you send a message to the agent, it triggers the following actions:
+
+#. The AI agent node processes the user message and determines the next action.
+#. The AI agent checks whether it needs to make any tool calls.
+   
+   - If yes, it calls the MongoDB Vector Store node 
+     to retrieve documents.
+
+   - If not, it continues to the next action.
+
+#. The agent generates a response using the
+   LLM that you configured for the workflow.
+
+#. After each interaction, the MongoDB Chat Memory node 
+   stores the conversation history.
+
+.. figure:: /images/n8n-mongodb-ai-agent-workflow.png
+   :figwidth: 720px
+   :alt: Screenshot of AI agent workflow with n8n and MongoDB
+
+.. note::
+
+   The red asterisks in the AI Agent node's configuration indicate required parameters.
+
+Prerequisites
+-------------
+
+Before you begin, ensure that you have the following:
+
+- `n8n installed <https://docs.n8n.io/hosting/>`__.
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+- The :ref:`sample data <sample-data>` loaded into your MongoDB deployment.
+- An OpenAI API key, or an API key for any other supported provider of 
+  LLMs and embedding models that you intend to use.
+
+Considerations
+~~~~~~~~~~~~~~
+
+When working with n8n and MongoDB, consider the following:
+
+- For |service-fullname| users, ensure that you add your n8n IP addresses to your 
+  project's IP Access List. To learn more, see
+  :ref:`Network Access <access-list>`.
+
+- When configuring the MongoDB Vector Store node, ensure that you
+  toggle the :guilabel:`Include Metadata` to :guilabel:`Off`.
+  If you don't toggle this setting to :guilabel:`Off`, the AI agent might not run
+  as the documents might be too large to load into the context window.
+  
+Create the Vector Search Index
+------------------------------
+
+You must create a :ref:`vector search index <avs-types-vector-search>` 
+on your collection before you can use the MongoDB vector store node.
+
+.. |search-type| replace:: :guilabel:`Vector Search`
+.. |index-name| replace:: ``vector_index``
+.. |database-name| replace:: ``sample_mflix`` database
+.. |collection-name| replace:: ``embedded_movies`` collection
+.. |avs-namespace| replace:: ``sample_mflix.embedded_movies``
+.. |embedding-field-name| replace:: ``plot_embedding``
+.. |similarity-method| replace:: :guilabel:`Cosine`
+
+.. collapsible:: 
+   :heading: Atlas UI Index Creation Steps
+   :sub_heading: Complete the following steps to create a vector search index by using the Atlas UI.
+   :expanded: false
+
+   .. include:: /includes/ai-integrations/n8n/steps-n8n-create-index.rst
+   
+To use a different index creation method, follow the steps in the
+:ref:`index creation procedure <avs-create-index-procedure>`.
+Use the following configuration:
+
+.. code-block:: json
+
+   {
+     "fields": [
+       {
+         "type": "vector",
+         "path": "plot_embedding",
+         "numDimensions": 1536,
+         "similarity": "dotProduct"
+       }
+     ]
+   }
+
+Configure Credentials in n8n
+----------------------------
+
+In this section, you complete the steps to configure
+the required credentials in n8n.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the Credentials configuration page.
+    
+      In the upper right corner of the n8n home page, right click :guilabel:`Create Workflow`. 
+      Alternatively, select the :guilabel:`Credentials` tab and click :guilabel:`Add first credential`.
+
+   .. step:: Add credentials for your model provider.
+
+      a. From the drop-down menu, select the credentials to configure. 
+
+         For example, select :guilabel:`OpenAI` and click :guilabel:`Continue`.
+
+      #. To see which parameters to enter for your model provider, 
+         check the `Credentials Library <https://docs.n8n.io/integrations/builtin/credentials/>`__.
+
+         For example, for OpenAI, enter the API Key, the name of the organization, and the base URL.
+
+      #. Click :guilabel:`Save`. n8n adds the credential to your personal space.
+
+   .. step:: Add credentials for MongoDB.
+    
+      Follow the same instructions described in the previous step 
+      to add your MongoDB credentials to n8n. 
+      Specify the following values:
+
+      .. list-table::
+         :widths: 30 70
+         :header-rows: 1
+
+         * - Setting
+           - Value
+         * - Configuration Type
+           - In the dropdown menu, select the :guilabel:`Connection String` method.
+         * - Connection String
+           - Enter your MongoDB :guilabel:`Connection String`.
+
+             To learn how to find your MongoDB connection string,
+             see :manual:`Connection Strings </reference/connection-string/>`.
+
+         * - Database
+           - Enter :guilabel:`sample_mflix`.
+
+Configure the AI Agent Workflow
+-------------------------------
+
+Complete the following steps in n8n to build an AI agent workflow 
+with MongoDB and n8n. To learn more about the workflow, 
+see :ref:`n8n-workflow-diagram`.
+
+.. include:: /includes/ai-integrations/n8n/steps-n8n-get-started.rst
