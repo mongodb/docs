@@ -76,12 +76,9 @@
             :end-before: End Example 15
 
      - id: nodejs
-       content: |
-         .. literalinclude:: /driver-examples/node_query_embedded_documents.js
+       content: | 
+         .. literalinclude:: /code-examples/tested/javascript/driver/crud/read/match-embedded-document.snippet.match-embedded-documents.js
             :language: javascript
-            :dedent: 6
-            :start-after: Start Example 15
-            :end-before: End Example 15
 
      - id: php
        content: |

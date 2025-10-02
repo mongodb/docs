@@ -67,11 +67,8 @@
 
      - id: nodejs
        content: |
-         .. literalinclude:: /driver-examples/node_query_embedded_documents.js
+         .. literalinclude:: /code-examples/tested/javascript/driver/crud/read/match-embedded-document.snippet.load-data.js
             :language: javascript
-            :dedent: 4
-            :start-after: Start Example 14
-            :end-before: End Example 14
 
      - id: php
        content: |
