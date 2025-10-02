@@ -20,7 +20,7 @@ const RootProvider = ({
   return (
     <MetadataProvider value={metadata}>
       <FootnoteProvider pageNodes={pageNodes}>
-        <ContentsProvider headingNodes={headingNodes as HeadingNode[]}>{children}</ContentsProvider>
+        <ContentsProvider headingNodes={headingNodes}>{children}</ContentsProvider>
       </FootnoteProvider>
     </MetadataProvider>
   );

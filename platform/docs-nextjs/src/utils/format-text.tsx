@@ -1,6 +1,6 @@
 import ComponentFactory from '@/components/component-factory';
-import { type FormatTextOptions } from '@/components/literal';
-import { type ASTNode } from '@/types/ast';
+import type { FormatTextOptions } from '@/components/literal';
+import type { ASTNode } from '@/types/ast';
 import { isDirectiveNode } from '@/types/ast-utils';
 
 /*

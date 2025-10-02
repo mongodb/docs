@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react';
-import FootnoteReference from '../../../src/components/footnote/footnote-reference';
+import FootnoteReference from '@/components/footnote/footnote-reference';
 
 import mockData from '../data/footnote-reference.test.json';
 

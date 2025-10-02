@@ -157,7 +157,7 @@ async function _getSnootyMetadata(build_id: string) {
     const metadataDoc = await collection.findOne<RemoteMetadata>(query, options);
     if (!metadataDoc) return;
     // we need to parse then stringify the metadataDoc to ensure it's a plain object
-    return JSON.parse(JSON.stringify(metadataDoc));
+    return JSON.parse(JSON.stringify(metadataDoc)) as RemoteMetadata;
   } catch (e) {
     log({ message: String(e), level: 'error' });
     throw e;

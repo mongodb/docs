@@ -1,7 +1,7 @@
 import type { ASTNode } from '@/types/ast';
 import type { FootnoteNode, FootnoteReferenceNode } from '@/types/ast';
-import type { FootnoteType } from '@/components/footnote/footnote-context';
 import { findAllKeyValuePairs } from '@/utils/find-all-key-value-pairs';
+import type { FootnoteType } from './footnote-context';
 
 export const getFootnotes = (nodes: ASTNode[]) => {
   const footnotes = findAllKeyValuePairs(nodes, 'type', 'footnote') as FootnoteNode[];

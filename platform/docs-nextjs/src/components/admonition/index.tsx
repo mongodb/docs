@@ -7,9 +7,8 @@ import { palette } from '@leafygreen-ui/palette';
 import { getPlaintext } from '@/utils/get-plaintext';
 import { theme } from '@/styles/theme';
 import type { AdmonitionNode } from '@/types/ast';
-import ComponentFactory from '../component-factory';
 import { sharedDarkModeOverwriteStyles } from '@/components/link';
-import type { ComponentFactoryProps } from '../component-factory';
+import ComponentFactory, { type ComponentFactoryProps } from '../component-factory';
 import { admonitionMap } from './constants';
 
 /* Copied straight from LG Callout.styles.ts */
