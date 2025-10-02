@@ -67,7 +67,7 @@ a. Specify the :setting:`spec.networkPeers` parameter in
         - providerName: "AZURE"
           atlasCidrBlock: "10.8.0.0/21"
           containerRegion: "US_WEST"
-          accepterRegionName: "US_EAST_2"
+          accepterRegionName: "us-east-2"
           azureSubscriptionId: "12345678"
           resourceGroupName: "my-group"
           azureDirectoryId: "x0xxx10-00x0-0x01-0xxx-x0x0x01xx100"
