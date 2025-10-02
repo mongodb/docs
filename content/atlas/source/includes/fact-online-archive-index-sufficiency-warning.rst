@@ -6,8 +6,6 @@ efficient archival process. For date-based archives, you must index the date fie
 custom criteria that use an expression, |service| might first convert a value before it
 evaluates it against the query.
 
-.. note::
-
-   The index sufficiency query stops running after sufficient indexes are detected. If an index on
-   the collection gets dropped later and slows down the archiving process, |service| does not issue
-   an ``Index Sufficiency Warning``.
+The index sufficiency query stops running after sufficient indexes are detected. If an index on
+the collection gets dropped later and slows down the archiving process, |service| does not issue
+an ``Index Sufficiency Warning``.

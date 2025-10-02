@@ -225,7 +225,8 @@
                - Date format of the specified date field. The date field 
                  value must be in :term:`ISODate` format. 
       
-            :gold:`IMPORTANT:`
+         .. important::
+         
             .. include:: /includes/fact-online-archive-index-sufficiency-warning.rst
       
    .. step:: Specify how many days you want to store data in the online archive and a time window when you want |service| to run the archiving job.
