@@ -245,11 +245,6 @@ const tocData: TocItem[] = [
             collapsible: true,
             items: [
               {
-                label: "Capped Collections",
-                contentSite: "compass",
-                url: "/docs/compass/collections/capped-collection",
-              },
-              {
                 label: "Collections with Collation",
                 contentSite: "compass",
                 url: "/docs/compass/collections/collation-collection",
