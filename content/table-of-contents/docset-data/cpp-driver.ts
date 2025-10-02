@@ -364,134 +364,134 @@ const tocData: TocItem[] = [
         url: "https://github.com/mongodb/mongo-cxx-driver",
         versions: { excludes: outdatedVersions },
       },
-    ],
-  },
-  // Outdated ToC below
-  {
-    label: "C++17 Polyfill",
-    contentSite: "cpp-driver",
-    url: "/docs/languages/cpp/cpp-driver/:version/polyfill-selection",
-    versions: { includes: outdatedVersions },
-  },
-  {
-    label: "Installation",
-    contentSite: "cpp-driver",
-    url: "/docs/languages/cpp/cpp-driver/:version/installation",
-    collapsible: true,
-    versions: { includes: outdatedVersions },
-    items: [
+      // Outdated ToC below
       {
-        label: "Windows",
+        label: "C++17 Polyfill",
         contentSite: "cpp-driver",
-        url: "/docs/languages/cpp/cpp-driver/:version/installation/windows",
+        url: "/docs/languages/cpp/cpp-driver/:version/polyfill-selection",
+        versions: { includes: outdatedVersions },
       },
       {
-        label: "MacOS",
+        label: "Installation",
         contentSite: "cpp-driver",
-        url: "/docs/languages/cpp/cpp-driver/:version/installation/macos",
+        url: "/docs/languages/cpp/cpp-driver/:version/installation",
+        collapsible: true,
+        versions: { includes: outdatedVersions },
+        items: [
+          {
+            label: "Windows",
+            contentSite: "cpp-driver",
+            url: "/docs/languages/cpp/cpp-driver/:version/installation/windows",
+          },
+          {
+            label: "MacOS",
+            contentSite: "cpp-driver",
+            url: "/docs/languages/cpp/cpp-driver/:version/installation/macos",
+          },
+          {
+            label: "Linux",
+            contentSite: "cpp-driver",
+            url: "/docs/languages/cpp/cpp-driver/:version/installation/linux",
+          },
+          {
+            label: "Advanced",
+            contentSite: "cpp-driver",
+            url: "/docs/languages/cpp/cpp-driver/:version/installation/advanced",
+          },
+        ]
       },
       {
-        label: "Linux",
+        label: "Configuration",
         contentSite: "cpp-driver",
-        url: "/docs/languages/cpp/cpp-driver/:version/installation/linux",
+        url: "/docs/languages/cpp/cpp-driver/:version/configuration",
+        versions: { includes: outdatedVersions },
       },
       {
-        label: "Advanced",
+        label: "Client-Side Encryption",
         contentSite: "cpp-driver",
-        url: "/docs/languages/cpp/cpp-driver/:version/installation/advanced",
-      },
-    ]
-  },
-  {
-    label: "Configuration",
-    contentSite: "cpp-driver",
-    url: "/docs/languages/cpp/cpp-driver/:version/configuration",
-    versions: { includes: outdatedVersions },
-  },
-  {
-    label: "Client-Side Encryption",
-    contentSite: "cpp-driver",
-    url: "/docs/languages/cpp/cpp-driver/:version/client-side-encryption",
-    versions: { includes: outdatedVersions },
-  },
-  {
-    label: "Tutorial",
-    contentSite: "cpp-driver",
-    url: "/docs/languages/cpp/cpp-driver/:version/tutorial",
-    versions: { includes: outdatedVersions },
-  },
-  {
-    label: "Thread Safety",
-    contentSite: "cpp-driver",
-    url: "/docs/languages/cpp/cpp-driver/:version/thread-safety",
-    versions: { includes: outdatedVersions },
-  },
-  {
-    label: "Connection Pools",
-    contentSite: "cpp-driver",
-    url: "/docs/languages/cpp/cpp-driver/:version/connection-pools",
-    versions: { includes: outdatedVersions },
-  },
-  {
-    label: "BSON",
-    contentSite: "cpp-driver",
-    url: "/docs/languages/cpp/cpp-driver/:version/working-with-bson",
-    versions: { includes: outdatedVersions },
-  },
-  {
-    label: "API & ABI Versioning",
-    contentSite: "cpp-driver",
-    url: "/docs/languages/cpp/cpp-driver/:version/api-abi-versioning",
-    collapsible: true,
-    versions: { includes: outdatedVersions },
-    items: [
-      {
-        label: "API Versioning",
-        contentSite: "cpp-driver",
-        url: "/docs/languages/cpp/cpp-driver/:version/api-abi-versioning/api-versioning",
+        url: "/docs/languages/cpp/cpp-driver/:version/client-side-encryption",
+        versions: { includes: outdatedVersions },
       },
       {
-        label: "ABI Versioning",
+        label: "Tutorial",
         contentSite: "cpp-driver",
-        url: "/docs/languages/cpp/cpp-driver/:version/api-abi-versioning/abi-versioning",
+        url: "/docs/languages/cpp/cpp-driver/:version/tutorial",
+        versions: { includes: outdatedVersions },
       },
-    ]
-  },
-  {
-    label: "Reporting Bugs",
-    contentSite: "cpp-driver",
-    url: "/docs/languages/cpp/cpp-driver/:version/reporting-bugs",
-    versions: { includes: outdatedVersions },
-  },
-  {
-    label: "Testing",
-    contentSite: "cpp-driver",
-    url: "/docs/languages/cpp/cpp-driver/:version/testing",
-    versions: { includes: outdatedVersions },
-  },
-  {
-    label: "Contributing",
-    contentSite: "cpp-driver",
-    url: "/docs/languages/cpp/cpp-driver/:version/contributing",
-    versions: { includes: outdatedVersions },
-  },
-  {
-    label: "Getting Help",
-    contentSite: "cpp-driver",
-    url: "/docs/languages/cpp/cpp-driver/:version/getting-help",
-    versions: { includes: outdatedVersions },
-  },
-  {
-    label: "API Documentation",
-    contentSite: "cpp-driver",
-    url: "https://mongocxx.org/api/current/",
-    versions: { includes: outdatedVersions },
-  },
-  {
-    label: "Driver Source",
-    contentSite: "cpp-driver",
-    url: "https://github.com/mongodb/mongo-cxx-driver",
-    versions: { includes: outdatedVersions },
+      {
+        label: "Thread Safety",
+        contentSite: "cpp-driver",
+        url: "/docs/languages/cpp/cpp-driver/:version/thread-safety",
+        versions: { includes: outdatedVersions },
+      },
+      {
+        label: "Connection Pools",
+        contentSite: "cpp-driver",
+        url: "/docs/languages/cpp/cpp-driver/:version/connection-pools",
+        versions: { includes: outdatedVersions },
+      },
+      {
+        label: "BSON",
+        contentSite: "cpp-driver",
+        url: "/docs/languages/cpp/cpp-driver/:version/working-with-bson",
+        versions: { includes: outdatedVersions },
+      },
+      {
+        label: "API & ABI Versioning",
+        contentSite: "cpp-driver",
+        url: "/docs/languages/cpp/cpp-driver/:version/api-abi-versioning",
+        collapsible: true,
+        versions: { includes: outdatedVersions },
+        items: [
+          {
+            label: "API Versioning",
+            contentSite: "cpp-driver",
+            url: "/docs/languages/cpp/cpp-driver/:version/api-abi-versioning/api-versioning",
+          },
+          {
+            label: "ABI Versioning",
+            contentSite: "cpp-driver",
+            url: "/docs/languages/cpp/cpp-driver/:version/api-abi-versioning/abi-versioning",
+          },
+        ]
+      },
+      {
+        label: "Reporting Bugs",
+        contentSite: "cpp-driver",
+        url: "/docs/languages/cpp/cpp-driver/:version/reporting-bugs",
+        versions: { includes: outdatedVersions },
+      },
+      {
+        label: "Testing",
+        contentSite: "cpp-driver",
+        url: "/docs/languages/cpp/cpp-driver/:version/testing",
+        versions: { includes: outdatedVersions },
+      },
+      {
+        label: "Contributing",
+        contentSite: "cpp-driver",
+        url: "/docs/languages/cpp/cpp-driver/:version/contributing",
+        versions: { includes: outdatedVersions },
+      },
+      {
+        label: "Getting Help",
+        contentSite: "cpp-driver",
+        url: "/docs/languages/cpp/cpp-driver/:version/getting-help",
+        versions: { includes: outdatedVersions },
+      },
+      {
+        label: "API Documentation",
+        contentSite: "cpp-driver",
+        url: "https://mongocxx.org/api/current/",
+        versions: { includes: outdatedVersions },
+      },
+      {
+        label: "Driver Source",
+        contentSite: "cpp-driver",
+        url: "https://github.com/mongodb/mongo-cxx-driver",
+        versions: { includes: outdatedVersions },
+      },
+   ],
   },
 ];
 
