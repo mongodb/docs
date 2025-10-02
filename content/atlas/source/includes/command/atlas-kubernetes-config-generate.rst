@@ -60,7 +60,7 @@ Options
    * - --operatorVersion
      - string
      - false
-     - Version of Atlas Kubernetes Operator to generate resources for. This value defaults to "2.10.0".
+     - Version of Atlas Kubernetes Operator to generate resources for. This value defaults to "2.11.0".
    * - --orgId
      - string
      - false
