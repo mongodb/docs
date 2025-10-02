@@ -6,19 +6,13 @@ describe('areObjectsEqual - ellipsis/truncation/omission support', () => {
   it('matches nested property-level ellipsis', () => {
     const expected = { a: { b: '...' } };
     expect(areObjectsEqual(expected, { a: { b: 123 } }, {})).toBe(true);
-    expect(areObjectsEqual(expected, { a: { b: { x: 1 } } }, {})).toBe(
-      true
-    );
-    expect(areObjectsEqual(expected, { a: { b: [1, 2, 3] } }, {})).toBe(
-      true
-    );
+    expect(areObjectsEqual(expected, { a: { b: { x: 1 } } }, {})).toBe(true);
+    expect(areObjectsEqual(expected, { a: { b: [1, 2, 3] } }, {})).toBe(true);
   });
 
   it('matches nested array ellipsis', () => {
     const expected = { a: [1, '...', 4] };
-    expect(areObjectsEqual(expected, { a: [1, 2, 3, 4] }, {})).toBe(
-      true
-    );
+    expect(areObjectsEqual(expected, { a: [1, 2, 3, 4] }, {})).toBe(true);
     expect(areObjectsEqual(expected, { a: [1, 4] }, {})).toBe(true);
     expect(areObjectsEqual(expected, { a: [1, 2, 4] }, {})).toBe(true);
     expect(areObjectsEqual(expected, { a: [1, 2, 3] }, {})).toBe(false);
@@ -29,41 +23,37 @@ describe('areObjectsEqual - ellipsis/truncation/omission support', () => {
     expect(
       areObjectsEqual(expected, { a: { b: { c: 'prefix123' } } }, {})
     ).toBe(true);
-    expect(
-      areObjectsEqual(expected, { a: { b: { c: 'prefix' } } }, {})
-    ).toBe(true);
-    expect(
-      areObjectsEqual(expected, { a: { b: { c: 'other' } } }, {})
-    ).toBe(false);
+    expect(areObjectsEqual(expected, { a: { b: { c: 'prefix' } } }, {})).toBe(
+      true
+    );
+    expect(areObjectsEqual(expected, { a: { b: { c: 'other' } } }, {})).toBe(
+      false
+    );
   });
 
   it('matches nested object ellipsis', () => {
     const expected = { a: { '...': '...' } };
-    expect(areObjectsEqual(expected, { a: { x: 1, y: 2 } }, {})).toBe(
+    expect(areObjectsEqual(expected, { a: { x: 1, y: 2 } }, {})).toBe(true);
+    expect(areObjectsEqual(expected, { a: {} }, {})).toBe(true);
+    expect(areObjectsEqual(expected, { a: { nested: { z: 5 } } }, {})).toBe(
       true
     );
-    expect(areObjectsEqual(expected, { a: {} }, {})).toBe(true);
-    expect(
-      areObjectsEqual(expected, { a: { nested: { z: 5 } } }, {})
-    ).toBe(true);
   });
 
   it('matches any object when expected is { ...: "..." }', () => {
     const expected = { value: { '...': '...' } };
     expect(areObjectsEqual(expected, { value: {} }, {})).toBe(true);
-    expect(
-      areObjectsEqual(expected, { value: { a: 1, b: 2 } }, {})
-    ).toBe(true);
-    expect(
-      areObjectsEqual(expected, { value: { nested: { x: 1 } } }, {})
-    ).toBe(true);
+    expect(areObjectsEqual(expected, { value: { a: 1, b: 2 } }, {})).toBe(true);
+    expect(areObjectsEqual(expected, { value: { nested: { x: 1 } } }, {})).toBe(
+      true
+    );
   });
 
   it('matches any sub-object when property is { ...: "..." }', () => {
     const expected = { a: 1, b: { '...': '...' } };
-    expect(
-      areObjectsEqual(expected, { a: 1, b: { x: 2, y: 3 } }, {})
-    ).toBe(true);
+    expect(areObjectsEqual(expected, { a: 1, b: { x: 2, y: 3 } }, {})).toBe(
+      true
+    );
     expect(areObjectsEqual(expected, { a: 1, b: {} }, {})).toBe(true);
     expect(
       areObjectsEqual(expected, { a: 1, b: { nested: { z: 5 } } }, {})
@@ -73,12 +63,8 @@ describe('areObjectsEqual - ellipsis/truncation/omission support', () => {
   it('does not match non-objects when expected is { ...: "..." }', () => {
     const expected = { value: { '...': '...' } };
     expect(areObjectsEqual(expected, { value: 42 }, {})).toBe(false);
-    expect(areObjectsEqual(expected, { value: 'string' }, {})).toBe(
-      false
-    );
-    expect(areObjectsEqual(expected, { value: [1, 2, 3] }, {})).toBe(
-      false
-    );
+    expect(areObjectsEqual(expected, { value: 'string' }, {})).toBe(false);
+    expect(areObjectsEqual(expected, { value: [1, 2, 3] }, {})).toBe(false);
     expect(areObjectsEqual(expected, { value: null }, {})).toBe(false);
   });
 
@@ -86,57 +72,39 @@ describe('areObjectsEqual - ellipsis/truncation/omission support', () => {
     const expected = { arr: ['...'] };
     expect(areObjectsEqual(expected, { arr: [] }, {})).toBe(true);
     expect(areObjectsEqual(expected, { arr: [1, 2, 3] }, {})).toBe(true);
-    expect(areObjectsEqual(expected, { arr: ['a', 'b', 'c'] }, {})).toBe(
-      true
-    );
+    expect(areObjectsEqual(expected, { arr: ['a', 'b', 'c'] }, {})).toBe(true);
   });
 
   it('matches when expected array has ellipsis as prefix', () => {
     const expected = { arr: ['...', 3, 4] };
-    expect(areObjectsEqual(expected, { arr: [1, 2, 3, 4] }, {})).toBe(
-      true
-    );
+    expect(areObjectsEqual(expected, { arr: [1, 2, 3, 4] }, {})).toBe(true);
     expect(areObjectsEqual(expected, { arr: [0, 3, 4] }, {})).toBe(true);
     expect(areObjectsEqual(expected, { arr: [3, 4] }, {})).toBe(true);
-    expect(areObjectsEqual(expected, { arr: [1, 2, 3] }, {})).toBe(
-      false
-    );
+    expect(areObjectsEqual(expected, { arr: [1, 2, 3] }, {})).toBe(false);
   });
 
   it('matches when expected array has ellipsis as infix', () => {
     const expected = { arr: [1, '...', 4] };
-    expect(areObjectsEqual(expected, { arr: [1, 2, 3, 4] }, {})).toBe(
-      true
-    );
+    expect(areObjectsEqual(expected, { arr: [1, 2, 3, 4] }, {})).toBe(true);
     expect(areObjectsEqual(expected, { arr: [1, 4] }, {})).toBe(true);
     expect(areObjectsEqual(expected, { arr: [1, 2, 4] }, {})).toBe(true);
-    expect(areObjectsEqual(expected, { arr: [1, 2, 3] }, {})).toBe(
-      false
-    );
+    expect(areObjectsEqual(expected, { arr: [1, 2, 3] }, {})).toBe(false);
   });
 
   it('matches when expected array has ellipsis as suffix', () => {
     const expected = { arr: [1, 2, '...'] };
     expect(areObjectsEqual(expected, { arr: [1, 2] }, {})).toBe(true);
-    expect(areObjectsEqual(expected, { arr: [1, 2, 3, 4] }, {})).toBe(
-      true
-    );
+    expect(areObjectsEqual(expected, { arr: [1, 2, 3, 4] }, {})).toBe(true);
     expect(areObjectsEqual(expected, { arr: [1, 2, 3] }, {})).toBe(true);
     expect(areObjectsEqual(expected, { arr: [1] }, {})).toBe(false);
   });
 
   it('matches when expected array has multiple ellipsis', () => {
     const expected = { arr: ['...', 2, '...', 4, '...'] };
-    expect(areObjectsEqual(expected, { arr: [0, 2, 3, 4, 5] }, {})).toBe(
-      true
-    );
+    expect(areObjectsEqual(expected, { arr: [0, 2, 3, 4, 5] }, {})).toBe(true);
     expect(areObjectsEqual(expected, { arr: [2, 4] }, {})).toBe(true);
-    expect(areObjectsEqual(expected, { arr: [0, 2, 4, 5] }, {})).toBe(
-      true
-    );
-    expect(areObjectsEqual(expected, { arr: [0, 2, 3, 5] }, {})).toBe(
-      false
-    );
+    expect(areObjectsEqual(expected, { arr: [0, 2, 4, 5] }, {})).toBe(true);
+    expect(areObjectsEqual(expected, { arr: [0, 2, 3, 5] }, {})).toBe(false);
   });
 
   it('matches nested arrays with ellipsis', () => {
@@ -154,12 +122,10 @@ describe('areObjectsEqual - ellipsis/truncation/omission support', () => {
         false
       )
     ).toBe(true);
-    expect(
-      areObjectsEqual(expected, { arr: [[1], [4, 5], [6]] }, {})
-    ).toBe(true);
-    expect(areObjectsEqual(expected, { arr: [[1, 2], [3]] }, {})).toBe(
+    expect(areObjectsEqual(expected, { arr: [[1], [4, 5], [6]] }, {})).toBe(
       true
     );
+    expect(areObjectsEqual(expected, { arr: [[1, 2], [3]] }, {})).toBe(true);
     expect(
       areObjectsEqual(
         expected,
@@ -177,12 +143,8 @@ describe('areObjectsEqual - ellipsis/truncation/omission support', () => {
 
   it('fails when actual does not match expected with ellipsis', () => {
     const expected = { arr: [1, '...', 4] };
-    expect(areObjectsEqual(expected, { arr: [2, 3, 4] }, {})).toBe(
-      false
-    );
-    expect(areObjectsEqual(expected, { arr: [1, 2, 3] }, {})).toBe(
-      false
-    );
+    expect(areObjectsEqual(expected, { arr: [2, 3, 4] }, {})).toBe(false);
+    expect(areObjectsEqual(expected, { arr: [1, 2, 3] }, {})).toBe(false);
     expect(areObjectsEqual(expected, { arr: [1, 2] }, {})).toBe(false);
   });
 
@@ -192,7 +154,7 @@ describe('areObjectsEqual - ellipsis/truncation/omission support', () => {
       plot: 'A young man is accidentally sent 30 years into the past...',
       genres: ['Adventure', 'Comedy', 'Sci-Fi'],
       title: 'Back to the Future',
-      '...': '...' // Use explicit ellipsis pattern instead of parameter
+      '...': '...', // Use explicit ellipsis pattern instead of parameter
     };
     const actual = {
       _id: '507f1f77bcf86cd799439011',
@@ -202,11 +164,9 @@ describe('areObjectsEqual - ellipsis/truncation/omission support', () => {
       title: 'Back to the Future',
     };
     expect(
-      areObjectsEqual(
-        expected,
-        actual,
-        { allowOmittedFieldsWithEllipsis: true }
-      )
+      areObjectsEqual(expected, actual, {
+        allowOmittedFieldsWithEllipsis: true,
+      })
     ).toBe(true);
   });
 
@@ -225,11 +185,9 @@ describe('areObjectsEqual - ellipsis/truncation/omission support', () => {
       title: 'Back to the Future',
     };
     expect(
-      areObjectsEqual(
-        expected,
-        actual,
-        { allowOmittedFieldsWithEllipsis: false }
-      )
+      areObjectsEqual(expected, actual, {
+        allowOmittedFieldsWithEllipsis: false,
+      })
     ).toBe(false);
   });
 
@@ -293,11 +251,9 @@ describe('areObjectsEqual - ellipsis/truncation/omission support', () => {
     const expected = { a: 1, '...': '...' }; // Use explicit ellipsis pattern
     const actual = { a: 1, b: 2 };
     expect(
-      areObjectsEqual(
-        expected,
-        actual,
-        { allowOmittedFieldsWithEllipsis: true }
-      )
+      areObjectsEqual(expected, actual, {
+        allowOmittedFieldsWithEllipsis: true,
+      })
     ).toBe(true);
   });
 
@@ -345,12 +301,8 @@ describe('areObjectsEqual - ellipsis/truncation/omission support', () => {
       };
       const actualWithNumber = { _id: 12345, title: 'Back to the Future' };
 
-      expect(areObjectsEqual(expected, actualWithStringId, {})).toBe(
-        true
-      );
-      expect(areObjectsEqual(expected, actualWithObjectId, {})).toBe(
-        true
-      );
+      expect(areObjectsEqual(expected, actualWithStringId, {})).toBe(true);
+      expect(areObjectsEqual(expected, actualWithObjectId, {})).toBe(true);
       expect(areObjectsEqual(expected, actualWithNumber, {})).toBe(true);
     });
 
@@ -401,9 +353,7 @@ describe('areObjectsEqual - ellipsis/truncation/omission support', () => {
         plot: 'Full plot...',
       };
 
-      expect(areObjectsEqual(expected, actualDifferentOrder, {})).toBe(
-        true
-      );
+      expect(areObjectsEqual(expected, actualDifferentOrder, {})).toBe(true);
     });
 
     it('should match with minimal actual object containing only expected fields', () => {
@@ -442,9 +392,7 @@ describe('areObjectsEqual - ellipsis/truncation/omission support', () => {
       };
 
       // Global ellipsis allows missing fields, even non-ellipsis ones
-      expect(areObjectsEqual(expected, actualMissingTitle, {})).toBe(
-        true
-      );
+      expect(areObjectsEqual(expected, actualMissingTitle, {})).toBe(true);
     });
 
     it('should fail if required field is missing without global ellipsis', () => {
@@ -463,9 +411,7 @@ describe('areObjectsEqual - ellipsis/truncation/omission support', () => {
       };
 
       // Without global ellipsis, missing fields should cause failure
-      expect(areObjectsEqual(expected, actualMissingTitle, {})).toBe(
-        false
-      );
+      expect(areObjectsEqual(expected, actualMissingTitle, {})).toBe(false);
     });
 
     it('should work with nested objects and arrays containing ellipsis', () => {

@@ -98,11 +98,7 @@ function compareArrays(arrayA, arrayB, options) {
   const ellipsisResult = handleArrayLevelEllipsis(arrayA, arrayB);
   if (ellipsisResult.isHandled) {
     if (ellipsisResult.requiresEllipsisMatching) {
-      return matchWithEllipsis(
-        arrayA,
-        arrayB,
-        options
-      );
+      return matchWithEllipsis(arrayA, arrayB, options);
     }
     return ellipsisResult.matches;
   }

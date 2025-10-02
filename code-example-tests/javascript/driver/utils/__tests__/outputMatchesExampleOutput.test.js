@@ -427,4 +427,381 @@ describe('outputMatchesExampleOutput', () => {
       expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(true);
     });
   });
+
+  describe('handles new Date expressions correctly', () => {
+    it('matches objects with new Date expressions in expected output', () => {
+      const expected = `[
+  {
+    time: new Date('2021-12-18T00:00:00.000Z'),
+    sensor: { sensorId: 5578, type: 'temperature' },
+    temp: 45.2
+  },
+  {
+    time: new Date('2021-12-18T06:00:00.000Z'),
+    sensor: { sensorId: 5578, type: 'temperature' },
+    temp: 47.3
+  }
+]`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = [
+        {
+          time: new Date('2021-12-18T00:00:00.000Z'),
+          sensor: { sensorId: 5578, type: 'temperature' },
+          temp: 45.2,
+        },
+        {
+          time: new Date('2021-12-18T06:00:00.000Z'),
+          sensor: { sensorId: 5578, type: 'temperature' },
+          temp: 47.3,
+        },
+      ];
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual, {
+        comparisonType: 'ordered',
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('matches single objects with new Date expressions', () => {
+      const expected = `{
+  time: new Date('2021-12-19T18:00:00.000Z'),
+  sensor: { sensorId: 5578, type: 'temperature' },
+  temp: 48.2
+}`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = {
+        time: new Date('2021-12-19T18:00:00.000Z'),
+        sensor: { sensorId: 5578, type: 'temperature' },
+        temp: 48.2,
+      };
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual);
+      expect(result).toBe(true);
+    });
+
+    it('matches objects with mixed new Date and bare date expressions', () => {
+      const expected = `[
+  {
+    time: 2021-12-18T00:00:00.000Z,
+    sensor: { sensorId: 5578, type: 'temperature' },
+    temp: 45.2
+  },
+  {
+    time: new Date('2021-12-18T06:00:00.000Z'),
+    sensor: { sensorId: 5578, type: 'temperature' },
+    temp: 47.3
+  }
+]`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = [
+        {
+          time: new Date('2021-12-18T00:00:00.000Z'),
+          sensor: { sensorId: 5578, type: 'temperature' },
+          temp: 45.2,
+        },
+        {
+          time: new Date('2021-12-18T06:00:00.000Z'),
+          sensor: { sensorId: 5578, type: 'temperature' },
+          temp: 47.3,
+        },
+      ];
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual, {
+        comparisonType: 'ordered',
+      });
+      expect(result).toBe(true);
+    });
+
+    it('does not double-wrap new Date expressions', () => {
+      // This test ensures we don't create Date(Date("...")) constructions
+      const expected = `{
+  time: new Date('2021-12-18T00:00:00.000Z'),
+  value: 123
+}`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = {
+        time: new Date('2021-12-18T00:00:00.000Z'),
+        value: 123,
+      };
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual);
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('handles new ObjectId expressions correctly', () => {
+    it('matches objects with new ObjectId expressions in expected output', () => {
+      const expected = `{
+  _id: new ObjectId('507f1f77bcf86cd799439011'),
+  name: 'Alice',
+  age: 30
+}`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = {
+        _id: new ObjectId('507f1f77bcf86cd799439011'),
+        name: 'Alice',
+        age: 30,
+      };
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual);
+      expect(result).toBe(true);
+    });
+
+    it('matches arrays with new ObjectId expressions', () => {
+      const expected = `[
+  {
+    _id: new ObjectId('507f1f77bcf86cd799439011'),
+    name: 'Alice'
+  },
+  {
+    _id: new ObjectId('507f1f77bcf86cd799439012'),
+    name: 'Bob'
+  }
+]`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = [
+        {
+          _id: new ObjectId('507f1f77bcf86cd799439011'),
+          name: 'Alice',
+        },
+        {
+          _id: new ObjectId('507f1f77bcf86cd799439012'),
+          name: 'Bob',
+        },
+      ];
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual, {
+        comparisonType: 'ordered',
+      });
+      expect(result).toBe(true);
+    });
+
+    it('works with ObjectId constructor without new keyword', () => {
+      const expected = `{
+  _id: ObjectId('507f1f77bcf86cd799439011'),
+  name: 'Test'
+}`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = {
+        _id: new ObjectId('507f1f77bcf86cd799439011'),
+        name: 'Test',
+      };
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual);
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('handles Decimal128 expressions correctly', () => {
+    it('matches objects with new Decimal128 expressions in expected output', () => {
+      const expected = `{
+  price: new Decimal128('123.45'),
+  product: 'Widget',
+  quantity: 10
+}`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = {
+        price: new Decimal128('123.45'),
+        product: 'Widget',
+        quantity: 10,
+      };
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual);
+      expect(result).toBe(true);
+    });
+
+    it('matches arrays with Decimal128 values', () => {
+      const expected = `[
+  {
+    amount: new Decimal128('99.99'),
+    currency: 'USD'
+  },
+  {
+    amount: new Decimal128('149.50'),
+    currency: 'EUR'
+  }
+]`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = [
+        {
+          amount: new Decimal128('99.99'),
+          currency: 'USD',
+        },
+        {
+          amount: new Decimal128('149.50'),
+          currency: 'EUR',
+        },
+      ];
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual, {
+        comparisonType: 'ordered',
+      });
+      expect(result).toBe(true);
+    });
+
+    it('works with Decimal128 constructor without new keyword', () => {
+      const expected = `{
+  value: Decimal128('456.78'),
+  label: 'Test'
+}`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = {
+        value: new Decimal128('456.78'),
+        label: 'Test',
+      };
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual);
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('handles strings with special characters', () => {
+    it('matches strings containing double quotes', () => {
+      const expected = `{
+  title: 'Back to the Future',
+  description: 'A movie about a "time machine" and adventure'
+}`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = {
+        title: 'Back to the Future',
+        description: 'A movie about a "time machine" and adventure',
+      };
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual);
+      expect(result).toBe(true);
+    });
+
+    it('matches strings containing URLs with colons', () => {
+      const expected = `{
+  poster: 'https://example.com/image.jpg',
+  website: 'http://test.org'
+}`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = {
+        poster: 'https://example.com/image.jpg',
+        website: 'http://test.org',
+      };
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual);
+      expect(result).toBe(true);
+    });
+
+    it('matches complex strings with multiple special characters', () => {
+      const expected = `{
+  text: 'He said: "Hello, world!" and left.',
+  url: 'https://example.com:8080/path?query=value'
+}`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = {
+        text: 'He said: "Hello, world!" and left.',
+        url: 'https://example.com:8080/path?query=value',
+      };
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual);
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('handles standalone ellipsis for field omission', () => {
+    it('matches objects with standalone ellipsis lines for omitted fields', () => {
+      const expected = `{
+  _id: ...,
+  title: 'Back to the Future',
+  genres: ['Adventure', 'Comedy', 'Sci-Fi'],
+  ...
+  year: 1985,
+  ...
+}`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = {
+        _id: new ObjectId('507f1f77bcf86cd799439011'),
+        title: 'Back to the Future',
+        genres: ['Adventure', 'Comedy', 'Sci-Fi'],
+        runtime: 116,
+        cast: ['Michael J. Fox', 'Christopher Lloyd'],
+        year: 1985,
+        director: 'Robert Zemeckis',
+        plot: 'A teenager travels back in time...',
+      };
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual);
+      expect(result).toBe(true);
+    });
+
+    it('matches with truncated string values using ellipsis', () => {
+      const expected = `{
+  _id: ...,
+  plot: 'A young man is accidentally sent 30 years into the past...',
+  title: 'Back to the Future',
+  ...
+}`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = {
+        _id: new ObjectId('507f1f77bcf86cd799439011'),
+        plot: 'A young man is accidentally sent 30 years into the past in a time-traveling DeLorean invented by his friend, Dr. Emmett Brown, and must make sure his high-school-age parents unite in order to save his own existence.',
+        title: 'Back to the Future',
+        year: 1985,
+        runtime: 116,
+        cast: ['Michael J. Fox', 'Christopher Lloyd'],
+      };
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual);
+      expect(result).toBe(true);
+    });
+
+    it('allows missing fields when global ellipsis is present', () => {
+      const expected = `{
+  _id: ...,
+  title: 'Back to the Future',
+  year: 1985,
+  ...
+}`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = {
+        _id: new ObjectId('507f1f77bcf86cd799439011'),
+        title: 'Back to the Future',
+        // year is missing, but global ellipsis allows it
+        runtime: 116,
+      };
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual);
+      expect(result).toBe(true);
+    });
+
+    it('does not match when required fields are missing and no global ellipsis', () => {
+      const expected = `{
+  _id: ...,
+  title: 'Back to the Future',
+  year: 1985
+}`;
+      fs.writeFileSync(tempFile, expected);
+
+      const actual = {
+        _id: new ObjectId('507f1f77bcf86cd799439011'),
+        title: 'Back to the Future',
+        // year is missing and no global ellipsis
+        runtime: 116,
+      };
+
+      const result = outputMatchesExampleOutput('temp-output.json', actual);
+      expect(result).toBe(false);
+    });
+  });
 });

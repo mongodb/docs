@@ -65,12 +65,7 @@ function isObjectEllipsis(val) {
  * // Nested object matching
  * matchWithEllipsis([{a: '...'}], [{a: 1, b: 2}]) // true (nested ellipsis)
  */
-function matchWithEllipsis(
-  eArr,
-  aArr,
-  options = {},
-  depth = 0
-) {
+function matchWithEllipsis(eArr, aArr, options = {}, depth = 0) {
   // Require here to avoid circular dependency
   const { areObjectsEqual } = require('./areObjectsEqual');
 
@@ -96,12 +91,7 @@ function matchWithEllipsis(
     // Try to match the next non-ellipsis element at every possible position
     for (let skip = 0; skip <= aArr.length; skip++) {
       if (
-        matchWithEllipsis(
-          eArr.slice(1),
-          aArr.slice(skip),
-          options,
-          depth + 1
-        )
+        matchWithEllipsis(eArr.slice(1), aArr.slice(skip), options, depth + 1)
       ) {
         return true;
       }
@@ -130,12 +120,7 @@ function matchWithEllipsis(
   if (!areObjectsEqual(eArr[0], aArr[0], options)) {
     return false;
   }
-  return matchWithEllipsis(
-    eArr.slice(1),
-    aArr.slice(1),
-    options,
-    depth + 1
-  );
+  return matchWithEllipsis(eArr.slice(1), aArr.slice(1), options, depth + 1);
 }
 
 module.exports = { isTruncatedValue, isObjectEllipsis, matchWithEllipsis };

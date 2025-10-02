@@ -16,10 +16,29 @@ const { Decimal128, ObjectId } = require('mongodb');
  * vm.runInNewContext('ObjectId("507f...")', ctx); // Creates ObjectId instance
  */
 function createEvaluationContext() {
+  // Create wrapper functions that work both as constructors (new X()) and functions (X())
+  function DateConstructor(value) {
+    return new Date(value);
+  }
+  DateConstructor.prototype = Date.prototype;
+  DateConstructor.constructor = Date;
+
+  function ObjectIdConstructor(value) {
+    return new ObjectId(value);
+  }
+  ObjectIdConstructor.prototype = ObjectId.prototype;
+  ObjectIdConstructor.constructor = ObjectId;
+
+  function Decimal128Constructor(value) {
+    return new Decimal128(value);
+  }
+  Decimal128Constructor.prototype = Decimal128.prototype;
+  Decimal128Constructor.constructor = Decimal128;
+
   return {
-    Decimal128: (value) => new Decimal128(value),
-    ObjectId: (value) => new ObjectId(value),
-    Date: (value) => new Date(value),
+    Decimal128: Decimal128Constructor,
+    ObjectId: ObjectIdConstructor,
+    Date: DateConstructor,
   };
 }
 
@@ -47,14 +66,33 @@ function parseExpectedOutput(rawContent) {
   try {
     for (const block of processedBlocks) {
       if (!block) continue;
-      const obj = vm.runInNewContext('(' + block + ')', context);
-      
-      // If standalone ellipsis is detected, add ellipsis pattern to objects
-      if (hasStandaloneEllipsis && typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
-        obj['...'] = '...';
+      const result = vm.runInNewContext('(' + block + ')', context);
+
+      // If the result is an array, flatten it into expectedOutputArray
+      if (Array.isArray(result)) {
+        for (const item of result) {
+          // If standalone ellipsis is detected, add ellipsis pattern to objects
+          if (
+            hasStandaloneEllipsis &&
+            typeof item === 'object' &&
+            item !== null &&
+            !Array.isArray(item)
+          ) {
+            item['...'] = '...';
+          }
+          expectedOutputArray.push(item);
+        }
+      } else {
+        // If standalone ellipsis is detected, add ellipsis pattern to objects
+        if (
+          hasStandaloneEllipsis &&
+          typeof result === 'object' &&
+          result !== null
+        ) {
+          result['...'] = '...';
+        }
+        expectedOutputArray.push(result);
       }
-      
-      expectedOutputArray.push(obj);
     }
     return { success: true, data: expectedOutputArray };
   } catch (error) {

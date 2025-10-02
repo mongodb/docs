@@ -150,11 +150,9 @@ describe('areObjectsEqual - Core Functionality', () => {
       const actual = { name: 'Alice', age: 30 };
 
       expect(
-        areObjectsEqual(
-          expected,
-          actual,
-          { allowOmittedFieldsWithEllipsis: true }
-        )
+        areObjectsEqual(expected, actual, {
+          allowOmittedFieldsWithEllipsis: true,
+        })
       ).toBe(true);
     });
 
@@ -232,11 +230,9 @@ describe('areObjectsEqual - Core Functionality', () => {
       const actual = { a: 1, b: 2, c: 3 };
 
       expect(
-        areObjectsEqual(
-          expected,
-          actual,
-          { allowOmittedFieldsWithEllipsis: true }
-        )
+        areObjectsEqual(expected, actual, {
+          allowOmittedFieldsWithEllipsis: true,
+        })
       ).toBe(true);
     });
 

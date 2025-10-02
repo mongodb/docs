@@ -24,8 +24,7 @@ function compareObjectKeys(objA, objB, options = {}) {
   const hasGlobalOmission = keysA.includes('...') && objA['...'] === '...';
   const allPropsEllipsis =
     keysA.length > 0 && keysA.every((k) => objA[k] === '...');
-  const allowOmittedFields =
-    hasGlobalOmission || allPropsEllipsis;
+  const allowOmittedFields = hasGlobalOmission || allPropsEllipsis;
 
   if (!allowOmittedFields) {
     // Strict comparison: keys must match exactly

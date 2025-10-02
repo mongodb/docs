@@ -217,7 +217,10 @@ For an example you can copy/paste to stub out your own test case, refer to
 If your code examples require MongoDB sample data, import the sample data utilities:
 
 ```javascript
-import { describeWithSampleData, itWithSampleData } from '../utils/sampleDataChecker.js';
+import {
+  describeWithSampleData,
+  itWithSampleData,
+} from '../utils/sampleDataChecker.js';
 ```
 
 Use `describeWithSampleData()` for test suites that entirely depend on sample data,
@@ -226,18 +229,26 @@ required sample databases are not available.
 
 ```javascript
 // Entire test suite requires sample data
-describeWithSampleData('Movie Tests', () => {
-  it('should find movies', async () => {
-    const result = await runMovieQuery();
-    expect(result.length).toBeGreaterThan(0);
-  });
-}, 'sample_mflix');
+describeWithSampleData(
+  'Movie Tests',
+  () => {
+    it('should find movies', async () => {
+      const result = await runMovieQuery();
+      expect(result.length).toBeGreaterThan(0);
+    });
+  },
+  'sample_mflix'
+);
 
 // Individual test case
-itWithSampleData('should query restaurants', async () => {
-  const result = await runRestaurantQuery();
-  expect(result.length).toBeGreaterThan(0);
-}, 'sample_restaurants');
+itWithSampleData(
+  'should query restaurants',
+  async () => {
+    const result = await runRestaurantQuery();
+    expect(result.length).toBeGreaterThan(0);
+  },
+  'sample_restaurants'
+);
 ```
 
 ### Define logic to verify the output
@@ -311,7 +322,6 @@ const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
 // Omit the options object (unordered comparison is used by default)
 const arraysMatch = outputMatchesExampleOutput(outputFilepath, result);
 ```
-
 
 ##### Verify ordered output
 

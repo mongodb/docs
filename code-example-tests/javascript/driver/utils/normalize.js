@@ -1,7 +1,9 @@
 const { Decimal128, ObjectId } = require('mongodb');
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.?[0-9]*Z?$/;
-const UNQUOTED_KEY_REGEX = /(\b[a-zA-Z_][\w]*)\s*:/g;
+// Match unquoted keys - must be preceded by {, [, comma, or newline (with optional whitespace)
+// Use lookbehind to ensure we're at the start of a key-value pair
+const UNQUOTED_KEY_REGEX = /(^|[\{\[,]\s*)([a-zA-Z_][\w]*)(\s*:)/gm;
 const UNQUOTED_DATE_REGEX =
   /:\s*([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.?[0-9]*Z?)\b/g;
 const QUOTED_DATE_REGEX =
@@ -185,18 +187,29 @@ function splitIntoDocumentBlocks(contents) {
   const docBlocks = [];
   let currentBlock = [];
   let braceCount = 0;
+  let bracketCount = 0;
   let inDocument = false;
 
   for (const line of lines) {
     const trimmedLine = line.trim();
     if (!trimmedLine) continue;
 
+    // Skip standalone ellipsis lines (they're used for omitted fields detection)
+    if (trimmedLine === '...') continue;
+
     const openBraces = (line.match(/\{/g) || []).length;
     const closeBraces = (line.match(/\}/g) || []).length;
+    const openBrackets = (line.match(/\[/g) || []).length;
+    const closeBrackets = (line.match(/\]/g) || []).length;
 
-    if (!inDocument && trimmedLine.startsWith('{')) {
+    // Start of a document (either object or array)
+    if (
+      !inDocument &&
+      (trimmedLine.startsWith('{') || trimmedLine.startsWith('['))
+    ) {
       inDocument = true;
       braceCount = 0;
+      bracketCount = 0;
       currentBlock = [line];
     } else if (inDocument) {
       currentBlock.push(line);
@@ -204,8 +217,10 @@ function splitIntoDocumentBlocks(contents) {
 
     if (inDocument) {
       braceCount += openBraces - closeBraces;
+      bracketCount += openBrackets - closeBrackets;
 
-      if (braceCount === 0) {
+      // Document is complete when both brace and bracket counts are zero
+      if (braceCount === 0 && bracketCount === 0) {
         docBlocks.push(currentBlock.join('\n'));
         inDocument = false;
         currentBlock = [];
@@ -236,14 +251,27 @@ function splitIntoDocumentBlocks(contents) {
  * // Returns: '{"_id": "...","name": "test","created": Date("2023-01-01T00:00:00Z")}'
  */
 function normalizeDocumentSyntax(doc) {
-  return doc
-    .replace(/:\s*\.\.\./g, ": '...'") // Replace ellipsis
+  // First, escape any double quotes that are inside single-quoted strings
+  let result = doc.replace(/'([^']*)'/g, (match, content) => {
+    // Escape any double quotes in the content
+    const escapedContent = content.replace(/"/g, '\\"');
+    return `"${escapedContent}"`;
+  });
+
+  result = result
+    .replace(/:\s*\.\.\./g, ': "..."') // Replace ellipsis with double quotes
     .replace(/,\s*}/g, '}') // Remove trailing commas before }
     .replace(/,\s*]/g, ']') // Remove trailing commas before ]
-    .replace(/'(.*?)'/g, '"$1"') // Single to double quotes
-    .replace(UNQUOTED_KEY_REGEX, '"$1":') // Add quotes to keys
-    .replace(UNQUOTED_DATE_REGEX, ': "$1"') // Wrap dates in quotes
-    .replace(QUOTED_DATE_REGEX, 'Date("$1")'); // Convert to Date constructor
+    // $1 = prefix (start/brace/bracket/comma + whitespace), $2 = key name, $3 = colon with whitespace
+    .replace(UNQUOTED_KEY_REGEX, '$1"$2"$3') // Add quotes to keys
+    .replace(UNQUOTED_DATE_REGEX, ': "$1"'); // Wrap dates in quotes
+
+  // Only convert quoted date strings to Date constructors if they're not already inside new Date() calls
+  if (!result.includes('new Date(')) {
+    result = result.replace(QUOTED_DATE_REGEX, 'Date("$1")'); // Convert to Date constructor
+  }
+
+  return result;
 }
 
 /**

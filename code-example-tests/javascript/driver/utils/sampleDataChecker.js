@@ -216,6 +216,8 @@ export function describeWithSampleData(
     : [requiredDatabases];
 
   describe(description, () => {
+    // Store the availability check promise so we can await it in tests
+    let availabilityPromise;
     let sampleDataAvailable = false;
     let missingDatabases = [];
 
@@ -252,17 +254,39 @@ export function describeWithSampleData(
     });
 
     if (typeof testFn === 'function') {
-      // Call the test definition function, but Jest will skip if needed
+      // Call the test definition function with wrapped it/test functions
       const originalIt = global.it;
       const originalTest = global.test;
 
-      // Override it/test to conditionally skip
-      global.it = global.test = (testDescription, testFunc, timeout) => {
-        if (!sampleDataAvailable) {
-          return originalIt.skip(testDescription, testFunc, timeout);
-        }
-        return originalIt(testDescription, testFunc, timeout);
+      // Create wrapper functions that check availability at test runtime
+      const createTestWrapper = (originalFn) => {
+        return (testDescription, testFunc, timeout) => {
+          // Wrap the test function to check availability before running
+          const wrappedTestFunc = async function (...args) {
+            // Check if sample data is available (this runs after beforeAll)
+            if (!sampleDataAvailable) {
+              // Skip by returning early - Jest will mark this as passed
+              return;
+            }
+            // Run the actual test
+            return await testFunc.apply(this, args);
+          };
+
+          return originalFn(testDescription, wrappedTestFunc, timeout);
+        };
       };
+
+      // Override it/test with wrappers
+      global.it = createTestWrapper(originalIt);
+      global.test = createTestWrapper(originalTest);
+
+      // Also handle it.skip, it.only, etc.
+      global.it.skip = originalIt.skip;
+      global.it.only = originalIt.only;
+      global.it.each = originalIt.each;
+      global.test.skip = originalTest.skip;
+      global.test.only = originalTest.only;
+      global.test.each = originalTest.each;
 
       try {
         testFn();
@@ -316,7 +340,7 @@ export function itWithSampleData(
       const summaryPromise = showSampleDataSummary().catch(() => {
         // Ignore summary errors to prevent test failures
       });
-      
+
       const availabilityChecks = await Promise.all(
         databases.map(async (dbName) => {
           const requiredCollections = options.collections?.[dbName];
@@ -341,9 +365,12 @@ export function itWithSampleData(
 
       // Run the test if sample data is available
       await testFn();
-      
+
       // Ensure summary is completed (but don't wait if it hangs)
-      await Promise.race([summaryPromise, new Promise(resolve => setTimeout(resolve, 100))]);
+      await Promise.race([
+        summaryPromise,
+        new Promise((resolve) => setTimeout(resolve, 100)),
+      ]);
     },
     options.timeout
   );

@@ -39,7 +39,7 @@
       Copy and paste the following code into ``index.js``. This code
       connects to your cluster and queries your sample data.
 
-      .. literalinclude:: /shared/drivers-get-started/node/get-started-connect.js
+      .. literalinclude:: /tested/javascript/driver/get-started/get-started.snippet.example.js
          :language: javascript
 
          .. include:: /get-started/includes/connection-string-note.rst
