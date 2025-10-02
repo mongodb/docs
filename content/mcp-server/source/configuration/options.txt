@@ -1,0 +1,295 @@
+.. _mcp-server-configuration-options:
+
+========================================
+MongoDB MCP Server Configuration Options
+========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. meta::
+   :keywords: MCP Server configuration, MCP, Model Context Protocol, AI, natural language, MCP Server, AI agents
+   :description: Options for configuring the MongoDB MCP Server
+
+.. facet::
+   :name: genre
+   :values: reference
+
+The MCP Server has various options that you can set to connect to a
+MongoDB cluster and control MCP Server operations. You can set the
+options in a JSON configuration file, through a command line, or using
+operating system environment variables.
+
+Options List
+------------
+
+Use the following configuration options to configure the MCP Server.
+
+.. important::
+
+   If you're a MongoDB Enterprise or MongoDB Atlas user and 
+   you require a specific authentication mechanism, 
+   see the :ref:`mcp-server-security` section to learn about the
+   configuration options for your authentication method.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 10 10 40
+
+   * - CLI Option Name
+     - OS Environment Variable Name
+     - Type
+     - Default
+     - Description
+
+   * - ``apiClientId``
+     - ``MDB_MCP_API_CLIENT_ID``
+     - string
+     - Not set
+     - Atlas API client ID for authentication.
+
+   * - ``apiClientSecret``
+     - ``MDB_MCP_API_CLIENT_SECRET``
+     - string
+     - Not set
+     - Atlas API client secret for authentication.
+
+   * - ``connectionString``
+     - ``MDB_MCP_CONNECTION_STRING``
+     - string
+     - Not set
+     - Connection string for a direct database connection.
+
+       Sets the connection string at runtime to allow the client to
+       directly connect to a cluster.
+
+       .. include:: /includes/fact-mcp-connection-string-flag-deprecated.rst
+
+       .. note::
+
+          Typically, avoid providing the connection string at runtime
+          because you expose the connection credentials to the large
+          language model.
+
+       The connection string is used if the client has never connected
+       before, or the client switches the connection to a new cluster if
+       the client was previously connected.
+
+       After the client calls the connect or switch connection tool, the
+       client reuses the same connection for subsequent operations.
+       Therefore, you only need to call the connect or swtich connection
+       tool once or if you need to switch to a different connection.
+
+   * - ``loggers``
+     - ``MDB_MCP_LOGGERS``
+     - string
+     - ``disk mcp``
+     - Specifies where the MCP Server sends the logs.
+
+       Set ``loggers`` to one or more of the following options:
+
+       - ``disk``, which writes logs to disk files located in the path
+         specified in the ``logPath`` option.
+       - ``mcp``, which sends the logs to the AI client, if the client
+         supports logging and transport protocol.
+       - ``stderr``, which sends the logs to the standard error output.
+         This setting is useful for debugging or when running MCP in a
+         container.
+
+       For example, to set ``loggers`` to ``mcp`` and ``stderr`` in the
+       AI client JSON configuration file or the operating system command
+       line, use ``--loggers mcp stderr``.
+
+       To set the ``MDB_MCP_LOGGERS`` operating system environment
+       variable to ``disk`` and ``stderr``, use ``export
+       MDB_MCP_LOGGERS="disk,stderr"``.
+
+       For more information about the logging options, see
+       :ref:`mcp-server-configuration-troubleshooting`.
+
+   * - ``logPath``
+     - ``MDB_MCP_LOG_PATH``
+     - string
+     - Depends on the operating system
+     - Directory that stores the MCP Server logs.
+
+       For more information about the log path and operating system
+       specifics, see :ref:`mcp-server-configuration-troubleshooting`.
+
+   * - ``disabledTools``
+     - ``MDB_MCP_DISABLED_TOOLS``
+     - array
+     - Not set
+     - An array of MCP tool names, operation types, or tool
+       categories to disable.
+
+       For more information, see
+       :ref:`mcp-server-configuration-disable-tools`.
+
+   * - ``readOnly``
+     - ``MDB_MCP_READ_ONLY``
+     - boolean
+     - ``false``
+     - To disable cluster write operations, set ``--readOnly`` in the
+       configuration file or command line, or set the
+       ``MDB_MCP_READ_ONLY`` operating system environment variable to
+       ``true``. 
+
+       **Default is to allow cluster write operations. Typically,
+       always enable read-only mode.**
+
+       For more information, see
+       :ref:`mcp-server-configuration-read-only-mode`.
+
+   * - ``indexCheck``
+     - ``MDB_MCP_INDEX_CHECK``
+     - boolean
+     - ``false``
+     - If ``true``, enforces that query operations must use an
+       index and rejects queries that perform collection scans.
+
+       For more information, see
+       :ref:`mcp-server-configuration-index-check`.
+
+   * - ``telemetry``
+     - ``MDB_MCP_TELEMETRY``
+     - string
+     - ``enabled``
+     - If ``disabled``, MCP Server usage data collection is stopped.
+
+       For more information, see
+       :ref:`mcp-server-configuration-telemetry`.
+
+   * - ``transport``
+     - ``MDB_MCP_TRANSPORT``
+     - string
+     - ``stdio``
+     - Transport protocol for communications with the MCP Server.
+
+       Set ``transport`` to one of the following options:
+
+       - ``stdio``, which is the default. Uses the standard input and
+         output for communications with the MCP Server. ``stdio`` is
+         suitable for most AI clients.
+       - ``http``, which enables HTTP communications with the MCP
+         Server. You can then use HTTP to interact with the MCP Server
+         from a Web client or communicate with the MCP Server on a
+         specific HTTP IP port.
+
+         .. warning::
+
+            HTTP transport is **NOT** recommended for production use
+            without implementing proper authentication and security
+            measures.
+
+   * - ``httpPort``
+     - ``MDB_MCP_HTTP_PORT``
+     - integer
+     - ``3000``
+     - IP port number for HTTP communications with the MCP Server.
+
+   * - ``httpHost``
+     - ``MDB_MCP_HTTP_HOST``
+     - string
+     - ``127.0.0.1``
+     - IP address for HTTP communications with the MCP Server.
+
+       With Streamable HTTP, the MCP Server is bound to ``localhost
+       (127.0.0.1)`` by default. This ensures the MCP Server only accepts
+       connections that originate on the same computer.
+
+       .. warning::
+
+          .. include:: /includes/warning-bind-security-risk.rst
+
+       To learn more, see :ref:`mcp-remote-connections`.
+
+   * - ``idleTimeoutMs``
+     - ``MDB_MCP_IDLE_TIMEOUT_MS``
+     - integer
+     - ``600000``
+     - Idle timeout for a client to disconnect. Only applies to HTTP
+       transport.
+
+   * - ``notificationTimeoutMs``
+     - ``MDB_MCP_NOTIFICATION_TIMEOUT_MS``
+     - integer
+     - ``540000``
+     - Notification timeout for a client to be aware of disconnect. Only
+       applies to HTTP transport.
+
+   * - ``authenticationMechanism``
+     - ``MDB_MCP_AUTHENTICATION_MECHANISM``
+     - string
+     - ``SCRAM-SHA-256``
+     - SCRAM is the default authentication mechanism for MongoDB. 
+       To connect to your MongoDB
+       deployments with the MongoDB MCP server 
+       using other authentication methods, see the following pages:
+
+       - :ref:`mcp-server-oidc`
+       - :ref:`mcp-server-ldap`
+       - :ref:`mcp-server-kerberos`
+       - :ref:`mcp-server-x509`
+       - :ref:`mcp-server-proxy`
+
+   * - ``exportsPath``
+     - ``MDB_MCP_EXPORTS_PATH``
+     - string
+     - Depends on the operating system
+     - Directory that stores exported data files.
+
+       For more information about the export path and operating system
+       specifics, see :ref:`mcp-server-configuration-export-data`.
+
+   * - ``exportTimeoutMs``
+     - ``MDB_MCP_EXPORT_TIMEOUT_MS``
+     - integer
+     - ``300000``
+     - Time in milliseconds after which exported data files are
+       eligible for deletion by the MCP Server cleanup process.
+
+   * - ``exportCleanupIntervalMs``
+     - ``MDB_MCP_EXPORT_CLEANUP_INTERVAL_MS``
+     - integer
+     - ``120000``
+     - Time period in milliseconds between automatic executions of the
+       MCP Server cleanup process that deletes expired export data
+       files. The cleanup process is run automatically.
+
+.. _mcp-positional-arguments:
+
+Positional Arguments
+--------------------
+
+The MCP Server accepts a positional argument that can be provided without
+specifying a CLI flag. The first positional argument is interpreted as
+the connection string for your MongoDB deployment. 
+
+As a security best practice, use the ``MDB_MCP_CONNECTION_STRING`` 
+environment variable to set the connection string. If environment variables 
+are not an option, use the first positional argument. For example:
+
+.. code-block:: json
+   :emphasize-lines: 4
+
+   "args": [
+      "-y",
+      "mongodb-mcp-server",
+      "mongodb+srv://<user-name>:<password>@<cluster-name>.mongodb.net/",
+      "--readOnly"
+   ]
+
+Learn More
+----------
+
+- :ref:`mcp-server-configuration-methods`
+- :ref:`mcp-server-configuration-standalone-service`
+- :ref:`mcp-server-configuration-enable-or-disable-features`
+- :ref:`mcp-server-configuration-export-data`
+- :ref:`mcp-server-configuration-troubleshooting`

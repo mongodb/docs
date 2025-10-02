@@ -1,0 +1,137 @@
+.. _mcp-server-configuration-standalone-service:
+
+================================================
+Start MongoDB MCP Server as a Standalone Service
+================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. meta::
+   :keywords: MCP Server configuration, MCP, Model Context Protocol, AI, natural language, MCP Server, AI agents
+   :description: How to start the MongoDB MCP Server as a standalone service
+
+.. facet::
+   :name: genre
+   :values: reference
+
+You can start the MCP Server as a standalone service, which allows the
+MCP Server to run independently from an AI client. To start the MCP
+Server as a standalone service, use the ``npx`` command.
+
+Standalone Service Using Environment Variables
+----------------------------------------------
+
+You can use ``npx`` to start the MCP Server and use environment
+variables. You must define the MCP Server environment variables
+in the operating system before running ``npx``.
+
+The following examples define MCP Server Unix environment variables to
+connect to an Atlas cluster:
+
+.. code-block:: bash
+
+   export MDB_MCP_API_CLIENT_ID="<atlas-service-account-client-id>"
+   export MDB_MCP_API_CLIENT_SECRET="<atlas-service-account-client-secret>"
+   export MDB_MCP_CONNECTION_STRING="mongodb+srv://<user-name>:<password>@<cluster-name>.mongodb.net/<database-name>"
+
+To use the example, consider these points:
+
+- Replace the option values with your connection information and other
+  details.
+- To define environment variables for other operating systems, see
+  :ref:`mcp-server-configuration-environment-variables`. 
+- To examine the list of MCP Server options, see
+  :ref:`mcp-server-configuration-options`.
+- To create an Atlas service account, see :ref:`mcp-server-prerequisites`.
+
+The following example uses the previous environment variables that have
+the connection information, and also sets additional command line
+options:
+
+.. code-block:: bash
+
+   npx -y mongodb-mcp-server@latest --readOnly --indexCheck --loggers mcp stderr --logPath=<log-path>
+
+Replace ``<log-path>`` with the directory path to store the log files.
+
+Standalone Service Running as an HTTP Server
+--------------------------------------------
+
+The default MCP Server transport protocol is ``stdio``, which is
+suitable for integration with most MCP clients.
+
+You can also use the HTTP transport protocol with the MCP Server. HTTP
+is useful if you want to interact with the MCP Server from a Web client
+or to configure the MCP Server to respond to requests on a specific
+port.
+
+.. note::
+
+   HTTP transport is not recommended for production use without
+   implementing authentication and security measures. Only use HTTP
+   transport if you must use HTTP to interact with the MCP Server.
+
+Security guidelines:
+
+- Implement authentication. For example, use an API gateway or a reverse
+  proxy.
+- Use HTTPS/TLS encryption.
+- Deploy the MCP Server behind a firewall or in a private network.
+- Implement rate limiting.
+- Never expose connection credentials.
+
+To view security recommendations, see :ref:`mcp-server-security` and
+:ref:`mcp-server-security-best-practices`.
+
+To start the MCP Server with HTTP transport, use ``--transport http``.
+For example:
+
+.. code-block:: bash
+
+   npx -y mongodb-mcp-server@latest --transport http --readOnly
+
+By default, the MCP Server responds to requests on
+``http://127.0.0.1:3000`` and only accepts local connections.
+
+Client Connection URL
+~~~~~~~~~~~~~~~~~~~~~
+
+If you connect an MCP client to the HTTP server, the client's connection URL
+must include the ``/mcp`` endpoint path. For example:
+
+.. code-block:: text
+
+   http://127.0.0.1:3000/mcp
+
+.. _mcp-remote-connections:
+
+Remote Connections
+~~~~~~~~~~~~~~~~~~
+
+To allow remote connections from other computers or containers, bind
+the server to all network interfaces using ``--httpHost=0.0.0.0``, 
+and the client can then connect from another computer using the 
+server's IP address or hostname.
+
+.. warning::
+
+   With Streamable HTTP, the MCP Server is bound to ``localhost
+   (127.0.0.1)`` by default. This ensures the MCP Server only accepts
+   connections that originate on the same computer.
+
+   .. include:: /includes/warning-bind-security-risk.rst
+
+Learn More
+----------
+
+- :ref:`mcp-server-configuration-options`
+- :ref:`mcp-server-configuration-methods`
+- :ref:`mcp-server-configuration-enable-or-disable-features`
+- :ref:`mcp-server-configuration-export-data`
+- :ref:`mcp-server-configuration-troubleshooting`

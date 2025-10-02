@@ -30,6 +30,39 @@ const tocData: TocItem[] = [
         label: "Configure",
         contentSite: "mcp-server",
         url: "/docs/mcp-server/configuration",
+        collapsible: true,
+        items: [
+          {
+            label: "Options",
+            contentSite: "mcp-server",
+            url: "/docs/mcp-server/configuration/options",
+          },
+          {
+            label: "Methods",
+            contentSite: "mcp-server",
+            url: "/docs/mcp-server/configuration/methods",
+          },
+          {
+            label: "Enable or Disable Features",
+            contentSite: "mcp-server",
+            url: "/docs/mcp-server/configuration/enable-or-disable-features",
+          },
+          {
+            label: "Export Data",
+            contentSite: "mcp-server",
+            url: "/docs/mcp-server/configuration/export-data",
+          },
+          {
+            label: "Standalone Service",
+            contentSite: "mcp-server",
+            url: "/docs/mcp-server/configuration/standalone-service",
+          },
+          {
+            label: "Troubleshooting",
+            contentSite: "mcp-server",
+            url: "/docs/mcp-server/configuration/troubleshooting",
+          },
+        ],
       },
       {
         label: "Security",
