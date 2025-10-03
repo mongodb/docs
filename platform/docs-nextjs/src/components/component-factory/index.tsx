@@ -83,6 +83,7 @@ import Include, { type IncludeProps } from '../include';
 import BlockQuote, { type BlockQuoteProps } from '../block-quote';
 import Emphasis, { type EmphasisProps } from '../emphasis';
 import SubstitutionReference, { type SubstitutionReferenceProps } from '../substitution-reference';
+import VersionModified, { type VersionModifiedProps } from '../version-modified';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -172,7 +173,7 @@ const getComponent = (() => {
         // 'cta-banner': CTABanner,
         // definitionList: DefinitionList,
         // definitionListItem: DefinitionListItem,
-        // deprecated: VersionModified,
+        deprecated: VersionModified as React.ComponentType<SupportedComponentProps>,
         // 'deprecated-version-selector': DeprecatedVersionSelector,
         // describe: Describe,
         emphasis: Emphasis as React.ComponentType<SupportedComponentProps>,
@@ -223,8 +224,8 @@ const getComponent = (() => {
         time: Time as React.ComponentType<SupportedComponentProps>,
         title_reference: TitleReference as React.ComponentType<SupportedComponentProps>,
         // transition: Transition,
-        // versionadded: VersionModified,
-        // versionchanged: VersionModified,
+        versionadded: VersionModified as React.ComponentType<SupportedComponentProps>,
+        versionchanged: VersionModified as React.ComponentType<SupportedComponentProps>,
         // wayfinding: Wayfinding,
       };
     }
@@ -294,6 +295,7 @@ type SupportedComponentProps =
   | IncludeProps
   | ButtonProps
   | EmphasisProps
+  | VersionModifiedProps
   | SubstitutionReferenceProps;
 
 type RoleComponentProps =
@@ -402,6 +404,16 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('include') || ComponentType === getComponent('literalinclude')) {
     const includeNode = nodeData as ParentNode;
     return <ComponentType nodeChildren={includeNode.children} {...propsToDrill} />;
+  } else if (ComponentType === VersionModified) {
+    const versionModifiedNode = nodeData as Directive;
+    return (
+      <ComponentType
+        argument={versionModifiedNode.argument}
+        nodeChildren={versionModifiedNode.children}
+        name={versionModifiedNode.name}
+        {...propsToDrill}
+      />
+    );
   } else if (ComponentType === getComponent('cond')) {
     const condNode = nodeData as Directive;
     return <ComponentType nodeData={condNode} />;

@@ -997,6 +997,7 @@ export type {
   DefinitionListItemNode,
   Directive,
   DirectiveArgumentNode,
+  DirectiveName,
   DirectiveOptions,
   DismissibleSkillsCardNode,
   EmphasisNode,
