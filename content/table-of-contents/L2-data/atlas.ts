@@ -1326,7 +1326,7 @@ const tocData: TocItem[] = [
             url: "/docs/atlas/reference/serverless-instance-limitations",
           },
           {
-            label: "M0, M2, and M5 Limits",
+            label: "M0 Limits",
             contentSite: "cloud-docs",
             url: "/docs/atlas/reference/free-shared-limitations",
           },
