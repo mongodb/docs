@@ -12,7 +12,4 @@ You can also download the ``.rpm`` files directly from the
 Downloads are organized by Amazon Linux 2023 version (for
 example, ``2023``), then MongoDB :ref:`version
 <release-version-numbers>` (``{+version+}``), then
-architecture (``x86_64``).
-
-.. include:: /includes/5.0-changes/fact-odd-number-releases
- 
+architecture (``x86_64``). 
