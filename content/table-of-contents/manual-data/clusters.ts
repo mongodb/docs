@@ -13,10 +13,10 @@ const tocData: TocItem[] = [
         url: "/docs/:version/reference/connection-string-options",
       },
       {
-        label: "Examples",
+        label: "Formats",
         contentSite: "docs",
-        url: "/docs/:version/reference/connection-string-examples",
-      },
+        url: "/docs/:version/reference/connection-string-formats",
+      }
     ],
   },
   {
@@ -27,44 +27,61 @@ const tocData: TocItem[] = [
   {
     label: "Connection Methods",
     contentSite: "cloud-docs",
-    url: "/docs/atlas/connect-to-database-deployment",
     collapsible: true,
     items: [
       {
-        label: "Drivers",
+        label: "Atlas Cluster Connection",
         contentSite: "cloud-docs",
-        url: "/docs/atlas/driver-connection",
+        url: "/docs/atlas/connect-to-database-deployment",
+        collapsible: true,
+        items: [
+          {
+            label: "Drivers",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/driver-connection",
+          },
+          {
+            label: "Compass",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/compass-connection",
+          },
+          {
+            label: "mongosh",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/mongo-shell-connection",
+          },
+          {
+            label: "SQL Interface",
+            contentSite: "cloud-docs",
+            url: "https://www.mongodb.com/docs/atlas/data-federation/query/connect-with-sql-overview/",
+          },
+          {
+            label: "Command Line Tools",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/command-line-tools",
+          },
+          {
+            label: "VS Code",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/mongodb-for-vscode",
+          },
+          {
+            label: "Azure Service Connector",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/tutorial/azure-service-connector",
+          },
+          {
+            label: "Examples",
+            contentSite: "docs",
+            url: "/docs/:version/reference/connection-string-atlas-examples",
+          }
+        ],
       },
       {
-        label: "Compass",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/compass-connection",
-      },
-      {
-        label: "mongosh",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/mongo-shell-connection",
-      },
-      {
-        label: "SQL Interface",
-        contentSite: "cloud-docs",
-        url: "https://www.mongodb.com/docs/atlas/data-federation/query/connect-with-sql-overview/",
-      },
-      {
-        label: "Command Line Tools",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/command-line-tools",
-      },
-      {
-        label: "VS Code",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/mongodb-for-vscode",
-      },
-      {
-        label: "Azure Service Connector",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/tutorial/azure-service-connector",
-      },
+        label: "Self-Managed Cluster Connection Examples",
+        contentSite: "docs",
+        url: "/docs/:version/reference/connection-string-self-managed-examples",
+      }
     ],
   },
   {
