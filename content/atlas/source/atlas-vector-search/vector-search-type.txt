@@ -65,6 +65,38 @@ your embeddings to BSON vectors <avs-bindata-vector-subtype>`.
 To learn more about sizing considerations for your indexes, 
 see :ref:`avs-index-memory-requirements`.
 
+If you make changes to the collection for which you defined {+avs+} 
+index, the latest data might not be available immediately for queries.
+However, ``mongot`` monitors the change streams and updates stored
+copies of data, making {+avs+} indexes eventually consistent. You can
+view the number of indexed :guilabel:`Documents` in the {+atlas-ui+} 
+to verify that changes to the collection are reflected in the index.
+
+Alternatively, you can create a new index after adding new documents to
+your collection and wait for the index to become queryable. You can also
+implement a polling logic similar to the following to ensure that the
+index is ready for querying before attempting to use it.
+
+.. example:: 
+
+   .. code-block:: 
+
+      console.log("Polling to check if the index is ready. This may take up to a minute.")
+      let isQueryable = false;
+      while (!isQueryable) {
+        const cursor = collection.listSearchIndexes();
+        for await (const index of cursor) {
+          if (index.name === result) {
+            if (index.queryable) {
+              console.log(`${result} is ready for querying.`);
+              isQueryable = true;
+            } else {
+              await new Promise(resolve => setTimeout(resolve, 5000));
+            }
+          }
+        }
+      }
+
 .. _avs-index-supported-drivers:
 .. _avs-create-index-supported-clients:
 
