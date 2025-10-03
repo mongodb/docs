@@ -6,6 +6,7 @@
 import ActionBar from '@/components/action-bar';
 import layoutStyles from '../../layout.module.scss';
 import Analytics from '@/components/head-scripts/anayltics';
+import Select from '@/components/select';
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -20,6 +21,13 @@ export default async function Layout({ children }: { children: React.ReactNode }
         }}
       >
         REPLACE WITH SIDENAV
+        <Select
+          choices={[
+            { text: 'MongoDB Atlas', value: 'atlas' },
+            { text: 'MongoDB Server', value: 'server' },
+          ]}
+          onChange={() => {}}
+        />
       </div>
       <div className={layoutStyles['content-container']}>
         <ActionBar template="document" sidenav={true} />
