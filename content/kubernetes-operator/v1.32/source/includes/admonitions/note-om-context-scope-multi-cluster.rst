@@ -1,6 +1,6 @@
 If you are deploying an |onprem| resource in a |multi-cluster|:
 
-- Set the ``context`` to the name of the central cluster, such as:
+- Set the ``context`` to the name of the operator cluster, such as:
   ``kubectl config set context "$MDB_CENTRAL_CLUSTER_FULL_NAME"``.
 
 - Set the ``--namespace`` to the same :ref:`scope <mc-namespace-scope-ref>`

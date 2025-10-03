@@ -1,4 +1,4 @@
-To check the status of your |mongodb-multi|, use the following command on the central cluster:
+To check the status of your |mongodb-multi|, use the following command on the operator cluster:
 
 .. code-block:: sh
 

@@ -4,6 +4,6 @@
 - Creates :k8sdocs:`ServiceAccounts </tasks/configure-pod-container/configure-service-account/>`,
   :k8sdocs:`Roles, ClusterRoles </reference/access-authn-authz/rbac/#role-and-clusterrole>`,
   :k8sdocs:`RoleBindings and ClusterRoleBindings </reference/access-authn-authz/rbac/#rolebinding-and-clusterrolebinding>`
-  in the central cluster and each member cluster.
+  in the operator cluster and each member cluster.
 - Applies the correct permissions for service accounts.
 - Uses the preceding settings to create your |multi-cluster|.
