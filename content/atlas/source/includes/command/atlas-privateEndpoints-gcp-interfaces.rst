@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for interfaces
 
@@ -60,3 +60,4 @@ Related Commands
    create </command/atlas-privateEndpoints-gcp-interfaces-create>
    delete </command/atlas-privateEndpoints-gcp-interfaces-delete>
    describe </command/atlas-privateEndpoints-gcp-interfaces-describe>
+

@@ -14,7 +14,7 @@ atlas backups restores watch
 
 Watch for a restore job to complete.
 
-This command checks the restore job's status periodically until it reaches a completed, failed or canceled status.
+This command checks the restore job's status periodically until it reaches a completed, failed or canceled status. 
 Once the restore reaches the expected status, the command prints "Restore completed."
 If you run the command in the terminal, it blocks the terminal session until the resource status completes or fails.
 You can interrupt the command's polling at any time with CTRL-C.
@@ -61,7 +61,7 @@ Options
      - true
      - Name of the cluster. To learn more, see https://dochub.mongodb.org/core/create-cluster-api.
    * - -h, --help
-     -
+     - 
      - false
      - help for watch
    * - -o, --output
@@ -96,9 +96,9 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
 .. code-block::
 
-
+   
    Restore completed.
-
+   
 
 Examples
 --------

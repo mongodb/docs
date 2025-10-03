@@ -52,17 +52,17 @@ Options
      - string
      - true
      - Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-
+       
        **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
    * - -h, --help
-     -
+     - 
      - false
      - help for deleteProjectLimit
    * - --limitName
      - string
      - true
      - Human-readable label that identifies this project limit.
-
+       
        | Limit Name | Description | Default | API Override Limit |
        | --- | --- | --- | --- |
        | atlas.project.deployment.clusters | Limit on the number of clusters in this project if the org is not sales-sold (If org is sales-sold, the limit is 100) | 25 | 90 |
@@ -78,7 +78,7 @@ Options
        | atlas.project.deployment.privateServiceConnectionsPerRegionGroup | Number of Private Service Connections per Region Group | 50 | 100|
        | atlas.project.deployment.privateServiceConnectionsSubnetMask | Subnet mask for GCP PSC Networks. Has lower limit of 20. | 27 | 27|
        | atlas.project.deployment.salesSoldM0s | Limit on the number of M0 clusters in this project if the org is sales-sold | 100 | 100 |
-
+       
    * - -o, --output
      - string
      - false
@@ -88,7 +88,7 @@ Options
      - false
      - file to write the api output to. This flag is required when the output of an endpoint is binary (ex: gzip) and the command is not piped (ex: atlas command > out.zip)
    * - --pretty
-     -
+     - 
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --version

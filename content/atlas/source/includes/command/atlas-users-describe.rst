@@ -15,7 +15,7 @@ atlas users describe
 Return the details for the specified Atlas user.
 
 You can specify either the unique 24-digit ID that identifies the Atlas user or the username for the Atlas user.
-
+		
 User accounts and API keys with any role can run this command.
 
 Syntax
@@ -40,7 +40,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for describe
    * - --id
@@ -85,7 +85,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     FIRST NAME    LAST NAME    USERNAME     EMAIL
    <Id>   <FirstName>   <LastName>   <Username>   <EmailAddress>
-
+   
 
 Examples
 --------
@@ -95,8 +95,8 @@ Examples
 
    # Return the JSON-formatted details for the Atlas user with the ID 5dd56c847a3e5a1f363d424d:
    atlas users describe --id 5dd56c847a3e5a1f363d424d --output json
-
-
+   
+   
 .. code-block::
    :copyable: false
 

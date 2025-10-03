@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for cloudBackups
 
@@ -114,3 +114,4 @@ Related Commands
    updateBackupSchedule </command/atlas-api-cloudBackups-updateBackupSchedule>
    updateDataProtectionSettings </command/atlas-api-cloudBackups-updateDataProtectionSettings>
    updateSnapshotRetention </command/atlas-api-cloudBackups-updateSnapshotRetention>
+

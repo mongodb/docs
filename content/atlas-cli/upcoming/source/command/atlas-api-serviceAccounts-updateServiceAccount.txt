@@ -55,7 +55,7 @@ Options
      - false
      - path to your API request file. Leave empty to use standard input instead - you must provide one or the other, but not both.
    * - -h, --help
-     -
+     - 
      - false
      - help for updateServiceAccount
    * - --orgId
@@ -71,7 +71,7 @@ Options
      - false
      - file to write the api output to. This flag is required when the output of an endpoint is binary (ex: gzip) and the command is not piped (ex: atlas command > out.zip)
    * - --pretty
-     -
+     - 
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --version
@@ -94,3 +94,4 @@ Inherited Options
      - string
      - false
      - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+

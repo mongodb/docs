@@ -42,15 +42,15 @@ Options
      - true
      - Human-readable label that identifies the Atlas destination cluster.
    * - --drop
-     -
+     - 
      - false
      - Flag that indicates whether this process should drop existing collections from the destination (Atlas) cluster given in --destinationClusterName before starting the migration of data from the source cluster.
    * - --force
-     -
+     - 
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     -
+     - 
      - false
      - help for create
    * - --migrationHost
@@ -74,7 +74,7 @@ Options
      - true
      - Human-readable label that identifies the source Cloud Manager or Ops Manager cluster.
    * - --sourceManagedAuthentication
-     -
+     - 
      - false
      - Flag that indicates whether MongoDB Automation manages authentication to the source Cloud Manager or Ops Manager cluster. If you set this to true, don't provide values for --sourceUsername and --sourcePassword.
 
@@ -88,7 +88,7 @@ Options
      - true
      - Unique 24-hexadecimal digit string that identifies the source project.
    * - --sourceSsl
-     -
+     - 
      - false
      - Flag that indicates whether data source has TLS enabled.
    * - -u, --sourceUsername
@@ -123,3 +123,4 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     PROJECT ID   SOURCE PROJECT ID   STATUS
    <Id>   <GroupId>    <SourceGroupId>     <Status>
+

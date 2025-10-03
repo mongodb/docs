@@ -40,7 +40,7 @@ Options
      - Required
      - Description
    * - --autoExport
-     -
+     - 
      - false
      - Flag that enables automatic export of cloud backup snapshots to the AWS bucket.
 
@@ -68,23 +68,23 @@ Options
 
        Mutually exclusive with --exportBucketId, --exportFrequencyType, --referenceHourOfDay, --referenceMinuteOfHour, --restoreWindowDays, --autoExport, --noAutoExport, --updateSnapshots, --noUpdateSnapshots, --useOrgAndGroupNamesInExportPrefix, --noUseOrgAndGroupNamesInExportPrefix, --policy.
    * - -h, --help
-     -
+     - 
      - false
      - help for update
    * - --noAutoExport
-     -
+     - 
      - false
      - Flag that disables automatic export of cloud backup snapshots to the AWS bucket.
 
        Mutually exclusive with --autoExport, --file.
    * - --noUpdateSnapshots
-     -
+     - 
      - false
      - Flag that disables applying the retention changes in the updated backup policy to snapshots that Atlas took previously.
 
        Mutually exclusive with --updateSnapshots, --file.
    * - --noUseOrgAndGroupNamesInExportPrefix
-     -
+     - 
      - false
      - Flag that disables usage of organization and project names instead of organization and project UUIDs in the path for the metadata files that Atlas uploads to your S3 bucket after it finishes exporting the snapshots.
 
@@ -122,13 +122,13 @@ Options
 
        Mutually exclusive with --file.
    * - --updateSnapshots
-     -
+     - 
      - false
      - Flag that enables applying the retention changes in the updated backup policy to snapshots that Atlas took previously.
 
        Mutually exclusive with --noUpdateSnapshots, --file.
    * - --useOrgAndGroupNamesInExportPrefix
-     -
+     - 
      - false
      - Flag that enables usage of organization and project names instead of organization and project UUIDs in the path for the metadata files that Atlas uploads to your S3 bucket after it finishes exporting the snapshots.
 
@@ -158,7 +158,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Snapshot backup policy for cluster '<ClusterName>' updated.
-
+   
 
 Examples
 --------
@@ -168,8 +168,8 @@ Examples
 
    # Update a snapshot backup policy for a cluster named Cluster0 to back up snapshots every 6 hours and, retain for 7 days, and update retention of previously-taken snapshots:
    atlas backup schedule update --clusterName Cluster0 --updateSnapshots --policy 62da8faac84a2721e448d767,62da8faac84a2721e448d768,hourly,6,days,7
-
-
+   
+   
 .. code-block::
    :copyable: false
 

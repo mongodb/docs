@@ -53,7 +53,7 @@ Options
      - false
      - path to your API request file. Leave empty to use standard input instead - you must provide one or the other, but not both.
    * - -h, --help
-     -
+     - 
      - false
      - help for queryLineItemsFromSingleInvoice
    * - --invoiceId
@@ -100,3 +100,4 @@ Inherited Options
      - string
      - false
      - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+

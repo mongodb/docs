@@ -36,7 +36,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for describe
    * - -o, --output
@@ -73,7 +73,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    COLLECT DATABASE SPECIFICS STATISTICS ENABLED   DATA EXPLORER ENABLED     DATA EXPLORER GEN AI FEATURES ENABLED   DATA EXPLORER GEN AI SAMPLE DOCUMENT PASSING ENABLED   PERFORMANCE ADVISOR ENABLED     REALTIME PERFORMANCE PANEL ENABLED    SCHEMA ADVISOR ENABLED
    <IsCollectDatabaseSpecificsStatisticsEnabled>   <IsDataExplorerEnabled>   <IsDataExplorerGenAIFeaturesEnabled>    <IsDataExplorerGenAISampleDocumentPassingEnabled>      <IsPerformanceAdvisorEnabled>   <IsRealtimePerformancePanelEnabled>   <IsSchemaAdvisorEnabled>
-
+   
 
 Examples
 --------

@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for databases
 
@@ -58,3 +58,4 @@ Related Commands
 
    describe </command/atlas-metrics-databases-describe>
    list </command/atlas-metrics-databases-list>
+

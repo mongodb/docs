@@ -473,7 +473,7 @@ function treeToArray(tree: CommandTree, basePath: string = '', versionAvailabili
       items.push({
         label: key.replace(/-/g, ' '),
         contentSite: "atlas-cli" as const,
-        url: `/docs/atlas/cli/:version/command/${currentPath}`,
+        url: `/docs/atlas/cli/:version/command/${currentPath}/`,
         ...(versionConstraint && { versions: versionConstraint })
       });
     } else {
@@ -482,6 +482,7 @@ function treeToArray(tree: CommandTree, basePath: string = '', versionAvailabili
       items.push({
         label: key.replace(/-/g, ' '),
         contentSite: "atlas-cli" as const,
+        url: `/docs/atlas/cli/:version/command/${currentPath}/`,
         collapsible: true,
         items: subItems
       });
@@ -509,6 +510,28 @@ function formatAsTypeScript(commandsArray: TocItem[], tagOrBranch: string): stri
 import type { TocItem } from "../types";
 
 export const atlasCliCommands: TocItem[] = ${JSON.stringify(commandsArray, null, 2).replace(/"([^"]+)":/g, '$1:')};
+`;
+}
+
+/**
+ * Format separate command trees as TypeScript code
+ */
+function formatSeparateCommandsAsTypeScript(commandsArray: TocItem[], commandType: string, tagOrBranch: string): string {
+  const exportName = commandType === 'API' ? 'atlasCliApiCommands' : 'atlasCliCoreCommands';
+  const description = commandType === 'API' ? 'Atlas CLI API Commands' : 'Atlas CLI Core Commands';
+  
+  return `/**
+ * ${description} Table of Contents
+ * Generated automatically from MongoDB Atlas CLI repository
+ * Source: mongodb/mongodb-atlas-cli repository (${tagOrBranch})
+ * 
+ * DO NOT EDIT MANUALLY - this file is auto-generated
+ * To regenerate: run the atlas-cli-commands generation script
+ */
+
+import type { TocItem } from "../types";
+
+export const ${exportName}: TocItem[] = ${JSON.stringify(commandsArray, null, 2).replace(/"([^"]+)":/g, '$1:')};
 `;
 }
 
@@ -561,24 +584,63 @@ async function main() {
     // Step 4: Copy examples directory from repository  
     await copyExamplesFromGit(tagOrBranch);
     
-    // Step 5: Create hierarchical structure with version constraints
+    // Step 5: Separate files into API and non-API commands
     console.log(`🔍 Sample files being processed: ${allTocFiles.slice(0, 5).join(', ')}`);
-    console.log(`� Total allTocFiles count: ${allTocFiles.length}`);
-    console.log(`� First 10 files:`, allTocFiles.slice(0, 10));
+    console.log(`📊 Total allTocFiles count: ${allTocFiles.length}`);
+    console.log(`📊 First 10 files:`, allTocFiles.slice(0, 10));
     console.log(`🔍 Last 10 files:`, allTocFiles.slice(-10));
     
-    const tree = createHierarchicalStructure(allTocFiles, fileInventory);
-    console.log(`🌳 Tree structure created with ${Object.keys(tree).length} top-level keys`);
-    console.log(`🔍 Top-level keys: ${Object.keys(tree).join(', ')}`);
+    // Separate API commands from other Atlas commands
+    const apiFiles = allTocFiles.filter(file => file.startsWith('atlas-api-'));
+    const nonApiFiles = allTocFiles.filter(file => !file.startsWith('atlas-api-'));
     
-    // Let's also debug the tree structure more deeply
-    console.log(`🔍 Tree structure details:`, JSON.stringify(tree, null, 2));
+    console.log(`📊 API command files: ${apiFiles.length}`);
+    console.log(`📊 Non-API command files: ${nonApiFiles.length}`);
     
-    // Skip the top-level "atlas" wrapper since it's implied
-    // Extract the commands directly from under the "atlas" key
-    const atlasCommands = tree['atlas'] || {};
-    const mainCommands = treeToArray(atlasCommands, 'atlas', fileInventory);
-    console.log(`📋 Converted to array format with ${mainCommands.length} top-level commands`);
+    // Step 6: Create separate hierarchical structures
+    const apiTree = createHierarchicalStructure(apiFiles, fileInventory);
+    const nonApiTree = createHierarchicalStructure(nonApiFiles, fileInventory);
+    
+    console.log(`🌳 API Tree structure created with ${Object.keys(apiTree).length} top-level keys`);
+    console.log(`🔍 API Top-level keys: ${Object.keys(apiTree).join(', ')}`);
+    console.log(`🌳 Non-API Tree structure created with ${Object.keys(nonApiTree).length} top-level keys`);
+    console.log(`🔍 Non-API Top-level keys: ${Object.keys(nonApiTree).join(', ')}`);
+    
+    // Convert trees to array format
+    const apiCommands = treeToArray(apiTree, '', fileInventory);
+    const nonApiCommands = treeToArray(nonApiTree, '', fileInventory);
+    
+    console.log(`📋 API commands converted to array format: ${apiCommands.length} top-level commands`);
+    console.log(`📋 Non-API commands converted to array format: ${nonApiCommands.length} top-level commands`);
+    
+    // Restructure API commands: extract the 'api' items from under 'atlas' and make 'atlas-api' the top level
+    let restructuredApiCommands: TocItem[] = [];
+    if (apiCommands.length > 0 && apiCommands[0].label === 'atlas' && apiCommands[0].items) {
+      const apiItems = apiCommands[0].items.find(item => item.label === 'api');
+      if (apiItems && apiItems.items) {
+        restructuredApiCommands = [{
+          label: 'atlas api',
+          contentSite: 'atlas-cli',
+          url: '/docs/atlas/cli/:version/command/atlas-api/',
+          collapsible: true,
+          items: apiItems.items
+        }];
+      }
+    }
+    
+    // Remove the 'api' node from non-API commands
+    let cleanedNonApiCommands = nonApiCommands;
+    if (nonApiCommands.length > 0 && nonApiCommands[0].label === 'atlas' && nonApiCommands[0].items) {
+      const filteredItems = nonApiCommands[0].items.filter(item => item.label !== 'api');
+      cleanedNonApiCommands = [{
+        ...nonApiCommands[0],
+        items: filteredItems
+      }];
+    }
+    
+    // Combine the restructured API commands with cleaned non-API commands
+    const mainCommands = [...restructuredApiCommands, ...cleanedNonApiCommands];
+    console.log(`📋 Total combined commands: ${mainCommands.length} top-level commands`);
     
     // Step 7: Fetch and process Kubernetes commands
     const k8sCommands = loadExistingKubernetesCommands();
@@ -586,10 +648,10 @@ async function main() {
     // Step 8: Merge commands alphabetically
     const allCommands = mergeCommands(mainCommands, k8sCommands);
     
-    // Step 9: Generate TypeScript code
+    // Step 9: Generate TypeScript code for combined commands
     const typescriptCode = formatAsTypeScript(allCommands, tagOrBranch);
     
-    // Step 10: Write to file in table-of-contents docset-data directory
+    // Step 10: Write main combined file
     const outputPath = path.join(__dirname, '../../table-of-contents/docset-data/atlas-cli-commands.ts');
     fs.writeFileSync(outputPath, typescriptCode, 'utf8');
     
@@ -612,6 +674,8 @@ async function main() {
     }, 0);
 
     console.log(`📊 Total commands generated: ${totalCommands}`);
+    console.log(`📊 API commands: ${apiCommands.length} top-level groups`);
+    console.log(`📊 Core commands: ${nonApiCommands.length} top-level groups`);
     console.log(`📊 Including ${k8sCommands.length ? k8sCommands[0].items?.length || 0 : 0} Kubernetes plugin commands`);
     
     // Create summary file
@@ -621,10 +685,16 @@ async function main() {
       promoteVersion: promoteVersion || null,
       generatedAt: new Date().toISOString(),
       totalFiles: repositoryFiles.length,
+      apiFiles: apiFiles.length,
+      coreFiles: nonApiFiles.length,
       totalCommands,
       topLevelGroups: allCommands.length,
+      apiCommands: apiCommands.length,
+      coreCommands: nonApiCommands.length,
       kubernetesCommands: k8sCommands.length ? k8sCommands[0].items?.length || 0 : 0,
-      outputFile: outputPath,
+      outputFiles: {
+        combined: outputPath
+      },
       sourceMethod: promoteVersion ? 'version-promotion' : 'directory-restructure'
     };
     
@@ -668,6 +738,7 @@ export {
   createHierarchicalStructure, 
   treeToArray, 
   formatAsTypeScript,
+  formatSeparateCommandsAsTypeScript,
   handleDirectoryStructure,
   takeDirectoryInventory,
   parseCommandLineArgs

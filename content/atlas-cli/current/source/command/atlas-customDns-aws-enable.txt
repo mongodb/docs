@@ -38,7 +38,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for enable
    * - -o, --output
@@ -74,7 +74,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    DNS configuration enabled.
-
+   
 
 Examples
 --------
@@ -82,5 +82,5 @@ Examples
 .. code-block::
    :copyable: false
 
-   # Enable the custom DNS configuration deployed to AWS in the project with ID 618d48e05277a606ed2496fe:
-   atlas customDns aws enable --projectId 618d48e05277a606ed2496fe
+   # Enable the custom DNS configuration deployed to AWS in the project with ID 618d48e05277a606ed2496fe:		
+   atlas customDns aws enable --projectId 618d48e05277a606ed2496fe 

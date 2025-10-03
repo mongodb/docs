@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for privateLinks
 
@@ -64,3 +64,4 @@ Related Commands
    delete </command/atlas-streams-privateLinks-delete>
    describe </command/atlas-streams-privateLinks-describe>
    list </command/atlas-streams-privateLinks-list>
+

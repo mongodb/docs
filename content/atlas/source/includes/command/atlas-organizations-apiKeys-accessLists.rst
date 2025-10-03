@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for accessLists
 
@@ -60,3 +60,4 @@ Related Commands
    create </command/atlas-organizations-apiKeys-accessLists-create>
    delete </command/atlas-organizations-apiKeys-accessLists-delete>
    list </command/atlas-organizations-apiKeys-accessLists-list>
+

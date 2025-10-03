@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for ondemand
 
@@ -60,3 +60,4 @@ Related Commands
    create </command/atlas-backups-compliancePolicy-policies-ondemand-create>
    describe </command/atlas-backups-compliancePolicy-policies-ondemand-describe>
    update </command/atlas-backups-compliancePolicy-policies-ondemand-update>
+

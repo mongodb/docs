@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for integrations
 
@@ -62,3 +62,4 @@ Related Commands
    delete </command/atlas-integrations-delete>
    describe </command/atlas-integrations-describe>
    list </command/atlas-integrations-list>
+

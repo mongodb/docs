@@ -58,11 +58,11 @@ Options
      - true
      - Unique 24-hexadecimal digit string that identifies the federation settings.
    * - --force
-     -
+     - 
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     -
+     - 
      - false
      - help for delete
    * - -o, --output
@@ -94,7 +94,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Identity provider '<Name>' deleted
-
+   
 
 Examples
 --------
@@ -103,4 +103,5 @@ Examples
    :copyable: false
 
    # elete the identity provider with ID aa2223b25a115342acc1f108 from your federation settings with federationSettingsId 5d1113b25a115342acc2d1aa.
-   atlas federatedAuthentication federationSettings identityProvider delete aa2223b25a115342acc1f108 --federationSettingsId 5d1113b25a115342acc2d1aa
+ 	atlas federatedAuthentication federationSettings identityProvider delete aa2223b25a115342acc1f108 --federationSettingsId 5d1113b25a115342acc2d1aa
+

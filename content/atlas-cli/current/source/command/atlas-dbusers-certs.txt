@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for certs
 
@@ -58,3 +58,4 @@ Related Commands
 
    create </command/atlas-dbusers-certs-create>
    list </command/atlas-dbusers-certs-list>
+

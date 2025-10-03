@@ -54,7 +54,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for status
    * - -o, --output
@@ -91,7 +91,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    REQUEST ID    PROJECT ID   STATUS
    <RequestId>   <GroupId>    <Status>
-
+   
 
 Related Commands
 ----------------
@@ -103,3 +103,4 @@ Related Commands
    :titlesonly:
 
    watch </command/atlas-security-ldap-verify-status-watch>
+

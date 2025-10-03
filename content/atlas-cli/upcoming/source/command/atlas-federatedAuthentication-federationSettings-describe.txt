@@ -38,7 +38,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for describe
    * - --orgId
@@ -75,7 +75,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     IDENTITY PROVIDER ID   IDENTITY PROVIDER STATUS
    <Id>   <IdentityProviderId>   <IdentityProviderStatus>
-
+   
 
 Examples
 --------

@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for clusterOutageSimulation
 
@@ -65,3 +65,4 @@ Related Commands
    endOutageSimulation </command/atlas-api-clusterOutageSimulation-endOutageSimulation>
    getOutageSimulation </command/atlas-api-clusterOutageSimulation-getOutageSimulation>
    startOutageSimulation </command/atlas-api-clusterOutageSimulation-startOutageSimulation>
+

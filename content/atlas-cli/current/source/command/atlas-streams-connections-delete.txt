@@ -56,11 +56,11 @@ Options
      - Required
      - Description
    * - --force
-     -
+     - 
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     -
+     - 
      - false
      - help for delete
    * - -i, --instance
@@ -96,7 +96,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Atlas Stream Processing connection '<Name>' deleted
-
+   
 
 Examples
 --------
@@ -113,3 +113,4 @@ Examples
 
    # deletes connection 'ExampleConnection' from instance 'ExampleInstance' without requiring confirmation:
    atlas streams connection delete ExampleConnection --instance ExampleInstance --force
+

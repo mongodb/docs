@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for privateEndpoints
 
@@ -62,3 +62,4 @@ Related Commands
    delete </command/atlas-dataFederation-privateEndpoints-delete>
    describe </command/atlas-dataFederation-privateEndpoints-describe>
    list </command/atlas-dataFederation-privateEndpoints-list>
+

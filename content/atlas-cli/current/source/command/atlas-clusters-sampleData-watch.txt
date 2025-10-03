@@ -14,7 +14,7 @@ atlas clusters sampleData watch
 
 Watch the specified sample data job in your cluster until it completes.
 
-This command checks the sample data job's status periodically until it reaches an COMPLETED state.
+This command checks the sample data job's status periodically until it reaches an COMPLETED state. 
 If you run the command in the terminal, it blocks the terminal session until the resource state changes to COMPLETED.
 You can interrupt the command's polling at any time with CTRL-C.
 
@@ -58,7 +58,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for watch
    * - --projectId
@@ -89,9 +89,9 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
 .. code-block::
 
-
+   
    Sample data available.
-
+   
 
 Examples
 --------

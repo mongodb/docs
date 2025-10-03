@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for mongoDbCloudUsers
 
@@ -97,3 +97,4 @@ Related Commands
    removeProjectUser </command/atlas-api-mongoDbCloudUsers-removeProjectUser>
    removeUserFromTeam </command/atlas-api-mongoDbCloudUsers-removeUserFromTeam>
    updateOrganizationUser </command/atlas-api-mongoDbCloudUsers-updateOrganizationUser>
+

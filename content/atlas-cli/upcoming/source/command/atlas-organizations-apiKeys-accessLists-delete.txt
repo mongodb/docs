@@ -58,11 +58,11 @@ Options
      - false
      - Unique 24-digit ID that identifies your API key.
    * - --force
-     -
+     - 
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     -
+     - 
      - false
      - help for delete
    * - --orgId
@@ -94,7 +94,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Access list entry '<Name>' deleted
-
+   
 
 Examples
 --------

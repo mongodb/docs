@@ -58,11 +58,11 @@ Options
      - true
      - Unique 24-character alphanumeric string that identifies the private endpoint in Atlas.
    * - --force
-     -
+     - 
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     -
+     - 
      - false
      - help for delete
    * - --projectId
@@ -94,7 +94,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Interface endpoint '<Name>' deleted
-
+   
 
 Examples
 --------

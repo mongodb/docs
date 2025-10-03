@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for jobs
 
@@ -62,3 +62,4 @@ Related Commands
    describe </command/atlas-backups-exports-jobs-describe>
    list </command/atlas-backups-exports-jobs-list>
    watch </command/atlas-backups-exports-jobs-watch>
+

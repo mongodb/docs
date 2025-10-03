@@ -54,11 +54,11 @@ Options
      - false
      - Retrieve the invoices the startDates of which are greater than or equal to the fromDate. If omit, the invoices return will go back to earliest startDate.
    * - -h, --help
-     -
+     - 
      - false
      - help for listInvoices
    * - --includeCount
-     -
+     - 
      - false
      - Flag that indicates whether the response returns the total number of items (**totalCount**) in the response.
    * - --itemsPerPage
@@ -86,7 +86,7 @@ Options
      - false
      - Number of the page that displays the current set of the total objects that the response returns.
    * - --pretty
-     -
+     - 
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --sortBy
@@ -106,7 +106,7 @@ Options
      - false
      - api version to use when calling the api call [options: "2023-01-01"], defaults to the latest version or the profiles api_version config value if set This value defaults to "2023-01-01".
    * - --viewLinkedInvoices
-     -
+     - 
      - false
      - Flag that indicates whether to return linked invoices in the linkedInvoices field.
 

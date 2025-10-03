@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for cloudProviders
 
@@ -56,3 +56,4 @@ Related Commands
    :titlesonly:
 
    accessRoles </command/atlas-cloudProviders-accessRoles>
+

@@ -36,7 +36,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for enable
    * - -o, --output
@@ -52,7 +52,7 @@ Options
      - true
      - Number of days back in time you can restore to with Continuous Cloud Backup accuracy. Must be a positive, non-zero integer. Applies to continuous cloud backups only.
    * - -w, --watch
-     -
+     - 
      - false
      - Flag that indicates whether to watch the command until it completes its execution or the watch times out.
 
@@ -71,3 +71,4 @@ Inherited Options
      - string
      - false
      - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+

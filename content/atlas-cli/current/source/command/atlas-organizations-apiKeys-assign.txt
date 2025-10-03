@@ -15,7 +15,7 @@ atlas organizations apiKeys assign
 Modify the roles or description for the specified organization API key.
 
 When you modify the roles for an organization API key with this command, the values you specify overwrite the existing roles assigned to the API key.
-
+		
 To view possible values for the apiKeyId argument, run atlas organizations apiKeys list.
 
 To use this command, you must authenticate with a user account, a service account, or an API key with the Organization User Admin role.
@@ -62,7 +62,7 @@ Options
      - false
      - Description of the API key.
    * - -h, --help
-     -
+     - 
      - false
      - help for assign
    * - --orgId
@@ -102,7 +102,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    API Key '<Id>' successfully updated.
-
+   
 
 Examples
 --------

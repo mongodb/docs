@@ -38,7 +38,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for list
    * - -o, --output

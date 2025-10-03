@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for identityProvider
 
@@ -66,3 +66,4 @@ Related Commands
    list </command/atlas-federatedAuthentication-federationSettings-identityProvider-list>
    revokeJwk </command/atlas-federatedAuthentication-federationSettings-identityProvider-revokeJwk>
    update </command/atlas-federatedAuthentication-federationSettings-identityProvider-update>
+

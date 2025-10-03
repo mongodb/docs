@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for disks
 
@@ -58,3 +58,4 @@ Related Commands
 
    describe </command/atlas-metrics-disks-describe>
    list </command/atlas-metrics-disks-list>
+

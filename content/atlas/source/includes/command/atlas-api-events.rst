@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for events
 
@@ -69,3 +69,4 @@ Related Commands
    listEventTypes </command/atlas-api-events-listEventTypes>
    listOrganizationEvents </command/atlas-api-events-listOrganizationEvents>
    listProjectEvents </command/atlas-api-events-listProjectEvents>
+

@@ -56,24 +56,24 @@ Options
      - string
      - true
      - Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-
+       
        **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
    * - -h, --help
-     -
+     - 
      - false
      - help for createOneDataFederationQueryLimit
    * - --limitName
      - string
      - true
      - Human-readable label that identifies this data federation instance limit.
-
+       
        | Limit Name | Description | Default |
        | --- | --- | --- |
        | bytesProcessed.query | Limit on the number of bytes processed during a single data federation query | N/A |
        | bytesProcessed.daily | Limit on the number of bytes processed for the data federation instance for the current day | N/A |
        | bytesProcessed.weekly | Limit on the number of bytes processed for the data federation instance for the current week | N/A |
        | bytesProcessed.monthly | Limit on the number of bytes processed for the data federation instance for the current month | N/A |
-
+       
    * - -o, --output
      - string
      - false
@@ -106,3 +106,4 @@ Inherited Options
      - string
      - false
      - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+

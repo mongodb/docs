@@ -74,7 +74,7 @@ Options
 
        Mutually exclusive with --db, --collection.
    * - -h, --help
-     -
+     - 
      - false
      - help for create
    * - -o, --output
@@ -98,7 +98,7 @@ Options
      - false
      - Username for authenticating to MongoDB.
    * - -w, --watch
-     -
+     - 
      - false
      - Flag that indicates whether to watch the command until it completes its execution or the watch times out. To set the time that the watch times out, use the --watchTimeout option.
 
@@ -117,3 +117,4 @@ Inherited Options
      - string
      - false
      - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+

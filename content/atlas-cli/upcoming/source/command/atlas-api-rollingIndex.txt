@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for rollingIndex
 
@@ -61,3 +61,4 @@ Related Commands
    :titlesonly:
 
    createRollingIndex </command/atlas-api-rollingIndex-createRollingIndex>
+

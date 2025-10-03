@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for customDns
 
@@ -56,3 +56,4 @@ Related Commands
    :titlesonly:
 
    aws </command/atlas-customDns-aws>
+

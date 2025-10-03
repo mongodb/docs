@@ -14,7 +14,7 @@ atlas clusters watch
 
 Watch the specified cluster in your project until it becomes available.
 
-This command checks the cluster's status periodically until it reaches an IDLE state.
+This command checks the cluster's status periodically until it reaches an IDLE state. 
 Once the cluster reaches the expected state, the command prints "Cluster available."
 If you run the command in the terminal, it blocks the terminal session until the resource state changes to IDLE.
 You can interrupt the command's polling at any time with CTRL-C.
@@ -59,7 +59,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for watch
    * - --projectId
@@ -90,9 +90,9 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
 .. code-block::
 
-
+   
    Cluster available.
-
+   
 
 Examples
 --------

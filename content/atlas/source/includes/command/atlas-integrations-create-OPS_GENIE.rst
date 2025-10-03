@@ -44,7 +44,7 @@ Options
      - true
      - Opsgenie API key that allows Atlas to access your Opsgenie account.
    * - -h, --help
-     -
+     - 
      - false
      - help for OPS_GENIE
    * - -o, --output
@@ -84,7 +84,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Ops Genie integration configured.
-
+   
 
 Examples
 --------

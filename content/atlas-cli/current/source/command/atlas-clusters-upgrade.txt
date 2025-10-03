@@ -56,7 +56,7 @@ Options
      - Required
      - Description
    * - --disableTerminationProtection
-     -
+     - 
      - false
      - Disables termination protection for your cluster. You can delete a cluster with termination protection disabled.
 
@@ -68,7 +68,7 @@ Options
 
        Mutually exclusive with --file.
    * - --enableTerminationProtection
-     -
+     - 
      - false
      - Enables termination protection for your cluster. You can't delete a cluster with termination protection enabled.
 
@@ -80,7 +80,7 @@ Options
 
        Mutually exclusive with --tier, --diskSizeGB, --mdbVersion, --enableTerminationProtection, --disableTerminationProtection, --tag.
    * - -h, --help
-     -
+     - 
      - false
      - help for upgrade
    * - --mdbVersion
@@ -134,7 +134,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Upgrading cluster '<Name>'.
-
+   
 
 Examples
 --------

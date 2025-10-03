@@ -15,9 +15,9 @@ atlas networking peering create azure
 Create a network peering connection between the Atlas VPC and your Azure VNet.
 
 Before you create an Azure network peering connection, complete the prerequisites listed here: https://www.mongodb.com/docs/atlas/reference/api/vpc-create-peering-connection/#prerequisites.
-
+		
 The network peering create command checks if a VNet exists in the region you specify for your Atlas project. If one exists, this command creates the peering connection between that VNet and your VPC. If an Atlas VPC does not exist, this command creates one and creates a connection between it and your VNet.
-
+		
 To learn more about network peering connections, see https://www.mongodb.com/docs/atlas/security-vpc-peering/.
 
 To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
@@ -52,7 +52,7 @@ Options
      - true
      - Unique identifier for an Azure AD directory.
    * - -h, --help
-     -
+     - 
      - false
      - help for azure
    * - -o, --output
@@ -104,7 +104,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Network peering connection '<Id>' created.
-
+   
 
 Examples
 --------

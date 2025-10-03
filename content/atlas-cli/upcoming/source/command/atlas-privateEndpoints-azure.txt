@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for azure
 
@@ -66,3 +66,4 @@ Related Commands
    interfaces </command/atlas-privateEndpoints-azure-interfaces>
    list </command/atlas-privateEndpoints-azure-list>
    watch </command/atlas-privateEndpoints-azure-watch>
+

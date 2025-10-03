@@ -34,7 +34,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for thirdPartyIntegrations
 
@@ -72,3 +72,4 @@ Related Commands
    getThirdPartyIntegration </command/atlas-api-thirdPartyIntegrations-getThirdPartyIntegration>
    listThirdPartyIntegrations </command/atlas-api-thirdPartyIntegrations-listThirdPartyIntegrations>
    updateThirdPartyIntegration </command/atlas-api-thirdPartyIntegrations-updateThirdPartyIntegration>
+

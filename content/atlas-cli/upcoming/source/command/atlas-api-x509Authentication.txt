@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for x509Authentication
 
@@ -65,3 +65,4 @@ Related Commands
    createDatabaseUserCertificate </command/atlas-api-x509Authentication-createDatabaseUserCertificate>
    disableCustomerManagedX509 </command/atlas-api-x509Authentication-disableCustomerManagedX509>
    listDatabaseUserCertificates </command/atlas-api-x509Authentication-listDatabaseUserCertificates>
+

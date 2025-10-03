@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for slowQueryLogs
 
@@ -56,3 +56,4 @@ Related Commands
    :titlesonly:
 
    list </command/atlas-performanceAdvisor-slowQueryLogs-list>
+

@@ -40,11 +40,11 @@ Options
      - Required
      - Description
    * - --force
-     -
+     - 
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     -
+     - 
      - false
      - help for clear
    * - -o, --output
@@ -80,7 +80,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Maintenance window removed.
-
+   
 
 Examples
 --------

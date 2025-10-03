@@ -53,7 +53,7 @@ Options
      - true
      - Unique 24-hexadecimal digit string that identifies your federation.
    * - -h, --help
-     -
+     - 
      - false
      - help for getIdentityProvider
    * - --identityProviderId

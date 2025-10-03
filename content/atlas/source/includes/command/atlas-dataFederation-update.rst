@@ -72,7 +72,7 @@ Options
 
        Mutually exclusive with --region, --awsRoleId, --awsTestS3Bucket.
    * - -h, --help
-     -
+     - 
      - false
      - help for update
    * - -o, --output
@@ -123,3 +123,4 @@ Examples
 
    # update data lake pipeline:
    atlas dataFederation update DataFederation1
+

@@ -107,14 +107,12 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-      .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-aws_iam_authentication-payload.json
-         :language: shell
-
+         .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-aws_iam_authentication-payload.json
+            :language: shell
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-aws_iam_authentication.sh
          :language: shell
-
    .. tab:: Example 1
       :tabid: 2023-01-01_ldap_authentication
 
@@ -122,14 +120,12 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-      .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-ldap_authentication-payload.json
-         :language: shell
-
+         .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-ldap_authentication-payload.json
+            :language: shell
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-ldap_authentication.sh
          :language: shell
-
    .. tab:: Example 2
       :tabid: 2023-01-01_oidc_workforce_federated_authentication
 
@@ -137,14 +133,12 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-      .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-oidc_workforce_federated_authentication-payload.json
-         :language: shell
-
+         .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-oidc_workforce_federated_authentication-payload.json
+            :language: shell
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-oidc_workforce_federated_authentication.sh
          :language: shell
-
    .. tab:: Example 3
       :tabid: 2023-01-01_oidc_workload_federated_authentication
 
@@ -152,14 +146,12 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-      .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-oidc_workload_federated_authentication-payload.json
-         :language: shell
-
+         .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-oidc_workload_federated_authentication-payload.json
+            :language: shell
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-oidc_workload_federated_authentication.sh
          :language: shell
-
    .. tab:: Example 4
       :tabid: 2023-01-01_scram-sha_authentication
 
@@ -167,14 +159,12 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-      .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-scram-sha_authentication-payload.json
-         :language: shell
-
+         .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-scram-sha_authentication-payload.json
+            :language: shell
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-scram-sha_authentication.sh
          :language: shell
-
    .. tab:: Example 5
       :tabid: 2023-01-01_x509_authentication
 
@@ -182,9 +172,8 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-      .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-x509_authentication-payload.json
-         :language: shell
-
+         .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-x509_authentication-payload.json
+            :language: shell
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-databaseUsers-createDatabaseUser-2023-01-01-x509_authentication.sh

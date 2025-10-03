@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for monitoringAndLogs
 
@@ -87,3 +87,4 @@ Related Commands
    listDiskPartitions </command/atlas-api-monitoringAndLogs-listDiskPartitions>
    listIndexMetrics </command/atlas-api-monitoringAndLogs-listIndexMetrics>
    listMetricTypes </command/atlas-api-monitoringAndLogs-listMetricTypes>
+

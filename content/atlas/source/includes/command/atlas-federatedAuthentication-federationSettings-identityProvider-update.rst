@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for update
 
@@ -56,3 +56,4 @@ Related Commands
    :titlesonly:
 
    oidc </command/atlas-federatedAuthentication-federationSettings-identityProvider-update-oidc>
+

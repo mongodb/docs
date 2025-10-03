@@ -38,7 +38,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for list
    * - -o, --output
@@ -74,3 +74,4 @@ Examples
 
    # list all data federation private endpoints:
    atlas dataFederation privateEndpoints list
+

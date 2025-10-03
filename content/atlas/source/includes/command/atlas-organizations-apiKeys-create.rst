@@ -44,7 +44,7 @@ Options
      - true
      - Description of the API key.
    * - -h, --help
-     -
+     - 
      - false
      - help for create
    * - --orgId
@@ -86,7 +86,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
    API Key '<Id>' created.
    Public API Key <PublicKey>
    Private API Key <PrivateKey>
-
+   
 
 Examples
 --------

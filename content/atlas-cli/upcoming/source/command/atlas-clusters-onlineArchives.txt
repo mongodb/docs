@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for onlineArchives
 
@@ -70,3 +70,4 @@ Related Commands
    start </command/atlas-clusters-onlineArchives-start>
    update </command/atlas-clusters-onlineArchives-update>
    watch </command/atlas-clusters-onlineArchives-watch>
+

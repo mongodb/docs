@@ -14,7 +14,7 @@ atlas privateEndpoints aws watch
 
 Watch the specified AWS private endpoint in your project until it becomes available.
 
-This command checks the endpoint's state periodically until the endpoint reaches an AVAILABLE or FAILED state.
+This command checks the endpoint's state periodically until the endpoint reaches an AVAILABLE or FAILED state. 
 Once the endpoint reaches the expected state, the command prints "Private endpoint changes completed."
 If you run the command in the terminal, it blocks the terminal session until the resource becomes available or fails.
 You can interrupt the command's polling at any time with CTRL-C.
@@ -59,7 +59,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for watch
    * - --projectId
@@ -90,9 +90,9 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
 .. code-block::
 
-
+   
    Private endpoint changes completed.
-
+   
 
 Examples
 --------

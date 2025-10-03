@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for sharedTierSnapshots
 
@@ -65,3 +65,4 @@ Related Commands
    downloadSharedClusterBackup </command/atlas-api-sharedTierSnapshots-downloadSharedClusterBackup>
    getSharedClusterBackup </command/atlas-api-sharedTierSnapshots-getSharedClusterBackup>
    listSharedClusterBackups </command/atlas-api-sharedTierSnapshots-listSharedClusterBackups>
+

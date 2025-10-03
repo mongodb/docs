@@ -58,7 +58,7 @@ Options
      - true
      - Name of the cluster. To learn more, see https://dochub.mongodb.org/core/create-cluster-api.
    * - -h, --help
-     -
+     - 
      - false
      - help for describe
    * - -o, --output
@@ -95,7 +95,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     SNAPSHOT TYPE    TYPE     DESCRIPTION     EXPIRES AT
    <Id>   <SnapshotType>   <Type>   <Description>   <ExpiresAt>
-
+   
 
 Examples
 --------

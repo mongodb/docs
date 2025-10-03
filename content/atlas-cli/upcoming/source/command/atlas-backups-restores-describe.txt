@@ -58,7 +58,7 @@ Options
      - true
      - Name of the cluster. To learn more, see https://dochub.mongodb.org/core/create-cluster-api.
    * - -h, --help
-     -
+     - 
      - false
      - help for describe
    * - -o, --output

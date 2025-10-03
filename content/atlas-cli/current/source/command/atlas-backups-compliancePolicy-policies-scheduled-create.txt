@@ -44,7 +44,7 @@ Options
      - true
      - Frequency type associated with the backup policy: 'daily', 'hourly', 'monthly', 'weekly'.
    * - -h, --help
-     -
+     - 
      - false
      - help for create
    * - -o, --output
@@ -58,13 +58,13 @@ Options
    * - --retentionUnit
      - string
      - true
-     - Unit of time in which Atlas measures snapshot retention: 'days' 'weeks' 'months'.
+     - Unit of time in which Atlas measures snapshot retention: 'days' 'weeks' 'months'. 
    * - --retentionValue
      - int
      - true
      - Duration in days, weeks, or months that Atlas retains the snapshot. For less frequent policy items, Atlas requires that you specify a value greater than or equal to the value specified for more frequent policy items.
    * - -w, --watch
-     -
+     - 
      - false
      - Flag that indicates whether to watch the command until it completes its execution or the watch times out.
 

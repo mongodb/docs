@@ -57,11 +57,11 @@ Options
      - false
      - path to your API request file. Leave empty to use standard input instead - you must provide one or the other, but not both.
    * - -h, --help
-     -
+     - 
      - false
      - help for createServiceAccountAccessList
    * - --includeCount
-     -
+     - 
      - false
      - Flag that indicates whether the response returns the total number of items (**totalCount**) in the response.
    * - --itemsPerPage
@@ -85,7 +85,7 @@ Options
      - false
      - Number of the page that displays the current set of the total objects that the response returns.
    * - --pretty
-     -
+     - 
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --version
@@ -108,3 +108,4 @@ Inherited Options
      - string
      - false
      - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+

@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for accessTracking
 
@@ -63,3 +63,4 @@ Related Commands
 
    listAccessLogsByClusterName </command/atlas-api-accessTracking-listAccessLogsByClusterName>
    listAccessLogsByHostname </command/atlas-api-accessTracking-listAccessLogsByHostname>
+

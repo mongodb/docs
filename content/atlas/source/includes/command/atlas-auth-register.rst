@@ -36,11 +36,11 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for register
    * - --noBrowser
-     -
+     - 
      - false
      - Don't try to open a browser session.
 
@@ -68,3 +68,4 @@ Examples
 
    # To start the interactive setup:
    atlas auth register
+

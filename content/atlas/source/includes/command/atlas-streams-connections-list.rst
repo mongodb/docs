@@ -38,7 +38,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for list
    * - -i, --instance
@@ -77,4 +77,5 @@ Examples
    :copyable: false
 
    # list all connections within ExampleInstance:
-   atlas streams connection list --instance ExampleInstance
+ atlas streams connection list --instance ExampleInstance
+

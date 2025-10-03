@@ -54,7 +54,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for describe
    * - -o, --output

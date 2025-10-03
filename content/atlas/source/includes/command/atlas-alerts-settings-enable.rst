@@ -52,7 +52,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for enable
    * - -o, --output
@@ -88,7 +88,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Alert configuration '<Id>' enabled
-
+   
 
 Examples
 --------

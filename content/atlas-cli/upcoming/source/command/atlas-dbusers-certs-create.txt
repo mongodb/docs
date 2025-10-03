@@ -38,7 +38,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for create
    * - --monthsUntilExpiration
@@ -82,7 +82,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    <>
-
+   
 
 Examples
 --------

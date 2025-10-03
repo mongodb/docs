@@ -47,8 +47,8 @@ Options
    * - --entryValue
      - /
      - true
-     - Access list entry that you want to remove from the project's IP access list. This value can use one of the following: one AWS security group ID, one IP address, or one CIDR block of addresses. For CIDR blocks that use a subnet mask, replace the forward slash (/) with its URL-encoded value (``%2F``). When you remove an entry from the IP access list, existing connections from the removed address or addresses may remain open for a variable amount of time. The amount of time it takes MongoDB Cloud to close the connection depends upon several factors, including:
-
+     - Access list entry that you want to remove from the project's IP access list. This value can use one of the following: one AWS security group ID, one IP address, or one CIDR block of addresses. For CIDR blocks that use a subnet mask, replace the forward slash (/) with its URL-encoded value (`%2F`). When you remove an entry from the IP access list, existing connections from the removed address or addresses may remain open for a variable amount of time. The amount of time it takes MongoDB Cloud to close the connection depends upon several factors, including:
+       
        - how your application established the connection,
        - how MongoDB Cloud or the driver using the address behaves, and
        - which protocol (like TCP or UDP) the connection uses.
@@ -60,10 +60,10 @@ Options
      - string
      - true
      - Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-
+       
        **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
    * - -h, --help
-     -
+     - 
      - false
      - help for deleteProjectIpAccessList
    * - -o, --output
@@ -75,7 +75,7 @@ Options
      - false
      - file to write the api output to. This flag is required when the output of an endpoint is binary (ex: gzip) and the command is not piped (ex: atlas command > out.zip)
    * - --pretty
-     -
+     - 
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --version

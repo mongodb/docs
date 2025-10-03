@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for logs
 
@@ -56,3 +56,4 @@ Related Commands
    :titlesonly:
 
    download </command/atlas-logs-download>
+

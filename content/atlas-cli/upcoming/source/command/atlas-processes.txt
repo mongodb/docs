@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for processes
 
@@ -58,3 +58,4 @@ Related Commands
 
    describe </command/atlas-processes-describe>
    list </command/atlas-processes-list>
+

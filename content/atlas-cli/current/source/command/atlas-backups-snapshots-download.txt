@@ -60,7 +60,7 @@ Options
      - true
      - Name of the cluster. To learn more, see https://dochub.mongodb.org/core/create-cluster-api.
    * - -h, --help
-     -
+     - 
      - false
      - help for download
    * - --out
@@ -96,4 +96,5 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Snapshot '<Name>' downloaded.
+   
 

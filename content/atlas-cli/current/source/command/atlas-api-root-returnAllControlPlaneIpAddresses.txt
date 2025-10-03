@@ -47,7 +47,7 @@ Options
      - false
      - Flag that indicates whether Application wraps the response in an envelope JSON object. Some API clients cannot access the HTTP response headers or status code. To remediate this, set envelope=true in the query. Endpoints that return a list of results use the results object as an envelope. Application adds the status parameter to the response body.
    * - -h, --help
-     -
+     - 
      - false
      - help for returnAllControlPlaneIpAddresses
    * - -o, --output
@@ -78,3 +78,4 @@ Inherited Options
      - string
      - false
      - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+

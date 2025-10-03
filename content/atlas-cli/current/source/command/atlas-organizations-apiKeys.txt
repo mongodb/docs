@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for apiKeys
 
@@ -66,3 +66,4 @@ Related Commands
    delete </command/atlas-organizations-apiKeys-delete>
    describe </command/atlas-organizations-apiKeys-describe>
    list </command/atlas-organizations-apiKeys-list>
+

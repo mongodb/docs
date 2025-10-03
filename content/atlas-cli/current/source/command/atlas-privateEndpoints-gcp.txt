@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for gcp
 
@@ -66,3 +66,4 @@ Related Commands
    interfaces </command/atlas-privateEndpoints-gcp-interfaces>
    list </command/atlas-privateEndpoints-gcp-list>
    watch </command/atlas-privateEndpoints-gcp-watch>
+

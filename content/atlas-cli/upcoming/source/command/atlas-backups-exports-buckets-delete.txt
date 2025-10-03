@@ -42,11 +42,11 @@ Options
      - true
      - Unique identifier that Atlas assigns to the bucket.
    * - --force
-     -
+     - 
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     -
+     - 
      - false
      - help for delete
    * - --projectId
@@ -78,7 +78,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Snapshot export bucket with id '<Name>' deleted.
-
+   
 
 Examples
 --------

@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for regionalModes
 
@@ -60,3 +60,4 @@ Related Commands
    describe </command/atlas-privateEndpoints-regionalModes-describe>
    disable </command/atlas-privateEndpoints-regionalModes-disable>
    enable </command/atlas-privateEndpoints-regionalModes-enable>
+

@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for users
 
@@ -62,3 +62,4 @@ Related Commands
    add </command/atlas-teams-users-add>
    delete </command/atlas-teams-users-delete>
    list </command/atlas-teams-users-list>
+

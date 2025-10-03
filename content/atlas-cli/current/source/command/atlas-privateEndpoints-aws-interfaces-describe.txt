@@ -58,7 +58,7 @@ Options
      - true
      - Unique 24-character alphanumeric string that identifies the private endpoint in Atlas.
    * - -h, --help
-     -
+     - 
      - false
      - help for describe
    * - -o, --output
@@ -95,7 +95,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID                      STATUS               ERROR
    <InterfaceEndpointId>   <ConnectionStatus>   <ErrorMessage>
-
+   
 
 Examples
 --------
@@ -103,7 +103,7 @@ Examples
 .. code-block::
    :copyable: false
 
-   # Return the JSON-formatted details of the AWS private endpoint interface with the ID
-   vpce-00713b5e644e830a3 in AWS for an AWS private endpoint with the ID 5f4fc14da2b47835a58c63a2 in Atlas:
-   atlas privateEndpoints aws interfaces describe
+   # Return the JSON-formatted details of the AWS private endpoint interface with the ID 	
+ 		vpce-00713b5e644e830a3 in AWS for an AWS private endpoint with the ID 5f4fc14da2b47835a58c63a2 in Atlas:
+   atlas privateEndpoints aws interfaces describe 	
    vpce-00713b5e644e830a3 --endpointServiceId 5f4fc14da2b47835a58c63a2

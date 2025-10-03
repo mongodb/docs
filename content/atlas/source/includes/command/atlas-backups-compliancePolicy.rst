@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for compliancePolicy
 
@@ -68,3 +68,4 @@ Related Commands
    pointInTimeRestores </command/atlas-backups-compliancePolicy-pointInTimeRestores>
    policies </command/atlas-backups-compliancePolicy-policies>
    setup </command/atlas-backups-compliancePolicy-setup>
+

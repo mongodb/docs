@@ -40,7 +40,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for disable
    * - --projectId
@@ -72,7 +72,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    X.509 configuration for project <Name> was deleted.
-
+   
 
 Examples
 --------

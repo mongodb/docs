@@ -54,11 +54,11 @@ Options
      - Required
      - Description
    * - --force
-     -
+     - 
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     -
+     - 
      - false
      - help for delete
    * - --projectId
@@ -90,7 +90,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    '<Name>' deleted
-
+   
 
 Examples
 --------
@@ -100,3 +100,4 @@ Examples
 
    # deletes data federation private endpoint '507f1f77bcf86cd799439011':
    atlas dataFederation privateEndpoints delete 507f1f77bcf86cd799439011
+

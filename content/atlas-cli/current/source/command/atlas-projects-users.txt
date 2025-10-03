@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for users
 
@@ -58,3 +58,4 @@ Related Commands
 
    delete </command/atlas-projects-users-delete>
    list </command/atlas-projects-users-list>
+

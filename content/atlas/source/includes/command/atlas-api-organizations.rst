@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for organizations
 
@@ -89,3 +89,4 @@ Related Commands
    updateOrganizationInvitationById </command/atlas-api-organizations-updateOrganizationInvitationById>
    updateOrganizationRoles </command/atlas-api-organizations-updateOrganizationRoles>
    updateOrganizationSettings </command/atlas-api-organizations-updateOrganizationSettings>
+

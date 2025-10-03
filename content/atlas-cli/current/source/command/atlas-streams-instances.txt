@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for instances
 
@@ -68,3 +68,4 @@ Related Commands
    download </command/atlas-streams-instances-download>
    list </command/atlas-streams-instances-list>
    update </command/atlas-streams-instances-update>
+

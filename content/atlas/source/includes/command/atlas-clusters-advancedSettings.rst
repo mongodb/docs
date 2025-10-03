@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for advancedSettings
 
@@ -58,3 +58,4 @@ Related Commands
 
    describe </command/atlas-clusters-advancedSettings-describe>
    update </command/atlas-clusters-advancedSettings-update>
+

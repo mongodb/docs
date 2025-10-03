@@ -54,7 +54,7 @@ Options
      - false
      - Certificate Authority (CA) used to verify the identity of the LDAP server. To delete an assigned value, pass an empty string.
    * - -h, --help
-     -
+     - 
      - false
      - help for verify
    * - --hostname
@@ -99,7 +99,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    REQUEST ID    PROJECT ID   STATUS
    <RequestId>   <GroupId>    <Status>
-
+   
 
 Examples
 --------
@@ -120,3 +120,4 @@ Related Commands
    :titlesonly:
 
    status </command/atlas-security-ldap-verify-status>
+

@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for buckets
 
@@ -62,3 +62,4 @@ Related Commands
    delete </command/atlas-backups-exports-buckets-delete>
    describe </command/atlas-backups-exports-buckets-describe>
    list </command/atlas-backups-exports-buckets-list>
+

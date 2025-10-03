@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for encryptionAtRestUsingCustomerKeyManagement
 
@@ -71,3 +71,4 @@ Related Commands
    getEncryptionAtRestPrivateEndpointsForCloudProvider </command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-getEncryptionAtRestPrivateEndpointsForCloudProvider>
    requestEncryptionAtRestPrivateEndpointDeletion </command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-requestEncryptionAtRestPrivateEndpointDeletion>
    updateEncryptionAtRest </command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-updateEncryptionAtRest>
+

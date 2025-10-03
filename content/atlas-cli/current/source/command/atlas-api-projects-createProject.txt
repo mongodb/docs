@@ -53,7 +53,7 @@ Options
      - false
      - path to your API request file. Leave empty to use standard input instead - you must provide one or the other, but not both.
    * - -h, --help
-     -
+     - 
      - false
      - help for createProject
    * - -o, --output
@@ -65,7 +65,7 @@ Options
      - false
      - file to write the api output to. This flag is required when the output of an endpoint is binary (ex: gzip) and the command is not piped (ex: atlas command > out.zip)
    * - --pretty
-     -
+     - 
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --projectOwnerId
@@ -100,9 +100,8 @@ Creates a new project named "MongoTube" with an environment tag set to "e2e"
 
 Create the file below and save it as ``payload.json``
 
-.. literalinclude:: /includes/examples/atlas-api-projects-createProject-2023-01-01-create_project-payload.json
-   :language: shell
-
+   .. literalinclude:: /includes/examples/atlas-api-projects-createProject-2023-01-01-create_project-payload.json
+      :language: shell
 After creating ``payload.json``, run the command below in the same directory.
 
 .. literalinclude:: /includes/examples/atlas-api-projects-createProject-2023-01-01-create_project.sh

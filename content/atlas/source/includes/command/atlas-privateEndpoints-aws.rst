@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for aws
 
@@ -66,3 +66,4 @@ Related Commands
    interfaces </command/atlas-privateEndpoints-aws-interfaces>
    list </command/atlas-privateEndpoints-aws-list>
    watch </command/atlas-privateEndpoints-aws-watch>
+

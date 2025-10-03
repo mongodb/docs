@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for awsClustersDns
 
@@ -63,3 +63,4 @@ Related Commands
 
    getAwsCustomDns </command/atlas-api-awsClustersDns-getAwsCustomDns>
    toggleAwsCustomDns </command/atlas-api-awsClustersDns-toggleAwsCustomDns>
+

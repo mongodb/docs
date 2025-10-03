@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for clusters
 
@@ -90,3 +90,4 @@ Related Commands
    update </command/atlas-clusters-update>
    upgrade </command/atlas-clusters-upgrade>
    watch </command/atlas-clusters-watch>
+

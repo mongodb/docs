@@ -14,7 +14,7 @@ atlas backups exports jobs watch
 
 Watch for the specified export job to complete.
 
-This command checks the export job's status periodically until it reaches a completed, cancelled or failed status.
+This command checks the export job's status periodically until it reaches a completed, cancelled or failed status. 
 Once the export reaches the expected status, the command prints "Export completed."
 If you run the command in the terminal, it blocks the terminal session until the resource status completes or fails.
 You can interrupt the command's polling at any time with CTRL-C.
@@ -62,7 +62,7 @@ Options
      - true
      - Name of the cluster. To learn more, see https://dochub.mongodb.org/core/create-cluster-api.
    * - -h, --help
-     -
+     - 
      - false
      - help for watch
    * - -o, --output
@@ -97,9 +97,9 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
 .. code-block::
 
-
+   
    Export completed.
-
+   
 
 Examples
 --------

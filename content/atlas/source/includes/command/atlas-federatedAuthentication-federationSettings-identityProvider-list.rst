@@ -42,7 +42,7 @@ Options
      - true
      - Unique 24-hexadecimal digit string that identifies the federation settings.
    * - -h, --help
-     -
+     - 
      - false
      - help for list
    * - --idpType
@@ -91,7 +91,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     DISPLAY NAME    ISSUER URI    CLIENT ID    IDP TYPE
    <Id>   <DisplayName>   <IssuerUri>   <ClientId>   <IdpType>
-
+   
 
 Examples
 --------
@@ -100,4 +100,5 @@ Examples
    :copyable: false
 
    # List the identity providers from your federation settings with federationSettingsId 5d1113b25a115342acc2d1aa and idpType WORKLOAD
-   atlas federatedAuthentication federationSettings identityProvider list --federationSettingsId 5d1113b25a115342acc2d1aa --idpType WORKLOAD
+ 	atlas federatedAuthentication federationSettings identityProvider list --federationSettingsId 5d1113b25a115342acc2d1aa --idpType WORKLOAD
+

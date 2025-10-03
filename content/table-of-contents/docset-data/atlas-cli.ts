@@ -58,7 +58,6 @@ const tocData: TocItem[] = [
     {
       label: "Commands",
       contentSite: "atlas-cli",
-      url: "/docs/atlas/cli/:version/command/atlas",
       collapsible: true,
       items: atlasCliCommands
     },
@@ -94,7 +93,7 @@ const tocData: TocItem[] = [
         {
           label: "Get Started",
           contentSite: "atlas-cli",
-          url: "/docs/atlas/cli/:version/atlas-cli-getting-started",
+          url: "/docs/atlas/cli/:version/atlas-cli-getting-started/",
         },
         {
           label: "Create & Configure Clusters",

@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for federationSettings
 
@@ -60,3 +60,4 @@ Related Commands
    connectedOrgConfigs </command/atlas-federatedAuthentication-federationSettings-connectedOrgConfigs>
    describe </command/atlas-federatedAuthentication-federationSettings-describe>
    identityProvider </command/atlas-federatedAuthentication-federationSettings-identityProvider>
+

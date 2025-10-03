@@ -40,7 +40,7 @@ Options
      - true
      - Unique 24-hexadecimal digit string that identifies the federation settings.
    * - -h, --help
-     -
+     - 
      - false
      - help for disconnect
    * - --identityProviderId
@@ -91,11 +91,12 @@ Examples
 .. code-block::
    :copyable: false
 
-   # Disconnect the current profile org from identity provider with ID 5d1113b25a115342acc2d1aa and federationSettingsId 7d1113b25a115342acc2d1aa
-   atlas federatedAuthentication federationSettings connectedOrgConfigs disconnect --identityProviderId 5d1113b25a115342acc2d1aa --federationSettingsId 7d1113b25a115342acc2d1aa
-
+   # Disconnect the current profile org from identity provider with ID 5d1113b25a115342acc2d1aa and federationSettingsId 7d1113b25a115342acc2d1aa 
+ 			atlas federatedAuthentication federationSettings connectedOrgConfigs disconnect --identityProviderId 5d1113b25a115342acc2d1aa --federationSettingsId 7d1113b25a115342acc2d1aa 
+ 			
 .. code-block::
    :copyable: false
 
-   # Disconnect the org with ID 7d1113b25a115342acc2d1aa to identity provider with ID 5d1113b25a115342acc2d1aa and federationSettingsId 7d1113b25a115342acc2d1aa
-   atlas federatedAuthentication federationSettings connectedOrgConfigs disconnect --orgId 7d1113b25a115342acc2d1aa --identityProviderId 5d1113b25a115342acc2d1aa --federationSettingsId 7d1113b25a115342acc2d1aa
+   # Disconnect the org with ID 7d1113b25a115342acc2d1aa to identity provider with ID 5d1113b25a115342acc2d1aa and federationSettingsId 7d1113b25a115342acc2d1aa 
+ 			atlas federatedAuthentication federationSettings connectedOrgConfigs disconnect --orgId 7d1113b25a115342acc2d1aa --identityProviderId 5d1113b25a115342acc2d1aa --federationSettingsId 7d1113b25a115342acc2d1aa 
+ 		

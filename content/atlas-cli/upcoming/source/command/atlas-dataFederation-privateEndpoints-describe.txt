@@ -54,7 +54,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for describe
    * - -o, --output
@@ -90,3 +90,4 @@ Examples
 
    # retrieves data federation private endpoint '507f1f77bcf86cd799439011':
    atlas dataFederation privateEndpoints describe 507f1f77bcf86cd799439011
+

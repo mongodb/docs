@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for connectionStrings
 
@@ -56,3 +56,4 @@ Related Commands
    :titlesonly:
 
    describe </command/atlas-clusters-connectionStrings-describe>
+

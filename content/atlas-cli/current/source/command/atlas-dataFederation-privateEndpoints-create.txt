@@ -58,7 +58,7 @@ Options
      - false
      - Optional description or comment for the entry.
    * - -h, --help
-     -
+     - 
      - false
      - help for create
    * - -o, --output
@@ -103,3 +103,4 @@ Examples
 
    # create data federation private endpoint:
    atlas dataFederation privateEndpoints create 507f1f77bcf86cd799439011 --comment "comment"
+

@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for liveMigrations
 
@@ -64,3 +64,4 @@ Related Commands
    describe </command/atlas-liveMigrations-describe>
    link </command/atlas-liveMigrations-link>
    validation </command/atlas-liveMigrations-validation>
+

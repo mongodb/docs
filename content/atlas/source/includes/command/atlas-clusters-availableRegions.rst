@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for availableRegions
 
@@ -56,3 +56,4 @@ Related Commands
    :titlesonly:
 
    list </command/atlas-clusters-availableRegions-list>
+

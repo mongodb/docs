@@ -48,7 +48,7 @@ Options
 
        Mutually exclusive with --bucketId.
    * - -h, --help
-     -
+     - 
      - false
      - help for describe
    * - -o, --output
@@ -85,7 +85,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     EXPORT BUCKET ID   STATE     SNAPSHOT ID
    <Id>   <ExportBucketId>   <State>   <SnapshotId>
-
+   
 
 Examples
 --------

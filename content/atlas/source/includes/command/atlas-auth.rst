@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for auth
 
@@ -62,3 +62,4 @@ Related Commands
    logout </command/atlas-auth-logout>
    register </command/atlas-auth-register>
    whoami </command/atlas-auth-whoami>
+

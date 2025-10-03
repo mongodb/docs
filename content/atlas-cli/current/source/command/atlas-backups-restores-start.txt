@@ -62,7 +62,7 @@ Options
      - true
      - Name of the cluster. To learn more, see https://dochub.mongodb.org/core/create-cluster-api.
    * - -h, --help
-     -
+     - 
      - false
      - help for start
    * - --oplogInc
@@ -122,7 +122,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Restore job '<Id>' successfully started
-
+   
 
 Examples
 --------
@@ -132,38 +132,38 @@ Examples
 
    # Create an automated restore:
    atlas backup restore start automated \
-   --clusterName myDemo \
-   --snapshotId 5e7e00128f8ce03996a47179 \
-   --targetClusterName myDemo2 \
-   --targetProjectId 1a2345b67c8e9a12f3456de7
+          --clusterName myDemo \
+          --snapshotId 5e7e00128f8ce03996a47179 \
+          --targetClusterName myDemo2 \
+          --targetProjectId 1a2345b67c8e9a12f3456de7
 
-
+   
 .. code-block::
    :copyable: false
 
    # Create an automated restore for a Flex Cluster:
    atlas backup restore start automated \
-   --clusterName myFlexSource \
-   --snapshotId 5e7e00128f8ce03996a47179 \
-   --targetClusterName myFlexCluster \
-   --targetProjectId 1a2345b67c8e9a12f3456de7
+          --clusterName myFlexSource \
+          --snapshotId 5e7e00128f8ce03996a47179 \
+          --targetClusterName myFlexCluster \
+          --targetProjectId 1a2345b67c8e9a12f3456de7
 
-
+   
 .. code-block::
    :copyable: false
 
    # Create a point-in-time restore:
    atlas backup restore start pointInTime \
-   --clusterName myDemo \
-   --pointInTimeUTCSeconds 1588523147 \
-   --targetClusterName myDemo2 \
-   --targetProjectId 1a2345b67c8e9a12f3456de7
-
-
+          --clusterName myDemo \
+          --pointInTimeUTCSeconds 1588523147 \
+          --targetClusterName myDemo2 \
+          --targetProjectId 1a2345b67c8e9a12f3456de7
+   
+   
 .. code-block::
    :copyable: false
 
    # Create a download restore:
    atlas backup restore start download \
-   --clusterName myDemo \
-   --snapshotId 5e7e00128f8ce03996a47179
+          --clusterName myDemo \
+          --snapshotId 5e7e00128f8ce03996a47179

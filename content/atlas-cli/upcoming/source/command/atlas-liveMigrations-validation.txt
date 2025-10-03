@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for validation
 
@@ -58,3 +58,4 @@ Related Commands
 
    create </command/atlas-liveMigrations-validation-create>
    describe </command/atlas-liveMigrations-validation-describe>
+

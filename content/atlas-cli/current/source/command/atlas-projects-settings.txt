@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for settings
 
@@ -60,3 +60,4 @@ Related Commands
 
    describe </command/atlas-projects-settings-describe>
    update </command/atlas-projects-settings-update>
+

@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for projectIpAccessList
 
@@ -69,3 +69,4 @@ Related Commands
    getProjectIpAccessListStatus </command/atlas-api-projectIpAccessList-getProjectIpAccessListStatus>
    getProjectIpList </command/atlas-api-projectIpAccessList-getProjectIpList>
    listProjectIpAccessLists </command/atlas-api-projectIpAccessList-listProjectIpAccessLists>
+

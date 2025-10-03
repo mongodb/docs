@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for sharedTierRestoreJobs
 
@@ -65,3 +65,4 @@ Related Commands
    createSharedClusterBackupRestoreJob </command/atlas-api-sharedTierRestoreJobs-createSharedClusterBackupRestoreJob>
    getSharedClusterBackupRestoreJob </command/atlas-api-sharedTierRestoreJobs-getSharedClusterBackupRestoreJob>
    listSharedClusterBackupRestoreJobs </command/atlas-api-sharedTierRestoreJobs-listSharedClusterBackupRestoreJobs>
+

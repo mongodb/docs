@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for flexClusters
 
@@ -71,3 +71,4 @@ Related Commands
    listFlexClusters </command/atlas-api-flexClusters-listFlexClusters>
    updateFlexCluster </command/atlas-api-flexClusters-updateFlexCluster>
    upgradeFlexCluster </command/atlas-api-flexClusters-upgradeFlexCluster>
+

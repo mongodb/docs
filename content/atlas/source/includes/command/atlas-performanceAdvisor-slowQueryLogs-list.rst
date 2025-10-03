@@ -15,7 +15,7 @@ atlas performanceAdvisor slowQueryLogs list
 Return log lines for slow queries that the Performance Advisor and Query Profiler identified.
 
 The Performance Advisor monitors queries that MongoDB considers slow and suggests new indexes to improve query performance. The threshold for slow queries varies based on the average time of operations on your cluster to provide recommendations pertinent to your workload.
-
+		
 If you don't set the duration option or the since option, this command returns data from the last 24 hours.
 
 To use this command, you must authenticate with a user account, a service account, or an API key with the Project Data Access Read/Write role.
@@ -46,7 +46,7 @@ Options
      - false
      - Length of time in milliseconds for which you want to return results. If you specify the since option, the duration starts at the date and time specified. If you don't set the since option, this command returns data from the duration before the current time.
    * - -h, --help
-     -
+     - 
      - false
      - help for list
    * - --nLog

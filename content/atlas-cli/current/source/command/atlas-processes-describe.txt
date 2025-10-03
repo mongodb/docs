@@ -52,7 +52,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for describe
    * - -o, --output
@@ -89,7 +89,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     REPLICA SET NAME   SHARD NAME    VERSION
    <Id>   <ReplicaSetName>   <ShardName>   <Version>
-
+   
 
 Examples
 --------

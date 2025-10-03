@@ -60,10 +60,10 @@ Options
      - string
      - true
      - Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-
+       
        **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
    * - -h, --help
-     -
+     - 
      - false
      - help for getGroupClusterQueryShapeInsightSummaries
    * - --nSummaries
@@ -73,7 +73,7 @@ Options
    * - --namespaces
      - .
      - false
-     - Namespaces from which to retrieve query shape statistics. A namespace consists of one database and one collection resource written as .: ``<database>.<collection>``. To include multiple namespaces, pass the parameter multiple times delimited with an ampersand (``&``) between each namespace. Omit this parameter to return results for all namespaces.
+     - Namespaces from which to retrieve query shape statistics. A namespace consists of one database and one collection resource written as .: ``<database>.<collection>``. To include multiple namespaces, pass the parameter multiple times delimited with an ampersand (`&`) between each namespace. Omit this parameter to return results for all namespaces.
    * - -o, --output
      - string
      - false
@@ -83,13 +83,13 @@ Options
      - false
      - file to write the api output to. This flag is required when the output of an endpoint is binary (ex: gzip) and the command is not piped (ex: atlas command > out.zip)
    * - --pretty
-     -
+     - 
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --processIds
      - mongod
      - false
-     - ProcessIds from which to retrieve query shape statistics. A processId is a combination of host and port that serves the MongoDB process. The host must be the hostname, FQDN, IPv4 address, or IPv6 address of the host that runs the MongoDB process (mongod or ``mongos``). The port must be the IANA port on which the MongoDB process listens for requests. To include multiple processIds, pass the parameter multiple times delimited with an ampersand (``&``) between each processId.
+     - ProcessIds from which to retrieve query shape statistics. A processId is a combination of host and port that serves the MongoDB process. The host must be the hostname, FQDN, IPv4 address, or IPv6 address of the host that runs the MongoDB process (mongod or `mongos`). The port must be the IANA port on which the MongoDB process listens for requests. To include multiple processIds, pass the parameter multiple times delimited with an ampersand (`&`) between each processId.
    * - --queryShapeHashes
      - &
      - false
@@ -102,14 +102,14 @@ Options
      - int
      - false
      - Date and time from which to retrieve query shape statistics. This parameter expresses its value in the number of milliseconds that have elapsed since the [UNIX epoch](https://en.wikipedia.org/wiki/Unix_time).
-
+       
        - If you don't specify the **until** parameter, the endpoint returns data covering from the **since** value and the current time.
        - If you specify neither the **since** nor the **until** parameters, the endpoint returns data from the previous 24 hours.
    * - --until
      - int
      - false
      - Date and time up until which to retrieve query shape statistics. This parameter expresses its value in the number of milliseconds that have elapsed since the [UNIX epoch](https://en.wikipedia.org/wiki/Unix_time).
-
+       
        - If you specify the **until** parameter, you must specify the **since** parameter.
        - If you specify neither the **since** nor the **until** parameters, the endpoint returns data from the previous 24 hours.
    * - --version

@@ -66,7 +66,7 @@ Options
      - true
      - Unique identifier of the GCP project in which the network peer resides.
    * - -h, --help
-     -
+     - 
      - false
      - help for create
    * - -o, --output
@@ -102,7 +102,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Interface endpoint '<EndpointGroupName>' created.
-
+   
 
 Examples
 --------

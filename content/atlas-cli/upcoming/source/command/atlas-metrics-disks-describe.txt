@@ -71,7 +71,7 @@ Options
      - true
      - ISO 8601-formatted duration that specifies the interval between measurement data points. Only the following subset of ISO 8601-formatted time periods are supported: PT10S, PT1M, PT5M, PT1H, P1D. When you specify granularity, you must specify either period or start and end.
    * - -h, --help
-     -
+     - 
      - false
      - help for describe
    * - --limit

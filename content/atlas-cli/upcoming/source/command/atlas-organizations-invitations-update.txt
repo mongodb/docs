@@ -66,7 +66,7 @@ Options
 
        Mutually exclusive with --role.
    * - -h, --help
-     -
+     - 
      - false
      - help for update
    * - --orgId
@@ -108,7 +108,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Invitation <Id> updated.
-
+   
 
 Examples
 --------
@@ -118,8 +118,8 @@ Examples
 
    # Modify the pending invitation with the ID 5dd56c847a3e5a1f363d424d to grant ORG_OWNER access the organization with the ID 5f71e5255afec75a3d0f96dc:
    atlas organizations invitations update 5dd56c847a3e5a1f363d424d --orgId 5f71e5255afec75a3d0f96dc --role ORG_OWNER --output json
-
-
+ 		
+   
 .. code-block::
    :copyable: false
 

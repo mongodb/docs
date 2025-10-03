@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for customDbRoles
 
@@ -64,3 +64,4 @@ Related Commands
    describe </command/atlas-customDbRoles-describe>
    list </command/atlas-customDbRoles-list>
    update </command/atlas-customDbRoles-update>
+

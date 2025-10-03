@@ -50,7 +50,7 @@ Options
      - true
      - First or given name for the user.
    * - -h, --help
-     -
+     - 
      - false
      - help for invite
    * - --lastName
@@ -107,7 +107,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    The user '<Username>' has been invited.
    Invited users do not have access to the project until they accept the invitation.
-
+   
 
 Examples
 --------
@@ -117,8 +117,8 @@ Examples
 
    # Create the Atlas user with the username user@example.com and invite them to the organization with the ID 5dd56c847a3e5a1f363d424d with ORG_OWNER access:
    atlas users invite --email user@example.com --username user@example.com --orgRole 5dd56c847a3e5a1f363d424d:ORG_OWNER --firstName Example --lastName User --country US --output json
-
-
+   
+   
 .. code-block::
    :copyable: false
 

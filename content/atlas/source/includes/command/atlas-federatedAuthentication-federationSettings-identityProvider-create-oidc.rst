@@ -66,7 +66,7 @@ Options
    * - --clientId
      - string
      - false
-     - Client identifier that is assigned to an application by the Identity Provider.
+     - Client identifier that is assigned to an application by the Identity Provider.	
    * - --desc
      - string
      - true
@@ -80,7 +80,7 @@ Options
      - true
      - Identifier of the claim which contains IdP Group IDs in the token.
    * - -h, --help
-     -
+     - 
      - false
      - help for oidc
    * - --idpType
@@ -98,7 +98,7 @@ Options
    * - --requestedScope
      - strings
      - false
-     - Scopes that MongoDB applications will request from the authorization endpoint.
+     - Scopes that MongoDB applications will request from the authorization endpoint.	
    * - --userClaim
      - string
      - true
@@ -128,7 +128,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Identity provider '<Id>' created.
-
+   
 
 Examples
 --------
@@ -137,4 +137,5 @@ Examples
    :copyable: false
 
    # Create an identity provider with name IDPName and from your federation settings with federationSettingsId 5d1113b25a115342acc2d1aa.
-   atlas federatedAuthentication federationSettings identityProvider create oidc IDPName --audience "audience" --authorizationType "GROUP" --clientId clientId --desc "IDPName test" --federationSettingsId "5d1113b25a115342acc2d1aa" --groupsClaim "groups" --idpType "WORKLOAD" --issuerUri uri" --userClaim "user"  --associatedDomain "domain"
+ 		atlas federatedAuthentication federationSettings identityProvider create oidc IDPName --audience "audience" --authorizationType "GROUP" --clientId clientId --desc "IDPName test" --federationSettingsId "5d1113b25a115342acc2d1aa" --groupsClaim "groups" --idpType "WORKLOAD" --issuerUri uri" --userClaim "user"  --associatedDomain "domain"
+ 	

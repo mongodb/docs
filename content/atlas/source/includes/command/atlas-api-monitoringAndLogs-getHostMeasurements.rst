@@ -80,16 +80,16 @@ Options
      - string
      - true
      - Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-
+       
        **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
    * - -h, --help
-     -
+     - 
      - false
      - help for getHostMeasurements
    * - --m
      - m
      - false
-     - One or more types of measurement to request for this MongoDB process. If omitted, the resource returns all measurements. To specify multiple values for m, repeat the ``m`` parameter for each value. Specify measurements that apply to the specified host. MongoDB Cloud returns an error if you specified any invalid measurements.
+     - One or more types of measurement to request for this MongoDB process. If omitted, the resource returns all measurements. To specify multiple values for m, repeat the `m` parameter for each value. Specify measurements that apply to the specified host. MongoDB Cloud returns an error if you specified any invalid measurements.
    * - -o, --output
      - string
      - false
@@ -103,13 +103,13 @@ Options
      - false
      - Duration over which Atlas reports the metrics. This parameter expresses its value in the ISO 8601 duration format in UTC. Include this parameter when you do not set **start** and **end**.
    * - --pretty
-     -
+     - 
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --processId
      - mongod
      - true
-     - Combination of hostname and Internet Assigned Numbers Authority (IANA) port that serves the MongoDB process. The host must be the hostname, fully qualified domain name (FQDN), or Internet Protocol address (IPv4 or IPv6) of the host that runs the MongoDB process (mongod or ``mongos``). The port must be the IANA port on which the MongoDB process listens for requests.
+     - Combination of hostname and Internet Assigned Numbers Authority (IANA) port that serves the MongoDB process. The host must be the hostname, fully qualified domain name (FQDN), or Internet Protocol address (IPv4 or IPv6) of the host that runs the MongoDB process (mongod or `mongos`). The port must be the IANA port on which the MongoDB process listens for requests.
    * - --start
      - string
      - false

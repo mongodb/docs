@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for privateEndpointServices
 
@@ -77,3 +77,4 @@ Related Commands
    getRegionalizedPrivateEndpointSetting </command/atlas-api-privateEndpointServices-getRegionalizedPrivateEndpointSetting>
    listPrivateEndpointServices </command/atlas-api-privateEndpointServices-listPrivateEndpointServices>
    toggleRegionalizedPrivateEndpointSetting </command/atlas-api-privateEndpointServices-toggleRegionalizedPrivateEndpointSetting>
+

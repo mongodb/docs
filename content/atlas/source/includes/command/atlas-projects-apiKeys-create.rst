@@ -45,7 +45,7 @@ Options
      - true
      - Description of the API key.
    * - -h, --help
-     -
+     - 
      - false
      - help for create
    * - -o, --output
@@ -87,7 +87,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
    API Key '<Id>' created.
    Public API Key <PublicKey>
    Private API Key <PrivateKey>
-
+   
 
 Examples
 --------
@@ -97,8 +97,8 @@ Examples
 
    # Create an organization API key with the GROUP_OWNER role and assign it to the project with ID 5e2211c17a3e5a48f5497de3:
    atlas projects apiKeys create --desc "My API key" --projectId 5e1234c17a3e5a48f5497de3 --role GROUP_OWNER --output json
-
-
+   
+   
 .. code-block::
    :copyable: false
 

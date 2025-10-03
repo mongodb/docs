@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for invitations
 
@@ -66,3 +66,4 @@ Related Commands
    invite </command/atlas-organizations-invitations-invite>
    list </command/atlas-organizations-invitations-list>
    update </command/atlas-organizations-invitations-update>
+

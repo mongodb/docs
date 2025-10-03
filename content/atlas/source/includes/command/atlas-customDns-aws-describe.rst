@@ -38,7 +38,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for describe
    * - -o, --output
@@ -75,7 +75,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ENABLED
    <Enabled>
-
+   
 
 Examples
 --------
@@ -83,5 +83,5 @@ Examples
 .. code-block::
    :copyable: false
 
-   # Return the details for the custom DNS configuration deployed to AWS in the project with ID 618d48e05277a606ed2496fe:
-   atlas customDns aws describe --projectId 618d48e05277a606ed2496fe
+   # Return the details for the custom DNS configuration deployed to AWS in the project with ID 618d48e05277a606ed2496fe:		
+   atlas customDns aws describe --projectId 618d48e05277a606ed2496fe 

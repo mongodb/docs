@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for encryptionAtRest
 
@@ -58,3 +58,4 @@ Related Commands
 
    disable </command/atlas-backups-compliancePolicy-encryptionAtRest-disable>
    enable </command/atlas-backups-compliancePolicy-encryptionAtRest-enable>
+

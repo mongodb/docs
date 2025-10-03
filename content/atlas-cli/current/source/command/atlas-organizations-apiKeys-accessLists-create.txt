@@ -48,11 +48,11 @@ Options
      - false
      - Access list entry in CIDR notation to be added for your API key. To add more than one entry, you can specify each entry with a separate cidr flag or specify all the entries as a comma-separated list using one cidr flag. You can't set both cidr and ip in the same command.
    * - --currentIp
-     -
+     - 
      - false
      - Flag that adds the IP address from the host that is currently executing the command to the access list. Only applicable for type ipAddress entries. You don't need the entry argument when you use the currentIp option.
    * - -h, --help
-     -
+     - 
      - false
      - help for create
    * - --ip
@@ -92,7 +92,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Created new access list entry(s).
-
+   
 
 Examples
 --------

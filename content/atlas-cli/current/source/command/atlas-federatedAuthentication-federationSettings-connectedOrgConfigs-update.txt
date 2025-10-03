@@ -44,7 +44,7 @@ Options
      - true
      - Path to a JSON configuration file that defines connected orgs configurations. Note: Unsupported fields in the JSON file are ignored. To learn more about connected org configuration file format, see the request body in https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-updateconnectedorgconfig.
    * - -h, --help
-     -
+     - 
      - false
      - help for update
    * - --orgId
@@ -79,4 +79,5 @@ Examples
    :copyable: false
 
    # Update the connected orgs config with the current profile org and federationSettingsId 5d1113b25a115342acc2d1aa using the JSON configuration file config.json
-   atlas federatedAuthentication federationSettings connectedOrgConfigs update --federationSettingsId 5d1113b25a115342acc2d1aa --file config.json
+ 			atlas federatedAuthentication federationSettings connectedOrgConfigs update --federationSettingsId 5d1113b25a115342acc2d1aa --file config.json
+ 		

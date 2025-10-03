@@ -32,11 +32,11 @@ Syntax
    atlas api <tag> <operationId> [options]
 
 .. important::
-
+   
    Both ``<tag>`` and ``<operationId>`` must be in camelCase.
 
-Arguments
----------
+Arguments  
+---------  
 
 .. list-table::
    :header-rows: 1
@@ -49,46 +49,46 @@ Arguments
    * - <tag>
      - string
      - true
-     - The category of Atlas Administration API operations in camelCase.
-       To find and format the tag, check
-       the API documentation
-       URL for the endpoint. It appears after ``#tag/``, but you need to change to camelCase. For the Atlas API
+     - The category of Atlas Administration API operations in camelCase. 
+       To find and format the tag, check 
+       the API documentation 
+       URL for the endpoint. It appears after ``#tag/``, but you need to change to camelCase. For the Atlas API 
        documentation, see: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/.
-
-       For example, in
-       ``https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Monitoring-and-Logs``,
+       
+       For example, in 
+       ``https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Monitoring-and-Logs``, 
        the tag is ``Monitoring-and-Logs``. In camelCase, it's ``monitoringAndLogs``.
    * - <operationId>
      - string
      - true
-     - The identifier of the Atlas Administration API endpoint in camelCase.
-       To find the operationId, check the
-       API documentation
-       URL for the endpoint. It appears after ``operation/``. For the Atlas API
+     - The identifier of the Atlas Administration API endpoint in camelCase. 
+       To find the operationId, check the 
+       API documentation  
+       URL for the endpoint. It appears after ``operation/``. For the Atlas API 
        documentation, see: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/.
-
-       For example, in
+       
+       For example, in 
        ``https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listclusters``,
        the operationId is ``listClusters``.
 
-Subcommand options
-----------------------
+Subcommand options  
+----------------------  
 
-Pass in the path and query parameters for the Atlas Administration API endpoint
-as flags. For example, if the endpoint is ``/api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}``,
+Pass in the path and query parameters for the Atlas Administration API endpoint 
+as flags. For example, if the endpoint is ``/api/atlas/v2/orgs/{orgId}/invoices/{invoiceId}``, 
 the Atlas CLI command is:
 
 .. code-block:: shell
 
-   atlas api <tag> <operationId> --orgId <ORG_ID> --invoiceId <INVOICE_ID>
+   atlas api <tag> <operationId> --orgId <ORG_ID> --invoiceId <INVOICE_ID> 
 
 .. note::
-
-   You usually don't need to specify ``--orgId`` and ``--projectId`` as they are sourced
+   
+   You usually don't need to specify ``--orgId`` and ``--projectId`` as they are sourced 
    from your profile. Specify them only if they are not set in your profile.
 
-If applicable to the endpoint, pass in the request body using the ``--file`` option
-or standard input (``stdin``).
+If applicable to the endpoint, pass in the request body using the ``--file`` option 
+or standard input (``stdin``). 
 For example:
 
 .. code-block:: shell
@@ -97,45 +97,45 @@ For example:
 
 In addition, the following options are available for all Atlas Administration API endpoints.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 20 10 10 60
-
-   * - Name
-     - Type
-     - Required
-     - Description
-   * - ``--api-version``
-     - string
-     - false
-     - Specify the version of the Atlas Administration API
-       for the command. Defaults to the latest API version or the value you've configured for ``api_version`` in your profile.
-   * - ``--out``
-     - string
-     - false
+.. list-table::  
+   :header-rows: 1  
+   :widths: 20 10 10 60  
+  
+   * - Name  
+     - Type  
+     - Required  
+     - Description  
+   * - ``--api-version``  
+     - string  
+     - false  
+     - Specify the version of the Atlas Administration API 
+       for the command. Defaults to the latest API version or the value you've configured for ``api_version`` in your profile. 
+   * - ``--out``  
+     - string  
+     - false  
      - Output format. The default is ``json``, but the supported formats can vary by endpoint:
 
        - Most endpoints output ``json``. When ``json`` is supported, you can also use a Go template.
        - Some endpoints support ``json`` and ``csv``, allowing you to use ``json``, ``csv``, or a Go template.
        - Certain endpoints output binary data (for example, logs in gzip format), requiring the ``--out`` option.
-
+      
        To determine the supported formats for an endpoint:
-
+       
        - Check the content response type examples in the API documentation: https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/.
-       - Run ``atlas api <tag> <operationId> --help`` for details.
-   * - ``-o, --out-file``
-     - string
-     - false
-     - File path to save the output. By default, the result is displayed in the terminal.
-   * - ``--file``
-     - string
-     - false
-     - File path to the request body content, if required by the operation.
-       Alternatively, provide input through standard input (``stdin``).
-   * - ``-h, --help``
-     - boolean
-     - false
-     - Help for the current command.
+       - Run ``atlas api <tag> <operationId> --help`` for details.  
+   * - ``-o, --out-file``  
+     - string  
+     - false  
+     - File path to save the output. By default, the result is displayed in the terminal.  
+   * - ``--file``  
+     - string  
+     - false  
+     - File path to the request body content, if required by the operation. 
+       Alternatively, provide input through standard input (``stdin``).  
+   * - ``-h, --help``  
+     - boolean  
+     - false  
+     - Help for the current command.  
 
 Options
 -------
@@ -149,7 +149,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for api
 
@@ -209,7 +209,7 @@ Related Commands
 * :ref:`atlas-api-projectIpAccessList` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, edits, and removes network access limits to database deployments in Atlas.
 * :ref:`atlas-api-projects` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, and edits collections of clusters and users in MongoDB Cloud.
 * :ref:`atlas-api-pushBasedLogExport` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: You can continually push logs from mongod, mongos, and audit logs to an AWS S3 bucket.
-* :ref:`atlas-api-queryShapeInsights` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_:
+* :ref:`atlas-api-queryShapeInsights` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: 
 * :ref:`atlas-api-resourcePolicies` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Configure and manage Atlas Resource Policies within your organization.
 * :ref:`atlas-api-rollingIndex` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one index to a database deployment in a rolling manner.
 * :ref:`atlas-api-root` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns details that describe the MongoDB Cloud build and the access token that requests this resource.
@@ -274,3 +274,4 @@ Related Commands
    teams </command/atlas-api-teams>
    thirdPartyIntegrations </command/atlas-api-thirdPartyIntegrations>
    x509Authentication </command/atlas-api-x509Authentication>
+

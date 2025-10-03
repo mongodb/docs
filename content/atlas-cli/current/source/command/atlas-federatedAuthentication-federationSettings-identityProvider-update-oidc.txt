@@ -66,7 +66,7 @@ Options
    * - --clientId
      - string
      - false
-     - Client identifier that is assigned to an application by the Identity Provider.
+     - Client identifier that is assigned to an application by the Identity Provider.	
    * - --desc
      - string
      - false
@@ -80,7 +80,7 @@ Options
      - false
      - Identifier of the claim which contains IdP Group IDs in the token.
    * - -h, --help
-     -
+     - 
      - false
      - help for oidc
    * - --idpType
@@ -98,7 +98,7 @@ Options
    * - --requestedScope
      - strings
      - false
-     - Scopes that MongoDB applications will request from the authorization endpoint.
+     - Scopes that MongoDB applications will request from the authorization endpoint.	
    * - --userClaim
      - string
      - false
@@ -128,7 +128,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Identity provider '<Id>' updated.
-
+   
 
 Examples
 --------
@@ -137,4 +137,5 @@ Examples
    :copyable: false
 
    # Update the audience of the identity provider with ID aa2223b25a115342acc1f108 and from your federation settings with federationSettingsId 5d1113b25a115342acc2d1aa with IdpType WORKFORCE
-   atlas federatedAuthentication federationSettings identityProvider update aa2223b25a115342acc1f108 --federationSettingsId 5d1113b25a115342acc2d1aa --idpType WORKFORCE --audience newAudience
+ 			atlas federatedAuthentication federationSettings identityProvider update aa2223b25a115342acc1f108 --federationSettingsId 5d1113b25a115342acc2d1aa --idpType WORKFORCE --audience newAudience
+ 		

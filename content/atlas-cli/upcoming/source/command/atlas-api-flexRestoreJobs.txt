@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for flexRestoreJobs
 
@@ -65,3 +65,4 @@ Related Commands
    createFlexBackupRestoreJob </command/atlas-api-flexRestoreJobs-createFlexBackupRestoreJob>
    getFlexBackupRestoreJob </command/atlas-api-flexRestoreJobs-getFlexBackupRestoreJob>
    listFlexBackupRestoreJobs </command/atlas-api-flexRestoreJobs-listFlexBackupRestoreJobs>
+

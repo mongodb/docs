@@ -58,13 +58,13 @@ Options
      - false
      - Optional description or comment for the entry.
    * - -F, --forever
-     -
+     - 
      - false
      - Option that acknowledges an alert 'forever'. You can't set both the forever option and the until option in the same command.
 
        Mutually exclusive with --until.
    * - -h, --help
-     -
+     - 
      - false
      - help for acknowledge
    * - -o, --output
@@ -106,7 +106,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Alert '<Id>' acknowledged until <AcknowledgedUntil>
-
+   
 
 Examples
 --------

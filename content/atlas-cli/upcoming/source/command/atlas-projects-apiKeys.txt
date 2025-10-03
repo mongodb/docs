@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for apiKeys
 
@@ -62,3 +62,4 @@ Related Commands
    create </command/atlas-projects-apiKeys-create>
    delete </command/atlas-projects-apiKeys-delete>
    list </command/atlas-projects-apiKeys-list>
+

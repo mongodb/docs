@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for legacyBackup
 
@@ -81,3 +81,4 @@ Related Commands
    listLegacySnapshots </command/atlas-api-legacyBackup-listLegacySnapshots>
    updateLegacySnapshotRetention </command/atlas-api-legacyBackup-updateLegacySnapshotRetention>
    updateLegacySnapshotSchedule </command/atlas-api-legacyBackup-updateLegacySnapshotSchedule>
+

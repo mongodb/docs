@@ -42,7 +42,7 @@ Options
      - false
      - Datadog API Key, Opsgenie API Key, or VictorOps API key. Required if the notificationType is DATADOG, OPS_GENIE, or VICTOR_OPS, respectively.
    * - --enabled
-     -
+     - 
      - false
      - Flag that indicates whether to enable the alert configuration.
    * - --event
@@ -54,7 +54,7 @@ Options
      - false
      - Path to the JSON configuration file that defines alert configuration settings. Note: Unsupported fields in the JSON file are ignored. To learn more about alert configuration files for the Atlas CLI, see https://dochub.mongodb.org/core/alert-config-atlas-cli.
    * - -h, --help
-     -
+     - 
      - false
      - help for create
    * - --matcherFieldName
@@ -102,7 +102,7 @@ Options
      - false
      - Email address to which alert notifications are sent.
    * - --notificationEmailEnabled
-     -
+     - 
      - false
      - Flag that enables email notifications. Configurable for GROUP and USER notification types.
    * - --notificationIntervalMin
@@ -126,7 +126,7 @@ Options
      - false
      - PagerDuty service key.
    * - --notificationSmsEnabled
-     -
+     - 
      - false
      - Flag that enables text message notifications.
    * - --notificationTeamId
@@ -190,7 +190,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Alert configuration <Id> created.
-
+   
 
 Examples
 --------
@@ -203,13 +203,13 @@ Examples
    --notificationType USER --notificationEmailEnabled \
    --notificationIntervalMin 60 --notificationUsername john@example.com \
    --output json --projectId 5df90590f10fab5e33de2305
-
+   
 .. code-block::
    :copyable: false
 
    # Create alert using json file containing alert configuration
    atlas alerts settings create 5d1113b25a115342acc2d1aa --file alerts.json
-
+   
 .. code-block::
    :copyable: false
 

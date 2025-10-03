@@ -56,11 +56,11 @@ Options
      - true
      - Unique 24-hexadecimal digit string that identifies the event that you want to return.
    * - -h, --help
-     -
+     - 
      - false
      - help for getOrganizationEvent
    * - --includeRaw
-     -
+     - 
      - false
      - Flag that indicates whether to include the raw document in the output. The raw document contains additional meta information about the event.
    * - --orgId
@@ -76,7 +76,7 @@ Options
      - false
      - file to write the api output to. This flag is required when the output of an endpoint is binary (ex: gzip) and the command is not piped (ex: atlas command > out.zip)
    * - --pretty
-     -
+     - 
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --version

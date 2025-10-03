@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for schedule
 
@@ -60,3 +60,4 @@ Related Commands
    delete </command/atlas-backups-schedule-delete>
    describe </command/atlas-backups-schedule-describe>
    update </command/atlas-backups-schedule-update>
+

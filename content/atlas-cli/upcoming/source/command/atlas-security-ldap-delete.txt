@@ -38,11 +38,11 @@ Options
      - Required
      - Description
    * - --force
-     -
+     - 
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     -
+     - 
      - false
      - help for delete
    * - --projectId
@@ -74,7 +74,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    LDAP configuration userToDNMapping deleted from project'<Name>'
-
+   
 
 Examples
 --------

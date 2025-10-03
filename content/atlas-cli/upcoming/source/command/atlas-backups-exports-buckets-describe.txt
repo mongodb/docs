@@ -42,7 +42,7 @@ Options
      - true
      - Unique identifier that Atlas assigns to the bucket.
    * - -h, --help
-     -
+     - 
      - false
      - help for describe
    * - -o, --output
@@ -79,7 +79,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     BUCKET NAME    CLOUD PROVIDER    IAM ROLE ID
    <Id>   <BucketName>   <CloudProvider>   <IamRoleId>
-
+   
 
 Examples
 --------

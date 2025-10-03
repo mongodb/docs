@@ -36,7 +36,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for whoami
 
@@ -64,3 +64,4 @@ Examples
 
    # See the logged account:
    atlas auth whoami
+

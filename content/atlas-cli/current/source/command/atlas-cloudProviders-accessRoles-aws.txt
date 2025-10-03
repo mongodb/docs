@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for aws
 
@@ -60,3 +60,4 @@ Related Commands
    authorize </command/atlas-cloudProviders-accessRoles-aws-authorize>
    create </command/atlas-cloudProviders-accessRoles-aws-create>
    deauthorize </command/atlas-cloudProviders-accessRoles-aws-deauthorize>
+

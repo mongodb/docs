@@ -14,8 +14,8 @@ atlas clusters delete
 
 Remove the specified cluster from your project.
 
-The command prompts you to confirm the operation when you run the command without the --force option.
-
+The command prompts you to confirm the operation when you run the command without the --force option. 
+		
 Deleting a cluster also deletes any backup snapshots for that cluster.
 
 To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
@@ -58,11 +58,11 @@ Options
      - Required
      - Description
    * - --force
-     -
+     - 
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     -
+     - 
      - false
      - help for delete
    * - --projectId
@@ -70,7 +70,7 @@ Options
      - false
      - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
    * - -w, --watch
-     -
+     - 
      - false
      - Flag that indicates whether to watch the command until it completes its execution or the watch times out. To set the time that the watch times out, use the --watchTimeout option.
    * - --watchTimeout
@@ -111,8 +111,8 @@ Examples
 
    # Remove a cluster named myCluster after prompting for a confirmation:
    atlas clusters delete myCluster
-
-
+   
+   
 .. code-block::
    :copyable: false
 

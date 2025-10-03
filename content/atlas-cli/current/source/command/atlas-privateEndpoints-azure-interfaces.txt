@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for interfaces
 
@@ -60,3 +60,4 @@ Related Commands
    create </command/atlas-privateEndpoints-azure-interfaces-create>
    delete </command/atlas-privateEndpoints-azure-interfaces-delete>
    describe </command/atlas-privateEndpoints-azure-interfaces-describe>
+

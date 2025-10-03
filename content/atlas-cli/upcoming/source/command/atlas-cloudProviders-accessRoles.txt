@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for accessRoles
 
@@ -58,3 +58,4 @@ Related Commands
 
    aws </command/atlas-cloudProviders-accessRoles-aws>
    list </command/atlas-cloudProviders-accessRoles-list>
+

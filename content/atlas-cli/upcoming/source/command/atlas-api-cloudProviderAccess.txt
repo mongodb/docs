@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for cloudProviderAccess
 
@@ -69,3 +69,4 @@ Related Commands
    deauthorizeCloudProviderAccessRole </command/atlas-api-cloudProviderAccess-deauthorizeCloudProviderAccessRole>
    getCloudProviderAccessRole </command/atlas-api-cloudProviderAccess-getCloudProviderAccessRole>
    listCloudProviderAccessRoles </command/atlas-api-cloudProviderAccess-listCloudProviderAccessRoles>
+

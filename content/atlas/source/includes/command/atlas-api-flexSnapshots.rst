@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for flexSnapshots
 
@@ -65,3 +65,4 @@ Related Commands
    downloadFlexBackup </command/atlas-api-flexSnapshots-downloadFlexBackup>
    getFlexBackup </command/atlas-api-flexSnapshots-getFlexBackup>
    listFlexBackups </command/atlas-api-flexSnapshots-listFlexBackups>
+

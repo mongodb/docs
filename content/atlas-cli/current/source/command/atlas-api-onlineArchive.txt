@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for onlineArchive
 
@@ -71,3 +71,4 @@ Related Commands
    getOnlineArchive </command/atlas-api-onlineArchive-getOnlineArchive>
    listOnlineArchives </command/atlas-api-onlineArchive-listOnlineArchives>
    updateOnlineArchive </command/atlas-api-onlineArchive-updateOnlineArchive>
+

@@ -46,7 +46,7 @@ Options
      - true
      - Name of the JSON index configuration file to use. To learn about the Atlas Search Nodes configuration file, see https://dochub.mongodb.org/core/search-nodes-config-file-atlascli.
    * - -h, --help
-     -
+     - 
      - false
      - help for create
    * - -o, --output
@@ -58,7 +58,7 @@ Options
      - false
      - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
    * - -w, --watch
-     -
+     - 
      - false
      - Flag that indicates whether to watch the command until it completes its execution or the watch times out.
    * - --watchTimeout
@@ -90,7 +90,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Search nodes are being created.
-
+   
 
 Examples
 --------

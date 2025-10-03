@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for organizations
 
@@ -70,3 +70,4 @@ Related Commands
    invitations </command/atlas-organizations-invitations>
    list </command/atlas-organizations-list>
    users </command/atlas-organizations-users>
+

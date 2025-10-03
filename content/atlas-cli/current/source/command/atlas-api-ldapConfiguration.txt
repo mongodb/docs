@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for ldapConfiguration
 
@@ -69,3 +69,4 @@ Related Commands
    getLdapConfigurationStatus </command/atlas-api-ldapConfiguration-getLdapConfigurationStatus>
    saveLdapConfiguration </command/atlas-api-ldapConfiguration-saveLdapConfiguration>
    verifyLdapConfiguration </command/atlas-api-ldapConfiguration-verifyLdapConfiguration>
+
