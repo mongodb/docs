@@ -29,8 +29,7 @@ Installation Method
 
 .. include:: /includes/fact-use-package-manager.rst
 
-|arrow| See :ref:`Install MongoDB using the zypper Package Manager <install-mdb-community-suse>`
-for instructions.
+Select **Package Manager** from the :guilabel:`Package` dropdown for instructions.
 
 Considerations
 --------------

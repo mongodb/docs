@@ -25,8 +25,7 @@ Installation Method
 
 .. include:: /includes/fact-use-package-manager.rst
 
-|arrow| See :ref:`Install MongoDB using the brew Package Manager<install-mdb-community-macos>`
-for instructions.
+Select **Homebrew** from the :guilabel:`Installation Method` dropdown for instructions.
 
 Considerations
 --------------

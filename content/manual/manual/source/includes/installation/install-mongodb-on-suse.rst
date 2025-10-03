@@ -86,13 +86,6 @@ assume that you are using the default settings.
 
       .. include:: /includes/steps/run-mongodb-on-a-linux-distribution.rst
 
-Uninstall MongoDB Community Edition
------------------------------------
-
-.. include:: /includes/fact-uninstall.rst
-
-.. include:: /includes/steps/uninstall-mongodb-on-suse.rst
-
 Additional Information
 ----------------------
 

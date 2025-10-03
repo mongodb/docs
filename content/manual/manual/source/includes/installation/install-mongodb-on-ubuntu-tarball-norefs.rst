@@ -29,8 +29,7 @@ Installation Method
 
 .. include:: /includes/fact-use-package-manager.rst
 
-|arrow| See :ref:`Install MongoDB using the apt Package Manager<install-mdb-community-ubuntu>`
-for instructions.
+Select **Package Manager** from the :guilabel:`Package` dropdown for instructions.
 
 Considerations
 --------------

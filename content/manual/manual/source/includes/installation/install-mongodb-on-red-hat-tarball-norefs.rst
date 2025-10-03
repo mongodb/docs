@@ -27,8 +27,7 @@ Installation Method
 
 .. include:: /includes/fact-use-package-manager.rst
 
-|arrow| See :ref:`Install MongoDB using the yum Package Manager<install-mdb-community-redhat-centos>`
-for instructions.
+Select **Package Manager** from the :guilabel:`Package` dropdown for instructions.
 
 Considerations
 --------------
