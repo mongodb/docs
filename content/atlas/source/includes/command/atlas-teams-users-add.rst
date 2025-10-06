@@ -56,7 +56,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for add
    * - --orgId
@@ -96,7 +96,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    User(s) added to the team.
-   
+
 
 Examples
 --------

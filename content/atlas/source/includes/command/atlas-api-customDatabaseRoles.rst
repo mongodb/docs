@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for customDatabaseRoles
 
@@ -69,4 +69,3 @@ Related Commands
    getCustomDatabaseRole </command/atlas-api-customDatabaseRoles-getCustomDatabaseRole>
    listCustomDatabaseRoles </command/atlas-api-customDatabaseRoles-listCustomDatabaseRoles>
    updateCustomDatabaseRole </command/atlas-api-customDatabaseRoles-updateCustomDatabaseRole>
-

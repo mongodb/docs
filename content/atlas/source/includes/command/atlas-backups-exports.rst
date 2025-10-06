@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for exports
 
@@ -58,4 +58,3 @@ Related Commands
 
    buckets </command/atlas-backups-exports-buckets>
    jobs </command/atlas-backups-exports-jobs>
-

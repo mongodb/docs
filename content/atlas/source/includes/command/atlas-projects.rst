@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for projects
 
@@ -74,4 +74,3 @@ Related Commands
    teams </command/atlas-projects-teams>
    update </command/atlas-projects-update>
    users </command/atlas-projects-users>
-

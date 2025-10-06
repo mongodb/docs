@@ -54,7 +54,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for start
    * - --projectId
@@ -89,7 +89,6 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
 .. code-block::
 
-   
+
    Starting deployment '<Name>'.
-   
 

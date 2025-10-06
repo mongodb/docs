@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for connectedOrgConfigs
 
@@ -66,4 +66,3 @@ Related Commands
    disconnect </command/atlas-federatedAuthentication-federationSettings-connectedOrgConfigs-disconnect>
    list </command/atlas-federatedAuthentication-federationSettings-connectedOrgConfigs-list>
    update </command/atlas-federatedAuthentication-federationSettings-connectedOrgConfigs-update>
-

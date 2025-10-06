@@ -15,7 +15,7 @@ atlas clusters onlineArchives create
 Create an online archive for a collection in the specified cluster.
 
 You can create an online archive for an M10 or larger cluster.
-		
+
 To learn more about online archives, see https://www.mongodb.com/docs/atlas/online-archive/manage-online-archive/.
 
 To use this command, you must authenticate with a user account, a service account, or an API key with the Project Data Access Admin role.
@@ -88,7 +88,7 @@ Options
 
        Mutually exclusive with --db, --collection, --dateField, --dateFormat, --archiveAfter, --expireAfterDays, --partition.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - -o, --output
@@ -130,10 +130,10 @@ Examples
 
    # Create an online archive for the sample_mflix.movies collection in a cluster named myTestCluster when the current date is greater than the value of released date plus 2 days:
    atlas clusters onlineArchive create --clusterName myTestCluster --db sample_mflix --collection movies --dateField released --archiveAfter 2 --output json
-   
-   
+
+
 .. code-block::
    :copyable: false
 
    # Create an online archive for the sample_mflix.movies collection in a cluster named myTestCluster using a profile named egAtlasProfile when the current date is greater than the value of the released date plus 2 days. Data is partitioned based on the title field, year field, and released field from the documents in the collection:
-   atlas clusters onlineArchive create --clusterName myTestCluster --db sample_mflix --collection movies --dateField released --archiveAfter 2 --partition title,year --output json -P egAtlasProfile 
+   atlas clusters onlineArchive create --clusterName myTestCluster --db sample_mflix --collection movies --dateField released --archiveAfter 2 --partition title,year --output json -P egAtlasProfile

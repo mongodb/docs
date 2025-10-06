@@ -47,7 +47,7 @@ Options
    * - --databaseName
      - $external
      - true
-     - The database against which the database user authenticates. Database users must provide both a username and authentication database to log into MongoDB. If the user authenticates with AWS IAM, x.509, LDAP, or OIDC Workload this value should be $external. If the user authenticates with SCRAM-SHA or OIDC Workforce, this value should be `admin`.
+     - The database against which the database user authenticates. Database users must provide both a username and authentication database to log into MongoDB. If the user authenticates with AWS IAM, x.509, LDAP, or OIDC Workload this value should be $external. If the user authenticates with SCRAM-SHA or OIDC Workforce, this value should be ``admin``.
    * - --envelope
      - envelope
      - false
@@ -60,10 +60,10 @@ Options
      - string
      - true
      - Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-       
+
        **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
    * - -h, --help
-     - 
+     -
      - false
      - help for updateDatabaseUser
    * - -o, --output
@@ -75,16 +75,16 @@ Options
      - false
      - file to write the api output to. This flag is required when the output of an endpoint is binary (ex: gzip) and the command is not piped (ex: atlas command > out.zip)
    * - --pretty
-     - 
+     -
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --username
      - string
      - true
      - Human-readable label that represents the user that authenticates to MongoDB. The format of this label depends on the method of authentication:
-       
+
        | Authentication Method | Parameter Needed | Parameter Value | username Format |
-       
+
        | AWS IAM | awsIAMType | ROLE | <abbr title="Amazon Resource Name">ARN</abbr> |
        | AWS IAM | awsIAMType | USER | <abbr title="Amazon Resource Name">ARN</abbr> |
        | x.509 | x509Type | CUSTOMER | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
@@ -94,7 +94,7 @@ Options
        | OIDC Workforce | oidcAuthType | IDP_GROUP | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP group name |
        | OIDC Workload | oidcAuthType | USER | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP user name |
        | SCRAM-SHA | awsIAMType, x509Type, ldapAuthType, oidcAuthType | NONE | Alphanumeric string |
-       
+
    * - --version
      - string
      - false
@@ -115,4 +115,3 @@ Inherited Options
      - string
      - false
      - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
-

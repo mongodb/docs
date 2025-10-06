@@ -58,25 +58,25 @@ Options
 
        Mutually exclusive with --skipMongosh.
    * - --currentIp
-     - 
+     -
      - false
      - Flag that adds the IP address from the host that is currently executing the command to the access list.
 
        Mutually exclusive with --accessListIp.
    * - --enableTerminationProtection
-     - 
+     -
      - false
      - Enables termination protection for your cluster. You can't delete a cluster with termination protection enabled.
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the request for input and create a cluster with the default settings for any unspecified options.
    * - --gov
-     - 
+     -
      - false
      - Login with Atlas for Government.
    * - -h, --help
-     - 
+     -
      - false
      - help for setup
    * - --mdbVersion
@@ -84,7 +84,7 @@ Options
      - false
      - Major MongoDB version of the deployment.
    * - --noBrowser
-     - 
+     -
      - false
      - Don't try to open a browser session.
    * - --password
@@ -104,7 +104,7 @@ Options
      - false
      - Physical location of your MongoDB cluster. For a complete list of supported AWS regions, see: https://dochub.mongodb.org/core/aws-atlas. For a complete list of supported Azure regions, see: https://dochub.mongodb.org/core/azure-atlas. For a complete list of supported GCP regions, see: https://dochub.mongodb.org/core/gcp-atlas.
    * - --skipSampleData
-     - 
+     -
      - false
      - Flag that indicates whether to skip loading sample data into your MongoDB cluster.
    * - --tag

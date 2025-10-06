@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for settings
 
@@ -72,4 +72,3 @@ Related Commands
    fields </command/atlas-alerts-settings-fields>
    list </command/atlas-alerts-settings-list>
    update </command/atlas-alerts-settings-update>
-

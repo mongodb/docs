@@ -58,7 +58,7 @@ Options
      - true
      - Path to a JSON configuration file that defines an Atlas Stream Processing connection. Note: Unsupported fields in the JSON file are ignored.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - -i, --instance
@@ -98,7 +98,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Connection <Name> created.
-   
+
 
 Examples
 --------
@@ -115,4 +115,3 @@ Examples
 
    # create a new connection using the name from a cluster configuration file
    atlas streams connection create -i test01 -f clusterConfig.json
-

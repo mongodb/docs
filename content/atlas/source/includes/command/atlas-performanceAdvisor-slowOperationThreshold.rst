@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for slowOperationThreshold
 
@@ -58,4 +58,3 @@ Related Commands
 
    disable </command/atlas-performanceAdvisor-slowOperationThreshold-disable>
    enable </command/atlas-performanceAdvisor-slowOperationThreshold-enable>
-

@@ -14,7 +14,7 @@ atlas security ldap verify status watch
 
 Watch for an LDAP configuration request to complete.
 
-This command checks the LDAP configuration's status periodically until it reaches a SUCCESS or FAILED status. 
+This command checks the LDAP configuration's status periodically until it reaches a SUCCESS or FAILED status.
 Once the LDAP configuration reaches the expected status, the command prints "LDAP Configuration request completed."
 If you run the command in the terminal, it blocks the terminal session until the resource status succeeds or fails.
 You can interrupt the command's polling at any time with CTRL-C.
@@ -59,7 +59,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for watch
    * - --projectId
@@ -90,9 +90,9 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
 .. code-block::
 
-   
+
    LDAP Configuration request completed.
-   
+
 
 Examples
 --------

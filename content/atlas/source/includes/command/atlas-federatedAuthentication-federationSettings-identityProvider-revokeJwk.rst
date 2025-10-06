@@ -58,7 +58,7 @@ Options
      - true
      - Unique 24-hexadecimal digit string that identifies the federation settings.
    * - -h, --help
-     - 
+     -
      - false
      - help for revokeJwk
    * - -o, --output
@@ -89,5 +89,4 @@ Examples
    :copyable: false
 
    # Revoke the Jwk from the identity provider with ID aa2223b25a115342acc1f108 and federation settings with federationSettingsId 5d1113b25a115342acc2d1aa.
- 	atlas federatedAuthentication federationSettings identityProvider revokeJwk aa2223b25a115342acc1f108 --federationSettingsId 5d1113b25a115342acc2d1aa
-
+   atlas federatedAuthentication federationSettings identityProvider revokeJwk aa2223b25a115342acc1f108 --federationSettingsId 5d1113b25a115342acc2d1aa

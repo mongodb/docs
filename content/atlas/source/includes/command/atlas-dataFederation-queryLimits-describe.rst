@@ -58,7 +58,7 @@ Options
      - true
      - Identifier of the Federated Database Instance.
    * - -h, --help
-     - 
+     -
      - false
      - help for describe
    * - -o, --output
@@ -94,4 +94,3 @@ Examples
 
    # retrieves data federation query limits "bytesProcessed.query" for 'DataFederation1':
    atlas dataFederation queryLimits describe bytesProcessed.query --tenantName DataFederation1
-

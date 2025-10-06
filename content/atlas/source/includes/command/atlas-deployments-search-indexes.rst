@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for indexes
 
@@ -62,4 +62,3 @@ Related Commands
    delete </command/atlas-deployments-search-indexes-delete>
    describe </command/atlas-deployments-search-indexes-describe>
    list </command/atlas-deployments-search-indexes-list>
-

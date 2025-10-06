@@ -30,7 +30,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for completion
 
@@ -66,4 +66,3 @@ Related Commands
    fish </command/atlas-completion-fish>
    powershell </command/atlas-completion-powershell>
    zsh </command/atlas-completion-zsh>
-

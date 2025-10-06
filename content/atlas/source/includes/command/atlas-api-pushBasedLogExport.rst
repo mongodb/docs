@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for pushBasedLogExport
 
@@ -67,4 +67,3 @@ Related Commands
    deletePushBasedLogConfiguration </command/atlas-api-pushBasedLogExport-deletePushBasedLogConfiguration>
    getPushBasedLogConfiguration </command/atlas-api-pushBasedLogExport-getPushBasedLogConfiguration>
    updatePushBasedLogConfiguration </command/atlas-api-pushBasedLogExport-updatePushBasedLogConfiguration>
-

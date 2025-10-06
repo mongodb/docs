@@ -36,7 +36,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - -o, --output
@@ -81,7 +81,7 @@ Examples
    # List available regions for a given cloud provider and tier:
    atlas cluster availableRegions list --provider AWS --tier M50
 
-   
+
 .. code-block::
    :copyable: false
 

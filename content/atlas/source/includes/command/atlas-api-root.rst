@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for root
 
@@ -63,4 +63,3 @@ Related Commands
 
    getSystemStatus </command/atlas-api-root-getSystemStatus>
    returnAllControlPlaneIpAddresses </command/atlas-api-root-returnAllControlPlaneIpAddresses>
-

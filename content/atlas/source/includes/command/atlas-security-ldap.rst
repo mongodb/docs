@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for ldap
 
@@ -62,4 +62,3 @@ Related Commands
    get </command/atlas-security-ldap-get>
    save </command/atlas-security-ldap-save>
    verify </command/atlas-security-ldap-verify>
-

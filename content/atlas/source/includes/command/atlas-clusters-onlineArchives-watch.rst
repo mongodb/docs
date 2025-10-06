@@ -14,7 +14,7 @@ atlas clusters onlineArchives watch
 
 Watch for an archive to be available.
 
-This command checks the archive's status periodically until it reaches a state different from PENDING or PAUSING. 
+This command checks the archive's status periodically until it reaches a state different from PENDING or PAUSING.
 Once the archive reaches the expected status, the command prints "Online archive available."
 If you run the command in the terminal, it blocks the terminal session until the resource status changes to the expected status.
 You can interrupt the command's polling at any time with CTRL-C.
@@ -63,7 +63,7 @@ Options
      - false
      - Name of the cluster. To learn more, see https://dochub.mongodb.org/core/create-cluster-api.
    * - -h, --help
-     - 
+     -
      - false
      - help for watch
    * - --projectId
@@ -94,9 +94,9 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
 .. code-block::
 
-   
+
    Online archive available.
-   
+
 
 Examples
 --------

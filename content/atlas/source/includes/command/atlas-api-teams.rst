@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for teams
 
@@ -85,4 +85,3 @@ Related Commands
    removeTeamUser </command/atlas-api-teams-removeTeamUser>
    renameTeam </command/atlas-api-teams-renameTeam>
    updateTeamRoles </command/atlas-api-teams-updateTeamRoles>
-

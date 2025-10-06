@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for networking
 
@@ -58,4 +58,3 @@ Related Commands
 
    containers </command/atlas-networking-containers>
    peering </command/atlas-networking-peering>
-

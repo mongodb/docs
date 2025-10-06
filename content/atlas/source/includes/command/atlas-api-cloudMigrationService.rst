@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for cloudMigrationService
 
@@ -75,4 +75,3 @@ Related Commands
    getValidationStatus </command/atlas-api-cloudMigrationService-getValidationStatus>
    listSourceProjects </command/atlas-api-cloudMigrationService-listSourceProjects>
    validateMigration </command/atlas-api-cloudMigrationService-validateMigration>
-

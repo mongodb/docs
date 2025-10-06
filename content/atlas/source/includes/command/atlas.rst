@@ -15,7 +15,7 @@ atlas
 CLI tool to manage MongoDB Atlas.
 
 The Atlas CLI is a command line interface built specifically for MongoDB Atlas. You can manage your Atlas database deployments and Atlas Search from the terminal with short, intuitive commands.
-		
+
 Use the --help flag with any command for more info on that command.
 
 Options
@@ -30,7 +30,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for atlas
    * - -P, --profile
@@ -127,4 +127,3 @@ Related Commands
    streams </command/atlas-streams>
    teams </command/atlas-teams>
    users </command/atlas-users>
-
