@@ -1,0 +1,318 @@
+.. _compass-ai-assistant:
+
+================================
+Intelligent Assistant in Compass
+================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The intelligent assistant is an AI-powered tool designed for integrated MongoDB 
+development support in |compass|. It answers natural language
+questions, assists with debugging errors, and provides guidance for performance 
+optimization. 
+
+.. note::
+
+   The intelligent assistant is currently in public preview. 
+
+.. Attention writers: If you make changes to the following file, please check
+.. the related page(s) in the Atlas docs to see if they require changes as 
+.. well: www.mongodb.com/docs/atlas/atlas-ui/query-with-natural-language/data-explorer-ai-assistant/
+
+Enable AI Features
+------------------
+
+To use the intelligent assistant in |compass|, first enable AI features in settings. 
+
+.. procedure:: 
+   :style: connected 
+
+   .. step:: Open Settings.
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 50 20
+
+         * - Operating System
+           - Description
+           - Keyboard Shortcut
+
+         * - Windows / Linux
+           - In the top menu bar, click :guilabel:`Edit`.
+           - ``Ctrl`` + ``,``
+
+         * - macOS
+           - In the top menu bar, click :guilabel:`MongoDB Compass`.
+           - ``⌘`` + ``,``
+
+   .. step:: Select Artificial Intelligence.
+
+   .. step:: Check the box to enable AI features.
+
+   .. step:: (Optional) Read MongoDB's GenAI FAQs.
+
+      For more information about generative AI usage with |compass|, see:
+
+      - :ref:`compass-ai-data-usage`
+      - `FAQ For MongoDB Generative AI Features <https://www.mongodb.com/docs/generative-ai-faq/>`__
+
+For more information about toggling AI feaures in |compass|, see :ref:`compass-enable-natural-language-querying`.
+
+Access the Intelligent Assistant
+--------------------------------
+
+To access the intelligent assistant in |compass| click the sidebar panel with 
+the :icon-lg:`Sparkle`. This opens the assistant, where you can ask a variety
+of questions related to your |compass| connection errors, query outputs, explain
+plan statistics, and more. 
+
+.. figure:: /images/compass/compass-collapse.png
+   :figwidth: 1000px
+   :alt: |compass| Page with collapsed AI Drawer
+
+   Figure 1. The |compass| home page with the assistant collapsed.
+
+.. figure:: /images/compass/compass-expand.png
+   :figwidth: 1200px
+   :alt: |compass| Page with opened AI drawer
+
+   Figure 2. The |compass| home page with the assistant expanded.  
+
+Examples
+--------
+
+The following scenarios show several uses of the intelligent assistant in 
+|compass|.
+
+Connection Error
+~~~~~~~~~~~~~~~~
+
+If you get a connection error message, a pop-up will appear that directs you to
+use the MongoDB Assistant to debug the error. Clicking "Debug for me" prompts the
+assistant to automatically generate a prompt to diagnose the error.
+
+.. io-code-block::
+    :copyable: true
+
+    .. input::
+
+       Diagnose why my Compass connection is failing and help me debug it. 
+
+       Connection string (password redacted): 
+       mongodb+srv://user:****@cluster0.pndqllj.mongodb.net/
+
+       Error message:
+       querySrv ECONNREFUSED
+
+    .. output::
+
+       The error message querySrv ECONNREFUSED in MongoDB Compass typically
+       points to a network issue when Compass is trying to discover your Atlas
+       cluster using DNS SRV records in your connection string.
+
+       Here are the most common causes and solutions for this issue:
+
+       1. Incorrect Hostname or Cluster Name
+
+          - Ensure that the cluster hostname (cluster0.hrdfe.mongodb.net) in 
+            your connection string matches what is shown in your Atlas dashboard.
+          - Typos or a deleted/renamed cluster will cause connection refusal.
+      
+       2. Network Restrictions or Firewall Blocking
+
+          - Atlas clusters operate on port 27017. Compass must be able to reach that port through your network.
+          - Firewalls, VPNs, or proxies might block outbound connections to MongoDB Atlas.
+          - Try connecting from a different network/location to rule out local filtering.
+          - You can test if your network allows access to this port using http://portquiz.net:27017/.
+
+       3. DNS Issues
+
+          - Compass uses DNS to resolve the SRV record in the connect string. If your DNS settings are incorrect or your network blocks DNS SRV lookups, connection will fail.
+            Try restarting your computer or flushing your DNS cache.
+
+       4. Cluster Status
+
+          - Verify that your MongoDB Atlas cluster is running and not paused 
+            or shut down.
+
+       5. Compass Version
+
+         - Make sure you’re using an up-to-date version of MongoDB Compass. 
+           Atlas typically requires recent client versions.
+
+       Recommended Steps to Debug:
+
+       - Double-check your Atlas cluster name and hostname.
+       - Ensure your local firewall allows outbound connections to “*.mongodb.net” over port 27017.
+       - Check that the Atlas cluster is running (not paused).
+       - Make sure your connection string is correct.
+       - Use another network or device to see if the issue persists.
+
+       If you’re still having trouble after these checks, please provide more 
+       details about your environment (e.g., Compass version, operating system,
+       network setup), and I’ll be happy to help you further!
+
+       For further reading, I recommend checking the Compass troubleshooting 
+       documentation, which covers these scenarios in detail before making any 
+       major changes to your environment.
+
+Explain Plan
+~~~~~~~~~~~~
+
+Ask the intelligent assistant to analyze the output of your |compass| query:
+
+.. io-code-block::
+    :copyable: true
+
+    .. input::
+
+       Interpret this explain plan for me.
+
+    .. output:: 
+
+       ## Summary
+       - **Query Logic:** This pipeline counts the number of Italian restaurants in Manhattan by first filtering documents and then aggregating the count.
+       - **Performance:** Fair
+       - **Recommendations:** Create a compound index on `{ borough: 1, cuisine: 1 }` to optimize document retrieval.
+
+       ## Details
+
+       ### Query Logic
+       1. `$match`: Filters documents where `borough` is "Manhattan" and `cuisine` is "Italian".
+       2. `$count`: Counts the number of documents matching the filter and outputs the total.
+
+       ### Performance Analysis
+       - The winning plan uses an index scan on the `cuisine` field (`cuisine_1`) and applies an in-memory filter for `borough` ("Manhattan").
+       - Both `totalKeysExamined` and `totalDocsExamined` are high (43,207), which implies that every document with `cuisine: "Italian"` is examined and then filtered by `borough`.
+       - No compound index exists, meaning MongoDB cannot efficiently combine both filter criteria in a single index lookup.
+       - The pipeline does properly filter before counting, but index usage is only partial, causing increased resource usage.
+
+       ### Recommendations
+       - Create a compound index on `{ borough: 1, cuisine: 1 }` to allow MongoDB to retrieve documents matching both criteria directly from the index, minimizing documents examined.
+       - This optimization will reduce execution time and system load without changing the output of your aggregation pipeline.
+
+       Below is the recommended Aggregation Pipeline. This optimized Aggregation Pipeline will leverage the compound index to scan fewer documents, as both filter criteria are present in the index.
+
+       ```json
+       [
+         { "$match": { "borough": "Manhattan", "cuisine": "Italian" } },
+         { "$count": "totalItalianRestaurants" }
+       ]
+       ```
+
+       ### Follow-Up Questions
+       1. How do I create a compound index in MongoDB Compass or via a shell command?
+       2. What other fields should I consider adding to my indexes for restaurant lookups?
+       3. How can I further optimize aggregations when working with larger datasets?
+
+
+User questions
+~~~~~~~~~~~~~~
+
+The following examples demonstrate questions you can ask the intelligent assistant about 
+|compass| functions and queries. 
+
+.. io-code-block::
+    :copyable: true
+
+    .. input::
+
+       How is MongoDB data modeling different from data modeling with a relational
+       database?
+
+    .. output:: 
+
+       MongoDB data modeling differs from relational database (RDBMS) data 
+       modeling in some important ways:
+
+       1. Document-Oriented vs. Table-Oriented
+
+         - MongoDB stores data as flexible, hierarchical JSON-like documents.
+         - Relational databases use tables with fixed schemas and columns.
+
+       2. Schema Flexibility
+       
+         - In MongoDB, collections can contain documents with different structures. Schema enforcement is optional.
+         - RDBMS tables have a strict schema that enforces data types and relationships.
+
+       3. Embedding vs. Normalization
+
+         - MongoDB encourages embedding related data inside documents when appropriate (denormalization). Example: An order document may include an array of items directly inside it.
+         - Relational databases emphasize normalization—splitting data across tables connected by foreign keys.
+
+       4. Relationships
+
+         - MongoDB does support references between documents (similar to foreign keys), but joins are less central and not as efficient as in RDBMS.
+         - RDBMSs use normalized data and JOIN operations to relate tables efficiently.
+
+       5. Performance & Scaling
+
+         - MongoDB’s data model enables horizontal scaling (sharding), making it well-suited for large, distributed datasets.
+         - RDBMS scaling typically relies on vertical scaling or complex clustering; JOINs can become expensive as data grows.
+
+       6. Use Cases and Design Philosophy 
+
+         - MongoDB models are often designed to optimize common query patterns, reducing the need for joins and complex queries.
+         - RDBMS models are designed for transactional consistency and for representing organized, well-structured relationships.
+
+       In summary, MongoDB encourages a more flexible, application-driven 
+       approach to modeling, while relational databases rely on rigid schemas 
+       and normalized relationships. Compass provides tools to visually explore 
+       your document structures and relationships, which can be especially 
+       helpful as your model evolves.
+
+
+.. io-code-block::
+    :copyable: true
+
+    .. input::
+
+       How can I combine multiple conditions in a single $search query?
+
+    .. output:: 
+
+       To combine multiple conditions in a single $search query in MongoDB Atlas
+       Search (including Compass), you should use the compound operator. The 
+       compound operator allows you to specify multiple criteria using must, 
+       mustNot, filter, and should clauses.
+
+       Example: Combine Multiple Conditions
+
+       Suppose you want to:
+
+       - Match documents where the plot field contains "baseball"
+       - Exclude documents where the genres field contains "Comedy" or "Romance"
+       
+       Your $search stage would look like this:
+
+       {
+         "$search": {
+           "compound": {
+             "must": [
+               {
+                 "text": {
+                   "query": "baseball",
+                   "path": "plot"
+                  }
+               }
+             ],
+             "mustNot": [
+               {
+                 "text": {
+                   "query": ["Comedy", "Romance"],
+                   "path": "genres"
+                 }
+               }
+             ]
+          }
+         }
+       }
+
+Learn More
+----------
+
+- :ref:`compass-ai-data-usage`
