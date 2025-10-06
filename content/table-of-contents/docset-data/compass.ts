@@ -196,7 +196,7 @@ const tocData: TocItem[] = [
             url: "/docs/compass/settings/show-kerberos-password",
           },
           {
-            label: "Hide Credentials",
+            label: "Secure Connection Strings",
             contentSite: "compass",
             url: "/docs/compass/settings/protect-connection-strings",
           },
