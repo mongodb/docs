@@ -192,3 +192,138 @@ OIDC Access Token Authentication Behavior
 .. include:: /includes/fact-7-0-oidc-audience.rst
 
 For details, see :ref:`oidcidentityproviders-fields`.
+
+.. _6.3-compatibility:
+
+Changes Introduced in MongoDB 6.3
+---------------------------------
+
+Granularity Settings
+~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.3, you can configure time series bucket 
+granularity using the new ``bucketMaxSpanSeconds`` and
+``bucketRoundingSeconds`` custom bucketing parameters. To downgrade
+below 6.3, you must either drop all collections with these parameters,
+or modify them to use the corresponding ``granularity``. For details,
+see :dbcommand:`collMod`.
+
+Not all ``bucketMaxSpanSeconds`` and ``bucketRoundingSeconds`` values
+correspond to a ``granularity`` value. In such cases, you must drop the
+collection. 
+
+Partial TTL Indexes for Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.3, you can create partial :ref:`Time To
+Live (TTL) <index-feature-ttl>` indexes on time series collections. To 
+downgrade below 6.3, you must remove all partial TTL indexes from your
+time series collections.
+
+.. _6.2-compatibility:
+
+Changes Introduced in MongoDB 6.2
+---------------------------------
+
+``config.settings`` Schema Validation 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-invalid-balancer-setting-values.rst 
+
+Removed Options
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-remove-maxSize-addShard.rst
+
+.. _6.1-compatibility:
+
+Changes Introduced in MongoDB 6.1
+---------------------------------
+
+``$add`` Floating Point Rounding Errors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.1, when an :expression:`$add` expression receives
+an input list with multiple floating point values, MongoDB may return
+slightly different results compared to previous versions.
+
+The ``$add`` expression no longer accounts for floating-point rounding
+errors. As a result, ``$add`` behaves like addition in most programming
+languages.
+
+For example, the following ``$add`` expression returns a different
+result when run on MongoDB 6.1 compared to older versions:
+
+.. code-block:: javascript
+
+   db.test.aggregate(
+      [
+        {
+           $project: {
+              sumOfValues: {
+                 $add: [ 0.1, 0.2, 0.3 ]
+              }
+            }
+         }
+      ]
+   )
+
+MongoDB 6.1 and later output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+     {
+       _id: ObjectId("6390f8085425651d8d0ef0a7"),
+       sumOfValues: 0.6000000000000001
+     }
+   ]
+
+MongoDB 6.0 and earlier output:
+
+.. code-block:: javascript
+
+   [
+     {
+       _id: ObjectId("6390f8085425651d8d0ef0a7"),
+       sumOfValues: 0.6
+     }
+   ]
+
+No Automatic Chunk Splitting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/autosplit-no-operation.rst
+
+.. include:: /includes/autosplit-commands.rst
+
+Removed Options
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/journal-option-removed.rst
+
+.. include:: /includes/SNMP-removed.rst
+
+Server Parameters
+~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.1, the default value for
+:parameter:`coordinateCommitReturnImmediatelyAfterPersistingDecision` is
+``false``.
+
+Sharding Metrics Changes
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+``currentOp.opStatus`` is removed from the resharding metrics in MongoDB
+6.1.
+
+Views Not Permitted on Bucket Collection Namespace
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot create a :ref:`view <views-landing-page>` from a :ref:`time
+series <manual-timeseries-collection>` bucket collection namespace
+(namely, a collection prefixed with ``system.buckets``).
+
+If you are upgrading to MongoDB 6.1 from a prior version, you must drop
+all views which are created on ``system.buckets`` collections.
