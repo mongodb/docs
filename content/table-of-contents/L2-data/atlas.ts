@@ -1040,6 +1040,11 @@ const tocData: TocItem[] = [
     url: "/docs/atlas/atlas-ui",
     collapsible: true,
     items: [
+    {
+        label: "AI & Data Usage",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/atlas-ui/ai-and-data-usage-information",
+      },
       {
         label: "Databases",
         contentSite: "cloud-docs",
@@ -1161,9 +1166,9 @@ const tocData: TocItem[] = [
             url: "/docs/atlas/atlas-ui/query-with-natural-language/prompt-natural-language-aggregation",
           },
           {
-            label: "AI & Data Usage",
+            label: "Intelligent Assistant in Data Explorer",
             contentSite: "cloud-docs",
-            url: "/docs/atlas/atlas-ui/query-with-natural-language/ai-and-data-usage-information",
+            url: "/docs/atlas/atlas-ui/query-with-natural-language/data-explorer-ai-assistant",
           },
         ],
       },

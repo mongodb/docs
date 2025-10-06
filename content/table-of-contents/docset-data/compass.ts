@@ -402,9 +402,9 @@ const tocData: TocItem[] = [
                 url: "/docs/compass/query-with-natural-language/prompt-natural-language-aggregation",
               },
               {
-                label: "AI & Data Usage",
+                label: "Intelligent Assistant in Compass",
                 contentSite: "compass",
-                url: "/docs/compass/query-with-natural-language/ai-and-data-usage-information",
+                url: "/docs/compass/query-with-natural-language/compass-ai-assistant",
               },
             ],
           },
@@ -572,6 +572,11 @@ const tocData: TocItem[] = [
             url: "/docs/compass/troubleshooting/connection-errors",
           },
         ],
+      },
+      {
+        label: "AI & Data Usage",
+        contentSite: "compass",
+        url: "/docs/compass/ai-and-data-usage-information",
       },
       {
         label: "Keyboard Shortcuts",
