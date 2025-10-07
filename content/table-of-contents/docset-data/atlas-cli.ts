@@ -127,6 +127,11 @@ const tocData: TocItem[] = [
               url: "/docs/atlas/cli/:version/atlas-cli-deploy-docker",
             },
             {
+              label: "Docker Compose Example",
+              contentSite: "atlas-cli",
+              url: "/docs/atlas/cli/:version/atlas-cli-docker-compose",
+            },
+            {
               label: "Deploy from Private Registry",
               contentSite: "atlas-cli",
               url: "/docs/atlas/cli/:version/atlas-cli-deploy-pvt-registry",
