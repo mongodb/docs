@@ -1043,7 +1043,7 @@ const tocData: TocItem[] = [
     {
         label: "AI & Data Usage",
         contentSite: "cloud-docs",
-        url: "/docs/atlas/atlas-ui/ai-and-data-usage-information",
+        url: "/docs/atlas/ai-and-data-usage-information",
       },
       {
         label: "Databases",
