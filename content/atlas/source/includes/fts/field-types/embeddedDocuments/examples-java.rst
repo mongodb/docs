@@ -5,34 +5,52 @@ Try an Example for the |fts-field-type| Type
 
 .. include:: /includes/fts/field-types/configure-and-run.rst
 
-.. tabs::  
+.. collapsible::
+   :heading: Basic Example
+   :sub_heading: Automatically index all dynamically indexable fields inside the array of objects.
+   :expanded: false
 
-   .. tab:: Basic Example
-      :tabid: example-1
+   .. include:: /includes/fts/field-types/embeddedDocuments/basic-example-description.rst
 
-      .. include:: /includes/fts/field-types/embeddedDocuments/basic-example-description.rst
+   .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-basic.java
+      :language: java
+      :linenos:
+      :copyable: true 
 
-      .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-basic.java
+.. collapsible::
+   :heading: Dynamic Index Example
+   :sub_heading: Combine dynamic mappings with static mappings to index nested fields as different field types.
+   :expanded: false
+
+   Enable Dynamic Indexing  
+   ~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. include:: /includes/fts/field-types/embeddedDocuments/dynamic-example-description.rst
+
+   .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-dynamic.java
+      :language: java
+      :linenos:
+      :copyable: true 
+
+   .. Not yet supported. See DOCSP-54380
+      Configure Dynamic Indexing 
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/fts/field-types/embeddedDocuments/typeset-example-description.rst
+
+      .. literalinclude:: /includes/fts/field-types/embeddedDocuments/configure-dynamic-index.java
          :language: java
          :linenos:
          :copyable: true 
 
-   .. tab:: Dynamic Index Example
-      :tabid: example-2
+.. collapsible::
+   :heading: Specified Fields Example
+   :sub_heading: Index only specific fields in the array of objects. 
+   :expanded: false
 
-      .. include:: /includes/fts/field-types/embeddedDocuments/dynamic-example-description.rst
+   .. include:: /includes/fts/field-types/embeddedDocuments/specified-fields-example-description.rst
 
-      .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-dynamic.java
-         :language: java
-         :linenos:
-         :copyable: true 
-
-   .. tab:: Specified Fields Example
-      :tabid: example-3
-
-      .. include:: /includes/fts/field-types/embeddedDocuments/specified-fields-example-description.rst
-
-      .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-specified.java
-         :language: java
-         :linenos:
-         :copyable: true
+   .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-specified.java
+      :language: java
+      :linenos:
+      :copyable: true

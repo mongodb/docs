@@ -15,19 +15,38 @@ async function run() {
         name: "default",
         definition: {
             "mappings": {
-                "dynamic": true|false,
+                "dynamic": true|false | { // "dynamic" can be a boolean or an object with "typeSet" name
+                    "typeset": "<type-set-name>" 
+                },
                 "fields": {
                     "<field-name>": {
                         "type": "document",
-                        "dynamic": true|false,
+                        "dynamic": true|false { // "dynamic" can be a boolean or an object with "typeSet" name
+                            "typeset": "<type-set-name>" 
+                        },
                         "fields": {
                             "<sub-field-name>": {
                                 // Add field mapping definitions here
-                            }
+                            },
+                            ... // additional sub-fields
                         }
-                    }
+                    },
+                    ... // additional fields
                 }
-            }
+            },
+            "typeSets": [
+                {
+                    "name": "<type-set-name>",
+                    "types": [
+                        {
+                            "type": "<field-type>",
+                            ... // field type configuration
+                        },
+                        ... // additional types
+                    ]
+                },
+                ... // additional typeSets
+            ]
         }
     }
 

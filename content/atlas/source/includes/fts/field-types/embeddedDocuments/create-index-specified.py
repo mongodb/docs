@@ -5,22 +5,22 @@ from pymongo.operations import SearchIndexModel
 uri = "<connection-string>"
 client = MongoClient(uri)
 
-database = client["sample_supplies"]
-collection = database["sales"]
+database = client["sample_training"]
+collection = database["companies"]
 
 # Create the MongoDB Search index definition for the embeddedDocuments field with specified fields
 search_index_model = SearchIndexModel(
     definition={
         "mappings": {
             "fields": {
-                "items": {
+                "offices": {
                     "type": "embeddedDocuments",
                     "dynamic": False,
                     "fields": {
-                        "name": {
+                        "country_code": {
                             "type": "string"
                         },
-                        "tags": {
+                        "state_code": {
                             "type": "string"
                         }
                     }

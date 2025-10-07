@@ -25,8 +25,8 @@ func main() {
 		}
 	}()
 
-	coll := client.Database("sample_supplies").Collection("sales")
-	const indexName = "defaultgo"
+	coll := client.Database("sample_training").Collection("companies")
+	const indexName = "default"
 	opts := options.SearchIndexes().SetName(indexName).SetType("search")
 
 	// Define the MongoDB Search index for the embeddedDocuments field with dynamic mapping
@@ -35,11 +35,11 @@ func main() {
 			{"mappings", bson.D{
 				{"dynamic", true},
 				{"fields", bson.D{
-					{"items", bson.D{
+					{"products", bson.D{
 						{"dynamic", true},
 						{"type", "embeddedDocuments"},
 					}},
-					{"purchaseMethod", bson.D{
+					{"category_code", bson.D{
 						{"type", "token"},
 					}},
 				}},

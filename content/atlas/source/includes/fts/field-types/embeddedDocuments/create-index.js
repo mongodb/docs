@@ -15,19 +15,38 @@ async function run() {
         name: "default",
         definition: {
           "mappings": {
-            "dynamic": true|false,
+            "dynamic": <true|false> | {
+              "typeSet": "<type-set-name>"
+            },
             "fields": {
               "<field-name>": {
                 "type": "embeddedDocuments",
-                "dynamic": true|false,
+                "dynamic": <true|false> | {
+                  "typeSet": "<type-set-name>"
+                }>,
                 "fields": {
                   "<field-name>": {
                     <field-mapping-definition>
-                  }
+                  },
+                  ...
                 }
-              }
+              },
+              ...
             }
-          }
+          },
+          "typeSets": [
+            {
+              "name": "<type-set-name>",
+              "types": [
+                {
+                  "type": "<field-type>",
+                  ...
+                },
+                ...
+              ]
+            },
+            ...
+          ]
         }
     }
 

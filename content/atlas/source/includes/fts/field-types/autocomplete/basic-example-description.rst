@@ -1,9 +1,8 @@
 .. |sample-collection| replace:: ``sample_mflix.movies``
 
-.. include:: /includes/fts/extracts/fts-index-definition-egs-intro.rst 
-
-The following index definition example indexes only the ``title``
-field as the ``autocomplete`` type to support search-as-you-type
+The following index definition example uses the 
+|sample-collection| collection. The index definition indexes only the
+``title`` field as the ``autocomplete`` type to support search-as-you-type
 queries against that field using the :ref:`autocomplete <autocomplete-ref>`
 operator. The index definition also specifies the following: 
 

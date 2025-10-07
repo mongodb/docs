@@ -20,5 +20,5 @@ You can also use the |fts-field-type| type to index:
    To learn more, see |fts| :ref:`Index Performance Considerations
    <index-size-and-config>`. 
 
-.. include:: /includes/fts/extracts/fts-ib-static-mappings.rst 
+.. include:: /includes/fts/extracts/fts-configure-dynamic-index.rst 
     

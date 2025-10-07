@@ -33,18 +33,38 @@ func main() {
 	searchIndexModel := mongo.SearchIndexModel{
 		Definition: bson.D{
 			{"mappings", bson.D{
-				{"dynamic", true|false},
+				// "dynamic" can be a boolean or an object with "typeSet" name
+				{"dynamic", <true|false> | bson.D{
+					{"typeSet", "<typeSet-name>"},
+				}},
 				{"fields", bson.D{
 					{"<field-name>", bson.D{
 						{"type", "embeddedDocuments"},
-						{"dynamic", true|false},
+						// "dynamic" can be a boolean or an object with "typeSet" name
+						{"dynamic", <true|false> | bson.D{
+							{"typeSet", "<typeSet-name>"},
+						}},
 						{"fields", bson.D{
 							{"<field-name>", bson.D{
-								<field-mapping-definition>
+								// <field-mapping-definition>
 							}},
+							// ... additional fields 
 						}},
 					}},
+					// ... additional fields 
 				}},
+			}},
+			{"typeSets", bson.A{
+				bson.D{
+					{"name", "<typeSet-name>"},
+					{"types", bson.A{
+						bson.D{
+							// <field-type-configuration>
+						},
+						// ... additional types 
+					}},
+				},
+				// ... additional typeSets 
 			}},
 		},
 		Options: opts,

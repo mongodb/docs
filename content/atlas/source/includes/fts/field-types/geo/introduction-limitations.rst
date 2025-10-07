@@ -3,4 +3,6 @@ coordinates. For this type, the indexed field must be a :manual:`GeoJSON
 </reference/geojson/>` object. You can use the :ref:`geoShape <geoshape-ref>` and
 :ref:`geoWithin <geowithin-ref>` operators to query indexed fields of type ``geo``.
 
-.. include:: /includes/fts/extracts/fts-ib-static-mappings.rst
+.. |fts-field-type| replace:: ``geo``
+
+.. include:: /includes/fts/extracts/fts-configure-dynamic-index.rst 

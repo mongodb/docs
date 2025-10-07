@@ -31,19 +31,38 @@ int main (void)
             "name" : "default",
             "definition" : {
               "mappings": {
-                "dynamic": false,
+                "dynamic": <true|false> | { // "dynamic" can be a boolean or an object with "typeSet" name
+                  "typeSet": "<type-set-name>"
+                },
                 "fields": {
                   "<field-name>": {
                     "type": "embeddedDocuments",
-                    "dynamic": true|false,
+                    "dynamic": <true|false> | { // "dynamic" can be a boolean or an object with "typeSet" name
+                      "typeSet": "<tye-set-name>"
+                    },
                     "fields": {
                       "<field-name>": {
                         <field-mapping-definition>
-                      }
+                      },
+                      //... additional sub-fields
                     }
-                  }
+                  },
+                  // ... additional fields
                 }
               },
+              "typeSets": [
+                {
+                  "name": "<type-set-name>",
+                  "types": [
+                    {
+                      "type": "<field-type>",
+                      // ... field type configuration
+                    },
+                    // ... additional types
+                  ]
+                },
+                // ... additional typeSets
+              ]
             }
 	    } ]
 	});

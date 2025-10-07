@@ -7,8 +7,8 @@ const client = new MongoClient(uri);
 
 async function run() {
   try {
-    const database = client.db("sample_supplies");
-    const collection = database.collection("sales");
+    const database = client.db("sample_training");
+    const collection = database.collection("companies");
 
     // Create the MongoDB Search index definition for the embeddedDocuments field
     const index = {
@@ -17,7 +17,7 @@ async function run() {
             "mappings": {
                 "dynamic": false,
                 "fields": {
-                    "items": {
+                    "products": {
                         "type": "embeddedDocuments",
                         "dynamic": true
                     }

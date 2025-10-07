@@ -1,15 +1,9 @@
 The following index definition example uses the 
-:ref:`sample_mflix.users <sample-mflix>` collection. If you have 
-the :ref:`sample data <sample-data>` already loaded on your 
-{+cluster+}, you can use the Visual Editor or |json| Editor
-in the {+atlas-ui+} to configure the index. After you select your
-preferred configuration method, select the database and 
-collection, and refine your index to add field mappings.
-
-The following index definition example indexes only the ``email``
-field as the ``autocomplete`` type to support search-as-you-type
-queries against that field using the :ref:`autocomplete <autocomplete-ref>`
-operator. The index definition specifies the following: 
+:ref:`sample_mflix.users <sample-mflix>` collection. The index
+definition example indexes only the ``email`` field as the
+``autocomplete`` type to support search-as-you-type queries against that
+field using the :ref:`autocomplete <autocomplete-ref>` operator. The
+index definition specifies the following:  
 
 - Use the :ref:`keyword <ref-keyword-analyzer>` analyzer to 
   accept a string or array of strings as a parameter and index 

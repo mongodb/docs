@@ -7,8 +7,8 @@ public class CreateIndex {
         String connectionString = "<connection-string>";
 
         try (MongoClient mongoClient = MongoClients.create(connectionString)) {
-            MongoDatabase database = mongoClient.getDatabase("sample_supplies");
-            MongoCollection<Document> collection = database.getCollection("sales");
+            MongoDatabase database = mongoClient.getDatabase("sample_training");
+            MongoCollection<Document> collection = database.getCollection("companies");
             String indexName = "default";
 
             // Create the MongoDB Search index definition for the embeddedDocuments field with dynamic mapping
@@ -16,10 +16,10 @@ public class CreateIndex {
                     "mappings",
                     new Document("dynamic", true)
                             .append("fields",
-                                    new Document("items",
+                                    new Document("products",
                                             new Document("dynamic", true)
                                                     .append("type", "embeddedDocuments"))
-                                            .append("purchaseMethod",
+                                            .append("category_code",
                                                     new Document("type", "token")))
             );
             collection.createSearchIndex(indexName, searchIdx);

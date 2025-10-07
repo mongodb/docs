@@ -11,14 +11,39 @@ collection = database["<collection>"]
 # Create the MongoDB Search index definition for the embeddedDocuments field
 search_index_model = SearchIndexModel(
     definition={
-        "mappings": {
-            "dynamic": False,
-            "fields": {
-                "<field-name>":{
-                   "type": "embeddedDocuments"
-                }
-            }
+      "mappings": {
+        "dynamic": true|false | {
+          "typeSet": "<typeSet-name>"
         },
+        "fields": {
+          "<field-name>": {
+            "type": "embeddedDocuments",
+            "dynamic": <true|false> | {
+              "typeSet": "<typeSet-name>"
+            },
+            "fields": {
+              "<field-name>": {
+                <field-mapping-definition>
+              },
+              ...
+            }
+          },
+          ...
+        }
+      },
+      "typeSets": [
+        {
+          "name": "<typeSet-name>",
+          "types": [
+            {
+              "type": "<field-type>",
+              ... 
+            },
+            ...
+          ]
+        },
+        ...
+      ]
     },
     name="default",
 )

@@ -13,20 +13,30 @@ public class CreateIndex {
 
             // Create the MongoDB Search index definition for the embeddedDocuments field
             Document searchIdx = new Document(
-                    "mappings",
-                    new Document("dynamic", true|false)
-                            .append("fields",
+                "mappings",
+                new Document("dynamic", <true|false> | new Document("typeSet", "<typeSet-name>"))
+                    .append("fields",
+                        new Document("<field-name>",
+                            new Document("type", "embeddedDocuments")
+                                .append("dynamic", <true|false> | new Document("typeSet", "<typeSet-name>"))
+                                .append("fields",
                                     new Document("<field-name>",
-                                            new Document("type", "embeddedDocuments")
-                                                .append("dynamic", true|false)
-                                                .append("fields",
-                                                    new Document("<field-name>",
-                                                        new Document("type", "<field-type>")
-                                                        // Add additional field mapping definitions here
-                                                    )
-                                                )
+                                        new Document() // <field-mapping-definition>
+                                        // ... additional fields 
                                     )
-                            )
+                                )
+                        )
+                        // ... additional fields 
+                    )
+            ).append("typeSets",
+                java.util.Arrays.asList(
+                    new Document("name", "<typeSet-name>")
+                        .append("types", java.util.Arrays.asList(
+                            new Document() // <field-type-configuration>
+                            // ... additional types 
+                        ))
+                    // ... additional typeSets
+                )
             );
             collection.createSearchIndex(indexName, searchIdx);
             System.out.println("New index name: " + indexName);

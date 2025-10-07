@@ -21,8 +21,8 @@ int main (void)
     }
 
     // Access your database and collection
-    database = mongoc_client_get_database(client, "sample_supplies");
-    collection = mongoc_database_get_collection(database, "sales");
+    database = mongoc_client_get_database(client, "sample_training");
+    collection = mongoc_database_get_collection(database, "companies");
 
     // Specify the command and the new index
     const char *cmd_str = BSON_STR({
@@ -33,7 +33,7 @@ int main (void)
               "mappings": {
                 "dynamic": false,
                 "fields": {
-                  "items": {
+                  "products": {
                     "type": "embeddedDocuments",
                     "dynamic": true
                   }

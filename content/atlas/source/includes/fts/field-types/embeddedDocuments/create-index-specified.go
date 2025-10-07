@@ -25,7 +25,7 @@ func main() {
 		}
 	}()
 
-	coll := client.Database("sample_supplies").Collection("sales")
+	coll := client.Database("sample_training").Collection("companies")
 	const indexName = "default"
 	opts := options.SearchIndexes().SetName(indexName).SetType("search")
 
@@ -34,14 +34,14 @@ func main() {
 		Definition: bson.D{
 			{"mappings", bson.D{
 				{"fields", bson.D{
-					{"items", bson.D{
+					{"offices", bson.D{
 						{"type", "embeddedDocuments"},
 						{"dynamic", false},
 						{"fields", bson.D{
-							{"name", bson.D{
+							{"country_code", bson.D{
 								{"type", "string"},
 							}},
-							{"tags", bson.D{
+							{"state_code", bson.D{
 								{"type", "string"},
 							}},
 						}},

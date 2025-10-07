@@ -6,8 +6,11 @@ You can use the |fts| ``embeddedDocuments`` type to index fields in
 documents and objects that are elements of an array. |fts| indexes
 embedded documents independent of their parent document. Each indexed
 document contains only fields that are part of the embedded document
-array element. You can use only the :ref:`embeddedDocument <embedded-document-ref>`
-operator to query fields indexed as ``embeddedDocuments`` type.
+array element. You can also :ref:`configure dynamic mappings
+<fts-configure-dynamic-mappings>` for fields that are part of the
+embedded document array element. You can use only the
+:ref:`embeddedDocument <embedded-document-ref>` operator to query fields
+indexed as ``embeddedDocuments`` type. 
 
 You can facet on date, numeric, and string fields in arrays of objects.
 When you facet on these fields, |fts| returns facet counts based on the
@@ -21,6 +24,11 @@ number of matching root documents.
    document, use the :ref:`document <bson-data-types-document>` type.  
 
 .. include:: /includes/fts/extracts/fts-ib-static-mappings.rst
+
+To index all fields in an embedded document including fields that
+|fts| doesn't dynamically index, define the fields in the index
+definition. For string faceting, |fts| counts string facets once for
+each document in the result set.
 
 ``embeddedDocuments`` Type Limitations 
 --------------------------------------

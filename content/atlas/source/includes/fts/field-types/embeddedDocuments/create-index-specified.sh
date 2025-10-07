@@ -1,19 +1,19 @@
 {
   "name": "default",
-  "collectionName": "sales",
-  "database": "sample_supplies",
+  "collectionName": "companies",
+  "database": "sample_training",
   "type": "search",
   "definition": {
     "mappings": {
       "fields": {
-        "items": {
+        "offices": {
           "type": "embeddedDocuments",
           "dynamic": false,
           "fields": {
-            "name": {
+            "country_code": {
               "type": "string"
             },
-            "tags": {
+            "state_code": {
               "type": "string"
             }
           }

@@ -17,8 +17,8 @@ int main() {
     mongocxx::uri uri("<connection-string>");
     mongocxx::client client(uri);
 
-    auto db = client["sample_supplies"];
-    auto collection = db["sales"];
+    auto db = client["sample_training"];
+    auto collection = db["companies"];
     auto siv = collection.search_indexes();
 
     // Create the MongoDB Search index definition for the embeddedDocuments field with specified fields
@@ -26,14 +26,14 @@ int main() {
     auto definition = make_document(
         kvp("mappings", make_document(
             kvp("fields", make_document(
-                kvp("items", make_document(
+                kvp("offices", make_document(
                     kvp("type", "embeddedDocuments"),
                     kvp("dynamic", false),
                     kvp("fields", make_document(
-                        kvp("name", make_document(
+                        kvp("country_code", make_document(
                             kvp("type", "string")
                         )),
-                        kvp("tags", make_document(
+                        kvp("state_code", make_document(
                             kvp("type", "string")
                         ))
                     ))

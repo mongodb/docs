@@ -8,7 +8,9 @@ curl --header "Authorization: Bearer ${ACCESS_TOKEN}" \
         "type": "search",
         "definition": {
             "mappings": { 
-              "dynamic": true|false,
+              "dynamic": true|false | {
+                "typeSet": "<type-set-name>"
+              },
               "fields": { 
                 "<field-name>": { 
                   "type": "document",
@@ -16,10 +18,24 @@ curl --header "Authorization: Bearer ${ACCESS_TOKEN}" \
                   "fields": {
                     "<sub-field-name>": {
                       <field-mapping-definition>
-                    }
+                    },
+                    ...
                   }
-                }
+                },
+                ...
               }
-            }
+            },
+            "typeSets": [
+              {
+                "name": <type-set-name>",
+                "types": [
+                  {
+                    "type": "<field-type>",
+                    ...
+                  },
+                  ...
+                ]
+              }
+            ]
         }
     }'

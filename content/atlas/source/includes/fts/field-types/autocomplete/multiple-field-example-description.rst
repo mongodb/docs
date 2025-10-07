@@ -1,10 +1,9 @@
 .. |sample-collection| replace:: ``sample_mflix.movies``
 
-.. include:: /includes/fts/extracts/fts-index-definition-egs-intro.rst 
-
-You can index a field as other types also by specifying the other 
-types in the array. For example, the following index definition 
-indexes the ``title`` field as the following types: 
+The following index definition example uses the 
+|sample-collection| collection to index a field as multiple types. The
+following index definition indexes the ``title`` field as the following
+types:
 
 - ``autocomplete`` type to support autocompletion for queries using
   the :ref:`autocomplete <autocomplete-ref>` operator.

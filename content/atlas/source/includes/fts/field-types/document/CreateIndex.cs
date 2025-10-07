@@ -15,13 +15,13 @@ var index =  new CreateSearchIndexModel(
   {
     { "mappings", new BsonDocument
       {
-        { "dynamic", true|false },
+        { "dynamic", <true|false> | new BsonDocument { { "typeset", "<type-set-name>" } } }, // "dynamic" can be a boolean or an object with "typeset" name
         { "fields", new BsonDocument
           {
             { "<field-name>", new BsonDocument
               {
                 { "type", "document" },
-                { "dynamic", true|false },
+                { "dynamic", <true|false> | new BsonDocument { { "typeset", "<type-set-name>" } } }, // "dynamic" can be a boolean or an object with "typeset" name
                 { "fields", new BsonDocument
                   {
                     { "<sub-field-name>", new BsonDocument
@@ -29,12 +29,33 @@ var index =  new CreateSearchIndexModel(
                         // Add field mapping definitions here
                       }
                     }
+                    // ... additional sub-fields 
                   }
                 }
               }
             }
+            // ... additional fields 
           }
         }
+      }
+    },
+    { "typeSets", new BsonArray
+      {
+        new BsonDocument
+        {
+          { "name", "<type-set-name>" },
+          { "types", new BsonArray
+            {
+              new BsonDocument
+              {
+                { "type", "<field-type>" }
+                // ... field type configuration 
+              }
+              // ... additional types 
+            }
+          }
+        }
+        // ... additional typeSets 
       }
     }
   });

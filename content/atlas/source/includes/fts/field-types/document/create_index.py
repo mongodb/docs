@@ -12,19 +12,38 @@ collection = database["<collection>"]
 search_index_model = SearchIndexModel(
     definition={
         "mappings": {
-            "dynamic": true|false,
+            "dynamic": true|false | {
+                "typeSet": "<type-set-name>"
+            },
             "fields": {
                 "<field-name>":{
                    "type": "document",
-                   "dynamic": true|false,
+                   "dynamic": true|false | {
+                       "typeSet": "<type-set-name>"
+                   },
                    "fields": {
                        "<sub-field-name>": {
                            # Add field mapping definitions here
-                       }
-                   }
-                }
+                       },
+                       ...
+                   },
+                },
+                ...
             }
         },
+        "typeSets": [
+            {
+                "name": "<type-set-name>",
+                "types": [
+                    {
+                        "type": "<field-type>",
+                        ...
+                    },
+                    ...
+                ]
+            },
+            ...,
+        ]
     },
     name="default",
 )

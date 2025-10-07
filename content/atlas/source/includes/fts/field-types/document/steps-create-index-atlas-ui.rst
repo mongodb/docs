@@ -19,17 +19,34 @@ Choose your preferred configuration method in the {+atlas-ui+} and then select t
 
          {
            "mappings": {
-             "dynamic": true|false,
+             "dynamic": true|false | {
+               "typeSet": "<typeSet-name>"
+             },
              "fields": {
                "<field-name>": {
                  "type": "document",
-                 "dynamic": true|false,
+                 "dynamic": true|false | {
+                   "typeSet": "<typeSet-name>"
+                 },
                  "fields": {    
                    "<sub-field-name>": {
                      <field-mapping-definition>
-                   }
+                   },
+                   ...
                  }
-               }
+               },
+               ...
              }
-           }
+           },
+           "typeSets": [
+             {
+               "name": "<typeSet-name>",
+               "types": [
+                {
+                  <field-type-definition>
+                }
+               ]
+             },
+             ...
+           ]
          }

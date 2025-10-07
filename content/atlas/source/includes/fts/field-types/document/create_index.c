@@ -29,19 +29,38 @@ int main(int argc, char *argv[]) {
                 "name": "default",
                 "definition": {
                     "mappings": {
-                        "dynamic": true|false,
+                        "dynamic": true|false | { // "dynamic" can be a boolean or an object with "typeSet" name
+                            "typeSet": "<type-set-name>"
+                        },
                         "fields": {
                             "<field-name>": {
                                 "type": "document",
-                                "dynamic": true|false,
+                                "dynamic": true|false | { // "dynamic" can be a boolean or an object with "typeSet" name
+                                   "typeSet": "<type-set-name>"
+                                },
                                 "fields": {
                                     "<sub-field-name>": {
                                         // Add field mapping definitions here
                                     }
-                                }
-                            }
+                                },
+                                ... // additional sub-fields
+                            },
+                            ... // additional fields
                         }
-                    }
+                    },
+                    "typeSets": [
+                        {
+                            "name": "<type-set-name>",
+                            "types": [
+                                {
+                                    "type": "<field-type>",
+                                    ...
+                                },
+                                ... // additional types
+                            ]
+                        },
+                        ... // additional typeSets
+                    ]
                 }
             }]
         }),

@@ -6,8 +6,8 @@ var uri = "<connection-string>";
 
 var client = new MongoClient(uri);
 
-var db = client.GetDatabase("sample_supplies");
-var collection = db.GetCollection<BsonDocument>("sales");
+var db = client.GetDatabase("sample_training");
+var collection = db.GetCollection<BsonDocument>("companies");
 
 // Create the MongoDB Search index definition for the embeddedDocuments field with dynamic mapping
 var index =  new CreateSearchIndexModel(
@@ -18,13 +18,13 @@ var index =  new CreateSearchIndexModel(
         { "dynamic", true },
         { "fields", new BsonDocument
           {
-            { "items", new BsonDocument
+            { "products", new BsonDocument
               {
                 { "dynamic", true },
                 { "type", "embeddedDocuments" }
               }
             },
-            { "purchaseMethod", new BsonDocument
+            { "category_code", new BsonDocument
               {
                 { "type", "token" }
               }

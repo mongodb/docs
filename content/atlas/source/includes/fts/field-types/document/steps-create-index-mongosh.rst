@@ -43,15 +43,31 @@ Define the Index for the |fts-field-type| Type
                   "fields": {
                     "<field-name>": {
                       "type": "document",
-                      "dynamic": true|false,
+                      "dynamic": true|false | { 
+                        "typeSet": "<typeSet-name>"
+                      },
                       "fields": {
                         "<sub-field-name>": {
                           <field-mapping-definition>
-                        }
+                        },
+                        ...
                       }
                     }
                   }
-                }
+                },
+                "typeSets": [
+                  {
+                    "name": "<typeSet-name>",
+                    "types": [
+                      {
+                        "type": "<field-type>",
+                        ...
+                      },
+                      ...
+                    ]
+                  },
+                  ...
+                ]
               }
             )
 

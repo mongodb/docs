@@ -19,17 +19,21 @@ An |fts| index is a data structure that maps documents from your {+cluster+}
 to the terms that are extracted from those documents.
 |fts| indexes enable efficient full-text searches of your database. 
 
-When you define a |fts| index, you can use :ref:`static or dynamic mappings <fts-field-mappings>` 
-to specify which fields you want to index in your collection. You can also use :ref:`analyzers <analyzers-ref>` 
-to define how |fts| extracts searchable tokens from ``string`` fields or query strings.
-Finally, you can apply additional configuration options in your index definition to improve the 
-performance and accuracy of your |fts| query, including options to :ref:`store source fields in your index <fts-stored-source-definition>`,  or
-:ref:`define synonym mappings <fts-field-mappings>`. 
+When you define an |fts| index, you can use :ref:`static or dynamic
+mappings <fts-field-mappings>` to specify which fields or field types
+you want to index in your collection. You can also use :ref:`analyzers
+<analyzers-ref>` to define how |fts| extracts searchable tokens from
+``string`` fields or query strings. Finally, you can apply additional
+configuration options in your index definition to improve the
+performance and accuracy of your |fts| query, including options to
+:ref:`store source fields in your index <fts-stored-source-definition>`,
+or :ref:`define synonym mappings <fts-field-mappings>`. 
 
-To learn how to define a |fts| index according to your query requirements, 
-see :ref:`ref-create-index`. Once you define your |fts| index, you can add the
-index to your {+cluster+} with the :ref:`Create an {+fts+} Index <create-fts-index>` tutorial.
-To learn how to view, edit, update, or delete your |fts| index, see :ref:`fts-manage-indexes`.
+To learn how to define a |fts| index according to your query
+requirements, see :ref:`ref-create-index`. Once you define your |fts|
+index, you can add the index to your {+cluster+} with the :ref:`Create
+an {+fts+} Index <create-fts-index>` tutorial. To learn how to view,
+edit, update, or delete your |fts| index, see :ref:`fts-manage-indexes`. 
 
 This page describes the |json| syntax and definition options for a |fts| index. 
 
@@ -71,7 +75,7 @@ Options
      - Description
 
    * - ``analyzer``
-     - string 
+     - String 
      - Optional 
      - Specifies the :ref:`analyzer <analyzers-ref>` to apply to 
        string fields when indexing. 
@@ -86,7 +90,7 @@ Options
        :ref:`ref-standard-analyzer`.
 
    * - ``analyzers``
-     - array of :ref:`custom-analyzers` 
+     - Array of :ref:`custom-analyzers` 
      - Optional 
      - Specifies the :ref:`custom-analyzers` to use in this index.
 
@@ -97,27 +101,48 @@ Options
        index.
 
    * - ``mappings.dynamic``
-     - boolean
+     - Boolean or Object
      - Optional
-     - Enables or disables dynamic mapping of fields for this index.
+     - Enables dynamic mapping of field types or configures fields
+       individually for this index. 
+
+       Value must be one of the following: 
+
+       - boolean - set to ``true`` to recursively index all indexable
+         field types or set to ``false`` to not dynamically index any of
+         the indexable field types. 
+       - object - specify the ``typeSet`` to use for recursively
+         indexing all indexable field types. To learn more, see
+         ``mappings.dynamic.typeSet``. 
      
-       If set to ``true``, |fts| recursively indexes all
-       :ref:`dynamically indexable <bson-data-chart>` fields.
-
-       If set to ``false``, you must specify individual fields to index 
-       using ``mappings.fields``.
-
-       If omitted, defaults to ``false``.
+       If omitted, defaults to ``false``. If set to ``false``, you must
+       define the individual fields to statically index using
+       ``mappings.fields``. 
+       
+       You can also configure fields individually to override default
+       settings using ``mappings.fields``. Settings for fields in
+       ``mappings.fields`` override default settings.
 
        .. include:: /includes/fts/facts/dynamic-flag-considerations.rst
+
+       To learn about the field types that you can enable for dynamic
+       mappings, see :ref:`bson-data-types`.
        
-       For example index configurations, see :ref:`Static Mapping Example
-       <index-config-example>` or :ref:`Combined Mapping Example <fts-combined-mapping-example>`
+       For example index configurations, see :ref:`index-config-example`
+
+   * - ``mappings.dynamic.typeset``
+     - Object
+     - Optional
+     - References the name of the ``typeSets`` object that contains the
+       list of field types to automatically and recursively index. 
+       
+       Mutually exclusive with ``mappings.dynamic`` boolean flag.
 
    * - ``mappings.fields``
      - document
      - Conditional
-     - Specifies the fields that you would like to index. Required only if dynamic mapping is disabled.
+     - Specifies the fields that you want to index. Required only
+       if dynamic mapping is ``false``. 
        
        .. include:: /includes/fts/facts/fact-fts-field-name-restriction.rst
        
@@ -141,7 +166,8 @@ Options
        exceeds two billion. The following values are valid: ``1``,
        ``2``, ``4``. If omitted, defaults to ``1``. 
 
-       To use index partitions, you must have search nodes deployed in your {+cluster+}.
+       To use index partitions, you must have search nodes deployed in
+       your cluster. 
 
    * - ``storedSource`` 
      - boolean or :ref:`Stored Source Definition  
@@ -168,11 +194,35 @@ Options
    * - ``synonyms`` 
      - array of :ref:`Synonym Mapping Definition <synonyms-ref>`
      - Optional 
-     - Synonym mappings to use in your index. 
+     - Specifies the synonym mappings to use in your index. 
 
        .. include:: /includes/fts/facts/fact-fts-synonym-mapping-limitation.rst 
         
        To learn more, see :ref:`synonyms-ref`.
+
+   * - ``typeSets`` 
+     - Array of objects
+     - Optional 
+     - Specifies the :ref:`typeSets <fts-configure-dynamic-mappings>` to
+       use in this index for dynamic mappings.
+
+   * - ``typeSets.[n].name`` 
+     - String
+     - Required 
+     - Specifies the name of the ``typeSet`` configuration.  
+
+   * - ``typeSets.[n].types`` 
+     - Array of objects
+     - Required 
+     - Specifies the field types, one per object, to index automatically
+       using dynamic mappings. 
+
+   * - ``typeSets.[n].types.[n].type`` 
+     - String
+     - Required 
+     - Specifies the field type to automatically index. To
+       learn more about the field types that you can configure for
+       dynamic mapping, see :ref:`fts-configure-dynamic-mappings`. 
 
 .. _fts-troubleshoot-indexes: 
 

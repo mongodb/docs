@@ -1,0 +1,35 @@
+db.companies.createSearchIndex(
+  "default", 
+  "mappings": {
+    "dynamic": false,
+    "fields": {
+      "relationships": {
+        "type": "embeddedDocuments",
+        "dynamic": {
+          "typeSet": "stringBooleanIndex"
+        },
+        "fields": {
+          "person": {
+            "type": "document",
+            "dynamic": {
+              "typeSet": "stringBooleanIndex"
+            }
+          }
+        }
+      }
+    }
+  },
+  "typeSets": [
+    {
+      "name": "personIndex",
+      "types": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    }
+  ]
+)

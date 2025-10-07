@@ -39,13 +39,32 @@ Define the Index for the |fts-field-type| Type
               "default",
               "definition": {
                 "mappings": {
-                  "fields": {
-                    "items": {
-                      "type": "embeddedDocuments",
-                      "dynamic": true
-                    }
+                  "dynamic": true|false {
+                    "typeSet": "<typeSet-name>"
                   }
-                }
+                  "fields": {
+                    "<field-name>": {
+                      "type": "embeddedDocuments",
+                      "dynamic": true|false {
+                        "typeSet": "<typeSet-name>"
+                      }
+                    },
+                    ...
+                  }
+                },
+                "typeSets": [
+                  {
+                    "name": "<typeSet-name>",
+                    "types": [
+                     {
+                       "type": "<field-type>",
+                       ...
+                     },
+                     ...
+                    ]
+                  },
+                  ...
+                ]
               }
             )
 

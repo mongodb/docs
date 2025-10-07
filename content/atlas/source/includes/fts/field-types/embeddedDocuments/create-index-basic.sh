@@ -1,12 +1,12 @@
 {
   "name": "default",
-  "collectionName": "sales",
-  "database": "sample_supplies",
+  "collectionName": "companies",
+  "database": "sample_training",
   "type": "search",
   "definition": {
     "mappings": {
       "fields": {
-        "items": {
+        "products": {
           "type": "embeddedDocuments",
           "dynamic": true
         }
@@ -14,4 +14,3 @@
     }
   }
 }
-

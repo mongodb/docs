@@ -1,10 +1,10 @@
-db.sales.createSearchIndex(
+db.companies.createSearchIndex(
   "default",
   {
     "mappings": { 
       "dynamic": false,
       "fields": {
-        "items": {
+        "products": {
           "type": "embeddedDocuments",
           "dynamic": true
         }

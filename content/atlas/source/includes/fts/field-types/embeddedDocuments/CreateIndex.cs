@@ -15,26 +15,48 @@ var index =  new CreateSearchIndexModel(
   {
     { "mappings", new BsonDocument
       {
-        { "dynamic", true|false },
+        // "dynamic" can be a boolean or an object with "typeSet" name
+        { "dynamic", <true|false> | new BsonDocument { { "typeSet", "<typeSet-name>" } } },
         { "fields", new BsonDocument
           {
             { "<field-name>", new BsonDocument
               {
                 { "type", "embeddedDocuments" },
-                { "dynamic", true|false },
+                // "dynamic" can be a boolean or an object with "typeSet" name
+                { "dynamic", <true|false> | new BsonDocument { { "typeSet", "<typeSet-name>" } } },
                 { "fields", new BsonDocument
                   {
                     { "<field-name>", new BsonDocument
                       {
-                        <field-mapping-definition>
+                        // <field-mapping-definition>
                       }
                     }
+                    // ... additional fields 
                   }
                 }
               }
             }
+            // ... additional fields 
           }
         }
+      }
+    },
+    { "typeSets", new BsonArray
+      {
+        new BsonDocument
+        {
+          { "name", "<typeSet-name>" },
+          { "types", new BsonArray
+            {
+              new BsonDocument
+              {
+                // <field-type-configuration>
+              }
+              // ... additional types 
+            }
+          }
+        }
+        // ... additional typeSets 
       }
     }
   });

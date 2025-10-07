@@ -25,19 +25,39 @@ int main() {
     auto name = "default";
     auto definition = make_document(
         kvp("mappings", make_document(
-            kvp("dynamic", true|false),
+            // "dynamic" can be a boolean or an object with "typeSet" name
+            kvp("dynamic", <true|false> | make_document(
+                kvp("typeSet", "<typeSet-name>")
+            )),
             kvp("fields", make_document(
                 kvp("<field-name>", make_document(
                     kvp("type", "embeddedDocuments"),
-                    kvp("dynamic", true|false),
+                    // "dynamic" can be a boolean or an object with "typeSet" name
+                    kvp("dynamic", <true|false> | make_document(
+                        kvp("typeSet", "<typeSet-name>")
+                    )),
                     kvp("fields", make_document(
                         kvp("<field-name>", make_document(
-                            <field-mapping-definition>
+                            // <field-mapping-definition>
                         ))
+                        // ... additional fields 
                     ))
                 ))
+                // ... additional fields 
             ))
-        ))
+        )),
+        kvp("typeSets", bsoncxx::builder::basic::array{
+            make_document(
+                kvp("name", "<typeSet-name>"),
+                kvp("types", bsoncxx::builder::basic::array{
+                    make_document(
+                        // <field-type-configuration>
+                    )
+                    // ... additional types 
+                })
+            )
+            // ... additional typeSets 
+        })
     );
     auto model = mongocxx::search_index_model(name, definition.view());
 

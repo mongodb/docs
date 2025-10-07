@@ -1,16 +1,16 @@
-db.sales.createSearchIndex(
+db.companies.createSearchIndex(
   "default", 
   {
     "mappings": {
       "fields": {
-        "items": {
+        "offices": {
           "type": "embeddedDocuments",
           "dynamic": false,
           "fields": {
-            "name": {
+            "country_code": {
               "type": "string"
             },
-            "tags": {
+            "state_code": {
               "type": "string"
             }
           }

@@ -1,14 +1,14 @@
-db.sales.createSearchIndex(
+db.companies.createSearchIndex(
   "default", 
   {
     "mappings": {
       "dynamic": true,
       "fields": {
-        "items": {
+        "products": {
           "dynamic": true,
           "type": "embeddedDocuments"
         },
-        "purchaseMethod": {
+        "category_code": {
           "type": "token"
         }
       }

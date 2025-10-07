@@ -5,17 +5,22 @@ Try an Example for the |fts-field-type| Type
 
 .. include:: /includes/fts/field-types/configure-and-run.rst
 
-.. tabs::  
+When defining the index: 
 
-   .. tab:: Basic Example
-      :tabid: example-1
+- For a guided experience, select Visual Editor.
+- To edit the raw |json| index definition, select |json| Editor.
 
-      .. include:: /includes/fts/field-types/embeddedDocuments/basic-example-description.rst
+.. collapsible::
+   :heading: Basic Example
+   :sub_heading: Automatically index all dynamically indexable fields inside the array of objects.
+   :expanded: false
 
-      .. collapsible::
-         :heading: Visual Editor
-         :sub_heading: For a guided experience, select Visual Editor. 
-         :expanded: false
+   .. include:: /includes/fts/field-types/embeddedDocuments/basic-example-description.rst
+
+   .. tabs::
+
+      .. tab:: Visual Editor
+         :tabid: vib
 
          1. In the :guilabel:`Add Field Mapping` window, select
             :guilabel:`items` from the :guilabel:`Field Name`
@@ -26,25 +31,28 @@ Try an Example for the |fts-field-type| Type
             dynamic mapping, if needed.
          #. Click :guilabel:`Add`.
 
-      .. collapsible::
-         :heading: JSON Editor
-         :sub_heading: To edit the raw index definition, select JSON Editor. 
-         :expanded:
+      .. tab:: JSON Editor
+         :tabid: jib
 
          .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-basic-ui.json
             :language: json
             :linenos:
             :copyable: true 
 
-   .. tab:: Dynamic Index Example
-      :tabid: example-2
+.. collapsible::
+   :heading: Dynamic Index Example
+   :sub_heading: Combine dynamic mappings with static mappings to index nested fields as different field types.
+   :expanded: false
 
-      .. include:: /includes/fts/field-types/embeddedDocuments/dynamic-example-description.rst
+   Enable Dynamic Indexing  
+   ~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. collapsible::
-         :heading: Visual Editor
-         :sub_heading: For a guided experience, select Visual Editor. 
-         :expanded: false
+   .. include:: /includes/fts/field-types/embeddedDocuments/dynamic-example-description.rst
+
+   .. tabs::
+
+      .. tab:: Visual Editor
+         :tabid: vib
 
          Click :guilabel:`Add Field` in the :guilabel:`Field
          Mappings` section and add the following fields by
@@ -64,25 +72,46 @@ Try an Example for the |fts-field-type| Type
             * - ``purchaseMethod``
               - Click the dropdown and select ``Token``.
 
-      .. collapsible::
-         :heading: JSON Editor
-         :sub_heading: To edit the raw index definition, select JSON Editor. 
-         :expanded: false
+      .. tab:: JSON Editor
+         :tabid: jib
 
          .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-dynamic-ui.json
             :language: json
             :linenos:
             :copyable: true 
 
-   .. tab:: Specified Fields Example
-      :tabid: example-3
+   Configure Dynamic Indexing 
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. include:: /includes/fts/field-types/embeddedDocuments/specified-fields-example-description.rst
+   .. include:: /includes/fts/field-types/embeddedDocuments/typeset-example-description.rst
 
-      .. collapsible::
-         :heading: Visual Editor
-         :sub_heading: For a guided experience, select Visual Editor. 
-         :expanded: false
+   .. tabs::
+
+      .. tab:: Visual Editor
+         :tabid: vib
+
+         You can't configure ``typeSets`` from the {+atlas-ui+}
+         :guilabel:`Visual Editor`.
+
+      .. tab:: JSON Editor
+         :tabid: jib
+
+         .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-typeset-ui.json 
+            :language: json
+            :linenos:
+            :copyable: true 
+
+.. collapsible::
+   :heading: Specified Fields Example
+   :sub_heading: Index only specific fields in the array of objects. 
+   :expanded: false
+
+   .. include:: /includes/fts/field-types/embeddedDocuments/specified-fields-example-description.rst
+
+   .. tabs::
+
+      .. tab:: Visual Editor
+         :tabid: vib
 
          1. In the :guilabel:`Add Field Mapping` window, select
             :guilabel:`items` from the :guilabel:`Field Name` dropdown. 
@@ -111,10 +140,8 @@ Try an Example for the |fts-field-type| Type
                  - Click the :guilabel:`Data Type` dropdown and select
                    :guilabel:`String`.
 
-      .. collapsible::
-         :heading: JSON Editor
-         :sub_heading: To edit the raw index definition, select JSON Editor. 
-         :expanded: false
+      .. tab:: JSON Editor
+         :tabid: jib
 
          .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-specified-ui.json
             :language: json

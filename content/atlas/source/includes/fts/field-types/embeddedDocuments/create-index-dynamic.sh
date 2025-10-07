@@ -1,22 +1,22 @@
 
 {
   "name": "default",
-  "collectionName": "sales",
-  "database": "sample_supplies",
+  "collectionName": "companies",
+  "database": "sample_training",
   "type": "search",
   "definition": {
     "mappings": {
-        "dynamic": true,
-        "fields": {
-        "items": {
-            "dynamic": true,
-            "type": "embeddedDocuments"
+      "dynamic": true,
+      "fields": {
+        "products": {
+          "dynamic": true,
+          "type": "embeddedDocuments"
         },
-        "purchaseMethod": {
-            "type": "token"
+        "category_code": {
+          "type": "token"
         }
-        }
+      }
     }
-    }
+  }
 }
 
