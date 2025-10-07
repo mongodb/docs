@@ -84,6 +84,7 @@ import BlockQuote, { type BlockQuoteProps } from '../block-quote';
 import Emphasis, { type EmphasisProps } from '../emphasis';
 import SubstitutionReference, { type SubstitutionReferenceProps } from '../substitution-reference';
 import VersionModified, { type VersionModifiedProps } from '../version-modified';
+import Extract, { type ExtractProps } from '../extract';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -177,7 +178,7 @@ const getComponent = (() => {
         // 'deprecated-version-selector': DeprecatedVersionSelector,
         // describe: Describe,
         emphasis: Emphasis as React.ComponentType<SupportedComponentProps>,
-        // extract: Extract,
+        extract: Extract as React.ComponentType<SupportedComponentProps>,
         // field: Field,
         // field_list: FieldList,
         // figure: Figure,
@@ -295,6 +296,7 @@ type SupportedComponentProps =
   | IncludeProps
   | ButtonProps
   | EmphasisProps
+  | ExtractProps
   | VersionModifiedProps
   | SubstitutionReferenceProps;
 
@@ -377,6 +379,9 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('paragraph')) {
     const paragraphNode = nodeData as ParagraphNode;
     return <ComponentType nodeChildren={paragraphNode.children} parentNode={props.parentNode} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('extract')) {
+    const extractNode = nodeData as ParentNode;
+    return <ComponentType nodeChildren={extractNode.children} {...propsToDrill} />;
   } else if (ComponentType === getComponent('introduction')) {
     const introductionNode = nodeData as ParentNode;
     return <ComponentType nodeChildren={introductionNode.children} {...propsToDrill} />;
