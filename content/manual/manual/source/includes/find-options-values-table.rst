@@ -60,6 +60,11 @@
       - Whether the server should timeout the cursor 
         after a period of inactivity (by default 10 minutes).
 
+    * - projection
+      - Specifies the fields to return in the documents that match the query filter. 
+
+        .. include:: /includes/find-projection-arg-option-diff.rst
+
     * - readConcern
       - Specifies the read concern level for the query.
 
