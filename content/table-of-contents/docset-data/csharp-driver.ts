@@ -1,6 +1,7 @@
 import type { TocItem } from "../types";
+import docsVersions from "../version-arrays/drivers/csharp-versions";
 
-const outdatedVersions = ["v2.28", "v2.29", "v2.30"];
+const outdatedVersions = docsVersions.before("v2.30", {inclusive: true});
 
 const tocData: TocItem[] = [
   {
@@ -393,6 +394,12 @@ const tocData: TocItem[] = [
             contentSite: "csharp",
             url: "/docs/drivers/csharp/:version/security/tls-ssl",
             versions: { excludes: outdatedVersions },
+          },
+          {
+            label: "SOCKS5 Proxy",
+            contentSite: "csharp",
+            url: "/docs/drivers/csharp/:version/security/socks",
+            versions: { includes: docsVersions.after("v3.5", {inclusive: true}) },
           },
         ]
       },
