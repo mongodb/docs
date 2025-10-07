@@ -66,7 +66,7 @@ const tocData: TocItem[] = [
           {
             label: "Downgrade 8.2 to 8.0",
             contentSite: "docs",
-            url: "/docs/:version/release-notes/8.0-downgrade",
+            url: "/docs/:version/release-notes/8.2-downgrade",
           },
           {
             label: "Changelog",
