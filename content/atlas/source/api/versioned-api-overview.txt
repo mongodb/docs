@@ -64,7 +64,7 @@ Versioned {+atlas-admin-api+} Lifecycle
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Starting in Versioned {+atlas-admin-api+} (v2), {+atlas-admin-api+}
-endpoints go through the ``stable``, ``deprecated``, and ``sunset``
+endpoints go through the ``preview``, ``stable``, ``deprecated``, and ``sunset``
 stages in the lifecycle.  
 
 .. important:: 
@@ -76,35 +76,23 @@ stages in the lifecycle.
    {+atlas-admin-api+} resources in its first release on 2023-02-01 in
    ``stable`` state. 
 
-.. HIDDEN FOR INITIAL RELEASE 
+.. expression:: preview 
 
-   .. expression:: preview 
-
-   |service| exposes all new endpoints for preview. |service| supports
+   |service| supports
    endpoints in this state for evaluation, testing, and development
    purposes only. Don't use {+atlas-admin-api+} endpoints in preview in
    your production environment as endpoints in preview might include   
    breaking and non-breaking changes. {+atlas-admin-api+} endpoints in
-   preview also have a short deprecation window of approximately three weeks,
+   preview also have a short deprecation window of approximately 30 days or shorter,
    after which the endpoints could move to either ``stable`` or
-   ``deprecated`` state. |service| provides documentation, with 
-   :ref:`changelogs <versioned-api-changelog>`, for all preview endpoints. 
+   ``deprecated`` state. 
 
    To use |api| endpoints in preview, send a request to the resource and
    include the following HTTP header: 
 
    .. code-block:: shell 
 
-      Accept: application/vnd.atlas.<yyyy-mm-dd>~preview
-
-   where the value for ``<yyyy-mm-dd>`` is the release date of the
-   resource as listed in the documentation and the :ref:`changelog
-   <versioned-api-changelog>`. 
-   
-   |service| returns `406 Not Acceptable
-   <https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/406>`__
-   error response code if your request omits or specifies a revision
-   that doesn't exist in the header. 
+      Accept: application/vnd.atlas.preview+json
 
 .. expression:: stable 
 
@@ -187,47 +175,62 @@ stages in the lifecycle.
    <https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/410>`__  
    error response code. 
 
-.. example:: 
+Illustrated API Resource Lifecycle 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   The following example illustrates the lifecycle of a resource and its
-   impact on versioning. 
+The following example illustrates the lifecycle of a resource and its
+impact on versioning. 
 
-   .. figure:: /images/admin-api-versioning-strategy.png
-      :alt: Illustration of admin API versioning lifecycle
-      :figwidth: 650px
+.. figure:: /images/admin-api-versioning-strategy-2.png
+   :alt: Illustration of admin API versioning lifecycle for a specific API resource.
+   :figwidth: 650px
 
-   The preceding illustration shows the following: 
+The preceding illustration shows the following: 
 
-   .. list-table:: 
-      :stub-columns: 1
+.. list-table::
+   :widths: 20 35 45
+   :stub-columns: 1
 
-      * - Release Date 
-        - Release Details 
-        - API Lifecyle 
+   * - **Release Date**
+     - **Release Details**
+     - **API Lifecycle**
 
-      * - 2023-06-01 
-        - First release of a resource in the Versioned API.
-          It has a deprecation period of 12 months. 
-        - - ``#stable``: ``application/vnd.atlas.2023-06-01+json``
-          - ``#deprecated``: None 
-          - ``#sunset``: None 
+   * - 2024-01-01
+     - - A new stable version is released.
+     - - ``#stable``: ``application/vnd.atlas.2024-01-01+json``
+
+   * - 2025-01-01
+     - - A new stable version is released. 
+       - The ``2024-01-01`` version is deprecated.
+     - - ``#deprecated``: ``application/vnd.atlas.2024-01-01+json``
+       - ``#stable``: ``application/vnd.atlas.2025-01-01+json`` 
+
+   * - 2026-01-01
+     - - The ``2024-01-01`` version is sunset. 
+       - A new preview version is introduced, and then deprecated within the year.
+     - - ``#sunset``: ``application/vnd.atlas.2024-01-01+json``
+       - ``#stable``: ``application/vnd.atlas.2025-01-01+json``
+       - ``#preview``: ``application/vnd.atlas.preview+json``
+
+   * - 2027-01-01
+     - - A new stable version is released. 
+       - The ``2025-01-01`` version is deprecated. 
+       - The preview version is sunset.
+     - - ``#sunset``: ``application/vnd.atlas.2024-01-01+json``
+       - ``#deprecated``: ``application/vnd.atlas.2025-01-01+json``
+       - ``#sunset``: ``application/vnd.atlas.preview+json``
+       - ``#stable``: ``application/vnd.atlas.2027-01-01+json``
       
-      * - 2024-06-01
-        - New resource version created, older versions are automatically
-          deprecated.
-        - - ``#stable``: ``application/vnd.atlas.2024-06-01+json``
-          - ``#deprecated``: ``application/vnd.atlas.2023-06-01+json`` 
-          - ``#sunset``: None 
+   * - 2028-01-01
+     - - A new stable version is released. 
+       - The ``2025-01-01`` version is sunset.
+     - - ``#sunset``:
 
-      * - 2025-01-01
-        - New stable version created, with short sunset 
-        - - ``#stable``: ``application/vnd.atlas.2025-01-01+json``
-          - ``#deprecated``: 
-            
-            - ``application/vnd.atlas.2024-12-01~preview+json``
-            - ``application/vnd.atlas.2024-06-01+json``
-          
-          - ``#sunset``: ``application/vnd.atlas.2023-06-01+json`` 
+         - ``application/vnd.atlas.2024-01-01+json``
+         - ``application/vnd.atlas.2025-01-01+json``
+         - ``application/vnd.atlas.preview+json``
+       - ``#stable``: ``application/vnd.atlas.2027-01-01+json``
+
 
 |api| Endpoints 
 ~~~~~~~~~~~~~~~
