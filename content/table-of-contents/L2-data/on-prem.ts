@@ -1052,7 +1052,6 @@ const tocData: TocItem[] = [
   {
     label: "Storage",
     contentSite: "docs",
-    url: "/docs/:version/core/self-managed-storage",
     collapsible: true,
     items: [
       {
