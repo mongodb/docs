@@ -808,6 +808,7 @@ type HorizontalListNodeOptions = {
 
 interface HorizontalListNode extends Directive<HorizontalListNodeOptions> {
   name: 'hlist';
+  children: [ListNode];
   options: HorizontalListNodeOptions;
 }
 

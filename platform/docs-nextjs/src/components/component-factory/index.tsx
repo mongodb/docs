@@ -28,6 +28,7 @@ import type {
   BlockQuoteNode,
   EmphasisNode,
   SubstitutionReferenceNode,
+  HorizontalListNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
 import Admonition, { type AdmonitionProps } from '../admonition';
@@ -84,6 +85,7 @@ import BlockQuote, { type BlockQuoteProps } from '../block-quote';
 import Emphasis, { type EmphasisProps } from '../emphasis';
 import SubstitutionReference, { type SubstitutionReferenceProps } from '../substitution-reference';
 import VersionModified, { type VersionModifiedProps } from '../version-modified';
+import HorizontalList, { type HorizontalListProps } from '../horizontal-list';
 import Extract, { type ExtractProps } from '../extract';
 
 const IGNORED_NAMES = new Set([
@@ -187,7 +189,7 @@ const getComponent = (() => {
         // glossary: Glossary,
         // 'guide-next': GuideNext,
         // heading: Heading,
-        // hlist: HorizontalList,
+        hlist: HorizontalList as React.ComponentType<SupportedComponentProps>,
         // image: Image,
         include: Include as React.ComponentType<SupportedComponentProps>,
         introduction: Introduction as React.ComponentType<SupportedComponentProps>,
@@ -298,6 +300,7 @@ type SupportedComponentProps =
   | EmphasisProps
   | ExtractProps
   | VersionModifiedProps
+  | HorizontalListProps
   | SubstitutionReferenceProps;
 
 type RoleComponentProps =
@@ -409,6 +412,9 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('include') || ComponentType === getComponent('literalinclude')) {
     const includeNode = nodeData as ParentNode;
     return <ComponentType nodeChildren={includeNode.children} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('hlist')) {
+    const hlistNode = nodeData as HorizontalListNode;
+    return <ComponentType nodeChildren={hlistNode.children} columns={hlistNode.options.columns} {...propsToDrill} />;
   } else if (ComponentType === VersionModified) {
     const versionModifiedNode = nodeData as Directive;
     return (
