@@ -5,6 +5,7 @@ import { palette } from '@leafygreen-ui/palette';
 import type { ProductUpdateEntry } from '../services/contentstack';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import useScreenSize from '@/hooks/use-screen-size';
 import { SearchInput } from '@leafygreen-ui/search-input';
 import { theme } from '@/styles/theme';
 import type { FilterCategory } from '../consts/filters';
@@ -191,6 +192,7 @@ const filterToggleTextStyle = css`
 `;
 
 const Updates = ({ updates }: UpdatesProps) => {
+  const { isDesktop, isTablet } = useScreenSize();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilters, setSelectedFilters] = useState<Record<FilterCategory, string[]>>({
@@ -203,8 +205,7 @@ const Updates = ({ updates }: UpdatesProps) => {
     category: false,
     product: false,
   });
-  const [isDesktop, setIsDesktop] = useState(false);
-  const [isTablet, setIsTablet] = useState(false);
+
   const [currentPage, setCurrentPage] = useState<number>(1);
   // Get the first 12 initially
   const itemsPerPage = 12;
@@ -238,20 +239,6 @@ const Updates = ({ updates }: UpdatesProps) => {
       });
     });
   };
-
-  // useEffect for setting dividing the update articles into different pages
-
-  useEffect(() => {
-    const checkScreenSize = () => {
-      setIsDesktop(window.innerWidth >= 1200);
-      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1200);
-    };
-
-    checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-
-    return () => window.removeEventListener('resize', checkScreenSize);
-  }, []);
 
   useEffect(() => {
     // Filter updates based on search term and selected filters
@@ -335,8 +322,8 @@ const Updates = ({ updates }: UpdatesProps) => {
 
   // Check if category should show toggle
   const shouldShowToggle = (filters: readonly string[]) => {
-    // Only show toggle on mobile and tablet, not on desktop
-    return !isDesktop && filters.length > 10;
+    // Only show toggle on desktop, mobile, and tablet, not on large desktop
+    return isDesktop && filters.length > 10;
   };
 
   // Get limited filters based on screen size and expansion state
@@ -344,18 +331,18 @@ const Updates = ({ updates }: UpdatesProps) => {
     const isExpanded = expandedCategories[category];
     if (isExpanded) return filters;
 
-    // On desktop, always return all filters
     // On mobile/tablet, return limited filters for toggle functionality
-    if (isDesktop) {
-      return filters;
+    if (isTablet) {
+      return filters.slice(0, 5);
     }
 
-    if (isTablet) {
+    // Desktop return limited filters for toggle functionality
+    if (isDesktop) {
       return filters.slice(0, 10);
     }
 
-    // Mobile/tablet: return limited filters
-    return filters.slice(0, 5);
+    // On large desktops, always return all filters
+    return filters;
   };
 
   const filteredUpdatesIndex = currentPage - 1;
