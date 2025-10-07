@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for resourcePolicies
 
@@ -73,4 +73,3 @@ Related Commands
    listOrgResourcePolicies </command/atlas-api-resourcePolicies-listOrgResourcePolicies>
    updateOrgResourcePolicy </command/atlas-api-resourcePolicies-updateOrgResourcePolicy>
    validateAtlasResourcePolicy </command/atlas-api-resourcePolicies-validateAtlasResourcePolicy>
-

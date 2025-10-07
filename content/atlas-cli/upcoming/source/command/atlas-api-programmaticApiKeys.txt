@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for programmaticApiKeys
 
@@ -87,4 +87,3 @@ Related Commands
    removeProjectApiKey </command/atlas-api-programmaticApiKeys-removeProjectApiKey>
    updateApiKey </command/atlas-api-programmaticApiKeys-updateApiKey>
    updateApiKeyRoles </command/atlas-api-programmaticApiKeys-updateApiKeyRoles>
-

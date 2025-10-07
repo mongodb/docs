@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for streams
 
@@ -119,4 +119,3 @@ Related Commands
    stopStreamProcessor </command/atlas-api-streams-stopStreamProcessor>
    updateStreamConnection </command/atlas-api-streams-updateStreamConnection>
    updateStreamInstance </command/atlas-api-streams-updateStreamInstance>
-

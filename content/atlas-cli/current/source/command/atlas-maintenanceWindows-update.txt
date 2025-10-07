@@ -44,7 +44,7 @@ Options
      - false
      - Day of the week that you want the maintenance window to start, as a 1-based integer. Use 1 for Sunday, 2 for Monday, 3 for Tuesday, 4 for Wednesday, 5 for Thursday, 6 for Friday, or 7 for Saturday.
    * - -h, --help
-     - 
+     -
      - false
      - help for update
    * - --hourOfDay
@@ -60,7 +60,7 @@ Options
      - false
      - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
    * - --startASAP
-     - 
+     -
      - false
      - Flag that starts maintenance immediately upon receiving this request. This flag resets to false after Atlas completes maintenance.
 
@@ -88,7 +88,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Maintenance window updated.
-   
+
 
 Examples
 --------

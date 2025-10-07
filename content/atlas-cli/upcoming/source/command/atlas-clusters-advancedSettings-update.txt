@@ -56,43 +56,43 @@ Options
      - Required
      - Description
    * - --disableFailIndexKeyTooLong
-     - 
+     -
      - false
      - Flag that disables writing documents that exceed 1024 bytes without indexing.
 
        Mutually exclusive with --enableFailIndexKeyTooLong.
    * - --disableJavascript
-     - 
+     -
      - false
      - Flag that disables the execution of operations that perform server-side executions of JavaScript.
 
        Mutually exclusive with --enableJavascript.
    * - --disableTableScan
-     - 
+     -
      - false
      - Flag that disables executing any query that requires a collection scan to return results.
 
        Mutually exclusive with --enableTableScan.
    * - --enableFailIndexKeyTooLong
-     - 
+     -
      - false
      - Flag that enables writing documents that exceed 1024 bytes without indexing.
 
        Mutually exclusive with --disableFailIndexKeyTooLong.
    * - --enableJavascript
-     - 
+     -
      - false
      - Flag that enables the execution of operations that perform server-side executions of JavaScript.
 
        Mutually exclusive with --disableJavascript.
    * - --enableTableScan
-     - 
+     -
      - false
      - Flag that enables executing any query that requires a collection scan to return results.
 
        Mutually exclusive with --disableTableScan.
    * - -h, --help
-     - 
+     -
      - false
      - help for update
    * - --oplogMinRetentionHours
@@ -156,7 +156,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Updating advanced configuration settings of your cluster'.
-   
+
 
 Examples
 --------
@@ -167,7 +167,7 @@ Examples
    # Update the minimum oplog size for a cluster:
    atlas cluster advancedSettings update <clusterName> --projectId <projectId> --oplogSizeMB 1000
 
-   
+
 .. code-block::
    :copyable: false
 

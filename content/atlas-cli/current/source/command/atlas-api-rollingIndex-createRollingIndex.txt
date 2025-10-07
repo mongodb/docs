@@ -111,12 +111,14 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-         .. literalinclude:: /includes/examples/atlas-api-rollingIndex-createRollingIndex-2023-01-01-2dspere_index-payload.json
-            :language: shell
+      .. literalinclude:: /includes/examples/atlas-api-rollingIndex-createRollingIndex-2023-01-01-2dspere_index-payload.json
+         :language: shell
+
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-rollingIndex-createRollingIndex-2023-01-01-2dspere_index.sh
          :language: shell
+
    .. tab:: Example 1
       :tabid: 2023-01-01_partial_index
 
@@ -124,12 +126,14 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-         .. literalinclude:: /includes/examples/atlas-api-rollingIndex-createRollingIndex-2023-01-01-partial_index-payload.json
-            :language: shell
+      .. literalinclude:: /includes/examples/atlas-api-rollingIndex-createRollingIndex-2023-01-01-partial_index-payload.json
+         :language: shell
+
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-rollingIndex-createRollingIndex-2023-01-01-partial_index.sh
          :language: shell
+
    .. tab:: Example 2
       :tabid: 2023-01-01_sparse_index
 
@@ -137,8 +141,9 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-         .. literalinclude:: /includes/examples/atlas-api-rollingIndex-createRollingIndex-2023-01-01-sparse_index-payload.json
-            :language: shell
+      .. literalinclude:: /includes/examples/atlas-api-rollingIndex-createRollingIndex-2023-01-01-sparse_index-payload.json
+         :language: shell
+
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-rollingIndex-createRollingIndex-2023-01-01-sparse_index.sh

@@ -36,7 +36,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - --projectId
@@ -69,5 +69,4 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    NAME     TYPE     MDB VER            STATE
    <Name>   <Type>   <MongoDBVersion>   <StateName>
-   
 

@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for events
 
@@ -58,4 +58,3 @@ Related Commands
 
    organizations </command/atlas-events-organizations>
    projects </command/atlas-events-projects>
-

@@ -38,7 +38,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - --limit
@@ -46,7 +46,7 @@ Options
      - false
      - Number of items per results page, up to a maximum of 500. If you have more than 500 results, specify the --page option to change the results page. This value defaults to 100.
    * - --omitCount
-     - 
+     -
      - false
      - Flag that indicates whether the JSON response returns the total number of items (totalCount) in the JSON response.
    * - --orgId
@@ -87,7 +87,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     FIRST NAME    LAST NAME    USERNAME
    <Id>   <FirstName>   <LastName>   <Username>
-   
+
 
 Examples
 --------

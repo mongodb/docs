@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for alertConfigurations
 
@@ -75,4 +75,3 @@ Related Commands
    listAlertConfigurationsByAlertId </command/atlas-api-alertConfigurations-listAlertConfigurationsByAlertId>
    toggleAlertConfiguration </command/atlas-api-alertConfigurations-toggleAlertConfiguration>
    updateAlertConfiguration </command/atlas-api-alertConfigurations-updateAlertConfiguration>
-

@@ -32,7 +32,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for globalClusters
 
@@ -70,4 +70,3 @@ Related Commands
    deleteAllCustomZoneMappings </command/atlas-api-globalClusters-deleteAllCustomZoneMappings>
    deleteManagedNamespace </command/atlas-api-globalClusters-deleteManagedNamespace>
    getManagedNamespace </command/atlas-api-globalClusters-getManagedNamespace>
-

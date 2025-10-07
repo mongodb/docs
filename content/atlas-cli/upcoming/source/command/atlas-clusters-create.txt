@@ -65,11 +65,11 @@ Options
 
        Mutually exclusive with --file. This value defaults to "clusterWideScaling".
    * - --backup
-     - 
+     -
      - false
      - Flag that enables Continuous Cloud Backup for your deployment. This option is unavailable for clusters smaller than M10.
    * - --biConnector
-     - 
+     -
      - false
      - Flag that enables BI Connector for Atlas on the deployment.
 
@@ -81,7 +81,7 @@ Options
 
        Mutually exclusive with --file. This value defaults to 2.
    * - --enableTerminationProtection
-     - 
+     -
      - false
      - Enables termination protection for your cluster. You can't delete a cluster with termination protection enabled.
    * - -f, --file
@@ -91,7 +91,7 @@ Options
 
        Mutually exclusive with --tier, --provider, --members, --region, --diskSizeGB, --mdbVersion, --biConnector, --type, --shards, --tag, --autoScalingMode.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - --mdbVersion
@@ -151,7 +151,7 @@ Options
 
        Mutually exclusive with --file. This value defaults to "REPLICASET".
    * - -w, --watch
-     - 
+     -
      - false
      - Flag that indicates whether to watch the command until it completes its execution or the watch times out. To set the time that the watch times out, use the --watchTimeout option.
    * - --watchTimeout
@@ -183,7 +183,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Cluster '<Name>' is being created.
-   
+
 
 Examples
 --------
@@ -194,52 +194,51 @@ Examples
    # Deploy a free cluster named myCluster for the project with the ID 5e2211c17a3e5a48f5497de3:
    atlas cluster create myCluster --projectId 5e2211c17a3e5a48f5497de3 --provider AWS --region US_EAST_1 --tier M0
 
-   
+
 .. code-block::
    :copyable: false
 
    # Deploy a Flex cluster named myFlexCluster for the project with the ID 5e2211c17a3e5a48f5497de3 and tag "env=dev":
    atlas cluster create myFlexCluster --projectId 5e2211c17a3e5a48f5497de3 --provider AWS --region US_EAST_1 --tier FLEX --tag env=dev
 
-   
+
 .. code-block::
    :copyable: false
 
    # Deploy a free cluster named myCluster for the project with the ID 5e2211c17a3e5a48f5497de3 and tag "env=dev":
    atlas cluster create myCluster --projectId 5e2211c17a3e5a48f5497de3 --provider AWS --region US_EAST_1 --tier M0 --tag env=dev
 
-   
+
 .. code-block::
    :copyable: false
 
    # Deploy a three-member replica set named myRS in AWS for the project with the ID 5e2211c17a3e5a48f5497de3:
    atlas cluster create myRS --projectId 5e2211c17a3e5a48f5497de3 --provider AWS --region US_EAST_1 --members 3 --tier M10 --mdbVersion 5.0 --diskSizeGB 10
 
-   
+
 .. code-block::
    :copyable: false
 
    # Deploy a three-member replica set named myRS in AZURE for the project with the ID 5e2211c17a3e5a48f5497de3:
    atlas cluster create myRS --projectId 5e2211c17a3e5a48f5497de3 --provider AZURE --region US_EAST_2 --members 3 --tier M10  --mdbVersion 5.0 --diskSizeGB 10
-   
-   
+
+
 .. code-block::
    :copyable: false
 
    # Deploy a three-member replica set named myRS in GCP for the project with the ID 5e2211c17a3e5a48f5497de3:
    atlas cluster create myRS --projectId 5e2211c17a3e5a48f5497de3 --provider GCP --region EASTERN_US --members 3 --tier M10  --mdbVersion 5.0 --diskSizeGB 10
 
-   
+
 .. code-block::
    :copyable: false
 
    # Deploy a cluster or a multi-cloud cluster from a JSON configuration file named myfile.json for the project with the ID 5e2211c17a3e5a48f5497de3:
    atlas cluster create --projectId <projectId> --file myfile.json
-   
-   
+
+
 .. code-block::
    :copyable: false
 
    # Deploy a three-member sharded cluster with independent shard scaling mode named myRS in GCP for the project with the ID 5e2211c17a3e5a48f5497de3:
    atlas cluster create myRS --projectId 5e2211c17a3e5a48f5497de3 --provider GCP --region EASTERN_US --members 3 --tier M10  --mdbVersion 5.0 --diskSizeGB 10 --autoScalingMode independentShardScaling
-   

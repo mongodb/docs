@@ -59,7 +59,7 @@ Options
      - false
      - Mode in which the cluster scales. Valid values are clusterWideScaling or independentShardScaling. This value defaults to "clusterWideScaling".
    * - -h, --help
-     - 
+     -
      - false
      - help for pause
    * - -o, --output
@@ -95,7 +95,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Pausing cluster '<Name>'.
-   
+
 
 Examples
 --------

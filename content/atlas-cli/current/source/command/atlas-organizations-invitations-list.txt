@@ -42,7 +42,7 @@ Options
      - false
      - Email address for the user.
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - --orgId

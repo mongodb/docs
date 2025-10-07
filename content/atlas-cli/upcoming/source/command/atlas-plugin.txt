@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for plugin
 
@@ -62,4 +62,3 @@ Related Commands
    list </command/atlas-plugin-list>
    uninstall </command/atlas-plugin-uninstall>
    update </command/atlas-plugin-update>
-

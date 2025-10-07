@@ -15,7 +15,7 @@ atlas projects apiKeys assign
 Assign the specified organization API key to your project and modify the API key's roles for the project.
 
 When you modify the roles for an organization API key with this command, the values you specify overwrite the existing roles assigned to the API key.
-		
+
 To view possible values for the ID argument, run atlas organizations apiKeys list.
 
 Syntax
@@ -56,7 +56,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for assign
    * - -o, --output
@@ -96,7 +96,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    API Key successfully assigned.
-   
+
 
 Examples
 --------

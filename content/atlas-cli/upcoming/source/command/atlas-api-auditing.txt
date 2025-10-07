@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for auditing
 
@@ -63,4 +63,3 @@ Related Commands
 
    getAuditingConfiguration </command/atlas-api-auditing-getAuditingConfiguration>
    updateAuditingConfiguration </command/atlas-api-auditing-updateAuditingConfiguration>
-

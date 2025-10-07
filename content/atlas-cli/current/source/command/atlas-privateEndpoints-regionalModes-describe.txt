@@ -40,7 +40,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for describe
    * - -o, --output
@@ -77,7 +77,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ENABLED
    <Enabled>
-   
+
 
 Examples
 --------

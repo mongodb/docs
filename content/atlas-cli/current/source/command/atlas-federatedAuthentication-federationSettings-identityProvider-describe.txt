@@ -58,7 +58,7 @@ Options
      - true
      - Unique 24-hexadecimal digit string that identifies the federation settings.
    * - -h, --help
-     - 
+     -
      - false
      - help for describe
    * - -o, --output
@@ -91,7 +91,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     DISPLAY NAME    ISSUER URI    CLIENT ID    IDP TYPE
    <Id>   <DisplayName>   <IssuerUri>   <ClientId>   <IdpType>
-   
+
 
 Examples
 --------
@@ -100,5 +100,4 @@ Examples
    :copyable: false
 
    # Describe the identity provider with ID aa2223b25a115342acc1f108 with federationSettingsId 5d1113b25a115342acc2d1aa.
- 	atlas federatedAuthentication federationSettings identityProvider describe aa2223b25a115342acc1f108 --federationSettingsId 5d1113b25a115342acc2d1aa
-
+   atlas federatedAuthentication federationSettings identityProvider describe aa2223b25a115342acc1f108 --federationSettingsId 5d1113b25a115342acc2d1aa

@@ -14,7 +14,7 @@ atlas networking peering watch
 
 Watch the specified peering connection in your project until it becomes available.
 
-This command checks the peering connection's status periodically until it becomes available. 
+This command checks the peering connection's status periodically until it becomes available.
 Once it reaches the expected state, the command prints "Network peering changes completed."
 If you run the command in the terminal, it blocks the terminal session until the resource is available.
 You can interrupt the command's polling at any time with CTRL-C.
@@ -59,7 +59,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for watch
    * - -o, --output
@@ -94,9 +94,9 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
 .. code-block::
 
-   
+
    Network peering changes completed.
-   
+
 
 Examples
 --------

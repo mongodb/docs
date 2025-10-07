@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for deployments
 
@@ -70,4 +70,3 @@ Related Commands
    search </command/atlas-deployments-search>
    setup </command/atlas-deployments-setup>
    start </command/atlas-deployments-start>
-

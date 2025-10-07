@@ -58,7 +58,7 @@ Options
      - false
      - Datadog API Key, Opsgenie API Key, or VictorOps API key. Required if the notificationType is DATADOG, OPS_GENIE, or VICTOR_OPS, respectively.
    * - --enabled
-     - 
+     -
      - false
      - Flag that indicates whether to enable the alert configuration.
    * - --event
@@ -70,7 +70,7 @@ Options
      - false
      - Path to the JSON configuration file that defines alert configuration settings. Note: Unsupported fields in the JSON file are ignored. To learn more about alert configuration files for the Atlas CLI, see https://dochub.mongodb.org/core/alert-config-atlas-cli.
    * - -h, --help
-     - 
+     -
      - false
      - help for update
    * - --matcherFieldName
@@ -118,7 +118,7 @@ Options
      - false
      - Email address to which alert notifications are sent.
    * - --notificationEmailEnabled
-     - 
+     -
      - false
      - Flag that enables email notifications. Configurable for GROUP and USER notification types.
    * - --notificationIntervalMin
@@ -142,7 +142,7 @@ Options
      - false
      - PagerDuty service key.
    * - --notificationSmsEnabled
-     - 
+     -
      - false
      - Flag that enables text message notifications.
    * - --notificationTeamId
@@ -210,7 +210,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Alert configuration '<Id>' updated.
-   
+
 
 Examples
 --------
@@ -220,10 +220,10 @@ Examples
 
    # Modify the alert configuration with the ID 5d1113b25a115342acc2d1aa so that it notifies a user when they join a group for the project with the ID 5df90590f10fab5e33de2305:
    atlas alerts settings update 5d1113b25a115342acc2d1aa --event JOINED_GROUP --enabled \
- 		--notificationType USER --notificationEmailEnabled \
- 		--notificationIntervalMin 60 --notificationUsername john@example.com \
- 		--output json --projectId 5df90590f10fab5e33de2305
-   
+   --notificationType USER --notificationEmailEnabled \
+   --notificationIntervalMin 60 --notificationUsername john@example.com \
+   --output json --projectId 5df90590f10fab5e33de2305
+
 .. code-block::
    :copyable: false
 

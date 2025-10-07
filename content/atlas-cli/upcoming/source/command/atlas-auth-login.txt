@@ -38,15 +38,15 @@ Options
      - Required
      - Description
    * - --gov
-     - 
+     -
      - false
      - Log in to Atlas for Government.
    * - -h, --help
-     - 
+     -
      - false
      - help for login
    * - --noBrowser
-     - 
+     -
      - false
      - Don't automatically open a browser session.
 
@@ -74,4 +74,3 @@ Examples
 
    # Log in to your MongoDB Atlas account in interactive mode:
    atlas auth login
-

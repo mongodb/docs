@@ -38,7 +38,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - --limit
@@ -46,7 +46,7 @@ Options
      - false
      - Number of items per results page, up to a maximum of 500. If you have more than 500 results, specify the --page option to change the results page. This value defaults to 100.
    * - --omitCount
-     - 
+     -
      - false
      - Flag that indicates whether the JSON response returns the total number of items (totalCount) in the JSON response.
    * - -o, --output
@@ -84,5 +84,5 @@ Examples
 .. code-block::
    :copyable: false
 
-   # Return a JSON-formatted list of all access list entries for the project with ID 5e1234c17a3e5a48f5497de3:		
+   # Return a JSON-formatted list of all access list entries for the project with ID 5e1234c17a3e5a48f5497de3:
    atlas accessLists list --output json --projectId 5e1234c17a3e5a48f5497de3

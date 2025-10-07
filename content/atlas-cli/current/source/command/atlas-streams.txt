@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for streams
 
@@ -62,4 +62,3 @@ Related Commands
    connections </command/atlas-streams-connections>
    instances </command/atlas-streams-instances>
    privateLinks </command/atlas-streams-privateLinks>
-

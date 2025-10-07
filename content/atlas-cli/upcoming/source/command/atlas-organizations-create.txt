@@ -66,7 +66,7 @@ Options
      - false
      - Unique 24-hexadecimal digit string that identifies the federation settings.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - -o, --output

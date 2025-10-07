@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for pointInTimeRestores
 
@@ -56,4 +56,3 @@ Related Commands
    :titlesonly:
 
    enable </command/atlas-backups-compliancePolicy-pointInTimeRestores-enable>
-

@@ -40,7 +40,7 @@ Options
      - true
      - Unique 24-hexadecimal digit string that identifies the federation settings.
    * - -h, --help
-     - 
+     -
      - false
      - help for connect
    * - --identityProviderId
@@ -82,12 +82,11 @@ Examples
 .. code-block::
    :copyable: false
 
-   # Connect the current profile org to identity provider with ID 7d1113b25a115342acc2d1aa and federationSettingsId 5d1113b25a115342acc2d1aa 
- 			atlas federatedAuthentication federationSettings connectedOrgConfigs connect --identityProviderId 7d1113b25a115342acc2d1aa --federationSettingsId 5d1113b25a115342acc2d1aa 
- 			
+   # Connect the current profile org to identity provider with ID 7d1113b25a115342acc2d1aa and federationSettingsId 5d1113b25a115342acc2d1aa
+   atlas federatedAuthentication federationSettings connectedOrgConfigs connect --identityProviderId 7d1113b25a115342acc2d1aa --federationSettingsId 5d1113b25a115342acc2d1aa
+
 .. code-block::
    :copyable: false
 
-   # Connect the org with ID 7d1113b25a115342acc2d1aa to identity provider with ID 7d1113b25a115342acc2d1aa and federationSettingsId 5d1113b25a115342acc2d1aa 
- 			atlas federatedAuthentication federationSettings connectedOrgConfigs connect --orgId 7d1113b25a115342acc2d1aa --identityProviderId 7d1113b25a115342acc2d1aa --federationSettingsId 5d1113b25a115342acc2d1aa 
- 		
+   # Connect the org with ID 7d1113b25a115342acc2d1aa to identity provider with ID 7d1113b25a115342acc2d1aa and federationSettingsId 5d1113b25a115342acc2d1aa
+   atlas federatedAuthentication federationSettings connectedOrgConfigs connect --orgId 7d1113b25a115342acc2d1aa --identityProviderId 7d1113b25a115342acc2d1aa --federationSettingsId 5d1113b25a115342acc2d1aa

@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for connections
 
@@ -66,4 +66,3 @@ Related Commands
    describe </command/atlas-streams-connections-describe>
    list </command/atlas-streams-connections-list>
    update </command/atlas-streams-connections-update>
-

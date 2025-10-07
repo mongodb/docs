@@ -38,7 +38,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - -o, --output
@@ -76,5 +76,4 @@ If the command succeeds, the CLI returns output similar to the following sample.
    AWS IAM role '<RoleId>' successfully created.
    Atlas AWS Account ARN: <AtlasAWSAccountArn>
    Unique External ID: <AtlasAssumedRoleExternalId>
-   
 

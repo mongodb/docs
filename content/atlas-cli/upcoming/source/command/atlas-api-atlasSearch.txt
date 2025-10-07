@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for atlasSearch
 
@@ -95,4 +95,3 @@ Related Commands
    updateAtlasSearchIndex </command/atlas-api-atlasSearch-updateAtlasSearchIndex>
    updateAtlasSearchIndexByName </command/atlas-api-atlasSearch-updateAtlasSearchIndexByName>
    updateAtlasSearchIndexDeprecated </command/atlas-api-atlasSearch-updateAtlasSearchIndexDeprecated>
-

@@ -15,8 +15,8 @@ atlas config
 Configure and manage your user profiles.
 
 Configure settings in a user profile.
-All settings are optional. You can specify settings individually by running: 
-$ atlas config set --help 
+All settings are optional. You can specify settings individually by running:
+$ atlas config set --help
 
 You can also use environment variables (MONGODB_ATLAS_*) when running the tool.
 To find out more, see the documentation: https://dochub.mongodb.org/core/atlas-cli-env-variables.
@@ -33,7 +33,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for config
 
@@ -71,4 +71,3 @@ Related Commands
    list </command/atlas-config-list>
    rename </command/atlas-config-rename>
    set </command/atlas-config-set>
-

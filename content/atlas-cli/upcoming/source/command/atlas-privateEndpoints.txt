@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for privateEndpoints
 
@@ -62,4 +62,3 @@ Related Commands
    azure </command/atlas-privateEndpoints-azure>
    gcp </command/atlas-privateEndpoints-gcp>
    regionalModes </command/atlas-privateEndpoints-regionalModes>
-

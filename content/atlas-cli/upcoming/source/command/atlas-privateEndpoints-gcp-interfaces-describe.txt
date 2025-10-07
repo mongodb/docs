@@ -58,7 +58,7 @@ Options
      - true
      - Unique 24-character alphanumeric string that identifies the private endpoint in Atlas.
    * - -h, --help
-     - 
+     -
      - false
      - help for describe
    * - -o, --output
@@ -95,7 +95,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ENDPOINT              STATUS     DELETE REQUESTED
    <EndpointGroupName>   <Status>   <DeleteRequested>
-   
+
 
 Examples
 --------

@@ -38,7 +38,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - -o, --output
@@ -78,4 +78,3 @@ Examples
 
    # list all data federation databases:
    atlas dataFederation list
-

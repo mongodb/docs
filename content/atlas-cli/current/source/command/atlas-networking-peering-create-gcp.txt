@@ -15,7 +15,7 @@ atlas networking peering create gcp
 Create a network peering connection between the Atlas VPC and your Google Cloud VPC.
 
 The network peering create command checks if a VPC exists in the region you specify for your Atlas project. If one exists, this command creates the peering connection between that VPC and your VPC. If an Atlas VPC doesn't exist, this command creates one and creates a connection between it and your VPC.
-		
+
 To learn more about network peering connections, see https://www.mongodb.com/docs/atlas/security-vpc-peering/.
 
 To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
@@ -50,7 +50,7 @@ Options
      - false
      - Unique identifier of the GCP project in which the network peer resides.
    * - -h, --help
-     - 
+     -
      - false
      - help for gcp
    * - --network
@@ -94,7 +94,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Network peering connection '<Id>' created.
-   
+
 
 Examples
 --------

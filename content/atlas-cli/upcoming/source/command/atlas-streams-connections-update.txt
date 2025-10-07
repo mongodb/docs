@@ -58,7 +58,7 @@ Options
      - true
      - Path to a JSON configuration file that defines an Atlas Stream Processing connection. Note: Unsupported fields in the JSON file are ignored.
    * - -h, --help
-     - 
+     -
      - false
      - help for update
    * - -i, --instance
@@ -98,7 +98,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Connection <Name> updated.
-   
+
 
 Examples
 --------
@@ -108,4 +108,3 @@ Examples
 
    # update an Atlas Stream Processing connection:
    atlas streams connection update kafkaprod --instance test01 -f kafkaConfig.json
-

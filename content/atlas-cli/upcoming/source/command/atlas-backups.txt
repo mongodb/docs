@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for backups
 
@@ -64,4 +64,3 @@ Related Commands
    restores </command/atlas-backups-restores>
    schedule </command/atlas-backups-schedule>
    snapshots </command/atlas-backups-snapshots>
-

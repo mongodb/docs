@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for snapshots
 
@@ -66,4 +66,3 @@ Related Commands
    download </command/atlas-backups-snapshots-download>
    list </command/atlas-backups-snapshots-list>
    watch </command/atlas-backups-snapshots-watch>
-

@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for federatedAuthentication
 
@@ -56,4 +56,3 @@ Related Commands
    :titlesonly:
 
    federationSettings </command/atlas-federatedAuthentication-federationSettings>
-

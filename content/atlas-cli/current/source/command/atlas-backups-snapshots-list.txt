@@ -54,7 +54,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for list
    * - --limit
@@ -62,7 +62,7 @@ Options
      - false
      - Number of items per results page, up to a maximum of 500. If you have more than 500 results, specify the --page option to change the results page. This value defaults to 100.
    * - --omitCount
-     - 
+     -
      - false
      - Flag that indicates whether the JSON response returns the total number of items (totalCount) in the JSON response.
    * - -o, --output
@@ -103,7 +103,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    ID     TYPE             STATUS     CREATED AT    EXPIRES AT
    <Id>   <SnapshotType>   <Status>   <CreatedAt>   <ExpiresAt>
-   
+
 
 Examples
 --------
@@ -111,5 +111,5 @@ Examples
 .. code-block::
    :copyable: false
 
-   # Return a JSON-formatted list of snapshots for the cluster named myDemo 
+   # Return a JSON-formatted list of snapshots for the cluster named myDemo
    atlas backups snapshots list myDemo --output json

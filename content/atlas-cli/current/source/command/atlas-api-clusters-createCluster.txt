@@ -118,12 +118,14 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-         .. literalinclude:: /includes/examples/atlas-api-clusters-createCluster-2024-08-05-cluster-payload.json
-            :language: shell
+      .. literalinclude:: /includes/examples/atlas-api-clusters-createCluster-2024-08-05-cluster-payload.json
+         :language: shell
+
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-clusters-createCluster-2024-08-05-cluster.sh
          :language: shell
+
    .. tab:: Example 1
       :tabid: 2024-10-23_cluster
 
@@ -131,12 +133,14 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-         .. literalinclude:: /includes/examples/atlas-api-clusters-createCluster-2024-10-23-cluster-payload.json
-            :language: shell
+      .. literalinclude:: /includes/examples/atlas-api-clusters-createCluster-2024-10-23-cluster-payload.json
+         :language: shell
+
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-clusters-createCluster-2024-10-23-cluster.sh
          :language: shell
+
    .. tab:: Create a basic MongoDB Atlas cluster
       :tabid: 2024-10-23_create_cluster
 
@@ -144,8 +148,9 @@ Examples
 
       Create the file below and save it as ``payload.json``
 
-         .. literalinclude:: /includes/examples/atlas-api-clusters-createCluster-2024-10-23-create_cluster-payload.json
-            :language: shell
+      .. literalinclude:: /includes/examples/atlas-api-clusters-createCluster-2024-10-23-create_cluster-payload.json
+         :language: shell
+
       After creating ``payload.json``, run the command below in the same directory.
 
       .. literalinclude:: /includes/examples/atlas-api-clusters-createCluster-2024-10-23-create_cluster.sh

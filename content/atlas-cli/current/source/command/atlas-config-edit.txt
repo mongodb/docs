@@ -40,7 +40,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for edit
 
@@ -72,5 +72,4 @@ Examples
 
 .. toctree::
    :titlesonly:
-
 

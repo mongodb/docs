@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for alerts
 
@@ -67,4 +67,3 @@ Related Commands
    getAlert </command/atlas-api-alerts-getAlert>
    listAlerts </command/atlas-api-alerts-listAlerts>
    listAlertsByAlertConfigurationId </command/atlas-api-alerts-listAlertsByAlertConfigurationId>
-

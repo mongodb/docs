@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for create
 
@@ -60,4 +60,3 @@ Related Commands
    aws </command/atlas-networking-peering-create-aws>
    azure </command/atlas-networking-peering-create-azure>
    gcp </command/atlas-networking-peering-create-gcp>
-

@@ -42,7 +42,7 @@ Options
      - false
      - IP address access list entries that are associated with the link-token.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - --orgId
@@ -78,5 +78,4 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Link-token '<LinkToken>' successfully created.
-   
 

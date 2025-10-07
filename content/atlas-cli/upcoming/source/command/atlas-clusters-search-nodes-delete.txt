@@ -42,11 +42,11 @@ Options
      - true
      - Name of the cluster. To learn more, see https://dochub.mongodb.org/core/create-cluster-api.
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     - 
+     -
      - false
      - help for delete
    * - -o, --output
@@ -58,7 +58,7 @@ Options
      - false
      - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
    * - -w, --watch
-     - 
+     -
      - false
      - Flag that indicates whether to watch the command until it completes its execution or the watch times out.
    * - --watchTimeout

@@ -64,7 +64,7 @@ Options
      - false
      - Mode in which the cluster scales. Valid values are clusterWideScaling or independentShardScaling. This value defaults to "clusterWideScaling".
    * - --bindIpAll
-     - 
+     -
      - false
      - Flag that indicates whether the LOCAL deployment port binding should happen for all IPs or only for the localhost interface 127.0.0.1.
    * - --connectWith
@@ -74,21 +74,21 @@ Options
 
        Mutually exclusive with --skipMongosh.
    * - --currentIp
-     - 
+     -
      - false
      - Flag that adds the IP address from the host that is currently executing the command to the access list.
 
        Mutually exclusive with --accessListIp.
    * - --enableTerminationProtection
-     - 
+     -
      - false
      - Enables termination protection for your deployment. You can't delete a deployment with termination protection enabled.
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the request for input and create a deployment with the default settings for any unspecified options.
    * - -h, --help
-     - 
+     -
      - false
      - help for setup
    * - --initdb
@@ -120,7 +120,7 @@ Options
      - false
      - Physical location of your MongoDB deployment. For a complete list of supported AWS regions, see: https://dochub.mongodb.org/core/aws-atlas. For a complete list of supported Azure regions, see: https://dochub.mongodb.org/core/azure-atlas. For a complete list of supported GCP regions, see: https://dochub.mongodb.org/core/gcp-atlas.
    * - --skipSampleData
-     - 
+     -
      - false
      - Flag that indicates whether to skip loading sample data into your MongoDB deployment.
    * - --tag
@@ -155,4 +155,3 @@ Inherited Options
      - string
      - false
      - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
-

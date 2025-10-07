@@ -52,14 +52,14 @@ Options
      - string
      - true
      - Unique 24-hexadecimal digit string that identifies your project. Use the [/groups](#tag/Projects/operation/listProjects) endpoint to retrieve all projects to which the authenticated user has access.
-       
+
        **NOTE**: Groups and projects are synonymous terms. Your group id is the same as your project id. For existing groups, your group/project id remains the same. The resource and corresponding endpoints use the term groups.
    * - -h, --help
-     - 
+     -
      - false
      - help for listFlexClusters
    * - --includeCount
-     - 
+     -
      - false
      - Flag that indicates whether the response returns the total number of items (**totalCount**) in the response.
    * - --itemsPerPage
@@ -79,7 +79,7 @@ Options
      - false
      - Number of the page that displays the current set of the total objects that the response returns.
    * - --pretty
-     - 
+     -
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --version

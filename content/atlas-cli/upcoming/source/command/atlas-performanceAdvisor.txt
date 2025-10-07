@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for performanceAdvisor
 
@@ -62,4 +62,3 @@ Related Commands
    slowOperationThreshold </command/atlas-performanceAdvisor-slowOperationThreshold>
    slowQueryLogs </command/atlas-performanceAdvisor-slowQueryLogs>
    suggestedIndexes </command/atlas-performanceAdvisor-suggestedIndexes>
-

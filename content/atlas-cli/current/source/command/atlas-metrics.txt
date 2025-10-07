@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for metrics
 
@@ -60,4 +60,3 @@ Related Commands
    databases </command/atlas-metrics-databases>
    disks </command/atlas-metrics-disks>
    processes </command/atlas-metrics-processes>
-

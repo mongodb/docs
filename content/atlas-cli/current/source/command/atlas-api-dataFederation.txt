@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for dataFederation
 
@@ -87,4 +87,3 @@ Related Commands
    returnFederatedDatabaseQueryLimit </command/atlas-api-dataFederation-returnFederatedDatabaseQueryLimit>
    returnFederatedDatabaseQueryLimits </command/atlas-api-dataFederation-returnFederatedDatabaseQueryLimits>
    updateFederatedDatabase </command/atlas-api-dataFederation-updateFederatedDatabase>
-

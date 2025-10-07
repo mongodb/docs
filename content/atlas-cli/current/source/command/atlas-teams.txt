@@ -28,7 +28,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for teams
 
@@ -68,4 +68,3 @@ Related Commands
    list </command/atlas-teams-list>
    rename </command/atlas-teams-rename>
    users </command/atlas-teams-users>
-

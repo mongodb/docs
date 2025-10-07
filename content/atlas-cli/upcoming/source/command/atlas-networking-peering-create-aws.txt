@@ -15,7 +15,7 @@ atlas networking peering create aws
 Create a network peering connection between the Atlas VPC and your AWS VPC.
 
 The network peering create command checks if a VPC exists in the region you specify for your Atlas project. If one exists, this command creates the peering connection between that VPC and your VPC. If an Atlas VPC doesn't exist, this command creates one and creates a connection between it and your VPC.
-		
+
 To learn more about network peering connections, see https://www.mongodb.com/docs/atlas/security-vpc-peering/.
 
 To use this command, you must authenticate with a user account, a service account, or an API key with the Project Owner role.
@@ -50,7 +50,7 @@ Options
      - false
      - CIDR block that Atlas uses for all network peering connections created in the project. This option is required only if you do not already have an Atlas VPC. To learn more, see the Atlas UI tab at https://dochub.mongodb.org/core/peering-connection-atlas.
    * - -h, --help
-     - 
+     -
      - false
      - help for aws
    * - -o, --output
@@ -98,7 +98,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Network peering connection '<Id>' created.
-   
+
 
 Examples
 --------

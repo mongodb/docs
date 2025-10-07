@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for create
 
@@ -64,4 +64,3 @@ Related Commands
    PAGER_DUTY </command/atlas-integrations-create-PAGER_DUTY>
    VICTOR_OPS </command/atlas-integrations-create-VICTOR_OPS>
    WEBHOOK </command/atlas-integrations-create-WEBHOOK>
-

@@ -54,11 +54,11 @@ Options
      - Required
      - Description
    * - --append
-     - 
+     -
      - false
      - Input action and inheritedRoles to append to the existing role.
    * - -h, --help
-     - 
+     -
      - false
      - help for update
    * - --inheritedRole
@@ -102,5 +102,4 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Custom database role '<RoleName>' successfully updated.
-   
 

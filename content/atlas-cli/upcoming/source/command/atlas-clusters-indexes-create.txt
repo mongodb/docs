@@ -76,7 +76,7 @@ Options
 
        Mutually exclusive with --db, --collection, --key.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - --key
@@ -90,7 +90,7 @@ Options
      - false
      - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
    * - --sparse
-     - 
+     -
      - false
      - Flag that creates a sparse index. To learn more, see https://dochub.mongodb.org/core/index-sparse-manual.
 
@@ -118,8 +118,8 @@ Examples
 
    # Create an index named bedrooms_1 on the listings collection of the realestate database:
    atlas clusters indexes create bedrooms_1 --clusterName Cluster0 --collection listings --db realestate --key bedrooms:1
-   
-   
+
+
 .. code-block::
    :copyable: false
 
@@ -127,7 +127,7 @@ Examples
    listings collection of the realestate database:
    atlas clusters indexes create property_room_bedrooms --clusterName Cluster0 --collection listings --db realestate --key property_type:1 --key room_type:1 --key bedrooms:1
 
-   
+
 .. code-block::
    :copyable: false
 

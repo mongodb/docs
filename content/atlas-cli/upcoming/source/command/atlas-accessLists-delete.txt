@@ -56,11 +56,11 @@ Options
      - Required
      - Description
    * - --force
-     - 
+     -
      - false
      - Flag that indicates whether to skip the confirmation prompt before proceeding with the requested action.
    * - -h, --help
-     - 
+     -
      - false
      - help for delete
    * - --projectId
@@ -92,7 +92,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 .. code-block::
 
    Project access list entry '<Name>' deleted
-   
+
 
 Examples
 --------
@@ -102,7 +102,7 @@ Examples
 
    # Remove the IP address 192.0.2.0 from the access list for the project with the ID 5e2211c17a3e5a48f5497de3 after prompting for a confirmation:
    atlas accessLists delete 192.0.2.0 --projectId 5e2211c17a3e5a48f5497de3
-   
+
 .. code-block::
    :copyable: false
 

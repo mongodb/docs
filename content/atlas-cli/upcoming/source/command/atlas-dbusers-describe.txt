@@ -58,7 +58,7 @@ Options
      - false
      - Authentication database name. If the user authenticates with AWS IAM, x.509, or LDAP, this value should be $external. If the user authenticates with SCRAM-SHA, this value should be admin. This value defaults to "admin".
    * - -h, --help
-     - 
+     -
      - false
      - help for describe
    * - -o, --output
@@ -95,7 +95,7 @@ If the command succeeds, the CLI returns output similar to the following sample.
 
    USERNAME     DATABASE
    <Username>   <DatabaseName>
-   
+
 
 Examples
 --------
@@ -106,14 +106,14 @@ Examples
    # Return the details for the SCRAM SHA-authenticating database user named myDbUser:
    atlas dbuser describe myDbUser --authDB admin --output json
 
-   
+
 .. code-block::
    :copyable: false
 
    # Return the details for the AWS IAM-authenticating database user with the ARN arn:aws:iam::772401394250:user/my-test-user. Prepend $external with \ to escape the special-use character:
    atlas dbuser describe arn:aws:iam::772401394250:user/my-test-user --authDB \$external --output json
 
-   
+
 .. code-block::
    :copyable: false
 

@@ -72,7 +72,7 @@ Options
 
        Mutually exclusive with --region, --awsRoleId, --awsTestS3Bucket.
    * - -h, --help
-     - 
+     -
      - false
      - help for create
    * - -o, --output
@@ -123,4 +123,3 @@ Examples
 
    # create data federation database:
    atlas dataFederation create DataFederation1 --region us_east_1 --awsRoleId role --awsTestS3Bucket bucket
-

@@ -54,7 +54,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for describe
    * - -i, --instance
@@ -93,5 +93,4 @@ Examples
    :copyable: false
 
    # retrieves stream connection 'ExampleConnection' in instance 'ExampleInstance':
- atlas streams connection describe ExampleConnection --instance ExampleInstance
-
+   atlas streams connection describe ExampleConnection --instance ExampleInstance

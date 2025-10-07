@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for networkPeering
 
@@ -85,4 +85,3 @@ Related Commands
    updatePeeringConnection </command/atlas-api-networkPeering-updatePeeringConnection>
    updatePeeringContainer </command/atlas-api-networkPeering-updatePeeringContainer>
    verifyConnectViaPeeringOnlyModeForOneProject </command/atlas-api-networkPeering-verifyConnectViaPeeringOnlyModeForOneProject>
-

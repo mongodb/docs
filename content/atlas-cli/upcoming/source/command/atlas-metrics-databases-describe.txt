@@ -69,7 +69,7 @@ Options
      - true
      - ISO 8601-formatted duration that specifies the interval between measurement data points. Only the following subset of ISO 8601-formatted time periods are supported: PT10S, PT1M, PT5M, PT1H, P1D. When you specify granularity, you must specify either period or start and end.
    * - -h, --help
-     - 
+     -
      - false
      - help for describe
    * - --limit
@@ -127,5 +127,5 @@ Examples
 .. code-block::
    :copyable: false
 
-   # Return the JSON-formatted database metrics from the last 36 hours with 5-minute granularity for the database named testDB in the host atlas-lnmtkm-shard-00-00.ajlj3.mongodb.net:27017 
+   # Return the JSON-formatted database metrics from the last 36 hours with 5-minute granularity for the database named testDB in the host atlas-lnmtkm-shard-00-00.ajlj3.mongodb.net:27017
    atlas metrics databases describe atlas-lnmtkm-shard-00-00.ajlj3.mongodb.net:27017 testDB --granularity PT1M --period P1DT12H --output json

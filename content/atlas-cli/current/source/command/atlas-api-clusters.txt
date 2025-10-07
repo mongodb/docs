@@ -31,7 +31,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for clusters
 
@@ -97,4 +97,3 @@ Related Commands
    updateCluster </command/atlas-api-clusters-updateCluster>
    updateClusterAdvancedConfiguration </command/atlas-api-clusters-updateClusterAdvancedConfiguration>
    upgradeSharedCluster </command/atlas-api-clusters-upgradeSharedCluster>
-

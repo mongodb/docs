@@ -26,7 +26,7 @@ Options
      - Required
      - Description
    * - -h, --help
-     - 
+     -
      - false
      - help for nodes
 
@@ -62,4 +62,3 @@ Related Commands
    delete </command/atlas-clusters-search-nodes-delete>
    list </command/atlas-clusters-search-nodes-list>
    update </command/atlas-clusters-search-nodes-update>
-
