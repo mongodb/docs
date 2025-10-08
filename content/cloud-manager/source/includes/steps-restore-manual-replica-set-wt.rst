@@ -97,7 +97,7 @@
              Server version. To check the MongoDB version, run ``mongod
              --version`` from a terminal or shell.
       
-      To learn more, see :manual:`installation`.
+      To learn more, see :manual:`installation </installation>`.
       
    .. step:: Move the Snapshot Data Files to the Target Host.
 
