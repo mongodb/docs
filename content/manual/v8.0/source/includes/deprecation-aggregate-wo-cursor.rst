@@ -1,7 +1,5 @@
-MongoDB removes the use of :dbcommand:`aggregate` command
-**without** the ``cursor`` option unless the command includes the
-``explain`` option. Unless you include the ``explain`` option, you must
-specify the cursor option.
+You must use the :dbcommand:`aggregate` command with the ``cursor`` 
+option unless the command includes the ``explain`` option.
 
 - To indicate a cursor with the default batch size, specify ``cursor:
   {}``.
