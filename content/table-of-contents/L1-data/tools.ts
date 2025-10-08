@@ -62,7 +62,6 @@ const tocData: TocItem[] = [
       {
         label: "SQL Interface",
         contentSite: "cloud-docs",
-        url: "/docs/atlas/data-federation/query/connect-with-sql-overview", //this file doesn't exist yet outside this PR: https://github.com/10gen/docs-mongodb-internal/pull/14050/files
         showSubNav: true,
         items: SQLInterfaceData,
       },
