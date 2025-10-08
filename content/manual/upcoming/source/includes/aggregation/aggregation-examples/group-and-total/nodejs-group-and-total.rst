@@ -33,7 +33,7 @@ following code to your application:
       First, add a :pipeline:`$match` stage that matches
       orders placed in 2020:
 
-      .. literalinclude:: /code-examples/tested/javascript/driver/aggregation/pipelines/group/tutorial.snippet.group.js
+      .. literalinclude:: /code-examples/tested/javascript/driver/aggregation/pipelines/group/tutorial.snippet.match.js
          :language: javascript
          :copyable: true
          :category: syntax example
