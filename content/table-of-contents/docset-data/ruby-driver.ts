@@ -232,7 +232,7 @@ const tocData: TocItem[] = [
             url: "/docs/ruby-driver/:version/indexes/multikey-index",
           },
           {
-            label: "Atlas Search",
+            label: "MongoDB Search",
             contentSite: "ruby-driver",
             url: "/docs/ruby-driver/:version/indexes/atlas-search-index",
           },
@@ -249,12 +249,12 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: "Atlas Search",
+        label: "MongoDB Search",
         contentSite: "ruby-driver",
         url: "/docs/ruby-driver/:version/atlas-search",
       },
       {
-        label: "Atlas Vector Search",
+        label: "MongoDB Vector Search",
         contentSite: "ruby-driver",
         url: "/docs/ruby-driver/:version/vector-search",
       },

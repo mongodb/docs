@@ -32,7 +32,7 @@ collection.indexes.create_one({ <field name>: 1 })
 collection.indexes.create_one({ <GeoJSON field name>: '2dsphere' })
 # end-index-geospatial
 
-# Atlas Search
+# MongoDB Search
 
 # Create Search Index
 # start-create-search-index
