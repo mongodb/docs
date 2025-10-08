@@ -62,6 +62,7 @@ const tocData: TocItem[] = [
       {
         label: "SQL Interface",
         contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/query/connect-with-sql-overview",
         showSubNav: true,
         items: SQLInterfaceData,
       },
