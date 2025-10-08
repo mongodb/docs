@@ -25,6 +25,8 @@ import type {
   RoleIconNode,
   RoleManualNode,
   LinkNewTabNode,
+  ListNode,
+  ListItemNode,
   BlockQuoteNode,
   EmphasisNode,
   SubstitutionReferenceNode,
@@ -51,6 +53,10 @@ import Target, { type TargetProps } from '../target';
 import type { FormatTextOptions } from '../literal';
 import Literal, { type LiteralProps } from '../literal';
 import Button, { type ButtonProps } from '../button';
+import type { ListItemProps } from '../list/listItem';
+import type { ListProps } from '../list';
+import ListItem from '../list/listItem';
+import List from '../list';
 import {
   RoleAbbr,
   RoleClass,
@@ -197,8 +203,8 @@ const getComponent = (() => {
         kicker: Kicker as React.ComponentType<SupportedComponentProps>,
         // line: Line,
         // line_block: LineBlock,
-        // list: List,
-        // listItem: ListItem,
+        list: List as React.ComponentType<SupportedComponentProps>,
+        listItem: ListItem as React.ComponentType<SupportedComponentProps>,
         // 'list-table': ListTable,
         literal: Literal as React.ComponentType<SupportedComponentProps>,
         // literal_block: LiteralBlock,
@@ -293,6 +299,8 @@ type SupportedComponentProps =
   | AdmonitionProps
   | TargetProps
   | LiteralProps
+  | ListItemProps
+  | ListProps
   | CodeNode
   | FootnoteNodeProps
   | FootnoteReferenceProps
@@ -396,6 +404,20 @@ const renderComponentWithProps = (
   } else if (ComponentType === roleMap.superscript) {
     const superscriptNode = nodeData as SuperscriptNode;
     return <ComponentType nodeChildren={superscriptNode.children} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('list')) {
+    const { children, position, enumtype, startat } = nodeData as ListNode;
+    return (
+      <ComponentType
+        nodeChildren={children}
+        position={position}
+        enumtype={enumtype}
+        startat={startat}
+        {...propsToDrill}
+      />
+    );
+  } else if (ComponentType === getComponent('listItem')) {
+    const listItemNode = nodeData as ListItemNode;
+    return <ComponentType nodeChildren={listItemNode.children} {...propsToDrill} />;
   } else if (ComponentType === getComponent('literal')) {
     const literalNode = nodeData as LiteralNode;
     return <ComponentType nodeChildren={literalNode.children} formatTextOptions={props.formatTextOptions} />;

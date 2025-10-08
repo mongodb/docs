@@ -54,6 +54,8 @@ type ComponentType =
   | 'io-code-block'
   | 'kicker'
   | 'literal_block'
+  | 'listItem'
+  | 'list'
   | 'list-table'
   | 'literalinclude'
   | 'openapi-changelog'
@@ -399,7 +401,7 @@ interface ParentListNode extends ParentNode {
 
 interface ListNode extends ParentNode {
   type: 'list';
-  enumtype: 'unordered' | 'ordered';
+  enumtype: 'unordered' | 'ordered' | '1' | 'a' | 'A' | 'i' | 'I';
   startat?: number;
   children: ListItemNode[];
 }
