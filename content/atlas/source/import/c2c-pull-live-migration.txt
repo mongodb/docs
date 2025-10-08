@@ -206,8 +206,36 @@ Writes are blocked during the live migration:
 - When a live migration starts, writes to the destination {+cluster+}
   are blocked. Attempts to perform writes to the destination {+cluster+}
   fail.
+- Before proceeding with the cutover, you must manually stop writes to
+  your source {+cluster+}. |service| enforces this by enabling write blocking
+  on the source {+cluster+} during the cutover process. 
+
+  .. important::
+
+     Source and destination {+cluster+} write blocking during cutover occurs if
+     you are migrating source {+cluster+} running MongoDB version 6.0 and later.
+
 - After a live migration completes successfully or fails, writes to the
   destination {+cluster+} may continue.
+
+  .. note::
+
+     |service| automatically attempts to remove the write blocks when the 
+     migration is complete.
+     
+     If you need to manually remove the write block on your {+cluster+}, use 
+     the :dbcommand:`setUserWriteBlockMode` command with the ``global`` field 
+     set to ``false``:
+
+     .. code-block:: sh
+  
+        db.adminCommand( {
+          setUserWriteBlockMode: 1,
+          global: false
+        } )
+
+     To run the ``setUserWriteBlockMode`` command, the user must
+     have the :authaction:`setUserWriteBlockMode` privilege.
 
 Don't run multiple migrations to the same destination {+cluster+} at the
 same time.
