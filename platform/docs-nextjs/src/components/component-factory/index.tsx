@@ -85,6 +85,7 @@ import BlockQuote, { type BlockQuoteProps } from '../block-quote';
 import Emphasis, { type EmphasisProps } from '../emphasis';
 import SubstitutionReference, { type SubstitutionReferenceProps } from '../substitution-reference';
 import VersionModified, { type VersionModifiedProps } from '../version-modified';
+import Describe, { type DescribeProps } from '../describe';
 import HorizontalList, { type HorizontalListProps } from '../horizontal-list';
 import Extract, { type ExtractProps } from '../extract';
 
@@ -178,7 +179,7 @@ const getComponent = (() => {
         // definitionListItem: DefinitionListItem,
         deprecated: VersionModified as React.ComponentType<SupportedComponentProps>,
         // 'deprecated-version-selector': DeprecatedVersionSelector,
-        // describe: Describe,
+        describe: Describe as React.ComponentType<SupportedComponentProps>,
         emphasis: Emphasis as React.ComponentType<SupportedComponentProps>,
         extract: Extract as React.ComponentType<SupportedComponentProps>,
         // field: Field,
@@ -297,6 +298,7 @@ type SupportedComponentProps =
   | FootnoteReferenceProps
   | IncludeProps
   | ButtonProps
+  | DescribeProps
   | EmphasisProps
   | ExtractProps
   | VersionModifiedProps
@@ -397,6 +399,9 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('literal')) {
     const literalNode = nodeData as LiteralNode;
     return <ComponentType nodeChildren={literalNode.children} formatTextOptions={props.formatTextOptions} />;
+  } else if (ComponentType === getComponent('describe')) {
+    const describeNode = nodeData as Directive;
+    return <ComponentType argument={describeNode.argument} nodeChildren={describeNode.children} {...propsToDrill} />;
   } else if (ComponentType === getComponent('kicker')) {
     const kickerNode = nodeData as Directive;
     return <ComponentType argument={kickerNode.argument} {...propsToDrill} />;
