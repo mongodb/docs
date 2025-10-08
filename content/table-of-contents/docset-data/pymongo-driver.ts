@@ -361,11 +361,6 @@ const tocData: TocItem[] = [
             url: "/docs/languages/python/pymongo-driver/:version/reference/release-notes",
           },
           {
-            label: "Compatibility",
-            contentSite: "pymongo",
-            url: "/docs/languages/python/pymongo-driver/:version/reference/compatibility",
-          },
-          {
             label: "Upgrade Guides",
             contentSite: "pymongo",
             url: "/docs/languages/python/pymongo-driver/:version/reference/upgrade",
@@ -381,6 +376,11 @@ const tocData: TocItem[] = [
             url: "/docs/languages/python/pymongo-driver/:version/reference/previous-versions",
           },
         ],
+      },
+      {
+        label: "Compatibility",
+        contentSite: "drivers",
+        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=python",
       },
       {
         label: "API Documentation",

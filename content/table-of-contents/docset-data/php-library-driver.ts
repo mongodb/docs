@@ -328,17 +328,18 @@ const tocData: TocItem[] = [
             contentSite: "php-library",
             url: "/docs/php-library/:version/references/release-notes",
           },
-          {
-            label: "Compatibility",
-            contentSite: "php-library",
-            url: "/docs/php-library/:version/references/compatibility",
-          },
+
           {
             label: "Upgrade",
             contentSite: "php-library",
             url: "/docs/php-library/:version/references/upgrade",
           },
         ]
+      },
+      {
+        label: "Compatibility",
+        contentSite: "drivers",
+        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=php-library",
       },
       {
         label: "API Documentation",

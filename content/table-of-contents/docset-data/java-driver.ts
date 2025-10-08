@@ -690,11 +690,7 @@ const tocData: TocItem[] = [
             contentSite: "java",
             url: "/docs/drivers/java/sync/:version/reference/release-notes",
           },
-          {
-            label: "Compatibility",
-            contentSite: "java",
-            url: "/docs/drivers/java/sync/:version/reference/compatibility",
-          },
+
           {
             label: "Upgrade",
             contentSite: "java",
@@ -706,6 +702,11 @@ const tocData: TocItem[] = [
             url: "/docs/drivers/java/sync/:version/reference/legacy",
           },
         ],
+      },
+      {
+        label: "Compatibility",
+        contentSite: "drivers",
+        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=java-sync",
       },
       {
         label: "API Documentation",

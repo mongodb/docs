@@ -346,16 +346,16 @@ const tocData: TocItem[] = [
             url: "/docs/ruby-driver/:version/reference/upgrade",
           },
           {
-            label: "Compatibility",
-            contentSite: "ruby-driver",
-            url: "/docs/ruby-driver/:version/reference/compatibility",
-          },
-          {
             label: "View the Source",
             isExternal: true,
             url: "https://github.com/mongodb/mongo-ruby-driver",
           },
         ],
+      },
+      {
+        label: "Compatibility",
+        contentSite: "drivers",
+        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=ruby",
       },
       {
         label: "API Documentation",

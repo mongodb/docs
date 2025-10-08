@@ -302,8 +302,8 @@ const tocData: TocItem[] = [
       },
       {
         label: "Compatibility",
-        contentSite: "c",
-        url: "/docs/languages/c/c-driver/:version/compatibility",
+        contentSite: "drivers",
+        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=c",
         versions: { excludes: outdatedVersions },
       },
       {

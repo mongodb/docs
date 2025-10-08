@@ -404,17 +404,18 @@ const tocData: TocItem[] = [
             contentSite: "kotlin-sync",
             url: "/docs/languages/kotlin/kotlin-sync-driver/:version/reference/whats-new",
           },
-          {
-            label: "Compatibility",
-            contentSite: "kotlin-sync",
-            url: "/docs/languages/kotlin/kotlin-sync-driver/:version/reference/compatibility",
-          },
+
           {
             label: "Upgrade",
             contentSite: "kotlin-sync",
             url: "/docs/languages/kotlin/kotlin-sync-driver/:version/reference/upgrade",
           },
         ]
+      },
+      {
+        label: "Compatibility",
+        contentSite: "drivers",
+        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=kotlin",
       },
       {
         label: "API Documentation",

@@ -351,8 +351,8 @@ const tocData: TocItem[] = [
       },
       {
         label: "Compatibility",
-        contentSite: "java-rs",
-        url: "/docs/languages/java/reactive-streams-driver/:version/compatibility",
+        contentSite: "drivers",
+        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=java-async",
         versions: { excludes: outdatedVersions },
       },
       {

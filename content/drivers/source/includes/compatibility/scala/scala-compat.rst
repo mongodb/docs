@@ -1,0 +1,1 @@
+The Scala driver requires Scala 2.11 or later.

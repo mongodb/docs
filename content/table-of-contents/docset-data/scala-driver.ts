@@ -295,8 +295,8 @@ const tocData: TocItem[] = [
       },
       {
         label: "Compatibility",
-        contentSite: "scala",
-        url: "/docs/languages/scala/scala-driver/:version/compatibility",
+        contentSite: "drivers",
+        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=scala",
         versions: { excludes: outdatedVersions },
       },
       {
@@ -538,8 +538,8 @@ const tocData: TocItem[] = [
       },
       {
         label: "Compatibility",
-        contentSite: "scala",
-        url: "/docs/languages/scala/scala-driver/:version/compatibility",
+        contentSite: "drivers",
+        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=scala",
         versions: { includes: outdatedVersions },
       },
       {

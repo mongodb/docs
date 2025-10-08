@@ -414,12 +414,6 @@ const tocData: TocItem[] = [
             versions: { excludes: outdatedVersions },
           },
           {
-            label: "Compatibility",
-            contentSite: "golang",
-            url: "/docs/drivers/go/:version/reference/compatibility",
-            versions: { excludes: outdatedVersions },
-          },
-          {
             label: "Upgrade Guides",
             contentSite: "golang",
             url: "/docs/drivers/go/:version/reference/upgrade",
@@ -432,6 +426,12 @@ const tocData: TocItem[] = [
             versions: { excludes: outdatedVersions },
           },
         ]
+      },
+      {
+            label: "Compatibility",
+            contentSite: "drivers",
+            url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=go",
+            versions: { excludes: outdatedVersions },
       },
       {
         label: "API Documentation",
@@ -851,7 +851,7 @@ const tocData: TocItem[] = [
       {
         label: "Compatibility",
         contentSite: "golang",
-        url: "/docs/drivers/go/:version/compatibility",
+        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=go",
         versions: { includes: outdatedVersions },
       },
       {
