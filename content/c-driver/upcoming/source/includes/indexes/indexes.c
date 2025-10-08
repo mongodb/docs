@@ -194,7 +194,7 @@ main (void)
                   "dynamic": false
                 }
               },
-              "name": "<Atlas Search index name>"
+              "name": "<MongoDB Search index name>"
             },
             {
               "name": "<Vector Search index name>",
