@@ -1,4 +1,4 @@
-import type { ASTDocument } from '@/services/db/types';
+import type { ASTDocument } from '@/services/db/pages';
 import type { RemoteMetadata } from '@/types/data';
 import type { DocumentTemplateProps } from '@/components/templates/document';
 import DocumentTemplate from '@/components/templates/document';

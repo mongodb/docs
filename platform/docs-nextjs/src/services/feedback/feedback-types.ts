@@ -49,7 +49,6 @@ export const starRating = {
 };
 
 export type FeedbackSentiment = 'Negative' | 'Suggestion' | 'Positive' | ' ';
-export type FeedbackDbType = 'feedback_test' | 'feedback_stage' | 'feedback_prod';
 
 export interface Page {
   slug: string;

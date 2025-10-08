@@ -1,6 +1,6 @@
 import type { FindOptions } from 'mongodb';
 import { type NextRequest, NextResponse } from 'next/server';
-import { getClient } from '@/services/db';
+import { getClient } from '@/services/db/client';
 import { withCORS } from '@/app/lib/with-cors';
 
 export async function OPTIONS() {

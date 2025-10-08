@@ -1,4 +1,4 @@
-import type { FeedbackDocument } from '@/services/db/types';
+import type { FeedbackDocument } from '@/services/db/feedback';
 import { jiraClientWithAuth } from '@/utils/jira-client';
 import type JiraApi from 'jira-client';
 import type { S3ScreenshotAttachment } from './handle-screenshot-feedback';

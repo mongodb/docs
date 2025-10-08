@@ -1,18 +1,23 @@
 import { ObjectId, type UpdateResult } from 'mongodb';
 import { type NextRequest, NextResponse } from 'next/server';
 import { withCORS } from '@/app/lib/with-cors';
-import { getFeedbackResponsesCollection } from '@/services/db';
 import { type ScreenshotAttachment, getAttachment } from '@/services/feedback/handle-screenshot-feedback';
 import type { Viewport, SnootyEnv } from '@/types/data';
 import { feedback_actions } from '@/services/feedback/feedback-actions';
-import type { Page, User, Attachment, Fingerprint, starRating } from '@/services/feedback/feedback-types';
-import { type FeedbackSentiment } from '@/services/feedback/feedback-types';
-import type { FeedbackDocument } from '@/services/db/types';
+import { getFeedbackResponsesCollection, type FeedbackDocument } from '@/services/db/feedback';
+import type {
+  Page,
+  User,
+  Attachment,
+  Fingerprint,
+  FeedbackSentiment,
+  starRating,
+} from '@/services/feedback/feedback-types';
 
 export type FeedbackPayload = {
   page: Page;
   user: User;
-  attachment: Attachment;
+  attachment?: Attachment;
   viewport: Viewport;
   category: FeedbackSentiment;
   rating: keyof typeof starRating;
@@ -57,7 +62,7 @@ export async function POST(request: NextRequest) {
     snootyEnv: snootyEnv,
   };
   try {
-    if (attachment.dataUri && attachment.viewport) {
+    if (attachment?.dataUri && attachment?.viewport) {
       const screenshotAttachment: ScreenshotAttachment = {
         type: 'screenshot',
         dataUri: attachment.dataUri,

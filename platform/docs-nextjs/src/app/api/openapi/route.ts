@@ -1,6 +1,6 @@
 import { withCORS } from '@/app/lib/with-cors';
 import { type NextRequest, NextResponse } from 'next/server';
-import { getClient } from '@/services/db';
+import { getClient } from '@/services/db/client';
 
 export async function OPTIONS() {
   return withCORS(new NextResponse(null, { status: 204 }));

@@ -1,7 +1,7 @@
 import { withCORS } from '@/app/lib/with-cors';
 import type { Sort } from 'mongodb';
 import { NextResponse, type NextRequest } from 'next/server';
-import { getClient } from '@/services/db';
+import { getClient } from '@/services/db/client';
 
 interface ProductNavigationData {
   title: string;

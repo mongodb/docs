@@ -1,7 +1,7 @@
 import { withCORS } from '@/app/lib/with-cors';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getClient } from '@/services/db';
+import { getClient } from '@/services/db/client';
 import type { Docset } from '@/types/data';
 
 export async function OPTIONS() {

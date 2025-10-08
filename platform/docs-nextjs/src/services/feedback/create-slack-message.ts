@@ -1,23 +1,24 @@
-import {
-  getDocsetsCollection,
-  getFeedbackResponsesCollection,
-  getProjectsCollection,
-  getSlackChannelsCollection,
-  getTeamsCollection,
-} from '../db';
-import type { SnootyEnv, DocsetDocument } from '@/types/data';
-import P from 'leo-profanity';
 import type { Collection } from 'mongodb';
-import type { SlackAction } from './feedback-types';
+import P from 'leo-profanity';
+import type { SnootyEnv, DocsetDocument } from '@/types/data';
+import { getDocsetsCollection } from '@/services/db/docsets';
+import {
+  getProjectsCollection,
+  getTeamsCollection,
+  getSlackChannelsCollection,
+  type ProjectDocument,
+  type TeamDocument,
+  type SlackChannelDocument,
+} from '@/services/db/docs-metadata';
+import { getFeedbackResponsesCollection, type FeedbackDocument } from '@/services/db/feedback';
 import {
   SERVER_CHANNEL_ID,
   DOP_CHANNEL_IDS,
   LOCALIZED_CHANNEL_IDS,
-  type SlackBlock,
   starRating,
+  type SlackBlock,
+  type SlackAction,
 } from './feedback-types';
-import type { ProjectDocument, SlackChannelDocument, TeamDocument } from '../db/types';
-import type { FeedbackDocument } from '../db/types';
 import type { S3ScreenshotAttachment } from './handle-screenshot-feedback';
 import { getJiraTicketUrl } from './jira-builder';
 

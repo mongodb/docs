@@ -1,4 +1,4 @@
-import type { FeedbackDocument } from '@/services/db/types';
+import type { FeedbackDocument } from '@/services/db/feedback';
 import { createSlackMessagePayload } from './create-slack-message';
 import { createJiraTicket } from './create-jira-ticket';
 import { sendSlackMessage } from './send-slack-message';

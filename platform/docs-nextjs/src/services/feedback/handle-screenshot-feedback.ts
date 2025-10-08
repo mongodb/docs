@@ -1,6 +1,6 @@
 import type { Viewport } from '@/types/data';
 import type { Attachment } from '@/services/feedback/feedback-types';
-import type { FeedbackDocument } from '@/services/db/types';
+import type { FeedbackDocument } from '@/services/db/feedback';
 
 import S3 from 'aws-sdk/clients/s3';
 import envConfig from '@/utils/env-config';

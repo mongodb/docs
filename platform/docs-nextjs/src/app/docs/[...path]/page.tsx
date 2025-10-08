@@ -1,5 +1,6 @@
 import CustomTemplate from './custom-template';
-import { getPageDocFromParams, getSnootyMetadata } from '@/services/db';
+import { getSnootyMetadata } from '@/services/db/snooty-metadata';
+import { getPageDocFromParams } from '@/services/db/pages';
 
 interface PageProps {
   params: {

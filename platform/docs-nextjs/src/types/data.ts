@@ -13,7 +13,7 @@ type AppData = {
 
 type ImageRelativePaths = { relativePath: string }[];
 
-type PageFacet = {
+export type PageFacet = {
   category: string;
   value: string;
   display_name: string;

@@ -1,6 +1,6 @@
 import { withCORS } from '@/app/lib/with-cors';
 import { type NextRequest, NextResponse } from 'next/server';
-import { getClient } from '@/services/db';
+import { getClient } from '@/services/db/client';
 import type { BranchData, ReposBranchesDocument } from '@/types/data';
 
 export type SearchPropertyMapping = {
