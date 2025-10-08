@@ -1,6 +1,7 @@
 import type {
   ASTNode,
   ComponentType,
+  CommunityDriverPill,
   FootnoteNode,
   FootnoteReferenceNode,
   Directive,
@@ -53,10 +54,9 @@ import Target, { type TargetProps } from '../target';
 import type { FormatTextOptions } from '../literal';
 import Literal, { type LiteralProps } from '../literal';
 import Button, { type ButtonProps } from '../button';
-import type { ListItemProps } from '../list/listItem';
-import type { ListProps } from '../list';
-import ListItem from '../list/listItem';
-import List from '../list';
+import CommunityPillLink, { type CommunityPillLinkProps } from '../community-pill-link';
+import ListItem, { type ListItemProps } from '../list/listItem';
+import List, { type ListProps } from '../list';
 import {
   RoleAbbr,
   RoleClass,
@@ -175,7 +175,7 @@ const getComponent = (() => {
         // chapters: Chapters,
         code: Code as React.ComponentType<SupportedComponentProps>,
         // collapsible: Collapsible,
-        // 'community-driver': CommunityPillLink,
+        'community-driver': CommunityPillLink as React.ComponentType<SupportedComponentProps>,
         // 'composable-tutorial': ComposableTutorial,
         // 'io-code-block': CodeIO,
         cond: Cond as React.ComponentType<SupportedComponentProps>,
@@ -287,6 +287,7 @@ export type ComponentFactoryProps = {
 type SupportedComponentProps =
   | BlockQuoteProps
   | ComponentFactoryProps
+  | CommunityPillLinkProps
   | CondProps
   | SectionProps
   | TextProps
@@ -378,6 +379,9 @@ const renderComponentWithProps = (
         caption={codeNode.caption}
       />
     );
+  } else if (ComponentType == getComponent('community-driver')) {
+    const { argument, options } = nodeData as CommunityDriverPill;
+    return <ComponentType argument={argument} options={options} {...propsToDrill} />;
   } else if (ComponentType === getComponent('text')) {
     const textNode = nodeData as TextNode;
     return <ComponentType value={textNode.value} />;
