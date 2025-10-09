@@ -1,4 +1,4 @@
-To edit an {+fts+} index using the :driver:`Go Driver </go/current/>`:
+To edit a {+fts+} index using the :driver:`Go Driver </go/current/>`:
 
 .. procedure:: 
    :style: normal 

@@ -1,4 +1,4 @@
-To create an {+fts+} index using the :driver:`Java Driver </java/sync/current/>`:
+To create a {+fts+} index using the :driver:`Java Driver </java/sync/current/>`:
 
 1. Construct a document that defines the search index
 

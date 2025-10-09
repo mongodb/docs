@@ -1,5 +1,5 @@
 For data hosted on MongoDB, you can support full-text search with
-{+fts+} indexes. To learn more, see :atlas:`Create an {+fts+}
+{+fts+} indexes. To learn more, see :atlas:`Create a {+fts+}
 Index </atlas-search/create-index/>`.
 
 For self-managed (non-Atlas) deployments, MongoDB provides a ``text``

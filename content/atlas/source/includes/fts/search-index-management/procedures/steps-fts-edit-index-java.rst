@@ -1,4 +1,4 @@
-To edit an {+fts+} index using the :driver:`Java Driver </java/sync/current/>`:
+To edit a {+fts+} index using the :driver:`Java Driver </java/sync/current/>`:
 
 .. procedure:: 
    :style: normal 

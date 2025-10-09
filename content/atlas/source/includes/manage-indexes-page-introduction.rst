@@ -1,4 +1,4 @@
-An {+fts+} index is a data structure that maps documents from your
+a {+fts+} index is a data structure that maps documents from your
 Atlas cluster to the terms that are extracted from those documents.
 {+fts+} indexes enable efficient full-text searches of your
 database with {+fts+} queries. 

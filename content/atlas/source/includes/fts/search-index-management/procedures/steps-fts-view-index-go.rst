@@ -1,4 +1,4 @@
-To use the :driver:`Go Driver </go/current/>` to retrieve an {+fts+}
+To use the :driver:`Go Driver </go/current/>` to retrieve a {+fts+}
 index by specifying the index name:
 
 .. procedure:: 
@@ -8,7 +8,7 @@ index by specifying the index name:
 
    .. step:: Copy the following code example into the file. 
 
-      The following sample application retrieves an {+fts+} index by
+      The following sample application retrieves a {+fts+} index by
       name from the specified collection.
 
       .. literalinclude:: /includes/fts/search-index-management/view-index.go

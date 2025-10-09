@@ -1,4 +1,4 @@
-To delete an {+fts+} index using the :driver:`Go Driver </go/current/>`:
+To delete a {+fts+} index using the :driver:`Go Driver </go/current/>`:
 
 .. procedure:: 
    :style: normal 
