@@ -1,5 +1,5 @@
-The example application brings together the following recommendations 
-to ensure resilience against network outages and failover events:
+The following sample application brings together key recommendations on
+this page to reduce data operation latency:
 
 - Use the |service|-provided connection string with retryable writes, majority 
   write concern, and default read concern.

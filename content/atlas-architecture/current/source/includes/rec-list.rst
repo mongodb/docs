@@ -25,6 +25,7 @@ refer to the following resources:
 - Performance
 
   - :ref:`arch-center-scalability-recs`
+  - :ref:`arch-center-latency-strategies`
 
 - Cost Optimization
 

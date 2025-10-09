@@ -45,12 +45,6 @@ const tocData: TocItem[] = [
                     contentSite: "atlas-architecture",
                     url: "/docs/atlas/architecture/:version/deployment-paradigms/global-data",
                     versions: { excludes: ["v20250604", "v20250317","v20250228"] },
-                  },
-                  {
-                    label: "Latency Reduction Strategies",
-                    contentSite: "atlas-architecture",
-                    url: "/docs/atlas/architecture/:version/deployment-paradigms/latency-strategies",
-                    versions: { excludes: ["v20250604", "v20250317","v20250228"] },
                   }
                 ],
               },
@@ -234,6 +228,12 @@ const tocData: TocItem[] = [
             contentSite: "atlas-architecture",
             url: "/docs/atlas/architecture/:version/scalability",
           },
+          {
+            label: "Latency Reduction",
+            contentSite: "atlas-architecture",
+            url: "/docs/atlas/architecture/:version/latency-strategies",
+            versions: { excludes: ["v20250604", "v20250317","v20250228"] },
+          }
         ],
       },
       {
