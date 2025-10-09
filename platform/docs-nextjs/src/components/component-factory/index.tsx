@@ -10,6 +10,7 @@ import type {
   NodeType,
   ParagraphNode,
   ParentNode,
+  ProcedureNode,
   RoleName,
   Root as RootNode,
   StrongNode,
@@ -38,6 +39,7 @@ import Admonition, { type AdmonitionProps } from '../admonition';
 import { admonitionMap } from '../admonition/constants';
 import Text, { type TextProps } from '../text';
 import Paragraph, { type ParagraphProps } from '../paragraph';
+import Procedure, { type ProcedureProps } from '../procedure';
 import Kicker, { type KickerProps } from '../kicker';
 import TitleReference, { type TitleReferenceProps } from '../title-reference';
 import Time, { type TimeProps } from '../time';
@@ -213,7 +215,7 @@ const getComponent = (() => {
         only: Cond as React.ComponentType<SupportedComponentProps>,
         // 'openapi-changelog': OpenAPIChangelog,
         paragraph: Paragraph as React.ComponentType<SupportedComponentProps>,
-        // procedure: Procedure,
+        procedure: Procedure as React.ComponentType<SupportedComponentProps>,
         // ref_role: RefRole,
         // reference: Reference,
         // release_specification: ReleaseSpecification,
@@ -282,6 +284,7 @@ export type ComponentFactoryProps = {
   parentNode?: string;
   /** Only used in Literal */
   formatTextOptions?: FormatTextOptions;
+  /** Only used in Procedure */
 };
 
 type SupportedComponentProps =
@@ -292,6 +295,7 @@ type SupportedComponentProps =
   | SectionProps
   | TextProps
   | ParagraphProps
+  | ProcedureProps
   | IntroductionProps
   | KickerProps
   | TimeProps
@@ -479,6 +483,9 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('button')) {
     const buttonNode = nodeData as ButtonNode;
     return <ComponentType argument={buttonNode.argument} options={buttonNode.options} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('procedure')) {
+    const procedureNode = nodeData as ProcedureNode;
+    return <ComponentType nodeChildren={procedureNode.children} options={procedureNode.options} {...propsToDrill} />;
   } else if (ComponentType === getComponent('substitution_reference')) {
     const substitutionReferenceNode = nodeData as SubstitutionReferenceNode;
     return (

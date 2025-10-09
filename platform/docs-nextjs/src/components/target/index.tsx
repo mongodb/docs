@@ -51,7 +51,7 @@ export type TargetProps = {
 const Target = ({ nodeChildren, html_id, name, options, ...rest }: TargetProps) => {
   const [, dictList] = partition(nodeChildren, (child) => child.type === 'target_identifier');
   const [[descriptionTerm], descriptionDetails] = partition(dictList, (elem) => elem.type === 'directive_argument');
-  const hidden = options && options.hidden ? true : false;
+  const hidden = !!options?.hidden;
   const targetRef = useRef<HTMLSpanElement>(null);
   useHashAnchor(html_id, targetRef.current);
 

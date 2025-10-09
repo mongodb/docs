@@ -69,6 +69,7 @@ type ComponentType =
   | 'seealso'
   | 'selected-content'
   | 'sharedinclude'
+  | 'step'
   | 'substitution_reference'
   | 'tab'
   | 'tabs-selector'
