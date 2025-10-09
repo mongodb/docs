@@ -94,6 +94,8 @@ import BlockQuote, { type BlockQuoteProps } from '../block-quote';
 import Emphasis, { type EmphasisProps } from '../emphasis';
 import SubstitutionReference, { type SubstitutionReferenceProps } from '../substitution-reference';
 import VersionModified, { type VersionModifiedProps } from '../version-modified';
+import Line, { type LineProps } from '../line';
+import LineBlock, { type LineBlockProps } from '../line-block';
 import Tabs, { type TabsProps } from '../tabs';
 import Describe, { type DescribeProps } from '../describe';
 import HorizontalList, { type HorizontalListProps } from '../horizontal-list';
@@ -205,8 +207,8 @@ const getComponent = (() => {
         include: Include as React.ComponentType<SupportedComponentProps>,
         introduction: Introduction as React.ComponentType<SupportedComponentProps>,
         kicker: Kicker as React.ComponentType<SupportedComponentProps>,
-        // line: Line,
-        // line_block: LineBlock,
+        line: Line as React.ComponentType<SupportedComponentProps>,
+        line_block: LineBlock as React.ComponentType<SupportedComponentProps>,
         list: List as React.ComponentType<SupportedComponentProps>,
         listItem: ListItem as React.ComponentType<SupportedComponentProps>,
         // 'list-table': ListTable,
@@ -315,6 +317,8 @@ type SupportedComponentProps =
   | ButtonProps
   | DescribeProps
   | EmphasisProps
+  | LineBlockProps
+  | LineProps
   | ExtractProps
   | VersionModifiedProps
   | SubstitutionReferenceProps
@@ -403,9 +407,13 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('paragraph')) {
     const paragraphNode = nodeData as ParagraphNode;
     return <ComponentType nodeChildren={paragraphNode.children} parentNode={props.parentNode} {...propsToDrill} />;
-  } else if (ComponentType === getComponent('extract')) {
-    const extractNode = nodeData as ParentNode;
-    return <ComponentType nodeChildren={extractNode.children} {...propsToDrill} />;
+  } else if (
+    ComponentType === getComponent('line') ||
+    ComponentType === getComponent('line_block') ||
+    ComponentType === getComponent('extract')
+  ) {
+    const node = nodeData as ParentNode;
+    return <ComponentType nodeChildren={node.children} {...propsToDrill} />;
   } else if (ComponentType === getComponent('introduction')) {
     const introductionNode = nodeData as ParentNode;
     return <ComponentType nodeChildren={introductionNode.children} {...propsToDrill} />;
