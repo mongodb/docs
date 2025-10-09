@@ -15,11 +15,11 @@ export const triggerAllSitesDeploys = async ({
     const sitesFromNetlify = await client.listSites({
       filter: "all",
     });
-    
+
     const sites = sitesFromNetlify.reduce((sites: {siteId: string; name: string;}[], site) => {
       const allowedBranches = site.build_settings?.allowed_branches;
       // Only include sites that are either preprd or prod and have an id and name
-      if(allowedBranches?.includes(branchName) && site.id && site.name) {
+      if((allowedBranches?.includes(branchName) || branchName ===   'main') && site.id && site.name) {
         sites.push({
           siteId: site.id,
           name: site.name,
