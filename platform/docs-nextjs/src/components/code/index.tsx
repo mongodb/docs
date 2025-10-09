@@ -3,15 +3,15 @@
 import { useCallback, useContext, useMemo } from 'react';
 import { css, cx } from '@leafygreen-ui/emotion';
 import styled from '@emotion/styled';
-import { default as CodeBlock, type LanguageOption } from '@leafygreen-ui/code';
+import { default as CodeBlock } from '@leafygreen-ui/code';
 import Icon from '@leafygreen-ui/icon';
 import IconButton from '@leafygreen-ui/icon-button';
 import Tooltip from '@leafygreen-ui/tooltip';
 import { palette } from '@leafygreen-ui/palette';
-// TODO: DOP-6025 replace with tab-context component
-// import { TabContext } from '../Tabs/tab-context';
+import { TabContext } from '@/context/tabs-context';
 import { reportAnalytics } from '@/utils/report-analytics';
-// import { usePageContext } from '@/context/page-context';
+import { usePageContext } from '@/context/page-context';
+import type { LanguageOption } from '@/components/code/code-context';
 import type { DriverMap } from '@/components/icons/DriverIconMap';
 import { DRIVER_ICON_MAP } from '@/components/icons/DriverIconMap';
 import type { CodeNode } from '@/types/ast';
@@ -76,9 +76,9 @@ const Code = ({
   source,
   lineno_start,
 }: CodeNode) => {
-  // const { setActiveTab } = useContext(TabContext);
+  const { setActiveTab } = useContext(TabContext);
   const { languageOptions, codeBlockLanguage } = useContext(CodeContext);
-  // const { slug } = usePageContext();
+  const { slug } = usePageContext();
   const code = value;
   let language = (languageOptions?.length > 0 && codeBlockLanguage) || getLanguage(lang);
 
@@ -179,11 +179,8 @@ const Code = ({
           highlightLines={emphasizeLines}
           language={language}
           languageOptions={languageOptions}
-          onChange={(selectedOption: LanguageOption) => {
-            console.log('selectedOption', selectedOption);
-            return;
-            // TODO: DOP-6025: tabs
-            // setActiveTab({ drivers: (selectedOption).id });
+          onChange={(selectedOption) => {
+            setActiveTab({ drivers: (selectedOption as LanguageOption).id });
           }}
           onCopy={reportCodeCopied}
           showLineNumbers={linenos}

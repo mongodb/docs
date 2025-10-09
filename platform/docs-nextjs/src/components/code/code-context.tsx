@@ -1,9 +1,6 @@
-import { type ReactNode, createContext } from 'react';
-import { useMemo } from 'react';
+import { type ReactNode, createContext, useContext, useMemo } from 'react';
 import { Language } from '@leafygreen-ui/code';
-// TODO: DOP-6025 replace with tab-context component
-// TODO: also replace context related variables types ie. selectors, activeTabs
-// import { ActiveTabs, Selectors, TabContext } from '../Tabs/tab-context';
+import { TabContext } from '@/context/tabs-context';
 import { getPlaintext } from '../../utils/get-plaintext';
 import type { ASTNode } from '@/types/ast';
 
@@ -90,10 +87,7 @@ const getCurrentLanguageOption = (languageOptions: LanguageOption[], activeTabs:
 };
 
 const CodeProvider = ({ children }: { children: ReactNode }) => {
-  // const { activeTabs, selectors } = useContext(TabContext);
-  const selectors = useMemo(() => {}, []);
-  const activeTabs = useMemo(() => {}, []);
-  // TODO: DOP-6025 replace these unknown types
+  const { activeTabs, selectors } = useContext(TabContext);
   const languageOptions = useMemo(
     () => generateLanguageOptions(selectors as unknown as Record<string, Record<string, ASTNode[]>>),
     [selectors],

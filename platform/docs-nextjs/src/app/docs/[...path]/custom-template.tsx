@@ -2,7 +2,6 @@ import type { ASTDocument } from '@/services/db/pages';
 import type { RemoteMetadata } from '@/types/data';
 import type { DocumentTemplateProps } from '@/components/templates/document';
 import DocumentTemplate from '@/components/templates/document';
-import type { ASTNode } from '@/types/ast';
 import ComponentFactory from '@/components/component-factory';
 import RootProvider from '@/components/root-provider';
 
@@ -26,11 +25,9 @@ interface CustomTemplateProps {
 
 const CustomTemplate = ({ pageDoc, metadata }: CustomTemplateProps) => {
   const TemplateComponent = getTemplate(pageDoc.ast.options.template || 'document');
-  const pageNodes: ASTNode[] = pageDoc.ast.children || [];
-  const headingNodes = pageDoc.ast.options.headings || [];
 
   return (
-    <RootProvider headingNodes={headingNodes} pageNodes={pageNodes} metadata={metadata}>
+    <RootProvider page={pageDoc} metadata={metadata}>
       <TemplateComponent pageOptions={pageDoc.ast.options} slug={pageDoc.filename}>
         <ComponentFactory nodeData={pageDoc.ast} slug={pageDoc.page_path} key={pageDoc.page_id} />
       </TemplateComponent>

@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 
-// TODO: DOP-6025: Add Tabs
-// import { TabHashContext } from '../components/Tabs/tab-hash-context';
-// import { TabContext } from '../components/Tabs/tab-context';
+import { TabHashContext } from '@/context/tabs-hash-context';
+import { TabContext } from '@/context/tabs-context';
 
 // Hook that scrolls the current ref element into view
 // if it is the same as the current location's hash.
@@ -13,8 +12,8 @@ import { useEffect, useState } from 'react';
 // ie. saved tabbed content from local storage
 const useHashAnchor = (id: string, ref: HTMLElement | null) => {
   const [hash, setHash] = useState<string>('');
-  // const { setActiveTabToHashTab } = useContext(TabHashContext);
-  // const { selectors, setInitialTabs, setLanguageSelectorTab } = useContext(TabContext);
+  const { setActiveTabToHashTab } = useContext(TabHashContext);
+  const { selectors, setInitialTabs, setLanguageSelectorTab } = useContext(TabContext);
   const [initialLoad, setInitialLoad] = useState<boolean>(true);
   const [hasScrolled, setHasScrolled] = useState(false);
 
@@ -34,14 +33,14 @@ const useHashAnchor = (id: string, ref: HTMLElement | null) => {
       return;
     }
 
-    // if (setActiveTabToHashTab) {
-    //   // If within tab, force correct tabs to be open
-    //   setLanguageSelectorTab();
-    //   setActiveTabToHashTab();
-    // } else {
-    //   // Otherwise, ensure default and local storage-found tabs are selected
-    //   setInitialTabs();
-    // }
+    if (setActiveTabToHashTab) {
+      // If within tab, force correct tabs to be open
+      setLanguageSelectorTab();
+      setActiveTabToHashTab();
+    } else {
+      // Otherwise, ensure default and local storage-found tabs are selected
+      setInitialTabs();
+    }
 
     const startTime = Date.now();
     const timeout = 5000;
@@ -66,12 +65,12 @@ const useHashAnchor = (id: string, ref: HTMLElement | null) => {
     hash,
     id,
     ref,
-    // selectors,
+    selectors,
     hasScrolled,
     initialLoad,
-    // setActiveTabToHashTab,
-    // setInitialTabs,
-    // setLanguageSelectorTab,
+    setActiveTabToHashTab,
+    setInitialTabs,
+    setLanguageSelectorTab,
   ]);
 };
 

@@ -32,6 +32,7 @@ import type {
   BlockQuoteNode,
   EmphasisNode,
   SubstitutionReferenceNode,
+  TabsNode,
   HorizontalListNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
@@ -93,6 +94,7 @@ import BlockQuote, { type BlockQuoteProps } from '../block-quote';
 import Emphasis, { type EmphasisProps } from '../emphasis';
 import SubstitutionReference, { type SubstitutionReferenceProps } from '../substitution-reference';
 import VersionModified, { type VersionModifiedProps } from '../version-modified';
+import Tabs, { type TabsProps } from '../tabs';
 import Describe, { type DescribeProps } from '../describe';
 import HorizontalList, { type HorizontalListProps } from '../horizontal-list';
 import Extract, { type ExtractProps } from '../extract';
@@ -229,7 +231,7 @@ const getComponent = (() => {
         // superscript: Superscript,
         // subscript: Subscript,
         substitution_reference: SubstitutionReference as React.ComponentType<SupportedComponentProps>,
-        // tabs: Tabs,
+        tabs: Tabs as React.ComponentType<SupportedComponentProps>,
         // 'tabs-selector': TabSelectors,
         target: Target as React.ComponentType<SupportedComponentProps>,
         text: Text as React.ComponentType<SupportedComponentProps>,
@@ -315,8 +317,9 @@ type SupportedComponentProps =
   | EmphasisProps
   | ExtractProps
   | VersionModifiedProps
-  | HorizontalListProps
-  | SubstitutionReferenceProps;
+  | SubstitutionReferenceProps
+  | TabsProps
+  | HorizontalListProps;
 
 type RoleComponentProps =
   | AbbrProps
@@ -495,9 +498,11 @@ const renderComponentWithProps = (
         {...propsToDrill}
       />
     );
+  } else if (ComponentType === getComponent('tabs')) {
+    const tabsNode = nodeData as TabsNode;
+    return <ComponentType nodeChildren={tabsNode.children} options={tabsNode.options} {...propsToDrill} />;
   }
 
-  console.log('ComponentType', ComponentType.name);
   // Default: spread all props for other components
   return <ComponentType {...props} />;
 };

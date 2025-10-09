@@ -570,10 +570,14 @@ interface ContentsNode extends Directive<ContentsOptions> {
   options: ContentsOptions;
 }
 
-interface TabsNode extends Directive {
-  type: 'directive';
+interface TabsNode extends Directive<TabsOptions> {
   name: 'tabs';
   children: TabNode[];
+}
+
+interface TabsOptions {
+  tabset?: string;
+  hidden?: boolean;
 }
 
 interface TabOptions {
@@ -1061,6 +1065,7 @@ export type {
   SubstitutionReferenceNode,
   TabNode,
   TabsNode,
+  TabsOptions,
   TargetIdentifierNode,
   TargetNode,
   TextNode,

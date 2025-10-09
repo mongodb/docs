@@ -2,7 +2,7 @@ import { isBrowser } from './is-browser';
 
 const isValidStorage = isBrowser;
 
-export const setLocalValue = (key: string, value: string) => {
+export const setLocalValue = (key: string, value: unknown) => {
   try {
     if (isValidStorage) {
       const prevState = JSON.parse(window.localStorage.getItem('mongodb-docs') || '{}');
