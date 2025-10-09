@@ -217,7 +217,7 @@ const tocData: TocItem[] = [
             versions: { excludes: outdatedVersions },
           },
           {
-            label: "Atlas Search Indexes",
+            label: "MongoDB Search Indexes",
             contentSite: "cpp-driver",
             url: "/docs/languages/cpp/cpp-driver/:version/indexes/atlas-search-index",
             versions: { excludes: outdatedVersions },
