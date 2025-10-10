@@ -1,7 +1,5 @@
 The following table shows compatibility between the Ruby driver and Ruby:
 
-The following table shows compatibility between the Ruby driver and Ruby:
-
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
@@ -16,7 +14,6 @@ The following table shows compatibility between the Ruby driver and Ruby:
      - JRuby 9.4
      - JRuby 9.3
      - JRuby 9.2
-     - JRuby 9.1
 
    * - 2.21.1
      - ✓
@@ -26,8 +23,6 @@ The following table shows compatibility between the Ruby driver and Ruby:
      -
      - ✓
      - ✓
-     -
-     -
      -
 
    * - 2.20 to 2.21.0
@@ -39,8 +34,6 @@ The following table shows compatibility between the Ruby driver and Ruby:
      - ✓
      - ✓
      -
-     -
-     -
 
    * - 2.19
      -
@@ -51,6 +44,5 @@ The following table shows compatibility between the Ruby driver and Ruby:
      -
      - ✓
      - ✓
-     -
 
 The driver does not support older versions of Ruby.

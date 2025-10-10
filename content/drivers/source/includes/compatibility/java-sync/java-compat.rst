@@ -1,4 +1,4 @@
-The following table shows compatibility between the Java driver and Java:
+The following table shows compatibility between the Java driver and Java.
 Beginning with Java 8, the table lists only LTS versions, but the driver supports all
 Java versions later than 8 because of the JVM backwards compatibility promise.
 
