@@ -53,6 +53,8 @@ The |fts| ``document`` type takes the following parameters:
      - Name of the ``typeSet`` array of objects that configures the 
        field types to index. To learn more, see
        :ref:`fts-configure-dynamic-mappings`.
+
+       .. include:: /includes/fts/facts/fact-cdi-preview.rst
      - 
 
    * - ``fields``

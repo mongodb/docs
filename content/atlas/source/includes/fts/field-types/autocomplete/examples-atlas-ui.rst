@@ -66,6 +66,8 @@ collection, and refine your index to add field mappings.
    :sub_heading: Dynamically index string fields as the autocomplete type.
    :expanded: false
 
+   .. include:: /includes/fts/facts/fact-cdi-preview.rst
+
    .. include:: /includes/fts/field-types/autocomplete/cdi-example-description.rst
 
    .. tabs:: 
