@@ -65,7 +65,9 @@ syntax:
       {
          writeConcern: <document>,
          collation: <document>,
-         hint: <document>|<string>
+         hint: <document>|<string>,
+         maxTimeMS: <int>,
+         let: <document>
       }
    )
 
@@ -75,15 +77,11 @@ syntax:
    :widths: 20 20 80
    
    * - Parameter
-   
      - Type
-   
      - Description
    
    * - :ref:`filter <deleteMany-filter>`
-   
      - document
-   
      - .. _deleteMany-filter:
         
        Specifies deletion criteria using :ref:`query operators
@@ -91,26 +89,18 @@ syntax:
           
        To delete all documents in a collection, pass in an empty
        document (``{ }``).
-          
-          
-   
+
    * - :ref:`writeConcern <deleteMany-wc>`
-   
      - document
-   
      - .. _deleteMany-wc:
         
        Optional. A document expressing the :ref:`write concern
        <write-concern>`. Omit to use the default write concern.
           
        .. include:: /includes/extracts/transactions-operations-write-concern.rst
-          
-          
-   
+
    * - :ref:`collation <deleteMany-collation>`
-   
      - document
-   
      - .. _deleteMany-collation:
         
        Optional. 
@@ -118,9 +108,7 @@ syntax:
        .. include:: /includes/extracts/collation-option.rst
 
    * - :ref:`hint <deleteMany-hint>`
-
      - document
-
      - .. _deleteMany-hint:
 
        Optional. A document or string that specifies the index 
@@ -134,6 +122,28 @@ syntax:
        errors.
 
        For an example, see :ref:`ex-deleteMany-hint`.
+
+   * - :ref:`maxTimeMS <deleteMany-maxTimeMS>`
+     - integer
+     - .. _deleteMany-maxTimeMS:
+        
+       Optional. Specifies the time limit in milliseconds for the
+       delete operation to run before timing out.
+
+   * - :ref:`let <deleteMany-let>`
+     
+     - Document
+
+     - .. _deleteMany-let:
+     
+       Optional.
+
+       .. include:: /includes/let-variables-syntax.rst
+ 
+       .. include:: /includes/let-variables-syntax-note.rst
+
+       For a complete example using ``let`` and variables,
+       see :ref:`updateMany-let-example`.
 
 Behavior
 --------
@@ -257,6 +267,33 @@ The operation returns:
 .. code-block:: javascript
 
    { "acknowledged" : true, "deletedCount" : 8 }
+
+deleteMany() with a Timeout and Query Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation deletes all documents where ``client`` is equal
+to the ``targetClient`` variable and sets a time limit
+of 3 seconds:
+
+.. code-block:: javascript
+
+   try {
+      db.orders.deleteMany(
+          { $expr: { $eq: ["$client", "$$targetClient"] } },
+          {
+              let: { targetClient: "Crude Traders Inc." },
+              maxTimeMS: 3000
+          }
+      );
+   } catch (e) {
+      print(e);
+   }
+   
+The operation returns:
+
+.. code-block:: javascript
+
+   { "acknowledged" : true, "deletedCount" : 1 }
 
 .. _deleteMany-example-update-with-write-concern:
 
