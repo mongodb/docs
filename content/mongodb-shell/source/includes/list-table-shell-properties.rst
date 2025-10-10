@@ -12,6 +12,16 @@
      - ``false``
      - Specifies whether |mdb-shell| writes log entries.
 
+   * - ``disableSchemaSampling``
+     - boolean
+     - ``false``
+     - By default, |mdb-shell| samples your database schema to enable
+       autocomplete suggestions.
+
+       If you set this setting to ``true``, |mdb-shell| does not sample
+       your database schema and autocomplete behaves as if the
+       collection is empty.
+
    * - ``displayBatchSize``
      - integer
      - 20
