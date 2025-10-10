@@ -2,8 +2,8 @@
    :header-rows: 1
    :widths: 50 50
 
-   * - Service Account
-     - API Keys
+   * - Service Account (Recommended)
+     - API Keys (Legacy)
      
    * - New method of authenticating to |service| using the 
        industry standard {+oauth-2+} protocol with the `Client Credentials flow <https://www.oauth.com/oauth2-servers/access-tokens/client-credentials/>`__. 
