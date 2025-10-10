@@ -1,27 +1,13 @@
 For an introduction to ``chunkSize``, see
 :ref:`tutorial-modifying-chunk-size`.
 
-The following table describes how ``chunkSize`` affects defragmentation
-and the balancer operations in different MongoDB versions.
+When the collection data shared between two shards differs by
+three or more times the configured ``chunkSize`` setting, the
+balancer migrates chunks between the shards.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
- 
-   * - MongoDB Version
-     - Description
-
-   * - MongoDB 6.0 and later
-     - When the collection data shared between two shards differs by
-       three or more times the configured ``chunkSize`` setting, the
-       balancer migrates chunks between the shards.
-       
-       For example, if ``chunkSize`` is 128 MB and the collection data
-       differs by 384 MB or more, the balancer migrates chunks between
-       the shards.
-
-   * - Earlier than MongoDB 6.0
-     - When a chunk grows larger than ``chunkSize``, the chunk is split.
+For example, if ``chunkSize`` is 128 MB and the collection data
+differs by 384 MB or more, the balancer migrates chunks between
+the shards.
 
 When chunks are moved, split, or merged, the shard metadata is updated
 after the chunk operation is committed by a :ref:`config server
@@ -50,12 +36,11 @@ You can also set a :ref:`shard zone <zone-sharding>`. A shard zone is
 based on the shard key, and you can associate each zone with one or more
 shards in a cluster.
 
-Starting in MongoDB 6.0, a sharded cluster only splits chunks when
-chunks must be migrated. This means the chunk size may exceed
-``chunkSize``. Larger chunks reduce the number of chunks on a shard and
-improve performance because the time to update the shard metadata is
-reduced. For example, you might see a 1 TB chunk on a shard even though
-you have set ``chunkSize`` to 256 MB.
+A sharded cluster only splits chunks when chunks must be migrated. This 
+means the chunk size may exceed ``chunkSize``. Larger chunks reduce the 
+number of chunks on a shard and improve performance because the time to 
+update the shard metadata is reduced. For example, you might see a 1 TB
+chunk on a shard even though you have set ``chunkSize`` to 256 MB.
 
 ``chunkSize`` affects the following:
 
