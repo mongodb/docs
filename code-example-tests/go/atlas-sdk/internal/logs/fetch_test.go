@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	internalerrors "atlas-sdk-examples/internal/errors"
+
 	"atlas-sdk-examples/internal/fileutils"
 
 	"github.com/stretchr/testify/assert"
