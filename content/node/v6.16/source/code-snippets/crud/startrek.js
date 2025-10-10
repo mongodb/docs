@@ -1,4 +1,4 @@
-/* Text search */
+/* Text query */
 
 const { MongoClient } = require("mongodb");
 

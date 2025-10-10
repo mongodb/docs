@@ -17,7 +17,7 @@ async function run() {
         const collection = database.collection("<collectionName>");
 
         // start createSearchIndex example
-        // Create a search index
+        // Creates a MongoDB Search index
         const index1 = {
             name: "search1",
             definition: {
@@ -30,7 +30,7 @@ async function run() {
         // end createSearchIndex example
 
         // start vectorSearchIdx example
-        // Create a Vector Search index
+        // Creates a MongoDB Vector Search index
         const vectorSearchIdx = {
             name: "vsidx1",
             type: "vectorSearch",

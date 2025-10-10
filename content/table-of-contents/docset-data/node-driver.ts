@@ -322,7 +322,7 @@ const tocData: TocItem[] = [
         url: "/docs/drivers/node/:version/atlas-search",
       },
       {
-        label: "MongoDB Search",
+        label: "MongoDB Vector Search",
         contentSite: "node",
         url: "/docs/drivers/node/:version/atlas-vector-search",
       },
