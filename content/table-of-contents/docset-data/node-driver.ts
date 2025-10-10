@@ -163,7 +163,7 @@ const tocData: TocItem[] = [
                 url: "/docs/drivers/node/:version/crud/query/distinct",
               },
               {
-                label: "Search Text",
+                label: "Query Text",
                 contentSite: "node",
                 url: "/docs/drivers/node/:version/crud/query/text",
               },
@@ -317,12 +317,12 @@ const tocData: TocItem[] = [
         url: "/docs/drivers/node/:version/run-command",
       },
       {
-        label: "Atlas Search",
+        label: "MongoDB Search",
         contentSite: "node",
         url: "/docs/drivers/node/:version/atlas-search",
       },
       {
-        label: "Atlas Vector Search",
+        label: "MongoDB Search",
         contentSite: "node",
         url: "/docs/drivers/node/:version/atlas-vector-search",
       },
