@@ -1,5 +1,5 @@
-Set Up On-Premise SQL Interface for ODBC
-----------------------------------------
+Set Up On-Premise {+sql-interface+} for ODBC
+--------------------------------------------
 
 .. procedure::
    :style: normal
