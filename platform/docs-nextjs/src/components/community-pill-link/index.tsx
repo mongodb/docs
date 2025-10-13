@@ -14,8 +14,8 @@ const pillLinkStyle = css`
 `;
 
 export type CommunityPillLinkProps = {
-  argument: CommunityDriverPill['argument'];
-  options: CommunityDriverPill['options'];
+  argument?: CommunityDriverPill['argument'];
+  options?: CommunityDriverPill['options'];
   variant?: Variant;
   text?: string;
 };
@@ -28,7 +28,7 @@ const CommunityPillLink = ({
 }: CommunityPillLinkProps) => {
   return (
     <div className={cx(pillLinkStyle)}>
-      {argument && options.url && <Link to={options.url}>{getPlaintext(argument)}</Link>}
+      {argument && options?.url && <Link to={options.url}>{getPlaintext(argument)}</Link>}
       <Badge variant={variant}>{text}</Badge>
     </div>
   );

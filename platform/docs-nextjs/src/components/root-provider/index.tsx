@@ -36,9 +36,9 @@ const RootProvider = ({
       value={{
         page: page.ast,
         slug: getPageSlug(page.page_id),
-        template: page.template,
-        tabsMainColumn: page.ast?.options?.['tabs-selector-position'] === 'main',
-        options: page.options,
+        template: page.ast.options?.template,
+        tabsMainColumn: page.ast.options?.['tabs-selector-position'] === 'main',
+        options: page.ast.options,
       }}
     >
       <MetadataProvider value={metadata}>

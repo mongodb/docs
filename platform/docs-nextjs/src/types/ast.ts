@@ -444,6 +444,7 @@ type CardGroupOptions = {
 interface CardGroupNode extends Directive<CardGroupOptions> {
   name: 'card-group';
   options: CardGroupOptions;
+  children: CardNode[];
 }
 
 type CardOptions = {
@@ -453,8 +454,9 @@ type CardOptions = {
   'icon-dark'?: string;
   'icon-alt'?: string;
   tag?: string;
-  url: string;
+  url?: string;
 };
+
 interface CardNode extends Directive<CardOptions> {
   name: 'card';
   options: CardOptions;

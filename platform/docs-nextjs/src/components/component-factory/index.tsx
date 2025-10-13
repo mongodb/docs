@@ -34,6 +34,8 @@ import type {
   SubstitutionReferenceNode,
   TabsNode,
   HorizontalListNode,
+  CardNode,
+  CardGroupNode,
   ReferenceNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
@@ -103,6 +105,8 @@ import Describe, { type DescribeProps } from '@/components/describe';
 import Line, { type LineProps } from '@/components/line';
 import LineBlock, { type LineBlockProps } from '@/components/line-block';
 import Reference, { type ReferenceProps } from '@/components/reference';
+import Card, { type CardProps } from '@/components/card';
+import CardGroup, { type CardGroupProps } from '@/components/card/card-group';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -178,8 +182,8 @@ const getComponent = (() => {
         // banner: Banner,
         blockquote: BlockQuote as React.ComponentType<SupportedComponentProps>,
         button: Button as React.ComponentType<SupportedComponentProps>,
-        // card: Card,
-        // 'card-group': CardGroup,
+        card: Card as React.ComponentType<SupportedComponentProps>,
+        'card-group': CardGroup as React.ComponentType<SupportedComponentProps>,
         // chapter: Chapter,
         // chapters: Chapters,
         code: Code as React.ComponentType<SupportedComponentProps>,
@@ -324,11 +328,13 @@ type SupportedComponentProps =
   | LineProps
   | ExtractProps
   | VersionModifiedProps
-  | ReferenceProps
+  | HorizontalListProps
   | SubstitutionReferenceProps
   | TabsProps
-  | HorizontalListProps
-  | TabSelectorsProps;
+  | TabSelectorsProps
+  | CardProps
+  | CardGroupProps
+  | ReferenceProps;
 
 type RoleComponentProps =
   | AbbrProps
@@ -511,6 +517,35 @@ const renderComponentWithProps = (
       <ComponentType
         nodeChildren={substitutionReferenceNode.children}
         name={substitutionReferenceNode.name}
+        {...propsToDrill}
+      />
+    );
+  } else if (ComponentType === getComponent('card')) {
+    const cardNode = nodeData as CardNode;
+    return (
+      <ComponentType
+        nodeChildren={cardNode.children}
+        cta={cardNode.options.cta}
+        headline={cardNode.options.headline}
+        icon={cardNode.options.icon}
+        {...{
+          'icon-dark': cardNode.options['icon-dark'],
+          'icon-alt': cardNode.options['icon-alt'],
+        }}
+        tag={cardNode.options.tag}
+        url={cardNode.options.url}
+        {...propsToDrill}
+      />
+    );
+  } else if (ComponentType === getComponent('card-group')) {
+    const cardGroupNode = nodeData as CardGroupNode;
+    return (
+      <ComponentType
+        nodeChildren={cardGroupNode.children}
+        columns={cardGroupNode.options.columns}
+        layout={cardGroupNode.options.layout}
+        style={cardGroupNode.options.style}
+        type={cardGroupNode.options.type}
         {...propsToDrill}
       />
     );
