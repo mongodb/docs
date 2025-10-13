@@ -510,6 +510,11 @@ const tocData: TocItem[] = [
               },
             ],
           },
+          {
+            label: "Empty Charts",
+            contentSite: "charts",
+            url: "/docs/charts/chart-type-reference/empty-charts/",
+          }
         ],
       },
       {
