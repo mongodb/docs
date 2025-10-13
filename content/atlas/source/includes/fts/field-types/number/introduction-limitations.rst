@@ -13,6 +13,6 @@ operators to query indexed fields of type ``number``. You can also run a
 :ref:`July 2023 <fts20230710>` for :ref:`sorting <sort-ref>` the |fts|
 results. For preexisting indexes, you must rebuild the index to use
 number fields in the index for sorting. To learn more, see
-:ref:`fts-index-rebuild` and :ref:`sort-ref`. 
+:ref:`fts-index-rebuild` and :ref:`sort-ref`.
 
-.. include:: /includes/fts/extracts/fts-ib-enable-dynamic-mappings.rst 
+.. include:: /includes/fts/extracts/fts-ib-enable-dynamic-mappings.rst

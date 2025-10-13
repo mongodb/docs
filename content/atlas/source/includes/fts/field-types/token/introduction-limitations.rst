@@ -35,11 +35,11 @@ text value in the field:
 .. note::
 
    We do not recommend indexing a field with both the ``stringFacet`` (deprecated)
-   and ``token`` types, unless you require a different normalizer for the ``token`` 
+   and ``token`` types, unless you require a different normalizer for the ``token``
    type for a use case other than faceting. With this index definition, |fts|
    uses the ``stringFacet`` definition for faceting.
-   
-Review the Behavior of the |fts-field-type| Type  
+
+Review the Behavior of the |fts-field-type| Type
 ------------------------------------------------
 
 When you index a field as ``token`` type, |fts| indexes the terms in

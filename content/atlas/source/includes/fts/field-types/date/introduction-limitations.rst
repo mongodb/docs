@@ -18,12 +18,11 @@ You can also use the ``date`` type to index:
   sorting. To learn more, see :ref:`fts-index-rebuild` and
   :ref:`sort-ref`.  
 
-.. note:: 
-   
-   To query indexed date values inside arrays, you must use the :ref:`range <range-ref>` 
+.. note::
+
+   To query indexed date values inside arrays, you must use the :ref:`range <range-ref>`
    operator. You can't use the :ref:`near <near-ref>` operator
    to query date values stored in an array, even if you have a |fts|
    index on the date values inside the array.
 
-.. include:: /includes/fts/extracts/fts-ib-enable-dynamic-mappings.rst 
- 
+.. include:: /includes/fts/extracts/fts-ib-enable-dynamic-mappings.rst
