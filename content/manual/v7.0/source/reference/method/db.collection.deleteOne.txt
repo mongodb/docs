@@ -59,7 +59,9 @@ The :method:`~db.collection.deleteOne()` method has the following form:
        {
          writeConcern: <document>,
          collation: <document>,
-         hint: <document|string>  
+         hint: <document|string>,
+         maxTimeMS: <int>,
+         let: <document>
        }
    )
 
@@ -116,6 +118,28 @@ parameters:
        errors.
 
        For an example, see :ref:`ex-deleteOne-hint`.
+
+   * - :ref:`maxTimeMS <deleteOne-maxTimeMS>`
+     - integer
+     - .. _deleteOne-maxTimeMS:
+        
+       Optional. Specifies the time limit in milliseconds for the
+       delete operation to run before timing out.
+
+   * - :ref:`let <deleteOne-let>`
+     
+     - Document
+
+     - .. _deleteOne-let:
+     
+       Optional.
+
+       .. include:: /includes/let-variables-syntax.rst
+ 
+       .. include:: /includes/let-variables-syntax-note.rst
+
+       For a complete example using ``let`` and variables,
+       see :ref:`updateMany-let-example`.
 
 Behavior
 --------
@@ -208,6 +232,34 @@ than ``ISODate("2015-11-01T12:40:15Z")``
 
    try {
       db.orders.deleteOne( { expiryts: { $lt: ISODate("2015-11-01T12:40:15Z") } } );
+   } catch (e) {
+      print(e);
+   }
+
+The operation returns:
+
+.. code-block:: javascript
+
+   { acknowledged: true, deletedCount: 1 }
+
+deleteOne() with a Timeout and Query Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation deletes the document that matches the type
+``buy-limit``, ``limit`` is less that the variable ``priceThreshold``,
+and sets a time limit of 3 seconds:
+
+.. code-block:: javascript
+
+   try {
+      db.orders.deleteOne(
+         { type: "buy-limit" },
+         { $expr: { $eq: ["$limit", "$$priceThreshold"] } },
+         {
+            let: { priceThreshold: 49.00 },
+            maxTimeMS: 3000
+         }
+      );
    } catch (e) {
       print(e);
    }
