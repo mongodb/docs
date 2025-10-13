@@ -34,6 +34,7 @@ import type {
   SubstitutionReferenceNode,
   TabsNode,
   HorizontalListNode,
+  ReferenceNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
 import Admonition, { type AdmonitionProps } from '../admonition';
@@ -100,6 +101,7 @@ import Tabs, { type TabsProps } from '../tabs';
 import Describe, { type DescribeProps } from '../describe';
 import HorizontalList, { type HorizontalListProps } from '../horizontal-list';
 import Extract, { type ExtractProps } from '../extract';
+import Reference, { type ReferenceProps } from '@/components/reference';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -221,7 +223,7 @@ const getComponent = (() => {
         paragraph: Paragraph as React.ComponentType<SupportedComponentProps>,
         procedure: Procedure as React.ComponentType<SupportedComponentProps>,
         // ref_role: RefRole,
-        // reference: Reference,
+        reference: Reference as React.ComponentType<SupportedComponentProps>,
         // release_specification: ReleaseSpecification,
         // root: Root,
         rubric: Rubric as React.ComponentType<SupportedComponentProps>,
@@ -321,6 +323,7 @@ type SupportedComponentProps =
   | LineProps
   | ExtractProps
   | VersionModifiedProps
+  | ReferenceProps
   | SubstitutionReferenceProps
   | TabsProps
   | HorizontalListProps;
@@ -446,6 +449,9 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('kicker')) {
     const kickerNode = nodeData as Directive;
     return <ComponentType argument={kickerNode.argument} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('reference')) {
+    const referenceNode = nodeData as ReferenceNode;
+    return <ComponentType nodeChildren={referenceNode.children} refuri={referenceNode.refuri} {...propsToDrill} />;
   } else if (ComponentType === getComponent('time')) {
     const timeNode = nodeData as Directive;
     return <ComponentType argument={timeNode.argument} />;
