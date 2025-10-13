@@ -9,6 +9,8 @@ import MainColumn from './main-column';
 import RightColumn from '@/components/right-column';
 import documentStyling from './document.module.scss';
 import Contents from '@/components/contents';
+import { usePageContext } from '@/context/page-context';
+import TabSelectors from '@/components/tabs/tab-selectors';
 
 const MAX_ON_THIS_PAGE_WIDTH = '200px';
 const MAX_CONTENT_WIDTH = '775px';
@@ -25,6 +27,8 @@ export interface DocumentTemplateProps {
 
 export default function DocumentTemplate({ children, slug, pageOptions }: DocumentTemplateProps) {
   const { slugToBreadcrumbLabel, toctreeOrder } = useSnootyMetadata();
+  const { tabsMainColumn } = usePageContext();
+  const hasMethodSelector = pageOptions?.has_method_selector;
 
   const showPrevNext = !(pageOptions.noprevnext === '' || pageOptions.template === 'guide');
 
@@ -42,6 +46,7 @@ export default function DocumentTemplate({ children, slug, pageOptions }: Docume
         </div>
       </MainColumn>
       <RightColumn hasDismissibleSkillsCard={false} className={documentStyling['right-column']}>
+        {!hasMethodSelector && !tabsMainColumn && <TabSelectors rightColumn={true} />}
         <Contents />
       </RightColumn>
     </div>

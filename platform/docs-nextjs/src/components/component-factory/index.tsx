@@ -37,30 +37,30 @@ import type {
   ReferenceNode,
 } from '@/types/ast';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
-import Admonition, { type AdmonitionProps } from '../admonition';
-import { admonitionMap } from '../admonition/constants';
-import Text, { type TextProps } from '../text';
-import Paragraph, { type ParagraphProps } from '../paragraph';
-import Procedure, { type ProcedureProps } from '../procedure';
-import Kicker, { type KickerProps } from '../kicker';
-import TitleReference, { type TitleReferenceProps } from '../title-reference';
-import Time, { type TimeProps } from '../time';
-import Introduction, { type IntroductionProps } from '../introduction';
-import Section, { type SectionProps } from '../section';
-import Cond, { type CondProps } from '../cond';
-import Strong from '../strong';
-import Subscript from '../subscript';
-import Superscript from '../superscript';
-import Rubric, { type RubricProps } from '../rubric';
-import Footnote, { type FootnoteNodeProps } from '../footnote';
-import FootnoteReference, { type FootnoteReferenceProps } from '../footnote/footnote-reference';
-import Target, { type TargetProps } from '../target';
-import type { FormatTextOptions } from '../literal';
-import Literal, { type LiteralProps } from '../literal';
-import Button, { type ButtonProps } from '../button';
-import CommunityPillLink, { type CommunityPillLinkProps } from '../community-pill-link';
-import ListItem, { type ListItemProps } from '../list/listItem';
-import List, { type ListProps } from '../list';
+import Admonition, { type AdmonitionProps } from '@/components/admonition';
+import { admonitionMap } from '@/components/admonition/constants';
+import Text, { type TextProps } from '@/components/text';
+import Paragraph, { type ParagraphProps } from '@/components/paragraph';
+import Kicker, { type KickerProps } from '@/components/kicker';
+import TitleReference, { type TitleReferenceProps } from '@/components/title-reference';
+import Time, { type TimeProps } from '@/components/time';
+import Introduction, { type IntroductionProps } from '@/components/introduction';
+import Section, { type SectionProps } from '@/components/section';
+import Cond, { type CondProps } from '@/components/cond';
+import Strong from '@/components/strong';
+import Subscript from '@/components/subscript';
+import Superscript from '@/components/superscript';
+import Rubric, { type RubricProps } from '@/components/rubric';
+import Footnote, { type FootnoteNodeProps } from '@/components/footnote';
+import FootnoteReference, { type FootnoteReferenceProps } from '@/components/footnote/footnote-reference';
+import Target, { type TargetProps } from '@/components/target';
+import type {} from '@/components/literal';
+import Literal, { type LiteralProps, type FormatTextOptions } from '@/components/literal';
+import Button, { type ButtonProps } from '@/components/button';
+import Procedure, { type ProcedureProps } from '@/components/procedure';
+import CommunityPillLink, { type CommunityPillLinkProps } from '@/components/community-pill-link';
+import ListItem, { type ListItemProps } from '@/components/list/listItem';
+import List, { type ListProps } from '@/components/list';
 import {
   RoleAbbr,
   RoleClass,
@@ -89,18 +89,19 @@ import type {
   RedProps,
   RoleManualProps,
 } from '@/components/roles';
-import Code from '../code';
-import Include, { type IncludeProps } from '../include';
-import BlockQuote, { type BlockQuoteProps } from '../block-quote';
-import Emphasis, { type EmphasisProps } from '../emphasis';
-import SubstitutionReference, { type SubstitutionReferenceProps } from '../substitution-reference';
-import VersionModified, { type VersionModifiedProps } from '../version-modified';
-import Line, { type LineProps } from '../line';
-import LineBlock, { type LineBlockProps } from '../line-block';
-import Tabs, { type TabsProps } from '../tabs';
-import Describe, { type DescribeProps } from '../describe';
-import HorizontalList, { type HorizontalListProps } from '../horizontal-list';
-import Extract, { type ExtractProps } from '../extract';
+import Code from '@/components/code';
+import Include, { type IncludeProps } from '@/components/include';
+import BlockQuote, { type BlockQuoteProps } from '@/components/block-quote';
+import Emphasis, { type EmphasisProps } from '@/components/emphasis';
+import SubstitutionReference, { type SubstitutionReferenceProps } from '@/components/substitution-reference';
+import VersionModified, { type VersionModifiedProps } from '@/components/version-modified';
+import Tabs, { type TabsProps } from '@/components/tabs';
+import HorizontalList, { type HorizontalListProps } from '@/components/horizontal-list';
+import Extract, { type ExtractProps } from '@/components/extract';
+import TabSelectors, { type TabSelectorsProps } from '@/components/tabs/tab-selectors';
+import Describe, { type DescribeProps } from '@/components/describe';
+import Line, { type LineProps } from '@/components/line';
+import LineBlock, { type LineBlockProps } from '@/components/line-block';
 import Reference, { type ReferenceProps } from '@/components/reference';
 
 const IGNORED_NAMES = new Set([
@@ -236,7 +237,7 @@ const getComponent = (() => {
         // subscript: Subscript,
         substitution_reference: SubstitutionReference as React.ComponentType<SupportedComponentProps>,
         tabs: Tabs as React.ComponentType<SupportedComponentProps>,
-        // 'tabs-selector': TabSelectors,
+        'tabs-selector': TabSelectors as React.ComponentType<SupportedComponentProps>,
         target: Target as React.ComponentType<SupportedComponentProps>,
         text: Text as React.ComponentType<SupportedComponentProps>,
         time: Time as React.ComponentType<SupportedComponentProps>,
@@ -326,7 +327,8 @@ type SupportedComponentProps =
   | ReferenceProps
   | SubstitutionReferenceProps
   | TabsProps
-  | HorizontalListProps;
+  | HorizontalListProps
+  | TabSelectorsProps;
 
 type RoleComponentProps =
   | AbbrProps
@@ -515,6 +517,8 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('tabs')) {
     const tabsNode = nodeData as TabsNode;
     return <ComponentType nodeChildren={tabsNode.children} options={tabsNode.options} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('tabs-selector')) {
+    return <ComponentType />;
   }
 
   // Default: spread all props for other components

@@ -37,7 +37,7 @@ const RootProvider = ({
         page: page.ast,
         slug: getPageSlug(page.page_id),
         template: page.template,
-        tabsMainColumn: page.tabsMainColumn,
+        tabsMainColumn: page.ast?.options?.['tabs-selector-position'] === 'main',
         options: page.options,
       }}
     >

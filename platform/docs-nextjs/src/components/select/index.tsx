@@ -154,8 +154,8 @@ const disabledSelectStyles = css`
 const optionStyling = css`
   align-items: center;
 
-  // TODO: Nextjs Migration: Check that this still works with new version of LG Select!!!
-  & > span > svg {
+  /* hide icon on list, but keep when selected */
+  .hidden-icon {
     display: none;
   }
 `;
@@ -241,7 +241,7 @@ const Select = ({
             glyph={choice.icon}
             {...({ role: 'option' } as React.HTMLAttributes<HTMLLIElement>)}
           >
-            {choice.tabSelectorIcon && <choice.tabSelectorIcon className={cx(iconStyle)} />}
+            {choice.tabSelectorIcon && <choice.tabSelectorIcon className={cx('hidden-icon', iconStyle)} />}
             {choice.text}
           </Option>
         ))}
