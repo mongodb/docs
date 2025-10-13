@@ -43,7 +43,7 @@
 - Improves error message for exceeding the :manual:`maxTimeMS
   </reference/method/cursor.maxTimeMS/>` limit. 
 - Improves :manual:`explain() results</reference/explain-results/>` for
-  queries that target {+adl+} datasets and {+Online-Archive+}s.
+  queries that target Atlas Data Lake datasets and {+Online-Archive+}s.
 
 .. _adf-v20230801:
 

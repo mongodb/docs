@@ -127,19 +127,19 @@
   - M40 clusters include 64 GB of storage
 
 - Allows you to scope database users to one or more specific clusters
-  and {+dl+}\s in an |service| project.
+  and Data Lakes in an |service| project.
 
-|service| {+dl+}
-`````````````````````
+|service| Data Lake
+````````````````````
 
 Introduces easier authorization management for S3 access:
 
 - Provides a centralized UI to authorize and view |aws| |iam| roles and
-  associated {+dl+}\s under the |service|
+  associated Data Lakes under the |service|
   :guilabel:`Project Integrations`.
 
 - Allows you to re-use an existing |aws| |iam| role when granting
-  access to a new |service| {+dl+}.
+  access to a new |service| Data Lake.
 
 .. _atlas_20200811:
 

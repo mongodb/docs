@@ -27,7 +27,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 - Improves performance and stability.
-- Improves query performance on {+adl+} Datasets using sort metadata 
+- Improves query performance on Atlas Data Lake Datasets using sort metadata
   to optimize queries.
 - Fixes an issue that caused {+adf+} to fail to read a Parquet file 
   when the top-level or root schema was marked as ``REPEATED`` or 
@@ -46,7 +46,7 @@
   Parquet file format.
 - Updates the default max row group size to 128MB for the parquet 
   writer.
-- Improves :pipeline:`$group` stages on {+dl+} Dataset partition 
+- Improves :pipeline:`$group` stages on Data Lake Dataset partition 
   fields.
 - Fixes aggregation pipelines with multiple ``$lookup`` stages where
   one stage defines a field and another removes the same field.
@@ -87,7 +87,7 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 - Improves performance and stability.
-- Adds support for {+adl+} as a "Store Type" to the ``createStore`` command.
+- Adds support for Atlas Data Lake as a "Store Type" to the ``createStore`` command.
 - Improves error messaging for Federated ``$search`` queries.
 
 .. _adf-v20220607:
@@ -95,11 +95,11 @@
 07 June 2022 Release
 ~~~~~~~~~~~~~~~~~~~~
 
-- Renames and relaunches {+adl+} as {+adf+}. 
+- Renames and relaunches Atlas Data Lake as {+adf+}. 
 
   .. important:: 
 
-     The federated query engine service previously called {+adl+} is 
+     The federated query engine service previously called Atlas Data Lake is 
      now called {+adf+}. To learn more about {+adf+}, see 
      :ref:`Atlas Data Federation <atlas-data-federation>`.
 

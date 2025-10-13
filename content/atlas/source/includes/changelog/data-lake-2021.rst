@@ -23,7 +23,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Improves performance and stability.
-- Allows connections to |data-lakes| via 
+- Allows connections to Data Lakes via 
   :ref:`private endpoints <manage-private-endpoint>`.
 - Adds support for X.509 authorization.
 - Adds support for empty ``field`` parameters with the 
@@ -142,7 +142,7 @@
 - Supports selecting read preference, read tags, and max staleness 
   through the :ref:`storage configuration <config-adf>` for Atlas Cluster stores.
 - Rejects commands sent with a Versioned API set.
-- Enables the ``count`` parameter in the {+dl+} 
+- Enables the ``count`` parameter in the Data lake 
   :ref:`adf-collstats-stage` aggregation stage.
 - No longer permits :ref:`adf-collstats-stage` in ``$facet`` 
   sub-pipelines.
@@ -171,7 +171,7 @@
 - Generates storage configuration automatically for the first time 
   after user authentication.
 - Returns connection ID through the ``hello`` command.
-- Supports ``$geoNear`` on {+adl+} collections that span multiple 
+- Supports ``$geoNear`` on Atlas Data Lake collections that span multiple 
   |service| clusters.
 - Includes various performance improvements.
 - Includes improved error messages for terminated queries.
@@ -209,7 +209,7 @@
   non-matching partitions.
 - Adds support for
   :manual:`$$NOW </reference/aggregation-variables/#variable.NOW>`.
-- Reports {+adl+} as MongoDB version 4.4 to tools.
+- Reports Atlas Data Lake as MongoDB version 4.4 to tools.
 
 .. _data-lake-v20210105:
 
