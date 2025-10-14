@@ -30,3 +30,7 @@ using the selector option at the top of the page.
    To specify where |vsce| connections are saved, use 
    the :guilabel:`Default Connection Saving Location`
    :ref:`setting <vsce-settings>`.
+
+   |vsce| uses the VS Code API to store and encrypt connection strings 
+   and credentials. To learn more about how VS Code encrypts connections, see the 
+   `VS Code API documentation <https://code.visualstudio.com/api/references/vscode-api#SecretStorage>`__.
