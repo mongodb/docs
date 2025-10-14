@@ -37,7 +37,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - MongoDB Atlas (Shared Tier)
+   * - MongoDB Atlas (Free and Flex Tiers)
      - |checkmark|
      - |checkmark|
      -
