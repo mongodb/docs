@@ -16,7 +16,12 @@
    * - :method:`db.collection.checkMetadataConsistency`
      - Checks the collection for inconsistent sharding metadata.
 
-       .. versionadded:: 7.0
+   * - :method:`db.collection.getShardLocation()`
+
+     - Returns a document containing the shards where the collection is
+       located and whether the collection is sharded.
+
+       .. versionadded:: 8.1
 
    * - :method:`sh.abortMoveCollection()`
      - .. include:: /includes/command/abortMoveCollection.rst 
