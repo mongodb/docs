@@ -2041,6 +2041,13 @@ const tocData: TocItem[] = [
             url: "/docs/:version/reference/method/db.collection.checkMetadataConsistency",
           },
           {
+            label: "db.collection.getShardLocation",
+            contentSite: "docs",
+            url: "/docs/:version/reference/method/db.collection.getShardLocation",
+            versions: { excludes: ["7.0", "8.0"] },
+
+          },
+          {
             label: "sh.abortMoveCollection",
             contentSite: "docs",
             url: "/docs/:version/reference/method/sh.abortMoveCollection",
