@@ -999,7 +999,7 @@ const tocData: TocItem[] = [
                 url: "/docs/:version/tutorial/troubleshoot-sharded-clusters",
               },
               {
-                label: "Shard Direct Commands",
+                label: "Node Direct Commands",
                 contentSite: "docs",
                 url: "/docs/:version/reference/supported-shard-direct-commands",
               },
