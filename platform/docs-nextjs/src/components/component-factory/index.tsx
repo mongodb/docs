@@ -34,6 +34,7 @@ import type {
   SubstitutionReferenceNode,
   TabsNode,
   HorizontalListNode,
+  AdmonitionNode,
   CardNode,
   CardGroupNode,
   ReferenceNode,
@@ -107,6 +108,7 @@ import LineBlock, { type LineBlockProps } from '@/components/line-block';
 import Reference, { type ReferenceProps } from '@/components/reference';
 import Card, { type CardProps } from '@/components/card';
 import CardGroup, { type CardGroupProps } from '@/components/card/card-group';
+import SeeAlso, { type SeeAlsoProps } from '@/components/admonition/see-also';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -234,7 +236,8 @@ const getComponent = (() => {
         rubric: Rubric as React.ComponentType<SupportedComponentProps>,
         // 'search-results': SearchResults,
         section: Section as React.ComponentType<SupportedComponentProps>,
-        // seealso: SeeAlso,
+        see: SeeAlso as React.ComponentType<SupportedComponentProps>,
+        seealso: SeeAlso as React.ComponentType<SupportedComponentProps>,
         // sharedinclude: Include,
         strong: Strong as React.ComponentType<SupportedComponentProps>,
         // superscript: Superscript,
@@ -327,6 +330,7 @@ type SupportedComponentProps =
   | LineBlockProps
   | LineProps
   | ExtractProps
+  | SeeAlsoProps
   | VersionModifiedProps
   | HorizontalListProps
   | SubstitutionReferenceProps
@@ -384,7 +388,17 @@ const renderComponentWithProps = (
     ComponentType = AmbiguousComponentType as React.ComponentType<SupportedComponentProps>;
   }
 
-  if (ComponentType === getComponent('blockquote')) {
+  if (ComponentType === getComponent('admonition')) {
+    const admonitionNode = nodeData as AdmonitionNode;
+    return (
+      <ComponentType
+        nodeChildren={admonitionNode.children}
+        argument={admonitionNode.argument}
+        name={admonitionNode.name}
+        {...propsToDrill}
+      />
+    );
+  } else if (ComponentType === getComponent('blockquote')) {
     const blockquoteNode = nodeData as BlockQuoteNode;
     return <ComponentType nodeChildren={blockquoteNode.children} {...propsToDrill} />;
   } else if (ComponentType === getComponent('code')) {
@@ -418,6 +432,9 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('paragraph')) {
     const paragraphNode = nodeData as ParagraphNode;
     return <ComponentType nodeChildren={paragraphNode.children} parentNode={props.parentNode} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('seealso')) {
+    const seeAlsoNode = nodeData as Directive;
+    return <ComponentType nodeChildren={seeAlsoNode.children} argument={seeAlsoNode.argument} {...propsToDrill} />;
   } else if (
     ComponentType === getComponent('line') ||
     ComponentType === getComponent('line_block') ||

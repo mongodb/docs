@@ -6,9 +6,9 @@ import { Theme } from '@leafygreen-ui/lib';
 import { palette } from '@leafygreen-ui/palette';
 import { getPlaintext } from '@/utils/get-plaintext';
 import { theme } from '@/styles/theme';
-import type { AdmonitionNode } from '@/types/ast';
+import type { AdmonitionName, AdmonitionNode } from '@/types/ast';
 import { sharedDarkModeOverwriteStyles } from '@/components/link';
-import ComponentFactory, { type ComponentFactoryProps } from '../component-factory';
+import ComponentFactory from '@/components/component-factory';
 import { admonitionMap } from './constants';
 
 /* Copied straight from LG Callout.styles.ts */
@@ -107,18 +107,19 @@ const admonitionStyles = css`
   }
 `;
 
-export type AdmonitionProps = Omit<ComponentFactoryProps, 'nodeData'> & { nodeData: AdmonitionNode };
+export type AdmonitionProps = {
+  nodeChildren: AdmonitionNode['children'];
+  argument: AdmonitionNode['argument'];
+  name: Exclude<AdmonitionName, 'see' | 'seealso'>;
+};
 
-const Admonition = ({ nodeData: { argument, children, name }, ...rest }: AdmonitionProps) => {
-  const variant = admonitionMap[name] || Variant.Note;
-  let title = getPlaintext(argument);
-  if (name === 'see') {
-    title = `See: ${title}`;
-  }
+const Admonition = ({ argument, nodeChildren, name, ...rest }: AdmonitionProps) => {
+  const variant = admonitionMap[name as Exclude<AdmonitionName, 'see' | 'seealso'>] || Variant.Note;
+  const title = getPlaintext(argument);
 
   return (
     <Callout className={cx([admonitionStyles, colorStyles(variant)])} title={title} variant={variant} baseFontSize={16}>
-      {children.map((child, i) => (
+      {nodeChildren.map((child, i) => (
         <ComponentFactory {...rest} key={i} nodeData={child} />
       ))}
     </Callout>
