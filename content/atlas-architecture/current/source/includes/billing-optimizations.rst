@@ -47,8 +47,8 @@ Scale Down Underutilized {+Clusters+}
       <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster#termination_protection_enabled-2>`__
       by setting the ``termination_protection_enabled`` field to ``false``.
 
-Optimize Backup Frequency
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Optimize Backup Configurations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - :ref:`Continuous backups <pit-restore>` are expensive, but they give
   you the most safety to recover data from any point in time within the
