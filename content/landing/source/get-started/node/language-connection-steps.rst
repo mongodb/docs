@@ -27,7 +27,7 @@
             :tabId: windows
 
             .. code-block:: shell
-            
+
                mkdir node-quickstart
                cd node-quickstart
                type nul > index.js
@@ -39,7 +39,7 @@
       Copy and paste the following code into ``index.js``. This code
       connects to your cluster and queries your sample data.
 
-      .. literalinclude:: /tested/javascript/driver/get-started/get-started.snippet.example.js
+      .. literalinclude:: /code-examples/tested/javascript/driver/get-started/get-started.snippet.example.js
          :language: javascript
 
          .. include:: /get-started/includes/connection-string-note.rst
