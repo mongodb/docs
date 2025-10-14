@@ -404,11 +404,6 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: "Optimize Query Performance",
-            contentSite: "docs",
-            url: "/docs/:version/tutorial/optimize-query-performance-with-indexes-and-projections",
-          },
-          {
             label: "Write Operation Performance",
             contentSite: "docs",
             url: "/docs/:version/core/write-performance",
