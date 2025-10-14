@@ -1,3 +1,31 @@
+.. _opsmgr-server-8.0.14:
+
+|onprem| Server 8.0.14
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-09-17*
+
+Improvements
+~~~~~~~~~~~~
+
+- Prevents the clean-up of the database path after restore operations, 
+  improving backup and restore reliability.
+- Enables MongoDB Server 8.2 to be selectable as a Long-Term Support (LTS) 
+  Feature Compatibility Version (FCV) in the |onprem| UI, ensuring proper 
+  support for MongoDB 8.2 LTS features.
+- Adds MongoDB 8.2 for production use.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes potential confusion caused by a hardcoded slow query threshold message 
+  by updating the UI to display either the configured threshold or a generic 
+  non-misleading message.
+- Migrates deprecated ``eslint-plugin-class-property`` to ``eslint-plugin-babel`` 
+  to eliminate dependency deprecation warnings and improve maintainability.
+- Fixes failures in the grouped ``MonitoringTest`` tasks for |onprem| automation 
+  by updating relevant build variants and automation logic.
+
 .. _opsmgr-server-8.0.13:
 
 |onprem| Server 8.0.13
@@ -13,29 +41,42 @@ Improvements
 - Updates the {+mdbagent+} to :ref:`108.0.13.8870-1 <mongodb-108.0.13.8870-1>`
 - Supports MongoDB Database Tools 100.13.0
 - Logs ``mongod.lock`` contents in unexpected cases for improved diagnostics
-- Removes the ``oplogEnd`` field from the {+mdbagent+} backup cursor parsing to simplify backup logic
-- The {+mdbagent+} detects the absence of the AVX instruction set and logs a warning to improve supportability for MongoDB 5+
-- Updates shard metadata in the config server for ``config.system.sharding_ddl_coordinators`` on restores for MongoDB 8.2+
+- Removes the ``oplogEnd`` field from the {+mdbagent+} backup cursor parsing to 
+  simplify backup logic
+- The {+mdbagent+} detects the absence of the AVX instruction set and logs a warning 
+  to improve supportability for MongoDB 5+
+- Updates shard metadata in the config server for ``config.system.sharding_ddl_coordinators`` 
+  on restores for MongoDB 8.2+
 - Allows specifying the maximum supported automation version for "special LTS" version filtering
 - Shows restore job IDs in the ``CONCURRENT_RESTORES_JOB_IDS`` error code
 - Specifies button type for table paginator buttons to prevent unintended form submissions
-- Makes additional SAML fields (Service Provider Base URL, Entity ID, and SLS/logout redirect) configurable on the Admin Configuration page
-- Adds a ``New Server`` option in the ``Hostname`` dropdown for Standalone deployments; includes search
-- Improves logic for third-party restore targeting for replica sets that were previously configured as shards
+- Makes additional SAML fields (Service Provider Base URL, Entity ID, and SLS/logout redirect) 
+  configurable on the Admin Configuration page
+- Adds a ``New Server`` option in the ``Hostname`` dropdown for Standalone deployments; 
+  includes search
+- Improves logic for third-party restore targeting for replica sets that were previously 
+  configured as shards
 
 Bug fixes
 ~~~~~~~~~
 
-- Resolves an issue where MMS automation config failed validation if ``enableMajorityReadConcern`` was set in MongoDB 8.2+
-- ``AdjustRoles`` now accounts for role dependencies when creating roles, ensuring proper ordering
-- The {+mdbagent+} no longer attempts to take down two data-bearing nodes at once for PSSSA replica set configurations during global update operations
-- Fixes a memory spike when iterating the logs directory by using chunked, non-blocking iteration and improved logging
-- Fixes ``GetProcessConfigJob`` failing on arbiters when using a non-localhost build command; now respects the localhost exception
+- Resolves an issue where MMS automation config failed validation if ``enableMajorityReadConcern`` 
+  was set in MongoDB 8.2+
+- ``AdjustRoles`` now accounts for role dependencies when creating roles, ensuring 
+  proper ordering
+- The {+mdbagent+} no longer attempts to take down two data-bearing nodes at once 
+  for PSSSA replica set configurations during global update operations
+- Fixes a memory spike when iterating the logs directory by using chunked, non-blocking 
+  iteration and improved logging
+- Fixes ``GetProcessConfigJob`` failing on arbiters when using a non-localhost build command; 
+  now respects the localhost exception
 - Upgrades deprecated ``@babel/plugin-proposal-*`` dependencies to recommended packages
 - Removes deprecated ``@types/react-select`` and ``@types/classnames`` dependencies
 - Improves Javadoc for the ``CanonicalHost`` class
-- Updates checkpoint targeting logic to execute when an on-demand snapshot is initialized, ensuring snapshots proceed after {+mdbagent+} session renewals
-- Fixes imported deployments with LDAP and x509 that were stuck waiting for goal state by reverting to ``AuthAndTlsSettingsSvc``
+- Updates checkpoint targeting logic to execute when an on-demand snapshot is initialized, 
+  ensuring snapshots proceed after {+mdbagent+} session renewals
+- Fixes imported deployments with LDAP and x509 that were stuck waiting for goal state 
+  by reverting to ``AuthAndTlsSettingsSvc``
 - Upgrades deprecated ``puppeteer`` dependency to a supported version
 - Upgrades deprecated ``sinon`` package to the latest minor version
 - Diagnostics archive per group now includes disabled hosts
@@ -43,7 +84,8 @@ Bug fixes
 - Bell icon in navigation now links to the Project Alerts page
 - Tidies optime data endpoint arithmetic logic and variable naming
 - Disables TRACE requests for the embedded Prometheus server
-- Fixes NetSPI 2024 Phase 2 Issue 4 and Issue 6 for sensitive information disclosure in server responses, eliminating exposure of secrets in API responses
+- Fixes NetSPI 2024 Phase 2 Issue 4 and Issue 6 for sensitive information disclosure in 
+  server responses, eliminating exposure of secrets in API responses
 - Fixes the following |cve|\s:
 
   - `CVE-2025-5115 <https://nvd.nist.gov/vuln/detail/CVE-2025-5115>`__
