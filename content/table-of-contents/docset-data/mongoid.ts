@@ -326,16 +326,16 @@ const tocData: TocItem[] = [
             url: "/docs/mongoid/:version/reference/release-notes",
           },
           {
-            label: "Compatibility",
-            contentSite: "mongoid",
-            url: "/docs/mongoid/:version/reference/compatibility",
-          },
-          {
             label: "View the Source",
             isExternal: true,
             url: "https://github.com/mongodb/mongoid",
           },
         ],
+      },
+      {
+        label: "Compatibility",
+        contentSite: "drivers",
+        url: "https://www.mongodb.com/docs/drivers/compatibility/?all-languages=ruby&ruby-driver-framework=mongoid",
       },
       {
         label: "Issues & Help",

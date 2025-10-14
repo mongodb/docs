@@ -48,6 +48,11 @@ const tocData: TocItem[] = [
         url: "/docs/languages/python/pymongo-arrow-driver/:version/schemas",
       },
       {
+        label: "Compatibility",
+        contentSite: "drivers",
+        url: "https://www.mongodb.com/docs/drivers/compatibility/?all-languages=python&python-driver-framework=arrow",
+      },
+      {
         label: "API Documentation",
         isExternal: true,
         url: "https://mongo-arrow.readthedocs.io/en/1.8.0/api/index.html",
