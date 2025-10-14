@@ -75,7 +75,7 @@ const tocData: TocItem[] = [
                 url: "/docs/drivers/go/:version/connect/connection-options/connection-pools",
                 versions: { excludes: outdatedVersions },
               },
-            ]
+            ],
           },
           {
             label: "Connection Troubleshooting",
@@ -89,7 +89,7 @@ const tocData: TocItem[] = [
             url: "https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/",
             versions: { excludes: outdatedVersions },
           },
-        ]
+        ],
       },
       {
         label: "Context Package",
@@ -175,7 +175,7 @@ const tocData: TocItem[] = [
                 url: "/docs/drivers/go/:version/crud/query/geo",
                 versions: { excludes: outdatedVersions },
               },
-            ]
+            ],
           },
           {
             label: "Update Documents",
@@ -202,7 +202,7 @@ const tocData: TocItem[] = [
                 url: "/docs/drivers/go/:version/crud/update/upsert",
                 versions: { excludes: outdatedVersions },
               },
-            ]
+            ],
           },
           {
             label: "Delete Documents",
@@ -240,7 +240,7 @@ const tocData: TocItem[] = [
             url: "/docs/drivers/go/:version/crud/gridfs",
             versions: { excludes: outdatedVersions },
           },
-        ]
+        ],
       },
       {
         label: "Aggregation",
@@ -277,8 +277,8 @@ const tocData: TocItem[] = [
             contentSite: "golang",
             url: "/docs/drivers/go/:version/data-formats/geo",
             versions: { excludes: outdatedVersions },
-          }
-        ]
+          },
+        ],
       },
       {
         label: "Indexes",
@@ -334,7 +334,7 @@ const tocData: TocItem[] = [
             url: "/docs/drivers/go/:version/monitoring-and-logging/change-streams",
             versions: { excludes: outdatedVersions },
           },
-        ]
+        ],
       },
       {
         label: "Security",
@@ -385,7 +385,7 @@ const tocData: TocItem[] = [
                 url: "/docs/drivers/go/:version/security/authentication/kerberos",
                 versions: { excludes: outdatedVersions },
               },
-            ]
+            ],
           },
           {
             label: "In-Use Encryption",
@@ -399,7 +399,7 @@ const tocData: TocItem[] = [
             url: "/docs/drivers/go/:version/security/tls",
             versions: { excludes: outdatedVersions },
           },
-        ]
+        ],
       },
       {
         label: "Reference",
@@ -425,13 +425,13 @@ const tocData: TocItem[] = [
             url: "/docs/drivers/go/:version/reference/quick-reference",
             versions: { excludes: outdatedVersions },
           },
-        ]
+        ],
       },
       {
-            label: "Compatibility",
-            contentSite: "drivers",
-            url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=go",
-            versions: { excludes: outdatedVersions },
+        label: "Compatibility",
+        contentSite: "drivers",
+        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&all-languages=go",
+        versions: { excludes: outdatedVersions },
       },
       {
         label: "API Documentation",
@@ -493,7 +493,7 @@ const tocData: TocItem[] = [
                 contentSite: "golang",
                 url: "/docs/drivers/go/:version/usage-examples/find",
               },
-            ]
+            ],
           },
           {
             label: "Write Operations",
@@ -536,7 +536,7 @@ const tocData: TocItem[] = [
                 contentSite: "golang",
                 url: "/docs/drivers/go/:version/usage-examples/deleteMany",
               },
-            ]
+            ],
           },
           {
             label: "Bulk Operations",
@@ -568,7 +568,7 @@ const tocData: TocItem[] = [
             contentSite: "golang",
             url: "/docs/drivers/go/:version/usage-examples/struct-tagging",
           },
-        ]
+        ],
       },
       {
         label: "Fundamentals",
@@ -603,7 +603,7 @@ const tocData: TocItem[] = [
                 contentSite: "golang",
                 url: "https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/",
               },
-            ]
+            ],
           },
           {
             label: "Stable API",
@@ -697,7 +697,7 @@ const tocData: TocItem[] = [
                     contentSite: "golang",
                     url: "/docs/drivers/go/:version/fundamentals/crud/read-operations/changestream",
                   },
-                ]
+                ],
               },
               {
                 label: "Write",
@@ -735,7 +735,7 @@ const tocData: TocItem[] = [
                     contentSite: "golang",
                     url: "/docs/drivers/go/:version/fundamentals/crud/write-operations/bulk",
                   },
-                ]
+                ],
               },
               {
                 label: "Compound Operations",
@@ -747,7 +747,7 @@ const tocData: TocItem[] = [
                 contentSite: "golang",
                 url: "/docs/drivers/go/:version/fundamentals/crud/write-read-pref",
               },
-            ]
+            ],
           },
           {
             label: "Aggregation",
@@ -800,7 +800,7 @@ const tocData: TocItem[] = [
                 contentSite: "golang",
                 url: "/docs/drivers/go/:version/fundamentals/monitoring/connection-monitoring",
               },
-            ]
+            ],
           },
           {
             label: "GridFS",
@@ -822,7 +822,7 @@ const tocData: TocItem[] = [
             contentSite: "golang",
             url: "/docs/drivers/go/:version/fundamentals/geo",
           },
-        ]
+        ],
       },
       {
         label: "API Documentation",
@@ -851,7 +851,7 @@ const tocData: TocItem[] = [
       {
         label: "Compatibility",
         contentSite: "golang",
-        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=go",
+        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&all-languages=go",
         versions: { includes: outdatedVersions },
       },
       {
