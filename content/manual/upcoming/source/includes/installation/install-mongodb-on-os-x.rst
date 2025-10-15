@@ -178,10 +178,13 @@ Follow these steps to run MongoDB |edition| Edition. These instructions
 assume that you are using the default settings.
 
 You can run MongoDB as a macOS service using ``brew``, or you can run
-MongoDB manually as a background process. It is recommended to run
-MongoDB as a macOS service, as doing so sets the correct system
-``ulimit`` values automatically (see
-:ref:`ulimit settings <ulimit-settings>` for more information).
+MongoDB manually as a background process.
+
+.. note::
+
+   .. include:: /includes/installation/ulimit-macos-brew-note.rst
+
+   See :ref:`Ulimit Settings <ulimit-settings>` for more information.
 
 - To run MongoDB (i.e. the :binary:`~bin.mongod` process) **as a
   macOS service**, run:
