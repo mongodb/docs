@@ -4,6 +4,7 @@ import type { DocumentTemplateProps } from '@/components/templates/document';
 import DocumentTemplate from '@/components/templates/document';
 import ComponentFactory from '@/components/component-factory';
 import RootProvider from '@/components/root-provider';
+import type { ImageContextType } from '@/context/image-context';
 
 type TemplateComponent = React.ComponentType<DocumentTemplateProps>;
 
@@ -21,13 +22,14 @@ function getTemplate(templateOption: string): TemplateComponent {
 interface CustomTemplateProps {
   pageDoc: ASTDocument;
   metadata?: RemoteMetadata;
+  assets: ImageContextType;
 }
 
-const CustomTemplate = ({ pageDoc, metadata }: CustomTemplateProps) => {
+const CustomTemplate = ({ pageDoc, metadata, assets }: CustomTemplateProps) => {
   const TemplateComponent = getTemplate(pageDoc.ast.options.template || 'document');
 
   return (
-    <RootProvider page={pageDoc} metadata={metadata}>
+    <RootProvider page={pageDoc} metadata={metadata} assets={assets}>
       <TemplateComponent pageOptions={pageDoc.ast.options} slug={pageDoc.filename}>
         <ComponentFactory nodeData={pageDoc.ast} slug={pageDoc.page_path} key={pageDoc.page_id} />
       </TemplateComponent>

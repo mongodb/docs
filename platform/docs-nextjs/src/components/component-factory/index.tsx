@@ -38,6 +38,7 @@ import type {
   CardNode,
   CardGroupNode,
   ReferenceNode,
+  ImageNode,
 } from '@/types/ast';
 import { LAZY_COMPONENTS } from '@/components/component-factory/lazy';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
@@ -109,6 +110,7 @@ import LineBlock, { type LineBlockProps } from '@/components/line-block';
 import Reference, { type ReferenceProps } from '@/components/reference';
 import Card, { type CardProps } from '@/components/card';
 import CardGroup, { type CardGroupProps } from '@/components/card/card-group';
+import Image, { type ImageProps } from '@/components/image';
 import SeeAlso, { type SeeAlsoProps } from '@/components/admonition/see-also';
 
 const IGNORED_NAMES = new Set([
@@ -213,7 +215,7 @@ const getComponent = (() => {
         // 'guide-next': GuideNext,
         // heading: Heading,
         hlist: HorizontalList as React.ComponentType<SupportedComponentProps>,
-        // image: Image,
+        image: Image as React.ComponentType<SupportedComponentProps>,
         include: Include as React.ComponentType<SupportedComponentProps>,
         introduction: Introduction as React.ComponentType<SupportedComponentProps>,
         kicker: Kicker as React.ComponentType<SupportedComponentProps>,
@@ -342,7 +344,8 @@ type SupportedComponentProps =
   | TabSelectorsProps
   | CardProps
   | CardGroupProps
-  | ReferenceProps;
+  | ReferenceProps
+  | ImageProps;
 
 type RoleComponentProps =
   | AbbrProps
@@ -575,6 +578,9 @@ const renderComponentWithProps = (
     return <ComponentType nodeChildren={tabsNode.children} options={tabsNode.options} {...propsToDrill} />;
   } else if (ComponentType === getComponent('tabs-selector')) {
     return <ComponentType />;
+  } else if (ComponentType === getComponent('image')) {
+    const { argument, options } = nodeData as ImageNode;
+    return <ComponentType argument={argument} options={options} {...propsToDrill} />;
   }
 
   // Default: spread all props for other components

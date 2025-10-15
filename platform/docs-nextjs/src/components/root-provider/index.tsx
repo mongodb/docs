@@ -14,20 +14,20 @@ import type { RemoteMetadata } from '@/types/data';
 import { MetadataProvider } from '@/utils/use-snooty-metadata';
 import { PageContext } from '@/context/page-context';
 import { TabProvider } from '@/context/tabs-context';
+import { ImageContextProvider, type ImageContextType } from '@/context/image-context';
 
 const getPageSlug = (pageId: ASTDocument['page_id']) => {
   return pageId === 'index' ? '/' : pageId;
 };
 
-const RootProvider = ({
-  children,
-  metadata,
-  page,
-}: {
-  children?: React.ReactNode;
+interface RootProviderProps {
+  children: React.ReactNode;
   metadata?: RemoteMetadata;
   page: ASTDocument;
-}) => {
+  assets: ImageContextType;
+}
+
+const RootProvider = ({ children, metadata, page, assets }: RootProviderProps) => {
   const pageNodes = page.ast.children || [];
   const headingNodes = page.ast.options.headings || [];
 
@@ -45,7 +45,7 @@ const RootProvider = ({
         <FootnoteProvider pageNodes={pageNodes}>
           <ContentsProvider headingNodes={headingNodes}>
             <TabProvider selectors={page.ast.options.selectors} defaultTabs={page.ast.options.default_tabs}>
-              {children}
+              <ImageContextProvider value={assets}>{children}</ImageContextProvider>
             </TabProvider>
           </ContentsProvider>
         </FootnoteProvider>

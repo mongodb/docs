@@ -15,7 +15,7 @@ export interface ASTDocument extends WithId<Document> {
   facets?: PageFacet[];
 }
 
-interface StaticAsset {
+export interface StaticAsset {
   key: string;
   checksum: string;
   updated_at?: Date;

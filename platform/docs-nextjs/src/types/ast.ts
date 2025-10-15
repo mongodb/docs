@@ -612,6 +612,9 @@ type ImageNodeOptions = {
   scale?: string;
   width?: string;
   figwidth?: string;
+  loading?: string;
+  class?: string;
+  border?: boolean;
 };
 
 interface FigureNode extends Directive<ImageNodeOptions> {
@@ -1027,6 +1030,7 @@ export type {
   IAEntryNode,
   IANode,
   ImageNode,
+  ImageNodeOptions,
   InlineTargetNode,
   InstruqtNode,
   IOCodeBlockNode,
