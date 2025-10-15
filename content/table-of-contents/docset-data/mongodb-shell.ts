@@ -20,7 +20,7 @@ const tocData: TocItem[] = [
             collapsible: true,
             items: [
               {
-                label: "Use Disk Imge Verification (macOS)",
+                label: "Use Disk Image Verification (macOS)",
                 contentSite: "mongodb-shell",
                 url: "/docs/mongodb-shell/install/verify-signatures/disk-images",
               },
@@ -219,9 +219,13 @@ const tocData: TocItem[] = [
       {
         label: "Reference",
         contentSite: "mongodb-shell",
-        url: "/docs/mongodb-shell/reference",
         collapsible: true,
         items: [
+          {
+            label: "Cheat Sheet",
+            contentSite: "docs",
+            url: "/docs/mongodb-shell/reference/cheatsheet"
+          },
           {
             label: "Compatibility Changes",
             contentSite: "mongodb-shell",

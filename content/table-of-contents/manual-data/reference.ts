@@ -4,11 +4,6 @@ const versionsBeforeV8_2 = ["v7.0", "v8.0", "v8.1"];
 
 const tocData: TocItem[] = [
   {
-    label: "Cheat Sheet",
-    contentSite: "docs",
-    url: "/docs/:version/reference/cheatsheet"
-  },
-  {
     label: "Collation",
     contentSite: "docs",
     url: "/docs/:version/reference/collation",
@@ -1298,11 +1293,6 @@ const tocData: TocItem[] = [
             label: "cursor.allowDiskUse",
             contentSite: "docs",
             url: "/docs/:version/reference/method/cursor.allowDiskUse",
-          },
-          {
-            label: "cursor.allowPartialResults",
-            contentSite: "docs",
-            url: "/docs/:version/reference/method/cursor.allowPartialResults",
           },
           {
             label: "cursor.batchSize",
