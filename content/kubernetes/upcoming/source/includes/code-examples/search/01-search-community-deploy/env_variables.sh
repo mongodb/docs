@@ -4,8 +4,8 @@ export K8S_CTX="<local cluster context>"
 # the following namespace will be created if not exists
 export MDB_NS="mongodb"
 
-# minimum required MongoDB version for running MongoDB Search is 8.0.10
-export MDB_VERSION="8.0.10"
+# minimum required MongoDB version for running MongoDB Search is 8.2.0
+export MDB_VERSION="8.2.0"
 
 # root admin user for convenience, not used here at all in this guide
 export MDB_ADMIN_USER_PASSWORD="admin-user-password-CHANGE-ME"

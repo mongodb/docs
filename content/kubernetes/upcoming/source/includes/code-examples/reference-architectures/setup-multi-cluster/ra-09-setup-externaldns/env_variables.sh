@@ -12,9 +12,8 @@
 #  ${K8S_CLUSTER_2_CONTEXT_NAME}
 #  ${MDB_GKE_PROJECT}
 
-# Example K8S_CLUSTER_SUFFIX when running in evg: "-68c1dc3ffdfb5800075ecee0-26080"
 suffix_short="${K8S_CLUSTER_SUFFIX}"
-# Ensure suffix_short is no longer than 19 characters to make DNS_SA_NAME fit max 30 characters
+# Ensure suffix_short is no longer than 19 characters to make GKE identifiers fit under 30 characters
 if [[ -n "${suffix_short}" && ${#suffix_short} -gt 19 ]]; then
     # Calculate positions for cutting from the middle
     prefix_len=$(((19 - 1) / 2))  # -1 for the 'x' replacement
@@ -27,4 +26,4 @@ export DNS_SA_NAME="ext-dns-sa${suffix_short}"
 export DNS_SA_EMAIL="${DNS_SA_NAME}@${MDB_GKE_PROJECT}.iam.gserviceaccount.com"
 
 export CUSTOM_DOMAIN="mongodb.custom"
-export DNS_ZONE="mongodb"
+export DNS_ZONE="mongodb${suffix_short}"
