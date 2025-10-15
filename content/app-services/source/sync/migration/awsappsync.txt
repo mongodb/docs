@@ -13,18 +13,18 @@ AWS App Sync Migration Guide
    :depth: 2
    :class: singlecol
 
-As of September 30, 2025, Atlas App Services has reached its end-of-life status 
+As of September 30, 2025, Atlas App Services has reached its end-of-life status
 and is no longer actively supported by MongoDB.
 
-There are many :ref:`third-party services <alternative_solutions>` you can use 
-to migrate your App Services app. This page provides guidance in using 
-AWS AppSync. 
+There are many :ref:`third-party services <alternative_solutions>` you can use
+to migrate your App Services app. This page provides guidance in using
+AWS AppSync.
 
 What is AWS AppSync?
 --------------------
-`AWS AppSync <https://aws.amazon.com/appsync/>`__ is a serverless platform that 
-you can use to keep your data synchronized between devices through GraphQL and 
-Pub/Sub APIs. Combined with MongoDB Atlas as the backend datastore, you maintain 
+`AWS AppSync <https://aws.amazon.com/appsync/>`__ is a serverless platform that
+you can use to keep your data synchronized between devices through GraphQL and
+Pub/Sub APIs. Combined with MongoDB Atlas as the backend datastore, you maintain
 many of the benefits of Device Sync.
 
 System Architecture
@@ -38,35 +38,35 @@ The following diagram shows the typical Device Sync architecture:
 .. image:: /images/migration/device_sync_architecture.png
    :alt: A diagram showing a typical Device Sync architecture.
 
-In this architecture, your app uses the Atlas Device Sync APIs to communicate 
-directly with Atlas App Services, which handles data storage, synchronization, 
+In this architecture, your app uses the Atlas Device Sync APIs to communicate
+directly with Atlas App Services, which handles data storage, synchronization,
 and conflict resolution.
 
 The data flow is:
 
-- Data is stored in each device’s local realm db.
-- A user makes changes on the device. 
+- Data is stored in each device's local realm db.
+- A user makes changes on the device.
 - Device Sync APIs send changes to Atlas App Services.
-- Atlas App Services performs any necessary conflict resolution, stores the changes 
+- Atlas App Services performs any necessary conflict resolution, stores the changes
   in Atlas, and syncs the changes to the other devices.
-- Device Sync APIs update the data in each device’s local realm.
+- Device Sync APIs update the data in each device's local realm.
 
 AWS AppServices
 ~~~~~~~~~~~~~~~
 
-When you migrate from Device Sync to AWS AppSync, you will need to make the 
+When you migrate from Device Sync to AWS AppSync, you will need to make the
 following changes to your architecture:
 
-- Use AWS AppSync to handle data synchronization 
-- Use an AWS Lambda Resolver to send data to Atlas via the MongoDB driver SDKs 
-- Use AWS Event Bridge to listen for event triggers from Atlas 
-- Add a Database Trigger to Atlas 
+- Use AWS AppSync to handle data synchronization
+- Use an AWS Lambda Resolver to send data to Atlas via the MongoDB driver SDKs
+- Use AWS Event Bridge to listen for event triggers from Atlas
+- Add a Database Trigger to Atlas
 
 You also need to change the following in your client code:
 
-- Because AppSync uses GraphQL, you need to use AWS AppSync APIs to access 
+- Because AppSync uses GraphQL, you need to use AWS AppSync APIs to access
   GraphQL endpoints from your application.
-- Change the local datastore from a Realm database to the default 
+- Change the local datastore from a Realm database to the default
   datastore on the device (typically SQLite), or another one of your choice.
 
 The following diagram shows a typical example of the new architecture:
@@ -76,15 +76,15 @@ The following diagram shows a typical example of the new architecture:
 
 Migration Steps
 ---------------
-The following sections outline the high-level tasks you need to perform to 
+The following sections outline the high-level tasks you need to perform to
 migrate your existing Device Sync architecture to AWS AppSync.
 
 MongoDB Atlas
 ~~~~~~~~~~~~~
 
 - If needed, update the database security and network access.
-- Create a Database Trigger that fires an event whenever data in your database 
-  or collection changes. 
+- Create a Database Trigger that fires an event whenever data in your database
+  or collection changes.
 
 AWS
 ~~~
@@ -93,14 +93,14 @@ EventBridge
 ```````````
 - Configure Atlas as the partner source.
 - Configure AWS AppSync as the target.
-- Create a mapping of the event body’s fields to AppSync’s GraphQL endpoints
+- Create a mapping of the event body's fields to AppSync's GraphQL endpoints
 - Configure security
 
 AWS Lambda Resolver
 ```````````````````
-- Create a Lambda resolver based on the ``MongoDB-DataAPI`` template. For details 
-  on this process, refer to the Readme in the 
-  `MongoDB-API GitHub repo <https://github.com/mongodb-partners/MongoDB-API>`__. 
+- Create a Lambda resolver based on the ``MongoDB-DataAPI`` template. For details
+  on this process, refer to the Readme in the
+  `MongoDB-API GitHub repo <https://github.com/mongodb-partners/MongoDB-API>`__.
 - Configure Lambda authorization via IAM
 
 AWS AppSync
@@ -111,13 +111,13 @@ AWS AppSync
 
 Application Code
 ~~~~~~~~~~~~~~~~
-Once you have your backend architecture migrated, you need to make a few changes 
+Once you have your backend architecture migrated, you need to make a few changes
 to your client app:
 
-- Replace the Realm SDKs with code to call the AppSync GraphQL endpoints. You can 
-  use your existing platform with the appropriate AWS SDKs, or use AWS Amplify, 
+- Replace the Realm SDKs with code to call the AppSync GraphQL endpoints. You can
+  use your existing platform with the appropriate AWS SDKs, or use AWS Amplify,
   which provides native support for connecting to AWS services.
-- Add drivers to write and read from the device’s datastore. The default datastore 
-  is SQLite in both iOS and Android environments, but use the database that  
+- Add drivers to write and read from the device's datastore. The default datastore
+  is SQLite in both iOS and Android environments, but use the database that
   meets your needs.
 
