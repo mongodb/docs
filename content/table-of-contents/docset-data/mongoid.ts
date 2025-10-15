@@ -297,24 +297,6 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: "API Documentation",
-        contentSite: "mongoid",
-        url: "/docs/mongoid/:version/api-docs",
-        collapsible: true,
-        items: [
-          {
-            label: " Mongoid",
-            isExternal: true,
-            url: "https://www.mongodb.com/docs/mongoid/current/api",
-          },
-          {
-            label: " Ruby Driver",
-            isExternal: true,
-            url: "https://www.mongodb.com/docs/ruby-driver/current/api",
-          },
-        ],
-      },
-      {
         label: "Reference",
         contentSite: "mongoid",
         url: "/docs/mongoid/:version/reference",
@@ -336,6 +318,24 @@ const tocData: TocItem[] = [
         label: "Compatibility",
         contentSite: "drivers",
         url: "https://www.mongodb.com/docs/drivers/compatibility/?all-languages=ruby&ruby-driver-framework=mongoid",
+      },
+      {
+        label: "API Documentation",
+        contentSite: "mongoid",
+        url: "/docs/mongoid/:version/api-docs",
+        collapsible: true,
+        items: [
+          {
+            label: " Mongoid",
+            isExternal: true,
+            url: "https://www.mongodb.com/docs/mongoid/current/api",
+          },
+          {
+            label: " Ruby Driver",
+            isExternal: true,
+            url: "https://www.mongodb.com/docs/ruby-driver/current/api",
+          },
+        ],
       },
       {
         label: "Issues & Help",
