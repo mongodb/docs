@@ -74,11 +74,13 @@ const tocData: TocItem[] = [
         label: "What's New",
         contentSite: "entity-framework",
         url: "/docs/entity-framework/:version/whats-new",
+        versions: { excludes: ["v8.0"] },
       },
       {
         label: "Upgrade",
         contentSite: "entity-framework",
         url: "/docs/entity-framework/:version/upgrade",
+        versions: { excludes: ["v8.0"] },
       },
       {
         label: "Compatibility",
