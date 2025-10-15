@@ -5,7 +5,7 @@ Configure Auto-Scaling
 ======================
 
 .. meta::
-   :description: Configure Atlas cluster auto-scaling to optimize resource utilization and cost by adjusting cluster tier and storage based on real-time usage.
+   :description: Enable auto-scaling, including predictive auto-scaling, to optimize resource utilization and cost by adjusting cluster tier. Enable cluster storage auto-scaling to increase storage capacity.
 
 .. default-domain:: mongodb
 
@@ -16,46 +16,106 @@ Configure Auto-Scaling
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 2
+   :depth: 1
    :class: singlecol
 
-.. include:: /includes/fact-auto-scaling-availability.rst
+|service| uses auto-scaling for cluster compute to help you optimize resource utilization and cost
+by adjusting your {+cluster+} tier. |service| uses storage auto-scaling to help you
+automatically increase your {+cluster+} storage capacity.
+
+In this section, you can learn about:
+
+- :ref:`Cluster Tier Auto-Scaling: Predictive and Reactive <cluster-autoscaling-reactive-overview>`
+- :ref:`Reactive Auto-Scaling for Cluster Tier <cluster-autoscaling-reactive-overview>`
+- :ref:`Predictive Auto-Scaling for Cluster Tier <predictive-autoscaling-overview>`
+- :ref:`Auto-Scaling for Cluster Storage <howitworks-scale-cluster-storage>`
+- :ref:`Configure Auto-Scaling Options <configure-cluster-autoscaling>`
+- :ref:`Alerts on Auto-Scaling Events <configure-autoscaling-alert>`
+- :ref:`View Auto-Scaling Events in the Activity Feed <activity-feed-auto-scaling-events>`
+- :ref:`MongoDB Support for Atlas Auto-Scaling <mongodb-support-autoscaling>`     
+
+.. _cluster-tier-autoscaling-predictive-and-reactive:
+
+Cluster Tier Auto-Scaling
+--------------------------
+
+|service| uses reactive and predictive auto-scaling for cluster tiers.
+|service| chooses its auto-scaling mechanism based on your cluster's type,
+tier, and workload pattern.
+
+- Reactive auto-scaling. |service| uses thresholds, and not prediction,
+  to trigger scaling events based on current resource usage. Reactive
+  auto-scaling occurs **after** sustained high or low resource usage.
+  To learn more, see :ref:`cluster-autoscaling-reactive-overview`.
+
+- Predictive auto-scaling. |service| uses machine learning to
+  anticipate future scaling needs based on historical usage patterns
+  and attempts to trigger scaling events **before** the forecasted workload
+  spike arrives. 
+  
+  Predictive auto-scaling is an extension of cluster tier auto-scaling and
+  falls back to reactive auto-scaling. |service| continues to rely on
+  reactive auto-scaling to manage **unexpected** spikes in workload that
+  aren't cyclical or predictable. |service| uses predictive auto-scaling
+  for :ref:`eligible clusters <eligible-clusters-predictive-autoscaling>`.
+  To learn more, see :ref:`predictive-autoscaling-overview`.
+
+.. important::
+
+   If you create a cluster in |service| and it's :ref:`eligible for reactive auto-scaling <eligible-clusters-reactive-autoscaling>`
+   and :ref:`eligible for predictive auto-scaling <eligible-clusters-predictive-autoscaling>`,
+   both predictive and reactive auto-scaling mechanisms are enabled by
+   default for the new cluster if you use the {+atlas-ui+}. |service| then uses
+   auto-scaling mechanisms based on your cluster's type, tier, and workload.
+   If you use the {+atlas-admin-api+}, you must explicitly :ref:`enable auto-scaling <configure-cluster-autoscaling>`.
+
+.. _cluster-autoscaling-reactive-overview:
+
+Reactive Auto-Scaling for Cluster Tier
+----------------------------------------
+
+.. include:: /includes/fact-reactive-autoscaling.rst
 
 You can configure the {+cluster+} tier ranges that |service| uses to
 automatically scale your {+cluster+} tier, storage capacity, or both in
 response to {+cluster+} usage.
 
-|service| auto-scaling adjusts {+cluster+} tier based on real-time resource
-usage. The improved auto-scaling engine accurately detects sustained higher
-demand and short-term peak traffic for upscaling decisions.
-|service| makes downscaling choices promptly, to increase optimized
-resource utilization and improve cost profile.
+To optimize resource utilization and improve cost profile, |service|
+reactive auto-scaling detects sustained higher demand and short-term peak
+traffic and adjusts {+cluster+} tier based on real-time resource usage.
 
 To help control costs, you can specify a range of maximum and minimum
 {+cluster+} sizes that your {+cluster+} can automatically scale to.
 
-Auto-scaling works on a rolling basis, and the process doesn't incur any
+Reactive auto-scaling works on a rolling basis, and the process doesn't incur any
 downtime. {+service+} maintains a primary node during this process, but
 the  nodes are upgraded one-by-one and are unavailable while being upgraded.
 
 To learn about recommendations for scalability, including avoiding resource
-drift when using infrastructure as code tools with auto-scaling,
+drift when using infrastructure as code tools with reactive auto-scaling,
 see :ref:`arch-center-scalability-recs` in the {+atlas-arch-center+}.
+
+.. _eligible-clusters-reactive-autoscaling:
+
+Eligible Clusters for Reactive Auto-Scaling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-auto-scaling-availability.rst
 
 .. _howitworks-scale-cluster-tier:
 .. _system-memory-calculation:
 
 How |service| Scales {+Cluster+} Tier
--------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note:: Tier Availability
 
-   Automatic scaling works on {+cluster+} tiers in :guilabel:`General` and
+   Reactive auto-scaling works on {+cluster+} tiers in :guilabel:`General` and
    :guilabel:`Low-CPU` classes, but *not* on {+clusters+} in
    the :guilabel:`Local NVMe SSD` class.
 
 |service| analyzes the following {+cluster+} metrics to
-determine when to scale a {+cluster+}, and whether to scale the
+determine when to reactively scale a {+cluster+}, and whether to scale the
 {+cluster+} tier up or down:
 
 - Normalized System CPU Utilization
@@ -82,7 +142,7 @@ to other :guilabel:`General` {+cluster+} classes, but doesn't scale
 :guilabel:`General` {+clusters+} to :guilabel:`Low-CPU` {+cluster+}
 classes.
 
-The exact auto-scaling criteria are subject to change in order to ensure
+The exact reactive auto-scaling criteria are subject to change in order to ensure
 appropriate cluster resource utilization.
 
 .. include:: /includes/fact-auto-scaling-and-migration.rst
@@ -91,10 +151,10 @@ If you deploy :term:`read-only nodes <read-only node>` and want your
 {+cluster+} to scale faster, consider adjusting your :ref:`Replica
 Set Scaling Mode <replica-set-scaling-mode>`.
 
-Scaling Up a {+Cluster+} Tier
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Scaling Up a {+Cluster+} Tier Reactively 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To effectively manage dynamic workloads for your applications, |service|
+To manage dynamic workloads for your applications, |service| reactively
 scales up nodes in your {+cluster+} under the conditions described in this
 section.
 
@@ -183,10 +243,10 @@ For example, if the cluster tier has not been changed since ``12:00``,
    To reduce the risk of running out of resources, plan to scale up
    {+clusters+} before bulk inserts and other workload spikes.
 
-Scaling Down a {+Cluster+} Tier
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Scaling Down a {+Cluster+} Tier Reactively 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To optimize costs, |service| scales down nodes in your {+cluster+} under
+To optimize costs, |service| reactively scales down nodes in your {+cluster+} under
 the conditions described in this section.
 
 If the next lowest {+cluster+} tier is within your
@@ -255,46 +315,7 @@ are true for *all* nodes of the specified {+cluster+} type:
      caps on CPU usage set by cloud providers after burst periods. These
      thresholds vary depending on your cloud provider and {+cluster+} tier.
 
-.. _downward-scaling-considerations:
-
-Considerations for Downward Auto-Scaling of Cluster Tier and Storage
-````````````````````````````````````````````````````````````````````
-
-- When |service| scales down the storage capacity of your {+cluster+},
-  this can take longer than expanding storage capacity due to the 
-  mechanics of the scaling process.
-- Estimate your deployment's range of workloads and then set the
-  :guilabel:`Minimum Cluster Size` value to the {+cluster+} tier that
-  has enough capacity to handle your deployment's workload. Account for
-  any possible spikes or dips in {+cluster+} activity.
-
-- You can't scale to a {+cluster+} tier smaller than ``M10``.
-
-- You can't select a minimum {+cluster+} tier that is below the current
-  disk configuration of your {+cluster+}. If your storage increases
-  beyond what is supported by your minimum {+cluster+} tier, |service|
-  increases your {+cluster+}\s storage configuration beyond what your
-  minimum {+cluster+} tier supports, then |service| automatically 
-  adjusts your minimum {+cluster+} tier to a tier that
-  supports the current storage requirements of your {+cluster+}.
-
-  .. example::
-
-     You have set your auto-scaling bounds to ``M20`` - ``M60`` and your
-     current {+cluster+} tier is ``M40`` with a disk capacity of 200GB. 
-     |service| triggers a disk auto-scaling event to increase capacity to 
-     320GB because current disk usage exceeds 180GB, which is more than 
-     90% of the 200GB capacity.
-
-     |service| takes the following actions:
-     
-     1. Raises your minimum cluster tier to the next lowest tier, ``M30``,
-        that can accommodate the new storage capacity. ``M20`` supports a 
-        maximum storage capacity of 256GB, so it is no longer a 
-        valid auto-scaling bound.
-     2. Determines that the current instance size, ``M40``,
-        supports the new disk configuration. The disk auto-scaling event 
-        succeeds.
+.. _independently-scaling-shards:
 
 Scaling a Sharded {+Cluster+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -303,13 +324,20 @@ Scaling a Sharded {+Cluster+}
 using the same criteria as replica sets. |service| applies the 
 following rules:
 
+- For clusters with independent shard scaling enabled, auto-scaling in
+  |service| evaluates and scales each shard independently. Independent shard
+  scaling requires that the smallest shard size remains no smaller than two cluster
+  tiers below the largest shard, to maintain availability and performance.
+  If |service| triggers auto-scaling for such a cluster, and
+  scales up the largest shard, it also scales up the smaller shards if necessary
+  to ensure consistent availability and performance.
+
 - If the operational or analytics nodes within a shard
   meet the criteria to auto-scale,
   only the operational or analytics nodes on that particular shard change tier.
 - The Config server replica set doesn't auto-scale.
 
-.. _independently-scaling-shards:
-  
+
 API for Independently Scaling Shards in {+Clusters+}
 ``````````````````````````````````````````````````````````
 
@@ -330,18 +358,103 @@ The ``replicationSpec.numShards`` field is not present in the new API schema.
 Instead, each shard is specified by a separate ``replicationSpec``,
 even for symmetric {+clusters+} in which all shards are configured the same.
 
+.. _predictive-autoscaling-overview:
+
+Predictive Auto-Scaling for Cluster Tier
+-----------------------------------------
+
+Predictive auto-scaling is an extension of auto-scaling.
+
+|service| uses demand-forecasting for host resource utilization and performs
+preemptive scaling up of your cluster compute to ensure optimal resource
+utilization. With predictive auto-scaling, |service| attempts to scale up
+your cluster proactively, ahead of cyclical workload spikes.
+
+Predictive auto-scaling is powered by a machine learning model based on
+historical patterns. |service| scales the cluster up if the model predicts
+high resource utilization. MongoDB updates the model and its criteria continuously
+to optimize |service| performance.
+
+Predictive auto-scaling has the following benefits for clusters with predictive, cyclical workloads:
+
+- Automatically scale up your cluster for cyclical workload patterns, for example, daily or weekly spikes.
+- Maintain consistent performance and availability during predictable high-demand periods.
+- Reduce manual scaling tasks or scheduled scripts by letting |service| manage capacity increases.
+- Seamlessly fall back to reactive auto-scaling when changes to the cluster
+  workload fall outside of predictable patterns and are non-cyclical or unpredictable.
+
+Behavior of Predictive Auto-Scaling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following statements describe how predictive auto-scaling works:
+
+- |service| attempts to scale up your cluster instance size **before** the forecasted load arrives.
+
+- When |service| scales your cluster predictively based on forecasted metrics,
+  it can scale up by at most two tiers at a time.
+
+- Predictive auto-scaling applies only to compute, not storage.
+- Predictive auto-scaling respects existing auto-scaling minimum and maximum instance sizes.
+- In cases when |service| can't use predictive auto-scaling to scale up the cluster,
+  it falls back to using reactive auto-scaling.
+
+- Predictive auto-scaling only supports upscaling. There is no predictive down-scaling.
+  |service| uses reactive auto-scaling to automatically scale down the cluster
+  when the workload decreases.
+
+- If predictive up-scaling is scheduled to happen within the next 1 hour,
+  |service| skips reactive down-scaling.
+
+- If you use :ref:`independent shard scaling <independently-scaling-shards>`,
+  and add one or more shards after predictive auto-scaling was already
+  enabled and active on the cluster, these new shards don't auto-scale
+  predictively until their workload patterns have been established,
+  two weeks later. In the meantime, these shards use reactive auto-scaling
+  behavior in |service|.
+
+.. _eligible-clusters-predictive-autoscaling:
+
+Eligible Clusters for Predictive Auto-Scaling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| uses predictive auto-scaling for eligible clusters.
+Eligible clusters for predictive auto-scaling must meet **all**  of the following criteria:
+
+- Belong to :guilabel:`General` and :guilabel:`Low-CPU` cluster classes.
+- Have a tier that is greater than ``M30``.
+- Have auto-scaling enabled. If you enable down-scaling, auto-scaling
+  minimum instance size should be equal to or greater than ``M30``.
+- Have been active for at least two weeks.
+- **Not** use  :ref:`NVMe storage <nvme-storage>` or belong to the
+  :guilabel:`Local NVMe SSD` cluster class.
+- **Not** be deployed as a :ref:`Global Cluster <global-clusters>`.
+
+In addition, the following criteria affect whether |service| uses
+predictive auto-scaling for an eligible cluster:
+
+- Predictive auto-scaling applies only to electable and read-only nodes. 
+  |service|  **doesn't** use predictive auto-scaling for search or analytics nodes.
+
+- Predictive auto-scaling might not be able to predict non-cyclical and highly
+  dynamic workload spikes in any eligible cluster. In these cases, |service|
+  relies on reactive auto-scaling.
+
 .. _howitworks-scale-cluster-storage:
 
 How |service| Scales Cluster Storage
-------------------------------------
+-------------------------------------
 
 |service| enables {+cluster+} storage auto-scaling by default.
 |service| automatically increases {+cluster+} storage when disk space used
 reaches 90% for *any* node in the {+cluster+}.
 
+To opt out of cluster storage scaling, un-check the
+:guilabel:`Storage Scaling` checkbox in the :guilabel:`Auto-scale`
+section.
+
 The following considerations apply:
 
-- |service| automatically scales {+cluster+} storage up only. You can manually
+- |service| auto-scales {+cluster+} storage up only. You can manually
   reduce your {+cluster+} storage from the :ref:`Edit Cluster <scale-cluster>` page.
 
 - On :ref:`AWS <amazon-aws>`, :ref:`Azure <microsoft-azure>`, and
@@ -368,14 +481,14 @@ The following considerations apply:
   disk auto-scaling with the following error message: ``Disk auto-scaling
   is not yet available for clusters with mixed instance classes``.
 
-- |service| disables disk auto-scaling if you deploy the :guilabel:`Base Tier`
+- |service| disables disk reactive auto-scaling if you deploy the :guilabel:`Base Tier`
   and :guilabel:`Analytics Tier` nodes in different cloud provider regions.
 
 {+Cluster+} Tier and {+Cluster+} Storage Might Scale in Parallel
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When |service| attempts to automatically scale your {+cluster+} storage
-capacity, it might need to scale your storage outside of the bounds that
+capacity as part of auto-scaling, it might need to scale your storage outside of the bounds that
 your current {+cluster+} tier supports. To help ensure that your {+cluster+}
 doesn't experience any downtime, |service| scales your {+cluster+} tier
 (in addition to {+cluster+} storage) to accommodate the new storage capacity.
@@ -442,6 +555,49 @@ the oplog entries based on either the minimum oplog retention window, or
 the oplog size. To learn more, see :ref:`Oplog Size Behavior <oplog-size-behavior>`.
 |service| enables storage auto-scaling by default.
 
+.. _downward-scaling-considerations:
+
+Considerations for Downward Auto-Scaling of Cluster Tier and Storage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- When |service| scales down the storage capacity of your {+cluster+},
+  this can take longer than expanding storage capacity due to the 
+  mechanics of the scaling process.
+- Estimate your deployment's range of workloads and then set the
+  :guilabel:`Minimum Cluster Size` value to the {+cluster+} tier that
+  has enough capacity to handle your deployment's workload. Account for
+  any possible spikes or dips in {+cluster+} activity.
+
+- You can't scale to a {+cluster+} tier smaller than ``M10``.
+
+- You can't select a minimum {+cluster+} tier that is below the current
+  disk configuration of your {+cluster+}. If your storage increases
+  beyond what is supported by your minimum {+cluster+} tier, and |service|
+  increases your {+cluster+}\s storage configuration beyond what your
+  minimum {+cluster+} tier supports, then |service| automatically 
+  adjusts your minimum {+cluster+} tier to a tier that
+  supports the current storage requirements of your {+cluster+}.
+
+  .. example::
+
+     You have set your auto-scaling bounds to ``M20`` - ``M60`` and your
+     current {+cluster+} tier is ``M40`` with a disk capacity of 200GB. 
+     |service| triggers a disk auto-scaling event to increase capacity to 
+     320GB because current disk usage exceeds 180GB, which is more than 
+     90% of the 200GB capacity.
+
+     |service| takes the following actions:
+     
+     1. Raises your minimum cluster tier to the next lowest tier, ``M30``,
+        that can accommodate the new storage capacity. ``M20`` supports a 
+        maximum storage capacity of 256GB, so it is no longer a 
+        valid auto-scaling bound.
+     2. Determines that the current instance size, ``M40``,
+        supports the new disk configuration. The disk auto-scaling event 
+        succeeds.
+
+.. _configure-autoscaling-options:
+
 Configure Auto-Scaling Options
 ------------------------------
 
@@ -465,8 +621,9 @@ section of the {+cluster+} builder for :guilabel:`General` and
 Auto-Scaling Enabled by Default
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When you create a new {+cluster+}, |service| enables auto-scaling for
-{+cluster+} tier and {+cluster+} storage. You don't need
+When you create a new {+cluster+}, |service| enables auto-scaling (predictive and reactive) for
+{+cluster+} tier and {+cluster+} storage. (Predictive auto-scaling only affects
+cluster tier and doesn't affect storage.) You don't need
 to explicitly enable auto-scaling. If you prefer, you can
 :ref:`opt out <opt-out-autoscaling>` for {+cluster+} tier and cluster
 storage.
@@ -483,8 +640,10 @@ storage.
 
 With auto-scaling enabled, your {+cluster+} can automatically:
 
-- Scale up to increase capability with a higher {+cluster+} tier.
-- Decrease the current {+cluster+} tier to a lower {+cluster+} tier.
+- Scale up to increase capability with a higher {+cluster+} tier, using either
+  reactive or predictive auto-scaling, depending on cluster and workload eligibility.
+- Decrease the current {+cluster+} tier to a lower {+cluster+} tier using reactive
+  auto-scaling.
 
 In the :guilabel:`Cluster tier` section of the :guilabel:`Auto-scale`
 options, you can specify the :guilabel:`Maximum Cluster Size` and
@@ -496,6 +655,9 @@ automatically scale to. |service| sets these values as follows:
 
 - The :guilabel:`Minimum Cluster Size` is set to the current {+cluster+}
   tier.
+
+In addition, |service| might use :ref:`predictive auto-scaling <predictive-autoscaling-overview>`
+if your cluster is eligible and its workload is cyclical and predictable.
 
 Review the {+Cluster+} Tier Auto-Scaling Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -514,8 +676,8 @@ To review the enabled auto-scaling options for {+cluster+} tier and storage:
 
 .. _opt-out-autoscaling:
 
-Opt Out of {+Cluster+} Tier and Storage Auto-Scaling
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Opt Out of {+Cluster+} Tier Auto-Scaling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To opt out of {+cluster+} auto-scaling (increasing the cluster tier),
 when :ref:`creating a new cluster <create-new-cluster>`, navigate to the
@@ -529,18 +691,16 @@ when :ref:`creating a new cluster <create-new-cluster>`, navigate to
 :guilabel:`Allow cluster to be scaled down` checkbox in the
 :guilabel:`Auto-scale` section.
 
-To opt out of cluster storage scaling, un-check the
-:guilabel:`Storage Scaling` checkbox in the :guilabel:`Auto-scale`
-section.
-
 .. _activity-feed-auto-scaling-events:
 
 Review Auto-Scaling Activity Feed
 ----------------------------------
 
 You can :ref:`view Activity Feed <view-activity-feed>` to review the events
-for each |service| project. When an auto-scaling event occurs, |service| logs
+for each |service| project. When any auto-scaling event occurs, |service| logs
 the event in the project :guilabel:`Activity Feed`.
+
+|service| uses the following audit :ref:`auto-scaling events <alert-conditions-autoscaling>`.
 
 To view or download only auto-scaling events:
 
@@ -554,7 +714,7 @@ a. .. include:: /includes/nav/list-project-activity-feed.rst
 
 .. _custom-alerts-auto-scaling-events:
 
-Configure Alerts for Auto-scaling Events
+Configure Alerts for Auto-Scaling Events
 -----------------------------------------
 
 .. important::
@@ -563,7 +723,9 @@ Configure Alerts for Auto-scaling Events
 
 Auto-scaling activities are a subset of :ref:`Atlas alerts <alert-conditions>`.
 
-|service| automatically sets up default alerts for :ref:`auto-scaling events <alert-conditions-autoscaling>`.
+Each time |service| triggers any of the :ref:`auto-scaling events <alert-conditions-autoscaling>`,
+you receive default |service| alerts.
+
 You can opt out of or change alert configuration for some or all auto-scaling
 events at a project level.
 
@@ -572,3 +734,10 @@ select :guilabel:`Atlas Auto Scaling` and then select the :guilabel:`Condition/M
 from the list. You can then modify roles for alert recipients, change a
 notification method, such as email or SMS, and add a notifier, such as Slack.
 To learn more, see :ref:`configure-autoscaling-alert`.
+
+.. _mongodb-support-autoscaling:
+
+MongoDB Support for |service| Auto-Scaling
+-------------------------------------------
+
+If you have any questions or concerns, :ref:`contact support <request-support>`.
