@@ -9,7 +9,7 @@
 
       .. code-block:: bash
 
-         sudo apt-get install --only-upgrade {+package-name-enterprise+}
+         sudo apt-get install {+package-name-enterprise+}
 
    .. tab:: Specific Release
       :tabid: specific
@@ -32,4 +32,3 @@
          echo "{+package-name+}-mongosh hold" | sudo dpkg --set-selections
          echo "{+package-name-enterprise+}-mongos hold" | sudo dpkg --set-selections
          echo "{+package-name-enterprise+}-tools hold" | sudo dpkg --set-selections
- 
