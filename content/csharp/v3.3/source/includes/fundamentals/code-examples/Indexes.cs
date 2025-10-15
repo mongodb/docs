@@ -200,6 +200,20 @@ public class Indexes
         // end-list-indexes
     }
 
+    private static void RemoveIndex(IMongoCollection<Movie> collection)
+    {
+        // begin-remove-index
+        collection.Indexes.DropOne("test_index");
+        // end-remove-index
+    }
+
+    private static void RemoveAllIndexes(IMongoCollection<Movie> collection)
+    {
+        // begin-remove-all-indexes
+        collection.Indexes.DropAll();
+        // end-remove-all-indexes
+    }
+
     public class Movie
     {
         [BsonId]
