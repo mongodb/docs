@@ -29,9 +29,7 @@ To view an on-demand snapshot:
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-
-   .. include:: /includes/nav/steps-backup-page.rst
+   .. include:: /includes/nav/steps-backup-details.rst
 
    .. step:: View the on-demand snapshot.
 

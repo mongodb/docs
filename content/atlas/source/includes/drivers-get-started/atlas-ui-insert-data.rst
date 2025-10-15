@@ -4,8 +4,6 @@ to interact with data in your cluster.
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-
    .. include:: /includes/nav/steps-data-explorer.rst
 
    .. step:: Create a ``people`` collection in the ``gettingStarted`` database.

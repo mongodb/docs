@@ -3,8 +3,6 @@ To view and edit query syntax in the :guilabel:`Search Tester`:
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-
    .. include:: /includes/nav/steps-atlas-search.rst
 
    .. step:: View and edit the query syntax.

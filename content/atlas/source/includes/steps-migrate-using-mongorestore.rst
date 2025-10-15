@@ -82,7 +82,7 @@
       
       If no such user exists, create the user:
       
-      a. .. include:: /includes/nav/list-org-access-manager.rst
+      a. .. include:: /includes/nav/list-db-access.rst
       
       #. Click :icon-fa5:`plus` :guilabel:`Add New Database User`.
       

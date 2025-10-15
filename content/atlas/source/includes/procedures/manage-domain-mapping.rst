@@ -1,13 +1,7 @@
 .. procedure::
    :style: normal
 
-   .. step:: Open the 
-      |fmc|.
-
-      a. .. include:: /includes/nav/list-org-settings.rst
-
-      #. In :guilabel:`Manage Federation Settings`, click
-         :guilabel:`Open Federation Management App`.
+   .. include:: /includes/nav/steps-federation.rst
 
    .. step:: Enter domain 
       mapping information.

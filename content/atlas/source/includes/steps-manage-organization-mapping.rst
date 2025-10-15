@@ -1,12 +1,7 @@
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-org-settings.rst
-      
-   .. step:: Open the :guilabel:`Federation Management Console`.
-      
-      In :guilabel:`Manage Federation Settings`, click
-      :guilabel:`Open Federation Management App`.
+   .. include:: /includes/nav/steps-federation.rst
       
    .. step:: Connect an organization to the Federation Application.
       

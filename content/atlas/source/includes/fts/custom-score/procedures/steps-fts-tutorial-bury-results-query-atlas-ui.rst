@@ -1,6 +1,8 @@
 .. procedure:: 
    :style: normal 
 
+   .. include:: /includes/nav/steps-atlas-search.rst
+   
    .. include:: /includes/nav/steps-search-tester.rst 
 
    .. step:: Run a |fts| query with the ``compound`` operator on the ``movies`` collection. 

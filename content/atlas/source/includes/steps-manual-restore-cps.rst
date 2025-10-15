@@ -1,9 +1,7 @@
 .. procedure::
    :style: normal
    
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-
-   .. include:: /includes/nav/steps-backup-page.rst
+   .. include:: /includes/nav/steps-backup-details.rst
       
    .. step:: Request your snapshot.
       
@@ -45,9 +43,7 @@
       Modify your IP Addresses` to make changes to your |service| 
       project IP access list.
 
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-
-   .. include:: /includes/nav/steps-backup-page.rst
+   .. include:: /includes/nav/steps-backup-details.rst
 
    .. step:: Retrieve your snapshot.
       

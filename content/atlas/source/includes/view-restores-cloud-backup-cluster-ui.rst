@@ -5,9 +5,7 @@ the snapshot's delivery type. To view this list:
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-
-   .. include:: /includes/nav/steps-backup-page.rst
+   .. include:: /includes/nav/steps-backup-details.rst
 
    .. step:: Click the :guilabel:`Restores & Downloads` tab.
 

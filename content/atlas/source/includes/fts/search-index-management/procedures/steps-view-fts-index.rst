@@ -1,7 +1,5 @@
 .. procedure::
-   :style: normal   
-      
-   .. include:: /includes/nav/steps-db-deployments-page.rst
+   :style: normal
 
    .. include:: /includes/nav/steps-atlas-search.rst
       

@@ -11,11 +11,9 @@ The stages in the live migration workflow are:
   project; deployed your dedicated {+cluster+} in this project; and can
   connect to it.
 
-  a. .. include:: /includes/nav/list-org-settings.rst
-
-  #. .. include:: /includes/nav/list-org-live-migration.rst
+  a. ... include:: /includes/nav/list-migration-page.rst
     
-  #. Select :guilabel:`Migrate from Cloud Manager` and
+  #. Select :guilabel:`Migrate from a Self-Managed MongoDB Database` and
      start the live migration wizard.
 
 - **Stage 2: Provision Migration Host**.

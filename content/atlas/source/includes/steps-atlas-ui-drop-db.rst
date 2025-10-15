@@ -1,6 +1,8 @@
 .. procedure::
    :style: normal
 
+   .. include:: /includes/nav/steps-data-explorer.rst
+   
    .. step:: Drop the database.
 
       In the :guilabel:`Connections` sidebar, select or hover over the database 

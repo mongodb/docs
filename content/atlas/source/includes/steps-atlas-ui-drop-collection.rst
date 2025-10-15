@@ -1,6 +1,8 @@
 .. procedure::
    :style: normal
 
+   .. include:: /includes/nav/steps-data-explorer.rst
+   
    .. step:: Drop the collection.
 
       In the :guilabel:`Connections` sidebar, click the :icon-fa5:`ellipsis-h`

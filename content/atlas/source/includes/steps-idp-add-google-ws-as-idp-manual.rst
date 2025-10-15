@@ -26,12 +26,7 @@
          download the :guilabel:`Certificate` provided. These will be used
          by the |fmc| in a subsequent step. Leave this page open.
 
-   .. include:: /includes/nav/steps-org-settings.rst
-      
-   .. step:: Open the :guilabel:`Federation Management Console`.
-      
-      In :guilabel:`Manage Federation Settings`, click
-      :guilabel:`Open Federation Management App`.
+   .. include:: /includes/nav/steps-federation.rst
       
    .. step:: Provide Google Workspace Credentials to |service|.
       

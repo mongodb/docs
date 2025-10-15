@@ -5,7 +5,7 @@
 
       Complete any welcome prompts. If you're logging in for the first time, |service| sometimes skips the next two steps.
       
-   .. step:: Go to the :guilabel:`Overview` page for your project.
+   .. step:: Go to the :guilabel:`Project Overview` page for your project.
 
       a. If it is not already displayed, select the organization that
          contains your desired project from the |ui-org-menu| in the
@@ -16,7 +16,7 @@
       
       #. If the `Overview 
          <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Foverview>`__ page is not already 
-         displayed, click :guilabel:`Overview` in the sidebar.
+         displayed, click :guilabel:`Project Overview` in the sidebar.
       
    .. step:: Create a {+cluster+}.
 

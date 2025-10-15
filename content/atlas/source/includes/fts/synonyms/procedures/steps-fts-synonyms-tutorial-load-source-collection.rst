@@ -1,8 +1,6 @@
 .. procedure::
    :style: normal
       
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-      
    .. include:: /includes/nav/steps-data-explorer.rst
       
    .. step:: Create one or more sample synonyms collections in the ``sample_mflix`` database.

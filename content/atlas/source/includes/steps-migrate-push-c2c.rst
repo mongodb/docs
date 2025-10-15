@@ -1,13 +1,11 @@
 .. procedure::
    :style: normal
-   
-   .. include:: /includes/nav/steps-org-settings.rst
 
-   .. include:: /includes/nav/steps-org-live-migration.rst   
+   .. include:: /includes/nav/steps-migration-page.rst   
       
    .. step:: Start the migration process.
       
-      a. Click :guilabel:`Migrate from Ops Manager or Cloud Manager`.
+      a. Click :guilabel:`Migrate from a Self-Managed MongoDB Database`.
       
          .. note::
 
@@ -75,7 +73,7 @@
          from the dropdown list to start the migration.
          The :guilabel:`Migrate Data to This Cluster` page opens.
       
-      #. Click :guilabel:`Migrate from Ops Manager or Cloud Manager`.
+      #. Click :guilabel:`Migrate from a Self-Managed MongoDB Database`.
          
          .. note::
           

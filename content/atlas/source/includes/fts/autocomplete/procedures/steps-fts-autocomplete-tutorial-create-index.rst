@@ -1,9 +1,7 @@
 .. procedure::
    :style: normal
-      
-   .. include:: /includes/nav/steps-db-deployments-page.rst
 
-   .. include:: /includes/nav/steps-search-from-cluster.rst
+   .. include:: /includes/nav/steps-atlas-search.rst
 
    .. include:: /includes/nav/steps-configure-index.rst
       

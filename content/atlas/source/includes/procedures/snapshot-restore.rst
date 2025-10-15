@@ -1,9 +1,7 @@
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-
-   .. include:: /includes/nav/steps-backup-page.rst
+   .. include:: /includes/nav/steps-backup-details.rst
 
    .. step:: Select the snapshot to restore and click 
       :guilabel:`Restore`.

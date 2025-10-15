@@ -88,6 +88,7 @@ Project Overview
 ~~~~~~~~~~~~~~~~
 
 The :guilabel:`Project Overview` setting sets the project landing page to :guilabel:`Overview`. 
+
 :guilabel:`Overview` is a home page for |service| that displays
 modules for common |service| actions.
 

@@ -3,11 +3,9 @@
 
    .. include:: /includes/nav/steps-org-billing.rst
       
-   .. step:: Review the :guilabel:`Overview` tab.
+   .. step:: Review the :guilabel:`Overview` page.
       
-      If it isn't already displayed, click the :guilabel:`Overview` tab.
-      
-      In the :guilabel:`Overview` tab, you can explore:
+      In the :guilabel:`Overview` page, you can explore:
           
       - Invoice information that includes a :guilabel:`Pending Invoice` section,
         which shows your :guilabel:`Net Month-to-Date Amount` for the current billing period. The

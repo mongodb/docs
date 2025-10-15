@@ -1,15 +1,23 @@
-.. step:: Go to the |fts| page for your {+cluster+}.
+.. step:: In |service|, go to the :guilabel:`Search & Vector Search` page for your {+cluster+}.
 
-   You can go the |fts| page from the sidebar, the
-   :guilabel:`Data Explorer`, or your {+cluster+} details page.
-
+   You can go the |fts| page from the
+   :guilabel:`Search & Vector Search` option, or the
+   :guilabel:`Data Explorer`.
+   
    .. tabs::
       
-      .. tab:: Sidebar
-         :tabid: sidebar
+      .. tab:: Search & Vector Search
+         :tabid: search-vector-search
 
-         a. In the sidebar, click :guilabel:`Atlas Search` under
-            the :guilabel:`Services` heading.
+         a. If it's not already displayed, select the 
+            organization that contains your project from the
+            |ui-org-menu| in the navigation bar.
+
+         #. If it's not already displayed, select your project 
+            from the :guilabel:`Projects` menu in the navigation bar.
+            
+         #. In the sidebar, click :guilabel:`Search & Vector Search` 
+            under the :guilabel:`Database` heading.
 
             If you have no {+clusters+}, click 
             :guilabel:`Create cluster` to create one. To learn more, 
@@ -19,23 +27,25 @@
             you want to use from the :guilabel:`Select cluster` dropdown,
             then click :guilabel:`Go to Atlas Search`.
 
-            The `Atlas Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch%2F%3Ccluster%3E>`__ page displays.
+            The `Search & Vector Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch%2F%3Ccluster%3E>`__ page displays.
 
       .. tab:: Data Explorer
          :tabid: data-explorer
 
-         a. Click the :guilabel:`Browse Collections` button for your
-            {+cluster+}. 
+         a. If it's not already displayed, select the 
+            organization that contains your project from the
+            |ui-org-menu| in the navigation bar.
+
+         #. If it's not already displayed, select your project 
+            from the :guilabel:`Projects` menu in the navigation bar.
+
+         #. In the sidebar, click :guilabel:`Data Explorer` 
+            under the :guilabel:`Database` heading.
+
          #. Expand the database and select the collection. 
-         #. Click the :guilabel:`Search Indexes` tab for the
+         
+         #. Click the :guilabel:`Indexes` tab for the
             collection.
 
             The `Atlas Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch%2F%3Ccluster%3E%3Fdatabase%3Dsample_mflix%26collectionName%3Dusers>`__ page displays.
             
-      .. tab:: Cluster Details 
-         :tabid: cluster-details
-
-         a. Click the {+cluster+}\'s name.
-         #. Click the :guilabel:`Atlas Search` tab.
-
-            The `Atlas Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch%2F%3Ccluster%3E>`__ page displays.

@@ -97,8 +97,6 @@
       After you run this code, you can press :kbd:`CTRL` + :kbd:`C` to
       exit the running application.
 
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-
    .. include:: /includes/nav/steps-data-explorer.rst
       
    .. step:: Verify that the data generates successfully.

@@ -4,6 +4,6 @@ pricing, contact |service| support:
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-project-support.rst
+   .. include:: /includes/nav/steps-org-support.rst
 
    .. step:: Request support.

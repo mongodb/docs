@@ -1,13 +1,11 @@
 .. procedure::
    :style: normal
-      
-   .. include:: /includes/nav/steps-org-settings.rst
 
-   .. include:: /includes/nav/steps-org-live-migration.rst
+   .. include:: /includes/nav/steps-migration-page.rst
 
    .. step:: Start the migration process.
       
-      a. Click :guilabel:`Migrate from Ops Manager or Cloud Manager`.
+      a. Click :guilabel:`Migrate from a Self-Managed MongoDB Database`.
       
       #. Click :guilabel:`I'm Ready to Start` and, if you are
          :opsmgr:`migrating </tutorial/migrate-community-to-atlas>` from
@@ -87,7 +85,7 @@
          from the dropdown list to start the migration.
          The :guilabel:`Migrate Data to This Cluster` page opens.
       
-      #. Click :guilabel:`Migrate from Ops Manager or Cloud Manager` and
+      #. Click :guilabel:`Migrate from a Self-Managed MongoDB Database` and
          fill in the fields as follows:
       
          - Select the source project in |com|, if it's not  already selected.
@@ -211,7 +209,7 @@
            certificates, and the amount of disk storage size on the destination
            {+cluster+}.
          - If validation succeeds, click :guilabel:`Next`. The
-           :guilabel:`Migrate from Ops Manager or Cloud Manager` page displays.
+           :guilabel:`Migrate from a Self-Managed MongoDB Database` page displays.
       
    .. step:: Start the migration.
       

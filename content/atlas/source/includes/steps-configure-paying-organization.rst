@@ -11,15 +11,7 @@
          You can :ref:`rename an organization <rename-organization>` to 
          reach your desired cross-organization configuration.
       
-   .. include:: /includes/nav/steps-org-billing.rst
-      
-   .. step:: Click the :guilabel:`Linked Organizations` tab.
-
-      .. note::
-
-         The :guilabel:`Linked Organizations` tab only displays if your 
-         selected organization is eligible to be a paying organization for 
-         cross-organization billing.
+   .. include:: /includes/nav/steps-org-billing-linked.rst
       
    .. step:: Start linking.
 

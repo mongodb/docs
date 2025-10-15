@@ -29,7 +29,7 @@ The |service| process view displays three tabs for monitoring metrics for the pr
   performance. If the collection of database statistics still affects
   performance, you can disable collection:
   
-  1. .. include:: /includes/nav/list-project-settings.rst
+  a. .. include:: /includes/nav/list-project-settings.rst
   
   #. Set :guilabel:`Collect Database Specific Statistics` to 
      :guilabel:`No`.

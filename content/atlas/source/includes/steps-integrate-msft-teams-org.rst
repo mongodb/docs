@@ -26,8 +26,6 @@
             |service| requires this URL to configure the integration.
       
       #. Click :guilabel:`Done`
-      
-   .. include:: /includes/nav/steps-org-settings.rst
 
    .. include:: /includes/nav/steps-org-alerts.rst
       

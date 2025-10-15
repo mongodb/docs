@@ -1,6 +1,8 @@
 .. procedure::
    :style: normal
 
+   .. include:: /includes/nav/steps-atlas-search.rst
+      
    .. step:: Click :guilabel:`Query` in your search index.
 
    .. step:: Click :guilabel:`Edit Query` to run the sample query.

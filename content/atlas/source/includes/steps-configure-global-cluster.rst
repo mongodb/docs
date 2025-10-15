@@ -316,7 +316,7 @@
 
             To verify the correct connection string after deploying the changes:
             
-            a. .. include:: /includes/nav/roman-db-deployments-page.rst
+            a. .. include:: /includes/nav/list-db-deployments-page.rst
             #. Verify the connection string.
 
             Click :guilabel:`Connect`.

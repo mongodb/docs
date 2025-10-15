@@ -7,7 +7,7 @@
       
          You can skip this step if you are using the {+atlas-cli+} to add a network peering connection.
       
-      .. include:: /includes/nav/list-network-access.rst
+      a. .. include:: /includes/nav/list-network-access.rst
       
       #. In the :guilabel:`Peering` tab, click :icon-fa5:`plus`
          :guilabel:`Add Peering Connection`.

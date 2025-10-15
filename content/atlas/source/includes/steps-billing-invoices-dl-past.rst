@@ -3,9 +3,9 @@
 
    .. include:: /includes/nav/steps-org-billing.rst
       
-   .. step:: Review the :guilabel:`Overview` tab.
+   .. step:: Review the :guilabel:`Overview` page.
       
-      If it isn't already displayed, click the :guilabel:`Overview` tab.
+      If it isn't already displayed, click the :guilabel:`Overview` page.
       
       In the :guilabel:`Overview` tab, you can explore:
           
