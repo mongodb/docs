@@ -1,0 +1,29 @@
+name: Go Driver Code Examples - Check Formatting
+
+on:
+  pull_request:
+    paths:
+      - "code-example-tests/go/driver/examples/**" # IMPORTANT: update if project structure changes
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env:
+      PROJECT_PATH: "code-example-tests/go/driver/" # IMPORTANT: update if project structure changes
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go version based on go.mod version
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: '${{ env.PROJECT_PATH }}go.mod'
+      - name: Check code formatting with go fmt
+        run: |
+          cd ${{ env.PROJECT_PATH }}
+          # Check if go fmt would make changes - fail if it would
+          if [ "$(gofmt -l ./examples/)" ]; then
+            echo "The following files are not formatted correctly:"
+            gofmt -l ./examples/
+            echo "Run 'go fmt ./examples/...' to fix formatting issues"
+            exit 1
+          fi
