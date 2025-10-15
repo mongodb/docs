@@ -38,6 +38,7 @@ import type {
   CardNode,
   CardGroupNode,
   ReferenceNode,
+  HeadingNode,
   ImageNode,
 } from '@/types/ast';
 import { LAZY_COMPONENTS } from '@/components/component-factory/lazy';
@@ -108,6 +109,7 @@ import Describe, { type DescribeProps } from '@/components/describe';
 import Line, { type LineProps } from '@/components/line';
 import LineBlock, { type LineBlockProps } from '@/components/line-block';
 import Reference, { type ReferenceProps } from '@/components/reference';
+import Heading, { type HeadingProps } from '@/components/heading';
 import Card, { type CardProps } from '@/components/card';
 import CardGroup, { type CardGroupProps } from '@/components/card/card-group';
 import Image, { type ImageProps } from '@/components/image';
@@ -213,7 +215,7 @@ const getComponent = (() => {
         footnote_reference: FootnoteReference as React.ComponentType<SupportedComponentProps>,
         // glossary: Glossary,
         // 'guide-next': GuideNext,
-        // heading: Heading,
+        heading: Heading as React.ComponentType<SupportedComponentProps>,
         hlist: HorizontalList as React.ComponentType<SupportedComponentProps>,
         image: Image as React.ComponentType<SupportedComponentProps>,
         include: Include as React.ComponentType<SupportedComponentProps>,
@@ -298,7 +300,7 @@ export type ComponentFactoryProps = {
   nodeData: ASTNode;
   page?: RootNode;
   slug?: string;
-  sectionDepth?: string | number;
+  sectionDepth?: number;
   skipPTag?: boolean;
   /** Only used in Paragraph */
   parentNode?: string;
@@ -308,6 +310,7 @@ export type ComponentFactoryProps = {
 };
 
 type SupportedComponentProps =
+  | HeadingProps
   | BlockQuoteProps
   | ComponentFactoryProps
   | CommunityPillLinkProps
@@ -425,6 +428,9 @@ const renderComponentWithProps = (
   } else if (ComponentType == getComponent('community-driver')) {
     const { argument, options } = nodeData as CommunityDriverPill;
     return <ComponentType argument={argument} options={options} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('heading')) {
+    const headingNode = nodeData as HeadingNode;
+    return <ComponentType nodeChildren={headingNode.children} id={headingNode.id} {...propsToDrill} />;
   } else if (ComponentType === getComponent('text')) {
     const textNode = nodeData as TextNode;
     return <ComponentType value={textNode.value} />;

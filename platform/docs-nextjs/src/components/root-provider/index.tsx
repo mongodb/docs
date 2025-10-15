@@ -14,6 +14,7 @@ import type { RemoteMetadata } from '@/types/data';
 import { MetadataProvider } from '@/utils/use-snooty-metadata';
 import { PageContext } from '@/context/page-context';
 import { TabProvider } from '@/context/tabs-context';
+import { InstruqtProvider } from '@/context/instruqt-context';
 import { ImageContextProvider, type ImageContextType } from '@/context/image-context';
 
 const getPageSlug = (pageId: ASTDocument['page_id']) => {
@@ -45,6 +46,7 @@ const RootProvider = ({ children, metadata, page, assets }: RootProviderProps) =
         <FootnoteProvider pageNodes={pageNodes}>
           <ContentsProvider headingNodes={headingNodes}>
             <TabProvider selectors={page.ast.options.selectors} defaultTabs={page.ast.options.default_tabs}>
+              <InstruqtProvider hasLabDrawer={!!page.ast.options.instruqt}>{children}</InstruqtProvider>
               <ImageContextProvider value={assets}>{children}</ImageContextProvider>
             </TabProvider>
           </ContentsProvider>
