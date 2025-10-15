@@ -81,6 +81,11 @@ const tocData: TocItem[] = [
         url: "/docs/entity-framework/:version/upgrade",
       },
       {
+        label: "Compatibility",
+        contentSite: "drivers",
+        url: "https://www.mongodb.com/docs/drivers/compatibility/?all-languages=csharp&csharp-driver-framework=entity-framework",
+      },
+      {
         label: "API Documentation",
         isExternal: true,
         url: "https://mongodb.github.io/mongo-efcore-provider/9.0.0/api",
