@@ -15,6 +15,63 @@ Set Missing Shard Key Fields
    :depth: 2
    :class: singlecol
 
+Chunk Range and Missing Shard Key Fields
+----------------------------------------
+
+Missing shard key fields fall within the same chunk range as shard keys
+with null values. For example, if the shard key is on the fields ``{ x:
+1, y: 1 }``, then:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 60 60
+
+   * - Document Missing Shard Key
+
+     - Falls into Same Range As
+
+   * - ``{ x: "hello" }``
+     - ``{ x: "hello", y: null }``
+
+   * - ``{ y: "goodbye" }``
+     - ``{ x: null, y: "goodbye" }``
+
+   * - ``{ z: "oops" }``
+     - ``{ x: null, y: null }``
+
+.. _shard-key-missing-read-write-ops:
+
+Read/Write Operations and Missing Shard Key Fields
+--------------------------------------------------
+
+To target documents with missing shard key fields, you can use the
+:query:`{ $exists: false } <$exists>` filter condition on the shard key
+fields. For example, if the shard key is on the fields ``{ x: 1, y: 1
+}``, you can find the documents with missing shard key fields by running
+this query:
+
+.. code-block:: javascript
+
+   db.shardedcollection.find( { $or: [ { x: { $exists: false } }, { y: { $exists: false } } ] } )
+
+If you specify a :doc:`null equality match
+</tutorial/query-for-null-fields>` filter condition (e.g. ``{ x: null
+}``), the filter matches :red:`both` those documents with missing shard
+key fields :red:`and` those with shard key fields set to ``null``.
+
+Some write operations, such as a write with an ``upsert``
+specification, require an equality match on the shard key. In those
+cases, to target a document that is missing the shard key, include
+another filter condition in addition to the ``null`` equality match.
+For example:
+
+.. code-block:: javascript
+
+   { _id: <value>, <shardkeyfield>: null } // _id of the document missing shard key
+
+Set the Missing Shard Key Fields
+--------------------------------
+
 If you have missing shard key fields, you can set the shard key field to
 ``null``. If you want to set the missing shard key field to a
 non-``null`` value, see :ref:`update-shard-key`.

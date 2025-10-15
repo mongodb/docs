@@ -748,6 +748,12 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "Shard Key Indexes",
+            contentSite: "docs",
+            url: "/docs/:version/core/sharding-shard-key-indexes",
+            versions: { excludes: versionsBeforeV8_2 },
+          },
+          {
             label: "Shard a Collection",
             contentSite: "docs",
             url: "/docs/:version/core/sharding-shard-a-collection",
@@ -786,7 +792,7 @@ const tocData: TocItem[] = [
             url: "/docs/:version/core/sharding-set-missing-shard-key-fields",
           },
           {
-            label: "Find a Shard Key",
+            label: "Display a Shard Key",
             contentSite: "docs",
             url: "/docs/:version/core/sharding-find-shard-key",
           },
