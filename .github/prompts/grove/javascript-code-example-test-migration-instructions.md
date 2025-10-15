@@ -1,17 +1,17 @@
-# AI Agent Instructions: Automated Golang Code Example Migration
+# AI Agent Instructions: Automated JavaScript/Node.js Driver Code Example Migration
 
 ## 🎯 Quick Decision Framework (READ FIRST)
 
 **When You Encounter Issues:**
 - **Sample data missing** → SKIP with documentation, continue migration
-- **Compilation errors** → ESCALATE immediately with error details
-- **Runtime failures** → LOG details, create simplified version
+- **Runtime errors** → ESCALATE immediately with error details
+- **Module import failures** → LOG details, create simplified version
 - **File not found** → SEARCH for alternatives, escalate if none found
 - **Complex custom data** → CREATE minimal test data or ESCALATE
 - **Connection issues** → RETRY 3x, then skip gracefully
 
 **Key Success Criteria:**
-✅ Code compiles and runs
+✅ Code runs without errors
 ✅ Tests pass or skip gracefully
 ✅ Documentation references updated
 ✅ Original files safely deleted
@@ -22,7 +22,7 @@
 ## Overview
 
 This document provides step-by-step instructions for AI agents to automate the
-migration of hard-coded, untested Go code examples from documentation into a
+migration of hard-coded, untested JavaScript/Node.js Driver code examples from documentation into a
 proper test environment. This ensures code examples remain accurate, testable,
 and maintainable.
 
@@ -30,14 +30,15 @@ and maintainable.
 
 Before starting, ensure you understand:
 1. **Monorepo structure** from `.github/copilot-instructions.md`
-2. **Existing test patterns** in `code-example-tests/go/driver`
+2. **Existing test patterns** in `code-example-tests/javascript/driver`
 3. **Bluehawk markup syntax** for documentation integration
-4. **MongoDB Go driver v2 patterns** and environment handling
+4. **MongoDB Node.js driver patterns** and environment handling
+5. **Jest testing framework** and ES modules
 
 ## 📋 5-Phase Migration Process
 
 ### Phase 1: 🔍 Discovery & Analysis
-**GOAL**: Find all Go code examples in documentation
+**GOAL**: Find all JavaScript code examples in documentation
 
 #### 1.1 Read Repository Documentation
 ```bash
@@ -47,68 +48,68 @@ read_file(".github/copilot-instructions.md")
 
 **Key Points:**
 - `content/` contains documentation projects (versioned and non-versioned)
-- `code-example-tests/go/driver/` contains the test infrastructure
+- `code-example-tests/javascript/driver/` contains the test infrastructure
 - **Version isolation**: Each version's `source/` directory is self-contained
 - Follow the existing patterns for examples, tests, and utils
 
 #### 1.2 Analyze Documentation Page
 ```bash
-# Examine the documentation page for Go file references
-read_file("content/golang/current/source/[TARGET_PAGE].txt")
+# Examine the documentation page for JavaScript file references
+read_file("content/node/current/source/[TARGET_PAGE].txt")
 ```
 
-**Look for all forms of Go code examples:**
-1. **Direct file references**: `.. literalinclude::` directives referencing Go files
-2. **Inline code blocks**: `.. code-block:: go` containing hardcoded Go code
+**Look for all forms of JavaScript code examples:**
+1. **Direct file references**: `.. literalinclude::` directives referencing JavaScript files
+2. **Inline code blocks**: `.. code-block:: javascript` containing hardcoded JavaScript code
 3. **Include files**: `.. include::` directives that may contain:
-   - Direct `.. code-block:: go` sections with hardcoded code
-   - Nested `.. literalinclude::` directives referencing Go files
+   - Direct `.. code-block:: javascript` sections with hardcoded code
+   - Nested `.. literalinclude::` directives referencing JavaScript files
 4. **Expected output sections**: Code blocks showing JSON or text output
 5. **Sample data requirements**: References to sample databases or datasets
 
 **Analysis Strategy:**
 ```bash
-# Find all literalinclude references to Go files
-grep -r "literalinclude.*\.go" content/golang/current/source/
+# Find all literalinclude references to JavaScript files
+grep -r "literalinclude.*\.js" content/node/current/source/
 
-# Find all Go code blocks with potentially hardcoded examples
-grep -r "code-block:: go" content/golang/current/source/
+# Find all JavaScript code blocks with potentially hardcoded examples
+grep -r "code-block:: javascript\|code-block:: js" content/node/current/source/
 
-# Find all include directives that might contain Go code
-grep -r ".. include::" content/golang/current/source/
+# Find all include directives that might contain JavaScript code
+grep -r ".. include::" content/node/current/source/
 
-# Check included files for Go code
-grep -r "code-block:: go\|literalinclude.*\.go" content/golang/current/source/includes/
+# Check included files for JavaScript code
+grep -r "code-block:: javascript\|code-block:: js\|literalinclude.*\.js" content/node/current/source/includes/
 ```
 
 **Important**: Determine if you're working with:
-- **Versioned project**: `content/golang/current/source/` (scope to this version only)
+- **Versioned project**: `content/node/current/source/` (scope to this version only)
 - **Non-versioned project**: `content/atlas/source/` (scope to project root)
 
 #### 1.3 Locate and Categorize Code Examples
 
-**Examine all discovered Go code examples and categorize them:**
+**Examine all discovered JavaScript code examples and categorize them:**
 
-**Type 1: Referenced Go Files**
+**Type 1: Referenced JavaScript Files**
 ```bash
-# Find all Go files referenced in literalinclude directives
-glob_file_search("content/golang/current/source/**/[REFERENCED_FILE].go")
+# Find all JavaScript files referenced in literalinclude directives
+glob_file_search("content/node/current/source/**/[REFERENCED_FILE].js")
 ```
 
 **Type 2: Inline Code Blocks**
 ```bash
 # Examine inline code blocks in documentation files
-grep -A 20 -B 5 "code-block:: go" content/golang/current/source/[PAGE].txt
+grep -A 20 -B 5 "code-block:: javascript\|code-block:: js" content/node/current/source/[PAGE].txt
 ```
 
-**Type 3: Included Files with Go Code**
+**Type 3: Included Files with JavaScript Code**
 ```bash
-# Check include files for Go code examples
-grep -l "code-block:: go\|literalinclude.*\.go" content/golang/current/source/includes/*.rst
+# Check include files for JavaScript code examples
+grep -l "code-block:: javascript\|code-block:: js\|literalinclude.*\.js" content/node/current/source/includes/*.rst
 ```
 
 **Examine each discovered code example for:**
-- **Standalone `main()` functions** (need conversion to testable functions)
+- **Standalone execution scripts** (need conversion to exportable functions)
 - **Hard-coded connection strings** (need environment variable replacement)
 - **Sample data dependencies** (need sample data handling)
 - **Inline hardcoded examples** (need extraction to testable files)
@@ -120,8 +121,8 @@ grep -l "code-block:: go\|literalinclude.*\.go" content/golang/current/source/in
 #### 2.1 Create Example Directory Structure
 ```bash
 # Create organized directory structure
-mkdir -p code-example-tests/go/driver/examples/[TOPIC]/
-mkdir -p code-example-tests/go/driver/tests/[TOPIC]/
+mkdir -p code-example-tests/javascript/driver/examples/[TOPIC]/
+mkdir -p code-example-tests/javascript/driver/tests/[TOPIC]/
 ```
 
 **Naming Convention:**
@@ -132,46 +133,49 @@ mkdir -p code-example-tests/go/driver/tests/[TOPIC]/
 #### 2.2 Convert Code to Testable Functions
 
 **Transform Pattern:**
-```go
-// FROM: Standalone main() function
-package main
+```javascript
+// FROM: Standalone execution script
+const { MongoClient } = require('mongodb');
 
-import (
-    "context"
-    "os"
-    "go.mongodb.org/mongo-driver/v2/mongo"
-    "go.mongodb.org/mongo-driver/v2/mongo/options"
-)
+async function main() {
+    const uri = 'mongodb://localhost:27017';
+    const client = new MongoClient(uri);
 
-func main() {
-    uri := os.Getenv("MONGODB_URI")
-    client, err := mongo.Connect(options.Client().ApplyURI(uri))
-    // ... rest of code
+    try {
+        const database = client.db('sample_mflix');
+        const movies = database.collection('movies');
+
+        const result = await movies.findOne({ title: 'Back to the Future' });
+        console.log(result);
+    } finally {
+        await client.close();
+    }
 }
 
-// TO: Testable function with proper package
-package [topicname]
+main().catch(console.dir);
 
-import (
-    "context"
-    "driver-examples/utils"
-    "go.mongodb.org/mongo-driver/v2/bson"
-    "go.mongodb.org/mongo-driver/v2/mongo"
-    "go.mongodb.org/mongo-driver/v2/mongo/options"
-)
+// TO: Testable function with proper exports
+import { MongoClient } from 'mongodb';
 
-func [ExampleName]() []bson.M { // or []YourStructType
-    // Use utils.GetConnectionString() instead of os.Getenv
-    uri := utils.GetConnectionString()
-    if uri == "" {
-        log.Fatal("set your 'CONNECTION_STRING' environment variable")
+export async function runQuickStartExample() {
+    const uri = process.env.CONNECTION_STRING;
+    if (!uri) {
+        throw new Error('Set your CONNECTION_STRING environment variable. ' +
+            'See: https://www.mongodb.com/docs/drivers/node/current/quick-start/#environment-variable');
     }
 
-    client, err := mongo.Connect(options.Client().ApplyURI(uri))
-    // ... implementation
+    const client = new MongoClient(uri);
 
-    // Return meaningful data for test validation
-    return results
+    try {
+        const database = client.db('sample_mflix');
+        const movies = database.collection('movies');
+
+        const result = await movies.findOne({ title: 'Back to the Future' });
+        console.log(result);
+        return result; // Return for test validation
+    } finally {
+        await client.close();
+    }
 }
 ```
 
@@ -180,24 +184,18 @@ func [ExampleName]() []bson.M { // or []YourStructType
 **File-Level Replacements (Optional):**
 If you need to apply replacements across the entire file, define them at the top and close at the end:
 
-```go
-// :replace-start: {
-//    "terms": {
-//       "utils.GetConnectionString()": "os.Getenv(\"MONGODB_URI\")",
-//       "driver-examples/utils": ""
-//    }
-// }
-package quickstart
+```javascript
+//	:replace-start: {
+//	  "terms":
+//	  {
+//	  "process.env.CONNECTION_STRING": "\"<connection string URI>\"",
+//    "export ": ""
+//	  }
+//	}
+import { MongoClient } from 'mongodb';
 
-import (
-    "context"
-    "log"
-    "driver-examples/utils"
-    // ... other imports
-)
-
-func QuickStartExample() []bson.M {
-    uri := utils.GetConnectionString()
+export async function runQuickStartExample() {
+    const uri = process.env.CONNECTION_STRING;
     // ... rest of file content
 }
 // :replace-end:
@@ -205,40 +203,42 @@ func QuickStartExample() []bson.M {
 
 **Snippet-Level Markup Patterns:**
 
-```go
+```javascript
 // :snippet-start: connection-setup
-uri := utils.GetConnectionString()
-if uri == "" {
-    log.Fatal("Set your 'MONGODB_URI' environment variable. " +
-        "See: " + docs +
-        "usage-examples/#environment-variable")
+// :uncomment-start:
+//const { MongoClient } = require("mongodb");
+// :uncomment-end:
+
+const uri = process.env.CONNECTION_STRING;
+if (!uri) {
+    throw new Error('Set your CONNECTION_STRING environment variable. ' +
+        'See: https://www.mongodb.com/docs/drivers/node/current/quick-start/#environment-variable');
 }
-client, err := mongo.Connect(options.Client().ApplyURI(uri))
-// ... connection code
+const client = new MongoClient(uri);
 // :snippet-end:
 
 // :snippet-start: database-operation
-// :replace-start: {
-//    "terms": {
-//       "utils.GetConnectionString()": "os.Getenv(\"MONGODB_URI\")"
-//    }
-// }
-collection := client.Database("sample_db").Collection("collection")
-result, err := collection.FindOne(ctx, filter)
-// :replace-end:
+const database = client.db('sample_mflix');
+const movies = database.collection('movies');
+
+const query = { title: 'Back to the Future' };
+const movie = await movies.findOne(query);
+
+console.log(movie);
+return movie; // :remove:
 // :snippet-end:
 
 // Code outside snippets that won't appear in docs
-someTestSetupFunction()
-
-// :snippet-start: results-processing
 // :remove-start:
-// Test-specific logging that shouldn't appear in documentation
-log.Printf("Debug info: %v", result)
+// Test-specific validation that shouldn't appear in documentation
+if (!movie) {
+    throw new Error('Movie not found');
+}
 // :remove-end:
 
+// :snippet-start: results-processing
 // Process results for display
-jsonData, err := json.MarshalIndent(result, "", "    ")
+console.log(JSON.stringify(movie, null, 2));
 // :snippet-end:
 ```
 
@@ -246,7 +246,7 @@ jsonData, err := json.MarshalIndent(result, "", "    ")
 - **File-level replacements**: Define once at top, close at end of file
 - **Snippet-level operations**: Only use `:remove:` or `:replace:` tags INSIDE snippet blocks (between `:snippet-start:` and `:snippet-end:`)
 - **Tag closing order**: Always close inner blocks before outer blocks:
-  ```go
+  ```javascript
   // :snippet-start: example
   // :remove-start:
   // content to remove
@@ -254,8 +254,9 @@ jsonData, err := json.MarshalIndent(result, "", "    ")
   // :snippet-end:   ← Then close outer block
   ```
 - **`:snippet-start:`/`:snippet-end:`**: Mark code sections for documentation
-- **`:replace-start:`/`:replace-end:`**: Replace internal utilities with public APIs
+- **`:replace-start:`/`:replace-end:`**: Replace internal patterns with public APIs
 - **`:remove-start:`/`:remove-end:`**: Exclude test-specific code from docs
+- **`:uncomment-start:`/`:uncomment-end:`**: Show commented CommonJS require statements in docs
 
 ### Phase 3: 🧪 Test Implementation
 **GOAL**: Create minimal validation tests to ensure documentation examples work correctly
@@ -288,172 +289,96 @@ jsonData, err := json.MarshalIndent(result, "", "    ")
 - Output format is important to the example's purpose
 - Results are predictable across test runs
 
+**Use COMPLEX template only when:**
+- Multiple related functions need testing
+- Example has custom test data requirements
+- Documentation shows multi-step workflow
+
 #### 3.3 Create Test File Structure
 
 **SIMPLE TEMPLATE - Use this for most documentation examples:**
-```go
-package topic
+```javascript
+import { runExampleFunction } from '../examples/topic/example.js';
+import { describeWithSampleData } from '../utils/sampleDataChecker.js';
 
-import (
-    "testing"
+describeWithSampleData(
+  'Example validation tests',
+  () => {
+    it('Should run successfully and return expected result', async () => {
+      const result = await runExampleFunction();
 
-    "[topic]" "driver-examples/examples/[topic]"
-    "driver-examples/utils"
-)
-
-func TestExampleRunsSuccessfully(t *testing.T) {
-    // Skip if sample data not available
-    if !utils.HasSampleData("sample_database_if_needed") {
-        t.Skip("Sample data not available")
-    }
-
-    result, err := [topic].RunExample()
-
-    // Minimal validation - just ensure it works
-    if err != nil {
-        t.Fatalf("Example failed: %v", err)
-    }
-
-    if result == nil {
-        t.Fatal("Expected non-nil result")
-    }
-}
+      // Minimal validation - just ensure it works
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('object'); // or whatever type expected
+    });
+  },
+  'sample_database_if_needed' // Required sample database
+);
 ```
 
 **OUTPUT MATCHING TEMPLATE - Use only when docs show specific expected output:**
-```go
-package [topic]
+```javascript
+import { runExampleFunction } from '../examples/topic/example.js';
+import outputMatchesExampleOutput from '../utils/outputMatchesExampleOutput.js';
+import { describeWithSampleData } from '../utils/sampleDataChecker.js';
 
-import (
-    "context"
-    "testing"
-
-    "[topic]" "driver-examples/examples/[topic]"
-    "driver-examples/utils"
-    "driver-examples/utils/compare"
-
-    "go.mongodb.org/mongo-driver/v2/mongo"
-    "go.mongodb.org/mongo-driver/v2/mongo/options"
-)
-
-func setupTestDB(t *testing.T) (*mongo.Client, func()) {
-    t.Helper()
-    ctx := context.Background()
-
-    uri := utils.GetConnectionString()
-    if uri == "" {
-        t.Fatal("set your 'CONNECTION_STRING' environment variable")
-    }
-
-    clientOptions := options.Client().ApplyURI(uri)
-    client, err := mongo.Connect(clientOptions)
-    if err != nil {
-        t.Fatalf("failed to connect to the server: %v", err)
-    }
-
-    cleanup := func() {
-        // SAMPLE DATA TESTS: Don't drop sample databases, but revert any modifications
-        // Example: If test inserted documents into sample_mflix.movies
-        // sampleDB := client.Database("sample_mflix")
-        // sampleCollection := sampleDB.Collection("movies")
-        //
-        // Delete any documents inserted during test (use unique identifiers):
-        // _, err := sampleCollection.DeleteMany(ctx, bson.D{{"test_marker", "test_run_123"}})
-        // if err != nil {
-        //     t.Logf("failed to clean up test documents: %v", err)
-        // }
-        //
-        // Update any modified documents back to original state:
-        // _, err = sampleCollection.UpdateMany(ctx,
-        //     bson.D{{"modified_by_test", true}},
-        //     bson.D{{"$unset", bson.D{{"modified_by_test", 1}, {"temp_field", 1}}}})
-        //
-        // CUSTOM DATA TESTS: Drop the entire test database
-        // db := client.Database("[test_db_name]")
-        // if err := db.Drop(ctx); err != nil {
-        //     t.Logf("failed to drop database: %v", err)
-        // }
-
-        if err := client.Disconnect(ctx); err != nil {
-            t.Logf("failed to disconnect client: %v", err)
-        }
-    }
-
-    return client, cleanup
-}
-
-func Test[TopicName](t *testing.T) {
-    tests := []struct {
-        name     string
-        testFunc func(t *testing.T)
-    }{
-        {"[ExampleName]", test[ExampleName]},
-    }
-
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            _, cleanup := setupTestDB(t)
-            defer cleanup()
-            tt.testFunc(t)
-        })
-    }
-}
-
-func test[ExampleName](t *testing.T) {
-    t.Helper()
-
-    // Add sample data requirements if needed
-    utils.RequiresSampleData(t, "sample_mflix")
-
-    result := [topic].[ExampleName]()
-    expectedOutputFilepath := "examples/[topic]/output.txt"
-
-    // Choose appropriate comparison options based on your output file content:
-    comparisonOptions := &compare.Options{
-        ComparisonType: "unordered", // or "ordered" for sorted results
-        // Only use IgnoreFieldValues for fields that show ACTUAL values in output.txt
-        // that won't match test runs (timestamps, UUIDs shown as real values)
-        // DON'T use IgnoreFieldValues for fields that already use "..." in output.txt
-        IgnoreFieldValues: []string{"createdAt", "sessionId"}, // Only if output shows real values
-    }
-
-    comparisonResult := compare.StructDocuments(expectedOutputFilepath, result, comparisonOptions)
-
-    if !comparisonResult.IsMatch {
-        t.Errorf("Results do not match expected output: %s", comparisonResult.Error())
-
-        for _, err := range comparisonResult.Errors {
-            t.Errorf("  Path: %s, Expected: %s, Actual: %s, Message: %s",
-                err.Path, err.Expected, err.Actual, err.Message)
-        }
-    }
-}
+describeWithSampleData(
+  'Example validation tests',
+  () => {
+    it('Should run successfully and produce expected output', async () => {
+      const outputFilePath = 'topic/example-output.sh';
+      const result = await runExampleFunction();
+      const outputMatches = outputMatchesExampleOutput(outputFilePath, result);
+      expect(outputMatches).toBe(true);
+    });
+  },
+  'sample_database_if_needed'
+);
 ```
 
-#### 3.2 Handle Sample Data Requirements
+**COMPLEX TEMPLATE - Use only for multi-step workflows or custom data requirements:**
+```javascript
+import { runCustomExample } from '../examples/custom/custom-example.js';
 
-**Sample Data Detection Patterns:**
+describe('Custom Example Tests', () => {
+  let client;
 
-```go
-// For basic sample database requirements:
-utils.RequiresSampleData(t, "sample_mflix")
+  beforeEach(async () => {
+    // Setup test database if needed
+    const { MongoClient } = require('mongodb');
+    const uri = process.env.CONNECTION_STRING;
+    client = new MongoClient(uri);
+    await client.connect();
 
-// For specific collection requirements:
-requiredCollections := map[string][]string{
-    "sample_mflix": {"movies", "theaters"},
-    "sample_restaurants": {"restaurants"},
-}
-utils.RequiresSampleDataWithCollections(t, requiredCollections)
+    // Set up test data
+    const db = client.db('test_database');
+    const collection = db.collection('test_collection');
+    await collection.deleteMany({}); // Clean slate
+    await collection.insertMany([
+      { name: 'Test Document 1', value: 100 },
+      { name: 'Test Document 2', value: 200 }
+    ]);
+  });
+
+  afterEach(async () => {
+    // Cleanup test database
+    if (client) {
+      const db = client.db('test_database');
+      await db.dropDatabase();
+      await client.close();
+    }
+  });
+
+  it('Should process custom data correctly', async () => {
+    const result = await runCustomExample();
+    expect(result).toBeDefined();
+    expect(Array.isArray(result)).toBe(true);
+    expect(result.length).toBeGreaterThan(0);
+  });
+});
 ```
 
-**Common Sample Databases:**
-- `sample_mflix`: Movies and theaters data
-- `sample_restaurants`: Restaurant location data
-- `sample_training`: Training and educational data
-- `sample_analytics`: Financial data
-- `sample_airbnb`: Airbnb listing data
-
-#### 3.3 When to Create Output Files
+#### 3.4 When to Create Output Files
 
 **Create output files ONLY when:**
 - Documentation shows specific expected output format
@@ -465,21 +390,72 @@ utils.RequiresSampleDataWithCollections(t, requiredCollections)
 - Documentation doesn't show expected output
 - Example demonstrates functionality, not specific results
 
-**If you create output files, you MUST use output comparison utilities in tests.**
-**If you don't need output validation, don't import the output comparison utilities.**
+**If you create output files, you MUST use `outputMatchesExampleOutput()` in tests.**
+**If you don't need output validation, don't import the output matching utility.**
 
-#### 3.4 Create Expected Output Files
+#### 3.5 Handle Sample Data Requirements
+
+**Sample Data Detection Patterns:**
+
+```javascript
+// For basic sample database requirements:
+describeWithSampleData('Movie Tests', () => {
+  // Test cases here
+}, 'sample_mflix');
+
+// For multiple database requirements:
+describeWithSampleData('Cross-Database Tests', () => {
+  // Test cases here
+}, ['sample_mflix', 'sample_restaurants']);
+
+// For specific collection requirements:
+describeWithSampleData('Advanced Tests', () => {
+  // Test cases here
+}, 'sample_mflix', {
+  collections: {
+    'sample_mflix': ['movies', 'theaters']
+  }
+});
+
+// For individual test cases:
+import { itWithSampleData } from '../utils/sampleDataChecker.js';
+
+describe('Mixed Tests', () => {
+  itWithSampleData('should query movies', async () => {
+    const result = await runMovieQuery();
+    expect(result.length).toBeGreaterThan(0);
+  }, 'sample_mflix');
+
+  it('should work without sample data', async () => {
+    const result = await runCustomQuery();
+    expect(result).toBeDefined();
+  });
+});
+```
+
+**Common Sample Databases:**
+- `sample_mflix`: Movies and theaters data
+- `sample_restaurants`: Restaurant location data
+- `sample_training`: Training and educational data
+- `sample_analytics`: Financial data
+- `sample_airbnb`: Airbnb listing data
+
+#### 3.6 Create Expected Output Files
 
 **Output File Guidelines:**
 ```json
 [
   {
     "_id": "...",                    // Use ellipsis for variable fields
-    "title": "Expected Title",      // Exact values for important fields
-    "plot": "Beginning of plot...", // Ellipsis for truncated strings
+    "title": "Back to the Future",  // Exact values for important fields
+    "plot": "A young man is accidentally sent...", // Ellipsis for truncated strings
     "year": 1985,                   // Exact values for numbers
-    "genres": ["Action", "Comedy"], // Exact arrays when order doesn't matter
-    "metadata": "..."               // Ellipsis for unimportant nested objects
+    "genres": ["Adventure", "Comedy", "Sci-Fi"], // Exact arrays when order doesn't matter
+    "imdb": {
+      "rating": 8.5,
+      "votes": "...",               // Ellipsis for unimportant nested values
+      "id": "..."
+    }
   }
 ]
 ...                                 // Ellipsis for additional documents
@@ -490,7 +466,7 @@ utils.RequiresSampleDataWithCollections(t, requiredCollections)
 - `"text": "Start of text..."` - Match text starting with this prefix
 - Standalone `...` - Match any additional fields/documents
 
-**Critical: Ellipsis vs IgnoreFieldValues**
+**Critical: Ellipsis vs ignoreFieldValues**
 
 **Use Ellipsis in Output File (Preferred):**
 When you want flexible matching and can show `"..."` in documentation:
@@ -504,15 +480,15 @@ When you want flexible matching and can show `"..."` in documentation:
 }
 ```
 
-```go
-// test file - No IgnoreFieldValues needed!
-comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, &compare.Options{
-    ComparisonType: "unordered",
-    // Ellipsis in output.txt handles variable fields automatically
-})
+```javascript
+// test file - No ignoreFieldValues needed!
+const outputMatches = outputMatchesExampleOutput(outputFilePath, result, {
+  comparisonType: 'unordered'
+  // Ellipsis in output.txt handles variable fields automatically
+});
 ```
 
-**Use IgnoreFieldValues (Only when necessary):**
+**Use ignoreFieldValues (Only when necessary):**
 When documentation must show realistic values but they vary between test runs:
 
 ```json
@@ -524,50 +500,49 @@ When documentation must show realistic values but they vary between test runs:
 }
 ```
 
-```go
-// test file - Must use IgnoreFieldValues for fields with real values
-comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, &compare.Options{
-    ComparisonType:    "unordered",
-    IgnoreFieldValues: []string{"_id", "createdAt"}, // Only for fields with real values
-})
+```javascript
+// test file - Must use ignoreFieldValues for fields with real values
+const outputMatches = outputMatchesExampleOutput(outputFilePath, result, {
+  comparisonType: 'unordered',
+  ignoreFieldValues: ['_id', 'createdAt'] // Only for fields with real values
+});
 ```
 
 **Common Mistake to Avoid:**
-Never use both ellipsis AND IgnoreFieldValues for the same field:
-- ❌ Bad: `"_id": "..."` in output.txt AND `IgnoreFieldValues: []string{"_id"}`
-- ✅ Good: Either ellipsis OR IgnoreFieldValues, not both
+Never use both ellipsis AND ignoreFieldValues for the same field:
+- ❌ Bad: `"_id": "..."` in output.txt AND `ignoreFieldValues: ['_id']`
+- ✅ Good: Either ellipsis OR ignoreFieldValues, not both
 
 ### Phase 4: ✅ Validation & Generation
 **GOAL**: Verify implementation and generate documentation snippets
 
 #### 4.1 Verify Implementation
 
-**Compilation Check:**
+**Module Loading Check:**
 ```bash
-cd code-example-tests/go/driver
-go build ./examples/[topic]
+cd code-example-tests/javascript/driver
+node -e "import('./examples/[topic]/[example].js').then(console.log)"
 ```
 
 **Formatting:**
 ```bash
-go fmt ./examples/[topic]/...
-go fmt ./tests/[topic]/...
+npm run format
 ```
 
 **Test Execution:**
 ```bash
-go test -v ./tests/[topic]/...
+npm test -- --testMatch='**/tests/[topic]/**/*.test.js'
 ```
 
 #### 4.2 Generate Documentation Snippets
 
 ```bash
 # Run Bluehawk to generate documentation files
-node snip.js
+npm run snip
 ```
 
 **Verify Generated Files:**
-- Check `content/code-examples/tested/go/driver/[topic]/` for generated snippets
+- Check `content/code-examples/tested/javascript/driver/[topic]/` for generated snippets
 - Ensure snippets have proper names and formatting
 - Validate that replacements work correctly
 
@@ -575,7 +550,7 @@ node snip.js
 
 ```bash
 # Run all tests to ensure no regressions
-go test -v -p 1 ./tests/...
+npm test
 ```
 
 ### Phase 5: 📝 Documentation Integration & Cleanup
@@ -590,7 +565,7 @@ Before updating documentation references, verify that the documentation source d
 **Check for existing symlink:**
 ```bash
 # Navigate to the documentation source directory
-cd content/go/current/source/
+cd content/node/current/source/
 
 # Check if code-examples directory exists and has tested symlink
 ls -l code-examples/tested 2>/dev/null
@@ -603,10 +578,10 @@ realpath code-examples/tested 2>/dev/null
 **Create symlink if missing:**
 ```bash
 # Create code-examples directory if it doesn't exist
-mkdir -p content/go/current/source/code-examples
+mkdir -p content/node/current/source/code-examples
 
 # Navigate to the directory
-cd content/go/current/source/code-examples
+cd content/node/current/source/code-examples
 
 # Create symlink to tested examples (adjust path based on nesting level)
 ln -s ../../../../code-examples/tested
@@ -617,7 +592,7 @@ ls -l tested
 ```
 
 **Nesting Level Guide:**
-- **Versioned projects** (e.g., `go/current/source`): Use `../../../../code-examples/tested`
+- **Versioned projects** (e.g., `node/current/source`): Use `../../../../code-examples/tested`
 - **Non-versioned projects** (e.g., `atlas/source`): Use `../../../code-examples/tested`
 - **Manual/deeply nested** (e.g., `manual/manual/source`): Use `../../../../code-examples/tested`
 
@@ -628,68 +603,64 @@ ls -l tested
 
 #### 5.2 Update Documentation References
 
-**Replace All Forms of Go Code Examples:**
+**Replace All Forms of JavaScript Code Examples:**
 
 **Type 1: Replace literalinclude Directives**
 Original documentation references files:
 ```rst
-.. literalinclude:: /includes/quick-start/main.go
-   :language: go
+.. literalinclude:: /includes/quick-start/main.js
+   :language: javascript
 ```
 
 Replace with tested snippets (note: add `:category:` and evaluate any other directive options):
 ```rst
-.. literalinclude:: /code-examples/tested/go/driver/quick-start/main.snippet.connect-to-mongodb.go
-   :language: go
+.. literalinclude:: /code-examples/tested/javascript/driver/quick-start/main.snippet.connection-setup.js
+   :language: javascript
    :category: usage example
 
-.. literalinclude:: /code-examples/tested/go/driver/quick-start/main.snippet.find-document.go
-   :language: go
+.. literalinclude:: /code-examples/tested/javascript/driver/quick-start/main.snippet.find-document.js
+   :language: javascript
    :category: usage example
 ```
 
 **Type 2: Replace Inline Code Blocks**
 Original hardcoded examples:
 ```rst
-.. code-block:: go
+.. code-block:: javascript
 
-   package main
+   const { MongoClient } = require('mongodb');
 
-   import (
-       "context"
-       "os"
-       "go.mongodb.org/mongo-driver/v2/mongo"
-   )
-
-   func main() {
-       uri := os.Getenv("MONGODB_URI")
-       client, err := mongo.Connect(options.Client().ApplyURI(uri))
+   async function main() {
+       const uri = process.env.CONNECTION_STRING;
+       const client = new MongoClient(uri);
        // ... rest of hardcoded example
    }
+
+   main().catch(console.dir);
 ```
 
 Replace with tested snippet references:
 ```rst
-.. literalinclude:: /code-examples/tested/go/driver/quick-start/main.snippet.connect-to-mongodb.go
-   :language: go
+.. literalinclude:: /code-examples/tested/javascript/driver/quick-start/main.snippet.connection-setup.js
+   :language: javascript
    :category: usage example
 ```
 
 **Type 3: Update Include Files**
-If include files contain Go code examples, update them following the same patterns above.
+If include files contain JavaScript code examples, update them following the same patterns above.
 
 **Update Process:**
-1. **Find all forms of Go code** in the documentation page (literalinclude, code-block, include)
+1. **Find all forms of JavaScript code** in the documentation page (literalinclude, code-block, include)
 2. **Replace each with appropriate tested snippet references**
 3. **Add `:category:` option** following [MongoDB documentation standards](https://www.mongodb.com/docs/meta/reference/code-blocks/)
 4. **Consider other directive options** May need to remove or adjust directive options depending on changes made during migration
 5. **Verify snippet names** match the generated Bluehawk output
 6. **Extract inline code** to testable examples first if needed
-7. **Update include files** that contain Go code examples
+7. **Update include files** that contain JavaScript code examples
 
 **Category Guidelines:**
 Based on the [MongoDB documentation standards](https://www.mongodb.com/docs/meta/reference/code-blocks/):
-- **Go code examples that show real-world usage patterns**: Use `:category: usage example`
+- **JavaScript code examples that show real-world usage patterns**: Use `:category: usage example`
 - **JSON/text output**: Use `:category: example return object`
 - **Configuration examples**: Use `:category: example configuration object`
 - **Syntax demonstrations**: Use `:category: syntax example`
@@ -723,34 +694,34 @@ Based on the [MongoDB documentation standards](https://www.mongodb.com/docs/meta
 Before deleting original files, verify they're not used elsewhere within the same version:
 
 **Understanding Documentation Structure:**
-- **Versioned projects** (e.g., `content/golang/`): Each version directory (`current`, `v1.12`, etc.) contains its own `source` directory
+- **Versioned projects** (e.g., `content/node/`): Each version directory (`current`, `v5.0`, etc.) contains its own `source` directory
 - **Non-versioned projects** (e.g., `content/atlas/`): `source` directory is at the project root
-- **Version isolation**: Files in `current/source/includes/` are completely separate from `v1.12/source/includes/`
+- **Version isolation**: Files in `current/source/includes/` are completely separate from `v5.0/source/includes/`
 - **Build scope**: Each version's `source` directory is self-contained for that build
 
 **Search for File Usage (Properly Scoped):**
 ```bash
 # For versioned projects - search only within the specific version's source directory
-grep -r "includes/quick-start/main.go" content/golang/current/source/
+grep -r "includes/quick-start/main.js" content/node/current/source/
 
 # For non-versioned projects - search within the project's source directory
-grep -r "includes/quick-start/main.go" content/atlas/source/
+grep -r "includes/quick-start/main.js" content/atlas/source/
 
 # More comprehensive search patterns within the version scope
-grep -r "quick-start/main" content/golang/current/source/
-grep -r "main.go" content/golang/current/source/
+grep -r "quick-start/main" content/node/current/source/
+grep -r "main.js" content/node/current/source/
 
-# Search for include files that might contain Go code examples
-grep -r "includes/quick-start" content/golang/current/source/
+# Search for include files that might contain JavaScript code examples
+grep -r "includes/quick-start" content/node/current/source/
 ```
 
 **Search for Code Block and Include Usage:**
 ```bash
-# Find any hardcoded Go code that matches your examples
-grep -A 10 -B 5 "code-block:: go" content/golang/current/source/ | grep -A 15 "package main"
+# Find any hardcoded JavaScript code that matches your examples
+grep -A 10 -B 5 "code-block:: javascript\|code-block:: js" content/node/current/source/ | grep -A 15 "MongoClient\|async function"
 
 # Find include directives that reference files you're replacing
-grep -r "include.*quick-start" content/golang/current/source/
+grep -r "include.*quick-start" content/node/current/source/
 ```
 
 **Analysis Rules (Corrected Scope):**
@@ -770,26 +741,26 @@ Only delete original files when ALL conditions are met:
 
 **Additional Checks for Include Files:**
 - [ ] Include file (`.rst`) is only used by pages you're updating
-- [ ] Include file doesn't contain shared content beyond the Go code examples
+- [ ] Include file doesn't contain shared content beyond the JavaScript code examples
 - [ ] No other documentation pages include the `.rst` file
 
 **Deletion Process:**
 ```bash
 # Verify no remaining references to files after documentation updates
-grep -r "quick-start/main.go" content/golang/current/source/
-grep -r "includes/quick-start" content/golang/current/source/
+grep -r "quick-start/main.js" content/node/current/source/
+grep -r "includes/quick-start" content/node/current/source/
 
 # Verify no remaining references to include files
-grep -r "quick-start.*\.rst" content/golang/current/source/
+grep -r "quick-start.*\.rst" content/node/current/source/
 
 # If no results found within the version scope, safe to delete
-rm content/golang/current/source/includes/quick-start/main.go
+rm content/node/current/source/includes/quick-start/main.js
 
 # Delete include files only if they contained only the code examples you migrated
-rm content/golang/current/source/includes/quick-start/code-example.rst
+rm content/node/current/source/includes/quick-start/code-example.rst
 
 # If directory becomes empty, remove it too
-rmdir content/golang/current/source/includes/quick-start/
+rmdir content/node/current/source/includes/quick-start/
 ```
 
 #### 5.5 Update Output References
@@ -809,7 +780,7 @@ Original documentation may have hardcoded output:
 
 Replace with reference to tested output:
 ```rst
-.. literalinclude:: /code-examples/tested/go/driver/quick-start/output.txt
+.. literalinclude:: /code-examples/tested/javascript/driver/quick-start/output.txt
    :language: json
    :category: example return object
 ```
@@ -824,32 +795,32 @@ Replace with reference to tested output:
 **Validation Commands:**
 ```bash
 # Verify all new file paths exist
-ls -la content/code-examples/tested/go/driver/quick-start/
+ls -la content/code-examples/tested/javascript/driver/quick-start/
 
 # Check for any remaining references to deleted files (within version scope)
-find content/golang/current/source/ -name "*.rst" -o -name "*.txt" | \
-  xargs grep -l "includes/quick-start/main.go"
+find content/node/current/source/ -name "*.rst" -o -name "*.txt" | \
+  xargs grep -l "includes/quick-start/main.js"
 
 # For non-versioned projects:
 find content/atlas/source/ -name "*.rst" -o -name "*.txt" | \
-  xargs grep -l "includes/quick-start/main.go"
+  xargs grep -l "includes/quick-start/main.js"
 ```
 
 #### 5.7 Handle Edge Cases
 
 **Working with Versioned vs Non-Versioned Projects:**
 
-**Versioned Projects** (e.g., `content/golang/`, `content/node/`):
+**Versioned Projects** (e.g., `content/node/`, `content/golang/`):
 ```bash
 # Work within specific version scope - each version is isolated
-grep -r "quick-start/main.go" content/golang/current/source/
-# Other versions (v1.12, v1.13, upcoming) are separate and unaffected
+grep -r "quick-start/main.js" content/node/current/source/
+# Other versions (v5.0, v4.17, upcoming) are separate and unaffected
 ```
 
 **Non-Versioned Projects** (e.g., `content/atlas/`, `content/manual/`):
 ```bash
 # Work within project's source directory
-grep -r "quick-start/main.go" content/atlas/source/
+grep -r "quick-start/main.js" content/atlas/source/
 ```
 
 **Shared Include Files within Version:**
@@ -866,10 +837,10 @@ For pages with multiple code examples:
 
 #### 5.8 Complete Example: QuickStart Migration
 
-**Original Documentation (content/golang/current/source/get-started.txt):**
+**Original Documentation (content/node/current/source/quick-start.txt):**
 ```rst
-.. literalinclude:: /includes/quick-start/main.go
-   :language: go
+.. literalinclude:: /includes/quick-start/main.js
+   :language: javascript
    :dedent:
 
 .. include:: /includes/quick-start/query-output.rst
@@ -877,34 +848,31 @@ For pages with multiple code examples:
 
 **Additional scenarios you might encounter:**
 ```rst
-.. code-block:: go
+.. code-block:: javascript
 
-   package main
+   const { MongoClient } = require('mongodb');
 
-   import (
-       "context"
-       "os"
-   )
-
-   func main() {
-       uri := os.Getenv("MONGODB_URI")
+   async function main() {
+       const uri = process.env.CONNECTION_STRING;
        // ... hardcoded example
    }
+
+   main().catch(console.dir);
 
 .. include:: /includes/quick-start/setup-instructions.rst
 ```
 
 **Step 1: Update All References**
 ```rst
-.. literalinclude:: /code-examples/tested/go/driver/quick-start/main.snippet.connect-to-mongodb.go
-   :language: go
+.. literalinclude:: /code-examples/tested/javascript/driver/quick-start/main.snippet.connection-setup.js
+   :language: javascript
    :category: usage example
 
-.. literalinclude:: /code-examples/tested/go/driver/quick-start/main.snippet.find-document.go
-   :language: go
+.. literalinclude:: /code-examples/tested/javascript/driver/quick-start/main.snippet.find-document.js
+   :language: javascript
    :category: usage example
 
-.. literalinclude:: /code-examples/tested/go/driver/quick-start/output.txt
+.. literalinclude:: /code-examples/tested/javascript/driver/quick-start/output.txt
    :language: json
    :category: example return object
 ```
@@ -912,34 +880,34 @@ For pages with multiple code examples:
 **Step 2: Check All Usage Types**
 ```bash
 # Check if original files are used elsewhere
-grep -r "includes/quick-start/main.go" content/golang/current/source/
-grep -r "includes/quick-start/query-output.rst" content/golang/current/source/
+grep -r "includes/quick-start/main.js" content/node/current/source/
+grep -r "includes/quick-start/query-output.rst" content/node/current/source/
 
 # Check for any hardcoded examples that might duplicate the file content
-grep -A 20 "code-block:: go" content/golang/current/source/ | grep -A 15 "package main"
+grep -A 20 "code-block:: javascript\|code-block:: js" content/node/current/source/ | grep -A 15 "MongoClient\|async function"
 
-# Check for include directives referencing files with Go code
-grep -r "include.*quick-start" content/golang/current/source/
+# Check for include directives referencing files with JavaScript code
+grep -r "include.*quick-start" content/node/current/source/
 ```
 
 **Step 3: Safe Cleanup (if no other references found)**
 ```bash
 # Remove original files
-rm content/golang/current/source/includes/quick-start/main.go
-rm content/golang/current/source/includes/quick-start/query-output.rst
+rm content/node/current/source/includes/quick-start/main.js
+rm content/node/current/source/includes/quick-start/query-output.rst
 
 # Remove empty directory
-rmdir content/golang/current/source/includes/quick-start/
+rmdir content/node/current/source/includes/quick-start/
 ```
 
 **Step 4: Verify Integration**
 ```bash
 # Confirm all new files exist
-ls -la content/code-examples/tested/go/driver/quick-start/
-# Should show: main.snippet.connect-to-mongodb.go, main.snippet.find-document.go, output.txt
+ls -la content/code-examples/tested/javascript/driver/quick-start/
+# Should show: main.snippet.connection-setup.js, main.snippet.find-document.js, output.txt
 
 # Verify no remaining references to deleted files (within version scope only)
-find content/golang/current/source/ -name "*.txt" -o -name "*.rst" | \
+find content/node/current/source/ -name "*.txt" -o -name "*.rst" | \
   xargs grep -l "includes/quick-start"
 # Should return no results within this version's source directory
 ```
@@ -947,14 +915,14 @@ find content/golang/current/source/ -name "*.txt" -o -name "*.rst" | \
 ## Decision Tree for Common Scenarios
 
 ### Connection String Handling
-- **Use `utils.GetConnectionString()`** in example functions
-- **Use Bluehawk replace** to show `os.Getenv("MONGODB_URI")` in docs
+- **Use `process.env.CONNECTION_STRING`** in example functions
+- **Use Bluehawk replace** to show `"<connection string URI>"` in docs
 - **Never hardcode** connection strings
 
 ### Sample Data vs Custom Data
 ```
 Does the example use sample_* databases?
-├─ YES: Use utils.RequiresSampleData(t, "database_name")
+├─ YES: Use describeWithSampleData(description, testFn, 'database_name')
 │      Don't drop databases in cleanup
 ├─ NO:  Create test-specific database name
 │      Drop database in cleanup function
@@ -984,50 +952,50 @@ Is this a multi-step tutorial?
 
 **Import Errors:**
 ```
-Error: cannot find package "driver-examples/examples/topic"
+Error: Cannot resolve module './examples/topic'
 Solution: Ensure directory structure matches import path exactly
 ```
 
 **Test Type Mismatches:**
 ```
-Error: cannot use []bson.M as []bson.D
-Solution: Use compare.StructDocuments for bson.M, BsonDocuments for bson.D
+Error: outputMatchesExampleOutput expects array but got object
+Solution: Ensure example function returns data in expected format
 ```
 
 **Connection Failures:**
 ```
-Error: connection string not found
+Error: CONNECTION_STRING environment variable not set
 Solution: Ensure .env file exists with CONNECTION_STRING variable
 ```
 
 **Sample Data Missing:**
 ```
 Expected: Test should skip gracefully
-Solution: Verify RequiresSampleData is called before test logic
+Solution: Verify describeWithSampleData is used for sample data requirements
 ```
 
 ## Quality Checklist
 
 ### Before Completing Migration
-- [ ] Code compiles without errors
+- [ ] Code runs without errors
 - [ ] Tests run and either pass or skip appropriately
 - [ ] Tests focus on documentation validation, not comprehensive coverage
 - [ ] No connection error testing unless docs demonstrate error handling
 - [ ] Bluehawk markup generates correct snippets
 - [ ] Connection strings use environment variables
 - [ ] Sample data requirements are handled gracefully
-- [ ] Output files created only when docs show specific expected output
-- [ ] Output comparison utilities used only when output files exist
 - [ ] Expected output files use appropriate ellipsis patterns
+- [ ] Output files created only when docs show specific expected output
+- [ ] Output matching utility used only when output files exist
 - [ ] Variable fields are ignored in comparisons
 - [ ] No hardcoded credentials or secrets
-- [ ] Code follows Go formatting standards
-- [ ] Documentation integration completed with `node snip.js`
+- [ ] Code follows JavaScript formatting standards
+- [ ] Documentation integration completed with `npm run snip`
 
 ### Documentation Integration Checklist
 - [ ] All literalinclude directives updated to reference tested snippets
 - [ ] All inline code-block examples replaced with tested snippet references
-- [ ] All include files with Go code updated or replaced
+- [ ] All include files with JavaScript code updated or replaced
 - [ ] `:category:` option added to all literalinclude directives with appropriate values
 - [ ] Additional directive options evaluated and kept, adjusted, or removed as needed
 - [ ] Original file usage checked across entire source directory (all forms)
@@ -1041,16 +1009,16 @@ Solution: Verify RequiresSampleData is called before test logic
 
 ### File Structure Validation
 ```
-code-example-tests/go/driver/
+code-example-tests/javascript/driver/
 ├── examples/[topic]/
-│   ├── [example].go          ✓ Testable function with Bluehawk
-│   └── output.txt           ✓ Expected output (if shown in docs)
+│   ├── [example].js             ✓ Testable function with Bluehawk
+│   └── [example]-output.sh      ✓ Expected output (if shown in docs)
 └── tests/[topic]/
-    └── [topic]_test.go      ✓ Comprehensive test coverage
+    └── [topic].test.js          ✓ Comprehensive test coverage
 
-content/code-examples/tested/go/driver/[topic]/
-├── [example].snippet.[name].go  ✓ Generated by Bluehawk
-└── output.txt                   ✓ Copied by Bluehawk
+content/code-examples/tested/javascript/driver/[topic]/
+├── [example].snippet.[name].js  ✓ Generated by Bluehawk
+└── [example]-output.sh          ✓ Copied by Bluehawk
 ```
 
 ## 🚨 Failure Scenarios & Responses
@@ -1058,29 +1026,30 @@ content/code-examples/tested/go/driver/[topic]/
 ### Sample Data Issues
 
 **Standard MongoDB Sample Data Missing**
-- **DETECTION**: `RequiresSampleData()` fails, no sample databases found
+- **DETECTION**: `describeWithSampleData()` automatically skips, no sample databases found
 - **ACTION**: SKIP with documentation, continue migration
 - **STEPS**:
   - Log: "Skipping example due to missing sample data: [database_names]"
   - Add comment in test: `// Test skipped - requires sample data: sample_mflix`
-  - Test skips gracefully with `t.Skip()`
+  - Test skips gracefully with automated skip message
 
 **Custom Sample Data Required**
 - **DETECTION**: Examples reference non-standard collections (users, orders, inventory)
 - **ACTION**: CREATE minimal test data
 - **EXAMPLE**:
-```go
-func setupCustomData(client *mongo.Client, dbName string) {
-    collection := client.Database(dbName).Collection("testcoll")
-    testData := []interface{}{
-        bson.D{
-            {Key: "name", Value: "Test Item"},
-            {Key: "price", Value: 29.99},
-            {Key: "test_marker", Value: "automated_example_data"},
-        },
+```javascript
+beforeEach(async () => {
+  const db = client.db('test_database');
+  const collection = db.collection('testcoll');
+  const testData = [
+    {
+      name: 'Test Item',
+      price: 29.99,
+      test_marker: 'automated_example_data'
     }
-    collection.InsertMany(ctx, testData)
-}
+  ];
+  await collection.insertMany(testData);
+});
 ```
 
 **Complex Related Data**
@@ -1089,21 +1058,21 @@ func setupCustomData(client *mongo.Client, dbName string) {
 - **LOG**: "Complex data relationships detected across [N] collections - need guidance"
 - **ASK**: "Should I create simplified test data or flag for manual setup?"
 
-### Compilation & Runtime Issues
+### Runtime & Module Issues
 
-**Compilation Errors**
+**Runtime Errors**
 - **ACTION**: ESCALATE immediately
 - **PROVIDE**: Exact error message, file location, failing code snippet
-- **ASK**: "Compilation failed: [error]. Should I attempt common fixes or need human review?"
+- **ASK**: "Runtime error occurred: [error]. Should I attempt common fixes or need human review?"
 
-**Runtime Panics/Crashes**
+**Module Loading Failures**
 - **ACTION**: LOG and create simplified version
-- **STEPS**: Capture stack trace, create basic connectivity test, flag for review
-- **LOG**: "Runtime failure detected, created basic connectivity test instead"
+- **STEPS**: Capture import error, create basic connectivity test, flag for review
+- **LOG**: "Module loading failure detected, created basic connectivity test instead"
 
 **Tests Pass But Output Doesn't Match**
 - **ACTION**: ANALYZE and adapt
-- **CHECK**: Ignored fields (add to IgnoreFieldValues), ellipsis patterns, structural differences
+- **CHECK**: Ignored fields (add to ignoreFieldValues), ellipsis patterns, structural differences
 - **ESCALATE**: If structural differences found with comparison details
 
 ### File System & Structure Issues
@@ -1115,7 +1084,7 @@ func setupCustomData(client *mongo.Client, dbName string) {
 
 **Complex Nested Includes**
 - **ACTION**: SIMPLIFY and document
-- **STEPS**: Extract Go code only, flatten structure, preserve non-Go content
+- **STEPS**: Extract JavaScript code only, flatten structure, preserve non-JavaScript content
 - **DOCUMENT**: "Simplified from complex nested structure"
 
 ### Environment & Connection Issues
@@ -1141,15 +1110,15 @@ func setupCustomData(client *mongo.Client, dbName string) {
 |----------|------|-----|----------|--------|
 | Standard sample data missing | ✅ | ✅ | | |
 | Custom data needed | | ✅ | Complex cases | |
-| Compilation errors | | ✅ | ✅ | |
-| Runtime failures | | ✅ | Complex cases | |
+| Runtime errors | | ✅ | ✅ | |
+| Module failures | | ✅ | Complex cases | |
 | Connection issues | | ✅ | Persistent failures | ✅ (3x) |
 | File not found | | ✅ | No alternatives | |
 | Version conflicts | | ✅ | ✅ | |
 
 **SKIP when**: External dependencies unavailable, non-functional by design
 **LOG when**: Making adaptations, encountering recoverable errors
-**ESCALATE when**: Compilation errors, structural decisions, version issues
+**ESCALATE when**: Runtime errors, structural decisions, version issues
 **RETRY when**: Network issues, temporary constraints, race conditions
 
 ## Advanced Patterns
@@ -1157,76 +1126,138 @@ func setupCustomData(client *mongo.Client, dbName string) {
 ### Multi-Step Operations
 For complex tutorials requiring multiple operations:
 
-```go
-// LoadData prepares test data - separate function
-func LoadData() {
-    // Data setup logic
-    // For sample data modifications, use identifiable markers:
-    collection.InsertOne(ctx, bson.D{
-        {Key: "title", Value: "Test Movie"},
-        {Key: "test_marker", Value: "cleanup_needed"}, // Identifiable marker for cleanup
-    })
+```javascript
+// setupData prepares test data - separate function
+export async function setupMovieData() {
+    const uri = process.env.CONNECTION_STRING;
+    const client = new MongoClient(uri);
+
+    try {
+        const db = client.db('sample_mflix');
+        const collection = db.collection('movies');
+
+        // For sample data modifications, use identifiable markers:
+        await collection.insertOne({
+            title: 'Test Movie',
+            test_marker: 'cleanup_needed', // Identifiable marker for cleanup
+            test_run_id: Date.now() // Unique per test run
+        });
+    } finally {
+        await client.close();
+    }
 }
 
-// RunExample demonstrates the main operation
-func RunExample() []bson.M {
-    // Main operation logic
+// runExample demonstrates the main operation
+export async function runMovieExample() {
+    const uri = process.env.CONNECTION_STRING;
+    const client = new MongoClient(uri);
+
+    try {
+        const db = client.db('sample_mflix');
+        const collection = db.collection('movies');
+
+        const result = await collection.find({ title: /Back to/ }).toArray();
+        return result;
+    } finally {
+        await client.close();
+    }
 }
 
 // In test:
-func testComplexExample(t *testing.T) {
-    t.Helper()
+describe('Complex Movie Example', () => {
+  let client;
 
-    // If using sample data that will be modified, track changes for cleanup
-    originalState := captureOriginalState() // Optional: capture state before changes
+  beforeEach(async () => {
+    // Setup test data
+    await setupMovieData();
+  });
 
-    [topic].LoadData()  // Setup - may modify sample data
-    result := [topic].RunExample()  // Main operation
+  afterEach(async () => {
+    // Cleanup is handled by removing test_marker documents
+    const uri = process.env.CONNECTION_STRING;
+    client = new MongoClient(uri);
+    await client.connect();
 
-    // Cleanup is handled automatically by setupTestDB cleanup function
-    // which should revert sample data modifications using test_marker fields
+    try {
+      const db = client.db('sample_mflix');
+      const collection = db.collection('movies');
 
-    // Validation logic
-    validateResults(t, result, originalState)
-}
+      // Remove any documents added during test
+      await collection.deleteMany({ test_marker: 'cleanup_needed' });
+    } finally {
+      await client.close();
+    }
+  });
+
+  it('should process movies correctly', async () => {
+    const result = await runMovieExample();
+    expect(Array.isArray(result)).toBe(true);
+    expect(result.length).toBeGreaterThan(0);
+  });
+});
 ```
 
 ### Sample Data Modification Patterns
 When examples modify sample databases, use identifiable markers for cleanup:
 
-```go
+```javascript
 // In example function - mark any data you add/modify:
-newDocument := bson.D{
-    {Key: "title", Value: "New Movie"},
-    {Key: "test_run_id", Value: generateTestID()}, // Unique per test run
-    {Key: "added_by_test", Value: true},           // Cleanup marker
+export async function addMovieExample() {
+    const uri = process.env.CONNECTION_STRING;
+    const client = new MongoClient(uri);
+
+    try {
+        const db = client.db('sample_mflix');
+        const collection = db.collection('movies');
+
+        const newDocument = {
+            title: 'New Movie',
+            test_run_id: Date.now(),        // Unique per test run
+            added_by_test: true             // Cleanup marker
+        };
+
+        const result = await collection.insertOne(newDocument);
+        return result;
+    } finally {
+        await client.close();
+    }
 }
 
-// In test cleanup function:
-func cleanup() {
-    // Remove any documents added during test
-    _, err := collection.DeleteMany(ctx, bson.D{{"added_by_test", true}})
+// In test cleanup:
+afterEach(async () => {
+    if (client) {
+        const db = client.db('sample_mflix');
+        const collection = db.collection('movies');
 
-    // Revert any field modifications
-    _, err = collection.UpdateMany(ctx,
-        bson.D{{"modified_by_test", true}},
-        bson.D{{"$unset", bson.D{{"modified_by_test", 1}, {"temp_field", 1}}}})
-}
+        // Remove any documents added during test
+        await collection.deleteMany({ added_by_test: true });
+
+        // Revert any field modifications
+        await collection.updateMany(
+            { modified_by_test: true },
+            { $unset: { modified_by_test: 1, temp_field: 1 } }
+        );
+    }
+});
 ```
 
 ### Custom Data Models
-When using structs instead of bson.M:
+When working with specific data structures:
 
-```go
-// Define models in separate file: models.go
-type Movie struct {
-    ID    primitive.ObjectID `bson:"_id"`
-    Title string            `bson:"title"`
-    Year  int               `bson:"year"`
-}
+```javascript
+// Define models in separate section or file
+const movieSchema = {
+    _id: ObjectId,
+    title: String,
+    year: Number,
+    genres: [String]
+};
 
-// Use StructDocuments for comparison
-comparisonResult := compare.StructDocuments(expectedOutputFilepath, result, options)
+// Use structured comparison
+const outputMatches = outputMatchesExampleOutput(outputFilePath, result, {
+    comparisonType: 'unordered',
+    ignoreFieldValues: ['_id'] // Only for fields with variable values
+});
 ```
 
 ## 🎪 Critical Reminders
@@ -1239,8 +1270,8 @@ comparisonResult := compare.StructDocuments(expectedOutputFilepath, result, opti
 5. **TEST everything** before declaring success
 
 **Key Patterns to Remember:**
-- Use `utils.GetConnectionString()` in examples, show `os.Getenv("MONGODB_URI")` in docs
-- Ellipsis in output.txt OR IgnoreFieldValues (never both for same field)
+- Use `process.env.CONNECTION_STRING` in examples, show `"<connection string URI>"` in docs
+- Ellipsis in output.txt OR ignoreFieldValues (never both for same field)
 - MongoDB sample data: revert changes, don't drop databases
 - Custom data: drop custom DB, or if adding custom data to MongoDB sample data, use test_marker fields for cleanup
 
