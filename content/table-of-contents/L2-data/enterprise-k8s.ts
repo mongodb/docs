@@ -1,4 +1,5 @@
 import type { TocItem } from "../types";
+import kubernetesOperatorVersions from "../version-arrays/cloud-docs/kubernetes-operator";
 
 const tocData: TocItem[] = [
   {
@@ -7,6 +8,7 @@ const tocData: TocItem[] = [
     url: "/docs/kubernetes-operator/:version/",
     group: true,
     versionDropdown: true,
+    versions: { includes: kubernetesOperatorVersions.after("v1.28", { inclusive: true }) },
     items: [
       {
         label: "Quick Start",
