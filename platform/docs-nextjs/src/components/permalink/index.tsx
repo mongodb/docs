@@ -4,7 +4,7 @@ import Icon from '@leafygreen-ui/icon';
 import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import { palette } from '@leafygreen-ui/palette';
 import Tooltip from '@leafygreen-ui/tooltip';
-import { isBrowser } from '@/utils/isBrowser';
+import { isBrowser } from '@/utils/is-browser';
 import { theme } from '@/styles/theme';
 import useCopyClipboard from '@/utils/hooks/use-copy-clipboard';
 import useHashAnchor from '@/utils/hooks/use-hash-anchor';
