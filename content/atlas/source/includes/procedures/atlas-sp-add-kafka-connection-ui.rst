@@ -70,16 +70,30 @@
   
                   - ``SCRAM-SHA-256``  
   
-                  - ``SCRAM-SHA-512``  
+                  - ``SCRAM-SHA-512``
+
+                  - ``OAUTHBEARER``
   
-               #. Provide a :guilabel:`Username` for authentication.  
+               #. If you select ``PLAIN``, ``SCRAM-SHA-256``, or ``SCRAM-SHA-512``, you must also provide the following: 
   
-               #. Provide a password for authentication.  
-  
-               #. Click :guilabel:`Add connection`.  
-  
-            .. tab:: ``SASL_SSL``  
-               :tabid: stream-connect-kafka-ssl-auth  
+                  #. A :guilabel:`Username` for authentication.  
+                  #. A password for authentication.
+
+               #. If you select ``OAUTHBEARER``, you must also provide the following:
+
+                  #. Token endpoint URL - OAUTH issuer (IdP provider) token endpoint HTTP(S) URI used to retrieve the token.
+                  #. Client ID - Public identifier for the Kafka client.
+                  #. Client secret - Secret known only to the Kafka client and the authorization server.
+
+               #. If you select ``OAUTHBEARER``, you can also provide the following optional fields:
+               
+                  #. Scope - Scope of the access request to the broker specified by the Kafka clients.
+                  #. SASL Extensions - Additional information to provide to the Kafka broker.
+
+               #. Click :guilabel:`Add connection`.
+
+            .. tab:: ``SASL_SSL``
+               :tabid: stream-connect-kafka-ssl-auth
   
                1. From the dropdown menu, select a :guilabel:`SASL Mechanism`.  
   
@@ -89,20 +103,34 @@
   
                   - ``SCRAM-SHA-256``  
   
-                  - ``SCRAM-SHA-512``  
+                  - ``SCRAM-SHA-512``
+
+                  - ``OAUTHBEARER``
   
-               #. Click :guilabel:`Upload` to upload your :guilabel:`Certificate Authority PEM file`.  
+               #. Click :guilabel:`Upload` to upload your :guilabel:`Certificate Authority PEM file`. 
+
+               #. If you select ``PLAIN``, ``SCRAM-SHA-256``, or ``SCRAM-SHA-512``, you must also provide the following: 
   
-               #. Provide a :guilabel:`Username` for authentication.  
-  
-               #. Provide a password for authentication.  
+                  #. A :guilabel:`Username` for authentication.  
+                  #. A password for authentication.
+
+               #. If you select ``OAUTHBEARER``, you must also provide the following:
+
+                  #. Token endpoint URL - OAUTH issuer (IdP provider) token endpoint HTTP(S) URI used to retrieve the token.
+                  #. Client ID - Public identifier for the Kafka client.
+                  #. Client secret - Secret known only to the Kafka client and the authorization server.
+
+               #. If you select ``OAUTHBEARER``, you can also provide the following optional fields:
+
+                  #. Scope - Scope of the access request to the broker specified by the Kafka clients.
+                  #. SASL Extensions - Additional information to provide to the Kafka broker.
   
                #. Click :guilabel:`Add connection`.  
   
             .. tab:: ``SSL``  
                :tabid: stream-connect-kafka-mtls-auth  
   
-               1. **(Optional)** If you are using a Certificate Authority other than the default {+kafka+} CA, 
+               2. **(Optional)** If you are using a Certificate Authority other than the default {+kafka+} CA, 
                   click :guilabel:`Upload` to upload your :guilabel:`Certificate Authority PEM file`.  
   
                #. Click :guilabel:`Upload` to upload your :guilabel:`Client SSL Certificate`.  
