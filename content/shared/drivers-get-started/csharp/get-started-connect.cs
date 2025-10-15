@@ -16,4 +16,4 @@ var filter = Builders<BsonDocument>.Filter.Eq("title", "Back to the Future");
 
 var document = collection.Find(filter).First();
 
-Console.WriteLine(document);
+Console.WriteLine(document.ToJson(new JsonWriterSettings { Indent = true }));
