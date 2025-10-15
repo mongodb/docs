@@ -2,8 +2,9 @@
 secured using ``SASL_SSL``. You can also secure a connection using
 mutual ``SSL``.
 
-For more information, on the supported fields for this API for ``SSL`` authentication, see the 
-:oas-atlas-op:`Atlas Admin API documentation </createStreamConnection>`.
+For more information, on the supported fields for this API for ``SSL``
+authentication, see the :oas-atlas-op:`createStreamConnection
+</createStreamConnection>` {+atlas-admin-api+} endpoint.
 
 :ref:`Add a connection <atlas-sp-manage-connection-add>`
 with the following key-value pairs:
@@ -25,12 +26,12 @@ with the following key-value pairs:
      - ``"PLAIN"``
 
    * - ``authentication.password``
-     - The password associated with your `Confluent API key
-       <https://docs.confluent.io/cloud/current/security/authenticate/workload-identities/service-accounts/api-keys/overview.html>`__
+     - The password in your :aws:`AWS Secrets Manager
+       <msk/latest/developerguide/msk-password.html>`
 
    * - ``authentication.username``
-     - The username associated with your `Confluent API key
-       <https://docs.confluent.io/cloud/current/security/authenticate/workload-identities/service-accounts/api-keys/overview.html>`__
+     - The username in your :aws:`AWS Secrets Manager
+       <msk/latest/developerguide/msk-password.html>`
 
    * - ``type``
      - ``"Kafka"``
@@ -53,8 +54,8 @@ The following example command creates a {+kafka+} connection in {+service+}:
    --header 'Content-Type: application/json' \ 
    --header 'Accept: application/vnd.atlas.2023-02-01+json' \ 
    --data '{ 
-     "name": "confluent_demo", 
-     "bootstrapServers": "slr-ntgrbn.sample.us-east-1.aws.confluent.cloud:9092", 
+     "name": "msk_demo", 
+     "bootstrapServers": "slr-ntgrbn.sample.kafka.us-east-1.amazonaws.com:9092", 
      "security": { 
        "protocol": "SASL_SSL" 
        }, 

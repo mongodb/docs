@@ -116,4 +116,4 @@
 
    .. step:: Create the {+service+}-side connection.
 
-      .. include:: /includes/steps-create-sp-kafka-pl-atlas-side-connection.rst
+      .. include:: /includes/steps-create-sp-msk-pl-atlas-side-connection.rst
