@@ -1,5 +1,5 @@
 'use client';
-import { Body } from '@leafygreen-ui/typography';
+import { Body, Link } from '@leafygreen-ui/typography';
 import { css, cx } from '@leafygreen-ui/emotion';
 import { palette } from '@leafygreen-ui/palette';
 import type { ProductUpdateEntry } from '../services/contentstack';
@@ -18,6 +18,15 @@ import { getPagination } from '../utils/get-pagination';
 interface UpdatesProps {
   updates: ProductUpdateEntry[];
 }
+
+const containerStyle = css`
+  max-width: 1550px;
+  margin: 48px auto 0;
+  padding: 0 24px;
+  @media ${theme.screenSize.xLargeAndUp} {
+    padding: 0 32px;
+  }
+`;
 
 const updatesContainerStyle = css`
   display: flex;
@@ -292,6 +301,21 @@ const Updates = ({ updates }: UpdatesProps) => {
     getFilteredUpdates(pagination);
   }, [searchTerm, selectedFilters, updates]);
 
+  const isFilterClearBtnDisabled = Object.keys(selectedFilters).every((category) => {
+    return selectedFilters[category as keyof typeof selectedFilters].length === 0;
+  });
+
+  // Clear selected filters
+  const onHandleClearFilters = () => {
+    if (isFilterClearBtnDisabled) return;
+
+    setSelectedFilters({
+      offering: [],
+      category: [],
+      product: [],
+    });
+  };
+
   // Toggle filter selection
   const toggleFilter = (category: FilterCategory, value: string) => {
     setSelectedFilters((prev) => {
@@ -363,99 +387,122 @@ const Updates = ({ updates }: UpdatesProps) => {
   const endOfResultRange = Math.min(validPageToCalculate * itemsPerPage, totalFilteredItems);
 
   return (
-    <div className={cx(updatesContainerStyle)}>
-      <div className={cx(filtersContainerStyle)}>
-        {Object.entries(PRODUCT_UPDATE_FILTERS).map(([category]) => {
-          const categoryKey = category as FilterCategory;
-          const availableFilters = getAvailableFiltersForCategory(categoryKey);
-          const limitedFilters = getLimitedFilters(availableFilters, categoryKey);
-          const showToggle = shouldShowToggle(availableFilters);
-          const isExpanded = expandedCategories[categoryKey];
-
-          return (
-            <div key={category} className={cx(filterCategoryStyle)}>
-              <Body className={cx(filterCategoryTitleStyle)}>
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </Body>
-              <div className={cx(filterCheckboxesStyle, isExpanded && filterCheckboxesExpandedStyle)}>
-                {limitedFilters.map((filter) => {
-                  const isSelected = selectedFilters[categoryKey].includes(filter);
-                  return (
-                    <Checkbox
-                      key={filter}
-                      label={filter}
-                      checked={isSelected}
-                      onChange={() => toggleFilter(categoryKey, filter)}
-                    />
-                  );
-                })}
-              </div>
-              {showToggle && (
-                <div className={cx(filterToggleContainerStyle)} onClick={() => toggleCategoryExpansion(categoryKey)}>
-                  <Body className={cx(filterToggleTextStyle)}>
-                    {isExpanded
-                      ? `Collapse ${
-                          category === 'category' ? 'categories' : category === 'product' ? 'products' : 'offerings'
-                        }`
-                      : `See all ${
-                          category === 'category' ? 'categories' : category === 'product' ? 'products' : 'offerings'
-                        }`}
-                  </Body>
-                  <Icon glyph={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={16} />
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      <div className={cx(newsSectionStyle)}>
-        <div className={cx(newsContainerStyle)}>
-          <div className={cx(searchContainerStyle)}>
-            <SearchInput
-              aria-label="Search updates by title or description..."
-              placeholder="Search updates by title or description..."
-              value={searchTerm}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          {currentPageFilteredUpdates.map((update: ProductUpdateEntry) => {
-            const created_at = update.beamer_created_at || update.created_at;
-            const date = new Date(created_at).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            });
-
-            const description = update.multi_line || 'No description available';
-            const truncatedDescription = description.length > 100 ? description.substring(0, 100) + '...' : description;
-
-            const slug = update.title
-              .toLowerCase()
-              .replace(/[^a-z0-9]+/g, '-')
-              .replace(/(^-|-$)/g, '');
+    <div className={cx(containerStyle)}>
+      <Link
+        data-testid="clear_filter_btn"
+        as="button"
+        disabled={isFilterClearBtnDisabled}
+        aria-disabled={isFilterClearBtnDisabled}
+        onClick={onHandleClearFilters}
+        className={css`
+          font-size: 18px;
+          font-weight: 600;
+          line-height: 24px;
+          margin-bottom: ${theme.size.default};
+          margin-left: ${theme.size.medium};
+          opacity: ${isFilterClearBtnDisabled ? '0.5' : '1'};
+          @media ${theme.screenSize.xLargeAndUp} {
+            margin-left: ${theme.size.large};
+          }
+        `}
+      >
+        Clear Filters
+      </Link>
+      <div className={cx(updatesContainerStyle)}>
+        <div className={cx(filtersContainerStyle)}>
+          {Object.entries(PRODUCT_UPDATE_FILTERS).map(([category]) => {
+            const categoryKey = category as FilterCategory;
+            const availableFilters = getAvailableFiltersForCategory(categoryKey);
+            const limitedFilters = getLimitedFilters(availableFilters, categoryKey);
+            const showToggle = shouldShowToggle(availableFilters);
+            const isExpanded = expandedCategories[categoryKey];
 
             return (
-              <div
-                key={update.uid}
-                onClick={() => router.push(`/products/updates/${slug}`)}
-                className={cx(newsItemStyle)}
-              >
-                <Body className={cx(newsItemDateStyle)}>{date}</Body>
-                <div className={cx(newsItemTitleStyle)}>{update.title}</div>
-                <div className={cx(newsItemDescriptionStyle)}>{truncatedDescription}</div>
+              <div key={category} className={cx(filterCategoryStyle)}>
+                <Body className={cx(filterCategoryTitleStyle)}>
+                  {category.charAt(0).toUpperCase() + category.slice(1)}
+                </Body>
+                <div className={cx(filterCheckboxesStyle, isExpanded && filterCheckboxesExpandedStyle)}>
+                  {limitedFilters.map((filter) => {
+                    const isSelected = selectedFilters[categoryKey].includes(filter);
+                    return (
+                      <Checkbox
+                        key={filter}
+                        label={filter}
+                        checked={isSelected}
+                        onChange={() => toggleFilter(categoryKey, filter)}
+                      />
+                    );
+                  })}
+                </div>
+                {showToggle && (
+                  <div className={cx(filterToggleContainerStyle)} onClick={() => toggleCategoryExpansion(categoryKey)}>
+                    <Body className={cx(filterToggleTextStyle)}>
+                      {isExpanded
+                        ? `Collapse ${
+                            category === 'category' ? 'categories' : category === 'product' ? 'products' : 'offerings'
+                          }`
+                        : `See all ${
+                            category === 'category' ? 'categories' : category === 'product' ? 'products' : 'offerings'
+                          }`}
+                    </Body>
+                    <Icon glyph={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={16} />
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
-        <div className={cx(newsItemsCountStyle)}>
-          <Body className={cx(newsItemsCountTextStyle)}>
-            {totalFilteredItems > 0 ? `${startOfResultRange}-${endOfResultRange}` : '0'} of {totalFilteredItems} items
-          </Body>
-          <Pagination
-            totalFilteredUpdates={filteredUpdates.length}
-            setCurrentPage={setCurrentPage}
-            currentPage={hasFilteredResultsOnCurrentPage ? currentPage : 1}
-          />
+        <div className={cx(newsSectionStyle)}>
+          <div className={cx(newsContainerStyle)}>
+            <div className={cx(searchContainerStyle)}>
+              <SearchInput
+                aria-label="Search updates by title or description..."
+                placeholder="Search updates by title or description..."
+                value={searchTerm}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            {currentPageFilteredUpdates.map((update: ProductUpdateEntry) => {
+              const created_at = update.beamer_created_at || update.created_at;
+              const date = new Date(created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              });
+
+              const description = update.multi_line || 'No description available';
+              const truncatedDescription =
+                description.length > 100 ? description.substring(0, 100) + '...' : description;
+
+              const slug = update.title
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)/g, '');
+
+              return (
+                <div
+                  key={update.uid}
+                  onClick={() => router.push(`/products/updates/${slug}`)}
+                  className={cx(newsItemStyle)}
+                >
+                  <Body className={cx(newsItemDateStyle)}>{date}</Body>
+                  <div className={cx(newsItemTitleStyle)}>{update.title}</div>
+                  <div className={cx(newsItemDescriptionStyle)}>{truncatedDescription}</div>
+                </div>
+              );
+            })}
+          </div>
+          <div className={cx(newsItemsCountStyle)}>
+            <Body className={cx(newsItemsCountTextStyle)}>
+              {totalFilteredItems > 0 ? `${startOfResultRange}-${endOfResultRange}` : '0'} of {totalFilteredItems} items
+            </Body>
+            <Pagination
+              totalFilteredUpdates={filteredUpdates.length}
+              setCurrentPage={setCurrentPage}
+              currentPage={hasFilteredResultsOnCurrentPage ? currentPage : 1}
+            />
+          </div>
         </div>
       </div>
     </div>
