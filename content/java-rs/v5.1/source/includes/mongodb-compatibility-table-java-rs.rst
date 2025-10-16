@@ -9,12 +9,6 @@
      - MongoDB 7.0
      - MongoDB 6.0
 
-   * - 5.2
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
    * - 4.10 to 5.1
      - ⊛
      - ⊛
@@ -39,4 +33,4 @@
      - ⊛
      - ⊛
 
-.. [#v3-note] These driver versions are not compatible with MongoDB 8.1 or later because of an authentication issue. To learn more, see :ref:`java-rs-server-8.1-incompatibility`.
+.. [#v3-note] These driver versions are not compatible with MongoDB 8.1 or later because of an authentication issue.
