@@ -11,8 +11,8 @@
       If you have an |service| :atlas:`project
       </tutorial/manage-projects/>`
       with clusters that contain data you want to visualize, select
-      the project from the :guilabel:`Context` dropdown in the left
-      navigation pane.
+      the project from the :guilabel:`Projects` menu in the navigation 
+      bar.
 
       If you do not have a suitable existing |service| project, see
       :atlas:`Create a Project
@@ -50,7 +50,10 @@
 
       To create an |service| cluster:
 
-      a. In the left navigation menu, click :guilabel:`Clusters`.
+      a. In the sidebar, click :guilabel:`Clusters` under
+         the :guilabel:`Database` heading.
+
+         The `Clusters <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters>`__ page displays.
 
       #. Click :guilabel:`Build a New Cluster`.
 

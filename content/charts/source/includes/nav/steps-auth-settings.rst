@@ -1,7 +1,5 @@
 .. step:: Go to the :guilabel:`Authentication Settings` view.
 
-   .. include:: /includes/nav/fact-nav-preview.rst
-
    .. note::
 
       You must be a :ref:`Project Owner <dashboard-permissions>` to

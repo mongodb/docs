@@ -1,9 +1,8 @@
 .. step:: Go to :guilabel:`Charts`.
 
-   .. include:: /includes/nav/fact-nav-preview.rst
-
    If |charts| is not already displayed, click 
-   the :guilabel:`Charts` tab in the |service| UI.
+   :guilabel:`Visualization` under the :guilabel:`Services` heading in 
+   the sidebar of the |service| UI.
 
    |service| launches an instance of |charts-short| linked to your 
    project.

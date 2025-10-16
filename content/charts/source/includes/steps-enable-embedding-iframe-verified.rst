@@ -5,8 +5,10 @@
 
    .. step:: Select a dashboard.
 
-      From your dashboard page, select the dashboard containing the 
-      chart for which you want to enable embeddings.
+      From the :guilabel:`Dashboards` page, select the dashboard 
+      containing the chart for which you want to enable embeddings. For 
+      instructions on navigating to dashboards, see 
+      :doc:`Dashboards </dashboards>`.
 
    .. step:: Select a chart.
 

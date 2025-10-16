@@ -1,6 +1,4 @@
-.. step:: Go to the :guilabel:`AI Features` page.
-
-   .. include:: /includes/nav/fact-nav-preview.rst
+.. step:: Go to the :guilabel:`AI Features` page. 
 
    Click :guilabel:`AI features` under the 
    :guilabel:`Settings` heading in the sidebar.
