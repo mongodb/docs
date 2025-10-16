@@ -10,7 +10,7 @@ const Line = ({ nodeChildren, ...rest }: LineProps) => {
     return (
       <div className="line">
         {nodeChildren.map((child, index) => (
-          <ComponentFactory key={index} nodeData={child} {...rest} />
+          <ComponentFactory {...rest} key={index} nodeData={child} />
         ))}
       </div>
     );

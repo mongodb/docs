@@ -6,6 +6,6 @@ export type IncludeProps = {
 };
 
 const Include = ({ nodeChildren, ...rest }: IncludeProps) =>
-  nodeChildren.map((child, i) => <ComponentFactory key={i} nodeData={child} {...rest} />);
+  nodeChildren.map((child, i) => <ComponentFactory {...rest} key={i} nodeData={child} />);
 
 export default Include;

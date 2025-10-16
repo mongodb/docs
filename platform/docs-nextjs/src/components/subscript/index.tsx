@@ -8,7 +8,7 @@ interface SubscriptProps {
 const Subscript = ({ nodeChildren, ...rest }: SubscriptProps) => (
   <sub>
     {nodeChildren.map((child, index) => (
-      <ComponentFactory key={index} nodeData={child} {...rest} />
+      <ComponentFactory {...rest} key={index} nodeData={child} />
     ))}
   </sub>
 );

@@ -23,12 +23,12 @@ const Paragraph = ({ nodeChildren, parentNode, skipPTag = false, ...rest }: Para
   const children = appendTrailingPunctuation(nodeChildren);
   // For paragraph nodes that appear inside certain containers, skip <p> tags and just render their contents
   if (skipPTag || (parentNode && SKIP_P_TAGS.has(parentNode))) {
-    return children.map((element, index) => <ComponentFactory nodeData={element} key={index} {...rest} />);
+    return children.map((element, index) => <ComponentFactory {...rest} nodeData={element} key={index} />);
   }
   return (
     <Body className={cx(paragraphStyling)}>
       {children.map((element, index) => (
-        <ComponentFactory nodeData={element} key={index} {...rest} />
+        <ComponentFactory {...rest} nodeData={element} key={index} />
       ))}
     </Body>
   );

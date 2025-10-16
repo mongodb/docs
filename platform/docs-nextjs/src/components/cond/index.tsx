@@ -14,7 +14,7 @@ const Cond = ({ nodeData, ...rest }: CondProps) => {
   const argument = typeof rawArgument === 'string' ? rawArgument : undefined;
 
   if (!!argument && VALID_COND_ARGS.includes(argument)) {
-    return nodeData.children.map((child, index) => <ComponentFactory nodeData={child} key={index} {...rest} />);
+    return nodeData.children.map((child, index) => <ComponentFactory {...rest} nodeData={child} key={index} />);
   }
   return null;
 };

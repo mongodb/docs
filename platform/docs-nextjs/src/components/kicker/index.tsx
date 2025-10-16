@@ -25,7 +25,7 @@ const Kicker = ({ argument, ...rest }: KickerProps) => {
   return (
     <Overline className={kickerBaseStyle}>
       {argument.map((child, i) => (
-        <ComponentFactory nodeData={child} key={i} {...rest} />
+        <ComponentFactory {...rest} nodeData={child} key={i} />
       ))}
     </Overline>
   );

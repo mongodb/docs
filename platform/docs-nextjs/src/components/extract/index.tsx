@@ -6,6 +6,6 @@ export type ExtractProps = {
 };
 
 const Extract = ({ nodeChildren, ...rest }: ExtractProps) =>
-  nodeChildren.map((child, i) => <ComponentFactory key={i} nodeData={child} {...rest} />);
+  nodeChildren.map((child, i) => <ComponentFactory {...rest} key={i} nodeData={child} />);
 
 export default Extract;

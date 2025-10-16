@@ -22,7 +22,7 @@ const Section = ({ nodeChildren, sectionDepth = 0, ...rest }: SectionProps) => {
     <HeadingContextProvider heading={headingText}>
       <section>
         {nodeChildren.map((child, index) => {
-          return <ComponentFactory nodeData={child} key={index} sectionDepth={sectionDepth + 1} {...rest} />;
+          return <ComponentFactory {...rest} nodeData={child} key={index} sectionDepth={sectionDepth + 1} />;
         })}
       </section>
     </HeadingContextProvider>

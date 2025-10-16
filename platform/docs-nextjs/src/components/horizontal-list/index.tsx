@@ -52,7 +52,7 @@ const HorizontalList = ({ nodeChildren, columns, ...rest }: HorizontalListProps)
             <td className={cx(tableDataStyling)} key={colIndex}>
               <ListTag className="simple">
                 {col.map((child, index) => (
-                  <ComponentFactory key={index} nodeData={child} {...rest} />
+                  <ComponentFactory {...rest} key={index} nodeData={child} />
                 ))}
               </ListTag>
             </td>

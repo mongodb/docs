@@ -16,13 +16,13 @@ const Describe = ({ nodeChildren, argument, ...rest }: DescribeProps) => (
     <dt>
       <code className={cx(codeStyle)}>
         {argument.map((arg, i) => (
-          <ComponentFactory key={i} nodeData={arg} {...rest} />
+          <ComponentFactory {...rest} key={i} nodeData={arg} />
         ))}
       </code>
     </dt>
     <dd>
       {nodeChildren.map((child, i) => (
-        <ComponentFactory key={i} nodeData={child} {...rest} />
+        <ComponentFactory {...rest} key={i} nodeData={child} />
       ))}
     </dd>
   </dl>

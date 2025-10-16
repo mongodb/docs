@@ -9,7 +9,7 @@ export type SubstitutionReferenceProps = {
 const SubstitutionReference = ({ nodeChildren, name, ...rest }: SubstitutionReferenceProps) => (
   <>
     {nodeChildren
-      ? nodeChildren.map((child, index) => <ComponentFactory key={index} nodeData={child} {...rest} />)
+      ? nodeChildren.map((child, index) => <ComponentFactory {...rest} key={index} nodeData={child} />)
       : name}
   </>
 );

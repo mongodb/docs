@@ -38,6 +38,8 @@ import type {
   CardNode,
   CardGroupNode,
   ReferenceNode,
+  DefinitionListNode,
+  DefinitionListItemNode,
   HeadingNode,
   ImageNode,
 } from '@/types/ast';
@@ -112,6 +114,8 @@ import Reference, { type ReferenceProps } from '@/components/reference';
 import Heading, { type HeadingProps } from '@/components/heading';
 import Card, { type CardProps } from '@/components/card';
 import CardGroup, { type CardGroupProps } from '@/components/card/card-group';
+import DefinitionListItem, { type DefinitionListItemProps } from '@/components/definition-list/definition-list-item';
+import DefinitionList, { type DefinitionListProps } from '@/components/definition-list';
 import Image, { type ImageProps } from '@/components/image';
 import SeeAlso, { type SeeAlsoProps } from '@/components/admonition/see-also';
 
@@ -201,8 +205,8 @@ const getComponent = (() => {
         cond: Cond as React.ComponentType<SupportedComponentProps>,
         // container: Container,
         // 'cta-banner': CTABanner,
-        // definitionList: DefinitionList,
-        // definitionListItem: DefinitionListItem,
+        definitionList: DefinitionList as React.ComponentType<SupportedComponentProps>,
+        definitionListItem: DefinitionListItem as React.ComponentType<SupportedComponentProps>,
         deprecated: VersionModified as React.ComponentType<SupportedComponentProps>,
         // 'deprecated-version-selector': DeprecatedVersionSelector,
         describe: Describe as React.ComponentType<SupportedComponentProps>,
@@ -315,6 +319,8 @@ type SupportedComponentProps =
   | ComponentFactoryProps
   | CommunityPillLinkProps
   | CondProps
+  | DefinitionListItemProps
+  | DefinitionListProps
   | SectionProps
   | TextProps
   | ParagraphProps
@@ -428,6 +434,18 @@ const renderComponentWithProps = (
   } else if (ComponentType == getComponent('community-driver')) {
     const { argument, options } = nodeData as CommunityDriverPill;
     return <ComponentType argument={argument} options={options} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('definitionList')) {
+    const definitionListNode = nodeData as DefinitionListNode;
+    return <ComponentType nodeChildren={definitionListNode.children} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('definitionListItem')) {
+    const definitionListItemNode = nodeData as DefinitionListItemNode;
+    return (
+      <ComponentType
+        nodeChildren={definitionListItemNode.children}
+        term={definitionListItemNode.term}
+        {...propsToDrill}
+      />
+    );
   } else if (ComponentType === getComponent('heading')) {
     const headingNode = nodeData as HeadingNode;
     return <ComponentType nodeChildren={headingNode.children} id={headingNode.id} {...propsToDrill} />;

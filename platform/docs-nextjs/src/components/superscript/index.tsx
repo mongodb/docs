@@ -8,7 +8,7 @@ interface SuperscriptProps {
 const Superscript = ({ nodeChildren, ...rest }: SuperscriptProps) => (
   <sup>
     {nodeChildren.map((child, index) => (
-      <ComponentFactory key={index} nodeData={child} {...rest} />
+      <ComponentFactory {...rest} key={index} nodeData={child} />
     ))}
   </sup>
 );

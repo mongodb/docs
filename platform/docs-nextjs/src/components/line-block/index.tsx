@@ -8,7 +8,7 @@ export type LineBlockProps = {
 const LineBlock = ({ nodeChildren, ...rest }: LineBlockProps) => (
   <div className="line-block">
     {nodeChildren.map((child, index) => (
-      <ComponentFactory key={index} nodeData={child} {...rest} />
+      <ComponentFactory {...rest} key={index} nodeData={child} />
     ))}
   </div>
 );

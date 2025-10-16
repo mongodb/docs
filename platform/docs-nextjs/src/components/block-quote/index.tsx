@@ -8,7 +8,7 @@ export type BlockQuoteProps = {
 const BlockQuote = ({ nodeChildren, ...rest }: BlockQuoteProps) => (
   <blockquote>
     {nodeChildren.map((element, index) => (
-      <ComponentFactory key={index} nodeData={element} {...rest} />
+      <ComponentFactory {...rest} key={index} nodeData={element} />
     ))}
   </blockquote>
 );

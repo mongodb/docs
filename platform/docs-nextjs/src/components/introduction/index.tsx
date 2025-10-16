@@ -39,7 +39,7 @@ const Introduction = ({ nodeChildren, ...rest }: IntroductionProps) => {
   return (
     <StyledIntroduction className="introduction">
       {nodeChildren.map((child, i) => (
-        <ComponentFactory nodeData={child} key={i} {...rest} />
+        <ComponentFactory {...rest} nodeData={child} key={i} />
       ))}
     </StyledIntroduction>
   );
