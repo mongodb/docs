@@ -20,27 +20,23 @@ MongoDB MCP Server Tools
    :name: genre
    :values: tutorial
 
-Model Context Protocol (MCP) is a standard for connecting large language
-models to external software, services, and data sources.
-
 The MongoDB MCP Server allows you to interact with MongoDB clusters
-using natural language queries from AI clients that support MCP. The
-MCP Server provides tools that perform cluster operations.
-
+using natural language queries from AI clients that support MCP.
 This page describes the MCP Server tools.
 
-Details
--------
+Overview
+--------
 
-MCP Server tool categories:
+The MongoDB MCP server provides the following tools categories:
 
-- Atlas tools, which perform operations on Atlas system resources, like
-  organizations, projects, clusters, database user accounts, and others.
-- Database tools, which perform operations such as inserting, updating,
+- **Atlas tools**, which perform operations on Atlas system resources, like
+  organizations, projects, clusters, database user accounts, and retrieving
+  performance recommendations.
+- **Database tools**, which perform operations such as inserting, updating,
   and deleting documents, and running queries and aggregation pipelines.
 
 MCP Server Atlas Tools
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 The Atlas tools are only available if you have set up Atlas API
 credentials as shown in :ref:`mcp-server-configuration`.
@@ -98,8 +94,16 @@ The following table describes the Atlas tools:
    * - ``atlas-list-alerts``
      - Returns a list of alerts for an Atlas project.
 
+   * - ``atlas-list-performance-advisor``
+     - Returns :ref:`Performance Advisor <performance-advisor>` recommendations 
+       for an Atlas cluster. Supports operations for suggested indexes, drop index suggestions,
+       slow query logs, and schema suggestions. Requires :authrole:`Project
+       Read Only` access or higher.
+
+       To learn more, see :ref:`mcp-pa-tool`.
+
 MCP Server Database Tools
-~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------
 
 The following table describes the database tools:
 
@@ -180,8 +184,14 @@ The following table describes the database tools:
 
 .. _mcp-tools-considerations:
 
-Considerations
---------------
+Tool Details
+------------
+
+For additional information about specific MCP tools, 
+see the following sections.
+
+Connecting without Atlas Connection String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you configured the MCP server without specifying a connection string
 to an Atlas cluster, the ``atlas-connect-cluster`` tool
@@ -204,6 +214,57 @@ The temporary database user has the following characteristics:
 
    User credentials are stored only in the MCP Server's
    memory and are never returned to or exposed in the LLM context.
+
+.. _mcp-pa-tool:
+
+Performance Advisor Tool
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``atlas-list-performance-advisor`` tool allows you to access
+:ref:`Performance Advisor <performance-advisor>` recommendations
+through natural language queries. This tool helps you identify performance
+optimization opportunities by analyzing slow queries and suggesting improvements.
+
+.. include:: /includes/note-slow-query-sample-limit.rst
+
+.. note::
+
+    This tool requires :authrole:`Project Read Only` access or higher and an M10+ cluster.
+    It is available with the ``--readonly`` flag.
+
+.. list-table::
+   :widths: 25 45 30
+   :header-rows: 1
+
+   * - Use Case
+     - Example Prompts
+     - Performance Advisor Operation
+
+   * - Analyze Slow Queries
+     - | ``Show me my slow queries``
+       |
+       | ``What is slowing down my cluster?``
+       |
+       | ``Show me queries that are longer than 5 seconds``
+       |
+       | ``Show me slow writes in the website.users namespace``
+
+     - :oas-atlas-tag:`slowQueryLogs </PerformanceAdvisor/operation/listGroupProcessPerformanceAdvisorSlowQueryLogs>`
+  
+   * - Index Suggestions
+     - | ``Are there any indexes I should create to improve performance?``
+       |
+       | ``What indexes do you recommend I drop?``
+     - :oas-atlas-tag:`suggestedIndexes </PerformanceAdvisor/operation/listGroupClusterPerformanceAdvisorSuggestedIndexes>`
+       :oas-atlas-tag:`dropIndexSuggestions </PerformanceAdvisor/operation/listGroupClusterPerformanceAdvisorDropIndexSuggestions>`
+   * - Schema Advice
+     - | ``Show schema recommendations for my cluster``
+       |
+       | ``Help me optimize my database schema``
+
+     - :oas-atlas-tag:`schemaAdvice </PerformanceAdvisor/operation/listGroupClusterPerformanceAdvisorSchemaAdvice>`
+
+For detailed usage examples and sample outputs, see :ref:`mcp-server-performance-examples`.
 
 Learn More
 ----------

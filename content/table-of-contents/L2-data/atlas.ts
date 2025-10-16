@@ -738,6 +738,11 @@ const tocData: TocItem[] = [
                 contentSite: "cloud-docs",
                 url: "/docs/atlas/performance-advisor/enable-disable",
               },
+              {
+                label: "Access with MCP Server",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/performance-advisor/access-with-mcp",
+              }
             ],
           },
           {
