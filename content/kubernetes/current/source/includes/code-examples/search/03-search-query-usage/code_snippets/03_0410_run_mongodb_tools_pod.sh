@@ -8,7 +8,7 @@ metadata:
 spec:
   containers:
   - name: mongodb-tools
-    image: mongodb/mongodb-community-server:${MDB_VERSION}-ubi8
+    image: mongodb/mongodb-community-server:${MDB_VERSION%-ent}-ubi8
     command: ["/bin/bash", "-c"]
     args: ["sleep infinity"]
   restartPolicy: Never

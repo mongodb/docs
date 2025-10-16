@@ -15,7 +15,7 @@ spec:
         key: keyfile
     username: search-sync-source
     passwordSecretRef:
-      name: mdbc-rs-search-sync-source-password
+      name: ${MDB_RESOURCE_NAME}-search-sync-source-password
       key: password
   resourceRequirements:
     limits:

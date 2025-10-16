@@ -1,10 +1,10 @@
-SEARCH_IP=$(kubectl --context "${K8S_CTX}" -n "${MDB_NS}" get svc "${MDB_SEARCH_HOSTNAME}" -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+SEARCH_IP=$(kubectl --context "${K8S_CTX}" -n "${MDB_NS}" get svc "${MDB_SEARCH_SERVICE_NAME}" -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 if [ -z "${SEARCH_IP}" ]; then
-  SEARCH_IP=$(kubectl --context "${K8S_CTX}" -n "${MDB_NS}" get svc "${MDB_SEARCH_HOSTNAME}" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+  SEARCH_IP=$(kubectl --context "${K8S_CTX}" -n "${MDB_NS}" get svc "${MDB_SEARCH_SERVICE_NAME}" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 fi
 
 if [ -z "${SEARCH_IP}" ]; then
-  echo "Error: Could not get LoadBalancer external IP/hostname for service ${MDB_SEARCH_HOSTNAME}"
+  echo "Error: Could not get LoadBalancer external IP/hostname for service ${MDB_SEARCH_SERVICE_NAME}"
   exit 1
 fi
 

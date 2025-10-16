@@ -1,0 +1,1052 @@
+---
+title: "Create a ConfigMap for the certificate authority (CA) certificate."
+stepnum: 0
+level: 4
+ref: create-configmap-ca
+content: |
+  The |k8s-op-short| requires the root |certauth| certificate of the
+  custom |certauth| that issued the |mms| host's certificate. Run
+  the following command to create a |k8s-configmap| containing the root
+  |certauth| certificate in the same namespace of your database pods:
+
+  .. code-block:: sh
+
+     kubectl create configmap <root-ca-configmap-name> \
+       --from-file=mms-ca.crt
+
+  .. important::
+
+     The |k8s-op-short| requires that you name the |onprem| resource's
+     certificate ``mms-ca.crt`` in the ConfigMap.
+
+---
+title: "Copy the following example ``ConfigMap``."
+stepnum: 0
+level: 4
+ref: copy-k8s-configmap-tls
+content: |
+
+  .. literalinclude:: /reference/k8s/example-configmap.yaml
+     :language: yaml
+
+---
+title: "Copy the following example ConfigMap."
+stepnum: 0
+level: 4
+ref: copy-k8s-configmap
+content: |
+
+  .. literalinclude:: /reference/k8s/example-configmap.yaml
+     :language: yaml
+
+---
+title: "Open your preferred text editor and paste the example
+|k8s-configmap| into a new text file."
+stepnum: 0
+level: 4
+ref: paste-k8s-configmap
+---
+title: "Change the highlighted four lines."
+stepnum: 0
+level: 4
+ref: configure-k8s-configmap
+content: |
+  .. include:: /includes/list-tables/configmap-keys.rst
+
+---
+title: "Copy the sample {{k8sResource}} resource."
+stepnum: 0
+level: 4
+ref: copy-k8s-example-resource
+content: |
+
+   Change the settings of this |yaml| file to match your
+   desired {{k8sResource}} configuration.
+
+   {{k8sExample}}
+
+replacement:
+  k8sResource: ""
+  k8sExample: ""
+
+---
+title: "Paste the copied example to create a new {{k8sResource}} resource."
+stepnum: 0
+level: 4
+ref: paste-new-k8s-example-resource
+content: |
+  Open your preferred text editor and paste the |k8s-obj| specification
+  into a new text file.
+
+replacement:
+  k8sResource: ""
+
+---
+title: "Paste the copied example section into your existing
+{{k8sResource}} resource."
+stepnum: 0
+level: 4
+ref: paste-k8s-example-resource-section
+content: |
+  Open your preferred text editor and paste the |k8s-obj| specification
+  at the end of your resource file in the ``spec`` section.
+
+replacement:
+  k8sResource: ""
+
+---
+title: "Change the settings to your preferred values."
+stepnum: 0
+level: 4
+ref: change-k8s-rs-values
+content: |
+
+  .. include:: /includes/list-tables/rs-resource-base-options.rst
+
+---
+title: "Configure the TLS settings for your {{k8sResource}} resource using a custom certificate authority (CA)."
+stepnum: 0
+level: 4
+ref: add-tls-settings-custom-ca
+content: |
+
+  To enable |tls| in your deployment, configure the following
+  settings in your |k8s| object:
+
+  .. include:: /includes/list-tables/resource-keys-tls-custom-ca.rst
+
+replacement:
+  k8sResource: ""
+
+---
+title: "Configure the LDAP settings for your {{k8sResource}} resource."
+stepnum: 0
+level: 4
+ref: add-ldap-settings
+content: |
+
+  To enable |ldap| in your deployment, configure the following
+  settings in your |k8s| object:
+
+  .. include:: /includes/list-tables/ldap-settings.rst
+
+  The resulting configuration may look similar to the following
+  example:
+
+  .. code-block:: yaml
+
+     security:
+      authentication:
+        enabled: true
+        # Enabled LDAP Authentication Mode
+        modes:
+          - "LDAP"
+          - "SCRAM"
+          # LDAP related configuration
+        ldap:
+        # Specify the hostname:port combination of one or
+        # more LDAP servers
+          servers:
+            - "ldap1.example.com:636"
+            - "ldap2.example.com:636"
+
+        # Set to "tls" to use LDAP over TLS. Leave blank if
+        # the LDAP server doesn't accept TLS. You must enable TLS when you deploy the database resource to use this setting.
+        transportSecurity: "tls"
+ 
+        # If TLS is enabled, add a reference to a ConfigMap that
+        # contains a CA certificate that validates the LDAP server's
+        # TLS certificate.
+        caConfigMapRef:
+          name: "<configmap-name>"
+          key: "<configmap-entry-key>"
+ 
+        # Specify the LDAP Distinguished Name to which
+        # MongoDB binds when connecting to the LDAP server
+        bindQueryUser: "cn=admin,dc=example,dc=org"
+ 
+        # Specify the password with which MongoDB binds
+        # when connecting to an LDAP server. This is a
+        # reference to a Secret Kubernetes Object containing
+        # one "password" key.
+        bindQueryPasswordSecretRef:
+          name: "<secret-name>"
+
+  For a full list of LDAP settings, see :ref:`security settings
+  <security-settings>` in the |k8s-op-short| MongoDB resource specification.
+  Also see the :setting:`spec.security.authentication.agents.automationUserName`
+  setting for the {+mdbagent+} user in your LDAP-enabled |k8s-op-short|
+  deployment.
+
+replacement:
+  k8sResource: ""
+
+---
+title: "Configure the LDAP settings for the {+mdbagent+}."
+stepnum: 0
+level: 4
+ref: add-ldap-settings-agent
+content: |
+
+  :ref:`Update your MongoDB resource <k8s-edit-database-resource>`
+  with :ref:`security settings <security-settings>` specific to the Agent,
+  from the |k8s-op-short| MongoDB resource specification. The resulting
+  configuration may look similar to the following example:
+
+  .. code-block:: yaml
+
+     security:
+       authentication:
+         agents:
+           automationPasswordSecretRef:
+             key: automationConfigPassword
+             name: automation-config-password
+           automationUserName: mms-automation-agent
+           clientCertificateSecretRef:
+             name: agent-client-cert
+           mode: LDAP
+         enabled: true
+         ldap:
+           bindQueryPasswordSecretRef:
+             name: bind-query-password
+           bindQueryUser: cn=admin,dc=example,dc=org
+           servers:
+             - openldap.namespace.svc.cluster.local:389
+           userToDNMapping: '[{match: "(.+)",substitution: "uid={0},ou=groups,dc=example,dc=org"}]'
+         modes:
+           - LDAP
+           - SCRAM
+         requireClientTLSAuthentication: false
+
+
+---
+title: "Configure the general X.509 settings for your {{k8sResource}} resource."
+stepnum: 4
+level: 4
+ref: add-client-x509-settings
+content: |
+
+  To enable |tls| and X.509 in your deployment, configure the following
+  settings in your |k8s| object:
+
+  .. include:: /includes/list-tables/resource-keys-client-x509.rst
+
+replacement:
+  k8sResource: ""
+
+---
+title: "Configure the internal X.509 settings for your {{k8sResource}}
+resource."
+stepnum: 4
+level: 4
+ref: add-internal-x509-settings
+content: |
+
+  To enable |tls| and X.509 in your deployment, configure the following
+  settings in your |k8s| object:
+
+  .. include:: /includes/list-tables/resource-keys-internal-x509.rst
+
+replacement:
+  k8sResource: ""
+
+---
+title: "Configure |acme| based |tls| certificates for your {{k8sResource}} resource."
+stepnum: 0
+level: 4
+optional: true
+ref: add-k8s-external-access
+content: |
+
+  .. include:: /includes/facts/fact-acme-provider-certs.rst
+  
+  To configure a certificate that doesn't contain the pod's |fqdn|\s:
+  
+  a. Issue the certificate for an external domain. For more information, see the 
+     `Let's Encrypt documentation <https://letsencrypt.org/how-it-works/>`_ or 
+     the documentation for your provider.
+
+  #. Ensure that your certificate contains all hostnames that you plan to deploy in the 
+     replica set. Alternatively, you can issue a wildcard certificate for ``*.<externalDomain>``.
+     
+  #. To use a certificate containing only external domains for your replica set deployment, 
+     you must change the default hostname used by the replica set: 
+
+     - If you prefer to configure the hostname while creating your |k8s| cluster, change the 
+       :k8sdocs:`default domain </concepts/services-networking/dns-pod-service#what-things-get-dns-names>` 
+       from ``cluster.local`` to the external domain when creating or recreating your |k8s| cluster. 
+       Then, set this domain in your MongoDB resource by using the :setting:`spec.clusterDomain` setting.
+    
+     - Otherwise, create your MongoDB deployment with the following settings configured in your |k8s| 
+       object:
+      
+  .. include:: /includes/list-tables/configure-acme-based-certs.rst
+
+replacement:
+  k8sResource: ""
+
+---
+title: "Add any additional accepted settings for a {{k8sResource}} deployment."
+stepnum: 0
+level: 4
+ref: add-k8s-rs-values
+content: |
+
+  You can also add any of the following optional settings to the
+  |k8s-obj| specification file for a {{k8sResource}} deployment:
+
+  - :setting:`spec.additionalMongodConfig`
+  - :setting:`spec.backup.assignmentLabels`
+  - :setting:`spec.backup.mode`
+  - :setting:`spec.backup.snapshotSchedule.snapshotIntervalHours`
+  - :setting:`spec.backup.snapshotSchedule.snapshotRetentionDays`
+  - :setting:`spec.backup.snapshotSchedule.dailySnapshotRetentionDays`
+  - :setting:`spec.backup.snapshotSchedule.weeklySnapshotRetentionWeeks`
+  - :setting:`spec.backup.snapshotSchedule.monthlySnapshotRetentionMonths`
+  - :setting:`spec.backup.snapshotSchedule.pointInTimeWindowHours`
+  - :setting:`spec.backup.snapshotSchedule.referenceHourOfDay`
+  - :setting:`spec.backup.snapshotSchedule.referenceMinuteOfHour`
+  - :setting:`spec.backup.snapshotSchedule.fullIncrementalDayOfWeek`
+  - :setting:`spec.clusterDomain`
+  - :setting:`spec.connectivity.replicaSetHorizons`
+  - :setting:`spec.featureCompatibilityVersion`
+  - :setting:`spec.logLevel`
+  - :setting:`spec.podSpec.persistence.single`
+  - :setting:`spec.podSpec.persistence.multiple.data`
+  - :setting:`spec.podSpec.persistence.multiple.journal`
+  - :setting:`spec.podSpec.persistence.multiple.logs`
+  - :setting:`spec.podSpec.podTemplate.affinity.podAffinity`
+  - :setting:`spec.podSpec.podTemplate.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey`
+  - :setting:`spec.podSpec.podTemplate.affinity.nodeAffinity`
+  - :setting:`spec.podSpec.podTemplate.metadata`
+  - :setting:`spec.podSpec.podTemplate.spec`
+
+  .. include:: /includes/admonitions/warning-set-cluster-name.rst
+
+replacement:
+  k8sResource: ""
+
+---
+title: "Add any additional accepted settings for a {{k8sResource}} deployment."
+stepnum: 0
+level: 4
+ref: add-k8s-sc-values
+content: |
+  You can also add any of the following optional settings to the
+  |k8s-obj| specification file for a :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`
+  deployment:
+
+  - :setting:`spec.backup.assignmentLabels`
+  - :setting:`spec.backup.mode`
+  - :setting:`spec.backup.snapshotSchedule.snapshotIntervalHours`
+  - :setting:`spec.backup.snapshotSchedule.snapshotRetentionDays`
+  - :setting:`spec.backup.snapshotSchedule.dailySnapshotRetentionDays`
+  - :setting:`spec.backup.snapshotSchedule.weeklySnapshotRetentionWeeks`
+  - :setting:`spec.backup.snapshotSchedule.monthlySnapshotRetentionMonths`
+  - :setting:`spec.backup.snapshotSchedule.pointInTimeWindowHours`
+  - :setting:`spec.backup.snapshotSchedule.referenceHourOfDay`
+  - :setting:`spec.backup.snapshotSchedule.referenceMinuteOfHour`
+  - :setting:`spec.backup.snapshotSchedule.fullIncrementalDayOfWeek`
+  - :setting:`spec.backup.snapshotSchedule.clusterCheckpointIntervalMin`
+  - :setting:`spec.clusterDomain`
+  - :setting:`spec.connectivity.replicaSetHorizons`
+  - :setting:`spec.featureCompatibilityVersion`
+  - :setting:`spec.logLevel`
+
+  .. include:: /includes/admonitions/warning-set-cluster-name.rst
+
+  **For config server**
+
+  - :setting:`spec.configSrv.additionalMongodConfig`
+  - :setting:`spec.configSrvPodSpec.persistence.single`
+  - :setting:`spec.configSrvPodSpec.persistence.multiple.data`
+  - :setting:`spec.configSrvPodSpec.persistence.multiple.journal`
+  - :setting:`spec.configSrvPodSpec.persistence.multiple.logs`
+  - :setting:`spec.configSrvPodSpec.podTemplate.affinity.podAffinity`
+  - :setting:`spec.configSrvPodSpec.podTemplate.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey`
+  - :setting:`spec.configSrvPodSpec.podTemplate.affinity.nodeAffinity`
+  - :setting:`spec.configSrvPodSpec.podTemplate.metadata`
+  - :setting:`spec.configSrvPodSpec.podTemplate.spec`
+
+  **For shard routers**
+
+  - :setting:`spec.mongos.additionalMongodConfig`
+  - :setting:`spec.mongosPodSpec.podTemplate.affinity.podAffinity`
+  - :setting:`spec.mongosPodSpec.podTemplate.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey`
+  - :setting:`spec.mongosPodSpec.podTemplate.affinity.nodeAffinity`
+  - :setting:`spec.mongosPodSpec.podTemplate.metadata`
+  - :setting:`spec.mongosPodSpec.podTemplate.spec`
+
+  **For shard members**
+
+  - :setting:`spec.shard.additionalMongodConfig`
+  - :setting:`spec.shardPodSpec.persistence.single`
+  - :setting:`spec.shardPodSpec.persistence.multiple.data`
+  - :setting:`spec.shardPodSpec.persistence.multiple.journal`
+  - :setting:`spec.shardPodSpec.persistence.multiple.logs`
+  - :setting:`spec.shardPodSpec.podTemplate.affinity.podAffinity`
+  - :setting:`spec.shardPodSpec.podTemplate.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey`
+  - :setting:`spec.shardPodSpec.podTemplate.affinity.nodeAffinity`
+  - :setting:`spec.shardPodSpec.podTemplate.metadata`
+  - :setting:`spec.shardPodSpec.podTemplate.spec`
+  - :setting:`spec.shardSpecificPodSpec`
+
+replacement:
+  k8sResource: ""
+
+---
+title: "Save this {{k8sResource}} config file with a ``.yaml`` extension."
+stepnum: 0
+level: 4
+ref: save-object-spec
+
+replacement:
+  k8sResource: ""
+
+---
+title: "Save your {{k8sResource}} config file."
+stepnum: 0
+level: 4
+ref: save-object-spec-update
+
+replacement:
+  k8sResource: ""
+
+---
+title: "Start your {{k8sResource}} deployment."
+stepnum: 0
+level: 4
+ref: start-k8s-deployment
+content: |
+
+   In any directory, invoke the following |k8s| command to create your
+   {{k8sResource}}:
+
+   .. code-block:: sh
+
+      kubectl apply -f <{{k8sResourceType}}-conf>.yaml
+
+replacement:
+  k8sResource: ""
+  k8sResourceType: ""
+
+---
+title: "Update and restart your {{k8sResource}} deployment."
+stepnum: 0
+level: 4
+ref: restart-k8s-deployment
+content: |
+
+   In any directory, invoke the following |k8s| command to update and 
+   restart your {{k8sResource}}:
+
+   .. code-block:: sh
+
+      kubectl apply -f <{{k8sResourceType}}-conf>.yaml
+
+replacement:
+  k8sResource: ""
+  k8sResourceType: ""
+
+
+---
+title: "Apply your changes to your {{k8sResource}} deployment."
+stepnum: 0
+level: 4
+ref: apply-changes-k8s-deployment
+content: |
+
+   Invoke the following |k8s| command to update your
+   {{k8sResource}}:
+
+   .. code-block:: sh
+
+      kubectl apply -f <{{k8sResourceType}}-conf>.yaml
+
+replacement:
+  k8sResource: ""
+  k8sResourceType: ""
+
+---
+title: "Track the status of your {{k8sResource}} deployment."
+stepnum: 0
+level: 4
+ref: track-k8s-deployment-basic
+content: |
+
+  .. include:: /includes/check-resource-status.rst
+
+replacement:
+  k8sResource: ""
+
+---
+stepnum: 0
+title: "Check the status of your deployment."
+level: 4
+ref: check-k8s-deployment
+content: |
+  The |k8s-op-short| creates the MongoDB resources and requests the
+  |k8s| |certauth| to approve the database host's certificates. Run the
+  following command in any directory to verify that the certificates
+  are pending approval:
+
+  .. code-block:: sh
+
+     kubectl get mdb <resource-name> -o yaml -w
+
+  The ``status`` field of the output should resemble the following:
+
+  .. code-block:: sh
+     :copyable: false
+
+     status:
+       lastTransition: 2019-05-01T15:36:59Z
+       message: Not all certificates have been approved by Kubernetes CA
+       phase: Failed
+       type: ""
+       version: ""
+
+  If you do not see the ``status.message`` above, see
+  :ref:`k8s-troubleshooting` to help diagnose the issue.
+
+---
+title: "Save your |k8s-configmap|."
+stepnum: 0
+level: 4
+ref: save-k8s-configmap
+---
+title: "Update your |k8s-configmap| with X.509 enabled."
+stepnum: 0
+level: 4
+ref: create-k8s-configmap
+content: |
+
+  In any directory, invoke the |k8s| command to update your |k8s-configmap|:
+
+  .. code-block:: sh
+
+      kubectl apply -f <myconfigmap.yaml>
+
+---
+title: "Verify your |k8s-configmap|."
+stepnum: 0
+level: 4
+ref: verify-k8s-configmap
+content: |
+
+  In any directory, invoke the |k8s| command to verify your |k8s-configmap|:
+
+  .. code-block:: sh
+
+     kubectl describe configmaps <myconfigmap>
+
+  This command returns a ConfigMap description in the shell:
+
+  .. code-block:: sh
+     :copyable: false
+
+     Name:           <myconfigmap>
+     Namespace:      <metadata.namespace>
+     Labels:         <none>
+     Annotations:    <none>
+
+---
+title: "Create the secret for your replica set's |tls| certificate."
+stepnum: 0
+level: 4
+ref: create-rs-tls-secret
+content: |
+
+  Run this ``kubectl`` command to create a new |k8s-secret| that stores
+  the replica set's certificate:
+
+  .. code-block:: sh
+
+     kubectl create secret tls <prefix>-<metadata.name>-cert \
+       --cert=<replica-set-tls-cert> \
+       --key=<replica-set-tls-key>
+
+  .. note::
+
+     .. include:: /includes/fact-req-secret-prefix.rst
+
+  .. include:: /includes/fact-example-secret-prefix-cluster-file.rst
+  
+  .. include:: /includes/facts/fact-if-use-vault.rst
+
+  .. include:: /includes/facts/fact-learn-more-secret-storage.rst
+---
+title: "Create the secret for your sharded cluster's |tls| certificate."
+stepnum: 0
+level: 4
+ref: create-sc-tls-secret
+content: |
+
+  Run this ``kubectl`` command to create a new |k8s-secret| that stores
+  the sharded cluster's certificate:
+
+  .. code-block:: sh
+
+     kubectl create secret tls <prefix>-<metadata.name>-cert \
+       --cert=<sharded-cluster-tls-cert> \
+       --key=<sharded-cluster-tls-key>
+
+  .. note::
+
+     .. include:: /includes/fact-req-secret-prefix.rst
+
+  .. include:: /includes/fact-example-secret-prefix-cluster-file.rst
+  
+  .. include:: /includes/facts/fact-if-use-vault.rst
+
+  .. include:: /includes/facts/fact-learn-more-secret-storage.rst
+
+---
+title: "Create the |k8s-secret| for your agent's TLS certificate."
+stepnum: 0
+level: 4
+ref: create-agent-tls-secret
+content: |
+
+  Run this ``kubectl`` command to create a new |k8s-secret| that stores
+  the agent's TLS certificate:
+
+  .. code-block:: sh
+
+     kubectl create secret tls <prefix>-<metadata.name>-agent-certs \
+       --cert=<agent-tls-cert> \
+       --key=<agent-tls-key>
+
+  .. include:: /includes/facts/fact-if-use-vault.rst
+
+---
+title: "Renew the |k8s-secret| for your agents' X.509 certificates."
+stepnum: 0
+level: 4
+ref: renew-agent-x509-secret
+content: |
+
+  Run this ``kubectl`` command to renew an existing |k8s-secret| that
+  stores the agents' X.509 certificates:
+
+  .. code-block:: sh
+
+     kubectl create secret tls <prefix>-<metadata.name>-agent-certs \
+       --cert=<agent-tls-cert> \
+       --key=<agent-tls-key> \
+       --dry-run=client \
+        -o yaml |
+     kubectl apply -f -
+
+---
+title: "Renew the |k8s-secret| for your TLS certificates."
+stepnum: 0
+level: 4
+ref: renew-rs-tls-secret
+content: |
+
+  Run this ``kubectl`` command to renew an existing |k8s-secret| that
+  stores the replica set's certificates:
+
+  .. code-block:: sh
+
+
+     kubectl create secret tls <prefix>-<metadata.name>-cert \
+       --cert=<replica-set-tls-cert> \
+       --key=<replica-set-tls-key> \
+       --dry-run=client \
+        -o yaml |
+     kubectl apply -f -
+
+---
+title: "Create the |k8s-secret| for your X.509 certificate."
+stepnum: 0
+level: 4
+ref: create-rs-x509-secret
+content: |
+
+  Run this ``kubectl`` command to create a new |k8s-secret| that stores
+  the replica set's certificate:
+
+  .. code-block:: sh
+
+     kubectl create secret tls <prefix>-<metadata.name>-clusterfile \
+       --cert=<replica-set-clusterfile-tls-cert> \
+       --key=<replica-set-clusterfile-tls-key>
+
+  .. note::
+
+     .. include:: /includes/fact-req-secret-prefix.rst
+
+  .. include:: /includes/fact-example-secret-prefix-cluster-file.rst
+
+---
+title: "Renew the |k8s-secret| for your X.509 certificate."
+stepnum: 0
+level: 4
+ref: renew-rs-x509-secret
+content: |
+
+  Run this ``kubectl`` command to renew an existing |k8s-secret| that
+  stores the replica set's certificate:
+
+  .. code-block:: sh
+
+     kubectl create secret tls <prefix>-<metadata.name>-clusterfile \
+       --cert=<replica-set-clusterfile-tls-cert> \
+       --key=<replica-set-clusterfile-tls-key> \
+       --dry-run=client \
+        -o yaml |
+     kubectl apply -f -
+
+---
+title: "Create the |k8s-configmap| to link your |certauth| with your deployment."
+stepnum: 0
+level: 4
+ref: create-rs-tls-configmap
+content: |
+
+  Run this ``kubectl`` command to link your |certauth| to your replica
+  set and specify the |certauth| certificate file.
+
+  .. important::
+
+     The |k8s-op-short| requires that the certificate for the |k8s-mdbrsc|
+     is named ``ca-pem`` in the ConfigMap.
+
+  .. code-block:: sh
+
+     kubectl create configmap custom-ca --from-file=ca-pem=<your-custom-ca-file>
+
+---
+title: "Create the secret for your Shards' TLS certificates."
+stepnum: 0
+level: 4
+ref: create-sc-shards-tls-secret
+content: |
+
+  Run this ``kubectl`` command to create a new |k8s-secret| that stores
+  the sharded cluster shards' certificates:
+
+  .. code-block:: sh
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-0-cert \
+       --cert=<shard-0-tls-cert> \
+       --key=<shard-0-tls-key>
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-1-cert \
+       --cert=<shard-1-tls-cert> \
+       --key=<shard-1-tls-key>
+
+  .. include:: /includes/facts/fact-if-use-vault.rst
+---
+title: "Renew the |k8s-secret| for your Shards' TLS certificates."
+stepnum: 0
+level: 4
+ref: renew-sc-shards-tls-secret
+content: |
+
+  Run this ``kubectl`` command to renew an existing |k8s-secret| that
+  stores the sharded cluster shards' certificates:
+
+  .. code-block:: sh
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-0-cert \
+       --cert=<shard-0-tls-cert> \
+       --key=<shard-0-tls-key> \
+       --dry-run=client \
+       -o yaml |
+     kubectl apply -f -
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-1-cert \
+       --cert=<shard-1-tls-cert> \
+       --key=<shard-1-tls-key> \
+       --dry-run=client \
+       -o yaml |
+     kubectl apply -f -
+
+---
+title: "Create the secret for your config servers' TLS certificate."
+stepnum: 0
+level: 4
+ref: create-sc-config-tls-secret
+content: |
+
+  Run this ``kubectl`` command to create a new secret that stores
+  the sharded cluster config servers' certificate:
+
+  .. code-block:: sh
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-config-cert \
+       --cert=<config-tls-cert> \
+       --key=<config-tls-key>
+
+  .. include:: /includes/facts/fact-if-use-vault.rst
+
+---
+title: "Renew the |k8s-secret| for your config server's TLS certificates."
+stepnum: 0
+level: 4
+ref: renew-sc-config-tls-secret
+content: |
+
+  Run this ``kubectl`` command to renew an existing |k8s-secret| that
+  stores the sharded cluster config server's certificates:
+
+  .. code-block:: sh
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-config-cert \
+       --cert=<config-tls-cert> \
+       --key=<config-tls-key> \
+       --dry-run=client \
+       -o yaml |
+     kubectl apply -f -
+
+---
+title: "Create the secret for your mongos servers' TLS certificate."
+stepnum: 0
+level: 4
+ref: create-sc-mongos-tls-secret
+content: |
+
+  Run this ``kubectl`` command to create a new secret that stores
+  the sharded cluster |mongos| certificate:
+
+  .. code-block:: sh
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-mongos-cert \
+       --cert=<mongos-tls-cert> \
+       --key=<mongos-tls-key>
+
+  .. include:: /includes/facts/fact-if-use-vault.rst
+
+---
+title: "Renew the |k8s-secret| for your mongos server's TLS certificates."
+stepnum: 0
+level: 4
+ref: renew-sc-mongos-tls-secret
+content: |
+
+  Run this ``kubectl`` command to renew an existing |k8s-secret| that
+  stores the sharded cluster |mongos| certificates:
+
+  .. code-block:: sh
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-mongos-cert \
+       --cert=<mongos-tls-cert> \
+       --key=<mongos-tls-key> \
+       --dry-run=client \
+       -o yaml |
+     kubectl apply -f -
+
+---
+title: "Create the |k8s-secret| for your Shards' X.509 certificates."
+stepnum: 0
+level: 4
+ref: create-sc-shards-x509-secret
+content: |
+
+  Run this ``kubectl`` command to create a new |k8s-secret| that stores
+  the sharded cluster shards' certificates:
+
+  .. code-block:: sh
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-0-clusterfile \
+       --cert=<shard-0-clusterfile-tls-cert> \
+       --key=<shard-0-clusterfile-tls-cert>
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-1-clusterfile \
+       --cert=<shard-1-clusterfile-tls-cert> \
+       --key=<shard-1-clusterfile-tls-cert>
+
+---
+title: "Renew the |k8s-secret| for your Shards' X.509 certificates."
+stepnum: 0
+level: 4
+ref: renew-sc-shards-x509-secret
+content: |
+
+  Run this ``kubectl`` command to renew an existing |k8s-secret| that stores
+  the sharded cluster shards' certificates:
+
+  .. code-block:: sh
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-0-clusterfile \
+       --cert=<shard-0-clusterfile-tls-cert> \
+       --key=<shard-0-clusterfile-tls-cert> \
+       --dry-run=client \
+       -o yaml |
+     kubectl apply -f -
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-1-clusterfile \
+       --cert=<shard-1-clusterfile-tls-cert> \
+       --key=<shard-1-clusterfile-tls-cert> \
+       --dry-run=client \
+       -o yaml |
+     kubectl apply -f -
+
+---
+title: "Create the |k8s-secret| for your config servers' X.509 certificate."
+stepnum: 0
+level: 4
+ref: create-sc-config-x509-secret
+content: |
+
+  Run this ``kubectl`` command to create a new |k8s-secret| that stores
+  the sharded cluster config server's certificates:
+
+  .. code-block:: sh
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-config-clusterfile \
+       --cert=<config-clusterfile-tls-cert> \
+       --key=<config-clusterfile-tls-cert>
+
+---
+title: "Renew the |k8s-secret| for your config servers' X.509 certificate."
+stepnum: 0
+level: 4
+ref: renew-sc-config-x509-secret
+content: |
+
+  Run this ``kubectl`` command to renew an existing |k8s-secret| that stores
+  the sharded cluster config servers' certificate:
+
+  .. code-block:: sh
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-config-clusterfile \
+       --cert=<config-clusterfile-tls-cert> \
+       --key=<config-clusterfile-tls-cert> \
+       --dry-run=client \
+       -o yaml |
+     kubectl apply -f -
+
+---
+title: "Create the |k8s-secret| for your mongos server's X.509 certificates."
+stepnum: 0
+level: 4
+ref: create-sc-mongos-x509-secret
+content: |
+
+  Run this ``kubectl`` command to create a new |k8s-secret| that stores
+  the sharded cluster |mongos| certificates:
+
+  .. code-block:: sh
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-mongos-clusterfile \
+       --cert=<mongos-clusterfile-tls-cert> \
+       --key=<mongos-clusterfile-tls-cert>
+
+---
+title: "Renew the |k8s-secret| for your mongos server's X.509 certificates."
+stepnum: 0
+level: 4
+ref: renew-sc-mongos-x509-secret
+content: |
+
+  Run this ``kubectl`` command to renew an existing |k8s-secret| that stores
+  the sharded cluster |mongos| certificates:
+
+  .. code-block:: sh
+
+     kubectl -n mongodb create secret tls <prefix>-<metadata.name>-mongos-clusterfile \
+       --cert=<mongos-clusterfile-tls-cert> \
+       --key=<mongos-clusterfile-tls-cert> \
+       --dry-run=client \
+       -o yaml |
+     kubectl apply -f -
+
+---
+title: "Create the |k8s-configmap| to link your |certauth| with your deployment."
+stepnum: 0
+level: 4
+ref: create-sc-tls-configmap
+content: |
+
+  Run this ``kubectl`` command to link your |certauth| to your sharded
+  cluster and specify the |certauth| certificate file that you must always
+  name ``ca-pem`` for the |k8s-mdbrsc|:
+
+  .. code-block:: sh
+
+     kubectl create configmap custom-ca --from-file=ca-pem=<your-custom-ca-file>
+
+---
+title: "Test the connection to the replica set."
+stepnum: 0
+level: 4
+ref: k8s-ext-rs-test-conn
+content: |
+
+  In the development environment, for each host in a replica set, run
+  the following command:
+
+  .. code-block:: sh
+
+     mongosh --host <my-replica-set>/web1.example.com \
+           --port 30907
+           --ssl \
+           --sslAllowInvalidCertificates
+
+  .. note::
+
+     Don't use the ``--sslAllowInvalidCertificates`` flag in production.
+
+  In production, for each host in a replica set, specify the |tls|
+  certificate and the |certauth| to securely connect to client tools or
+  applications:
+
+  .. code-block:: sh
+
+     mongosh --host <my-replica-set>/web1.example.com \
+       --port 30907 \
+       --tls \
+       --tlsCertificateKeyFile server.pem \
+       --tlsCAFile ca-pem
+
+  If the connection succeeds, you should see:
+
+  .. code-block:: javascript
+
+     Enterprise <my-replica-set> [primary]
+
+---
+title: "Edit the |k8s| resource specification file."
+stepnum: 0
+level: 4
+ref: edit-k8s-specs
+
+---
+title: "Modify or add settings as needed."
+stepnum: 0
+level: 4
+ref: modify-specs
+
+---
+title: "Save your specification file."
+stepnum: 0
+level: 4
+ref: save-specs
+
+---
+title: "Apply the file."
+stepnum: 0
+level: 4
+ref: apply-changes
+content: |
+
+  .. code-block:: sh
+
+     kubectl apply -f <standalone-conf>.yaml
+
+---
+title: "Apply the file."
+stepnum: 0
+level: 4
+ref: apply-k8s-changes
+content: |
+
+  .. code-block:: sh
+
+     kubectl apply -f <mongodb-multi-conf>.yaml
+
+...

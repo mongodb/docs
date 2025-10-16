@@ -14,13 +14,13 @@ export OPS_MANAGER_PROJECT_NAME="<arbitrary project name>"
 export OPS_MANAGER_API_URL="https://cloud-qa.mongodb.com"
 
 # The API key can be an Org Owner - the operator can create the project automatically then.
-# The API key can also be created in a particular project that was created manually with the Project Owner scope .
-export OPS_MANAGER_API_USER="abcdefg"
-export OPS_MANAGER_API_KEY="00000-abcd-efgh-1111-12345678"
-export OPS_MANAGER_ORG_ID="62a73abcdefgh12345678"
+# The API key can also be created in a particular project that was created manually with the Project Owner scope.
+export OPS_MANAGER_API_USER="<SET API USER>"
+export OPS_MANAGER_API_KEY="<SET API KEY>"
+export OPS_MANAGER_ORG_ID="<SET ORG ID>"
 
-# minimum required MongoDB version for running MongoDB Search is 8.0.10
-export MDB_VERSION="8.0.10"
+# minimum required MongoDB version for running MongoDB Search is 8.2.0
+export MDB_VERSION="8.2.0-ent"
 
 # root admin user for convenience, not used here at all in this guide
 export MDB_ADMIN_USER_PASSWORD="admin-user-password-CHANGE-ME"

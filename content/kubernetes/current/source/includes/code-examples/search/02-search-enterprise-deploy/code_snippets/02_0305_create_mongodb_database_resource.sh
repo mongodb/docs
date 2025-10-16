@@ -5,7 +5,7 @@ metadata:
   name: ${MDB_RESOURCE_NAME}
 spec:
   members: 3
-  version: ${MDB_VERSION}-ent
+  version: ${MDB_VERSION}
   type: ReplicaSet
   opsManager:
     configMapRef:
@@ -18,18 +18,17 @@ spec:
       modes:
       - SCRAM
   agent:
-    logLevel: DEBUG
-  statefulSet:
-    spec:
-      template:
-        spec:
-          containers:
-          - name: mongodb-enterprise-database
-            resources:
-              limits:
-                cpu: "2"
-                memory: 2Gi
-              requests:
-                cpu: "1"
-                memory: 1Gi
+    logLevel: INFO
+  podSpec:
+    podTemplate:
+      spec:
+        containers:
+        - name: mongodb-enterprise-database
+          resources:
+            limits:
+              cpu: "2"
+              memory: 2Gi
+            requests:
+              cpu: "1"
+              memory: 1Gi
 EOF
