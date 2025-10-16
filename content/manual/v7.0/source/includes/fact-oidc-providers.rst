@@ -1,6 +1,6 @@
 .. list-table::
   :header-rows: 1
-  :widths: 20 18 42 20
+  :widths: 20 20 15 45
 
   * - Field
 
@@ -17,7 +17,7 @@
 
     - string
 
-    - The issuer URI of the IDP that the server should accept tokens from. This 
+    - The issuer URI of the IdP that the server should accept tokens from. This 
       must match the ``iss`` field in any JWT used for authentication.
 
       .. include:: /includes/fact-oidc-multiple-config-for-same-issuer.rst
@@ -52,9 +52,9 @@
 
     - string
 
-    - Regex pattern used to determine which IDP should be used. ``matchPattern`` 
+    - Regex pattern used to determine which IdP should be used. ``matchPattern`` 
       matches against usernames. Array order determines the priority and the 
-      first IDP is always selected. 
+      first IdP is always selected. 
 
       ``matchPattern`` is required in some configurations, depending on 
       how the user sets ``supportsHumanFlows``:
@@ -69,7 +69,7 @@
         is set to ``false``.
 
       This is not a security mechanism. ``matchPattern`` serves only as an advisory 
-      to clients. MongoDB accepts tokens issued by the IDP whose principal 
+      to clients. MongoDB accepts tokens issued by the IdP whose principal 
       names do not match this pattern.
 
 
@@ -79,7 +79,7 @@
      
     - string 
 
-    - ID provided by the IDP to identify the client that receives the access tokens.
+    - ID provided by the IdP to identify the client that receives the access tokens.
 
       Required when ``supportsHumanFlows`` is set to ``true`` (the default).
 
@@ -95,7 +95,7 @@
     - Specifies the application or service that the access token is intended for.
     
 
-      When more than one IDP is defined, this must be a unique value for 
+      When more than one IdP is defined, this must be a unique value for 
       each configuration that shares an ``issuer``. 
 
   * - ``requestScopes``
@@ -103,8 +103,14 @@
     - Optional
     
     - array[ string ] 
-    
-    - Permissions and access levels that MongoDB requests from the IDP.
+
+    - Permissions and access levels that MongoDB requests from the IdP.
+
+      :gold:`IMPORTANT:` By default, clients such as :compass:`Compass </>` and 
+      :binary:`~bin.mongosh` request the ``oidc`` and ``offline_access`` scopes 
+      from the IdP. If the IdP supports neither ``oidc`` nor ``offline_access``, 
+      the client doesn't request them. If the IdP supports ``oidc`` but not 
+      ``offline_access``, you must re-authenticate frequently.
 
   * - ``principalName``
     
@@ -188,10 +194,10 @@
 
     - integer
 
-    - Frequency, in seconds, to request an updated JSON Web Key Set (JWKS) from the IDP. 
+    - Frequency, in seconds, to request an updated JSON Web Key Set (JWKS) from the IdP. 
       A setting of 0 disables polling.
 
-      When more than one IDP is defined, this must be the same value for 
+      When more than one IdP is defined, this must be the same value for 
       each configuration that shares an ``issuer``.  
     
 
