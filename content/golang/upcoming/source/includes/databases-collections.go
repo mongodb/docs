@@ -82,4 +82,12 @@ func main() {
 		log.Fatalf("Failed to drop collection: %v", err)
 	}
 	// end-delete-collection
+	
+	// Deletes the test_database database
+	// start-delete-database
+	err = client.Database("test_database").Drop(context.TODO())
+	if err != nil {
+		log.Fatalf("Failed to drop database: %v", err)
+	}
+	// end-delete-database
 }
