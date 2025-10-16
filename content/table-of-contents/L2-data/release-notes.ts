@@ -197,11 +197,6 @@ const tocData: TocItem[] = [
         url: "/docs/atlas/operator/stable/ak8so-changelog/",
       },
       {
-        label: "Atlas SQL",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/release-notes/sql",
-      },
-      {
         label: "Atlas Stream Processing",
         contentSite: "cloud-docs",
         url: "/docs/atlas/atlas-stream-processing/changelog",

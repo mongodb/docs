@@ -87,6 +87,11 @@ const tocData: TocItem[] = [
         contentSite: "cloud-docs",
         url: "/docs/atlas/data-federation/query/sql/language-reference",
       },
+      {
+        label: "Changelog",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/release-notes/sql",
+      },      
     ],
   },        
 ];
