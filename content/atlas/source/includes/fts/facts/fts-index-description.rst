@@ -1,4 +1,4 @@
-An |fts| index is a data structure that categorizes data into an easily
+A |fts| index is a data structure that categorizes data into an easily
 searchable format. It is a mapping between terms and the documents that
 contain those terms. |fts| indexes enable faster retrieval of documents
 using certain identifiers. You must configure a |fts| index to query
