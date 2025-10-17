@@ -34,9 +34,9 @@ predict failures, generate repair plans, and reduce downtime.
 Aerospace & Defense, Energy & Environmental
 
 **Products:** `MongoDB Atlas <http://mongodb.com/atlas>`__, 
-`Atlas Charts <https://www.mongodb.com/products/platform/atlas-charts>`__,
-`Atlas Stream Processing <https://www.mongodb.com/products/platform/atlas-stream-processing>`__,
-`Atlas Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__
+`MongoDB Atlas Charts <https://www.mongodb.com/products/platform/atlas-charts>`__,
+`MongoDB Atlas Stream Processing <https://www.mongodb.com/products/platform/atlas-stream-processing>`__,
+`MongoDB Atlas Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__
 
 **Partners:** `Cohere <https://cloud.mongodb.com/ecosystem/cohere>`__, 
 `LangChain <https://cloud.mongodb.com/ecosystem/langchain>`__ 
@@ -44,43 +44,32 @@ Aerospace & Defense, Energy & Environmental
 Solution Overview
 -----------------
 
-MongoDB Atlas powers an end-to-end predictive maintenance solution that
-helps manufacturers prevent equipment failures and optimize maintenance
-operations through four strategic stages:
+Predictive maintenance solutions can allow organizations to achieve significant
+operational achievements, such as reducing downtime by 15-20%, increasing 
+labor productivity by 5-20%, and cutting maintenance costs by 30-60%, according
+to `Deloitte <https://www2.deloitte.com/content/dam/Deloitte/us/Documents/process-and-operations/us-predictive-maintenance.pdf>`__.
 
-1. Machine prioritization and criticality analysis
+This solution uses MongoDB Atlas to build an end-to-end predictive maintenance
+system that helps manufacturers prevent equipment failures and optimize
+maintenance operations. The solution has four stages:
 
-   - Addresses the question: Which machine should I prioritize for
-     predictive maintenance and why? 
-   - Uses machine learning and RAG-based analysis to prioritize critical
-     equipment.
-   - Leverages historical data and expert knowledge to make informed
-     decisions.
+1. **Machine prioritization and criticality analysis:** Uses :abbr:`ML (Machine Learning`
+   and :abbr:`RAG (Retrieval-Augmented Generation)`-based analysis to 
+   determine equipment to prioritize for predictive
+   maintenance.
 
-#. Failure prediction
+#. **Failure prediction:** Uses `Atlas Stream Processing
+   <https://www.mongodb.com/products/platform/atlas-stream-processing>`__
+   to process real-time sensor data and detect potential failures before
+   they occur.
 
-   - Answers the critical question: What is the root cause of imminent
-     failure?
-   - Processes real-time sensor data through `Atlas Stream Processing
-     <https://www.mongodb.com/products/platform/atlas-stream-processing>`__.
-   - Enables early detection of potential failures before they occur.
+#. **Maintenance plan generation:** Uses :abbr:`LLMs (Large Language Models)` trained
+   on maintenance manuals, inventory data, and resource information to automatically
+   generate detailed work orders for failure situations.
 
-#. Maintenance plan generation
-
-   - Focuses on: How should I schedule the repair procedure? 
-   - Automatically generates detailed repair plans using large language
-     models. 
-   - Combines maintenance manuals, inventory data, and resource
-     information.
-
-#. Maintenance guidance generation
-
-   - Addresses: How do I get better guidance on fixing machines? 
-   - Provides enhanced maintenance guidance by integrating service notes
-     and repair instructions. 
-   - Delivers instructions directly to technicians' mobile devices
-     through `Change Streams
-     <https://www.mongodb.com/docs/manual/changeStreams/>`__.
+#. **Maintenance guidance generation:** Generates enhanced maintenance
+   guidance and uses :ref:`Change Streams <changeStreams>`
+   to deliver instructions directly to technicians' mobile devices.
 
 .. figure:: /includes/images/industry-solutions/predictive-maintenance-demo.svg
    :figwidth: 1200px
@@ -90,33 +79,14 @@ operations through four strategic stages:
 
 .. video:: https://www.youtube.com/watch?v=YwTWpUl3QS8
 
-By leveraging MongoDB's unified data platform capabilities like vector
-search and real-time analytics, organizations can achieve significant
-operational improvements: `reducing downtime by 15-20%, increasing labor
-productivity by 5-20%, and cutting maintenance costs by 30-60%
-<https://www2.deloitte.com/content/dam/Deloitte/us/Documents/process-and-operations/us-predictive-maintenance.pdf>`__.
-
 Reference Architectures
 -----------------------
 
-Machine Prioritization Architecture
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This section guides you through the architecture of each stage in this
+solution.
 
-This architecture leverages RAG (retrieval-augmented generation) to
-determine which machines require predictive maintenance. The system
-processes two types of input data: 
-
-- **Structured data:** Production parameters and machine breakdown
-  frequency. 
-
-- **Unstructured data:** Institutional knowledge in documents. 
-
-The workflow aggregates and operationalizes both data types as vector
-embeddings in MongoDB Atlas. Using Vector Search, it performs semantic
-search to provide relevant context to an LLM (via Amazon Bedrock or Cohere
-in this case), which generates contextual responses to prioritization
-queries. This helps maintenance teams make data-driven decisions about
-which machines need attention first.
+Machine Prioritization and Criticality Analysis
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. figure:: /includes/images/industry-solutions/predictive-maintenance-system-diagram.svg
    :figwidth: 1200px
@@ -124,30 +94,24 @@ which machines need attention first.
    
    Figure 2. AI system diagram for machine prioritization recommendations
 
-Sensor Data Processing Architecture
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This stage uses RAG to determine
+which machines require predictive maintenance. The system processes
+two types of input data: 
 
-This real-time architecture processes machine sensor data through six
-key stages: 
+- **Structured data**, such as production parameters and machine breakdown
+  frequency. 
 
-1. **Data collection:** A prioritized milling machine with DAQ
-   (data acquisition) captures critical metrics (product type,
-   temperature, speed, torque, tool wear). 
+- **Unstructured data**, such as institutional knowledge stored in PDF documents. 
 
-#. **Stream processing:** Real-time transformation of
-   raw sensor data. 
+The workflow aggregates and operationalizes both data types as vector
+embeddings in MongoDB Atlas, then uses Vector Search to semantically
+search the database. The results of the search provide relevant context
+to an LLM, via Amazon Bedrock or Cohere, which generates responses to
+prioritization queries. This helps maintenance teams make data-driven 
+decisions about which machines need attention first.
 
-#. **Data storage:** Centralized storage in MongoDB Atlas with
-   single view capability. 
-
-#. **Change detection:** Monitoring for significant data
-   changes. 
-
-#. **ML inference:** Running trained models to predict potential
-   failures. 
-
-#. **Dual output:** Visualization through Atlas Charts and mobile
-   notifications via Change Streams.
+Failure Prediction
+~~~~~~~~~~~~~~~~~~
 
 .. figure:: /includes/images/industry-solutions/predictive-maintenance-real-time-sensor.svg
    :figwidth: 1200px
@@ -155,21 +119,26 @@ key stages:
    
    Figure 3. Real-time sensor monitoring with MongoDB Atlas
 
-Work Order Generation Architecture
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This stage processes real-time machine sensor data for failure prediction 
+through six key stages: 
 
-This architecture automates maintenance work order creation through:
+1. **Data collection:** A prioritized machine captures metrics such as
+   product type, temperature, speed, and tool wear.
 
-1. **Document processing:** Machine manuals and old work orders are chunked
-   and converted to vectors using AWS/Cohere embedding models. 
+#. **Stream processing:** The system transforms the raw sensor data.
 
-#. **Vector storage:** Embeddings stored in MongoDB Atlas. 
+#. **Data storage:** The data is stored in MongoDB Atlas.
 
-#. **Work order generation:** A specialized app that: 
+#. **Change detection:** Change streams monitor the data for significant
+   changes.
 
-   - Uses LLMs to generate appropriate work order templates. 
-   - Pulls inventory and resource information through aggregation. 
-   - Creates detailed repair plans based on machine documentation.
+#. **ML inference:** A trained model predicts potential failures.
+
+#. **Dual output:** Atlas Charts visualizes the data, and
+   Change Streams enable mobile notifications.
+
+Maintenance Plan Generation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. figure:: /includes/images/industry-solutions/predictive-maintenance-work-order.svg
    :figwidth: 1200px
@@ -177,22 +146,21 @@ This architecture automates maintenance work order creation through:
    
    Figure 4. AI-powered work order generation system diagram
 
-Maintenance Guidance Architecture
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This stage automates maintenance work order creation through the following
+architecture:
 
-This architecture enhances operator instructions through a RAG approach:
+1. **Document processing:** The solution splits machine manuals and old work
+   orders into chunks and converts them to vectors using Cohere embedding
+   models.
 
-1. **Service note processing:** Converts multilingual PDF service notes
-   to text.
+#. **Vector storage:** The solution stores embeddings in MongoDB Atlas. 
 
-#. **Translation:** Processes non-English content (Spanish in this case)
-   through translation models. 
+#. **Work order generation:** A specialized app uses LLMs to generate
+   work order templates, pulls inventory and resource information through
+   an aggregation pipeline, and creates detailed repair plans.
 
-#. **Instruction generation:** Combines translated service notes with
-   original repair plans using LLMs.
-
-#. **Delivery:** Provides updated maintenance instructions to technicians
-   through a mobile app.
+Maintenance Guidance Generation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. figure:: /includes/images/industry-solutions/predictive-maintenance-rag.svg
    :figwidth: 1200px
@@ -200,29 +168,47 @@ This architecture enhances operator instructions through a RAG approach:
    
    Figure 5. RAG workflow enhances technician repair instructions
 
-Each architecture integrates core capabilities of MongoDB Atlas and uses
-external services, such as Amazon Bedrock or Cohere, for AI
-functionality.
+This stage uses RAG to enhance operator instructions with the following 
+architecture:
 
-Building the Solution
----------------------
+1. **Service note processing:** Converts multilingual PDF service notes
+   to text.
+
+#. **Translation:** Processes non-English content through translation models. 
+
+#. **Instruction generation:** Uses LLMs to combine translated service notes with
+   original repair plans.
+
+#. **Delivery:** Provides updated maintenance instructions to technicians
+   through a mobile app.
+
+Build the Solution
+------------------
+
+For complete implementation details, including code samples,
+configuration files, and tutorial videos, visit this solution's
+`GitHub repository <https://github.com/mongodb-industry-solutions/Leafy-Predictive-Maintenance?tab=readme-ov-file#step-1-create-a-mongodb-atlas-instance>`__. 
+
+This repository provides a production-ready template for implementing
+predictive maintenance. Follow the instructions in the repository's ``README``, 
+which guides you through the following steps.
 
 .. procedure::
    :style: normal
 
-   .. step:: `Set up MongoDB Atlas environment <https://github.com/mongodb-industry-solutions/Leafy-Predictive-Maintenance?tab=readme-ov-file#step-1-create-a-mongodb-atlas-instance>`__
+   .. step:: Set up your MongoDB Atlas environment
 
-      - Configure cluster, database and collections for machine
-        failures, sensor data (raw and transformed), ML models,
-        maintenance history, and repair documentation.
-      
-      - Set up MongoDB Atlas Search and Vector search indexes for repair
-        manuals and maintenance history.
-      
-        .. code-block:: javascript  
-           :copyable: true  
+      a. Configure your cluster, database, and collections for the stages
+         in this solution's architecture.
+
+      #. Set up MongoDB Atlas Search and Vector Search indexes for the 
+         ``repair_manuals`` and ``maintenance_history`` collections. Use the
+         following document when setting up your :ref:`search index <create-fts-index>`.
+
+         .. code-block:: javascript  
+            :copyable: true  
   
-           {  
+            {  
                "fields": [  
                    {  
                        "numDimensions": 1024,  
@@ -231,92 +217,56 @@ Building the Solution
                        "type": "vector"  
                    }  
                ]  
-           }  
+            }  
 
-      - Configure Stream Processing for real-time data transformation. 
+      #. Configure Atlas Stream Processing.
+
+      #. Create Atlas Charts dashboards for monitoring and visualization.
+
+   .. step:: Configure your AI services integration
+
+      Select one of the following services for your LLM implementation:
+
+      - **Amazon Bedrock:** Configure access to Cohere models, such as 
+        ``cohere.embed-english-v3`` or ``cohere.command-r-10``,
+        for embeddings and completions.
+
+      - **Direct API access:** Integrate a third-party provider of 
+        your choice for embeddings and completions.
+
+      Additionally, set up Google Cloud Translation API for multilingual support.
+
+   .. step:: Set up your application
+
+      a. Configure your environment variables such as your MongoDB connection
+         strings, database settings, and required API credentials.
       
-      - Create Atlas Charts dashboards for monitoring and visualization.
+      #. Deploy the inference script for continuous system monitoring.
 
+      #. Install and configure the alerts application.
 
-   .. step:: `Configure AI services integration <https://github.com/mongodb-industry-solutions/Leafy-Predictive-Maintenance?tab=readme-ov-file#step-2-configure-environment-variables>`__
+      #. Launch the main demo application.
 
-      - Select one LLM provider for your implementation:
-
-        - **Amazon Bedrock:** Configure access to Cohere models
-          for embeddings and completions (Examples of available models:
-          cohere.embed-english-v3 for embeddings, cohere.command-r-10
-          for completions).
-
-        - **Direct API access:** Set up integration with a
-          third-party provider of your choice for embeddings and
-          completions.
-
-      - Set up Google Cloud Translation API for multilingual support.
-
-   .. step:: `Application setup <https://github.com/mongodb-industry-solutions/Leafy-Predictive-Maintenance?tab=readme-ov-file#step-3-add-some-documents-in-mongodb>`__
-
-      - Configure environment variables including MongoDB connection
-        strings, database settings, and required API credentials.
-      
-      - Deploy inference script for continuous system monitoring.
-
-      - Install and configure alerts application.
-
-      - Launch main demo application.
-
-      - Perform system testing and validation to ensure proper data flow
-        and functionality.
-
-For complete implementation details, including code samples,
-configuration files, and tutorial videos, visit the `GitHub repository
-<https://github.com/mongodb-industry-solutions/Leafy-Predictive-Maintenance>`__.
-This repository provides a production-ready template for implementing
-predictive maintenance using MongoDB Atlas' comprehensive feature set.
+      #. Perform system testing and validation to ensure proper data flow
+         and functionality.
 
 Key Learnings 
 -------------
 
-- `MongoDB Atlas <https://www.mongodb.com/atlas>`__ provides a unified
-  platform for predictive maintenance by
-  combining structured sensor data and unstructured maintenance documents,
-  enabling both real-time monitoring and AI-powered analysis through a
-  single-view architecture. 
+- **MongoDB's flexibility enables predictive maintenance:** MongoDB Atlas
+  combines structured sensor data and unstructured maintenance documents,
+  providing both real-time monitoring and AI-powered analysis in one
+  architecture.
 
-- The solution leverages a four-stage approach (prioritization,
-  prediction, plan generation, guidance delivery) that integrates multiple
-  MongoDB features including Atlas Stream Processing for real-time data,
-  Vector Search for semantic analysis, and Change Streams for mobile
-  alerts. 
+- **MongoDB's features power end-to-end predictive systems:** The solution
+  integrates multiple MongoDB features, such as Atlas Stream Processing 
+  for real-time data, Vector Search for semantic analysis, and Change 
+  Streams for mobile alerts.
 
-- Organizations can achieve significant operational improvements
-  through this approach: 15-20% reduction in downtime, 5-20% increase in
-  labor productivity, and 30-60% reduction in maintenance costs. 
-  
-- The implementation combines multiple AI technologies (`RAG
-  <https://www.mongodb.com/resources/basics/artificial-intelligence/retrieval-augmented-generation>`__,
-  `LLMs
-  <https://www.mongodb.com/resources/basics/artificial-intelligence/large-language-models>`__,
-  `ML models <https://www.mongodb.com/resources/basics/machine-learning>`__)
+- **AI enables automation:** This solution combines multiple AI technologies
   with MongoDB's developer data platform capabilities to create an
-  automated maintenance workflow—from machine prioritization to mobile
+  automated maintenance workflow, from machine prioritization to mobile
   repair guidance delivery.
-
-Technologies and Products Used
-------------------------------
-
-MongoDB Developer Data Platform
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- `MongoDB Atlas <https://www.mongodb.com/atlas>`__
-- `Atlas Charts <https://www.mongodb.com/products/platform/atlas-charts>`__
-- `Atlas Stream Processing <https://www.mongodb.com/products/platform/atlas-stream-processing>`__ 
-- `Atlas Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__
-
-Partner Technologies
-~~~~~~~~~~~~~~~~~~~~
-
-- `Amazon Bedrock <https://cloud.mongodb.com/ecosystem/amazon-bedrock>`__
-- `Google Cloud <https://cloud.google.com/>`__
 
 Authors
 -------
@@ -324,3 +274,10 @@ Authors
 - Dr. Humza Akhtar, MongoDB
 - Rami Pinto, MongoDB
 - Sebastian Rojas Arbulu, MongoDB
+
+Learn More
+----------
+
+- :ref:`arch-center-is-agentic-predictive-maintenance`
+- :ref:`arch-center-is-car-assistant`
+- :ref:`arch-center-is-framework-rapid-agent-deployment`
