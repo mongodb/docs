@@ -42,6 +42,13 @@ async function run() {
     const collectionToDelete = database.collection("test_collection");
     await collectionToDelete.drop();
     // end-delete-collection
+
+    // Deletes the test_database database
+    // start-delete-database
+    const database = client.db("test_database");
+    await database.dropDatabase();
+    // end-delete-database
+
   } finally {
     await client.close();
   }
