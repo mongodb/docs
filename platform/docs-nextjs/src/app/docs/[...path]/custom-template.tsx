@@ -1,10 +1,11 @@
 import type { ASTDocument } from '@/services/db/pages';
-import type { RemoteMetadata } from '@/types/data';
+import type { RemoteMetadata, Docset } from '@/types/data';
 import type { DocumentTemplateProps } from '@/components/templates/document';
 import DocumentTemplate from '@/components/templates/document';
 import ComponentFactory from '@/components/component-factory';
 import RootProvider from '@/components/root-provider';
 import type { ImageContextType } from '@/context/image-context';
+import type { Environments } from '@/utils/env-config';
 
 type TemplateComponent = React.ComponentType<DocumentTemplateProps>;
 
@@ -21,21 +22,21 @@ function getTemplate(templateOption: string): TemplateComponent {
 
 interface CustomTemplateProps {
   pageDoc: ASTDocument;
+  docsets: Docset[];
   metadata?: RemoteMetadata;
   assets: ImageContextType;
+  env: Environments;
 }
 
-const CustomTemplate = ({ pageDoc, metadata, assets }: CustomTemplateProps) => {
+export const CustomTemplate = ({ pageDoc, metadata, assets, docsets, env }: CustomTemplateProps) => {
   const template = pageDoc.ast.options?.template || 'document';
-  const TemplateComponent = getTemplate(template);
+  const TemplateComponent = getTemplate(pageDoc.ast.options?.template || 'document');
 
   return (
-    <RootProvider page={pageDoc} metadata={metadata} template={template} assets={assets}>
+    <RootProvider page={pageDoc} metadata={metadata} assets={assets} docsets={docsets} env={env} template={template}>
       <TemplateComponent pageOptions={pageDoc.ast.options} slug={pageDoc.filename}>
         <ComponentFactory nodeData={pageDoc.ast} slug={pageDoc.page_path} key={pageDoc.page_id} />
       </TemplateComponent>
     </RootProvider>
   );
 };
-
-export default CustomTemplate;
