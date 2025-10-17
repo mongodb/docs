@@ -23,6 +23,11 @@ MongoDB Enterprise Edition v8.0.10 or higher server. This procedure
 demonstrates how to deploy and configure the ``mongot`` process in your
 |k8s| cluster to use a new or existing external replica set deployment.
 
+.. important:: 
+
+   Support for MongoDB versions lower than 8.2 is now deprecated. Upgrade to
+   MongoDB v8.2 or later.
+
 Prerequisites
 -------------
 
@@ -114,13 +119,13 @@ Log in to the |com| UI and perform the following steps to configure
 Configure a |com| User for |text-search| and |vector-search|
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You must create a user with the ``searchCoordinator`` role. In MongoDB
-versions 8.2 and later, the ``searchCoordinator`` is a built-in role. You must
-create a user and assign the role to the user. For MongoDB versions
-earlier than 8.2 and 8.0.10 or later, you must manually
+You must create a user with the :authrole:`searchCoordinator` role. In MongoDB
+versions 8.2 and later, the :authrole:`searchCoordinator` is a built-in
+role. You must create a user and assign the role to the user. 
+For MongoDB versions earlier than 8.2 and 8.0.10 or later, you must manually
 create the role and assign the privileges before creating the user.
 Select the tab that corresponds to the MongoDB version you are running
-to create a user with the ``searchCoordinator`` role.
+to create a user with the :authrole:`searchCoordinator` role.
 
 .. collapsible::
    :heading: MongoDB versions 8.2 or later
@@ -128,8 +133,8 @@ to create a user with the ``searchCoordinator`` role.
    :expanded: false
 
    To create the user and assign the user the built-in
-   ``searchCoordinator`` role, complete the following steps by using either
-   the |com| UI or the |mongosh|:
+   :authrole:`searchCoordinator` role, complete the following steps
+   by using either the |com| UI or the |mongosh|:
 
    .. tabs::
 
@@ -196,164 +201,66 @@ to create a user with the ``searchCoordinator`` role.
                   });
 
 .. collapsible::
-   :heading: MongoDB versions earlier than 8.2
+   :heading: MongoDB versions lower than 8.2
    :sub_heading: Complete the step in this section if you use MongoDB versions earlier than 8.2.
    :expanded: false
 
    To create the user and assign the user the built-in
-   ``searchCoordinator`` role, complete the following steps by using either
-   the |com| UI or the |mongosh|:
+   ``searchCoordinator`` role, complete the following steps by using the
+   |mongosh|: 
 
-   .. tab:: .2
-      :tabid: version-less-than-8-2
+   In |mongosh|, run the following commands:
 
-      To create the ``searchCoordinator`` role with the privileges and
-      then add a user with the ``searchCoordinator`` role, complete the
-      following steps in the |com| UI:
+   .. procedure::
+      :style: normal
 
-   .. tabs::
+      .. step:: Switch to the ``admin`` database.
 
-      .. tab:: UI
-         :tabid: ui
+         .. code-block:: javascript
 
-         .. procedure::
-            :style: normal
+            use admin;
 
-            .. step:: Go to the :guilabel:`Roles` page.
+      .. step:: Create the custom role.
 
-               a. Log in to |com| UI.
-               #. Under the :guilabel:`Security` tab, go to the
-                  :guilabel:`Roles` sub-tab.
-               #. Click :guilabel:`Add New Custom Role`.
+         .. code-block:: javascript
 
-            .. step:: Set the :guilabel:`Role Name` to ``searchCoordinator``.
-
-            .. step:: Specify the roles to inherit.
-
-               In the :guilabel:`Role Inheritance` section, add the
-               following three roles from the ``admin`` database:
-
-               - ``clusterMonitor``
-               - ``directShardOperations``
-               - ``readAnyDatabase``
-
-            .. step:: Add the database privileges to assign to the role.
-
-               a. In the :guilabel:`Privileges` section, click
-                  :guilabel:`Add Privilege`.
-               #. For :guilabel:`Resource`, enter ``__mdb_internal_search``
-                  for the database.
-
-                  Do not enter anything in the collection field.
-
-               #. Under :guilabel:`Actions`, add the following actions.
-
-                  - ``changeStream``
-                  - ``cleanupStructuredEncryptionData``, ``compactStructuredEncryptionData``
-                  - ``collStats``
-                  - ``convertToCapped``
-                  - ``createCollection``, ``dropCollection``,
-                    ``listCollections``, ``renameCollectionSameDB``
-                  - ``createIndex``, ``dropIndex``, ``listIndexes``
-                  - ``createSearchIndexes``, ``dropSearchIndex``,
-                    ``listSearchIndexes``, ``updateSearchIndex``
-                  - ``dbHash``, ``dbStats``
-                  - ``find``, ``insert``, ``remove``, ``update``
-                  - ``killCursors``
-                  - ``planCacheRead``
-
-            .. step:: Configure the cluster privilege.
-
-               a. Click :guilabel:`Add Privilege`.
-               #. For :guilabel:`Resource`, toggle the resource type to
-                  :guilabel:`cluster`.
-               #. For :guilabel:`Action`, select
-                  ``bypassDefaultMaxTimeMS``.
-
-            .. step:: Review all the settings and click :guilabel:`Create Role`.
-
-            .. step:: Go to the :guilabel:`Users` page.
-
-               Go to the :guilabel:`Security` tab and click
-               :guilabel:`Users`.
-
-            .. step:: Click :guilabel:`Add New User`.
-
-            .. step:: Set the credentials for the user.
-
-               .. list-table::
-                  :stub-columns: 1
-
-                  * - :guilabel:`Username`
-                    - Enter ``search-sync-source``.
-
-                  * - :guilabel:`Password`
-                    - Set a strong, secure password.
-
-                  * - :guilabel:`Authentication Database`
-                    - Choose the ``admin`` database.
-
-            .. step:: Assign the ``searchCoordinator`` role to the user.
-
-               In the :guilabel:`Assign Roles` section, select the built-in
-               ``searchCoordinator`` role from the dropdown for the
-               ``admin`` database.
-
-      .. tab:: mongosh
-         :tabid: mongosh
-
-         In |mongosh|, run the following commands:
-
-         .. procedure::
-            :style: normal
-
-            .. step:: Switch to the ``admin`` database.
-
-               .. code-block:: javascript
-
-                  use admin;
-
-            .. step:: Create the custom role.
-
-               .. code-block:: javascript
-
-                  db.createRole({
-                     role: "searchCoordinator",
-                     privileges: [
-                        {
-                           resource: { db: "__mdb_internal_search", collection: "" },
-                           actions: [
-                              "changeStream", "cleanupStructuredEncryptionData", "collStats",
-                              "compactStructuredEncryptionData", "convertToCapped", "createCollection",
-                              "createIndex", "createSearchIndexes", "dbHash", "dbStats",
-                              "dropCollection", "dropIndex", "dropSearchIndex", "find", "insert",
-                              "killCursors", "listCollections", "listIndexes", "listSearchIndexes",
-                              "planCacheRead", "remove", "renameCollectionSameDB", "update", "updateSearchIndex"
-                           ]
-                        },
-                        {
-                           resource: { cluster: true },
-                           actions: [ "bypassDefaultMaxTimeMS" ]
-                        }
-                     ],
-                     roles: [
-                        { role: "clusterMonitor", db: "admin" },
-                        { role: "directShardOperations", db: "admin" },
-                        { role: "readAnyDatabase", db: "admin" }
+            db.createRole({
+               role: "searchCoordinator",
+               privileges: [
+                  {
+                     resource: { db: "__mdb_internal_search", collection: "" },
+                     actions: [
+                        "changeStream", "collStats",
+                        "compactStructuredEncryptionData", "convertToCapped", "createCollection",
+                        "createIndex", "dbHash", "dbStats",
+                        "dropCollection", "dropIndex", "find", "insert",
+                        "killCursors", "listCollections", "listIndexes", 
+                        "planCacheRead", "remove", "renameCollectionSameDB", "update"
                      ]
-                  });
+                  },
+                  {
+                     resource: { cluster: true },
+                     actions: [ "bypassDefaultMaxTimeMS" ]
+                  }
+               ],
+               roles: [
+                  { role: "clusterMonitor", db: "admin" },
+                  { role: "directShardOperations", db: "admin" },
+                  { role: "readAnyDatabase", db: "admin" }
+               ]
+            });
 
-            .. step:: Run the following command after replacing the password with a secure password to create the user.
+      .. step:: Run the following command after replacing the password with a secure password to create the user.
 
-               .. code-block:: javascript
+         .. code-block:: javascript
 
-                  db.createUser({
-                     user: "search-sync-source",
-                     pwd: "<PASSWORD>", // Replace with your actual password
-                     roles: [
-                        { role: "searchCoordinator", db: "admin" }
-                     ]
-                  });
+            db.createUser({
+               user: "search-sync-source",
+               pwd: "<PASSWORD>", // Replace with your actual password
+               roles: [
+                  { role: "searchCoordinator", db: "admin" }
+               ]
+            });
 
 .. _k8s-search-set-env-for-external_mdb:
 
