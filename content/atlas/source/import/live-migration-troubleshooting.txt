@@ -41,6 +41,14 @@ Common Live Migration Validation Errors
    * - Error
      - Remediation
 
+   * - Available disk space on the destination needs to be increased
+     - To account for temporary data fluctuations during a migration, 
+       the available disk space on the destination cluster must be larger 
+       than what is being consumed on the source cluster.
+       Ensure the destination cluster can handle the migration, and
+       :ref:`increase your destination cluster's disk size <create-cluster-storage>`
+       if necessary.
+
    * - Could not reach specified source
      - Ensure that you added the correct subnet ranges to the IP
        access list on the source cluster. You can find the four
@@ -63,6 +71,11 @@ Common Live Migration Validation Errors
      - No IP address was found for the given hostname. Confirm that
        the given hostname is correct and publicly accessible.
 
+   * - Disk storage info unavailable
+     - To run the live migration (pull) process, the MongoDB user must
+       have permissions on the source cluster's MongoDB instance. To learn more,
+       see :ref:`Source Cluster Security <live-import-c2c-security>`.
+
    * - Invalid SSL options provided
      - If you are using SSL:
 
@@ -81,6 +94,25 @@ Common Live Migration Validation Errors
        - Confirm that the :guilabel:`Is encryption in transit enabled?`
          toggle switch is in the ``No`` position.
 
+   * - Source appears to be a standalone
+     - Your source deployment must be a MongoDB :manual:`replica set
+       </replication>`. If your source deployment is currently a
+       standalone node, :manual:`convert it
+       </tutorial/convert-standalone-to-replica-set>` to a single-node
+       replica set before running live migration (pull).
+
+   * - Source cluster contains a time series collection, which is unsupported
+     - Ensure that the source cluster doesn't contain :manual:`time series collections </core/timeseries-collections>`,
+       which `aren't supported <https://www.mongodb.com/docs/mongosync/current/reference/limitations/#unsupported-collection-types>`__.
+       To filter your databases on the source cluster and identify which
+       collections with time series data have caused the error, use
+       the :manual:`listCollections </reference/command/listCollections/>` command,
+       as in the following example:
+
+       .. code-block:: shell
+
+          db.runCommand({ listCollections: 1, filter:{ type: "timeseries" }}) 
+
    * - The username or password is not correct
      - Confirm your credentials in {+mongosh+} with the
        following commands:
@@ -94,43 +126,17 @@ Common Live Migration Validation Errors
        </tutorial/change-own-password-and-custom-data>` the MongoDB
        user's password.
 
+   * - Unable to process the provided CA file
+     - Confirm that your CA file is complete and correctly pasted into
+       the live migration (pull) modal window.
+
+   * - User does not have the required permissions for blocking writes during cutover
+     - Ensure the user has the following permissions: :authaction:`bypassWriteBlockingMode`. 
+       Also, ensure the user has all the :ref:`required roles <live-import-c2c-security>`
+       to live migrate data.
+
    * - User not authorized to execute command
      - To run the live migration (pull) process, the MongoDB
        user must have sufficient system privileges.
        To learn more,
        see :ref:`Source Cluster Security <live-import-c2c-security>`.
-   * - Disk storage info unavailable
-     - To run the live migration (pull) process, the MongoDB user must
-       have permissions on the source cluster's MongoDB instance. To learn more,
-       see :ref:`Source Cluster Security <live-import-c2c-security>`.
-
-   * - Source appears to be a standalone
-     - Your source deployment must be a MongoDB :manual:`replica set
-       </replication>`. If your source deployment is currently a
-       standalone node, :manual:`convert it
-       </tutorial/convert-standalone-to-replica-set>` to a single-node
-       replica set before running live migration (pull).
-
-   * - Unable to process the provided CA file
-     - Confirm that your CA file is complete and correctly pasted into
-       the live migration (pull) modal window.
-
-   * - Source cluster contains a time series collection, which is unsupported
-     - Ensure that the source cluster doesn't contain :manual:`time series collections </core/timeseries-collections>`,
-       which `aren't supported <https://www.mongodb.com/docs/mongosync/current/reference/limitations/#unsupported-collection-types>`__.
-       To filter your databases on the source cluster and identify which
-       collections with time series data have caused the error, use
-       the :manual:`listCollections </reference/command/listCollections/>` command,
-       as in the following example:
-
-       .. code-block:: shell
-
-          db.runCommand({ listCollections: 1, filter:{ type: "timeseries" }})` 
-
-   * - Available disk space on the destination needs to be increased
-     - To account for temporary data fluctuations during a migration, 
-       the available disk space on the destination cluster must be larger 
-       than what is being consumed on the source cluster.
-       Ensure the destination cluster can handle the migration, and
-       :ref:`increase your destination cluster's disk size <create-cluster-storage>`
-       if necessary.

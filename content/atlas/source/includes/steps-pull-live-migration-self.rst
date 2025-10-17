@@ -27,10 +27,10 @@
 
          The connection string includes the database authentication username and password used to connect
          to the source {+cluster+}. For replica sets, the database user must
-         have the :authrole:`readAnyDatabase` and :authrole:`backup` roles.
+         have the :authrole:`readAnyDatabase`, :authrole:`backup` roles and
+         :authaction:`bypassWriteBlockingMode` action.
          For sharded {+clusters+}, the database user must
-         have the :authrole:`readAnyDatabase`, :authrole:`backup`, and
-         :authrole:`clusterMonitor` roles.
+         have the :authrole:`readAnyDatabase`, :authrole:`backup`, :authrole:`clusterMonitor` roles and :authaction:`bypassWriteBlockingMode` action.
 
          - A replica set {+cluster+} :ref:`standard connection string <connections-standard-connection-string-format>` 
            for a cluster name ``replica`` and that includes three ``mongod`` 
