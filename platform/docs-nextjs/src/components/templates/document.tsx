@@ -22,7 +22,7 @@ export const DOCUMENT_TEMPLATE_MAX_WIDTH_VALUE_LARGE_SCREEN = `(${MAX_CONTENT_WI
 export interface DocumentTemplateProps {
   children: ReactNode;
   slug: string;
-  pageOptions: Root['options'];
+  pageOptions?: Root['options'];
 }
 
 export default function DocumentTemplate({ children, slug, pageOptions }: DocumentTemplateProps) {

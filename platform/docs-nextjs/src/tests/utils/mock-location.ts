@@ -2,14 +2,11 @@
 // extend to add additional properties as needed
 
 export const mockLocation = ({ hash, search, pathname }: { hash?: string; search?: string; pathname?: string }) => {
-  delete (window as unknown as { location?: Location }).location;
-  (window as unknown as { location: Partial<Location> }).location = {
-    search,
-    pathname,
-    hash,
-    assign: jest.fn(),
-    reload: jest.fn(),
-    replace: jest.fn(),
-    toString: () => '',
-  };
+  const normalizedPathname = pathname ?? '/';
+  const normalizedSearch = search ? (search.startsWith('?') ? search : `?${search}`) : '';
+  const normalizedHash = hash ? (hash.startsWith('#') ? hash : `#${hash}`) : '';
+  const url = `${normalizedPathname}${normalizedSearch}${normalizedHash}`;
+
+  // Use History API so jsdom updates window.location properly
+  window.history.pushState({}, '', url);
 };

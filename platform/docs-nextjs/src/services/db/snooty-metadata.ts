@@ -6,7 +6,7 @@ import type { TextNode, TocTreeEntry } from '@/types/ast';
 import type { BreadcrumbType } from '@/types/data';
 import { getCollection, getSnootyDbName } from './client';
 
-interface DBMetadataDocument {
+export interface DBMetadataDocument {
   _id: ObjectId;
   project: string;
   branch: string;

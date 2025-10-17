@@ -1,5 +1,5 @@
 import type { WithId } from 'mongodb';
-import type { ASTNode, PageTemplateType, Root, TextNode, TocTreeEntry } from './ast';
+import type { ASTNode, Root, TextNode, TocTreeEntry } from './ast';
 
 type AppData = {
   page: {
@@ -148,25 +148,6 @@ type AssociatedProduct = {
   versions: string[];
 };
 
-type PageContext = {
-  title: string;
-  slug: string;
-  template: PageTemplateType;
-  isAssociatedProduct: boolean;
-  repoBranches: {
-    siteBasePrefix: string;
-    branches: Docset['branches'];
-    groups?: Docset['groups'];
-  };
-  parentPaths: Record<string, string[]>;
-  chapters?: MetadataChapters;
-  guides?: MetadataGuides;
-  // TODO: Need to specify
-  associatedReposInfo?: object;
-};
-
-type PageContextRepoBranches = PageContext['repoBranches'];
-
 type MetadataChapters = Record<string, MetadataChapter>;
 
 type MetadataChapter = {
@@ -249,8 +230,6 @@ export type {
   MetadataGuides,
   MetadataDatabaseName,
   MultiPageTutorial,
-  PageContext,
-  PageContextRepoBranches,
   RemoteMetadata,
   ReposBranchesDocument,
   ReposDatabaseName,

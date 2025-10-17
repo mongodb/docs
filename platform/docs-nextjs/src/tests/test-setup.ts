@@ -12,16 +12,12 @@ beforeAll(() => {
 beforeEach(() => {
   resetLeafyGreenIdCounter();
 
-  // Mock window.location without using Object.defineProperty
-  // Use global setup to avoid property redefinition errors
-  delete (window as unknown as { location?: Location }).location;
-  (window as unknown as { location: Partial<Location> }).location = {
-    hash: '',
-    assign: jest.fn(),
-    reload: jest.fn(),
-    replace: jest.fn(),
-    toString: () => '',
-  };
+  // Reset URL via History API so jsdom's real Location object is preserved
+  window.history.replaceState({}, '', '/');
+  // Clear hash to a consistent default
+  if (window.location.hash) {
+    window.location.hash = '';
+  }
 });
 
 // Restore original Math.random after all tests
