@@ -44,4 +44,9 @@ fun main() {
     // start-drop-collection
     db.getCollection("test_collection").drop()
     // end-drop-collection
+    
+    // Deletes the "test_database" database
+    // start-delete-database
+    client.getDatabase("test_database").drop()
+    // end-delete-database
 }
