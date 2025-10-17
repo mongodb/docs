@@ -14,6 +14,7 @@ import type { RemoteMetadata } from '@/types/data';
 import { MetadataProvider } from '@/utils/use-snooty-metadata';
 import { PageContext } from '@/context/page-context';
 import { TabProvider } from '@/context/tabs-context';
+import type { PageTemplateType } from '@/types/ast';
 import { InstruqtProvider } from '@/context/instruqt-context';
 import { ImageContextProvider, type ImageContextType } from '@/context/image-context';
 
@@ -26,18 +27,19 @@ interface RootProviderProps {
   metadata?: RemoteMetadata;
   page: ASTDocument;
   assets: ImageContextType;
+  template: PageTemplateType;
 }
 
-const RootProvider = ({ children, metadata, page, assets }: RootProviderProps) => {
+const RootProvider = ({ children, metadata, page, assets, template }: RootProviderProps) => {
   const pageNodes = page.ast.children || [];
-  const headingNodes = page.ast.options.headings || [];
+  const headingNodes = page.ast.options?.headings || [];
 
   return (
     <PageContext.Provider
       value={{
         page: page.ast,
         slug: getPageSlug(page.page_id),
-        template: page.ast.options?.template,
+        template,
         tabsMainColumn: page.ast.options?.['tabs-selector-position'] === 'main',
         options: page.ast.options,
       }}
@@ -45,8 +47,8 @@ const RootProvider = ({ children, metadata, page, assets }: RootProviderProps) =
       <MetadataProvider value={metadata}>
         <FootnoteProvider pageNodes={pageNodes}>
           <ContentsProvider headingNodes={headingNodes}>
-            <TabProvider selectors={page.ast.options.selectors} defaultTabs={page.ast.options.default_tabs}>
-              <InstruqtProvider hasLabDrawer={!!page.ast.options.instruqt}>{children}</InstruqtProvider>
+            <TabProvider selectors={page.ast.options?.selectors} defaultTabs={page.ast.options?.default_tabs}>
+              <InstruqtProvider hasLabDrawer={!!page.ast.options?.instruqt}>{children}</InstruqtProvider>
               <ImageContextProvider value={assets}>{children}</ImageContextProvider>
             </TabProvider>
           </ContentsProvider>

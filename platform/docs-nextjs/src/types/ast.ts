@@ -260,7 +260,7 @@ type PageOptions = {
 
 interface Root extends ParentNode {
   type: 'root';
-  options: PageOptions;
+  options?: PageOptions;
   fileid: string;
 }
 

@@ -26,10 +26,11 @@ interface CustomTemplateProps {
 }
 
 const CustomTemplate = ({ pageDoc, metadata, assets }: CustomTemplateProps) => {
-  const TemplateComponent = getTemplate(pageDoc.ast.options.template || 'document');
+  const template = pageDoc.ast.options?.template || 'document';
+  const TemplateComponent = getTemplate(template);
 
   return (
-    <RootProvider page={pageDoc} metadata={metadata} assets={assets}>
+    <RootProvider page={pageDoc} metadata={metadata} template={template} assets={assets}>
       <TemplateComponent pageOptions={pageDoc.ast.options} slug={pageDoc.filename}>
         <ComponentFactory nodeData={pageDoc.ast} slug={pageDoc.page_path} key={pageDoc.page_id} />
       </TemplateComponent>

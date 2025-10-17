@@ -114,6 +114,7 @@ import Reference, { type ReferenceProps } from '@/components/reference';
 import Heading, { type HeadingProps } from '@/components/heading';
 import Card, { type CardProps } from '@/components/card';
 import CardGroup, { type CardGroupProps } from '@/components/card/card-group';
+import Glossary, { type GlossaryProps } from '@/components/glossary';
 import DefinitionListItem, { type DefinitionListItemProps } from '@/components/definition-list/definition-list-item';
 import DefinitionList, { type DefinitionListProps } from '@/components/definition-list';
 import Image, { type ImageProps } from '@/components/image';
@@ -217,7 +218,7 @@ const getComponent = (() => {
         // figure: Figure,
         footnote: Footnote as React.ComponentType<SupportedComponentProps>,
         footnote_reference: FootnoteReference as React.ComponentType<SupportedComponentProps>,
-        // glossary: Glossary,
+        glossary: Glossary as React.ComponentType<SupportedComponentProps>,
         // 'guide-next': GuideNext,
         heading: Heading as React.ComponentType<SupportedComponentProps>,
         hlist: HorizontalList as React.ComponentType<SupportedComponentProps>,
@@ -354,6 +355,7 @@ type SupportedComponentProps =
   | CardProps
   | CardGroupProps
   | ReferenceProps
+  | GlossaryProps
   | ImageProps;
 
 type RoleComponentProps =
@@ -460,6 +462,9 @@ const renderComponentWithProps = (
     // All nodes that pass on first child's text value
     const node = nodeData as StrongNode | TitleReferenceNode | EmphasisNode;
     return <ComponentType value={node.children[0].value} />;
+  } else if (ComponentType === getComponent('glossary')) {
+    const { children } = nodeData as ParentNode;
+    return <ComponentType nodeChildren={children} {...propsToDrill} />;
   } else if (ComponentType === getComponent('paragraph')) {
     const paragraphNode = nodeData as ParagraphNode;
     return <ComponentType nodeChildren={paragraphNode.children} parentNode={props.parentNode} {...propsToDrill} />;

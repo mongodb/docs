@@ -30,7 +30,7 @@ export default function DocumentTemplate({ children, slug, pageOptions }: Docume
   const { tabsMainColumn } = usePageContext();
   const hasMethodSelector = pageOptions?.has_method_selector;
 
-  const showPrevNext = !(pageOptions.noprevnext === '' || pageOptions.template === 'guide');
+  const showPrevNext = !(pageOptions?.noprevnext === '' || pageOptions?.template === 'guide');
 
   return (
     <div className={documentStyling.document}>
