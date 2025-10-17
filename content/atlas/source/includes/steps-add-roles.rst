@@ -61,8 +61,9 @@
 
              :red:`WARNING:` If you select :guilabel:`Apply to any database`, 
              the roles grants permissions for actions on the ``admin``,
-             ``local``, and ``config`` databases. We **don't**
-             recommend writes to these databases.
+             ``local``, ``config``, and ``__mdb_internal_`` databases. We **don't**
+             recommend writes to these databases. To learn more, see :ref:`cloud-system-databases`
+             and :ref:`metadata-system-collections`.
       
              This field is required for all roles and actions under the
              :guilabel:`Collection Actions` and

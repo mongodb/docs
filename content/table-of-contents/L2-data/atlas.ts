@@ -1378,6 +1378,11 @@ const tocData: TocItem[] = [
         url: "/docs/atlas/reference/supported-browsers",
       },
       {
+        label: "Internal Databases",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/reference/internal-database",
+      },
+      {
         label: "Frequently Asked Questions",
         contentSite: "cloud-docs",
         url: "/docs/atlas/faq",
