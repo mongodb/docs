@@ -37,7 +37,7 @@
      - 80 GB
      - 16 GB
 
-   * - R40 :icon-fa5:`star`
+   * - M40 Low-CPU :icon-fa5:`star`
      - 10 GB to 1 TB
      - 80 GB
      - 16 GB
@@ -52,7 +52,7 @@
      - 160 GB
      - 32 GB
 
-   * - R50 :icon-fa5:`star`
+   * - M50 Low-CPU :icon-fa5:`star`
      - 10 GB to 4 TB 
      - 160 GB
      - 32 GB
@@ -67,7 +67,7 @@
      - 320 GB
      - 64 GB
 
-   * - R60 :icon-fa5:`star`
+   * - M60 Low-CPU :icon-fa5:`star`
      - 10 GB to 4 TB 
      - 320 GB
      - 64 GB
@@ -82,7 +82,7 @@
      - 750 GB
      - 131 GB
 
-   * - R80 :icon-fa5:`star`
+   * - M80 Low-CPU :icon-fa5:`star`
      - 10 GB  to 4 TB 
      - 750 GB
      - 122 GB
@@ -102,7 +102,7 @@
      - 1.5 TB
      - 256 GB
 
-   * - R200 :icon-fa5:`star`
+   * - M200 Low-CPU :icon-fa5:`star`
      - 10 GB to 4 TB
      - 1.5 TB
      - 256 GB
@@ -117,12 +117,12 @@
      - 2 TB
      - 384 GB
 
-   * - R300 :icon-fa5:`star`
+   * - M300 Low-CPU :icon-fa5:`star`
      - 10 GB to 4 TB
      - 2 TB
      - 384 GB
 
-   * - R400 :icon-fa5:`star`
+   * - M400 Low-CPU :icon-fa5:`star`
      - 10 GB to 4 TB 
      - 3 TB
      - 488 GB
@@ -132,7 +132,7 @@
      - 4 TB
      - 512 GB
 
-   * - R700
+   * - M700 Low-CPU
      - 10 GB to 4 TB
      - 4 TB
      - 768 GB

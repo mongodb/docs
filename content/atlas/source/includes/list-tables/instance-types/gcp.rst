@@ -37,17 +37,7 @@
      - 80 GB
      - 16 GB
 
-   * - R40 :icon-fa4:`exclamation-circle` :icon-fa5:`star`
-     - 10 GB to 1 TB
-     - 80 GB
-     - 16 GB
-
    * - M50 :icon-fa5:`star`
-     - 10 GB to 4 TB
-     - 160 GB
-     - 32 GB
-
-   * - R50 :icon-fa4:`exclamation-circle` :icon-fa5:`star`
      - 10 GB to 4 TB
      - 160 GB
      - 32 GB
@@ -57,17 +47,7 @@
      - 320 GB
      - 64 GB
 
-   * - R60 :icon-fa4:`exclamation-circle` :icon-fa5:`star`
-     - 10 GB to 4 TB
-     - 320 GB
-     - 64 GB
-
    * - M80 :icon-fa5:`star`
-     - 10 GB to 4 TB
-     - 750 GB
-     - 128 GB
-
-   * - R80 :icon-fa4:`exclamation-circle` :icon-fa5:`star`
      - 10 GB to 4 TB
      - 750 GB
      - 128 GB
@@ -82,11 +62,6 @@
      - 1500 GB
      - 256 GB
 
-   * - R200 :icon-fa4:`exclamation-circle` :icon-fa5:`star`
-     - 10 GB to 4 TB
-     - 1500 GB
-     - 256 GB
-
    * - M250 :icon-fa5:`star`
      - 10 GB to 4 TB
      - 1750 GB
@@ -97,17 +72,12 @@
      - 2000 GB
      - 360 GB
 
-   * - R300 :icon-fa4:`exclamation-circle` :icon-fa5:`star`
-     - 10 GB to 4 TB
-     - 2000 GB
-     - 384 GB
-
-   * - R400 :icon-fa4:`exclamation-circle` :icon-fa5:`star`
+   * - M400 :icon-fa4:`exclamation-circle` :icon-fa5:`star`
      - 10 GB to 4 TB
      - 3000 GB
      - 512 GB
 
-   * - R600 :icon-fa4:`exclamation-circle`
+   * - M600 :icon-fa4:`exclamation-circle`
      - 10 GB to 4 TB
      - 4096 GB
      - 640 GB

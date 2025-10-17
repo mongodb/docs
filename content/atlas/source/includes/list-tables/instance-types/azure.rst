@@ -37,7 +37,7 @@
      - 64 GB
      - 16 GB
 
-   * - R40 :icon-fa5:`star`
+   * - M40 Low-CPU :icon-fa5:`star`
      - 8 GB to 1 TB
      - 128 GB
      - 16 GB
@@ -47,7 +47,7 @@
      - 128 GB
      - 32 GB
 
-   * - R50 :icon-fa5:`star`
+   * - M50 Low-CPU :icon-fa5:`star`
      - 8 GB to 4 TB   
      - 128 GB
      - 32 GB
@@ -62,7 +62,7 @@
      - 1600 GB
      - 64 GB
 
-   * - R60 :icon-fa5:`star`
+   * - M60 Low-CPU :icon-fa5:`star`
      - 8 GB to 4 TB
      - 128 GB
      - 64 GB
@@ -72,7 +72,7 @@
      - 256 GB
      - 128 GB
 
-   * - R80 :icon-fa5:`star`
+   * - M80 Low-CPU :icon-fa5:`star`
      - 8 GB to 4 TB
      - 256 GB
      - 128 GB

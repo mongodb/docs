@@ -12,5 +12,5 @@ includes a list of these regions.
      attached :ref:`NVMe storage <nvme-storage>` for exceptional
      performance with the most I/O-intensive workloads.
 
-   - Prepended with **R** instead of an **M** (**R40** for example) run
+   - Designated as **Low-CPU** (**M40 Low-CPU** for example) run
      a low CPU version of the cluster.
