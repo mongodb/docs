@@ -557,6 +557,7 @@ type CollapsibleOptions = {
 
 interface CollapsibleNode extends Directive<CollapsibleOptions> {
   name: 'collapsible';
+  children: ASTNode[];
   options?: CollapsibleOptions;
 }
 

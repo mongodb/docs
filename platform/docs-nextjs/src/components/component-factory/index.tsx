@@ -42,6 +42,7 @@ import type {
   DefinitionListItemNode,
   HeadingNode,
   ImageNode,
+  CollapsibleNode,
 } from '@/types/ast';
 import { LAZY_COMPONENTS } from '@/components/component-factory/lazy';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
@@ -119,6 +120,7 @@ import DefinitionListItem, { type DefinitionListItemProps } from '@/components/d
 import DefinitionList, { type DefinitionListProps } from '@/components/definition-list';
 import Image, { type ImageProps } from '@/components/image';
 import SeeAlso, { type SeeAlsoProps } from '@/components/admonition/see-also';
+import Collapsible, { type CollapsibleProps } from '@/components/collapsible';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -199,7 +201,7 @@ const getComponent = (() => {
         // chapter: Chapter,
         // chapters: Chapters,
         code: Code as React.ComponentType<SupportedComponentProps>,
-        // collapsible: Collapsible,
+        collapsible: Collapsible as React.ComponentType<SupportedComponentProps>,
         'community-driver': CommunityPillLink as React.ComponentType<SupportedComponentProps>,
         // 'composable-tutorial': ComposableTutorial,
         // 'io-code-block': CodeIO,
@@ -355,8 +357,10 @@ type SupportedComponentProps =
   | CardProps
   | CardGroupProps
   | ReferenceProps
+  | ImageProps
   | GlossaryProps
-  | ImageProps;
+  | ImageProps
+  | CollapsibleProps;
 
 type RoleComponentProps =
   | AbbrProps
@@ -610,6 +614,11 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('image')) {
     const { argument, options } = nodeData as ImageNode;
     return <ComponentType argument={argument} options={options} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('collapsible')) {
+    const collapsibleNode = nodeData as CollapsibleNode;
+    return (
+      <ComponentType nodeChildren={collapsibleNode.children} options={collapsibleNode.options} {...propsToDrill} />
+    );
   }
 
   // Default: spread all props for other components
