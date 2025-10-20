@@ -863,4 +863,131 @@ content: |
        - Total number of batches that ``mongot`` was requested
          when processing the query.
 
+---
+ref: explain-vector-tracing
+content: | 
+  The ``vectorTracing`` array contains list of objects, one per
+  document, which has the following details about the vectors in the
+  document:  
+
+  .. list-table:: 
+     :header-rows: 1
+     :widths: 15 15 10 60
+
+     * - Field 
+       - Type 
+       - Necessity 
+       - Purpose
+
+     * - ``visited``
+       - Boolean
+       - Required 
+       - Flag that specifies whether the traced vector was visited
+         during query execution.
+
+     * - ``dropReason``
+       - String
+       - Conditional
+       - Reason for dropping the vector. This is present only if vector
+         was visited and dropped from the results. Value can be:
+
+         - ``Merge``
+         - ``NonCompetitiveScore``
+         - ``Filter``
+         - ``Rescoring``
+
+     * - ``vectorSearchScore``
+       - Double
+       - Conditional
+       - Score associated with the vector. This is present only if vector
+         was visited
+
+     * - ``luceneSegment``
+       - Integer
+       - Required
+       - Lucene segment number to which the vector belongs. To learn
+         more, see :ref:`avs-explain-lucene-vector-segment-stats`.
+
+     * - ``unreachable``
+       - Boolean
+       - Conditional
+       - Flag that specifies whether the vector is unreachable. This is
+         present only if the vector is unreachable.
+
+---
+ref: explain-lucene-vector-segment-stats
+content: | 
+  The ``luceneVectorSegmentStats`` array of objects contain per-Lucene
+  segment breakdown of the :pipeline:`$vectorSearch` query execution.
+  Each segment is identified by a number and includes the parameters
+  that describe the query execution details. 
+  
+  .. code-block:: javascript
+     :copyable: false 
+
+     {
+       "0": {
+         "executionType": "Approximate",
+         "approximateTimeMillis": 0.10825,
+         "filterMatchedDocsCount": 0,
+         "docCount": 100
+       },
+       "1": {
+         "executionType": "Exact",
+         "exactTimeMillis": 0.10825,
+         "filterMatchedDocsCount": 0,
+         "docCount": 55
+       },
+       "2": {
+         "executionType": "ApproximateToExactFallback",
+         "approximateTimeMillis": 0.10825,
+         "exactTimeMillis": 0.10825,
+         "filterMatchedDocsCount": 0,
+         "docCount": 55
+       }
+     }
+
+  .. list-table:: 
+     :header-rows: 1
+     :widths: 15 15 10 60
+
+     * - Field 
+       - Type 
+       - Necessity 
+       - Purpose
+
+     * - ``executionType``
+       - String
+       - Required
+       - The execution strategy. Value can be one of the following: 
+
+         - ``Approximate`` 
+         - ``Exact`` 
+         - ``ApproximateToExactFallback`` 
+
+     * - ``approximateStage``
+       - Float
+       - Conditional
+       - Time (in milliseconds) for the approximate phase. This is
+         returned only for ``Approximate`` and
+         ``ApproximateFallbackToExact`` execution types. 
+
+     * - ``exactStage``
+       - Float
+       - Conditional
+       - Time (in milliseconds) for the Exact phase. This is returned
+         only for ``Exact`` and ``ApproximateFallbackToExact`` execution
+         types.  
+
+     * - ``filterMatchedDocsCount``
+       - Integer
+       - Optional
+       - The number of documents that matched the query filter if you
+         specified a prefilter in the query. 
+
+     * - ``docCount``
+       - Integer
+       - Required
+       - Total number of documents in the segment.
+
 ...

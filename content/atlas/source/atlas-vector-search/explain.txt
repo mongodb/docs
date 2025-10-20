@@ -51,7 +51,10 @@ Syntax
           "limit": <number-of-results>,
           "numCandidates": <number-of-candidates>,
           "path": "<field-to-search>",
-          "queryVector": [<array-of-numbers>]
+          "queryVector": [<array-of-numbers>],
+          "explainOptions": {
+            "traceDocumentIds": [<array-of-document-IDs>]
+          }
         }
       }
    ])
@@ -107,6 +110,24 @@ The ``explain`` method returns a |bson| document with the following fields.
      - Optional
      - Details the resource usage of the query when it was executed.
        This is not returned for ``queryPlanner`` verbosity mode.
+
+   * - ``vectorTracing``
+     - array of objects 
+     - Optional 
+     - Tracing details, such as the following, about vectors in the
+       specified documents:  
+     
+       - Whether {+avs+} visited the vector during query execution, whether
+         the vector appeared in the {+avs+} result set, and if not, why the
+         vector was dropped. 
+       - Whether the vector is generally reachable because some vectors
+         might not be reachable due to |hnsw|'s probabilistic nature.
+
+   * - ``luceneVectorSegmentStats`` 
+     - array of objects
+     - Optional 
+     - Per-Lucene segment details of :pipeline:`$vectorSearch` query
+       execution.  
 
 .. _avs-explain-search-collect-stats:
 
@@ -171,6 +192,20 @@ Areas of Query
 
 .. include:: /includes/search-shared/extracts/explain-resource-usage.rst
 
+.. _avs-explain-search-vector-tracing:
+
+``vectorTracing``
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/search-shared/extracts/explain-vector-tracing.rst
+
+.. _avs-explain-lucene-vector-segment-stats:
+
+``luceneVectorSegmentStats``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/search-shared/extracts/explain-lucene-vector-segment-stats.rst
+
 .. _avs-explain-egs:
 
 Examples 
@@ -213,7 +248,7 @@ query for the ``plot_embedding_voyage_3_large`` field with the ``allPlansExecuti
               }
             ])
 
-         .. output:: /includes/avs/outputs/allPlansExecution-ann-output.json
+         .. output:: /includes/avs/explain/allPlansExecution-ann-output.json
             :language: json
             :visible: false
             :linenos:
@@ -239,7 +274,7 @@ query for the ``plot_embedding_voyage_3_large`` field with the ``allPlansExecuti
               }
             ])
 
-         .. output:: /includes/avs/outputs/allPlansExecution-enn-output.json
+         .. output:: /includes/avs/explain/allPlansExecution-enn-output.json
             :language: json
             :visible: false
 
@@ -275,7 +310,7 @@ query for the ``plot_embedding_voyage_3_large`` field with the ``queryPlanner``
               }
             ])
 
-         .. output:: /includes/avs/outputs/queryPlanner-ann-output.json
+         .. output:: /includes/avs/explain/queryPlanner-ann-output.json
             :language: json
             :visible: false
 
@@ -300,7 +335,7 @@ query for the ``plot_embedding_voyage_3_large`` field with the ``queryPlanner``
               }
             ])
 
-         .. output:: /includes/avs/outputs/queryPlanner-enn-output.json
+         .. output:: /includes/avs/explain/queryPlanner-enn-output.json
             :language: json
             :visible: false
 
@@ -336,7 +371,7 @@ query for the ``plot_embedding_voyage_3_large`` field with the ``executionStats`
               }
             ])
 
-         .. output:: /includes/avs/outputs/executionStats-ann-output.json
+         .. output:: /includes/avs/explain/executionStats-ann-output.json
             :language: json
             :visible: false
 
@@ -361,6 +396,36 @@ query for the ``plot_embedding_voyage_3_large`` field with the ``executionStats`
               }
             ])
 
-         .. output:: /includes/avs/outputs/executionStats-enn-output.json
+         .. output:: /includes/avs/explain/executionStats-enn-output.json
+            :language: json
+            :visible: false
+   
+   .. tab:: Trace Vectors
+      :tabid: trace-documents
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: 
+            :language: shell
+
+            db.embedded_movies.explain("executionStats").aggregate([
+              {
+                "$vectorSearch": {
+                  "index": "vector_index",
+                  "path": "plot_embedding_voyage_3_large",
+                  "queryVector": QUERY_EMBEDDING,
+                  "numCandidates": 150,
+                  "limit": 10,
+                  "explainOptions": {
+                    "traceDocumentIds": [
+                      ObjectId('573a13d8f29313caabda6557'), ObjectId('573a1398f29313caabce98d9'), ObjectId('573a1391f29313caabcd8319'), ObjectId('573a1398f29313caabceb500'), ObjectId('573a1397f29313caabce780e')
+                    ]
+                  }
+                }
+              }
+            ])
+
+         .. output:: /includes/avs/explain/executionStats-vectorTracing-output.json
             :language: json
             :visible: false
