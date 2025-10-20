@@ -183,7 +183,7 @@ A sharded collection has an inconsistent index if the collection does
 not have the exact same indexes (including the index options) on each
 shard that contains chunks for the collection. Although inconsistent
 indexes should not occur during normal operations, inconsistent indexes
-can occur , such as:
+can occur, such as:
 
 - When a user is creating an index with a ``unique`` key constraint and
   one shard contains a chunk with duplicate documents. In such cases,
@@ -204,91 +204,34 @@ field to report on the number of sharded collections with index
 inconsistencies.
 
 If :serverstatus:`shardedIndexConsistency` reports any index
-inconsistencies, you can run the following pipeline for your
-sharded collections until you find the inconsistencies.
+inconsistencies, you can run the :dbcommand:`checkMetadataConsistency`
+command with ``checkIndexes: true`` for your sharded collections to 
+find the inconsistencies.
 
-#. Define the following :ref:`aggregation pipeline <aggregation-pipeline>`:
-
-   .. code-block:: javascript
-
-      const pipeline = [
-          // Get indexes and the shards that they belong to.
-          {$indexStats: {}},
-          // Attach a list of all shards which reported indexes to each document from $indexStats.
-          {$group: {_id: null, indexDoc: {$push: "$$ROOT"}, allShards: {$addToSet: "$shard"}}},
-          // Unwind the generated array back into an array of index documents.
-          {$unwind: "$indexDoc"},
-          // Group by index name.
-          {
-              $group: {
-                  "_id": "$indexDoc.name",
-                  "shards": {$push: "$indexDoc.shard"},
-                  // Convert each index specification into an array of its properties 
-                  // that can be compared using set operators.
-                  "specs": {$push: {$objectToArray: {$ifNull: ["$indexDoc.spec", {}]}}},
-                  "allShards": {$first: "$allShards"}
-              }
-          },
-          // Compute which indexes are not present on all targeted shards and 
-          // which index specification properties aren't the same across all shards.
-          {
-              $project: {
-                  missingFromShards: {$setDifference: ["$allShards", "$shards"]},
-                  inconsistentProperties: {
-                       $setDifference: [
-                           {$reduce: {
-                               input: "$specs",
-                               initialValue: {$arrayElemAt: ["$specs", 0]},
-                               in: {$setUnion: ["$$value", "$$this"]}}},
-                           {$reduce: {
-                               input: "$specs",
-                               initialValue: {$arrayElemAt: ["$specs", 0]},
-                               in: {$setIntersection: ["$$value", "$$this"]}}}
-                       ]
-                   }
-              }
-          },
-          // Only return output that indicates an index was inconsistent, i.e. either a shard was missing
-          // an index or a property on at least one shard was not the same on all others.
-          {
-              $match: {
-                  $expr:
-                      {$or: [
-                          {$gt: [{$size: "$missingFromShards"}, 0]},
-                          {$gt: [{$size: "$inconsistentProperties"}, 0]},
-                      ]
-                  }
-              }
-          },
-          // Output relevant fields.
-          {$project: {_id: 0, indexName: "$$ROOT._id", inconsistentProperties: 1, missingFromShards: 1}}
-      ];
-
-#. Run the aggregation pipeline for the sharded collection to test. For
-   example, to test if the sharded collection ``test.reviews`` has
-   inconsistent indexes across its associated shards:
+#. Run the ``checkMetadataConsistency`` command:
 
    .. code-block:: javascript
 
-      db.getSiblingDB("test").reviews.aggregate(pipeline)
+      db.runCommand( {
+         checkMetadataConsistency: 1,
+         checkIndexes: true
+      } )
 
-   If the collection has inconsistent indexes, the aggregation for that
-   collection returns details regarding the inconsistent indexes:
+#. If the collection has inconsistent indexes, the ``checkMetadataConsistency`` 
+   command returns details regarding the inconsistent indexes similar to the
+   following:
 
-   .. code-block:: javascript
+   .. include:: /includes/checkMetadataConsistency-check-indexes-output.rst
 
-      { "missingFromShards" : [ "shardB" ], "inconsistentProperties" : [ ], "indexName" : "page_1_score_1" }
-      { "missingFromShards" : [ ], "inconsistentProperties" : [ { "k" : "expireAfterSeconds", "v" : 60 }, { "k" : "expireAfterSeconds", "v" : 600 } ], "indexName" : "reviewDt_1" }
-
-   The returned documents indicate two inconsistencies for the sharded
+   The output indicates two inconsistencies for the sharded
    collection ``test.reviews``:
-
-   #. An index named ``page_1_score_1`` is missing from the collection
-      on ``shardB``.
 
    #. An index named ``reviewDt_1`` has inconsistent properties across
       the collection's shards, specifically, the ``expireAfterSeconds``
       properties differ.
+
+   #. An index named ``page_1_score_1`` is missing from the collection
+      on ``shard02``.
 
 To resolve the inconsistency where an index is missing  from the collection on a particular shard(s),
    You can either:
