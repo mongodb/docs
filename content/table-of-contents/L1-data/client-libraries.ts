@@ -176,7 +176,7 @@ const tocData: TocItem[] = [
           },
           {
             label: "PyMongoArrow",
-            contentSite: "drivers",
+            contentSite: "pymongo-arrow",
             url: "/docs/languages/python/pymongo-arrow-driver/current/",
             showSubNav: true,
             items: PymongoArrowDriverData,
