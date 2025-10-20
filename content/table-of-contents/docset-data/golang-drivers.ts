@@ -169,12 +169,6 @@ const tocData: TocItem[] = [
                 url: "/docs/drivers/go/:version/crud/query/text",
                 versions: { excludes: outdatedVersions },
               },
-              {
-                label: "Geospatial Queries",
-                contentSite: "golang",
-                url: "/docs/drivers/go/:version/crud/query/geo",
-                versions: { excludes: outdatedVersions },
-              },
             ],
           },
           {
