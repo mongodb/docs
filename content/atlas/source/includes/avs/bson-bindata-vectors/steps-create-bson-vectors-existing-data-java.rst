@@ -1,3 +1,12 @@
+Procedure
+~~~~~~~~~
+
+Create a Java project in your IDE with the dependencies configured
+for the :driver:`MongoDB Java Driver
+</java/sync/current/quick-start/>`, and then perform the following
+steps in the project. To try the example, replace the placeholders
+with valid values.
+
 .. procedure:: 
    :style: normal 
 

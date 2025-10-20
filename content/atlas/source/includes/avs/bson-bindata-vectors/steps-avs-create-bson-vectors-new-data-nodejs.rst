@@ -1,3 +1,6 @@
+Procedure
+~~~~~~~~~
+
 .. procedure:: 
    :style: normal 
 

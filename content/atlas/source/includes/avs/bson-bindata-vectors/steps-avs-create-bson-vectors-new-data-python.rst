@@ -1,3 +1,21 @@
+Procedure
+~~~~~~~~~
+
+Create an interactive Python notebook by saving a file with
+the ``.ipynb`` extension, and then perform the following
+steps in the notebook. To try the example, replace the
+placeholders with valid values.
+
+..
+ NOTE: If you edit the Python code in this section, you must update the Jupyter Notebook
+ at https://github.com/mongodb/docs-notebooks/blob/main/quantization/existing-data.ipynb 
+
+.. cta-banner::
+   :url: https://github.com/mongodb/docs-notebookblob/main/quantization/new-data.ipynb
+   :icon: Code
+
+   Work with a runnable version of this tutorial as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/quantization/new-data.ipynb>`.
+
 .. procedure:: 
    :style: normal 
 
