@@ -1,24 +1,26 @@
+The following table shows compatibility between Django MongoDB Backend and Python:
+
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
    :class: compatibility-large
 
-   * - {+django-odm+} Version
+   * - Django MongoDB Backend Version
      - Python 3.13
      - Python 3.12
      - Python 3.11
      - Python 3.10
      - Python 3.9
 
-   * - 5.1
+   * - 5.2
      - ✓
      - ✓
      - ✓
      - ✓
      -
 
-   * - 5.0
-     -
+   * - 5.1
+     - ✓
      - ✓
      - ✓
      - ✓

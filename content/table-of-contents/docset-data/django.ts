@@ -147,8 +147,8 @@ const tocData: TocItem[] = [
       },
       {
         label: "Version Compatibility",
-        contentSite: "django",
-        url: "/docs/languages/python/django-mongodb/:version/compatibility",
+        contentSite: "drivers",
+        url: "/docs/drivers/compatibility/?all-languages=python&python-driver-framework=django",
       },
       {
         label: "API Documentation",
