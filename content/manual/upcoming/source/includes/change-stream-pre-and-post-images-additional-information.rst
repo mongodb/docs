@@ -20,6 +20,12 @@ Pre- and post-images are not available for a :ref:`change stream event
              } }
        } )
 
+    .. note:: 
+
+       The :dbcommand:`setClusterParameter` command is not supported in MongoDB 
+       Atlas clusters. For information on Atlas support for all commands, see 
+       :ref:`unsupported-commands`.
+
   - The following example returns the current ``changeStreamOptions``
     settings, including ``expireAfterSeconds``:
 
