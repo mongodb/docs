@@ -1,5 +1,3 @@
-.. _aws-create-master-key:
-   
 a. Create your Azure Key Vault and {+cmk-long+}
 
    To create a new {+azure-kv+} instance and {+cmk-long+},
