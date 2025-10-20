@@ -13,6 +13,7 @@ import FederationData from '../manual-data/data-federation';
 import InUseEncryptionData from '../manual-data/in-use-encryption';
 import InUseEncryptionDataVersion7 from '../manual-data/in-use-encryption-v7-only';
 import ReferenceData from '../manual-data/reference';
+import manualVersions from "../version-arrays/server-docs/manual";
 
 const versionsBeforeV8_2 = ["v7.0", "v8.0", "v8.1"];
 
@@ -757,6 +758,7 @@ const tocData: TocItem[] = [
             label: "Shard a Collection",
             contentSite: "docs",
             url: "/docs/:version/core/sharding-shard-a-collection",
+            versions: { excludes: manualVersions.after("v8.2") } 
           },
           {
             label: "Choose Shard Key",
