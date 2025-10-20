@@ -275,7 +275,7 @@ const tocData: TocItem[] = [
         versions: { excludes: outdatedVersions },
         items: [
           {
-            label: "Atlas Search and Vector Search Indexes",
+            label: "MongoDB Search and Vector Search Indexes",
             contentSite: "csharp",
             url: "/docs/drivers/csharp/:version/indexes/search-indexes",
             versions: { excludes: outdatedVersions },
@@ -289,13 +289,13 @@ const tocData: TocItem[] = [
         versions: { excludes: outdatedVersions },
       },
       {
-        label: "Atlas Search",
+        label: "MongoDB Search",
         contentSite: "csharp",
         url: "/docs/drivers/csharp/:version/atlas-search",
         versions: { excludes: outdatedVersions },
       },
       {
-        label: "Atlas Vector Search",
+        label: "MongoDB Vector Search",
         contentSite: "csharp",
         url: "/docs/drivers/csharp/:version/atlas-vector-search",
         versions: { excludes: outdatedVersions },
@@ -795,7 +795,7 @@ const tocData: TocItem[] = [
             url: "/docs/drivers/csharp/:version/fundamentals/builders",
           },
           {
-            label: "Atlas Search",
+            label: "MongoDB Search",
             contentSite: "csharp",
             url: "/docs/drivers/csharp/:version/fundamentals/atlas-search",
           },

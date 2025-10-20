@@ -1,8 +1,8 @@
 The ``$search`` aggregation stage performs a full-text search on fields in a
-collection. You must define an :ref:`Atlas Search <csharp-atlas-search>` index
+collection. You must define a :ref:`{+search+} <csharp-atlas-search>` index
 on the field before you can perform a ``$search`` operation on your data.
 
-To create the Atlas Search index that you need for the following example, run
+To create the {+search+} index that you need for the following example, run
 the following code on the ``restaurants`` collection:
 
 .. code-block:: csharp
