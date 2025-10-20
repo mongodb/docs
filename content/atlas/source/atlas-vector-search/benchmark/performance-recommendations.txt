@@ -20,35 +20,97 @@ Additional Performance Recommendations
    :depth: 2
    :class: singlecol
 
-This page provides additional recommendations to improve the performance of
-your {+avs+} queries.
+This page provides additional recommendations for improving the
+performance of your {+avs+} queries.
 
-Ensure Enough Memory 
---------------------
+Ensure Sufficient Memory 
+------------------------
 
 |hnsw| works efficiently when vector data is held in memory. You must
-ensure that the data nodes have enough RAM to hold the vector data and
-indexes. We recommend deploying separate :ref:`Search Nodes for workload
-isolation <configure-search-nodes>` without data isolation, which
-enables more efficient usage of memory for vector search use cases.  
+ensure that the data nodes have sufficient RAM to hold the vector data
+and indexes. We recommend deploying separate :ref:`Search Nodes for
+workload isolation <configure-search-nodes>` without data isolation,
+which enables more efficient usage of memory for vector search use
+cases. 
 
 .. include:: /includes/avs/embedding-model-space-requirements.rst
 
-Warm up the Filesystem Cache  
+The amount of CPU, memory, and disk resources that {+avs+} consumes
+depends on several factors, including your index size and the query
+criteria. It's important to monitor your environment to understand your 
+vector search health and performance and to confirm adequate
+infrastructure capacity and identify any anomalies. 
+
+Use the following metrics to observe and improve the performance of your
+{+avs+} indexes and queries:
+
+Search System Memory 
+~~~~~~~~~~~~~~~~~~~~
+
+Monitor the total amount of RAM used by your {+avs+} indexes. Adequate
+RAM is critical for {+avs+} query performance because queries going to
+disk are much less performant. Ensure that the entire index is able to
+fit in memory.  
+
+Ensure that available :guilabel:`System Memory` is always greater than
+used :guilabel:`System Memory`. If the index is not frequently queried,
+not all of the index might be in memory. Therefore, leverage the
+:guilabel:`System Memory` metric in conjunction with the
+:guilabel:`Index Size` :ref:`metric <review-available-metrics>` to
+optimize provisioning.
+
+If the vector index size is over 3 GB, we recommend :ref:`vector
+quantization <avs-quantization>`, which stores only 4% of the index
+in memory rather than the full index.
+
+Search Index Size
+~~~~~~~~~~~~~~~~~
+
+Monitor the total size of all indexes on disk in bytes. This is
+necessary to ensure that you have accurately sized your RAM requirements.  
+
+Verify the search :guilabel:`Index Size` on disk :ref:`metric
+<review-available-metrics>` to see what the full index size would be if
+100% of the vector is stored in memory, and ensure that it is less than
+the system memory available.  
+
+Search Page Faults
+~~~~~~~~~~~~~~~~~~
+
+Monitor the average rate of page faults on a process per second over a
+selected sample period. The :guilabel:`Page Faults` metric indicates how
+frequently the search query is going to disk, which indicates that the
+full index is not fitting into memory.
+
+This metric must remain as close to zero as possible. If you consistently
+see page faults, consider scaling the cluster tier up to
+provision adequate RAM. 
+
+Warm Up the Filesystem Cache  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you perform vector search without using :ref:`dedicated Search Nodes 
+<what-is-search-node>`, your queries initially perform random seeks on
+disk as you traverse the |hnsw| graph and the vector values are read
+into memory. When using Search Nodes, this cache warming typically only
+occurs in the event of an index rebuild, usually during scheduled
+maintenance windows. 
+
+Monitor for CPU Bottlenecks
 ----------------------------
 
-When you perform vector search not using :ref:`dedicated Search Nodes 
-<what-is-search-node>`, your queries initially perform random seeks on
-disk as you traverse the |hnsw| graph and the 
-vector values are read into memory. When using Search Nodes,
-this cache warming typically only occurs in the event of an index rebuild, 
-usually during scheduled maintenance windows. 
-
-Avoid Indexing Vectors When Running Queries
--------------------------------------------
-
 Vector embeddings consume computational resources during indexing. 
-As a result, indexing and querying at the same time may cause resource 
-bottlenecks. When performing an initial sync, ensure that your Search Node
-CPU usage crashes back down to ~0%, indicating segments have been merged and 
-flushed to disk, before issuing test queries.
+|enn| queries on large datasets consume CPU resources. As a result,
+indexing and querying at the same time may cause resource  
+bottlenecks. To prevent CPU bottlenecks, avoid indexing vectors when
+queries are running. When performing an initial sync, ensure that your
+Search Node CPU usage returns close to 0%, indicating segments have
+been merged and flushed to disk, before issuing test queries. 
+
+Monitor the :guilabel:`Search Normalized Process CPU` metric during
+indexing operations, as heavy indexing will show elevated CPU usage. This
+metric shows the CPU usage as a percentage normalized against the number
+of available CPU cores, which allows you to assess the resource
+saturation relative to your cluster's capacity. After vector embeddings
+have been indexed, wait for the CPU usage to return close to 0% as segment
+merging and flushing complete.
