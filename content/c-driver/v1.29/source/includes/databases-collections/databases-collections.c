@@ -97,6 +97,16 @@ main (void)
 
     {
         mongoc_client_t *client = mongoc_client_new ("<connection string URI>");
+        // start-delete-database
+        mongoc_database_t *database = mongoc_client_get_database (client, "test_database");
+        mongoc_database_drop (database, NULL);
+        // end-delete-database
+        mongoc_database_destroy (database);
+        mongoc_client_destroy (client);
+    }
+
+    {
+        mongoc_client_t *client = mongoc_client_new ("<connection string URI>");
         mongoc_database_t *database = mongoc_client_get_database (client, "test_database");
         // start-database-read-prefs
         mongoc_read_prefs_t *read_prefs = mongoc_read_prefs_new (MONGOC_READ_PRIMARY_PREFERRED);
