@@ -14,8 +14,8 @@ Customize {+Cluster+} Storage
    :backlinks: none
    :depth: 2
 
-Each {+cluster+} tier comes with a default set of resources.
-``M10+`` {+clusters+} provide the ability to customize
+Each cluster tier comes with a default set of resources.
+``M10+`` clusters provide the ability to customize
 your storage capacity.
 
 |service| provides the following storage configuration options,
@@ -26,7 +26,7 @@ depending on the selected cloud provider and cluster tier.
 {+Cluster+} Class
 -----------------
 
-``M40+`` {+clusters+} offer multiple options, including:
+``M40+`` clusters offer multiple options, including:
 
 - :guilabel:`Low CPU`
 - :guilabel:`General`
@@ -67,7 +67,7 @@ performance. |service| provisions storage for NVMe clusters in gigabytes (GB).
 
 .. note::
    
-   |service| doesn't support |nvme| {+clusters+} on |gcp|.
+   |service| doesn't support |nvme| clusters on |gcp|.
 
 .. _storage-capacity-ui:
 
@@ -126,11 +126,12 @@ changes.
 
 How |service| handles additional changes within the time frame for volume 
 modification changes depends on the size of your hosts' data volumes and 
-the time when you make the change.
+the time elapsed since the volume was last modified. |aws| has a cooldown 
+period of 6 hours, or 6 hours per TB of volume size, whichever is greater.
 
 - For the first change, |service| modifies data volumes in place without
-  downtime.
-- For later changes:
+  downtime when increasing disk size.
+- For subsequent disk size increases:
 
   .. list-table::
      :header-rows: 1
@@ -140,20 +141,27 @@ the time when you make the change.
        - Action |service| Takes
 
      * - Less than 1TB
-       - Less than 5h30m
+       - Less than 6 hours
        - |service| provisions new volumes and syncs the data from
          the old volumes. If |service| provisions new volumes, 
-         you can access your {+cluster+}. You can't access *nodes* 
+         you can access your cluster. You can't access *nodes* 
          that |aws| modifies until |aws| attaches the new volume.
 
      * - Less than 1TB
-       - More than 5h30m
-       - |service| waits until the volume modification takes effect, then
+       - 6 hours or more
+       - |service| waits until the cooldown period expires, then
          modifies the hosts' data volumes in place without downtime.
 
      * - More than 1TB
-       - Any
-       - |service| waits until the volume modification takes effect, then
+       - Less than volume modification cooldown period (6 hours per TB)
+       - |service| provisions new volumes and syncs the data from
+         the old volumes. If |service| provisions new volumes, 
+         you can access your cluster. You can't access *nodes* 
+         that |aws| modifies until |aws| attaches the new volume.
+
+     * - More than 1TB
+       - Volume modification cooldown period or more (6 hours per TB)
+       - |service| waits until the cooldown period expires, then
          modifies the hosts' data volumes in place without downtime.
          This takes less time than provisioning new volumes and syncing
          data from the old to the new volumes. If you modify the disk size 
@@ -165,7 +173,7 @@ Before you apply your storage capacity or |iops| increases, the
 increase.
 
 The :guilabel:`Clusters` page displays a banner if |service|
-waits until a six-hour window closes before modifying your {+cluster+}'s
+waits until a six-hour window closes before modifying your cluster's
 storage capacity or |iops|: 
 
 - Some EBS volume changes are delayed due to |aws| restrictions on volume 
@@ -182,47 +190,17 @@ Decrease Capacity or Throughput
 
 - |aws| doesn't allow you to reduce storage *capacity* in place.
 
-  |service| *can* reduce storage capacity in place. |service|
-  provisions new volumes then syncs data from the old to the new
-  volumes. This works around the |aws| limitation.
+  |service| *can* reduce storage capacity by first provisioning new
+  volumes and then syncing data from the old to the new volumes with an
+  in-place rsync process. This works around the |aws| limitation, but
+  there is downtime on each node while this process is in progress.
 
 - |aws| *does* allow you to reduce |iops| without migrating data.
 
-  If previous changes are completed, |aws| usually takes about six hours to 
-  modify storage capacity or |iops|. However, this time frame can vary 
-  depending on the data size stored on disk. To learn more, see the 
-  :aws:`AWS documentation </AWSEC2/latest/UserGuide/monitoring-volume-modifications.html#>`.
-  |service| supports more changes within the time frame for volume modification 
-  changes. 
-  How |service| handles additional volume modification changes depends on
-  the size of your hosts' data volumes and the time when you make the change.
-
-  - For the first change, |service| modifies data volumes in place without
-    downtime.
-  - For later changes:
-
-    .. list-table::
-       :header-rows: 1
-  
-       * - Data Volume Size
-         - Time Since Last Storage Change
-         - Action |service| Takes
-
-       * - Less than 1TB
-         - Less than 5h30m
-         - |service| decreases volume's size. If |service| decreases the
-           volume's size, you can access your {+cluster+}. You can't access
-           *nodes* that |aws| modifies until |aws| attaches the new volume.
-
-       * - Less than 1TB
-         - More than 5h30m
-         - |service| waits until the volume modification takes effect, then
-           modifies the hosts' data volumes in place without downtime.
-
-       * - More than 1TB
-         - Any
-         - |service| waits until the volume modification takes effect, then
-           modifies the hosts' data volumes in place without downtime.
+  For disk size decreases, |service| always provisions new volumes and 
+  syncs data from the old to the new volumes. This process requires downtime 
+  on each node during the rsync operation, regardless of the volume 
+  modification cooldown period.
 
 .. _change-storage-capacity-azure:
 
@@ -244,6 +222,9 @@ If you increase disk storage for :guilabel:`Low CPU` or :guilabel:`General`
 
    Not all |azure| regions support extended storage. For details, 
    see :ref:`supported regions <microsoft-azure-storage-supported-regions>`.
+
+|azure| has volume modification cooldown periods that might limit how 
+frequently you can make storage changes.
 
 The following statements describe the options you have in the {+atlas-ui+}
 for |iops| and storage management on |azure| {+clusters+}.
@@ -300,9 +281,9 @@ To change the server's data volume size:
      disk capacity in preset amounts. In this case, |service| doesn't increase
      |iops|.
 
-   Regardless of the option for increasing storage, |service| increases
-   the storage capacity in place without copying data or performing an
-   :manual:`initial sync </core/replica-set-sync/#initial-sync>`.
+   For storage capacity increases, |service| increases the storage capacity 
+   in place without copying data or performing an :manual:`initial sync 
+   </core/replica-set-sync/#initial-sync>`.
 
    .. note::
 
@@ -317,10 +298,10 @@ To change the server's data volume size:
 
    |azure| doesn't allow decreasing the storage capacity in place. To reduce
    the storage capacity of a {+cluster+} on |azure|, |service| provisions new
-   volumes, and then syncs data from the old to the new volumes. Before you apply
-   your storage capacity reductions, the :guilabel:`Review Changes` page notifies
-   you that |service| triggers a rolling restart of your {+cluster+} when you
-   make this change.
+   volumes, and then syncs data from the old to the new volumes using a 
+   logical or file copy based initial sync. Before you apply your storage 
+   capacity reductions, the :guilabel:`Review Changes` page notifies you that 
+   |service| triggers a rolling restart of your {+cluster+} when you make this change.
 
    An initial sync copies data across the network and rebuilds all indexes. During
    this time, you can still access your {+cluster+}, but each node that |azure|
@@ -370,18 +351,20 @@ Change Storage Capacity on |gcp|
 
 .. include:: /includes/fact-extend-storage-limitations.rst
 
-When you change a cluster's storage capacity, |service| modifies the
+Unlike |aws|, |gcp| doesn't have volume modification cooldown periods.
+Therefore, storage changes can be made immediately without waiting for
+previous modifications to complete.
+
+When you increase a cluster's storage capacity, |service| modifies the
 size of the servers' data volumes in a rolling manner with zero
-downtime.
-
-|service| increases the storage capacity in place without copying data
-or performing an :manual:`initial sync
+downtime. |service| increases the storage capacity in place without 
+copying data or performing an :manual:`initial sync
 </core/replica-set-sync/#initial-sync>`.
-However, |gcp| doesn't allow in-place storage capacity reduction.
 
-If you reduce the storage capacity of a {+cluster+}, |service| 
+However, |gcp| doesn't allow in-place storage capacity reduction.
+If you reduce the storage capacity of a cluster, |service| 
 provisions new volumes, and then syncs data from the old to the new 
-volumes.
+volumes using a logical or file copy based initial sync.
 
 .. include:: /includes/fact-extended-storage.rst
 
