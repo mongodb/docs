@@ -311,7 +311,12 @@ const tocData: TocItem[] = [
             label: "Convert to Unique",
             contentSite: "docs",
             url: "/docs/:version/core/index-unique/convert-to-unique",
-          },
+          }, 
+          {
+            label: "Sharded Collections",
+            contentSite: "docs",
+            url: "/docs/:version/tutorial/shard-collection-with-unique-index",
+          }
         ],
       },
     ],
