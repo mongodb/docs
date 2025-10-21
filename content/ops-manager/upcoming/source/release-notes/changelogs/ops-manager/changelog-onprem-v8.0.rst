@@ -63,10 +63,23 @@ Improvements
 
 - Prevents the clean-up of the database path after restore operations, 
   improving backup and restore reliability.
-- Enables MongoDB Server 8.2 to be selectable as a Long-Term Support (LTS) 
-  Feature Compatibility Version (FCV) in the |onprem| UI, ensuring proper 
-  support for MongoDB 8.2 LTS features.
-- Adds MongoDB 8.2 for production use.
+- Enables MongoDB Server 8.2 for production use. This minor release
+  provides early access to new features and improvements before the
+  next Long-Term Support (LTS) version.
+   - Minor releases like 8.2 are not LTS and follow a 6-month release
+     cadence. To receive ongoing bug and security fixes, you must stay on the
+     LTS version or upgrade to the latest available minor release.
+     Patches are not backported to previous minor versions (for example,
+     once 8.3 is released, 8.2 no longer receives patches).
+   - Choosing the minor release path requires a commitment to perform
+     sequential upgrades through each subsequent release. Skipping
+     minor versions is not supported when upgrading.
+   - Upgrading to a new minor version requires updating the Feature
+     Compatibility Version (FCV). This step is critical in the upgrade
+     process and follows the same logic as a :doc:`major version upgrade 
+     </tutorial/change-mongodb-version>`.
+   - You have a 2-month grace period after the next release becomes
+     available to complete your upgrade and remain supported.
 
 Bug Fixes
 ~~~~~~~~~
