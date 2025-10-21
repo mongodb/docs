@@ -104,6 +104,11 @@ const tocData: TocItem[] = [
             contentSite: "cloud-docs",
             url: "/docs/atlas/security-restrict-support-access",
           },
+          {
+            label: "Atlas CLI Authentication",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/atlas-ui-authentication",
+          },
         ]
       },
       {
