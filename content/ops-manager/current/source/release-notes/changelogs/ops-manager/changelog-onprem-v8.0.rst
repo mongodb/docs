@@ -1,3 +1,56 @@
+.. _opsmgr-server-8.0.15:
+
+|onprem| Server 8.0.15
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-10-19*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`108.0.15.8882-1 <mongodb-108.0.15.8882-1>`.
+- Supports :dbtools:`MongoDB Database Tools 100.13.0 </release-notes/database-tools-changelog/#100.13.0-changelog>`.
+
+- Makes the following improvements to the |onprem| UI:
+
+  - Removes the :guilabel:`Preview` tag from :ref:`OIDC <enable-oidc-auth>` 
+    options in the UI and documentation.
+  - Adds an :guilabel:`Options` menu to the :ref:`Logs <mongodb-logs>` page
+    for ``mongos`` instances in sharded clusters.
+  - Adds server list to the :guilabel:`Shutdown` dialog for replica sets to 
+    show all affected servers.
+  - Adds alerts for detecting stale workloads through :guilabel:`OpCounter` 
+    in :ref:`Available Metrics <review-available-metrics>`.
+
+- Makes the following improvements to the {+admin-api+}:
+
+  - Supports updating :ref:`project settings <manage-group-settings>` in the 
+    {+admin-api+}.
+  - Adds LDAP configuration validation support to the Admin Settings API.
+    To learn more, see :ref:`Manage LDAP Authentication <enable-ldap-auth>`.
+
+- Makes the following improvements to |s3| blockstore backups:
+
+  - Adds support for conditional writes on |s3| blockstore objects.
+  - Improves log handling in :ref:`groom jobs <grooms-page>`. Verifies block
+    existence before logging exceptions, checks the destination cluster's |s3|
+    blockstore to reduce failed-to-copy-block log noise, and skips
+    ``NoSuchKey`` errors when the |s3| blockstore exists.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes an issue where upgrading |onprem| to version 8.0.12+ couldn't complete
+  due to failed or incomplete upgrade steps. |onprem| now re-applies
+  migration steps as needed to complete the upgrade.
+- Adds information logging for ``RollingRestartArgs`` to aid 
+  troubleshooting.
+- Fixes an issue where the :guilabel:`Copy` button in the Prometheus integration 
+  interface was misaligned.
+- Fixes an issue where invalid metric types prevented the |onprem| global alert 
+  configuration from rendering.
+- Fixes an issue where backups couldn't start for unmanaged clusters.
+
 .. _opsmgr-server-8.0.14:
 
 |onprem| Server 8.0.14
