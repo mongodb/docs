@@ -116,29 +116,6 @@ const tocData: TocItem[] = [
                 contentSite: "docs-relational-migrator",
                 url: "/docs/relational-migrator/installation/install-on-an-unattended-server/debian-server-installation",
               },
-              {
-                label: "Kafka Deployments",
-                contentSite: "docs-relational-migrator",
-                url: "/docs/relational-migrator/installation/kafka-deployments/migrator-with-kafka",
-                collapsible: true,
-                items: [
-                  {
-                    label: "Self-Managed Kafka",
-                    contentSite: "docs-relational-migrator",
-                    url: "/docs/relational-migrator/installation/kafka-deployments/install-kafka-cluster",
-                  },
-                  {
-                    label: "Confluent Cloud",
-                    contentSite: "docs-relational-migrator",
-                    url: "/docs/relational-migrator/installation/kafka-deployments/install-confluent-kafka",
-                  },
-                  {
-                    label: "Advanced Kafka Settings",
-                    contentSite: "docs-relational-migrator",
-                    url: "/docs/relational-migrator/installation/kafka-deployments/advanced-settings",
-                  },
-                ]
-              },
             ]
           },
           {
@@ -373,11 +350,6 @@ const tocData: TocItem[] = [
                 contentSite: "docs-relational-migrator",
                 url: "/docs/relational-migrator/mapping-rules/mapping-rule-options/rename-collection",
               },
-              {
-                label: "Configure Time Series Collection",
-                contentSite: "docs-relational-migrator",
-                url: "/docs/relational-migrator/mapping-rules/mapping-rule-options/time-series",
-              },
             ]
           },
           {
@@ -596,11 +568,6 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-            label: "Log In with Atlas",
-            contentSite: "docs-relational-migrator",
-            url: "/docs/relational-migrator/getting-started/atlas-log-in",
-          },
-          {
             label: "Create Job",
             contentSite: "docs-relational-migrator",
             url: "/docs/relational-migrator/jobs/creating-jobs",
@@ -614,16 +581,6 @@ const tocData: TocItem[] = [
             label: "Stop",
             contentSite: "docs-relational-migrator",
             url: "/docs/relational-migrator/jobs/stopping-jobs",
-          },
-          {
-            label: "Recover",
-            contentSite: "docs-relational-migrator",
-            url: "/docs/relational-migrator/jobs/recover-jobs",
-          },
-          {
-            label: "Pause & Resume with Kafka",
-            contentSite: "docs-relational-migrator",
-            url: "/docs/relational-migrator/jobs/pause-resume-kafka-jobs",
           },
           {
             label: "Data Verification",
@@ -661,100 +618,6 @@ const tocData: TocItem[] = [
                 label: "Download Single Code Files",
                 contentSite: "docs-relational-migrator",
                 url: "/docs/relational-migrator/code-generation/generate-app-code/download-single-code-files",
-              },
-            ]
-          },
-          {
-            label: "Query Converter",
-            contentSite: "docs-relational-migrator",
-            url: "/docs/relational-migrator/code-generation/query-converter",
-            collapsible: true,
-            items: [
-              {
-                label: "AI & Data Usage",
-                contentSite: "docs-relational-migrator",
-                url: "/docs/relational-migrator/code-generation/query-converter/ai-and-data-usage-information",
-              },
-              {
-                label: "Set AI Provider and LLM",
-                contentSite: "docs-relational-migrator",
-                url: "/docs/relational-migrator/code-generation/query-converter/set-query-converter-llm",
-              },
-              {
-                label: "Enable Query Converter",
-                contentSite: "docs-relational-migrator",
-                url: "/docs/relational-migrator/code-generation/query-converter/enable-query-converter",
-              },
-              {
-                label: "Convert Queries",
-                contentSite: "docs-relational-migrator",
-                url: "/docs/relational-migrator/code-generation/query-converter/convert-queries",
-              },
-              {
-                label: "Convert Stored Procedures",
-                contentSite: "docs-relational-migrator",
-                url: "/docs/relational-migrator/code-generation/query-converter/convert-stored-procedures",
-              },
-              {
-                label: "Convert Oracle Packages",
-                contentSite: "docs-relational-migrator",
-                url: "/docs/relational-migrator/code-generation/query-converter/convert-oracle-packages",
-              },
-              {
-                label: "Convert Triggers",
-                contentSite: "docs-relational-migrator",
-                url: "/docs/relational-migrator/code-generation/query-converter/convert-triggers",
-              },
-              {
-                label: "Convert Views",
-                contentSite: "docs-relational-migrator",
-                url: "/docs/relational-migrator/code-generation/query-converter/convert-views",
-              },
-              {
-                label: "Bulk Conversion",
-                contentSite: "docs-relational-migrator",
-                url: "/docs/relational-migrator/code-generation/query-converter/bulk-conversion",
-              },
-              {
-                label: "Query Management",
-                contentSite: "docs-relational-migrator",
-                url: "/docs/relational-migrator/code-generation/query-converter/query-management",
-                collapsible: true,
-                items: [
-                  {
-                    label: "Filter",
-                    contentSite: "docs-relational-migrator",
-                    url: "/docs/relational-migrator/code-generation/query-converter/query-management/filter-queries",
-                  },
-                  {
-                    label: "Download",
-                    contentSite: "docs-relational-migrator",
-                    url: "/docs/relational-migrator/code-generation/query-converter/query-management/download-queries",
-                  },
-                ]
-              },
-              {
-                label: "Refresh Database Objects",
-                contentSite: "docs-relational-migrator",
-                url: "/docs/relational-migrator/code-generation/query-converter/refresh-database-objects",
-              },
-              {
-                label: "Test Queries",
-                contentSite: "docs-relational-migrator",
-                url: "/docs/relational-migrator/code-generation/query-converter-test-queries",
-                collapsible: true,
-                items: [
-                  {
-                    label: "Install Query Runner",
-                    contentSite: "docs-relational-migrator",
-                    url: "/docs/relational-migrator/code-generation/query-converter/test-converted-queries/install-query-runner",
-                  },
-                  {
-                    label: "Compare Queries",
-                    contentSite: "docs-relational-migrator",
-                    url: "/docs/relational-migrator/code-generation/query-converter/test-converted-queries/compare-converted-queries",
-                  },
-                ]
               },
             ]
           },

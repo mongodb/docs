@@ -23,8 +23,3 @@ a. On the :guilabel:`Mappings` pane, click the :icon-fa5:`chevron-left`
    - Excluded fields cannot be sorted on. If a previously selected 
      sorting field is excluded at a later point in time, the array 
      condition is removed.
-
-   - If an array is modified during the CDC stage of a continuous 
-     job, sorting and limiting considers only the newly modified row
-     and the pre-existing array elements, not the other values from 
-     the table which are not in the array.

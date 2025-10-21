@@ -1,4 +1,4 @@
-- `MySQL: latest 8.3.x version, Platform Independent Version <https://dev.mysql.com/downloads/connector/j/>`_
+- `MySQL: latest 9.1.x version, Platform Independent Version <https://dev.mysql.com/downloads/connector/j/>`_
 
 - `Oracle: 21.6.0.0 of ojdbc11.jar from the Oracle 21c <https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html>`_
 

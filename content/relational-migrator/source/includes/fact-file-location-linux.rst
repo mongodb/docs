@@ -4,7 +4,7 @@
 
 - **Downloaded JDBC Drivers**
 
-  ``/opt/mongodb-relational-migrator/lib/app/lib``
+  ``~/.mongodb/relational-migrator/Drivers``
 
 - **Log files**
 

@@ -21,10 +21,7 @@ database needs configuration changes, it automatically generates a
 SQL script with the required changes. It is recommended to have a 
 Database Administrator (DBA) review the commands in this script and 
 perform their execution on the database server. This topic 
-provides more details on the required configuration steps. SQL Server 
-configuration depends on the type of migration job: 
-
-.. include:: /includes/fact-short-sync-job-desc.rst
+provides more details on the required configuration steps.
 
 About this Task
 ---------------
@@ -43,86 +40,22 @@ About this Task
 Steps
 -----
 
+To configure your SQL Server instance for snapshot jobs, you must enable CDC 
+at the database level. 
+
 The easiest way to set up your database is to run the automatically 
 generated script that {+rel-mig+} prompts you to download when
-you :ref:`create a migration job <rm-create-jobs>`. To  understand the 
-permissions or run the SQL manually, read the procedures below.
+you :ref:`create a migration job <rm-create-jobs>`. To understand the 
+permissions or run the SQL manually, read the following procedure.
 
-Configure your SQL Server instance based on the migration job type. 
-Refer to the tab below for details on snapshot and continuous migration 
-job configurations.
+.. include:: /includes/fact-enable-cdc-database.rst
 
-.. tabs::
-
-   .. tab:: Snapshot Jobs
-      :tabid: enable-snapshot-jobs
-
-      For snapshot jobs against SQL Server, you must enable 
-      CDC at the database level. 
-
-      .. procedure::
-         :style: normal
-
-         .. step:: Configure CDC at the Database Level
-
-          Enabling CDC at the database-level CDC generates a small 
-          number of system tables in the database, leaving user tables 
-          unchanged, and does not add any performance overhead. Enabling
-          CDC alone does not result in changes being captured.
-
-         .. include:: /includes/fact-enable-cdc-database.rst
-
-   .. tab:: Continuous Jobs
-      :tabid: enable-continuous-jobs
-
-      For continuous jobs against SQL Server, you must enable 
-      CDC at both the database level and at the table level for 
-      each table.
-
-      .. procedure::
-         :style: normal
-
-         .. step:: Configure CDC at the database level
-
-            .. include:: /includes/fact-enable-cdc-database.rst
-
-         .. step:: Enable the SQL Server agent and check database permissions
-
-            To enable the CDC option at the table level:
-
-            a. You must have the server level ``sysadmin`` role. 
-            #. You must have the database level ``db_owner`` role.
-            #. The `SQL Server agent <https://learn.microsoft.com/en-us/sql/ssms/agent/sql-server-agent?view=sql-server-ver16>`__
-               must be running.
-            #. The service account used to connect to SQL Server 
-               must have Select permission against all required tables.
-
-         .. step:: Configure CDC at the table level
-
-            To enable CDC at the table level
-            use the ``sys.sp_cdc_enable_table`` stored procedure. 
-
-            You can check the SQL Server CDC settings when viewing the ``is_tracked_by_cdc`` 
-            column in the `sys.tables catalog view <https://learn.microsoft.com/en-us/sql/relational-databases/system-catalog-views/sys-tables-transact-sql?view=sql-server-ver16>`__. 
-            A value of ``1`` for ``is_tracked_by_cdc`` indicates the table 
-            is enabled for change data capture.
-
-            The code block below is a sample of the 
-            automatically generated code.You can run the code manually 
-            to enable table CDC:
-
-            .. code-block:: sql
-               :copyable: true
-
-               USE MyDB
-               GO
-               EXEC sys.sp_cdc_enable_table
-               @source_schema = N'dbo',
-               @source_name   = N'MyTable',
-               @role_name     = N'MyRole',
-               @filegroup_name = N'MyDB_CT',
-               @supports_net_changes = 1
-               GO
+.. note::
+   
+   Enabling CDC at the database-level CDC generates a small 
+   number of system tables in the database, leaves user tables 
+   unchanged, and does not add any performance overhead. Enabling
+   CDC alone does not result in changes being captured.
 
 Learn More
 ----------
@@ -130,4 +63,3 @@ Learn More
 {+rel-mig+} relies on the open-source Debezium connector to 
 capture row-level changes. For more details, see
 `Debezium SQL Server <https://debezium.io/documentation/reference/stable/connectors/sqlserver.html#_enabling_cdc_on_a_sql_server_table>`__.
-
