@@ -1,5 +1,5 @@
 import { cache } from 'react';
-import { ObjectId, type Filter, type FindOptions, type Document } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import envConfig from '@/utils/env-config';
 import { log } from '@/utils/logger';
 import type { TextNode, TocTreeEntry } from '@/types/ast';
@@ -16,7 +16,7 @@ export interface DBMetadataDocument {
   toctree: TocTreeEntry;
   toctreeOrder: string[];
   parentPaths: Record<string, BreadcrumbType[]>;
-  static_files: Record<string, Buffer>;
+  static_files: Record<string, string>;
 }
 
 const getSnootyMetadataCollection = async () => {
@@ -27,16 +27,46 @@ const getSnootyMetadataCollection = async () => {
 /** This will return the snooty metadata for a given build_id, returning the first match (sorted descending _id field) */
 const _getSnootyMetadata = async (build_id: string) => {
   const collection = await getSnootyMetadataCollection();
-  const query: Filter<Document> = { build_id: new ObjectId(build_id) };
-  const options: FindOptions = { sort: { _id: -1 } };
 
   try {
     log({ message: `Querying db ${collection.namespace} for metadata with build_id=${build_id}` });
 
-    const metadataDoc = await collection.findOne<DBMetadataDocument>(query, options);
+    const metadataDoc = await collection
+      .aggregate<DBMetadataDocument>([
+        { $match: { build_id: new ObjectId(build_id) } },
+        { $sort: { _id: -1 } },
+        { $limit: 1 },
+        {
+          $project: {
+            _id: 0,
+            project: 1,
+            branch: 1,
+            title: 1,
+            eol: 1,
+            slugToTitle: 1,
+            toctree: 1,
+            toctreeOrder: 1,
+            parentPaths: 1,
+            // Convert static_files buffers to base64 strings
+            static_files: {
+              $arrayToObject: {
+                $map: {
+                  input: { $objectToArray: '$static_files' },
+                  as: 'item',
+                  in: {
+                    k: '$$item.k',
+                    v: { $toString: '$$item.v' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      ])
+      .next();
+
     if (!metadataDoc) return;
-    // we need to parse then stringify the metadataDoc to ensure it's a plain object (handles ObjectIds, etc.)
-    return JSON.parse(JSON.stringify(metadataDoc)) as DBMetadataDocument;
+    return metadataDoc;
   } catch (e) {
     log({ message: String(e), level: 'error' });
     throw e;

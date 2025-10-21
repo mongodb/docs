@@ -18,7 +18,7 @@ export default async function Page({ params: { path } }: PageProps) {
   try {
     const [pageDoc, docsets] = await Promise.all([getPageDocFromParams({ path }), getAllDocsetsWithVersionsCached()]);
     const [metadata, assetMap] = await Promise.all([
-      getSnootyMetadata(pageDoc?.build_id),
+      getSnootyMetadata(pageDoc?.buildId ?? ''),
       fetchAllAssets(pageDoc?.static_assets),
     ]);
     const env = envConfig.DB_ENV;
@@ -47,7 +47,7 @@ export default async function Page({ params: { path } }: PageProps) {
 
 export async function generateMetadata({ params: { path } }: PageProps) {
   const pageDoc = (await getPageDocFromParams({ path })) as ASTDocument;
-  const snootyMetadata = (await getSnootyMetadata(pageDoc?.build_id)) as DBMetadataDocument;
+  const snootyMetadata = (await getSnootyMetadata(pageDoc?.buildId ?? '')) as DBMetadataDocument;
 
   const metadata = getPageMetadata({ pageDoc, snootyMetadata });
   return metadata;

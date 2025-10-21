@@ -49,11 +49,41 @@ export const getAllDocsetsWithVersions = async (dbNameOverride?: string): Promis
           },
         },
       },
-      // ignore unnecessary fields
+      // Project only the fields we need, excluding all ObjectIds and unnecessary fields
       {
         $project: {
-          repos: 0,
-          deployableRepo: 0,
+          _id: 0, // Exclude the _id ObjectId
+          displayName: 1,
+          project: 1,
+          // Transform branches array to exclude the id field
+          branches: {
+            $map: {
+              input: '$branches',
+              as: 'branch',
+              in: {
+                gitBranchName: '$$branch.gitBranchName',
+                active: '$$branch.active',
+                urlSlug: '$$branch.urlSlug',
+                urlAliases: '$$branch.urlAliases',
+                versionSelectorLabel: '$$branch.versionSelectorLabel',
+                offlineUrl: '$$branch.offlineUrl',
+                noIndexing: '$$branch.noIndexing',
+                eol_type: '$$branch.eol_type',
+                publishOriginalBranchName: '$$branch.publishOriginalBranchName',
+                isStableBranch: '$$branch.isStableBranch',
+                buildsWithSnooty: '$$branch.buildsWithSnooty',
+              },
+            },
+          },
+          hasEolVersions: 1,
+          repoName: 1,
+          search: 1,
+          internalOnly: 1,
+          prodDeployable: 1,
+          groups: 1,
+          prefix: 1,
+          url: 1,
+          bucket: 1,
         },
       },
     ])

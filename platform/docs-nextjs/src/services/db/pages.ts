@@ -1,12 +1,13 @@
 import { cache } from 'react';
-import type { Filter, FindOptions, WithId, Document } from 'mongodb';
+import type { Filter } from 'mongodb';
 import envConfig from '@/utils/env-config';
 import { log } from '@/utils/logger';
 import type { Root } from '@/types/ast';
 import type { PageFacet } from '@/types/data';
 import { getCollection, getSnootyDbName } from './client';
 
-export interface ASTDocument extends WithId<Document> {
+export interface ASTDocument {
+  buildId: string;
   page_id: string;
   page_path: string;
   filename: string;
@@ -39,15 +40,31 @@ const getPageAST = cache(async (path: string | string[], prId?: number) => {
   if (prId) {
     query['pr_id'] = prId;
   }
-  const DEFAULT_SORT: FindOptions = { sort: { id: -1 } };
   try {
     log({
       message: `Querying db ${collection.namespace} for query ${JSON.stringify(query)}`,
     });
-    const pageRes = await collection.findOne<ASTDocument>(query, DEFAULT_SORT);
+    const pageRes = await collection
+      .aggregate<ASTDocument>([
+        { $match: query },
+        { $sort: { id: -1 } },
+        { $limit: 1 },
+        {
+          $project: {
+            _id: 0,
+            buildId: { $toString: '$build_id' },
+            page_id: 1,
+            page_path: 1,
+            filename: 1,
+            ast: 1,
+            static_assets: 1,
+            facets: 1,
+          },
+        },
+      ])
+      .next();
     if (!pageRes) return;
-    // we need to parse then stringify the pageRes to ensure it's a plain object (handles ObjectIds, etc.)
-    return JSON.parse(JSON.stringify(pageRes)) as ASTDocument;
+    return pageRes;
   } catch (e) {
     log({ message: String(e), level: 'error' });
     throw e;
