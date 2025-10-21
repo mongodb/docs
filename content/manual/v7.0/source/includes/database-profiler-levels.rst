@@ -17,4 +17,5 @@
 
 ``2``
    The profiler collects data for all operations.
-
+   When set to level ``2``, the profiler ignores user 
+   provided values for ``slowms`` and ``filter``.
