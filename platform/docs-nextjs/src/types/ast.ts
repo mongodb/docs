@@ -391,6 +391,7 @@ interface FieldNode extends BaseFieldNode {
 
 interface FieldListNode extends BaseFieldNode {
   type: 'field_list';
+  children: FieldNode[];
 }
 
 interface ParentListNode extends ParentNode {

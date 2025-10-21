@@ -38,6 +38,8 @@ import type {
   CardNode,
   CardGroupNode,
   ReferenceNode,
+  FieldNode,
+  FieldListNode,
   DefinitionListNode,
   DefinitionListItemNode,
   HeadingNode,
@@ -115,6 +117,8 @@ import Reference, { type ReferenceProps } from '@/components/reference';
 import Heading, { type HeadingProps } from '@/components/heading';
 import Card, { type CardProps } from '@/components/card';
 import CardGroup, { type CardGroupProps } from '@/components/card/card-group';
+import Field, { type FieldProps } from '@/components/field-list/field';
+import FieldList, { type FieldListProps } from '@/components/field-list';
 import Glossary, { type GlossaryProps } from '@/components/glossary';
 import DefinitionListItem, { type DefinitionListItemProps } from '@/components/definition-list/definition-list-item';
 import DefinitionList, { type DefinitionListProps } from '@/components/definition-list';
@@ -215,8 +219,8 @@ const getComponent = (() => {
         describe: Describe as React.ComponentType<SupportedComponentProps>,
         emphasis: Emphasis as React.ComponentType<SupportedComponentProps>,
         extract: Extract as React.ComponentType<SupportedComponentProps>,
-        // field: Field,
-        // field_list: FieldList,
+        field: Field as React.ComponentType<SupportedComponentProps>,
+        field_list: FieldList as React.ComponentType<SupportedComponentProps>,
         // figure: Figure,
         footnote: Footnote as React.ComponentType<SupportedComponentProps>,
         footnote_reference: FootnoteReference as React.ComponentType<SupportedComponentProps>,
@@ -322,6 +326,8 @@ type SupportedComponentProps =
   | ComponentFactoryProps
   | CommunityPillLinkProps
   | CondProps
+  | FieldProps
+  | FieldListProps
   | DefinitionListItemProps
   | DefinitionListProps
   | SectionProps
@@ -440,6 +446,19 @@ const renderComponentWithProps = (
   } else if (ComponentType == getComponent('community-driver')) {
     const { argument, options } = nodeData as CommunityDriverPill;
     return <ComponentType argument={argument} options={options} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('field')) {
+    const fieldNode = nodeData as FieldNode;
+    return (
+      <ComponentType
+        nodeChildren={fieldNode.children}
+        label={fieldNode.label}
+        name={fieldNode.name}
+        {...propsToDrill}
+      />
+    );
+  } else if (ComponentType === getComponent('field_list')) {
+    const fieldListNode = nodeData as FieldListNode;
+    return <ComponentType nodeChildren={fieldListNode.children} {...propsToDrill} />;
   } else if (ComponentType === getComponent('definitionList')) {
     const definitionListNode = nodeData as DefinitionListNode;
     return <ComponentType nodeChildren={definitionListNode.children} {...propsToDrill} />;
