@@ -198,7 +198,19 @@
    * - ``verification.source.`` ``phase``
      - string
      - Current phase of the verification process on the source
-       cluster.
+       cluster. This can be one of three values:
+
+       - ``"not started"``: The verifier has not started any 
+         initial collection scans for this cluster.
+       - ``"initial hashing"``: The verifier is doing its initial 
+         scan for at least one collection in the cluster.
+       - ``"stream hashing"``: The verifier has finished its initial 
+         scan for the cluster and is now following its 
+         change stream. 
+         
+       If the verifier needs to re-scan a collection, the verifier can go back to
+       the ``"initial hashing"`` phase even if the endpoint previously 
+       reported the ``"stream hashing"`` phase.
 
        .. versionadded:: 1.9
 
@@ -243,8 +255,20 @@
 
    * - ``verification.destination.`` ``phase``
      - string
-     - Current phase of the verification process on the
-       destination cluster.
+     - Current phase of the verification process on the destination
+       cluster. This can be one of three values:
+
+       - ``"not started"``: The verifier has not started any 
+         initial collection scans for this cluster.
+       - ``"initial hashing"``: The verifier is doing its initial 
+         scan for at least one collection in the cluster.
+       - ``"stream hashing"``: The verifier has finished its initial 
+         scan for the cluster and is now following its 
+         change stream. 
+         
+       If the verifier needs to re-scan a collection, the verifier can go back to
+       the ``"initial hashing"`` phase even if the endpoint previously 
+       reported the ``"stream hashing"`` phase.
 
        .. versionadded:: 1.9
 
