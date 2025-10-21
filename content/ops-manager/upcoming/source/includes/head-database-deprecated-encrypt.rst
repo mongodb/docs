@@ -1,7 +1,6 @@
-|fcv-link| ``4.2`` and later use 
-:manual:`backup cursors </reference/glossary/#std-term-backup-cursor>` instead of
-:opsmgr:`head databases </reference/glossary/#std-term-head-database>`. For
-more information, see :ref:`backup-daemon`.
+|onprem| uses :manual:`backup cursors </reference/glossary/#std-term-backup-cursor>`
+and no longer uses :opsmgr:`head databases </reference/glossary/#std-term-head-database>`.
+To learn more, see
+:ref:`backup-daemon`.
 
-For more information on backup encryption for FCV 4.2 or 
-later, see :ref:`encrypt-snapshots`.
+To learn more about backup encryption, see :ref:`encrypt-snapshots`.

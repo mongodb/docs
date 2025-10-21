@@ -40,7 +40,7 @@ Automation Support Changes
 
 - Removes support for automating, monitoring, and backing up MongoDB 
   versions 4.0 and earlier. |onprem| can only manage databases that 
-  run MongoDB 4.2 or later. 
+  run MongoDB 6.0 or later. 
 
 - Removes support for |snmp| alerts. 
 
