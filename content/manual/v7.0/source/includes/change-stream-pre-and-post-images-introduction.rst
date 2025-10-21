@@ -10,4 +10,12 @@ after changes (the document pre- and post-images):
 
 - Enable ``changeStreamPreAndPostImages`` for a collection using
   :method:`db.createCollection()`, :dbcommand:`create`, or
-  :dbcommand:`collMod`.
+  :dbcommand:`collMod`. For example, when using the ``collMod`` command: 
+
+  .. code-block:: javascript
+     :copyable: true
+     
+     db.runCommand( { 
+        collMod: <collection>,
+        changeStreamPreAndPostImages: { enabled: true }
+     } )
