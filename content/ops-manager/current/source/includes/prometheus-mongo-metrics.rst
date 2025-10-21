@@ -4,8 +4,8 @@
    {
     "__inputs": [
       {
-        "name": "DS_THANOS",
-        "label": "thanos",
+        "name": "DS_PROMETHEUS",
+        "label": "prometheus",
         "description": "",
         "type": "datasource",
         "pluginId": "prometheus",
@@ -89,7 +89,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -163,7 +163,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "exemplar": false,
             "expr": "label_replace( sum(mongodb_info{group_id=~\"$group_id\", cl_name=~\"$cl_name\", instance=~\"$host.*\"}) by (group_id, org_id, rs_nm, cl_name), \"hostname\", \"$1\", \"instance\", \"(.*)\")\n",
@@ -303,7 +303,7 @@
       {
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "fieldConfig": {
           "defaults": {
@@ -357,7 +357,7 @@
           {
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             },
             "exemplar": false,
             "expr": "label_replace( sum(mongodb_info{group_id=~\"$group_id\", cl_name=~\"$cl_name\", instance=~\"$host.*\"}) by (instance, replica_state_name, process_port, rs_nm, process_type), \"hostname\", \"$1\", \"instance\", \"(.*):.*\")\n",
@@ -513,7 +513,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The number of megabytes resident. MMAPv1: It is typical over time, on a dedicated database server, for this number to approach the amount of physical ram on the box. WiredTiger: In a standard deployment resident is the amount of memory used by the WiredTiger cache plus the memory dedicated to other in memory structures used by the mongod process. By default, mongod with WiredTiger reserves 50% of the total physical memory on the server for the cache and at steady state, WiredTiger tries to limit cache usage to 80% of that total. For example, if a server has 16GB of memory, WiredTiger will assume it can use 8GB for cache and at steady state should use about 6.5GB.",
         "fieldConfig": {
@@ -574,7 +574,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -615,7 +615,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The virtual megabytes for the mongod process. MMAPv1: Generally virtual should be a little larger than mapped (or 2x with --journal), but if virtual is many gigabytes larger, it indicates that excessive memory is being used by other aspects than the memory mapping of files -- that would be bad/suboptimal. The most common case of usage of a high amount of memory for non-mapped is that there are very many connections to the database. Each connection has a thread stack and the memory for those stacks can add up to a considerable amount. WiredTiger: Generally virtual should be a little larger than mapped, but if virtual is many gigabytes larger, it indicates that excessive memory is being used by other aspects than the memory mapping of files -- that would be bad/suboptimal. The most common case of usage of a high amount of memory for non-mapped is that there are very many connections to the database. Each connection has a thread stack and the memory for those stacks can add up to a considerable amount.",
         "fieldConfig": {
@@ -676,7 +676,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -734,7 +734,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of regular asserts raised per second over the selected sample period\n",
         "fieldConfig": {
@@ -795,7 +795,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -836,7 +836,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of warnings per second over the selected sample period",
         "fieldConfig": {
@@ -897,7 +897,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -938,7 +938,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of message asserts per second over the selected sample period. These are internal server errors that have a well defined text string. Stack traces are logged for these",
         "fieldConfig": {
@@ -999,7 +999,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -1040,7 +1040,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of user asserts per second over the selected sample period. These are errors that can be generated by a user such as out of disk space or duplicate key",
         "fieldConfig": {
@@ -1101,7 +1101,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -1159,7 +1159,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of bytes per second read into WiredTiger's cache over the selected sample period.",
         "fieldConfig": {
@@ -1220,7 +1220,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -1261,7 +1261,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of bytes per second written from WiredTiger's cache over the selected sample period.\n",
         "fieldConfig": {
@@ -1322,7 +1322,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -1363,7 +1363,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The number of bytes currently in the WiredTiger cache.",
         "fieldConfig": {
@@ -1424,7 +1424,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -1465,7 +1465,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The number of tracked dirty bytes currently in the WiredTiger cache.",
         "fieldConfig": {
@@ -1526,7 +1526,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -1584,7 +1584,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The number of currently active connections to this server. A stack is allocated per connection; thus very many connections can result in significant RAM usage.",
         "fieldConfig": {
@@ -1645,7 +1645,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -1703,7 +1703,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The number of cursors that the server is maintaining for clients. Because MongoDB exhausts unused cursors, typically this value is small or zero. However, if there is a queue, stale tailable cursors, or a large number of operations this value may rise.",
         "fieldConfig": {
@@ -1764,7 +1764,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -1805,7 +1805,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of cursors that have timed out per second over the selected sample period",
         "fieldConfig": {
@@ -1866,7 +1866,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -1924,7 +1924,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate per second of documents returned by queries over the selected sample period.",
         "fieldConfig": {
@@ -1985,7 +1985,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -2026,7 +2026,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate per second of documents inserted over the selected sample period.",
         "fieldConfig": {
@@ -2087,7 +2087,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -2128,7 +2128,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate per second of documents updated over the selected sample period.",
         "fieldConfig": {
@@ -2189,7 +2189,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -2230,7 +2230,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate per second of documents deleted over the selected sample period.",
         "fieldConfig": {
@@ -2291,7 +2291,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -2349,7 +2349,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of requests sent to this database server per second over the selected sample period",
         "fieldConfig": {
@@ -2410,7 +2410,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -2451,7 +2451,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of physical (after any wire compression) bytes sent to this database server per second over the selected sample period",
         "fieldConfig": {
@@ -2512,7 +2512,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           },
           {
@@ -2521,7 +2521,7 @@
             "refId": "B",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -2579,7 +2579,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of commands performed per second over the selected sample period",
         "fieldConfig": {
@@ -2640,7 +2640,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -2681,7 +2681,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of queries performed per second over the selected sample period",
         "fieldConfig": {
@@ -2742,7 +2742,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -2783,7 +2783,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of updates performed per second over the selected sample period",
         "fieldConfig": {
@@ -2844,7 +2844,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -2885,7 +2885,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of deletes performed per second over the selected sample period",
         "fieldConfig": {
@@ -2946,7 +2946,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -2987,7 +2987,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of getMores performed per second on any cursor over the selected sample period. On a primary, this number can be high even if the query count is low as the secondaries \"getMore\" from the primary often as part of replication.",
         "fieldConfig": {
@@ -3048,7 +3048,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -3089,7 +3089,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of inserts performed per second over the selected sample period",
         "fieldConfig": {
@@ -3150,7 +3150,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -3208,7 +3208,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average execution time in milliseconds per read operation over the selected sample period.",
         "fieldConfig": {
@@ -3269,7 +3269,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -3310,7 +3310,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average execution time in milliseconds per write operation over the selected sample period.",
         "fieldConfig": {
@@ -3371,7 +3371,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -3412,7 +3412,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average execution time in milliseconds per command operation over the selected sample period.",
         "fieldConfig": {
@@ -3473,7 +3473,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -3531,7 +3531,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate of page faults on this process per second over the selected sample period. In non-Windows environments this is hard page faults only.",
         "fieldConfig": {
@@ -3592,7 +3592,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -3650,7 +3650,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate per second over the selected sample period of index items scanned during queries and query-plan evaluation. This rate is driven by the same value as totalKeysExamined in the output of explain().",
         "fieldConfig": {
@@ -3711,7 +3711,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -3752,7 +3752,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate per second over the selected sample period of documents scanned during queries and query-plan evaluation. This rate is driven by the same value as totalDocsExamined in the output of explain().",
         "fieldConfig": {
@@ -3813,7 +3813,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -3871,7 +3871,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The number of operations queued waiting for any lock",
         "fieldConfig": {
@@ -3932,7 +3932,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -3973,7 +3973,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The number of operations queued waiting for a read lock",
         "fieldConfig": {
@@ -4034,7 +4034,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -4075,7 +4075,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The number of operations queued waiting for a write lock",
         "fieldConfig": {
@@ -4136,7 +4136,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -4194,7 +4194,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The average rate per second over the selected sample period of queries that return sorted results that cannot perform the sort operation using an index.",
         "fieldConfig": {
@@ -4255,7 +4255,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -4313,7 +4313,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The number of read tickets available to the WiredTiger storage engine. Read tickets represent the number of concurrent read operations allowed into the storage engine. When this value reaches zero new read requests may queue until a read ticket becomes available.",
         "fieldConfig": {
@@ -4374,7 +4374,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -4415,7 +4415,7 @@
         "dashes": false,
         "datasource": {
           "type": "prometheus",
-          "uid": "${DS_THANOS}"
+          "uid": "${DS_PROMETHEUS}"
         },
         "description": "The number of write tickets available to the WiredTiger storage engine. Write tickets represent the number of concurrent write operations allowed into the storage engine. When this value reaches zero new write requests may queue until a write ticket becomes available.",
         "fieldConfig": {
@@ -4476,7 +4476,7 @@
             "refId": "A",
             "datasource": {
               "type": "prometheus",
-              "uid": "${DS_THANOS}"
+              "uid": "${DS_PROMETHEUS}"
             }
           }
         ],
@@ -4760,7 +4760,7 @@
       ]
     },
     "timezone": "",
-    "title": "Dedicated Atlas Clusters - Mongo Metrics",
+    "title": "Ops Manager Clusters - Mongo Metrics",
     "uid": "W0lo7Gx7z",
     "version": 17,
     "weekStart": ""

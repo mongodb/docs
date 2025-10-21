@@ -15,7 +15,7 @@ the following tabs or create your own script in another language.
          # previous step. The URL that Prometheus fetches the
          # targets from. 
          # Replace the <group-id> with the project ID of your
-         # Atlas instance.
+         # Ops Manager instance.
 
          curl --header 'Accept: application/json' \
               --user <username>:<password> \
@@ -39,7 +39,7 @@ the following tabs or create your own script in another language.
          #
          # Note: Replace the <username> and <password> with the
          # values in the previous step, and <group-id> with the
-         # project ID of your Atlas instance.
+         # project ID of your Ops Manager instance.
 
          basic_auth_user="<username>"
          basic_auth_password="<password>"

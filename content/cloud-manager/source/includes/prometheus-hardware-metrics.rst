@@ -4248,7 +4248,7 @@
     },
     "timepicker": {},
     "timezone": "",
-    "title": "Hardware Metrics - Atlas - new",
+    "title": "Hardware Metrics - Cloud Manager",
     "uid": "7LTNNcpnzsasddsd",
     "version": 1
    }
