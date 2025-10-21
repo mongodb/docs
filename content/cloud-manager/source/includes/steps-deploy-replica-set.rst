@@ -126,7 +126,7 @@
       In the :guilabel:`Default Read Concerns/Write Concerns` card, you
       configure the default level of acknowledgement requested from MongoDB
       for read and write operations for this cluster. Setting the default
-      read and write concern can help with MongoDB 5.0 and later deployments
+      read and write concern can help with MongoDB 6.0 and later deployments
       using arbiters.
       
       From the :guilabel:`Default Read Concerns` section, you can set
@@ -160,8 +160,8 @@
              write operation. You can enter one of the
              :manual:`following values </reference/write-concern/#w-option>`:
       
-             - ``majority``, the MongoDB 5.0 and later default value, or
-             - Any positive integer. MongoDB 4.4 defaults to ``1``.
+             - ``majority``, the MongoDB 6.0 and later default value, or
+             - Any positive integer.
       
          * - j Option
            - Flag that indicates whether the write acknowledgement must be
