@@ -116,15 +116,15 @@ const tocData: TocItem[] = [
             url: "/docs/languages/python/django-mongodb/:version/interact-data/raw-queries",
           },
           {
-            label: "Atlas Search",
+            label: "MongoDB Search",
             contentSite: "django",
-            url: "/docs/languages/python/django-mongodb/:version/interact-data/atlas-search",
+            url: "/docs/languages/python/django-mongodb/:version/interact-data/mongodb-search",
             versions: { excludes: ["v5.1"] },
           },
           {
-            label: "Atlas Vector Search",
+            label: "MongoDB Vector Search",
             contentSite: "django",
-            url: "/docs/languages/python/django-mongodb/:version/interact-data/atlas-vector-search",
+            url: "/docs/languages/python/django-mongodb/:version/interact-data/mongodb-vector-search",
             versions: { excludes: ["v5.1"] },
           },
           {
