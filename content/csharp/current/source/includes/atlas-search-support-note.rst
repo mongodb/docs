@@ -1,6 +1,6 @@
 .. note:: 
 
-   Atlas Search does not support the following:
+   {+search+} does not support the following:
 
    - Non-default coordinate reference system (CRS)
 

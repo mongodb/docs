@@ -278,7 +278,7 @@ const tocData: TocItem[] = [
             label: "MongoDB Search and Vector Search Indexes",
             contentSite: "csharp",
             url: "/docs/drivers/csharp/:version/indexes/search-indexes",
-            versions: { excludes: outdatedVersions },
+            versions: { excludes: docsVersions.before("v3.0", {inclusive: true}) },
           },
         ]
       },
@@ -298,7 +298,7 @@ const tocData: TocItem[] = [
         label: "MongoDB Vector Search",
         contentSite: "csharp",
         url: "/docs/drivers/csharp/:version/atlas-vector-search",
-        versions: { excludes: outdatedVersions },
+        versions: { excludes: docsVersions.before("v3.1", {inclusive: true}) },
       },
       {
         label: "Time Series",

@@ -1,4 +1,4 @@
-// Performs Atlas Search queries by using the C# driver 
+// Performs MongoDB Search queries by using the C# driver 
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;

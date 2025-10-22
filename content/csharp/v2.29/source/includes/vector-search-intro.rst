@@ -1,12 +1,12 @@
 The ``$vectorSearch`` aggregation stage performs an *approximate nearest neighbor* search
 on a vector in the specified field. Your collection *must* have a
-defined Atlas Vector Search index before you can perform a vector search on your data.
+defined {+vector-search+} index before you can perform a vector search on your data.
 
 .. tip::
 
-   To obtain the sample dataset used in the following example, see :ref:`csharp-quickstart`.
-   To create the sample Atlas Vector Search index used in the following example, see
-   :atlas:`Create an Atlas Vector Search Index </atlas-vector-search/create-index>` in the
+   To obtain the sample dataset used in the following example, see :ref:`csharp-get-started`.
+   To create the sample {+vector-search+} index used in the following example, see
+   :atlas:`Create a {+vector-search+} Index </atlas-vector-search/create-index>` in the
    Atlas manual.
 
 To create a ``$vectorSearch`` pipeline stage, call the ``VectorSearch()`` method on a
@@ -92,6 +92,6 @@ field of the documents in the collection.
 The following example shows how to use |mechanism| to generate an aggregation pipeline to
 perform the following operations:
 
-- Perform a vector search on the Atlas Vector Search index of the ``plot_embedding``
+- Perform a vector search on the {+vector-search+} index of the ``plot_embedding``
   field by using vector embeddings for the string ``"time travel"``
 - Fetch the ``Title`` and ``Plot`` fields from documents found in the vector search

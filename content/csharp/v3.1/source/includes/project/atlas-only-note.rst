@@ -1,3 +1,3 @@
-.. note:: Atlas Search Only
+.. note:: {+search+} Only
 
-   This method is available only when projecting the results of an Atlas Search.
+   This method is available only when projecting the results of a {+search+}.

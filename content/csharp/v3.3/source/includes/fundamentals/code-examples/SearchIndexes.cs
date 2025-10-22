@@ -66,7 +66,7 @@ public class SearchIndexes
     );
 
     var result = movieCollection.SearchIndexes.CreateOne(indexModel);
-    Console.WriteLine("Created Atlas Search index:\n{0}", result);
+    Console.WriteLine("Created MongoDB Search index:\n{0}", result);
     // end-atlas-create-one
 
     // begin-atlas-create-many
