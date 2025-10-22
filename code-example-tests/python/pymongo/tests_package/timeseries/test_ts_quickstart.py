@@ -1,5 +1,5 @@
 import unittest
-from utils.comparison.assert_helpers import assert_expected_file_matches_output
+from utils.comparison import Expect
 import examples.timeseries.ts_quick_start as ts_quick_start
 import examples.sample_app as sample_app
 import os
@@ -44,15 +44,13 @@ class TestTimeseries(unittest.TestCase):
             "----------Time Series quick start test: should metafield query and match----------"
         )
         ts_quick_start.load_sample_data(TestTimeseries.CONNECTION_STRING)
-        metafild_query_output = ts_quick_start.metafield_query(
+        metafield_query_output = ts_quick_start.metafield_query(
             TestTimeseries.CONNECTION_STRING
         )
         expected_metafield_output_filepath = (
             "examples/timeseries/ts-quick-start-metafield-output.txt"
         )
-        assert_expected_file_matches_output(
-            self, expected_metafield_output_filepath, metafild_query_output
-        )
+        Expect.that(metafield_query_output).should_match(expected_metafield_output_filepath)
         print("----------Test complete----------")
 
     def test_quickstart_timefield(self):
@@ -66,9 +64,7 @@ class TestTimeseries(unittest.TestCase):
         expected_timefield_output_filepath = (
             "examples/timeseries/ts-quick-start-timefield-output.txt"
         )
-        assert_expected_file_matches_output(
-            self, expected_timefield_output_filepath, timefield_query_output
-        )
+        Expect.that(timefield_query_output).should_match(expected_timefield_output_filepath)
         print("----------Test complete----------")
 
     @classmethod

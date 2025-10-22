@@ -1,5 +1,5 @@
 import unittest
-from utils.comparison.assert_helpers import assert_expected_file_matches_output
+from utils.comparison import Expect
 import examples.aggregation.pipelines.filter.filter_tutorial as filter_tutorial
 import examples.aggregation.pipelines.tutorial_app as tutorial_app
 import examples.aggregation.pipelines.group.group_tutorial as group_tutorial
@@ -47,7 +47,7 @@ class TestTutorialApp(unittest.TestCase):
         self.assertEqual(1, len(results), "there should only be one document filtered")
 
         output_data = [{"_id": "filterItem", "name": "filterItem"}]
-        self.assertEqual(output_data, results, "expected != actual")
+        Expect.that(results).should_match(output_data)
 
         print("----------Test complete----------")
 
@@ -63,7 +63,7 @@ class TestTutorialApp(unittest.TestCase):
         output_filepath = (
             "examples/aggregation/pipelines/filter/filter-tutorial-output.txt"
         )
-        assert_expected_file_matches_output(self, output_filepath, actual_output)
+        Expect.that(actual_output).should_match(output_filepath)
 
         print("----------Test complete----------")
 
@@ -79,7 +79,7 @@ class TestTutorialApp(unittest.TestCase):
         output_filepath = (
             "examples/aggregation/pipelines/group/group-tutorial-output.txt"
         )
-        assert_expected_file_matches_output(self, output_filepath, actual_output)
+        Expect.that(actual_output).should_match(output_filepath)
 
         print("----------Test complete----------")
 
@@ -95,7 +95,7 @@ class TestTutorialApp(unittest.TestCase):
         output_filepath = (
             "examples/aggregation/pipelines/unwind/unwind-tutorial-output.txt"
         )
-        assert_expected_file_matches_output(self, output_filepath, actual_output)
+        Expect.that(actual_output).should_match(output_filepath)
 
         print("----------Test complete----------")
 
@@ -111,7 +111,7 @@ class TestTutorialApp(unittest.TestCase):
         output_filepath = (
             "examples/aggregation/pipelines/join/one-to-one-tutorial-output.txt"
         )
-        assert_expected_file_matches_output(self, output_filepath, actual_output)
+        Expect.that(actual_output).should_match(output_filepath)
 
         print("----------Test complete----------")
 
@@ -127,7 +127,7 @@ class TestTutorialApp(unittest.TestCase):
         output_filepath = (
             "examples/aggregation/pipelines/join/multi-field-tutorial-output.txt"
         )
-        assert_expected_file_matches_output(self, output_filepath, actual_output)
+        Expect.that(actual_output).should_match(output_filepath)
 
         print("----------Test complete----------")
 

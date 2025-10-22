@@ -231,10 +231,24 @@ def normalize_for_comparison(value: Any) -> Any:
             )
         return _to_canonical_iso(iso_string)
 
-    # Strings: check for ISO date format and normalize if found
-    # This catches datetime strings that weren't parsed as datetime objects
-    if isinstance(value, str) and re.match(datetime_regex, value):
-        return _maybe_parse_iso(value)
+    # Strings: check for datetime patterns and normalize if found
+    if isinstance(value, str):
+        # Check for ISO date format and normalize if found
+        # This catches datetime strings that weren't parsed as datetime objects
+        if re.match(datetime_regex, value):
+            return _maybe_parse_iso(value)
+
+        # Check for datetime.datetime(...) pattern and parse if found
+        # This handles expected values like 'datetime.datetime(2023, 1, 15, 10, 30, 0)'
+        datetime_pattern = r'datetime\.datetime\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2}),\s*(\d{1,2}),\s*(\d{1,2}),\s*(\d{1,2})(?:,\s*(\d+))?\)'
+        match = re.match(datetime_pattern, value)
+        if match:
+            year, month, day, hour, minute, second = map(int, match.groups()[:6])
+            microsecond = int(match.group(7)) if match.group(7) else 0
+            dt = datetime(year, month, day, hour, minute, second, microsecond)
+            # Convert to ISO format using the same normalization as datetime objects
+            iso_string = dt.isoformat() + "Z"
+            return _to_canonical_iso(iso_string)
 
     # Handle bytes objects with Extended JSON representation
     # Bytes are converted to UTF-8 strings with error handling for binary data
@@ -256,6 +270,25 @@ def normalize_for_comparison(value: Any) -> Any:
         return [normalize_for_comparison(v) for v in value]
 
     if isinstance(value, dict):
+        # Handle Extended JSON datetime format: {"$date": "2023-01-15T10:30:00.000Z"}
+        if set(value.keys()) == {"$date"}:
+            date_str = value["$date"]
+            if date_str == "...":
+                return "..."
+            try:
+                # Parse and normalize the datetime string
+                dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+                dt = dt.astimezone(timezone.utc)
+                return dt.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+            except Exception:
+                return date_str
+
+        # Handle other Extended JSON formats if needed (ObjectId, etc.)
+        if set(value.keys()) == {"$oid"}:
+            oid_str = value["$oid"]
+            return "..." if oid_str == "..." else str(oid_str)
+
+        # Recursively normalize all values for regular dictionaries
         return {k: normalize_for_comparison(v) for k, v in value.items()}
 
     # Fallback: return value unchanged for unknown types

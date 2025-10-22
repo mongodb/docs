@@ -13,8 +13,9 @@ Core Design Principles:
     5. Performance-Optimized: Uses caching and intelligent algorithm selection
 
 Key Components:
-    - assert_helpers.py: High-level assertion functions for unittest integration
+    - expect.py: API for specifying comparison options and running comparisons
     - comparison.py: Core comparison engine with algorithm selection
+    - content_analyzer.py: Detects structured content and selects comparison strategy
     - parser.py: MongoDB document syntax parser with constructor support
     - ellipsis.py: Ellipsis pattern detection and matching logic
     - arrays.py: Array comparison strategies (ordered, unordered, hybrid)
@@ -32,21 +33,24 @@ Ellipsis Pattern Support (see comparison-spec.md for full specification):
 Algorithm Selection Strategy:
     The engine automatically selects the best comparison algorithm based on:
     - Array size (switches to ordered for large arrays to avoid timeout)
-    - Content type (primitives vs objects)
+    - Content type
     - Ellipsis presence (affects matching strategy)
-    - User preferences (ComparisonOptions can override defaults)
+    - User preferences (Expect methods can specify optional behavior)
 
 Example Usage:
-    # Basic assertion
-    assert_expected_file_matches_output(self, "expected.txt", actual_result)
+    # Basic comparison (arrays and ellipsis patterns unordered by default for MongoDB compatibility)
+    # Automatic content detection selects the best comparison strategy
+    Expect.that(actual_result).should_match("expected.txt")
+    Expect.that(actual_document).should_match({"name": "test", "_id": "..."})
 
-    # With options for ignored fields
-    options = ComparisonOptions(ignore_field_values={"_id", "timestamp"})
-    assert_expected_file_matches_output(self, "expected.txt", actual_result, options)
+    # Ellipsis patterns work with unordered arrays (perfect for MongoDB results)
+    Expect.that(mongodb_results).should_match([{"name": "Alice"}, "...", {"name": "Bob"}])
 
-    # Standalone comparison
-    result = compare_documents(expected_content, actual_data)
-    assert result.is_match, result.error
+    # Ignore volatile fields
+    Expect.that(actual_result).with_ignored_fields("_id", "timestamp").should_match("expected.txt")
+
+    # Require exact array order (only when needed)
+    Expect.that(actual_array).with_ordered_sort().should_match(expected_array)
 
 Threading and Performance:
     - All functions are thread-safe
@@ -55,31 +59,21 @@ Threading and Performance:
     - Memory usage is bounded by recursion depth limits
 """
 
-from .assert_helpers import (
-    assert_expected_file_matches_output,
-    assert_outputs_match,
-    assert_matches_expected_file,
-    assert_matches_expected_content,
-    ComparisonTestCase,
-)
+from .expect import Expect
+from .content_analyzer import ContentAnalyzer
+
+# Core comparison components (for advanced usage)
 from .comparison import (
-    compare_text_outputs,
-    compare_documents,
-    compare_values,
     ComparisonOptions,
     ComparisonResult,
 )
 from .errors import ComparisonError
 
 __all__ = [
-    "assert_expected_file_matches_output",
-    "assert_outputs_match",
-    "assert_matches_expected_file",
-    "assert_matches_expected_content",
-    "ComparisonTestCase",
-    "compare_text_outputs",
-    "compare_documents",
-    "compare_values",
+    # High-level API
+    "Expect",
+    "ContentAnalyzer",
+    # Core components
     "ComparisonOptions",
     "ComparisonResult",
     "ComparisonError",

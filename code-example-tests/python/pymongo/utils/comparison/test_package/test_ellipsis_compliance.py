@@ -8,14 +8,7 @@ import tempfile
 import os
 from pathlib import Path
 
-from utils.comparison.assert_helpers import (
-    assert_expected_file_matches_output,
-    assert_outputs_match,
-    assert_matches_expected_file,
-    assert_matches_expected_content,
-    ComparisonTestCase,
-)
-from utils.comparison.comparison import ComparisonOptions
+from utils.comparison import Expect
 from utils.comparison.errors import ComparisonError
 
 
@@ -59,7 +52,7 @@ class TestPropertyLevelEllipsis(TestEllipsisHandlingInAssertHelpers):
         temp_file = self._create_temp_file(expected_content)
 
         # Should work without options
-        assert_expected_file_matches_output(self, temp_file, actual_output)
+        Expect.that(actual_output).should_match(temp_file)
 
     def test_exact_ellipsis_assert_matches_expected_content_no_options(self):
         """Test that assert_matches_expected_content handles exact ellipsis without options."""
@@ -77,7 +70,7 @@ class TestPropertyLevelEllipsis(TestEllipsisHandlingInAssertHelpers):
         }
 
         # Should work without options
-        assert_matches_expected_content(expected_content, actual_value)
+        Expect.that(actual_value).should_match(expected_content)
 
     def test_truncated_string_ellipsis(self):
         """Test that truncated strings with ellipsis work across all helpers."""
@@ -92,12 +85,12 @@ class TestPropertyLevelEllipsis(TestEllipsisHandlingInAssertHelpers):
             "code": 500,
         }
 
-        # Test with assert_matches_expected_content (no options)
-        assert_matches_expected_content(expected_content, actual_value)
+        # Test with Expect.that (no options)
+        Expect.that(actual_value).should_match(expected_content)
 
-        # Test with assert_expected_file_matches_output (no options)
+        # Test with file comparison (no options)
         temp_file = self._create_temp_file(expected_content)
-        assert_expected_file_matches_output(self, temp_file, actual_value)
+        Expect.that(actual_value).should_match(temp_file)
 
 
 class TestArrayLevelEllipsis(TestEllipsisHandlingInAssertHelpers):
@@ -109,11 +102,11 @@ class TestArrayLevelEllipsis(TestEllipsisHandlingInAssertHelpers):
         actual_value = [1, 2, 3, "anything", {"nested": "object"}]
 
         # Should work without options
-        assert_matches_expected_content(expected_content, actual_value)
+        Expect.that(actual_value).should_match(expected_content)
 
         # Test with file
         temp_file = self._create_temp_file(expected_content)
-        assert_expected_file_matches_output(self, temp_file, actual_value)
+        Expect.that(actual_value).should_match(temp_file)
 
     def test_array_with_ellipsis_gaps_no_options(self):
         """Test that [1, "...", 5] matches arrays with gaps without options."""
@@ -121,11 +114,11 @@ class TestArrayLevelEllipsis(TestEllipsisHandlingInAssertHelpers):
         actual_value = [1, 2, 3, 4, 5]
 
         # Should work without options
-        assert_matches_expected_content(expected_content, actual_value)
+        Expect.that(actual_value).should_match(expected_content)
 
         # Test with file
         temp_file = self._create_temp_file(expected_content)
-        assert_expected_file_matches_output(self, temp_file, actual_value)
+        Expect.that(actual_value).should_match(temp_file)
 
     def test_mixed_array_with_ellipsis_no_options(self):
         """Test arrays with mixed content and ellipsis without options."""
@@ -144,7 +137,7 @@ class TestArrayLevelEllipsis(TestEllipsisHandlingInAssertHelpers):
         ]
 
         # Should work without options
-        assert_matches_expected_content(expected_content, actual_value)
+        Expect.that(actual_value).should_match(expected_content)
 
 
 class TestObjectLevelEllipsis(TestEllipsisHandlingInAssertHelpers):
@@ -161,11 +154,11 @@ class TestObjectLevelEllipsis(TestEllipsisHandlingInAssertHelpers):
         }
 
         # Should work without options
-        assert_matches_expected_content(expected_content, actual_value)
+        Expect.that(actual_value).should_match(expected_content)
 
         # Test with file
         temp_file = self._create_temp_file(expected_content)
-        assert_expected_file_matches_output(self, temp_file, actual_value)
+        Expect.that(actual_value).should_match(temp_file)
 
 
 class TestGlobalEllipsis(TestEllipsisHandlingInAssertHelpers):
@@ -189,11 +182,11 @@ class TestGlobalEllipsis(TestEllipsisHandlingInAssertHelpers):
         }
 
         # Should work without options
-        assert_matches_expected_content(expected_content, actual_value)
+        Expect.that(actual_value).should_match(expected_content)
 
         # Test with file
         temp_file = self._create_temp_file(expected_content)
-        assert_expected_file_matches_output(self, temp_file, actual_value)
+        Expect.that(actual_value).should_match(temp_file)
 
     def test_global_ellipsis_with_nested_structures_no_options(self):
         """Test global ellipsis with complex nested structures without options."""
@@ -226,7 +219,7 @@ class TestGlobalEllipsis(TestEllipsisHandlingInAssertHelpers):
         }
 
         # Should work without options
-        assert_matches_expected_content(expected_content, actual_value)
+        Expect.that(actual_value).should_match(expected_content)
 
 
 class TestComplexEllipsisPatterns(TestEllipsisHandlingInAssertHelpers):
@@ -277,41 +270,34 @@ class TestComplexEllipsisPatterns(TestEllipsisHandlingInAssertHelpers):
         }
 
         # Should work without options
-        assert_matches_expected_content(expected_content, actual_value)
+        Expect.that(actual_value).should_match(expected_content)
 
 
-class TestComparisonTestCaseEllipsis(ComparisonTestCase):
-    """Test ellipsis handling in ComparisonTestCase methods."""
+class TestExpectAPIEllipsis(TestEllipsisHandlingInAssertHelpers):
+    """Test ellipsis handling in the Expect API."""
 
-    def test_comparison_test_case_ellipsis_no_options(self):
-        """Test that ComparisonTestCase methods handle ellipsis without options."""
+    def test_expect_api_ellipsis_no_options(self):
+        """Test that the Expect API handles ellipsis without options."""
         # Property-level ellipsis
-        self.assertMatchesExpectedContent(
-            '{"_id": "...", "name": "John"}',
-            {"_id": "507f1f77bcf86cd799439011", "name": "John"},
+        Expect.that({"_id": "507f1f77bcf86cd799439011", "name": "John"}).should_match(
+            '{"_id": "...", "name": "John"}'
         )
 
         # Array-level ellipsis
-        self.assertMatchesExpectedContent('["..."]', [1, 2, 3, "anything"])
+        Expect.that([1, 2, 3, "anything"]).should_match('["..."]')
 
         # Global ellipsis
-        self.assertMatchesExpectedContent(
-            '...\n{"name": "Alice"}', {"name": "Alice", "extra": "field"}
+        Expect.that({"name": "Alice", "extra": "field"}).should_match(
+            '...\n{"name": "Alice"}'
         )
 
-
-class TestAssertOutputsMatchEllipsis(TestEllipsisHandlingInAssertHelpers):
-    """Test ellipsis handling in assert_outputs_match (text comparison)."""
-
-    def test_assert_outputs_match_with_structured_ellipsis(self):
-        """Test that assert_outputs_match handles structured content with ellipsis."""
+    def test_expect_api_with_structured_ellipsis(self):
+        """Test that the Expect API handles structured content with ellipsis."""
         expected_text = """{"_id": "...", "name": "John", "age": 30}"""
-        actual_text = (
-            """{"_id": "507f1f77bcf86cd799439011", "name": "John", "age": 30}"""
-        )
+        actual_data = {"_id": "507f1f77bcf86cd799439011", "name": "John", "age": 30}
 
-        # Should work with text comparison
-        assert_outputs_match(self, expected_text, actual_text)
+        # Should work with Expect API
+        Expect.that(actual_data).should_match(expected_text)
 
 
 if __name__ == "__main__":

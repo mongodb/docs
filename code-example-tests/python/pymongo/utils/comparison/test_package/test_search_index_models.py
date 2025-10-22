@@ -1,262 +1,403 @@
+#!/usr/bin/env python3
 """
-Unit tests for SearchIndexModel and IndexModel parsing functionality.
+Test search index models comparison functionality using the Expect API.
 """
-
 import unittest
-import sys
-import os
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-try:
-    from utils.comparison.assert_helpers import ComparisonTestCase
-    from utils.comparison.comparison import ComparisonOptions
-except ImportError:
-    # Fallback for direct execution
-    import sys
-
-    sys.path.append("../../")
-    from utils.comparison.assert_helpers import ComparisonTestCase
-    from utils.comparison.comparison import ComparisonOptions
+from utils.comparison import Expect
 
 
-class TestSearchIndexModelParsing(ComparisonTestCase):
-    """Test SearchIndexModel and IndexModel parsing with various patterns."""
+class TestSearchIndexModels(unittest.TestCase):
+    """Test search index models comparison using the Expect API."""
 
-    def test_search_index_model_basic(self):
-        """Test basic SearchIndexModel parsing."""
-        expected_content = """
-        {
-            "model_type": "SearchIndexModel",
+    def test_basic_search_index(self):
+        """Test basic search index definition."""
+        expected = {
+            "name": "default",
+            "definition": {
+                "mappings": {
+                    "dynamic": True
+                }
+            }
+        }
+        actual = {
+            "name": "default",
+            "definition": {
+                "mappings": {
+                    "dynamic": True
+                }
+            }
+        }
+
+        # Should match basic search index
+        Expect.that(actual).should_match(expected)
+
+    def test_field_specific_search_index(self):
+        """Test field-specific search index definition."""
+        expected = {
+            "name": "title_index",
+            "definition": {
+                "mappings": {
+                    "dynamic": False,
+                    "fields": {
+                        "title": {
+                            "type": "string",
+                            "analyzer": "lucene.standard"
+                        },
+                        "content": {
+                            "type": "string",
+                            "analyzer": "lucene.english"
+                        }
+                    }
+                }
+            }
+        }
+        actual = {
+            "name": "title_index",
+            "definition": {
+                "mappings": {
+                    "dynamic": False,
+                    "fields": {
+                        "title": {
+                            "type": "string",
+                            "analyzer": "lucene.standard"
+                        },
+                        "content": {
+                            "type": "string",
+                            "analyzer": "lucene.english"
+                        }
+                    }
+                }
+            }
+        }
+
+        # Should match field-specific search index
+        Expect.that(actual).should_match(expected)
+
+    def test_vector_search_index(self):
+        """Test vector search index definition."""
+        expected = {
+            "name": "vector_index",
+            "type": "vectorSearch",
             "definition": {
                 "fields": [
                     {
                         "type": "vector",
+                        "path": "embeddings",
                         "numDimensions": 1536,
-                        "path": "embedding",
                         "similarity": "cosine"
                     }
                 ]
-            },
-            "name": "vector_index",
-            "type": "vectorSearch"
+            }
         }
-        """
-
-        actual_data = {
-            "model_type": "SearchIndexModel",
+        actual = {
+            "name": "vector_index",
+            "type": "vectorSearch",
             "definition": {
                 "fields": [
                     {
                         "type": "vector",
+                        "path": "embeddings",
                         "numDimensions": 1536,
-                        "path": "embedding",
-                        "similarity": "cosine",
+                        "similarity": "cosine"
                     }
                 ]
-            },
-            "name": "vector_index",
-            "type": "vectorSearch",
+            }
         }
 
-        self.assertMatchesExpectedContent(expected_content, actual_data)
+        # Should match vector search index
+        Expect.that(actual).should_match(expected)
 
-    def test_search_index_model_with_pymongo_prefix(self):
-        """Test SearchIndexModel with pymongo prefix."""
-        expected_content = """
-        {
-            "model_type": "SearchIndexModel",
+    def test_compound_search_index(self):
+        """Test compound search index with multiple field types."""
+        expected = {
+            "name": "compound_index",
             "definition": {
                 "mappings": {
-                    "dynamic": true
-                }
-            },
-            "name": "my_index"
-        }
-        """
-
-        actual_data = {
-            "model_type": "SearchIndexModel",
-            "definition": {"mappings": {"dynamic": True}},
-            "name": "my_index",
-        }
-
-        self.assertMatchesExpectedContent(expected_content, actual_data)
-
-    def test_search_index_model_array(self):
-        """Test array of SearchIndexModel objects."""
-        expected_content = """
-        [
-            {
-                "model_type": "SearchIndexModel",
-                "definition": {"mappings": {"dynamic": true}},
-                "name": "search_idx"
-            },
-            {
-                "model_type": "SearchIndexModel",
-                "definition": {
-                    "fields": [
-                        {
-                            "type": "vector",
-                            "numDimensions": 1536,
-                            "path": "embedding",
-                            "similarity": "cosine"
+                    "dynamic": False,
+                    "fields": {
+                        "title": {
+                            "type": "string",
+                            "analyzer": "lucene.standard"
+                        },
+                        "category": {
+                            "type": "stringFacet"
+                        },
+                        "price": {
+                            "type": "number"
+                        },
+                        "created_date": {
+                            "type": "date"
+                        },
+                        "tags": {
+                            "type": "string",
+                            "multi": True
                         }
-                    ]
-                },
-                "name": "vector_idx",
-                "type": "vectorSearch"
+                    }
+                }
             }
-        ]
-        """
-
-        actual_data = [
-            {
-                "model_type": "SearchIndexModel",
-                "definition": {"mappings": {"dynamic": True}},
-                "name": "search_idx",
-            },
-            {
-                "model_type": "SearchIndexModel",
-                "definition": {
-                    "fields": [
-                        {
-                            "type": "vector",
-                            "numDimensions": 1536,
-                            "path": "embedding",
-                            "similarity": "cosine",
+        }
+        actual = {
+            "name": "compound_index",
+            "definition": {
+                "mappings": {
+                    "dynamic": False,
+                    "fields": {
+                        "title": {
+                            "type": "string",
+                            "analyzer": "lucene.standard"
+                        },
+                        "category": {
+                            "type": "stringFacet"
+                        },
+                        "price": {
+                            "type": "number"
+                        },
+                        "created_date": {
+                            "type": "date"
+                        },
+                        "tags": {
+                            "type": "string",
+                            "multi": True
                         }
-                    ]
+                    }
+                }
+            }
+        }
+
+        # Should match compound search index
+        Expect.that(actual).should_match(expected)
+
+    def test_search_index_with_synonyms(self):
+        """Test search index with synonym configuration."""
+        expected = {
+            "name": "synonym_index",
+            "definition": {
+                "mappings": {
+                    "dynamic": True
                 },
-                "name": "vector_idx",
-                "type": "vectorSearch",
-            },
-        ]
-
-        self.assertMatchesExpectedContent(expected_content, actual_data)
-
-    def test_index_model_basic(self):
-        """Test basic IndexModel parsing."""
-        expected_content = """
-        {
-            "model_type": "IndexModel",
-            "name": "compound_index",
-            "keys": [["name", 1], ["age", -1]]
+                "synonyms": [
+                    {
+                        "name": "product_synonyms",
+                        "source": {
+                            "collection": "synonyms"
+                        },
+                        "analyzer": "lucene.standard"
+                    }
+                ]
+            }
         }
-        """
-
-        actual_data = {
-            "model_type": "IndexModel",
-            "name": "compound_index",
-            "keys": [["name", 1], ["age", -1]],
-        }
-
-        self.assertMatchesExpectedContent(expected_content, actual_data)
-
-    def test_index_model_with_options(self):
-        """Test IndexModel with additional options."""
-        expected_content = """
-        {
-            "model_type": "IndexModel",
-            "keys": [["name", 1]],
-            "name": "name_index",
-            "unique": true,
-            "sparse": false
-        }
-        """
-
-        actual_data = {
-            "model_type": "IndexModel",
-            "keys": [["name", 1]],
-            "name": "name_index",
-            "unique": True,
-            "sparse": False,
+        actual = {
+            "name": "synonym_index",
+            "definition": {
+                "mappings": {
+                    "dynamic": True
+                },
+                "synonyms": [
+                    {
+                        "name": "product_synonyms",
+                        "source": {
+                            "collection": "synonyms"
+                        },
+                        "analyzer": "lucene.standard"
+                    }
+                ]
+            }
         }
 
-        self.assertMatchesExpectedContent(expected_content, actual_data)
+        # Should match search index with synonyms
+        Expect.that(actual).should_match(expected)
 
-    def test_mixed_index_models(self):
-        """Test mixed SearchIndexModel and IndexModel in same document."""
-        expected_content = """
-        {
-            "search_models": [
-                {
-                    "model_type": "SearchIndexModel",
-                    "definition": {"mappings": {"dynamic": true}},
-                    "name": "search_idx"
-                }
-            ],
-            "regular_models": [
-                {
-                    "model_type": "IndexModel",
-                    "keys": [["name", 1]],
-                    "name": "name_idx"
-                }
-            ]
-        }
-        """
-
-        actual_data = {
-            "search_models": [
-                {
-                    "model_type": "SearchIndexModel",
-                    "definition": {"mappings": {"dynamic": True}},
-                    "name": "search_idx",
-                }
-            ],
-            "regular_models": [
-                {"model_type": "IndexModel", "keys": [["name", 1]], "name": "name_idx"}
-            ],
-        }
-
-        self.assertMatchesExpectedContent(expected_content, actual_data)
-
-    def test_real_world_vector_search_example(self):
-        """Test real-world vector search index example from documentation."""
-        expected_content = """
-        [
+    def test_search_index_array(self):
+        """Test array of search index definitions."""
+        expected = [
             {
-                "model_type": "SearchIndexModel",
+                "name": "text_index",
+                "definition": {
+                    "mappings": {
+                        "dynamic": True
+                    }
+                }
+            },
+            {
+                "name": "vector_index",
+                "type": "vectorSearch",
                 "definition": {
                     "fields": [
                         {
                             "type": "vector",
-                            "numDimensions": 1536,
-                            "path": "embedding", 
+                            "path": "embeddings",
+                            "numDimensions": 768,
                             "similarity": "euclidean"
-                        },
-                        {
-                            "type": "filter",
-                            "path": "category"
                         }
                     ]
-                },
-                "name": "vector_search_index",
-                "type": "vectorSearch"
+                }
             }
         ]
-        """
-
-        actual_data = [
+        actual = [
             {
-                "model_type": "SearchIndexModel",
+                "name": "text_index",
+                "definition": {
+                    "mappings": {
+                        "dynamic": True
+                    }
+                }
+            },
+            {
+                "name": "vector_index",
+                "type": "vectorSearch",
                 "definition": {
                     "fields": [
                         {
                             "type": "vector",
-                            "numDimensions": 1536,
-                            "path": "embedding",
-                            "similarity": "euclidean",
-                        },
-                        {"type": "filter", "path": "category"},
+                            "path": "embeddings",
+                            "numDimensions": 768,
+                            "similarity": "euclidean"
+                        }
                     ]
-                },
-                "name": "vector_search_index",
-                "type": "vectorSearch",
+                }
             }
         ]
 
-        self.assertMatchesExpectedContent(expected_content, actual_data)
+        # Should match array of search indexes
+        Expect.that(actual).should_match(expected)
+
+    def test_search_index_with_ellipsis(self):
+        """Test search index with ellipsis patterns."""
+        expected = {
+            "name": "...",
+            "definition": {
+                "mappings": {
+                    "dynamic": True,
+                    "fields": {
+                        "title": {
+                            "type": "string",
+                            "analyzer": "..."
+                        }
+                    }
+                }
+            },
+            "status": "...",
+            "queryable": True
+        }
+        actual = {
+            "name": "dynamic_index",
+            "definition": {
+                "mappings": {
+                    "dynamic": True,
+                    "fields": {
+                        "title": {
+                            "type": "string",
+                            "analyzer": "lucene.standard"
+                        }
+                    }
+                }
+            },
+            "status": "READY",
+            "queryable": True
+        }
+
+        # Should match with ellipsis patterns
+        Expect.that(actual).should_match(expected)
+
+    def test_search_index_with_ignored_fields(self):
+        """Test search index with ignored fields."""
+        expected = {
+            "name": "test_index",
+            "status": "ignored",
+            "definition": {
+                "mappings": {
+                    "dynamic": True
+                }
+            }
+        }
+        actual = {
+            "name": "test_index",
+            "status": "BUILDING",
+            "definition": {
+                "mappings": {
+                    "dynamic": True
+                }
+            }
+        }
+        # Should match with ignored status field
+        Expect.that(actual).with_ignored_fields("status").should_match(expected)
+
+    def test_fluent_api_search_index(self):
+        """Test fluent API with search index."""
+        expected = {
+            "name": "test_index",
+            "status": "ignored",
+            "definition": {
+                "mappings": {
+                    "fields": ["field1", "field2", "field3"]
+                }
+            }
+        }
+        actual = {
+            "name": "test_index",
+            "status": "READY",
+            "definition": {
+                "mappings": {
+                    "fields": ["field3", "field1", "field2"]  # Different order
+                }
+            }
+        }
+
+        # Should match with fluent API
+        Expect.that(actual).with_ignored_fields("status").should_match(expected)
+
+    def test_nested_search_index_fields(self):
+        """Test nested search index field definitions."""
+        expected = {
+            "name": "nested_index",
+            "definition": {
+                "mappings": {
+                    "fields": {
+                        "user": {
+                            "type": "document",
+                            "fields": {
+                                "name": {"type": "string"},
+                                "email": {"type": "string"},
+                                "profile": {
+                                    "type": "document",
+                                    "fields": {
+                                        "age": {"type": "number"},
+                                        "location": {"type": "geo"}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        actual = {
+            "name": "nested_index",
+            "definition": {
+                "mappings": {
+                    "fields": {
+                        "user": {
+                            "type": "document",
+                            "fields": {
+                                "name": {"type": "string"},
+                                "email": {"type": "string"},
+                                "profile": {
+                                    "type": "document",
+                                    "fields": {
+                                        "age": {"type": "number"},
+                                        "location": {"type": "geo"}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        # Should match nested search index fields
+        Expect.that(actual).should_match(expected)
 
 
 if __name__ == "__main__":

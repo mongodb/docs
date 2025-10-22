@@ -50,13 +50,6 @@ When you want to work with Python examples in this project, run the
 following command to activate the virtual environment:
 
 ```
-./venv/bin/activate
-```
-
-If you receive the error `permission denied: ./venv/bin/activate`, try running
-the following command instead:
-
-```
 source ./venv/bin/activate
 ```
 
@@ -324,10 +317,10 @@ filename matches the example - i.e. `tutorial-output.sh`. Then, read the
 contents of the file in the test and verify that the output matches what the
 test returns.
 
-First, import the helper function from the comparison library:
+First, import the API from the comparison library:
 
 ```py
-from utils.comparison.assert_helpers import assert_expected_file_matches_output
+from utils.comparison import Expect
 ```
 
 Then, validate the actual output against the output we expect based on the
@@ -339,39 +332,22 @@ actual_output = example_stub.example(TestExampleStub.CONNECTION_STRING)
 
 # Use the comparison library to validate that the output matches
 output_filepath = 'examples/aggregation/pipelines/tutorial.sh'
-assert_expected_file_matches_output(self, output_filepath, actual_output)
+
+# This reads the content of the file at the filepath and compares against actual output
+Expect.that(actual_output).should_match(output_filepath)
 ```
 
 ##### Use options to specify comparison behaviors
 
-First, import comparison options from the comparison library:
-
-```py
-from utils.comparison.comparison import ComparisonOptions
-```
-
 Choose the appropriate options based on your output characteristics:
-
-##### Verify unordered output (default behavior)
-
-For output that can be in any order (most common case):
-
-```py
-# Pass the `comparisonType` option explicitly:
-options = ComparisonOptions(comparison_type="unordered")
-assert_expected_file_matches_output(self, output_filepath, actual_output, options)
-
-# Omit the options object (unordered comparison is used by default)
-assert_expected_file_matches_output(self, output_filepath, actual_output)
-```
 
 ##### Verify ordered output
 
-For output that must be in a specific order (e.g., when using sort operations):
+Default comparison is unordered. For output that must be in a specific order
+(e.g., when using sort operations):
 
 ```py
-options = ComparisonOptions(comparison_type="ordered")
-assert_expected_file_matches_output(self, output_filepath, actual_output, options)
+Expect.that(actual_output).with_ordered_sort().should_match(output_filepath)
 ```
 
 ##### Handle variable field values
@@ -381,8 +357,7 @@ When your output contains fields that will have different values between test ru
 specific fields during comparison:
 
 ```py
-options = ComparisonOptions(ignore_field_values={"_id"})
-assert_expected_file_matches_output(self, output_filepath, actual_output, options)
+Expect.that(actual_output).with_ignored_fields("_id", "timestamp").should_match(output_filepath)
 ```
 
 This ensures the comparison only validates that the field names are present,
@@ -459,35 +434,15 @@ You can also interject standalone `...` lines between properties, similar to:
 }
 ```
 
-##### Complete options reference
+##### Complete `Expect` reference
 
-The `ComparisonOptions` object supports these properties:
+The `Expect` class supports these methods:
 
-```py
-comparison_type: Optional[str] = None  # "ordered", "unordered", or None (auto-select)
-ignore_field_values: Optional[set[str]] = None
-timeout_seconds: int = 30
-array_size_threshold: int = 50  # Max size for unordered backtracking
-```
-
-#### Verify print output
-
-Use a output capture to save what the example prints. Add these two imports:
-
-```py
-import io
-from contextlib import redirect_stdout
-```
-
-Then, add the output capture:
-
-```py
-with redirect_stdout(io.StringIO()) as stdout:
-    results = example_stub.example(TestExampleStub.CONNECTION_STRING)
-captured_actual_output = stdout.getvalue()
-```
-
-You can verify the captured output against a string match or an expected output file.
+- `that(actual: Any) -> Expect`: Create a new `Expect` instance for fluent API usage.
+- `with_ignored_fields(*fields: str) -> Expect`: Configure comparison to ignore specific field names.
+- `with_ordered_sort() -> Expect`: Configure comparison to require arrays in exact order.
+- `with_unordered_sort() -> Expect`: Configure comparison to allow arrays in any order (default behavior).
+- `should_match(expected: Any) -> None`: Perform the comparison and raise `AssertionError` if it fails.
 
 ## To run the tests locally
 

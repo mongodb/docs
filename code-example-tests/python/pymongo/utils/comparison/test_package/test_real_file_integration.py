@@ -4,14 +4,10 @@ This demonstrates the library working with the existing examples using structure
 """
 
 import unittest
-from utils.comparison.assert_helpers import (
-    ComparisonTestCase,
-    assert_matches_expected_file,
-)
-from utils.comparison.comparison import ComparisonOptions
+from utils.comparison import Expect
 
 
-class TestRealExampleFileIntegration(ComparisonTestCase):
+class TestRealExampleFileIntegration(unittest.TestCase):
     """Test integration with real PyMongo example output files using document comparison."""
 
     def test_filter_tutorial_with_document_comparison(self):
@@ -45,9 +41,8 @@ class TestRealExampleFileIntegration(ComparisonTestCase):
 
         # This should now work with document comparison instead of just text comparison
         try:
-            assert_matches_expected_file(
-                "examples/aggregation/pipelines/filter/filter-tutorial-output.txt",
-                simulated_actual_data,
+            Expect.that(simulated_actual_data).should_match(
+                "examples/aggregation/pipelines/filter/filter-tutorial-output.txt"
             )
         except Exception as e:
             self.fail(f"Document comparison failed: {e}")
@@ -77,7 +72,7 @@ class TestRealExampleFileIntegration(ComparisonTestCase):
             "customer_id": "oranieri@warmmail.com",
         }
 
-        self.assertMatchesExpectedContent(expected_content, actual_data)
+        Expect.that(actual_data).should_match(expected_content)
 
     def test_document_comparison_vs_text_comparison(self):
         """Compare document comparison vs text comparison for tutorial validation."""
@@ -110,9 +105,8 @@ class TestRealExampleFileIntegration(ComparisonTestCase):
 
         # Test 1: Document comparison with structured validation
         try:
-            assert_matches_expected_file(
-                "examples/aggregation/pipelines/filter/filter-tutorial-output.txt",
-                mock_aggregation_result,
+            Expect.that(mock_aggregation_result).should_match(
+                "examples/aggregation/pipelines/filter/filter-tutorial-output.txt"
             )
             document_comparison_result = "✅ PASSED"
         except Exception as e:
@@ -128,14 +122,12 @@ class TestRealExampleFileIntegration(ComparisonTestCase):
             + str(mock_aggregation_result[2])
         )
 
-        from utils.comparison.assert_helpers import assert_outputs_match
-
         try:
             with open(
                 "examples/aggregation/pipelines/filter/filter-tutorial-output.txt", "r"
             ) as f:
                 expected_text = f.read()
-            assert_outputs_match(self, expected_text, mock_text_output)
+            Expect.that(mock_text_output).should_match(expected_text)
             text_comparison_result = "✅ PASSED"
         except Exception as e:
             text_comparison_result = f"❌ FAILED: {e}"
@@ -150,7 +142,7 @@ class TestRealExampleFileIntegration(ComparisonTestCase):
             "Document comparison should pass with datetime parsing",
         )
 
-    def test_robust_validation_with_ignore_fields(self):
+    def test_robust_validation_with_with_ignored_fields(self):
         """Test robust validation that ignores generated fields like ObjectIds."""
 
         # Simulate realistic aggregation result with ObjectIds that would vary between runs
@@ -177,9 +169,7 @@ class TestRealExampleFileIntegration(ComparisonTestCase):
         ]
         """
 
-        # Test with ignore_field_values option
-        options = ComparisonOptions(ignore_field_values={"_id"})
-        self.assertMatchesExpectedContent(expected_content, variable_result, options)
+        # Test with ignore_field_values option        Expect.that(variable_result).should_match(expected_content)
 
     def test_partial_result_validation(self):
         """Test validation of partial results using ellipsis patterns."""
@@ -216,7 +206,7 @@ class TestRealExampleFileIntegration(ComparisonTestCase):
         """
 
         # This should pass because global ellipsis allows extra fields
-        self.assertMatchesExpectedContent(expected_pattern, large_result)
+        Expect.that(large_result).should_match(expected_pattern)
 
 
 if __name__ == "__main__":

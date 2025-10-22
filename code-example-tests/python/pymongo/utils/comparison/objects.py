@@ -272,9 +272,11 @@ def compare_values(expected: Any, actual: Any, path: str, ctx: _Ctx) -> None:
         if expected is None or actual is None:
             if expected is actual:
                 return
-            raise ComparisonError(
-                f"Value mismatch: expected {expected!r}, actual {actual!r}", path
-            )
+            if expected is None:
+                error_msg = f"Expected null but got {actual!r}. Suggestion: Check if this field should be omitted."
+            else:
+                error_msg = f"Expected {expected!r} but got null. Suggestion: Check if this field is missing from the data source."
+            raise ComparisonError(error_msg, path)
 
         # Apply MongoDB-specific type normalization before comparison
         # This handles ObjectIds, dates, numeric types, etc.
@@ -289,19 +291,23 @@ def compare_values(expected: Any, actual: Any, path: str, ctx: _Ctx) -> None:
                 # Special case: allow numeric type flexibility (int/float)
                 if numbers_equal(e, a):
                     return
-                raise ComparisonError(
-                    f"Type mismatch: expected {type(e).__name__}, actual {type(a).__name__}",
-                    path,
+                error_msg = (
+                    f"Type mismatch: expected {type(e).__name__}, actual {type(a).__name__}. "
+                    f"Expected: {e!r}, Actual: {a!r}. "
+                    f"Suggestion: Check that the data types match your expectations."
                 )
+                raise ComparisonError(error_msg, path)
 
             # Check value equality
             if e != a:
                 # Double-check with numeric comparison for edge cases
                 if numbers_equal(e, a):
                     return
-                raise ComparisonError(
-                    f"Value mismatch: expected {e!r}, actual {a!r}", path
+                error_msg = (
+                    f"Value mismatch: expected {e!r}, actual {a!r}. "
+                    f"Suggestion: Check if the values are correct. If values are dynamic, use 'with_ignored_fields' in the test or ellipsis patterns in the output to match any value."
                 )
+                raise ComparisonError(error_msg, path)
             return
 
         # Handle array comparison using strategy selection
@@ -314,9 +320,13 @@ def compare_values(expected: Any, actual: Any, path: str, ctx: _Ctx) -> None:
         # Detect array/non-array type mismatches
         # This catches cases where expected is array but actual is object or vice versa
         if isinstance(e, list) != isinstance(a, list):
-            raise ComparisonError(
-                f"Type mismatch: one is array and the other is not", path
+            expected_type = "array" if isinstance(e, list) else type(e).__name__
+            actual_type = "array" if isinstance(a, list) else type(a).__name__
+            error_msg = (
+                f"Type mismatch: expected {expected_type}, actual {actual_type}. "
+                f"Suggestion: Check if you meant to compare an array with an object."
             )
+            raise ComparisonError(error_msg, path)
 
         # Handle object (dictionary) comparison
         # This is the most complex case with field handling and ellipsis support
@@ -335,13 +345,22 @@ def compare_values(expected: Any, actual: Any, path: str, ctx: _Ctx) -> None:
                 # Handle ignored fields (skip comparison but check presence)
                 if ctx.should_ignore(key):
                     if key not in a and not ctx.allow_omitted_fields:
-                        raise ComparisonError(f"Missing key: {key}", path)
+                        error_msg = (
+                            f"Missing key: {key}. This field is marked to be ignored but is missing from actual data. "
+                            f"Suggestion: Check if the field name is correct or if it should be optional."
+                        )
+                        raise ComparisonError(error_msg, path)
                     continue
 
                 # Check for missing fields in actual object
                 if key not in a:
                     if not ctx.allow_omitted_fields:
-                        raise ComparisonError(f"Missing key: {key}", f"{path}.{key}")
+                        error_msg = (
+                            f"Missing key: {key}. Expected this field to be present in the actual data. "
+                            f"Suggestion: Check if the field name is correct, if the data source includes this field, "
+                            f"or if you should use global ellipsis (...) to allow missing fields."
+                        )
+                        raise ComparisonError(error_msg, f"{path}.{key}")
                     else:
                         # Field is missing but that's allowed - skip comparison
                         continue

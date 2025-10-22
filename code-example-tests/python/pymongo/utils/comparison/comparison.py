@@ -33,10 +33,10 @@ Performance Considerations:
     - Size thresholds limit expensive algorithms to manageable datasets
 
 Integration Points:
-    - assert_helpers.py: Unittest integration and fallback coordination
-    - parser.py: Content parsing and normalization
+    - parser.py: Content parsing
+    - normalize.py: MongoDB type normalization
     - objects.py: Core comparison algorithms and recursion management
-    - arrays.py: Array-specific comparison strategies
+    - errors.py: Standardized error reporting
 
 Maintainer Notes:
     When modifying comparison strategy selection:

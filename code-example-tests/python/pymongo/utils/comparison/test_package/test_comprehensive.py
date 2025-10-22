@@ -11,29 +11,29 @@ from utils.comparison.comparison import (
     ComparisonOptions,
 )
 
-from utils.comparison.assert_helpers import ComparisonTestCase
 from utils.comparison.parser import parse_expected_content
+from utils.comparison import Expect
 
 
-class TestComprehensiveCases(ComparisonTestCase):
+class TestComprehensiveCases(unittest.TestCase):
     """Test all essential cases from the implementation plan."""
 
     def test_basic_primitives(self):
         """Test basic primitive comparisons."""
         # Strings
-        self.assertMatchesExpectedContent('"hello"', "hello")
+        Expect.that("hello").should_match('"hello"')
 
         # Numbers - numeric flexibility
-        self.assertMatchesExpectedContent("42", 42)
-        self.assertMatchesExpectedContent("42.0", 42)
-        self.assertMatchesExpectedContent("42", 42.0)
+        Expect.that(42).should_match("42")
+        Expect.that(42).should_match("42.0")
+        Expect.that(42.0).should_match("42")
 
         # Booleans
-        self.assertMatchesExpectedContent("true", True)
-        self.assertMatchesExpectedContent("false", False)
+        Expect.that(True).should_match("true")
+        Expect.that(False).should_match("false")
 
         # Null
-        self.assertMatchesExpectedContent("null", None)
+        Expect.that(None).should_match("null")
 
     def test_mongodb_types_normalization(self):
         """Test MongoDB BSON types normalize to comparable strings."""
@@ -170,9 +170,8 @@ class TestComprehensiveCases(ComparisonTestCase):
         """Test ignoring specific field values by name."""
         expected = {"_id": "anything", "name": "John"}
         actual = {"_id": "507f1f77bcf86cd799439011", "name": "John"}
-        options = ComparisonOptions(ignore_field_values={"_id"})
-        result = compare_values(expected, actual, options)
-        self.assertTrue(result.is_match, result.error)
+
+        Expect.that(actual).with_ignored_fields("_id").should_match(expected)
 
     def test_ignore_field_values_nested(self):
         """Test ignoring field values at multiple nesting levels."""
@@ -185,9 +184,8 @@ class TestComprehensiveCases(ComparisonTestCase):
                 {"_id": "507f1f77bcf86cd799439012", "name": "Jane"},
             ]
         }
-        options = ComparisonOptions(ignore_field_values={"_id"})
-        result = compare_values(expected, actual, options)
-        self.assertTrue(result.is_match, result.error)
+
+        Expect.that(actual).with_ignored_fields("_id").should_match(expected)
 
     def test_extended_json_edge_cases(self):
         """Test Extended JSON format edge cases."""

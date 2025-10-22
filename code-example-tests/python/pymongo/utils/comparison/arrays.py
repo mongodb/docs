@@ -66,6 +66,63 @@ except ImportError:
     from errors import ComparisonError
 
 
+def _summarize_array_for_error(arr: List[Any], max_items: int = 3) -> str:
+    """
+    Create a concise summary of an array for error messages.
+
+    Args:
+        arr: Array to summarize
+        max_items: Maximum number of items to show before truncating
+
+    Returns:
+        String summary like "[1, 2, 3]" or "[1, 2, ...] (5 items)"
+    """
+    if not arr:
+        return "[]"
+
+    if len(arr) <= max_items:
+        items = [_safe_repr(item) for item in arr]
+        return f"[{', '.join(items)}]"
+    else:
+        items = [_safe_repr(item) for item in arr[:max_items]]
+        return f"[{', '.join(items)}, ...] ({len(arr)} items)"
+
+
+def _safe_repr(obj: Any, max_length: int = 50) -> str:
+    """
+    Safe string representation for error messages.
+
+    Args:
+        obj: Object to represent
+        max_length: Maximum length before truncating
+
+    Returns:
+        String representation, truncated if too long
+    """
+    try:
+        if isinstance(obj, str):
+            repr_str = repr(obj)
+        elif isinstance(obj, dict):
+            if len(obj) <= 2:
+                repr_str = str(obj)
+            else:
+                keys = list(obj.keys())[:2]
+                repr_str = f"{{{', '.join(f'{k!r}: ...' for k in keys)}, ...}} ({len(obj)} fields)"
+        elif isinstance(obj, list):
+            if len(obj) <= 3:
+                repr_str = str(obj)
+            else:
+                repr_str = f"[{obj[0]!r}, {obj[1]!r}, ...] ({len(obj)} items)"
+        else:
+            repr_str = repr(obj)
+
+        if len(repr_str) > max_length:
+            return repr_str[:max_length-3] + "..."
+        return repr_str
+    except Exception:
+        return f"<{type(obj).__name__}>"
+
+
 def _compare_ordered(
     expected: List[Any],
     actual: List[Any],
@@ -175,9 +232,16 @@ def _match_with_ellipsis(
         return rec(i + 1, j + 1)
 
     if not rec(0, 0):
-        raise ComparisonError(
-            "Array elements did not match with ellipsis wildcard", path
+        expected_summary = _summarize_array_for_error(expected)
+        actual_summary = _summarize_array_for_error(actual)
+
+        error_msg = (
+            f"Array elements could not be matched with ellipsis patterns. "
+            f"Expected: {expected_summary}, Actual: {actual_summary}. "
+            f"Suggestion: Check that '...' patterns are placed correctly and actual array "
+            f"contains the expected elements."
         )
+        raise ComparisonError(error_msg, path)
 
 
 def _is_primitive(value: Any) -> bool:
@@ -322,9 +386,17 @@ def _compare_unordered_backtracking(
         return False
 
     if not backtrack(0):
-        raise ComparisonError(
-            f"No valid unordered matching found for array elements. ", path
+        # Provide more detailed error information for technical writers
+        expected_summary = _summarize_array_for_error(expected)
+        actual_summary = _summarize_array_for_error(actual)
+
+        error_msg = (
+            f"Array elements could not be matched using unordered comparison. "
+            f"Expected: {expected_summary}, Actual: {actual_summary}. "
+            f"Suggestion: Check if elements have the right values, or use .with_ordered_sort() "
+            f"if order matters."
         )
+        raise ComparisonError(error_msg, path)
 
 
 def _compare_hybrid_strategy(
@@ -516,9 +588,13 @@ def compare_arrays(
     else:
         # Auto-select strategy (comparison_type is None)
         if contains:
-            # Ellipsis present - use ordered matching by default
-            # Design Decision: Ellipsis patterns are typically positional
-            _match_with_ellipsis(expected, actual, compare_elem, path)
+            # Ellipsis present - use unordered matching by default for MongoDB compatibility
+            # Design Decision: MongoDB results are not guaranteed to be ordered
+            if ctx and len(expected) <= ctx.array_size_threshold:
+                _compare_unordered_backtracking(expected, actual, compare_elem, path, ctx)
+            else:
+                # Fall back to ordered for large arrays to avoid performance issues
+                _match_with_ellipsis(expected, actual, compare_elem, path)
         else:
             # No ellipsis - auto-select between ordered and unordered
             has_mixed_types = _has_mixed_primitives_and_objects(expected)
