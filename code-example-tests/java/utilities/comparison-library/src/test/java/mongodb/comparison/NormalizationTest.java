@@ -39,11 +39,11 @@ public class NormalizationTest {
             System.out.println("Expected: " + expected);
             System.out.println("Actual: " + actual);
 
-            // Test the comparison using OutputValidator
+            // Test the comparison using Expect API
             assertDoesNotThrow(() -> {
-                OutputValidator.expect(actual)
-                        
-                        .assertMatchesContent(expected);
+                Expect.that(actual)
+
+                        .shouldMatch(expected);
             });
         }
 
@@ -57,11 +57,11 @@ public class NormalizationTest {
             System.out.println("Expected: " + expected);
             System.out.println("Actual: " + actual);
 
-            // Test the comparison using OutputValidator
+            // Test the comparison using Expect API
             assertDoesNotThrow(() -> {
-                OutputValidator.expect(actual)
-                        
-                        .assertMatchesContent(expected);
+                Expect.that(actual)
+
+                        .shouldMatch(expected);
             });
         }
 
@@ -108,9 +108,7 @@ public class NormalizationTest {
                     "tags", Arrays.asList("user", "active")
             );
 
-            var result = OutputValidator.expect(document).toMatch(map);
-            assertTrue(result.isMatch(),
-                    "BSON Document should be equivalent to normalized Map");
+            Expect.that(document).shouldMatch(map);
 
             // Test nested documents
             var nestedDocument = new Document("user",
@@ -135,9 +133,7 @@ public class NormalizationTest {
                     )
             );
 
-            var result2 = OutputValidator.expect(nestedDocument).toMatch(nestedMap);
-            assertTrue(result2.isMatch(),
-                    "Nested BSON Documents should be equivalent to nested Maps");
+            Expect.that(nestedDocument).shouldMatch(nestedMap);
         }
     }
 
@@ -362,8 +358,8 @@ public class NormalizationTest {
             }
             """;
 
-            assertDoesNotThrow(() -> OutputValidator.expect(testData)
-                            .assertMatchesContent(expectedContent),
+            assertDoesNotThrow(() -> Expect.that(testData)
+                            .shouldMatch(expectedContent),
                     "Should handle numeric precision consistently");
 
             // Test edge cases
@@ -387,8 +383,8 @@ public class NormalizationTest {
 
             // Edge cases might not match exactly, but should be handled gracefully
             // The test is more about ensuring no exceptions are thrown
-            assertDoesNotThrow(() -> OutputValidator.expect(edgeCases)
-                            .assertMatchesContent(edgeExpected),
+            assertDoesNotThrow(() -> Expect.that(edgeCases)
+                            .shouldMatch(edgeExpected),
                     "Should handle numeric edge cases gracefully");
         }
 
@@ -436,9 +432,7 @@ public class NormalizationTest {
                     "rate", 3.14           // double instead of float
             );
 
-            var result = OutputValidator.expect(actual).toMatch(expected);
-            assertTrue(result.isMatch(),
-                    "Different numeric types with same value should be compatible");
+            Expect.that(actual).shouldMatch(expected);
 
             // Test with large numbers that might have precision issues
             var expectedLarge = Map.of(
@@ -451,9 +445,7 @@ public class NormalizationTest {
                     "precision", 0.30000000000000004   // Actual floating point result
             );
 
-            var result2 = OutputValidator.expect(actualLarge).toMatch(expectedLarge);
-            assertTrue(result2.isMatch(),
-                    "Should handle numeric precision issues gracefully");
+            Expect.that(actualLarge).shouldMatch(expectedLarge);
         }
     }
 
@@ -487,11 +479,7 @@ public class NormalizationTest {
             );
 
             // These should be considered equal after normalization
-            ComparisonResult result = OutputValidator.expect(extendedDoc)
-                    .toMatch(relaxedDoc);
-
-            assertTrue(result.isMatch(),
-                    "Extended and Relaxed JSON formats should match after normalization: " + result.summary());
+            Expect.that(extendedDoc).shouldMatch(relaxedDoc);
         }
 
         @Test
@@ -529,12 +517,8 @@ public class NormalizationTest {
             assertTrue(relaxedResult.isSuccess(), "Relaxed JSON should parse successfully");
 
             // Normalization should make these equivalent
-            ComparisonResult result = OutputValidator.expect(extendedResult.getData())
-                    .toMatch(relaxedResult.getData());
-
-            assertTrue(result.isMatch(),
-                    "Normalization should handle Extended vs Relaxed JSON equivalence: " +
-                            result.summary());
+            Expect.that(extendedResult.getData())
+                    .shouldMatch(relaxedResult.getData());
         }
 
         @Test
@@ -561,21 +545,14 @@ public class NormalizationTest {
             // The comparison library should normalize both formats to match
             // This simulates comparing documentation examples that show the same data
             // in different JSON format modes
-            ComparisonResult result = OutputValidator.expect(extendedJson)
-                    
-                    .toMatchContent(relaxedJson);
 
-            // Alternative approach: Compare parsed JSON structures
+            // Compare parsed JSON structures
             var parseResult1 = ExpectedOutputParser.parseContent(extendedJson);
             var parseResult2 = ExpectedOutputParser.parseContent(relaxedJson);
 
             if (parseResult1.isSuccess() && parseResult2.isSuccess()) {
-                ComparisonResult structuralResult = OutputValidator.expect(parseResult1.getData())
-                        .toMatch(parseResult2.getData());
-
-                assertTrue(structuralResult.isMatch(),
-                        "Different JSON modes should produce equivalent normalized structures: " +
-                                structuralResult.summary());
+                Expect.that(parseResult1.getData())
+                        .shouldMatch(parseResult2.getData());
             }
         }
 
@@ -597,11 +574,8 @@ public class NormalizationTest {
                     "score", Map.of("$numberDouble", "85.5") // Extended
             );
 
-            ComparisonResult result = OutputValidator.expect(mixedDoc1)
-                    .toMatch(mixedDoc2);
-
-            assertTrue(result.isMatch(),
-                    "Mixed format documents should match after normalization: " + result.summary());
+            Expect.that(mixedDoc1)
+                    .shouldMatch(mixedDoc2);
         }
 
         @Test
@@ -619,8 +593,8 @@ public class NormalizationTest {
             """;
 
             // Test that the Document's JSON representation matches extended JSON
-            assertDoesNotThrow(() -> OutputValidator.expect(document.toJson())
-                            .assertMatchesContent(extendedJson),
+            assertDoesNotThrow(() -> Expect.that(document.toJson())
+                            .shouldMatch(extendedJson),
                     "Should handle extended JSON format from MongoDB tools");
 
             // Test with ellipsis patterns for extended JSON
@@ -628,8 +602,8 @@ public class NormalizationTest {
             { "_id": { "$oid": "..." }, "date": { "$date": "..." }, "amount": { "$numberDecimal": "123.45" } }
             """;
 
-            assertDoesNotThrow(() -> OutputValidator.expect(document.toJson())
-                            .assertMatchesContent(extendedJsonWithEllipsis),
+            assertDoesNotThrow(() -> Expect.that(document.toJson())
+                            .shouldMatch(extendedJsonWithEllipsis),
                     "Should handle extended JSON format with ellipsis patterns");
         }
 
@@ -653,11 +627,8 @@ public class NormalizationTest {
             Object normalized1 = MongoTypeNormalizer.normalizeValue(objectIdVariations[1]);
             Object normalized2 = MongoTypeNormalizer.normalizeValue(objectIdVariations[2]);
 
-            ComparisonResult result1 = OutputValidator.expect(normalized0).toMatch(normalized1);
-            ComparisonResult result2 = OutputValidator.expect(normalized1).toMatch(normalized2);
-
-            assertTrue(result1.isMatch(), "Extended JSON and native ObjectId should match");
-            assertTrue(result2.isMatch(), "Native ObjectId and hex string should match");
+            Expect.that(normalized0).shouldMatch(normalized1);
+            Expect.that(normalized1).shouldMatch(normalized2);
         }
 
         @Test
@@ -682,11 +653,8 @@ public class NormalizationTest {
             Object normalized1 = MongoTypeNormalizer.normalizeValue(dateVariations[1]);
             Object normalized2 = MongoTypeNormalizer.normalizeValue(dateVariations[2]);
 
-            ComparisonResult result1 = OutputValidator.expect(normalized0).toMatch(normalized1);
-            ComparisonResult result2 = OutputValidator.expect(normalized1).toMatch(normalized2);
-
-            assertTrue(result1.isMatch(), "Extended and Relaxed date formats should match");
-            assertTrue(result2.isMatch(), "Relaxed JSON and native Date should match");
+            Expect.that(normalized0).shouldMatch(normalized1);
+            Expect.that(normalized1).shouldMatch(normalized2);
         }
 
         @Test
@@ -705,9 +673,7 @@ public class NormalizationTest {
                     )
             );
 
-            var result = OutputValidator.expect(actual).toMatch(parseResult.getData());
-            assertTrue(result.isMatch(),
-                    "Extended JSON dates should normalize to match Java Date objects");
+            Expect.that(actual).shouldMatch(parseResult.getData());
 
             // Test with Instant as well
             var actualWithInstant = Map.of(
@@ -716,9 +682,7 @@ public class NormalizationTest {
                     )
             );
 
-            var result2 = OutputValidator.expect(actualWithInstant).toMatch(parseResult.getData());
-            assertTrue(result2.isMatch(),
-                    "Extended JSON dates should normalize to match Java Instant objects");
+            Expect.that(actualWithInstant).shouldMatch(parseResult.getData());
         }
 
         @Test
@@ -738,11 +702,8 @@ public class NormalizationTest {
 
             var actualWithObjectId = Map.of("_id", new ObjectId("507f1f77bcf86cd799439011"));
 
-            var result1 = OutputValidator.expect(actualWithObjectId).toMatch(parseResult1.getData());
-            var result2 = OutputValidator.expect(actualWithObjectId).toMatch(parseResult2.getData());
-
-            assertTrue(result1.isMatch() && result2.isMatch(),
-                    "Both ObjectId formats should match actual ObjectId");
+            Expect.that(actualWithObjectId).shouldMatch(parseResult1.getData());
+            Expect.that(actualWithObjectId).shouldMatch(parseResult2.getData());
 
             // Date variations
             String dateExtended = "{ \"date\": { \"$date\": \"2021-12-18T15:55:00Z\" } }";
@@ -755,12 +716,9 @@ public class NormalizationTest {
 
             var actualWithDate = Map.of("date", new Date(1639842900000L));
 
-            var dateResult1 = OutputValidator.expect(actualWithDate).toMatch(dateParseResult1.getData());
-            var dateResult2 = OutputValidator.expect(actualWithDate).toMatch(dateParseResult2.getData());
-            var dateResult3 = OutputValidator.expect(actualWithDate).toMatch(dateParseResult3.getData());
-
-            assertTrue(dateResult1.isMatch() && dateResult2.isMatch() && dateResult3.isMatch(),
-                    "All date formats should normalize to same representation");
+            Expect.that(actualWithDate).shouldMatch(dateParseResult1.getData());
+            Expect.that(actualWithDate).shouldMatch(dateParseResult2.getData());
+            Expect.that(actualWithDate).shouldMatch(dateParseResult3.getData());
 
             // Decimal128 variations
             String decimalExtended = "{ \"amount\": { \"$numberDecimal\": \"123.45\" } }";
@@ -771,11 +729,8 @@ public class NormalizationTest {
 
             var actualWithDecimal = Map.of("amount", new Decimal128(new java.math.BigDecimal("123.45")));
 
-            var decimalResult1 = OutputValidator.expect(actualWithDecimal).toMatch(decimalParseResult1.getData());
-            var decimalResult2 = OutputValidator.expect(actualWithDecimal).toMatch(decimalParseResult2.getData());
-
-            assertTrue(decimalResult1.isMatch() && decimalResult2.isMatch(),
-                    "Decimal128 formats should normalize correctly");
+            Expect.that(actualWithDecimal).shouldMatch(decimalParseResult1.getData());
+            Expect.that(actualWithDecimal).shouldMatch(decimalParseResult2.getData());
         }
 
         @Test
@@ -808,11 +763,8 @@ public class NormalizationTest {
             assertTrue(relaxedResult.isSuccess(), "Relaxed JSON should parse successfully");
 
             // Compare normalized results
-            ComparisonResult result = OutputValidator.expect(extendedResult.getData())
-                    .toMatch(relaxedResult.getData());
-
-            assertTrue(result.isMatch(),
-                    "Automatically detected JSON formats should normalize to matching structures");
+            Expect.that(extendedResult.getData())
+                    .shouldMatch(relaxedResult.getData());
         }
 
         @Test
@@ -841,12 +793,8 @@ public class NormalizationTest {
             var relaxedParsed = ExpectedOutputParser.parseContent(relaxedJson);
 
             if (extendedParsed.isSuccess() && relaxedParsed.isSuccess()) {
-                ComparisonResult result = OutputValidator.expect(extendedParsed.getData())
-                        .toMatch(relaxedParsed.getData());
-
-                assertTrue(result.isMatch(),
-                        "Different JSON output modes should produce equivalent normalized data: " +
-                                result.summary());
+                Expect.that(extendedParsed.getData())
+                        .shouldMatch(relaxedParsed.getData());
             }
         }
     }
@@ -1151,8 +1099,17 @@ public class NormalizationTest {
 
         // These should be considered equivalent after intelligent normalization
         // This requires detecting MongoDB-specific patterns in strings and normalizing them
-        ComparisonResult result = OutputValidator.expect(consoleOutput1)
-                
-                .toMatchContent(consoleOutput2);
+        // This test documents whether this normalization is working
+        try {
+            Expect.that(consoleOutput1).shouldMatch(consoleOutput2);
+            System.out.println("Console output format normalization: Working");
+        } catch (AssertionError e) {
+            System.out.println("Console output format normalization: Not yet implemented");
+            System.out.println("Error: " + e.getMessage());
+            // This is expected if ObjectId("...") and ISODate("...") string normalization isn't implemented
+            assertTrue(e.getMessage().contains("String content") ||
+                      e.getMessage().contains("mismatch"),
+                    "Should indicate string content mismatch when normalization not implemented");
+        }
     }
 }

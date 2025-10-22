@@ -4,7 +4,7 @@ import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
-import mongodb.comparison.OutputValidator;
+import mongodb.comparison.Expect;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.reactivestreams.Publisher;
@@ -20,25 +20,25 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Example demonstrating how to use the MongoDB Comparison Library 
+ * Example demonstrating how to use the MongoDB Comparison Library
  * with the reactive MongoDB Java driver.
  */
 public class ReactiveDriverComparisonExample {
-    
+
     public static void main(String[] args) {
         // Example 1: Compare simple reactive query results
         demonstrateSimpleReactiveQuery();
-        
-        // Example 2: Compare reactive aggregation results  
+
+        // Example 2: Compare reactive aggregation results
         demonstrateReactiveAggregation();
-        
+
         // Example 3: Compare reactive Publishers directly
         demonstratePublisherComparison();
-        
+
         // Example 4: Real MongoDB reactive example
         demonstrateWithRealReactiveMongoDB();
     }
-    
+
     private static void demonstrateSimpleReactiveQuery() {
         System.out.println("=== Simple Reactive Query Comparison ===");
 
@@ -53,24 +53,22 @@ public class ReactiveDriverComparisonExample {
             "name", doc.getString("name"),
             "age", doc.getInteger("age")
         ), Duration.ofSeconds(5));
-        
+
         // Create expected data as proper objects (not JSON strings)
         List<Map<String, Object>> expectedData = List.of(
             Map.of("name", "Alice", "age", 30),
             Map.of("name", "Bob", "age", 25)
         );
-        
-        var result = OutputValidator.expect(actualData)
-            .toMatch(expectedData);
-        
-        if (result.isMatch()) {
+
+        try {
+            Expect.that(actualData).shouldMatch(expectedData);
             System.out.println("✓ Reactive query results match expected output");
-        } else {
+        } catch (AssertionError e) {
             System.out.println("✗ Reactive query comparison failed");
-            result.printDebugInfo();
+            System.out.println(e.getMessage());
         }
     }
-    
+
     private static void demonstrateReactiveAggregation() {
         System.out.println("\n=== Reactive Aggregation Pipeline Comparison ===");
 
@@ -81,24 +79,22 @@ public class ReactiveDriverComparisonExample {
         ));
 
         List<Map<String, Object>> actualData = collectMapResults(aggregationResults, Duration.ofSeconds(5));
-        
+
         // Create expected data as proper objects (not JSON strings)
         List<Map<String, Object>> expectedData = List.of(
             Map.of("_id", "active", "count", 15),
             Map.of("_id", "inactive", "count", 8)
         );
-        
-        var result = OutputValidator.expect(actualData)
-            .toMatch(expectedData);
-        
-        if (result.isMatch()) {
+
+        try {
+            Expect.that(actualData).shouldMatch(expectedData);
             System.out.println("✓ Reactive aggregation results match expected output");
-        } else {
+        } catch (AssertionError e) {
             System.out.println("✗ Reactive aggregation comparison failed");
-            result.printDebugInfo();
+            System.out.println(e.getMessage());
         }
     }
-    
+
     private static void demonstratePublisherComparison() {
         System.out.println("\n=== Direct Publisher Comparison ===");
 
@@ -107,61 +103,57 @@ public class ReactiveDriverComparisonExample {
             Map.of("_id", new ObjectId("507f1f77bcf86cd799439011"), "name", "John"),
             Map.of("_id", new ObjectId("507f1f77bcf86cd799439012"), "name", "Jane")
         ));
-        
+
         // Create expected data as proper objects (not JSON strings)
         List<Map<String, Object>> expectedData = List.of(
             Map.of("_id", new ObjectId("507f1f77bcf86cd799439011"), "name", "John"),
             Map.of("_id", new ObjectId("507f1f77bcf86cd799439012"), "name", "Jane")
         );
-        
+
         // The comparison library can handle Publishers directly
-        var result = OutputValidator.expect(publisher)
-            .toMatch(expectedData);
-        
-        if (result.isMatch()) {
+        try {
+            Expect.that(publisher).shouldMatch(expectedData);
             System.out.println("✓ Publisher results match expected output");
-        } else {
+        } catch (AssertionError e) {
             System.out.println("✗ Publisher comparison failed");
-            result.printDebugInfo();
+            System.out.println(e.getMessage());
         }
     }
-    
+
     /**
      * Example of using the comparison library in a real reactive MongoDB context.
      * This method would connect to an actual MongoDB instance.
      */
     public static void demonstrateWithRealReactiveMongoDB() {
         System.out.println("\n=== Real Reactive MongoDB Example ===");
-        
+
         // Since we don't have a real MongoDB connection for this demo,
         // let's simulate what the reactive query would look like
         Publisher<Map<String, Object>> simulatedResults = createMapPublisher(Arrays.asList(
             Map.of("_id", new ObjectId("507f1f77bcf86cd799439011"), "name", "Alice", "age", 30),
             Map.of("_id", new ObjectId("507f1f77bcf86cd799439012"), "name", "Bob", "age", 25)
         ));
-        
+
         // Create expected data as proper objects
         List<Map<String, Object>> expectedData = List.of(
             Map.of("_id", new ObjectId("507f1f77bcf86cd799439011"), "name", "Alice", "age", 30),
             Map.of("_id", new ObjectId("507f1f77bcf86cd799439012"), "name", "Bob", "age", 25)
         );
-        
+
         // Compare reactive results
-        var result = OutputValidator.expect(simulatedResults)
-            .toMatch(expectedData);
-        
-        if (result.isMatch()) {
+        try {
+            Expect.that(simulatedResults).shouldMatch(expectedData);
             System.out.println("✓ Reactive MongoDB simulation results match expected output");
-        } else {
+        } catch (AssertionError e) {
             System.out.println("✗ Reactive MongoDB simulation comparison failed");
-            result.printDebugInfo();
+            System.out.println(e.getMessage());
         }
-        
+
         System.out.println("\nNote: For real MongoDB usage, you would:");
         System.out.println("1. Connect to MongoDB: MongoClients.create(\"mongodb://localhost:27017\")");
         System.out.println("2. Get collection: database.getCollection(\"users\")");
         System.out.println("3. Execute reactive query: collection.find()");
-        System.out.println("4. Use OutputValidator.expect(publisher).toMatch(expectedData)");
+        System.out.println("4. Use Expect.that(publisher).shouldMatch(expectedData)");
     }
 
     // Helper methods for pure reactive-streams implementation

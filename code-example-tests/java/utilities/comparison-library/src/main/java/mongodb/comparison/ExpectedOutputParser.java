@@ -20,8 +20,9 @@ import java.util.regex.Pattern;
 /**
  * Parses expected output files and normalizes them for comparison.
  * Handles various MongoDB and JSON formats found in test files.
+ * Package-private - internal implementation detail for the Expect API.
  */
-public class ExpectedOutputParser {
+class ExpectedOutputParser {
 
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 

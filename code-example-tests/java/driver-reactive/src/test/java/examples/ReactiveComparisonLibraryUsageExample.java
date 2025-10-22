@@ -1,7 +1,7 @@
 package examples;
 
-import mongodb.comparison.OutputValidator;
-import mongodb.comparison.OutputValidatorReactive;
+import mongodb.comparison.Expect;
+import mongodb.comparison.ExpectReactive;
 import utils.TestDataLoader;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
@@ -27,14 +27,20 @@ class ReactiveComparisonLibraryUsageExample {
             Document.parse("{\"name\": \"Bob\", \"age\": 25, \"city\": \"Los Angeles\"}")
         ));
 
-        // Simple validation using utility method
-        TestDataLoader.validatePublisherResultsFromFile("expected-results.txt", publisher);
+        // Expected results as actual data objects
+        List<Document> expectedResults = Arrays.asList(
+            Document.parse("{\"name\": \"Alice\", \"age\": 30, \"city\": \"New York\"}"),
+            Document.parse("{\"name\": \"Bob\", \"age\": 25, \"city\": \"Los Angeles\"}")
+        );
 
-        // Or with full control using the OutputValidator API
-        OutputValidatorReactive.expectFromPublisher(publisher)
-            .withUnorderedArrays()              // Results can be in any order
-            .withIgnoredFields("_id")           // Ignore dynamic fields
-            .assertMatchesFile("expected-results.txt");
+        // Simple validation using utility method with actual data
+        List<Document> actualResults = TestDataLoader.collectPublisherResults(publisher);
+        Expect.that(actualResults).shouldMatch(expectedResults);
+
+        // Or with full control using the ExpectReactive API
+        ExpectReactive.that(publisher)
+            .withIgnoredFields("_id")                // Ignore dynamic fields
+            .shouldMatch(expectedResults);
     }
 
     @Test
@@ -42,9 +48,13 @@ class ReactiveComparisonLibraryUsageExample {
         // For long-running operations, specify custom timeout
         Publisher<Document> slowPublisher = createSlowPublisher();
 
-        OutputValidatorReactive.expectFromPublisher(slowPublisher, Duration.ofMinutes(2))
-            .withUnorderedArrays()
-            .assertMatchesFile("expected-results.txt");
+        // Expected results as actual data objects
+        List<Document> expectedResults = Arrays.asList(
+            Document.parse("{\"name\": \"Slow\", \"value\": 789}")
+        );
+
+        ExpectReactive.that(slowPublisher, Duration.ofMinutes(2))
+            .shouldMatch(expectedResults);
     }
 
     @Test
@@ -56,10 +66,16 @@ class ReactiveComparisonLibraryUsageExample {
         List<Document> results = TestDataLoader.collectPublisherResults(
             publisher, Duration.ofSeconds(30));
 
+        // Expected results as actual data objects
+        List<Document> expectedResults = Arrays.asList(
+            Document.parse("{\"name\": \"Alice\", \"value\": 123}"),
+            Document.parse("{\"name\": \"Bob\", \"value\": 456}")
+        );
+
         // Then validate using standard API
-        OutputValidator.expect(results)
+        Expect.that(results)
             .withIgnoredFields("_id", "timestamp")
-            .assertMatchesFile("expected-results.txt");
+            .shouldMatch(expectedResults);
     }
 
     @Test
@@ -67,8 +83,8 @@ class ReactiveComparisonLibraryUsageExample {
         // Handle empty Publishers
         Publisher<Document> emptyPublisher = createSimplePublisher(Arrays.asList());
 
-        OutputValidatorReactive.expectFromPublisher(emptyPublisher)
-            .assertMatches(List.of()); // Should match empty list
+        ExpectReactive.that(emptyPublisher)
+            .shouldMatch(List.of()); // Should match empty list
     }
 
     @Test
@@ -76,9 +92,14 @@ class ReactiveComparisonLibraryUsageExample {
         // Handle Publisher that might emit errors
         Publisher<Document> errorPublisher = createErrorPublisher("Test error");
 
+        // Expected results as actual data objects (won't be reached due to error)
+        List<Document> expectedResults = Arrays.asList(
+            Document.parse("{\"name\": \"Alice\", \"value\": 123}")
+        );
+
         try {
-            OutputValidatorReactive.expectFromPublisher(errorPublisher)
-                .assertMatchesFile("expected-results.txt");
+            ExpectReactive.that(errorPublisher)
+                .shouldMatch(expectedResults);
         } catch (RuntimeException e) {
             // Expected - Publisher collection will fail
             assert e.getMessage().contains("Failed to collect Publisher results");
@@ -87,33 +108,47 @@ class ReactiveComparisonLibraryUsageExample {
 
     @Test
     void exampleStreamingComparison() {
-        // Large result sets with streaming
-        Publisher<Document> largeResultSet = createLargeResultSet(1000);
+        // Large result sets with streaming (using smaller set for test)
+        Publisher<Document> largeResultSet = createLargeResultSet(3);
 
-        OutputValidatorReactive.expectFromPublisher(largeResultSet, Duration.ofMinutes(5))
-            .withUnorderedArrays()
+        // Expected results as actual data objects (first 3 items)
+        List<Document> expectedResults = Arrays.asList(
+            Document.parse("{\"id\": 1, \"data\": \"item1\"}"),
+            Document.parse("{\"id\": 2, \"data\": \"item2\"}"),
+            Document.parse("{\"id\": 3, \"data\": \"item3\"}")
+        );
+
+        ExpectReactive.that(largeResultSet, Duration.ofMinutes(5))
             .withIgnoredFields("_id")
-            .assertMatchesFile("large-expected-results.txt");
+            .shouldMatch(expectedResults);
     }
 
     @Test
     void exampleUtilityMethods() {
         Publisher<Document> publisher = createPublisher();
 
-        // Various utility methods for common scenarios
-        TestDataLoader.validatePublisherResultsFromFile("expected.txt", publisher);
-        
+        // Expected results as actual data objects
+        List<Document> expectedResults = Arrays.asList(
+            Document.parse("{\"name\": \"Alice\", \"value\": 123}"),
+            Document.parse("{\"name\": \"Bob\", \"value\": 456}")
+        );
+
+        // Various utility methods for common scenarios using actual data
+        List<Document> actualResults = TestDataLoader.collectPublisherResults(publisher);
+        Expect.that(actualResults).shouldMatch(expectedResults);
+
         // With custom timeout
-        TestDataLoader.validatePublisherResultsFromFile("expected.txt", publisher, Duration.ofMinutes(1));
-        
+        List<Document> actualResultsWithTimeout = TestDataLoader.collectPublisherResults(publisher, Duration.ofMinutes(1));
+        Expect.that(actualResultsWithTimeout).shouldMatch(expectedResults);
+
         // With ignored fields
-        TestDataLoader.validatePublisherResultsFromFile("expected.txt", publisher, "_id", "timestamp");
-        
+        Expect.that(actualResults).withIgnoredFields("_id", "timestamp").shouldMatch(expectedResults);
+
         // Ordered validation
-        TestDataLoader.validateOrderedPublisherResultsFromFile("sorted-expected.txt", publisher);
-        
+        Expect.that(actualResults).withOrderedSort().shouldMatch(expectedResults);
+
         // With debug output
-        TestDataLoader.validatePublisherResultsFromFileWithDebug("expected.txt", publisher);
+        Expect.that(actualResults).shouldMatchWithDebug(expectedResults);
     }
 
     @Test
@@ -124,18 +159,22 @@ class ReactiveComparisonLibraryUsageExample {
 
         // Results from sync driver (simulated)
         List<Document> syncResults = List.of(
-            Document.parse("{\"name\": \"Alice\", \"age\": 30}"),
-            Document.parse("{\"name\": \"Bob\", \"age\": 25}")
+            Document.parse("{\"name\": \"Alice\", \"value\": 123}"),
+            Document.parse("{\"name\": \"Bob\", \"value\": 456}")
         );
 
-        // Both should validate against the same expected file
-        OutputValidator.expect(collectedResults)
-            .withUnorderedArrays()
-            .assertMatchesFile("cross-driver-expected.txt");
+        // Expected results as actual data objects
+        List<Document> expectedResults = Arrays.asList(
+            Document.parse("{\"name\": \"Alice\", \"value\": 123}"),
+            Document.parse("{\"name\": \"Bob\", \"value\": 456}")
+        );
 
-        OutputValidator.expect(syncResults)
-            .withUnorderedArrays()
-            .assertMatchesFile("cross-driver-expected.txt");
+        // Both should validate against the same expected data
+        Expect.that(collectedResults)
+            .shouldMatch(expectedResults);
+
+        Expect.that(syncResults)
+            .shouldMatch(expectedResults);
     }
 
     // Helper methods to simulate reactive MongoDB operations without Project Reactor

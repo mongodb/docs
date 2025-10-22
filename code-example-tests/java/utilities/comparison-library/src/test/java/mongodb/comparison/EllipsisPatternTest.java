@@ -85,12 +85,8 @@ class EllipsisPatternTest {
                     "anotherExtra", "also ignored"
             );
 
-            var result = OutputValidator.expect(actual)
-                    .toMatchContent(expectedContent);
-
-            // Should succeed because standalone "..." line enables omitted fields mode
-            assertTrue(result.isMatch(),
-                    "Global ellipsis should enable omitted fields mode");
+            Expect.that(actual)
+                    .shouldMatch(expectedContent);
         }
 
         @Test
@@ -105,19 +101,8 @@ class EllipsisPatternTest {
                     "code", 200
             );
 
-            var result = OutputValidator.expect(actual).toMatch(expected);
-            assertFalse(result.isMatch());
-
-            // Should have specific error about ellipsis pattern mismatch
-            assertTrue(result.errors().stream()
-                            .anyMatch(e -> e.message().contains("ellipsis pattern") ||
-                                    e.message().contains("truncated string")),
-                    "Should report ellipsis pattern mismatch specifically");
-
-            // Should include helpful pattern description
-            assertTrue(result.errors().stream()
-                            .anyMatch(e -> e.expected().contains("Failed...")),
-                    "Should include the ellipsis pattern in error");
+            assertThrows(AssertionError.class, () ->
+                    Expect.that(actual).shouldMatch(expected));
         }
 
         @Nested
@@ -143,20 +128,18 @@ class EllipsisPatternTest {
                 var expected = Arrays.asList(1, "...", 4);
                 var actual = Arrays.asList(1, 2, 3, 4);
 
-                var result = OutputValidator.expect(actual).toMatch(expected);
-                assertTrue(result.isMatch(), "Ellipsis should cover middle elements");
+                Expect.that(actual).shouldMatch(expected);
 
                 // Pattern: ["first", "...", "last"] should match variable middle content
                 var expected2 = Arrays.asList("first", "...", "last");
                 var actual2 = Arrays.asList("first", "middle1", "middle2", "last");
 
-                var result2 = OutputValidator.expect(actual2).toMatch(expected2);
-                assertTrue(result2.isMatch(), "Ellipsis should cover variable middle content");
+                Expect.that(actual2).shouldMatch(expected2);
 
                 // Pattern: [1, "...", 4] should NOT match [1, 5, 4] (wrong ending)
                 var actual3 = Arrays.asList(1, 2, 5);
-                var result3 = OutputValidator.expect(actual3).toMatch(expected);
-                assertFalse(result3.isMatch(), "Should fail when ending element doesn't match");
+                assertThrows(AssertionError.class, () ->
+                        Expect.that(actual3).shouldMatch(expected));
             }
 
             @Test
@@ -165,15 +148,14 @@ class EllipsisPatternTest {
                 var expected = Arrays.asList(1, "...", 5, "...", 9);
                 var actual = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9);
 
-                var result = OutputValidator.expect(actual).toMatch(expected);
-                assertTrue(result.isMatch(), "Multiple ellipsis gaps should work");
+                Expect.that(actual).shouldMatch(expected);
 
                 // Should maintain order in ordered comparison
                 var actualWrongOrder = Arrays.asList(1, 2, 3, 4, 9, 6, 7, 8, 5);
-                var resultWrongOrder = OutputValidator.expect(actualWrongOrder)
-                        .withOrderedArrays()
-                        .toMatch(expected);
-                assertFalse(resultWrongOrder.isMatch(), "Should fail when order is wrong");
+                assertThrows(AssertionError.class, () ->
+                        Expect.that(actualWrongOrder)
+                                .withOrderedSort()
+                                .shouldMatch(expected));
             }
 
             @Test
@@ -190,15 +172,8 @@ class EllipsisPatternTest {
                         {"_id": 2, "vendor": [...]}
                         """;
 
-                ComparisonResult result = OutputValidator.expect(actualResults)
-                        .toMatchContent(expectedWithArrayEllipsis);
-
-                if (!result.isMatch()) {
-                    System.out.println("=== ARRAY VENDOR PATTERN TEST FAILURE ===");
-                    result.printDebugInfo();
-                }
-
-                assertTrue(result.isMatch(), "Array vendor patterns should work with ellipsis");
+                Expect.that(actualResults)
+                        .shouldMatch(expectedWithArrayEllipsis);
             }
 
             @Test
@@ -208,15 +183,8 @@ class EllipsisPatternTest {
                 String actualOutput = "Inserted documents with the following ids: [507f1f77bcf86cd799439011, 507f1f77bcf86cd799439012]";
                 String expectedWithEllipsis = "Inserted documents with the following ids: [...]";
 
-                ComparisonResult result = OutputValidator.expect(actualOutput)
-                        .toMatchContent(expectedWithEllipsis);
-
-                if (!result.isMatch()) {
-                    System.out.println("=== BULK OPERATION PATTERN TEST FAILURE ===");
-                    result.printDebugInfo();
-                }
-
-                assertTrue(result.isMatch(), "Bulk operation result patterns should work");
+                Expect.that(actualOutput)
+                        .shouldMatch(expectedWithEllipsis);
             }
 
             @Test
@@ -235,8 +203,7 @@ class EllipsisPatternTest {
                         Map.of("type", "summary", "total", 300)
                 );
 
-                var result = OutputValidator.expect(actual).toMatch(expected);
-                assertTrue(result.isMatch(), "Complex object ellipsis in arrays should work");
+                Expect.that(actual).shouldMatch(expected);
             }
         }
 
@@ -249,8 +216,7 @@ class EllipsisPatternTest {
                 var expected = Map.of("...", "...");
                 var actual = Map.of("any", "fields", "should", "match", "count", 42);
 
-                var result = OutputValidator.expect(actual).toMatch(expected);
-                assertTrue(result.isMatch(), "Object ellipsis should match any object structure");
+                Expect.that(actual).shouldMatch(expected);
 
                 // Should also work with nested objects
                 var actualNested = Map.of(
@@ -260,8 +226,7 @@ class EllipsisPatternTest {
                         "otherField", "value"
                 );
 
-                var result2 = OutputValidator.expect(actualNested).toMatch(expected);
-                assertTrue(result2.isMatch(), "Object ellipsis should match nested structures");
+                Expect.that(actualNested).shouldMatch(expected);
             }
 
             @Test
@@ -274,25 +239,22 @@ class EllipsisPatternTest {
                 assertTrue(EllipsisPatternRegistry.isEllipsisPattern(expectedWithEllipsis));
 
                 // Use high-level comparison API for JSON patterns instead of low-level matchesPattern
-                ComparisonResult result1 = OutputValidator.expect(actualJson)
-                        .toMatchContent(expectedWithEllipsis);
-                assertTrue(result1.isMatch(), "JSON pattern with ellipsis should work via high-level API");
+                Expect.that(actualJson)
+                        .shouldMatch(expectedWithEllipsis);
 
                 // Test with mixed ellipsis and exact values
                 String expectedMixed = "{\"_id\": \"...\", \"name\": \"exact\", \"date\": \"...\"}";
                 String actualMixed = "{\"_id\": \"507f1f77bcf86cd799439013\", \"name\": \"exact\", \"date\": \"2023-01-01T12:00:00Z\"}";
 
-                ComparisonResult result2 = OutputValidator.expect(actualMixed)
-                        .toMatchContent(expectedMixed);
-                assertTrue(result2.isMatch(), "Mixed ellipsis pattern should work via high-level API");
+                Expect.that(actualMixed)
+                        .shouldMatch(expectedMixed);
 
                 // Should fail if non-ellipsis fields don't match
                 String expectedStrict = "{\"_id\": \"...\", \"name\": \"expected\"}";
                 String actualDifferent = "{\"_id\": \"507f1f77bcf86cd799439013\", \"name\": \"different\"}";
 
-                ComparisonResult result3 = OutputValidator.expect(actualDifferent)
-                        .toMatchContent(expectedStrict);
-                assertFalse(result3.isMatch(), "Non-matching fields should fail via high-level API");
+                assertThrows(AssertionError.class, () ->
+                        Expect.that(actualDifferent).shouldMatch(expectedStrict));
             }
 
             @Test
@@ -322,8 +284,7 @@ class EllipsisPatternTest {
                         "timestamp", "2023-01-01T15:00:00Z"
                 );
 
-                var result = OutputValidator.expect(actual).toMatch(expected);
-                assertTrue(result.isMatch(), "Nested ellipsis patterns should work");
+                Expect.that(actual).shouldMatch(expected);
             }
 
             @Test
@@ -332,10 +293,7 @@ class EllipsisPatternTest {
                 Map<String, Object> expected = Map.of("type", "user", "data", "...");
                 Map<String, Object> actual = Map.of("type", "user", "data", Map.of("name", "Alice"));
 
-                ComparisonResult result = OutputValidator.expect(actual).toMatch(expected);
-
-                assertTrue(result.isMatch(),
-                        "Object field ellipsis should work with new functionality. Errors: " + result.errors());
+                Expect.that(actual).shouldMatch(expected);
             }
 
             @Test
@@ -353,10 +311,7 @@ class EllipsisPatternTest {
             {"_id": "...", "createdAt": "...", "myNumber": 36520312, "isActive": true, "rating": 4.5}
             """;
 
-                ComparisonResult result = OutputValidator.expect(actualObj).toMatchContent(expectedJson);
-
-                assertTrue(result.isMatch(),
-                        "JSON object with ellipsis fields should match. Errors: " + result.errors());
+                Expect.that(actualObj).shouldMatch(expectedJson);
             }
         }
 
@@ -368,11 +323,8 @@ class EllipsisPatternTest {
                 String expected = "Inserted document with id: 507f1f77bcf86cd799439013";
                 String actual = "Inserted document with id: 507f1f77bcf86cd799439013";
 
-                ComparisonResult result = OutputValidator.expect(actual)
-                        
-                        .toMatchContent(expected);
-
-                assertTrue(result.isMatch(), "Basic string comparison should succeed");
+                Expect.that(actual)
+                        .shouldMatch(expected);
             }
 
             @Test
@@ -382,27 +334,24 @@ class EllipsisPatternTest {
                 var expected1 = "Error: Connection failed...";
                 var actual1 = "Error: Connection failed after 30 seconds with timeout";
 
-                var result1 = OutputValidator.expect(actual1).toMatch(expected1);
-                assertTrue(result1.isMatch(), "Prefix ellipsis should match");
+                Expect.that(actual1).shouldMatch(expected1);
 
                 // Suffix with ellipsis
                 var expected2 = "...operation completed successfully";
                 var actual2 = "Background operation completed successfully";
 
-                var result2 = OutputValidator.expect(actual2).toMatch(expected2);
-                assertTrue(result2.isMatch(), "Suffix ellipsis should match");
+                Expect.that(actual2).shouldMatch(expected2);
 
                 // Middle ellipsis
                 var expected3 = "Error: ... operation failed";
                 var actual3 = "Error: Network timeout operation failed";
 
-                var result3 = OutputValidator.expect(actual3).toMatch(expected3);
-                assertTrue(result3.isMatch(), "Middle ellipsis should match");
+                Expect.that(actual3).shouldMatch(expected3);
 
                 // Should fail when pattern doesn't match
                 var actualWrong = "Success: Operation completed successfully";
-                var result4 = OutputValidator.expect(actualWrong).toMatch(expected1);
-                assertFalse(result4.isMatch(), "Should fail when prefix doesn't match");
+                assertThrows(AssertionError.class, () ->
+                        Expect.that(actualWrong).shouldMatch(expected1));
             }
 
             @Test
@@ -424,22 +373,19 @@ class EllipsisPatternTest {
                 var expected1 = "Inserted documents with ids: [...]";
                 var actual1 = "Inserted documents with ids: [507f1f77bcf86cd799439011, 507f1f77bcf86cd799439012]";
 
-                var result1 = OutputValidator.expect(actual1).toMatch(expected1);
-                assertTrue(result1.isMatch(), "Array ellipsis in strings should match");
+                Expect.that(actual1).shouldMatch(expected1);
 
                 // Object patterns in strings
                 var expected2 = "Query result: {...}";
                 var actual2 = "Query result: {name: 'Alice', age: 25, status: 'active'}";
 
-                var result2 = OutputValidator.expect(actual2).toMatch(expected2);
-                assertTrue(result2.isMatch(), "Object ellipsis in strings should match");
+                Expect.that(actual2).shouldMatch(expected2);
 
                 // Mixed patterns
                 var expected3 = "Processing [...] items with status {...}";
                 var actual3 = "Processing [item1, item2, item3] items with status {pending: 2, complete: 1}";
 
-                var result3 = OutputValidator.expect(actual3).toMatch(expected3);
-                assertTrue(result3.isMatch(), "Mixed ellipsis patterns should match");
+                Expect.that(actual3).shouldMatch(expected3);
             }
 
             @Test
@@ -449,15 +395,8 @@ class EllipsisPatternTest {
                 String actualErrorMessage = "A MongoBulkWriteException occurred, but there are successfully processed documents with the following ids: [3, 4]";
                 String expectedWithEllipsis = "A MongoBulkWriteException occurred, but there are successfully processed documents with the following ids: [...]";
 
-                ComparisonResult result = OutputValidator.expect(actualErrorMessage)
-                        .toMatchContent(expectedWithEllipsis);
-
-                if (!result.isMatch()) {
-                    System.out.println("=== ERROR MESSAGE PATTERN TEST FAILURE ===");
-                    result.printDebugInfo();
-                }
-
-                assertTrue(result.isMatch(), "Error message patterns with embedded data should work");
+                Expect.that(actualErrorMessage)
+                        .shouldMatch(expectedWithEllipsis);
             }
 
             @Test
@@ -474,17 +413,13 @@ class EllipsisPatternTest {
             }
 
             @Test
-            @DisplayName("Should handle ellipsis patterns through OutputValidator")
-            void testOutputValidatorStringContent() {
+            @DisplayName("Should handle ellipsis patterns through Expect API")
+            void testExpectStringContent() {
                 String expected = "Inserted documents with ids: [...]";
                 String actual = "Inserted documents with ids: [507f1f77bcf86cd799439013, 507f1f77bcf86cd799439014]";
 
-                ComparisonResult result = OutputValidator.expect(actual)
-                        
-                        .toMatchContent(expected);
-
-                assertTrue(result.isMatch(),
-                        "OutputValidator should handle ellipsis patterns. Errors: " + result.errors());
+                Expect.that(actual)
+                        .shouldMatch(expected);
             }
 
             @Test
@@ -524,12 +459,8 @@ class EllipsisPatternTest {
                 String expected = "Result: {status: 'success', data: [...], metadata: {...}}";
                 String actual = "Result: {status: 'success', data: [1, 2, 3], metadata: {timestamp: '2023-01-01', version: '1.0'}}";
 
-                ComparisonResult result = OutputValidator.expect(actual)
-                        
-                        .toMatchContent(expected);
-
-                assertTrue(result.isMatch(),
-                        "Complex nested ellipsis patterns should work. Errors: " + result.errors());
+                Expect.that(actual)
+                        .shouldMatch(expected);
             }
 
             @Test
@@ -547,12 +478,8 @@ class EllipsisPatternTest {
             Collection: ...
             """;
 
-                ComparisonResult result = OutputValidator.expect(connectionOutput)
-                        
-                        .toMatchContent(expectedPattern);
-
-                assertTrue(result.isMatch(),
-                        "Multi-line ellipsis patterns should work correctly. Errors: " + result.errors());
+                Expect.that(connectionOutput)
+                        .shouldMatch(expectedPattern);
             }
 
             @Test
@@ -569,11 +496,8 @@ class EllipsisPatternTest {
             Operation completed successfully
             """;
 
-                ComparisonResult result = OutputValidator.expect(actual)
-                        
-                        .toMatchContent(expected);
-
-                assertTrue(result.isMatch(), "Multi-line console output should work");
+                Expect.that(actual)
+                        .shouldMatch(expected);
             }
 
             @Test
@@ -582,11 +506,8 @@ class EllipsisPatternTest {
                 String expected = "Found document with _id: ObjectId(\"...\")";
                 String actual = "Found document with _id: ObjectId(\"507f1f77bcf86cd799439013\")";
 
-                ComparisonResult result = OutputValidator.expect(actual)
-                        
-                        .toMatchContent(expected);
-
-                assertTrue(result.isMatch(), "ObjectId patterns should be recognized");
+                Expect.that(actual)
+                        .shouldMatch(expected);
             }
 
             @Test
@@ -595,11 +516,8 @@ class EllipsisPatternTest {
                 String expected = "Query result: {\"name\": \"...\", \"count\": 42}";
                 String actual = "Query result: {\"name\": \"John Doe\", \"count\": 42}";
 
-                ComparisonResult result = OutputValidator.expect(actual)
-                        
-                        .toMatchContent(expected);
-
-                assertTrue(result.isMatch(), "Mixed text and JSON should work");
+                Expect.that(actual)
+                        .shouldMatch(expected);
             }
 
             @Test
@@ -608,11 +526,8 @@ class EllipsisPatternTest {
                 String expected = "2023-09-04T10:30:00 - Operation completed with result: ...";
                 String actual = "2023-09-04T10:30:00 - Operation completed with result: BulkWriteResult{acknowledged=true}";
 
-                ComparisonResult result = OutputValidator.expect(actual)
-                        
-                        .toMatchContent(expected);
-
-                assertTrue(result.isMatch(), "Log messages should work with ellipsis");
+                Expect.that(actual)
+                        .shouldMatch(expected);
             }
 
             @Test
@@ -621,11 +536,8 @@ class EllipsisPatternTest {
                 String expected = "BulkWriteResult{acknowledged=true, insertedCount=..., deletedCount=0}";
                 String actual = "BulkWriteResult{acknowledged=true, insertedCount=25, deletedCount=0}";
 
-                ComparisonResult result = OutputValidator.expect(actual)
-                        
-                        .toMatchContent(expected);
-
-                assertTrue(result.isMatch(), "toString() output should support ellipsis");
+                Expect.that(actual)
+                        .shouldMatch(expected);
             }
 
             @Test
@@ -634,11 +546,8 @@ class EllipsisPatternTest {
                 String expected = "Result:   {\"status\": \"success\"}";
                 String actual = "Result: {\"status\": \"success\"}";
 
-                ComparisonResult result = OutputValidator.expect(actual)
-                        
-                        .toMatchContent(expected);
-
-                assertTrue(result.isMatch(), "Whitespace should be normalized");
+                Expect.that(actual)
+                        .shouldMatch(expected);
             }
 
             @Test
@@ -655,11 +564,8 @@ class EllipsisPatternTest {
             Failed documents: 2
             """;
 
-                ComparisonResult result = OutputValidator.expect(actual)
-                        
-                        .toMatchContent(expected);
-
-                assertTrue(result.isMatch(), "Error messages with embedded data should work");
+                Expect.that(actual)
+                        .shouldMatch(expected);
             }
 
             @Test
@@ -668,18 +574,8 @@ class EllipsisPatternTest {
                 String expected = "Expected result: SUCCESS";
                 String actual = "Expected result: FAILURE";
 
-                ComparisonResult result = OutputValidator.expect(actual)
-                        
-                        .toMatchContent(expected);
-
-                assertFalse(result.isMatch(), "Mismatched strings should fail");
-
-                // Check that the detailed error message contains "String content mismatch"
-                boolean hasStringContentMismatchError = result.errors().stream()
-                        .anyMatch(error -> error.getDetailedMessage().contains("String content mismatch"));
-
-                assertTrue(hasStringContentMismatchError,
-                        "Error should mention string content mismatch");
+                assertThrows(AssertionError.class, () ->
+                        Expect.that(actual).shouldMatch(expected));
             }
 
             @Test
@@ -688,11 +584,8 @@ class EllipsisPatternTest {
                 String expected = "Categories: [\"Pizza\", \"Italian\", ...]";
                 String actual = "Categories: [\"Pizza\", \"Italian\", \"Coffee\", \"Sandwiches\"]";
 
-                ComparisonResult result = OutputValidator.expect(actual)
-                        
-                        .toMatchContent(expected);
-
-                assertTrue(result.isMatch(), "Array representations should support ellipsis");
+                Expect.that(actual)
+                        .shouldMatch(expected);
             }
 
             @Test
@@ -701,11 +594,8 @@ class EllipsisPatternTest {
                 String expected = "...";
                 String actual = "Any content here including newlines\nand multiple lines\nwith various data";
 
-                ComparisonResult result = OutputValidator.expect(actual)
-                        
-                        .toMatchContent(expected);
-
-                assertTrue(result.isMatch(), "Pure ellipsis should match any content");
+                Expect.that(actual)
+                        .shouldMatch(expected);
             }
 
             @Test
@@ -715,11 +605,8 @@ class EllipsisPatternTest {
                 java.util.List<String> actualList = java.util.List.of("item1", "item2", "item3");
                 String expected = "[item1, item2, ...]";
 
-                ComparisonResult result = OutputValidator.expect(actualList)
-                        
-                        .toMatchContent(expected);
-
-                assertTrue(result.isMatch(), "Collection objects should be converted to strings properly");
+                Expect.that(actualList)
+                        .shouldMatch(expected);
             }
 
             @Test
@@ -728,11 +615,8 @@ class EllipsisPatternTest {
                 String expected = "Document{{name=..., active=true}}";
                 String actual = "Document{{name=John Doe, active=true}}";
 
-                ComparisonResult result = OutputValidator.expect(actual)
-                        
-                        .toMatchContent(expected);
-
-                assertTrue(result.isMatch(), "Document toString() format should support ellipsis");
+                Expect.that(actual)
+                        .shouldMatch(expected);
             }
 
             @Test
@@ -741,11 +625,8 @@ class EllipsisPatternTest {
                 String expected = "Mono.fromPublisher(...)";
                 String actual = "Mono.fromPublisher(reactor.core.publisher.FluxFlatMap@1a2b3c4d)";
 
-                ComparisonResult result = OutputValidator.expect(actual)
-                        
-                        .toMatchContent(expected);
-
-                assertTrue(result.isMatch(), "Reactive streams toString() should work");
+                Expect.that(actual)
+                        .shouldMatch(expected);
             }
 
             @Test
@@ -756,16 +637,16 @@ class EllipsisPatternTest {
 
                 // Should not throw an exception
                 assertDoesNotThrow(() -> {
-                    OutputValidator.expect(actual)
-                            
-                            .assertMatchesContent(expected);
+                    Expect.that(actual)
+
+                            .shouldMatch(expected);
                 }, "Assertion should pass for matching content");
 
                 // Should throw for non-matching content
                 assertThrows(AssertionError.class, () -> {
-                    OutputValidator.expect("Different content")
-                            
-                            .assertMatchesContent(expected);
+                    Expect.that("Different content")
+
+                            .shouldMatch(expected);
                 }, "Assertion should fail for non-matching content");
             }
         }
@@ -787,13 +668,9 @@ class EllipsisPatternTest {
             assertTrue(pattern.matcher(actual).matches(),
                     "Generated regex should match the actual string");
 
-            // Test through OutputValidator
-            ComparisonResult result = OutputValidator.expect(actual)
-                    
-                    .toMatchContent(expected);
-
-            assertTrue(result.isMatch(),
-                    "Multi-line regex conversion should work through OutputValidator. Errors: " + result.errors());
+            // Test through Expect API
+            Expect.that(actual)
+                    .shouldMatch(expected);
         }
 
         @Test
@@ -811,9 +688,9 @@ class EllipsisPatternTest {
             AcknowledgedInsertOneResult{insertedId=...}
             """;
 
-            assertDoesNotThrow(() -> OutputValidator.expect(insertOneResultPattern)
-                            
-                            .assertMatchesContent(insertOneExpected),
+            assertDoesNotThrow(() -> Expect.that(insertOneResultPattern)
+
+                            .shouldMatch(insertOneExpected),
                     "Should handle InsertOneResult toString() patterns");
 
             // InsertManyResult pattern
@@ -825,9 +702,9 @@ class EllipsisPatternTest {
             AcknowledgedInsertManyResult{insertedIds=[...]}
             """;
 
-            assertDoesNotThrow(() -> OutputValidator.expect(insertManyResultPattern)
-                            
-                            .assertMatchesContent(insertManyExpected),
+            assertDoesNotThrow(() -> Expect.that(insertManyResultPattern)
+
+                            .shouldMatch(insertManyExpected),
                     "Should handle InsertManyResult toString() patterns");
 
             // UpdateResult pattern
@@ -839,9 +716,9 @@ class EllipsisPatternTest {
             AcknowledgedUpdateResult{matchedCount=..., modifiedCount=..., upsertedId=null}
             """;
 
-            assertDoesNotThrow(() -> OutputValidator.expect(updateResultPattern)
-                            
-                            .assertMatchesContent(updateExpected),
+            assertDoesNotThrow(() -> Expect.that(updateResultPattern)
+
+                            .shouldMatch(updateExpected),
                     "Should handle UpdateResult toString() patterns");
         }
 
@@ -852,7 +729,7 @@ class EllipsisPatternTest {
      * Regression tests for ellipsis pattern matching integration.
      *
      * These tests ensure that the critical ellipsis functionality works end-to-end
-     * through the complete OutputValidator pipeline. This functionality can be difficult
+     * through the complete Expect API pipeline. This functionality can be difficult
      * to debug because of the complex interactions between conditions and code paths. This core
      * set of tests can help us keep an eye out for regressions we've triggered repeatedly.
      *
@@ -869,10 +746,8 @@ class EllipsisPatternTest {
         void testSimpleEllipsisPattern() {
             // This was the core pattern failing before the September 2025 fix
             // ExpectedOutputParser was trying to parse "..." as JSON and failing
-            var result = OutputValidator.expect("anything")
-                    .toMatchContent("...");
-
-            assertTrue(result.isMatch(), "Simple ellipsis should match any content");
+            Expect.that("anything")
+                    .shouldMatch("...");
         }
 
         @Test
@@ -882,10 +757,8 @@ class EllipsisPatternTest {
             // The fix ensures these are parsed as JSON then ellipsis-matched at field level
             org.bson.Document actualDoc = org.bson.Document.parse("{\"_id\":\"507f1f77bcf86cd799439013\",\"name\":\"test\"}");
 
-            var result = OutputValidator.expect(actualDoc)
-                    .toMatchContent("{\"_id\": \"...\", \"name\": \"test\"}");
-
-            assertTrue(result.isMatch(), "JSON with ellipsis fields should match");
+            Expect.that(actualDoc)
+                    .shouldMatch("{\"_id\": \"...\", \"name\": \"test\"}");
         }
 
         @Test
@@ -897,10 +770,8 @@ class EllipsisPatternTest {
             org.bson.Document actualDoc = new org.bson.Document("_id", 1)
                     .append("tags", java.util.Arrays.asList("red", "blue", "green"));
 
-            var result = OutputValidator.expect(actualDoc)
-                    .toMatchContent("{\"_id\": 1, \"tags\": [...]}");
-
-            assertTrue(result.isMatch(), "JSON with array ellipsis should match");
+            Expect.that(actualDoc)
+                    .shouldMatch("{\"_id\": 1, \"tags\": [...]}");
         }
 
         @Test
@@ -910,10 +781,8 @@ class EllipsisPatternTest {
             // Common pattern in MongoDB documentation for console output
             String actualOutput = "Inserted documents with ids: [507f1f77bcf86cd799439013, 507f1f77bcf86cd799439014]";
 
-            var result = OutputValidator.expect(actualOutput)
-                    .toMatchContent("Inserted documents with ids: [...]");
-
-            assertTrue(result.isMatch(), "String with array ellipsis should match");
+            Expect.that(actualOutput)
+                    .shouldMatch("Inserted documents with ids: [...]");
         }
 
         @Test
@@ -923,10 +792,8 @@ class EllipsisPatternTest {
             org.bson.Document actualDoc = org.bson.Document.parse("{\"name\":\"test\",\"value\":42}");
             String expectedJson = "{\"name\":\"test\",\"value\":42}";
 
-            var result = OutputValidator.expect(actualDoc)
-                    .toMatchContent(expectedJson);
-
-            assertTrue(result.isMatch(), "Regular JSON matching should still work");
+            Expect.that(actualDoc)
+                    .shouldMatch(expectedJson);
         }
 
         @Test
@@ -936,10 +803,8 @@ class EllipsisPatternTest {
             String actualOutput = "Some specific content";
             String expectedOutput = "Different specific content";
 
-            var result = OutputValidator.expect(actualOutput)
-                    .toMatchContent(expectedOutput);
-
-            assertFalse(result.isMatch(), "Non-matching content should still fail");
+            assertThrows(AssertionError.class, () ->
+                    Expect.that(actualOutput).shouldMatch(expectedOutput));
         }
     }
 
@@ -1043,12 +908,8 @@ class EllipsisPatternTest {
 
     // Helper methods for testing individual ellipsis patterns
     private void testEllipsisPattern(String expected, String actual) {
-        ComparisonResult result = OutputValidator.expect(actual)
-                
-                .toMatchContent(expected);
-
-        assertTrue(result.isMatch(),
-                String.format("Pattern '%s' should match '%s'. Errors: %s", expected, actual, result.errors()));
+        Expect.that(actual)
+                .shouldMatch(expected);
     }
 
     private String convertEllipsisToRegex(String expected) {

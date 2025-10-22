@@ -6,8 +6,9 @@ import java.util.Objects;
  * Main entry point for comparison operations that routes to appropriate
  * comparison strategies based on content analysis. The strategy selection is automated,
  * with users only needing to specify ORDERED vs UNORDERED comparison.
+ * Package-private - internal implementation detail for the Expect API.
  */
-public class ComparisonStrategy {
+class ComparisonStrategy {
 
     /**
      * Compares two objects using intelligent strategy selection based on content analysis.

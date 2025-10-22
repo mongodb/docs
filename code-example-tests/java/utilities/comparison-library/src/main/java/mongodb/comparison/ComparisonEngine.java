@@ -6,8 +6,9 @@ import java.util.Map;
 
 /**
  * Core comparison engine.
+ * Package-private - internal implementation detail for the Expect API.
  */
-public class ComparisonEngine {
+class ComparisonEngine {
 
     /**
      * Compare expected and actual values with the given options.

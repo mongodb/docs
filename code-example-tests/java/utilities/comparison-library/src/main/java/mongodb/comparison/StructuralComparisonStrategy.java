@@ -7,8 +7,9 @@ import java.util.Map;
 /**
  * Handles structural comparisons for objects, arrays, and complex data structures.
  * This is separate from string comparisons to maintain clean separation of concerns.
+ * Package-private - internal implementation detail for the Expect API.
  */
-public class StructuralComparisonStrategy {
+class StructuralComparisonStrategy {
 
     /**
      * Compares two objects structurally (comparing their structure and content).

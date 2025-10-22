@@ -19,11 +19,9 @@ class POJOIntegrationTest {
     void testPOJOStructuralComparison() {
         Person expectedPerson = new Person("Alice", 25, "alice@example.com");
         Person actualPerson = new Person("Alice", 25, "alice@example.com");
-        
-        ComparisonResult result = OutputValidator.expect(actualPerson)
-            .toMatch(expectedPerson);
-        
-        assertTrue(result.isMatch(), "Identical POJOs should match using structural comparison");
+
+        Expect.that(actualPerson)
+            .shouldMatch(expectedPerson);
     }
 
     @Test
@@ -32,17 +30,8 @@ class POJOIntegrationTest {
         Person expectedPerson = new Person("Alice", 25, "alice@example.com");
         Person actualPerson = new Person("Alice", 30, "alice@example.com"); // Different age
 
-        ComparisonResult result = OutputValidator.expect(actualPerson)
-            .toMatch(expectedPerson);
-
-        assertFalse(result.isMatch(), "POJOs with different field values should not match");
-
-        // Debug: Print the actual error message to understand how POJOs are compared
-        System.out.println("POJO comparison error: " + result.summary());
-
-        // POJOs might be compared using toString() or object equality, not field-by-field
-        // So we just verify that the comparison fails, not the specific error message
-        assertTrue(result.errors().size() > 0, "Should have comparison errors");
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actualPerson).shouldMatch(expectedPerson));
     }
 
     @Test
@@ -52,18 +41,15 @@ class POJOIntegrationTest {
             new Person("Alice", 25, "alice@example.com"),
             new Person("Bob", 30, "bob@example.com")
         );
-        
+
         List<Person> actualPeople = List.of(
             new Person("Bob", 30, "bob@example.com"),
             new Person("Alice", 25, "alice@example.com")
         );
-        
+
         // Should use BACKTRACKING strategy for complex objects (POJOs)
-        ComparisonResult result = OutputValidator.expect(actualPeople)
-            .withUnorderedArrays()
-            .toMatch(expectedPeople);
-        
-        assertTrue(result.isMatch(), "Unordered POJO arrays should match using backtracking strategy");
+        Expect.that(actualPeople)
+            .shouldMatch(expectedPeople);
     }
 
     @Test
@@ -72,18 +58,22 @@ class POJOIntegrationTest {
         Person actualPerson = new Person("Alice", 25, "alice@example.com");
         String jsonPattern = "{\"name\": \"Alice\", \"age\": 25, \"email\": \"...\"}";
 
-        ComparisonResult result = OutputValidator.expect(actualPerson)
-            .toMatchContent(jsonPattern);
-
-        // Debug: Print what's happening
-        System.out.println("JSON vs POJO result: " + result.isMatch());
-        System.out.println("JSON vs POJO error: " + result.summary());
-        System.out.println("POJO toString: " + actualPerson.toString());
-
         // The ContentAnalyzer should route this to string comparison, but the actual
         // comparison might depend on how the POJO is serialized/converted
-        // Let's just verify the behavior without assuming the outcome
-        assertNotNull(result, "Should get a comparison result");
+        // This test documents the current behavior - it may succeed or fail depending on
+        // how POJOs are normalized. Just verify we get a clear result either way.
+        try {
+            Expect.that(actualPerson).shouldMatch(jsonPattern);
+            System.out.println("JSON vs POJO: Comparison succeeded");
+        } catch (AssertionError e) {
+            System.out.println("JSON vs POJO: Comparison failed as expected");
+            System.out.println("POJO toString: " + actualPerson.toString());
+            System.out.println("Error: " + e.getMessage());
+            // Current behavior: POJOs use toString() which doesn't match JSON format
+            assertTrue(e.getMessage().contains("Person{") ||
+                      e.getMessage().contains("String content"),
+                    "Should indicate string comparison when POJO doesn't match JSON pattern");
+        }
     }
 
     @Test
@@ -92,13 +82,10 @@ class POJOIntegrationTest {
         Person person = new Person("Alice", 25, "alice@example.com");
         List<Object> expectedMixed = List.of("string", 123, person, true);
         List<Object> actualMixed = List.of(true, person, 123, "string");
-        
+
         // Should use HYBRID strategy for mixed content
-        ComparisonResult result = OutputValidator.expect(actualMixed)
-            .withUnorderedArrays()
-            .toMatch(expectedMixed);
-        
-        assertTrue(result.isMatch(), "Mixed POJO and primitive arrays should match using hybrid strategy");
+        Expect.that(actualMixed)
+            .shouldMatch(expectedMixed);
     }
 
     @Test
@@ -107,11 +94,9 @@ class POJOIntegrationTest {
         Address address = new Address("123 Main St", "Anytown", "12345");
         PersonWithAddress expectedPerson = new PersonWithAddress("Alice", 25, address);
         PersonWithAddress actualPerson = new PersonWithAddress("Alice", 25, address);
-        
-        ComparisonResult result = OutputValidator.expect(actualPerson)
-            .toMatch(expectedPerson);
-        
-        assertTrue(result.isMatch(), "Nested POJOs should match using structural comparison");
+
+        Expect.that(actualPerson)
+            .shouldMatch(expectedPerson);
     }
 
     @Test
@@ -123,16 +108,8 @@ class POJOIntegrationTest {
         PersonWithAddress expectedPerson = new PersonWithAddress("Alice", 25, expectedAddress);
         PersonWithAddress actualPerson = new PersonWithAddress("Alice", 25, actualAddress);
 
-        ComparisonResult result = OutputValidator.expect(actualPerson)
-            .toMatch(expectedPerson);
-
-        assertFalse(result.isMatch(), "POJOs with different nested field values should not match");
-
-        // Debug: Print the actual error message
-        System.out.println("Nested POJO comparison error: " + result.summary());
-
-        // Just verify that there are errors, not the specific content
-        assertTrue(result.errors().size() > 0, "Should have comparison errors");
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actualPerson).shouldMatch(expectedPerson));
     }
 
     // Test POJO classes
@@ -140,17 +117,17 @@ class POJOIntegrationTest {
         private final String name;
         private final int age;
         private final String email;
-        
+
         public Person(String name, int age, String email) {
             this.name = name;
             this.age = age;
             this.email = email;
         }
-        
+
         public String getName() { return name; }
         public int getAge() { return age; }
         public String getEmail() { return email; }
-        
+
         @Override
         public boolean equals(Object obj) {
             if (this == obj) return true;
@@ -160,12 +137,12 @@ class POJOIntegrationTest {
                    Objects.equals(name, person.name) &&
                    Objects.equals(email, person.email);
         }
-        
+
         @Override
         public int hashCode() {
             return Objects.hash(name, age, email);
         }
-        
+
         @Override
         public String toString() {
             return "Person{name='" + name + "', age=" + age + ", email='" + email + "'}";
@@ -176,17 +153,17 @@ class POJOIntegrationTest {
         private final String street;
         private final String city;
         private final String zipCode;
-        
+
         public Address(String street, String city, String zipCode) {
             this.street = street;
             this.city = city;
             this.zipCode = zipCode;
         }
-        
+
         public String getStreet() { return street; }
         public String getCity() { return city; }
         public String getZipCode() { return zipCode; }
-        
+
         @Override
         public boolean equals(Object obj) {
             if (this == obj) return true;
@@ -196,12 +173,12 @@ class POJOIntegrationTest {
                    Objects.equals(city, address.city) &&
                    Objects.equals(zipCode, address.zipCode);
         }
-        
+
         @Override
         public int hashCode() {
             return Objects.hash(street, city, zipCode);
         }
-        
+
         @Override
         public String toString() {
             return "Address{street='" + street + "', city='" + city + "', zipCode='" + zipCode + "'}";
@@ -212,17 +189,17 @@ class POJOIntegrationTest {
         private final String name;
         private final int age;
         private final Address address;
-        
+
         public PersonWithAddress(String name, int age, Address address) {
             this.name = name;
             this.age = age;
             this.address = address;
         }
-        
+
         public String getName() { return name; }
         public int getAge() { return age; }
         public Address getAddress() { return address; }
-        
+
         @Override
         public boolean equals(Object obj) {
             if (this == obj) return true;
@@ -232,12 +209,12 @@ class POJOIntegrationTest {
                    Objects.equals(name, that.name) &&
                    Objects.equals(address, that.address);
         }
-        
+
         @Override
         public int hashCode() {
             return Objects.hash(name, age, address);
         }
-        
+
         @Override
         public String toString() {
             return "PersonWithAddress{name='" + name + "', age=" + age + ", address=" + address + "}";

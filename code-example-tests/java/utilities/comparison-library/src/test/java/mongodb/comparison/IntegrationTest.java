@@ -22,10 +22,8 @@ class ComparisonLibraryIntegrationTest {
             "active", true
         );
 
-        var result = OutputValidator.expect(actual)
-            .toMatchFile("test-data/simple-output.txt");
-
-        assertTrue(result.isMatch(), "Simple file comparison should succeed");
+        Expect.that(actual)
+            .shouldMatch("test-data/simple-output.txt");
     }
 
     @Test
@@ -38,10 +36,8 @@ class ComparisonLibraryIntegrationTest {
             Map.of("_id", objectId2, "name", "Jane", "status", "inactive")
         );
 
-        var result = OutputValidator.expect(actual)
-            .toMatchFile("test-data/mongodb-types.txt");
-
-        assertTrue(result.isMatch(), "MongoDB type normalization should work");
+        Expect.that(actual)
+            .shouldMatch("test-data/mongodb-types.txt");
     }
 
     @Test
@@ -52,11 +48,8 @@ class ComparisonLibraryIntegrationTest {
             Map.of("name", "second", "value", 2)
         );
 
-        var result = OutputValidator.expect(actual)
-            .withUnorderedArrays()
-            .toMatchFile("test-data/unordered-array.txt");
-
-        assertTrue(result.isMatch(), "Unordered array comparison should succeed");
+        Expect.that(actual)
+            .shouldMatch("test-data/unordered-array.txt");
     }
 
     @Test
@@ -67,11 +60,10 @@ class ComparisonLibraryIntegrationTest {
             Map.of("name", "second", "value", 2)
         );
 
-        var result = OutputValidator.expect(actual)
-            .withOrderedArrays()
-            .toMatchFile("test-data/unordered-array.txt");
-
-        assertFalse(result.isMatch(), "Ordered array comparison should fail when order differs");
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actual)
+                        .withOrderedSort()
+                        .shouldMatch("test-data/unordered-array.txt"));
     }
 
     @Test
@@ -92,11 +84,9 @@ class ComparisonLibraryIntegrationTest {
             "timestamp", "2023-01-01T00:00:00Z"
         );
 
-        var result = OutputValidator.expect(actual)
+        Expect.that(actual)
             .withIgnoredFields("_id", "timestamp")
-            .toMatch(expected);
-
-        assertTrue(result.isMatch(), "Ignored fields should not affect comparison");
+            .shouldMatch(expected);
     }
 
     @Test
@@ -107,10 +97,8 @@ class ComparisonLibraryIntegrationTest {
             "timestamp", "2023-01-01T12:34:56Z"
         );
 
-        var result = OutputValidator.expect(actual)
-            .toMatchFile("test-data/ellipsis-patterns.txt");
-
-        assertTrue(result.isMatch(), "Ellipsis patterns should match");
+        Expect.that(actual)
+            .shouldMatch("test-data/ellipsis-patterns.txt");
     }
 
     @Test
@@ -121,10 +109,8 @@ class ComparisonLibraryIntegrationTest {
             Map.of("date", "2021-12-18T15:57:00Z", "ticker", "MDB", "close", 253.62, "volume", 40182.0)
         );
 
-        var result = OutputValidator.expect(actual)
-            .toMatchFile("test-data/timeseries-jsonl.txt");
-
-        assertTrue(result.isMatch(), "Time series data should match");
+        Expect.that(actual)
+            .shouldMatch("test-data/timeseries-jsonl.txt");
     }
 
     @Test
@@ -141,9 +127,7 @@ class ComparisonLibraryIntegrationTest {
             "longValue", 42.0 // double instead of long
         );
 
-        var result = OutputValidator.expect(actual).toMatch(expected);
-
-        assertTrue(result.isMatch(), "Different numeric types with same value should match");
+        Expect.that(actual).shouldMatch(expected);
     }
 
     @Test
@@ -156,9 +140,7 @@ class ComparisonLibraryIntegrationTest {
         expected.put("name", "test");
         expected.put("optional", null);
 
-        var result = OutputValidator.expect(actual).toMatch(expected);
-
-        assertTrue(result.isMatch(), "Null values should match");
+        Expect.that(actual).shouldMatch(expected);
     }
 
     @Test
@@ -173,14 +155,8 @@ class ComparisonLibraryIntegrationTest {
             "count", 42
         );
 
-        var result = OutputValidator.expect(actual).toMatch(expected);
-
-        assertFalse(result.isMatch(), "Mismatched values should fail");
-        assertFalse(result.errors().isEmpty(), "Should have error details");
-        assertTrue(result.errors().stream().anyMatch(e -> e.path().equals("name")),
-            "Should report name field error");
-        assertTrue(result.errors().stream().anyMatch(e -> e.path().equals("count")),
-            "Should report count field error");
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actual).shouldMatch(expected));
     }
 
     @Test
@@ -207,9 +183,7 @@ class ComparisonLibraryIntegrationTest {
             )
         );
 
-        var result = OutputValidator.expect(actual).toMatch(expected);
-
-        assertTrue(result.isMatch(), "Deep nesting should work correctly");
+        Expect.that(actual).shouldMatch(expected);
     }
 
     @Test
@@ -232,9 +206,7 @@ class ComparisonLibraryIntegrationTest {
             List.of(1, 2, 3)
         );
 
-        var result = OutputValidator.expect(actual).toMatch(expected);
-
-        assertTrue(result.isMatch(), "Mixed type arrays should match");
+        Expect.that(actual).shouldMatch(expected);
     }
 
     @Test
@@ -242,8 +214,6 @@ class ComparisonLibraryIntegrationTest {
         var doc1 = new Document("name", "test").append("value", 42);
         var doc2 = new Document("name", "test").append("value", 42);
 
-        var result = OutputValidator.expect(doc1).toMatch(doc2);
-
-        assertTrue(result.isMatch(), "BSON Documents should match when equivalent");
+        Expect.that(doc1).shouldMatch(doc2);
     }
 }

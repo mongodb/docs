@@ -10,37 +10,35 @@ The `comparison-library-reactive` module extends the core comparison library to 
 
 ### Main Entry Points
 
-- `OutputValidatorReactive.expectFromPublisher(publisher)` – Validate results from a reactive `Publisher`.
-- `OutputValidatorReactive.expect(results)` – Validate already-collected results (e.g., `List<Document>`).
+- `ExpectReactive.that(publisher)` – Validate results from a reactive `Publisher` with default timeout.
+- `ExpectReactive.that(publisher, timeout)` – Validate results from a reactive `Publisher` with custom timeout.
+- `ExpectReactive.that(results)` – Validate already-collected results (e.g., `List<Document>`).
 
 ### Configuration
 
 ```java
-OutputValidatorReactive.expectFromPublisher(publisher)
-    .withUnorderedComparison()         // Ignore order of results
-    .withIgnoredFields("_id");         // Ignore specific fields
+ExpectReactive.that(publisher)
+    .withIgnoredFields("_id")          // Ignore specific fields
+    .shouldMatch("expected.json");     // Validate and throw on mismatch
 ```
 
 ### Validation
 
 ```java
 // Assert success or throw exception
-validator.assertMatches();
+ExpectReactive.that(publisher).shouldMatch(expected);
 
-// Get detailed result
-ComparisonResult result = validator.toMatch(expected);
-if (!result.isMatch()) {
-    System.out.println(result.getErrorMessage());
-}
+// Debug mode for detailed error information - only for internal tooling testing
+ExpectReactive.that(publisher).shouldMatchWithDebug(expected);
 ```
 
 ## Example: Validating a Reactive Publisher
 
 ```java
 Publisher<Document> publisher = collection.find();
-OutputValidatorReactive.expectFromPublisher(publisher)
+ExpectReactive.that(publisher)
     .withIgnoredFields("_id", "timestamp")
-    .assertMatchesFile("expected-results.json");
+    .shouldMatch("expected-results.json");
 ```
 
 ## File Format Support

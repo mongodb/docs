@@ -53,15 +53,15 @@ class CrossFormatAndErrorRecoveryPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(extendedJson)
+            Expect.that(extendedJson)
                 
-                .assertMatchesContent(expectedPattern);
+                .shouldMatch(expectedPattern);
         }, "Extended JSON format should match ellipsis pattern");
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(relaxedJson)
+            Expect.that(relaxedJson)
                 
-                .assertMatchesContent(expectedPattern);
+                .shouldMatch(expectedPattern);
         }, "Relaxed JSON format should match ellipsis pattern");
     }
 
@@ -84,16 +84,16 @@ class CrossFormatAndErrorRecoveryPatternsTest {
 
         // This tests format normalization
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(documentToJson)
+            Expect.that(documentToJson)
                 
-                .assertMatchesContent(expectedPattern);
+                .shouldMatch(expectedPattern);
         }, "Document.toJson() should match pattern");
 
         // This may fail due to Document.toString() format differences
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(documentToString)
+            Expect.that(documentToString)
                 
-                .assertMatchesContent(expectedPattern);
+                .shouldMatch(expectedPattern);
         }, "Document.toString() should also match pattern after normalization");
     }
 
@@ -126,15 +126,15 @@ class CrossFormatAndErrorRecoveryPatternsTest {
 
         // This tests format normalization capabilities
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(documents)
-                .assertMatchesContent(expectedJsonLinesPattern);
+            Expect.that(documents)
+                .shouldMatch(expectedJsonLinesPattern);
         }, "List<Document> should match JSON Lines pattern");
 
         // This may reveal implementation gaps in toString() format handling
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(listToString)
+            Expect.that(listToString)
                 
-                .assertMatchesContent(expectedJsonArrayPattern);
+                .shouldMatch(expectedJsonArrayPattern);
         }, "List<Document>.toString() should match JSON array pattern after normalization");
     }
 
@@ -152,9 +152,9 @@ class CrossFormatAndErrorRecoveryPatternsTest {
 
         // This tests error recovery and parsing robustness
         try {
-            OutputValidator.expect(malformedJson)
+            Expect.that(malformedJson)
                 
-                .assertMatchesContent(expectedPattern);
+                .shouldMatch(expectedPattern);
         } catch (AssertionError e) {
             // Document the error for implementation improvement
             System.err.println("Error recovery needed for malformed JSON: " + e.getMessage());
@@ -182,16 +182,16 @@ class CrossFormatAndErrorRecoveryPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(jsonSerialization)
+            Expect.that(jsonSerialization)
                 
-                .assertMatchesContent(expectedPattern);
+                .shouldMatch(expectedPattern);
         }, "JSON serialization should match pattern");
 
         // This tests POJO toString() format normalization
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(pojoToString)
+            Expect.that(pojoToString)
                 
-                .assertMatchesContent(expectedPattern);
+                .shouldMatch(expectedPattern);
         }, "POJO toString() should match pattern after normalization");
     }
 
@@ -209,18 +209,18 @@ class CrossFormatAndErrorRecoveryPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(Arrays.asList(document1))
-                .assertMatchesContent(expectedPattern);
+            Expect.that(Arrays.asList(document1))
+                .shouldMatch(expectedPattern);
         }, "Double precision should match pattern");
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(Arrays.asList(document2))
-                .assertMatchesContent(expectedPattern);
+            Expect.that(Arrays.asList(document2))
+                .shouldMatch(expectedPattern);
         }, "Integer should match pattern");
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(Arrays.asList(document3))
-                .assertMatchesContent(expectedPattern);
+            Expect.that(Arrays.asList(document3))
+                .shouldMatch(expectedPattern);
         }, "Decimal128 should match pattern");
     }
 
@@ -256,15 +256,15 @@ class CrossFormatAndErrorRecoveryPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(connectionTimeoutError)
+            Expect.that(connectionTimeoutError)
                 
-                .assertMatchesContent(expectedTimeoutPattern);
+                .shouldMatch(expectedTimeoutPattern);
         }, "Connection timeout errors should match pattern");
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(authenticationError)
+            Expect.that(authenticationError)
                 
-                .assertMatchesContent(expectedAuthPattern);
+                .shouldMatch(expectedAuthPattern);
         }, "Authentication errors should match pattern");
     }
 
@@ -396,8 +396,8 @@ class CrossFormatAndErrorRecoveryPatternsTest {
         }
 
         try {
-            OutputValidator.expect(unicodeDocument)
-                .assertMatchesContent(expectedPattern);
+            Expect.that(unicodeDocument)
+                .shouldMatch(expectedPattern);
             System.out.println("Unicode test PASSED");
         } catch (AssertionError e) {
             System.out.println("Unicode test FAILED: " + e.getMessage());

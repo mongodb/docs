@@ -36,22 +36,8 @@ class PerformanceAndEdgeCasesTest {
         Collections.reverse(reversedComplex);
 
         // Test with complex comparison (timeout is now fixed at 30 seconds)
-        var result = OutputValidator.expect(reversedComplex)
-                .withUnorderedArrays()
-                .toMatch(complexArray);
-
-        if (!result.isMatch()) {
-            assertTrue(result.errors().stream()
-                            .anyMatch(e -> e.message().contains("timeout") ||
-                                    e.message().contains("timed out")),
-                    "Should report timeout when exceeded");
-
-            // Should provide helpful suggestions
-            assertTrue(result.errors().stream()
-                            .anyMatch(e -> e.message().contains("Consider") ||
-                                    e.message().contains("suggest")),
-                    "Should provide timeout resolution suggestions");
-        }
+        // This should complete successfully or throw AssertionError if it times out
+        assertDoesNotThrow(() -> Expect.that(reversedComplex).shouldMatch(complexArray));
     }
 
     @Test
@@ -62,20 +48,21 @@ class PerformanceAndEdgeCasesTest {
         // Create deeply nested structure just under the limit
         Map<String, Object> deepStructure = createNestedStructure(maxDepth - 10);
 
-        var result = OutputValidator.expect(deepStructure).toMatch(deepStructure);
-        assertTrue(result.isMatch(), "Deep nesting under limit should work");
+        Expect.that(deepStructure).shouldMatch(deepStructure);
 
         // Create structure over the limit
         Map<String, Object> tooDeepStructure = createNestedStructure(maxDepth + 10);
 
-        var tooDeepResult = OutputValidator.expect(tooDeepStructure).toMatch(tooDeepStructure);
-
         // Should either succeed or report depth limit exceeded
-        if (!tooDeepResult.isMatch()) {
-            assertTrue(tooDeepResult.errors().stream()
-                .anyMatch(e -> e.message().contains("depth") ||
-                              e.message().contains("recursion")),
-                "Should report recursion depth exceeded");
+        try {
+            Expect.that(tooDeepStructure).shouldMatch(tooDeepStructure);
+            // If it succeeds, that's fine
+        } catch (AssertionError e) {
+            // If it fails, verify it's due to recursion depth
+            assertTrue(e.getMessage().contains("recursion depth") ||
+                      e.getMessage().contains("exceeds maximum") ||
+                      e.getMessage().contains("too deep"),
+                    "Should report recursion depth limit issues");
         }
     }
 
@@ -96,14 +83,12 @@ class PerformanceAndEdgeCasesTest {
         Runtime runtime = Runtime.getRuntime();
         long beforeMemory = runtime.totalMemory() - runtime.freeMemory();
 
-        var result = OutputValidator.expect(largeData)
-            .withOrderedArrays()  // Use ordered comparison to avoid performance limits for large data
-            .toMatch(largeData);
+        Expect.that(largeData)
+            .withOrderedSort()  // Use ordered comparison to avoid performance limits for large data
+            .shouldMatch(largeData);
 
         long afterMemory = runtime.totalMemory() - runtime.freeMemory();
         long memoryUsed = afterMemory - beforeMemory;
-
-        assertTrue(result.isMatch(), "Large data comparison should succeed");
 
         // Memory usage should be reasonable (less than 100MB for this test)
         assertTrue(memoryUsed < 100 * 1024 * 1024,
@@ -124,8 +109,12 @@ class PerformanceAndEdgeCasesTest {
 
         for (int i = 0; i < 10; i++) {
             var future = CompletableFuture.supplyAsync(() -> {
-                var result = OutputValidator.expect(testData).toMatch(testData);
-                return result.isMatch();
+                try {
+                    Expect.that(testData).shouldMatch(testData);
+                    return true;
+                } catch (AssertionError e) {
+                    return false;
+                }
             });
             futures.add(future);
         }
@@ -166,8 +155,7 @@ class PerformanceAndEdgeCasesTest {
         edgeCases.put("largeNumber", 9007199254740991L); // Max safe integer in JavaScript
         edgeCases.put("controlChars", "\u0001\u0002\u0003\u001F");
 
-        var result = OutputValidator.expect(edgeCases).toMatch(edgeCases);
-        assertTrue(result.isMatch(), "Edge case values should be handled correctly");
+        Expect.that(edgeCases).shouldMatch(edgeCases);
 
         // Test with ellipsis patterns and edge cases
         var edgeWithEllipsis = Map.of(
@@ -177,8 +165,7 @@ class PerformanceAndEdgeCasesTest {
             "specialNumbers", Arrays.asList("...")
         );
 
-        var ellipsisResult = OutputValidator.expect(edgeCases).toMatch(edgeWithEllipsis);
-        assertTrue(ellipsisResult.isMatch(), "Ellipsis should match edge case values");
+        Expect.that(edgeCases).shouldMatch(edgeWithEllipsis);
     }
 
     @Test

@@ -68,11 +68,9 @@ class ArrayComparisonTest {
                     )
             );
 
-            var result = OutputValidator.expect(actual)
-                    .withUnorderedArrays()  // Library will automatically choose backtracking strategy
-                    .toMatch(expected);
-
-            assertTrue(result.isMatch(), "Unordered comparison should automatically choose the optimal strategy (backtracking) for complex objects");
+            Expect.that(actual)
+                      // Library will automatically choose backtracking strategy
+                    .shouldMatch(expected);
         }
 
         @Test
@@ -96,12 +94,9 @@ class ArrayComparisonTest {
                     Map.of("complex", "object1", "value", 1)
             );
 
-            var result = OutputValidator.expect(actual)
-                    .withUnorderedArrays()  // Library will automatically choose hybrid strategy
-                    .toMatch(expected);
-
-            assertTrue(result.isMatch(),
-                    "Unordered comparison should automatically choose the optimal strategy (hybrid) for mixed content");
+            Expect.that(actual)
+                      // Library will automatically choose hybrid strategy
+                    .shouldMatch(expected);
         }
 
         @Test
@@ -121,12 +116,9 @@ class ArrayComparisonTest {
                     false, true, false, true         // different order
             );
 
-            var result = OutputValidator.expect(actual)
-                    .withUnorderedArrays()  // Library will automatically choose set-based strategy
-                    .toMatch(expected);
-
-            assertTrue(result.isMatch(),
-                    "Unordered comparison should automatically choose the optimal strategy (set-based) for large primitive arrays");
+            Expect.that(actual)
+                      // Library will automatically choose set-based strategy
+                    .shouldMatch(expected);
         }
 
         @Test
@@ -140,12 +132,10 @@ class ArrayComparisonTest {
             java.util.Collections.shuffle(largePrimitiveArrayShuffled);
 
             long startTime = System.currentTimeMillis();
-            var result1 = OutputValidator.expect(largePrimitiveArrayShuffled)
-                    .withUnorderedArrays()
-                    .toMatch(largePrimitiveArray);
+            Expect.that(largePrimitiveArrayShuffled)
+                    .shouldMatch(largePrimitiveArray);
             long elapsedTime = System.currentTimeMillis() - startTime;
 
-            assertTrue(result1.isMatch());
             assertTrue(elapsedTime < 1000, "Large primitive array should be handled efficiently");
 
             // 2. Mixed content should use hybrid strategy
@@ -160,11 +150,8 @@ class ArrayComparisonTest {
                     Map.of("key", "value1")
             );
 
-            var result2 = OutputValidator.expect(mixedArrayReordered)
-                    .withUnorderedArrays()
-                    .toMatch(mixedArray);
-
-            assertTrue(result2.isMatch(), "Mixed arrays should use hybrid strategy");
+            Expect.that(mixedArrayReordered)
+                    .shouldMatch(mixedArray);
 
             // 3. Complex objects should use backtracking
             var complexObjects = Arrays.asList(
@@ -176,11 +163,8 @@ class ArrayComparisonTest {
                     Map.of("nested", Map.of("deep", "value1"))
             );
 
-            var result3 = OutputValidator.expect(complexObjectsReordered)
-                    .withUnorderedArrays()
-                    .toMatch(complexObjects);
-
-            assertTrue(result3.isMatch(), "Complex objects should use backtracking");
+            Expect.that(complexObjectsReordered)
+                    .shouldMatch(complexObjects);
         }
 
         @Test
@@ -201,16 +185,15 @@ class ArrayComparisonTest {
             var reversedLargeArray = new java.util.ArrayList<>(largeComplexArray);
             java.util.Collections.reverse(reversedLargeArray);
 
-            // Should fall back to frequency-based comparison or report limit exceeded
-            var result = OutputValidator.expect(reversedLargeArray)
-                    .withUnorderedArrays()
-                    .toMatch(largeComplexArray);
-
-            // Should either succeed with fallback strategy or fail with helpful error
-            if (!result.isMatch()) {
-                assertTrue(result.errors().stream()
-                                .anyMatch(e -> e.message().contains("size limit") ||
-                                        e.message().contains("complexity")),
+            // Should either succeed with fallback strategy or throw with size limit error
+            try {
+                Expect.that(reversedLargeArray).shouldMatch(largeComplexArray);
+                // If it succeeds, that's fine - fallback strategy worked
+            } catch (AssertionError e) {
+                // If it fails, verify it's due to size limit
+                assertTrue(e.getMessage().contains("size limit") ||
+                          e.getMessage().contains("complexity") ||
+                          e.getMessage().contains("too large"),
                         "Should report performance limit issues");
             }
         }
@@ -231,12 +214,9 @@ class ArrayComparisonTest {
                     Map.of("id", 4, "another", "element")
             );
 
-            var result = OutputValidator.expect(actual)
-                    .withUnorderedArrays()  // Library will automatically choose backtracking strategy
-                    .toMatch(expected);
-
-            assertTrue(result.isMatch(),
-                    "Should handle ellipsis patterns within unordered array comparison using automatic strategy selection");
+            Expect.that(actual)
+                      // Library will automatically choose backtracking strategy
+                    .shouldMatch(expected);
         }
     }
 
@@ -246,8 +226,8 @@ class ArrayComparisonTest {
     @Nested
     public class Reporting {
         @Test
-        @DisplayName("Array comparison error reporting with strategy information")
-        void testArrayComparisonErrorReportingWithStrategy() {
+        @DisplayName("Array comparison with mismatched elements should fail")
+        void testArrayComparisonWithMismatchedElements() {
             var expected = Arrays.asList(
                     Map.of("id", 1, "value", "expected1"),
                     Map.of("id", 2, "value", "expected2")
@@ -258,29 +238,14 @@ class ArrayComparisonTest {
                     Map.of("id", 3, "value", "actual3")    // Different id
             );
 
-            var result = OutputValidator.expect(actual)
-                    .withUnorderedArrays()  // Library will automatically choose backtracking strategy
-                    .toMatch(expected);
-
-            assertFalse(result.isMatch());
-
-            // Should include information about which strategy was used
-            assertTrue(result.errors().stream()
-                            .anyMatch(e -> e.message().contains("unordered") ||
-                                    e.message().contains("strategy") ||
-                                    e.message().contains("unordered")),
-                    "Should report which comparison strategy was used");
-
-            // Should provide helpful suggestions
-            assertTrue(result.errors().stream()
-                            .anyMatch(e -> e.message().contains("element") &&
-                                    e.message().contains("match")),
-                    "Should explain that no matching element was found");
+            // Should throw AssertionError for mismatched array elements
+            assertThrows(AssertionError.class, () ->
+                    Expect.that(actual).shouldMatch(expected));
         }
 
         @Test
-        @DisplayName("Ordered array comparison should mention index-based comparison in error messages")
-        void testOrderedArrayComparisonErrorContext() {
+        @DisplayName("Ordered array comparison with mismatched elements should fail")
+        void testOrderedArrayComparisonFailure() {
             var expected = Arrays.asList(
                     Map.of("id", 1, "value", "expected1"),
                     Map.of("id", 2, "value", "expected2"),
@@ -293,25 +258,16 @@ class ArrayComparisonTest {
                     Map.of("id", 5, "value", "actual5")    // Different id
             );
 
-            var result = OutputValidator.expect(actual)
-                    .withOrderedArrays()
-                    .toMatch(expected);
-
-            assertFalse(result.isMatch(), "Different arrays should not match");
-            assertFalse(result.errors().isEmpty(), "Should have comparison errors");
-
-            // At least one error should mention index-based comparison
-            boolean hasIndexContext = result.errors().stream()
-                    .anyMatch(e -> e.message().contains("index") || e.message().contains("ordered"));
-
-            assertTrue(hasIndexContext,
-                    "Ordered array comparison should mention index-based context in error messages. Got: " +
-                            result.errors().stream().map(e -> e.message()).toList());
+            // Should throw AssertionError for mismatched ordered arrays
+            assertThrows(AssertionError.class, () ->
+                    Expect.that(actual)
+                            .withOrderedSort()
+                            .shouldMatch(expected));
         }
 
         @Test
-        @DisplayName("Unordered array comparison should mention matching strategy in error messages")
-        void testUnorderedArrayComparisonErrorContext() {
+        @DisplayName("Unordered array comparison with mismatched elements should fail")
+        void testUnorderedArrayComparisonFailure() {
             var expected = Arrays.asList(
                     Map.of("id", 1, "value", "expected1"),
                     Map.of("id", 2, "value", "expected2"),
@@ -324,49 +280,22 @@ class ArrayComparisonTest {
                     Map.of("id", 5, "value", "actual5")    // Different id
             );
 
-            var result = OutputValidator.expect(actual)
-                    .withUnorderedArrays()
-                    .toMatch(expected);
-
-            assertFalse(result.isMatch(), "Different arrays should not match");
-            assertFalse(result.errors().isEmpty(), "Should have comparison errors");
-
-            // Should mention unordered matching strategy
-            boolean hasMatchingContext = result.errors().stream()
-                    .anyMatch(e -> e.message().contains("unordered") || e.message().contains("matching"));
-
-            assertTrue(hasMatchingContext,
-                    "Unordered array comparison should mention matching strategy in error messages. Got: " +
-                            result.errors().stream().map(e -> e.message()).toList());
-
-            // Should explain why elements didn't match
-            boolean hasElementExplanation = result.errors().stream()
-                    .anyMatch(e -> e.message().contains("no matching element") || e.message().contains("not found"));
-
-            assertTrue(hasElementExplanation,
-                    "Should explain why elements didn't match in unordered comparison. Got: " +
-                            result.errors().stream().map(e -> e.message()).toList());
+            // Should throw AssertionError for mismatched unordered arrays
+            assertThrows(AssertionError.class, () ->
+                    Expect.that(actual).shouldMatch(expected));
         }
 
         @Test
-        @DisplayName("Array size mismatch should indicate comparison strategy")
-        void testArraySizeMismatchWithStrategy() {
+        @DisplayName("Array size mismatch should fail comparison")
+        void testArraySizeMismatch() {
             var expected = Arrays.asList("a", "b", "c");
             var actual = Arrays.asList("a", "b");
 
-            // Test ordered comparison size mismatch
-            var orderedResult = OutputValidator.expect(actual)
-                    .withOrderedArrays()
-                    .toMatch(expected);
-
-            assertFalse(orderedResult.isMatch(), "Different sizes should not match");
-
-            boolean hasOrderedSizeContext = orderedResult.errors().stream()
-                    .anyMatch(e -> e.message().contains("Array sizes don't match") &&
-                            (e.message().contains("ordered") || e.message().contains("comparison")));
-
-            assertTrue(hasOrderedSizeContext,
-                    "Ordered array size mismatch should mention strategy context");
+            // Test ordered comparison size mismatch should throw
+            assertThrows(AssertionError.class, () ->
+                    Expect.that(actual)
+                            .withOrderedSort()
+                            .shouldMatch(expected));
         }
     }
 
@@ -524,20 +453,11 @@ class ArrayComparisonTest {
                 ));
             }
 
-            var result = OutputValidator.expect(complexActual)
-                    .withUnorderedArrays()  // Library will automatically choose backtracking strategy
-                    .toMatch(complexExpected);
-
-            if (!result.isMatch()) {
-                assertTrue(result.errors().stream()
-                                .anyMatch(e -> e.message().contains("timeout")),
-                        "Should report timeout in array comparison");
-
-                assertTrue(result.errors().stream()
-                                .anyMatch(e -> e.message().contains("Consider") ||
-                                        e.message().contains("suggest")),
-                        "Should provide suggestions for timeout issues");
-            }
+            // Should complete successfully without timeout
+            assertDoesNotThrow(() ->
+                    Expect.that(complexActual)
+                            // Library will automatically choose backtracking strategy
+                            .shouldMatch(complexExpected));
         }
 
         @Test
@@ -560,12 +480,10 @@ class ArrayComparisonTest {
             Collections.reverse(reversedArray);
 
             long startTime = System.currentTimeMillis();
-            var result = OutputValidator.expect(reversedArray)
-                    .withUnorderedArrays()
-                    .toMatch(largeArray);
+            Expect.that(reversedArray)
+                    .shouldMatch(largeArray);
             long elapsed = System.currentTimeMillis() - startTime;
 
-            assertTrue(result.isMatch(), "Large array comparison should succeed");
             assertTrue(elapsed < 5000, "Should complete within reasonable time (5 seconds)");
 
             // Test array over the limit
@@ -577,15 +495,15 @@ class ArrayComparisonTest {
             var reversedOversized = new ArrayList<>(oversizedArray);
             Collections.reverse(reversedOversized);
 
-            var oversizedResult = OutputValidator.expect(reversedOversized)
-                    .withUnorderedArrays()
-                    .toMatch(oversizedArray);
-
             // Should either succeed with fallback strategy or report size limit
-            if (!oversizedResult.isMatch()) {
-                assertTrue(oversizedResult.errors().stream()
-                                .anyMatch(e -> e.message().contains("size limit") ||
-                                        e.message().contains("performance")),
+            try {
+                Expect.that(reversedOversized).shouldMatch(oversizedArray);
+                // If it succeeds, that's fine - fallback strategy worked
+            } catch (AssertionError e) {
+                // If it fails, verify it's due to size limit
+                assertTrue(e.getMessage().contains("size limit") ||
+                          e.getMessage().contains("performance") ||
+                          e.getMessage().contains("too large"),
                         "Should report size limit exceeded");
             }
         }

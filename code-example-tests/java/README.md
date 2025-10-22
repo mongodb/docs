@@ -26,40 +26,32 @@ java/
 
 ```java
 import utils.TestDataLoader;
-import mongodb.comparison.OutputValidator;
+import mongodb.comparison.Expect;
 
 // Simple validation
 List<Document> results = collection.find(eq("year", 2015)).into(new ArrayList<>());
-TestDataLoader.validateResultsFromFile("expected-results.txt", results);
-
-// With more control
-OutputValidator.expect(results)
+Expect.that(results)
     .withIgnoredFields("_id")
-    .withUnorderedArrays()
-    .assertMatchesFile("expected-results.txt");
+    .shouldMatch("expected-results.txt");
 ```
 
 ### For Reactive Driver Tests
 
 ```java
 import utils.TestDataLoader;
-import mongodb.comparison.OutputValidator;
+import mongodb.comparison.Expect;
 
 // Simple validation
 Publisher<Document> publisher = collection.find(eq("year", 2015));
-TestDataLoader.validatePublisherResultsFromFile("expected-results.txt", publisher);
-
-// With more control
-OutputValidator.expectFromPublisher(publisher)
+ExpectReactive.that(publisher)
     .withIgnoredFields("_id")
-    .withTimeout(Duration.ofSeconds(30))
-    .assertMatchesFile("expected-results.txt");
+    .shouldMatch("expected-results.txt");
 ```
 
 ## Building and Running Tests
 
 ```bash
-# Build and run tests in all modules 
+# Build and run tests in all modules
 mvn clean install
 
 # Build and run tests in specific module

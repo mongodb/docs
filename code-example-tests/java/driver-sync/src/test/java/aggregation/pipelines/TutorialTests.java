@@ -8,7 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import mongodb.comparison.OutputValidator;
+import mongodb.comparison.Expect;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -36,8 +36,8 @@ public class TutorialTests {
         var output = AggTutorial.runExample(new String[]{"example arg"});
         var outputString = output.get(0).get("stringValue");
         var expectedOutput = "sample2";
-        OutputValidator.expect(outputString)
-            .assertMatches(expectedOutput);
+        Expect.that(outputString)
+            .shouldMatch(expectedOutput);
     }
 
     @Test
@@ -47,8 +47,8 @@ public class TutorialTests {
         example.loadSampleData();
         var output = example.runTutorial();
 
-        OutputValidator.expect(output)
-            .assertMatchesFile("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
+        Expect.that(output)
+            .shouldMatch("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
     }
 
     @Test
@@ -58,8 +58,8 @@ public class TutorialTests {
         example.loadSampleData();
         var output = example.runTutorial();
 
-        OutputValidator.expect(output)
-            .assertMatchesFile("src/main/java/aggregation/pipelines/group/TutorialOutput.txt");
+        Expect.that(output)
+            .shouldMatch("src/main/java/aggregation/pipelines/group/TutorialOutput.txt");
     }
 
     @Test
@@ -69,8 +69,8 @@ public class TutorialTests {
         example.loadSampleData();
         var output = example.runTutorial();
 
-        OutputValidator.expect(output)
-            .assertMatchesFile("src/main/java/aggregation/pipelines/unwind/TutorialOutput.txt");
+        Expect.that(output)
+            .shouldMatch("src/main/java/aggregation/pipelines/unwind/TutorialOutput.txt");
     }
 
     @Test
@@ -80,8 +80,8 @@ public class TutorialTests {
         example.loadSampleData();
         var output = example.runTutorial();
 
-        OutputValidator.expect(output)
-            .assertMatchesFile("src/main/java/aggregation/pipelines/join1to1/TutorialOutput.txt");
+        Expect.that(output)
+            .shouldMatch("src/main/java/aggregation/pipelines/join1to1/TutorialOutput.txt");
     }
 
     @Test
@@ -91,7 +91,7 @@ public class TutorialTests {
         example.loadSampleData();
         var output = example.runTutorial();
 
-        OutputValidator.expect(output)
-            .assertMatchesFile("src/main/java/aggregation/pipelines/joinMultiField/TutorialOutput.txt");
+        Expect.that(output)
+            .shouldMatch("src/main/java/aggregation/pipelines/joinMultiField/TutorialOutput.txt");
     }
 }

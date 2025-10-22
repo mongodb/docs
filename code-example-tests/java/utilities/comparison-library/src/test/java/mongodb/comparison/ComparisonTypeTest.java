@@ -43,12 +43,8 @@ public class ComparisonTypeTest {
         List<String> expected = List.of("a", "b", "c");
         List<String> actual = List.of("c", "a", "b");
 
-        var result = OutputValidator.expect(actual)
-            .withUnorderedArrays()
-            .toMatch(expected);
-
-        assertTrue(result.isMatch(),
-            "Unordered arrays should automatically choose the optimal strategy");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -57,11 +53,8 @@ public class ComparisonTypeTest {
         List<String> expected = List.of("a", "b", "c");
         List<String> actual = List.of("a", "b", "c");
 
-        var result = OutputValidator.expect(actual)
-            .withOrderedArrays()
-            .toMatch(expected);
-
-        assertTrue(result.isMatch(),
-            "Ordered arrays should work correctly");
+        Expect.that(actual)
+            .withOrderedSort()
+            .shouldMatch(expected);
     }
 }

@@ -144,8 +144,8 @@ void TestFilter() {
   example.loadSampleData();
   var output = example.runTutorial();
 
-  OutputValidator.expect(output)
-    .assertMatchesFile("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
+  Expect.that(output)
+    .shouldMatch("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
 }
 ```
 
@@ -223,8 +223,8 @@ that the code executed correctly:
 ```java
 var result = example.RunApp();
 String expectedReturn = 'some output to verify in a test';
-OutputValidator.expect(result)
-  .assertMatches(expectedReturn);
+Expect.that(result)
+  .shouldMatch(expectedReturn);
 ```
 
 #### Verify output from a file
@@ -239,13 +239,13 @@ var example = new aggregation.pipelines.filter.Tutorial();
 example.loadSampleData();
 var output = example.runTutorial();
 
-OutputValidator.expect(output)
-  .assertMatchesFile("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
+Expect.that(output)
+  .shouldMatch("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
 ```
 
 ## Using the Comparison Library
 
-This test suite includes a comprehensive **Comparison Library** (`mongodb.comparison.OutputValidator`)
+This test suite includes a comprehensive **Comparison Library** (`mongodb.comparison.Expect`)
 designed specifically for validating MongoDB Java Driver output against expected
 results.
 
@@ -260,29 +260,29 @@ results.
 ### Basic Usage
 
 ```java
-import mongodb.comparison.OutputValidator;
+import mongodb.comparison.Expect;
 
 // Simple validation
 var example = new aggregation.pipelines.filter.Tutorial();
 example.loadSampleData();
 var output = example.runTutorial();
-OutputValidator.expect(results)
-    .assertMatchesFile("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
+Expect.that(results)
+    .shouldMatch("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
 ```
 
 ### Advanced Options
 
 ```java
 // With comparison options
-OutputValidator.expect(results)
-    .withUnorderedArrays()                    // Arrays can be in any order
-    .withIgnoredFields("_id", "createdAt")   // Ignore dynamic fields
-    .assertMatchesFile("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
+Expect.that(results)
+    // Unordered comparison is the default behavior
+    .withIgnoredFields("_id", "createdAt")        // Ignore dynamic fields
+    .shouldMatch("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
 
 // Ordered arrays (for aggregation pipelines, sorted results)
-OutputValidator.expect(results)
-    .withOrderedArrays()
-    .assertMatchesFile("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
+Expect.that(results)
+    .withOrderedSort()
+    .shouldMatch("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
 ```
 
 ### Expected Output File Formats

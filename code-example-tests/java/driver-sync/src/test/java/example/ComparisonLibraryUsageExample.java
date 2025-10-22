@@ -1,6 +1,6 @@
 package examples;
 
-import mongodb.comparison.OutputValidator;
+import mongodb.comparison.Expect;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
 
@@ -20,12 +20,11 @@ class ComparisonLibraryUsageExample {
             Document.parse("{\"name\": \"Bob\", \"age\": 25, \"city\": \"Los Angeles\"}")
         );
 
-        // Or with full control using the OutputValidator API
-        OutputValidator.expect(actualResults)
-            .withUnorderedArrays()              // Results can be in any order
-            .withIgnoredFields("_id")           // Ignore dynamic fields
-            .toMatchFile("expected-results.txt")
-            .assertSuccess();                   // Throw on mismatch
+        // Or with full control using the new Expect API
+        Expect.that(actualResults)
+            // Unordered comparison is the default behavior
+            .withIgnoredFields("_id")                // Ignore dynamic fields
+            .shouldMatch("expected-results.txt"); // Throw on mismatch
     }
 
     @Test
@@ -37,27 +36,25 @@ class ComparisonLibraryUsageExample {
             Document.parse("{\"name\": \"Charlie\", \"score\": 92}")
         );
 
-        OutputValidator.expect(sortedResults)
-            .withOrderedArrays()                // Order matters
-            .assertMatchesFile("sorted-expected.txt");
+        Expect.that(sortedResults)
+            .withOrderedSort()                  // Order matters
+            .shouldMatch("sorted-expected.txt");
     }
 
     @Test
     void exampleDebugOutput() {
-        // When tests fail, get detailed debug information
+        // When tests fail, detailed debug information is included in the AssertionError
         List<Document> results = List.of(
             Document.parse("{\"name\": \"Alice\", \"age\": 30}")
         );
 
-        var comparisonResult = OutputValidator.expect(results)
-            .toMatchFile("expected-results.txt");
-
-        if (!comparisonResult.isMatch()) {
-            // Print detailed comparison info to help diagnose issues
-            comparisonResult.printDebugInfo();
-
-            // Or use enhanced assertion that prints debug info automatically
-            // comparisonResult.assertSuccessWithDebug();
+        // The shouldMatch method throws an AssertionError with detailed debug info on mismatch
+        try {
+            Expect.that(results).shouldMatch("expected-results.txt");
+        } catch (AssertionError e) {
+            // Debug information is automatically included in the assertion error message
+            System.out.println("Comparison failed with details:");
+            System.out.println(e.getMessage());
         }
     }
 
@@ -72,18 +69,18 @@ class ComparisonLibraryUsageExample {
             Document.parse("{\"status\": \"active\", \"count\": 42}")
         );
 
-        OutputValidator.expect(actualResults)
-            .assertMatches(expectedResults);
+        Expect.that(actualResults)
+            .shouldMatch(expectedResults);
     }
 
     @Test
     void exampleComplexConfiguration() {
         List<Document> results = getComplexQueryResults();
 
-        OutputValidator.expect(results)
-            .withUnorderedArrays()              // Flexible array ordering
+        Expect.that(results)
+            // Unordered comparison is the default behavior
             .withIgnoredFields("_id", "timestamp", "version")  // Skip dynamic fields
-            .assertMatchesFileWithDebug("complex-expected.txt");  // Debug on failure
+            .shouldMatchWithDebug("complex-expected.txt");  // Debug on failure
     }
 
     private List<Document> getComplexQueryResults() {

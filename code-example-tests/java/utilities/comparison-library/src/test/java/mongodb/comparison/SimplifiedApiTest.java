@@ -28,28 +28,32 @@ class SimplifiedApiTest {
         );
 
         // Simple API - only the essential options
-        ComparisonResult result = OutputValidator.expect(actual)
-            .withUnorderedArrays()
+        Expect.that(actual)
             .withIgnoredFields("_id")
-            .toMatch(expected);
-
-        assertTrue(result.isMatch(), "Should match with unordered comparison and ignored _id fields");
+            .shouldMatch(expected);
     }
 
     @Test
-    @DisplayName("API - performance settings are automatically applied")
+    @DisplayName("API - performance settings work automatically behind the scenes")
     void testPerformanceSettingsAreAutomatic() {
-        // Create ComparisonOptions directly to verify defaults
-        ComparisonOptions options = ComparisonOptions.builder()
-            .withComparisonType(ComparisonType.UNORDERED)
-            .withIgnoredFields("_id")
-            .build();
+        // Test that the API handles performance settings automatically
+        // Technical writers don't need to configure timeouts, array limits, etc.
 
-        // Verify that performance settings are automatically set to sensible defaults
-        assertEquals(30, options.timeoutSeconds(), "Timeout should be 30 seconds by default");
-        assertEquals(50, options.maxArraySizeForBacktracking(), "Array size limit should be 50 by default");
-        assertEquals(100, options.maxRecursionDepth(), "Recursion depth should be 100 by default");
-        assertEquals(30, options.reactiveTimeout().getSeconds(), "Reactive timeout should be 30 seconds by default");
+        // Large dataset that would require good performance settings
+        List<Map<String, Object>> actual = Arrays.asList(
+            Map.of("_id", "507f1f77bcf86cd799439011", "name", "Alice", "data", Arrays.asList(1, 2, 3, 4, 5)),
+            Map.of("_id", "507f1f77bcf86cd799439012", "name", "Bob", "data", Arrays.asList(6, 7, 8, 9, 10))
+        );
+
+        List<Map<String, Object>> expected = Arrays.asList(
+            Map.of("_id", "507f1f77bcf86cd799439012", "name", "Bob", "data", Arrays.asList(6, 7, 8, 9, 10)),
+            Map.of("_id", "507f1f77bcf86cd799439011", "name", "Alice", "data", Arrays.asList(1, 2, 3, 4, 5))
+        );
+
+        // Should work without any performance configuration
+        Expect.that(actual)
+            .withIgnoredFields("_id")
+            .shouldMatch(expected);
     }
 
     @Test
@@ -60,29 +64,28 @@ class SimplifiedApiTest {
         );
 
         // Clean, simple API with only essential options
-        ComparisonResult result = OutputValidator.expect(actual)
-            .withUnorderedArrays()
-            .toMatch(actual);
-
-        assertTrue(result.isMatch(), "Clean API should work perfectly");
+        Expect.that(actual)
+            .shouldMatch(actual);
     }
 
     @Test
     @DisplayName("Builder pattern with only essential options")
     void testBuilderWithEssentialOptions() {
-        // Test the clean builder pattern
-        ComparisonOptions options = ComparisonOptions.builder()
-            .withComparisonType(ComparisonType.ORDERED)
+        // Test the clean builder pattern with ordered comparison
+        List<Map<String, Object>> actual = Arrays.asList(
+            Map.of("timestamp", "2023-01-01T10:00:00Z", "name", "Alice", "value", 100),
+            Map.of("timestamp", "2023-01-01T11:00:00Z", "name", "Bob", "value", 200)
+        );
+
+        List<Map<String, Object>> expected = Arrays.asList(
+            Map.of("timestamp", "2023-01-01T12:00:00Z", "name", "Alice", "value", 100),
+            Map.of("timestamp", "2023-01-01T13:00:00Z", "name", "Bob", "value", 200)
+        );
+
+        // Test ordered comparison with ignored timestamp field
+        Expect.that(actual)
+            .withOrderedSort()
             .withIgnoredFields("timestamp")
-            .build();
-
-        // Verify that the essential settings are applied
-        assertEquals(ComparisonType.ORDERED, options.comparisonType());
-        assertEquals(List.of("timestamp"), options.ignoreFieldValues());
-
-        // Performance settings should use sensible defaults
-        assertEquals(30, options.timeoutSeconds());
-        assertEquals(50, options.maxArraySizeForBacktracking());
-        assertEquals(100, options.maxRecursionDepth());
+            .shouldMatch(expected);
     }
 }

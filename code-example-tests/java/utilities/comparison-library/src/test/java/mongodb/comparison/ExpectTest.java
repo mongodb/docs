@@ -18,9 +18,9 @@ import java.util.LinkedHashMap;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for the main OutputValidator API.
+ * Tests for the Expect API.
  */
-class OutputValidatorTest {
+class ExpectTest {
 
     @Nested
     public class TypeHandling {
@@ -29,8 +29,7 @@ class OutputValidatorTest {
             Document expected = Document.parse("{\"name\": \"test\", \"count\": 42}");
             Document actual = Document.parse("{\"name\": \"test\", \"count\": 42}");
 
-            var result = OutputValidator.expect(actual).toMatch(expected);
-            assertTrue(result.isMatch());
+            Expect.that(actual).shouldMatch(expected);
         }
 
         @Test
@@ -44,17 +43,14 @@ class OutputValidatorTest {
                     Document.parse("{\"name\": \"first\", \"value\": 1}")
             );
 
-            // Unordered comparison should match
-            var result = OutputValidator.expect(actual)
-                    .withUnorderedArrays()
-                    .toMatch(expected);
-            assertTrue(result.isMatch());
+            // Unordered comparison should match (default behavior)
+            Expect.that(actual).shouldMatch(expected);
 
             // Ordered comparison should fail
-            var orderedResult = OutputValidator.expect(actual)
-                    .withOrderedArrays()
-                    .toMatch(expected);
-            assertFalse(orderedResult.isMatch());
+            assertThrows(AssertionError.class, () ->
+                    Expect.that(actual)
+                            .withOrderedSort()
+                            .shouldMatch(expected));
         }
 
         @Test
@@ -62,17 +58,15 @@ class OutputValidatorTest {
             List<Document> empty1 = List.of();
             List<Document> empty2 = List.of();
 
-            var result = OutputValidator.expect(empty1).toMatch(empty2);
-            assertTrue(result.isMatch());
+            Expect.that(empty1).shouldMatch(empty2);
         }
 
         @Test
         void testNullHandling() {
-            var result = OutputValidator.expect(null).toMatch(null);
-            assertTrue(result.isMatch());
+            Expect.that(null).shouldMatch(null);
 
-            var mismatchResult = OutputValidator.expect(null).toMatch("not null");
-            assertFalse(mismatchResult.isMatch());
+            assertThrows(AssertionError.class, () ->
+                    Expect.that(null).shouldMatch("not null"));
         }
     }
 
@@ -83,10 +77,54 @@ class OutputValidatorTest {
             Document expected = Document.parse("{\"name\": \"test\", \"_id\": \"ignored1\"}");
             Document actual = Document.parse("{\"name\": \"test\", \"_id\": \"ignored2\"}");
 
-            var result = OutputValidator.expect(actual)
+            Expect.that(actual)
                     .withIgnoredFields("_id")
-                    .toMatch(expected);
-            assertTrue(result.isMatch());
+                    .shouldMatch(expected);
+        }
+
+        @Test
+        void testExplicitUnorderedSort() {
+            // Test that withUnorderedSort() explicitly enables unordered comparison
+            List<Document> expected = List.of(
+                    Document.parse("{\"name\": \"first\", \"value\": 1}"),
+                    Document.parse("{\"name\": \"second\", \"value\": 2}")
+            );
+            List<Document> actual = List.of(
+                    Document.parse("{\"name\": \"second\", \"value\": 2}"),
+                    Document.parse("{\"name\": \"first\", \"value\": 1}")
+            );
+
+            // Explicitly use withUnorderedSort() - should match even though order differs
+            Expect.that(actual)
+                    .withUnorderedSort()
+                    .shouldMatch(expected);
+        }
+
+        @Test
+        void testOrderedVsUnorderedComparison() {
+            // Test that withUnorderedSort() and withOrderedSort() behave differently
+            List<Document> expected = List.of(
+                    Document.parse("{\"id\": 1}"),
+                    Document.parse("{\"id\": 2}"),
+                    Document.parse("{\"id\": 3}")
+            );
+            List<Document> actual = List.of(
+                    Document.parse("{\"id\": 3}"),
+                    Document.parse("{\"id\": 1}"),
+                    Document.parse("{\"id\": 2}")
+            );
+
+            // Unordered should succeed
+            assertDoesNotThrow(() ->
+                    Expect.that(actual)
+                            .withUnorderedSort()
+                            .shouldMatch(expected));
+
+            // Ordered should fail
+            assertThrows(AssertionError.class, () ->
+                    Expect.that(actual)
+                            .withOrderedSort()
+                            .shouldMatch(expected));
         }
     }
 
@@ -98,29 +136,29 @@ class OutputValidatorTest {
             Document actual = Document.parse("{\"name\": \"actual\"}");
 
             assertThrows(AssertionError.class, () ->
-                    OutputValidator.expect(actual).assertMatches(expected));
+                    Expect.that(actual).shouldMatch(expected));
         }
 
         @Test
         void testAssertMatchesWithDebugSuccess() {
-            // Test that assertMatchesWithDebug works for successful comparisons
+            // Test that shouldMatchWithDebug works for successful comparisons
             Document expected = Document.parse("{\"name\": \"test\", \"value\": 42}");
             Document actual = Document.parse("{\"name\": \"test\", \"value\": 42}");
 
             // Should not throw any exception for matching documents
             assertDoesNotThrow(() ->
-                    OutputValidator.expect(actual).assertMatchesWithDebug(expected));
+                    Expect.that(actual).shouldMatchWithDebug(expected));
         }
 
         @Test
         void testAssertMatchesWithDebugFailure() {
-            // Test that assertMatchesWithDebug throws AssertionError with debug info on failure
+            // Test that shouldMatchWithDebug throws AssertionError with debug info on failure
             Document expected = Document.parse("{\"name\": \"expected\", \"count\": 42}");
             Document actual = Document.parse("{\"name\": \"actual\", \"count\": 43}");
 
             // Should throw AssertionError with detailed debug information
             AssertionError error = assertThrows(AssertionError.class, () ->
-                    OutputValidator.expect(actual).assertMatchesWithDebug(expected));
+                    Expect.that(actual).shouldMatchWithDebug(expected));
 
             // Verify the error message contains debug information
             String errorMessage = error.getMessage();
@@ -149,7 +187,7 @@ class OutputValidatorTest {
 
             // Should throw with detailed debug information about nested differences
             AssertionError error = assertThrows(AssertionError.class, () ->
-                    OutputValidator.expect(actual).assertMatchesWithDebug(expected));
+                    Expect.that(actual).shouldMatchWithDebug(expected));
 
             String errorMessage = error.getMessage();
             assertTrue(errorMessage.contains("Comparison failed"),
@@ -165,16 +203,12 @@ class OutputValidatorTest {
         Document expected = Document.parse("{\"name\": \"expected\", \"count\": 42}");
         Document actual = Document.parse("{\"name\": \"actual\", \"count\": 43}");
 
-        var result = OutputValidator.expect(actual).toMatch(expected);
-        assertFalse(result.isMatch());
-        assertFalse(result.errors().isEmpty());
-
-        // This should not throw since we're not asserting
-        assertDoesNotThrow(result::printDebugInfo);
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actual).shouldMatch(expected));
     }
 
     /**
-     * Verify real-world MongoDB Java driver pattern tests through entire OutputValidator pipeline.
+     * Verify real-world MongoDB Java driver pattern tests through entire Expect API pipeline.
      * These tests validate actual MongoDB Java driver output patterns found in documentation examples.
      */
     @Nested
@@ -199,9 +233,8 @@ class OutputValidatorTest {
             """;
 
             assertDoesNotThrow(() -> {
-                OutputValidator.expect(bulkResultOutput)
-                        
-                        .assertMatchesContent(expectedWithEllipsis);
+                Expect.that(bulkResultOutput)
+                        .shouldMatch(expectedWithEllipsis);
             });
         }
 
@@ -219,9 +252,8 @@ class OutputValidatorTest {
             String expectedWithEllipsis = "Inserted document ids: {...}";
 
             assertDoesNotThrow(() -> {
-                OutputValidator.expect(expectedOutput)
-                        
-                        .assertMatchesContent(expectedWithEllipsis);
+                Expect.that(expectedOutput)
+                        .shouldMatch(expectedWithEllipsis);
             });
         }
 
@@ -249,9 +281,8 @@ class OutputValidatorTest {
             """;
 
             assertDoesNotThrow(() -> {
-                OutputValidator.expect(actualOutput.toString().trim())
-                        
-                        .assertMatchesContent(expectedWithEllipsis.trim());
+                Expect.that(actualOutput.toString().trim())
+                        .shouldMatch(expectedWithEllipsis.trim());
             });
         }
 
@@ -273,9 +304,8 @@ class OutputValidatorTest {
             """;
 
             assertDoesNotThrow(() -> {
-                OutputValidator.expect(exceptionMessage.trim())
-                        
-                        .assertMatchesContent(expectedWithEllipsis.trim());
+                Expect.that(exceptionMessage.trim())
+                        .shouldMatch(expectedWithEllipsis.trim());
             });
         }
 
@@ -301,8 +331,8 @@ class OutputValidatorTest {
             """;
 
             assertDoesNotThrow(() -> {
-                OutputValidator.expect(results)
-                        .assertMatchesContent(expectedWithEllipsis);
+                Expect.that(results)
+                        .shouldMatch(expectedWithEllipsis);
             });
         }
 
@@ -324,9 +354,9 @@ class OutputValidatorTest {
             """;
 
             assertDoesNotThrow(() -> {
-                OutputValidator.expect(aggregationResults)
-                        .withUnorderedComparison() // Aggregation results often vary in order
-                        .assertMatchesContent(expectedWithEllipsis);
+                Expect.that(aggregationResults)
+                        // Unordered comparison is the default behavior
+                        .shouldMatch(expectedWithEllipsis);
             });
         }
 
@@ -349,8 +379,8 @@ class OutputValidatorTest {
             """;
 
             assertDoesNotThrow(() -> {
-                OutputValidator.expect(cursorResults)
-                        .assertMatchesContent(expectedWithArrayEllipsis);
+                Expect.that(cursorResults)
+                        .shouldMatch(expectedWithArrayEllipsis);
             });
         }
 
@@ -373,8 +403,8 @@ class OutputValidatorTest {
             """;
 
             assertDoesNotThrow(() -> {
-                OutputValidator.expect(projectionResults)
-                        .assertMatchesContent(expectedProjectionPattern);
+                Expect.that(projectionResults)
+                        .shouldMatch(expectedProjectionPattern);
             });
         }
 
@@ -390,8 +420,8 @@ class OutputValidatorTest {
             // Should handle empty arrays
             String expectedEmptyPattern = "[]";
             assertDoesNotThrow(() -> {
-                OutputValidator.expect(emptyResults)
-                        .assertMatchesContent(expectedEmptyPattern);
+                Expect.that(emptyResults)
+                        .shouldMatch(expectedEmptyPattern);
             });
 
             // Should handle null values and empty arrays within documents
@@ -400,8 +430,8 @@ class OutputValidatorTest {
             """;
 
             assertDoesNotThrow(() -> {
-                OutputValidator.expect(Arrays.asList(nullValueDocument))
-                        .assertMatchesContent(expectedNullPattern);
+                Expect.that(Arrays.asList(nullValueDocument))
+                        .shouldMatch(expectedNullPattern);
             });
         }
 
@@ -429,9 +459,8 @@ class OutputValidatorTest {
             """;
 
             assertDoesNotThrow(() -> {
-                OutputValidator.expect(connectionOutput)
-                        
-                        .assertMatchesContent(expectedConnectionPattern);
+                Expect.that(connectionOutput)
+                        .shouldMatch(expectedConnectionPattern);
             });
 
             // Should handle timeout errors with complex nested details
@@ -442,9 +471,8 @@ class OutputValidatorTest {
             """;
 
             assertDoesNotThrow(() -> {
-                OutputValidator.expect(errorOutput)
-                        
-                        .assertMatchesContent(expectedErrorPattern);
+                Expect.that(errorOutput)
+                        .shouldMatch(expectedErrorPattern);
             });
         }
     }

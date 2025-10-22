@@ -8,7 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import timeseries.QuickStart.Tutorial;
-import mongodb.comparison.OutputValidator;
+import mongodb.comparison.Expect;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -48,8 +48,8 @@ public class TimeSeriesTests {
         tutorial.loadSampleData();
         var output = tutorial.runMetaFieldQuery(new String[]{"example arg"});
 
-        OutputValidator.expect(output)
-            .assertMatchesFile("src/main/java/timeseries/QuickStart/MetaFieldOutput.txt");
+        Expect.that(output)
+            .shouldMatch("src/main/java/timeseries/QuickStart/MetaFieldOutput.txt");
     }
 
     @Test
@@ -59,7 +59,7 @@ public class TimeSeriesTests {
         tutorial.loadSampleData();
         var output = tutorial.runTimeFieldQuery(new String[]{"example arg"});
 
-        OutputValidator.expect(output)
-            .assertMatchesFile("src/main/java/timeseries/QuickStart/TimeFieldOutput.txt");
+        Expect.that(output)
+            .shouldMatch("src/main/java/timeseries/QuickStart/TimeFieldOutput.txt");
     }
 }

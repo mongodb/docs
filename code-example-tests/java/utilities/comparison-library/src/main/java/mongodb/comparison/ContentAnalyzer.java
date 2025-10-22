@@ -5,9 +5,113 @@ import java.util.Map;
 
 /**
  * Analyzes content to intelligently determine the best comparison strategy.
+ * Enhanced for the unified Expect API to provide seamless content-aware comparison.
  * No need for users to specify complex comparison types.
+ * Public to support both the Expect API and internal comparison components.
  */
 public class ContentAnalyzer {
+
+    /**
+     * Content types for the unified API as specified in the API analysis.
+     */
+    public enum ContentType {
+        FILE,               // File path strings
+        PATTERN_STRING,     // Strings with ellipsis patterns
+        STRUCTURED_STRING,  // JSON-like strings
+        TEXT_BLOCK,         // Multi-line text content
+        PLAIN_STRING,       // Simple string values
+        ARRAY,              // Lists and arrays
+        OBJECT,             // Maps and custom objects
+        PRIMITIVE           // Basic types (numbers, booleans, null)
+    }
+
+    /**
+     * Detect the content type of a value for strategy selection.
+     * This method implements the content type detection logic from the API analysis.
+     */
+    public static ContentType detectType(Object value) {
+        if (value == null) {
+            return ContentType.PRIMITIVE;
+        }
+
+        if (value instanceof String str) {
+            if (isFilePath(str)) return ContentType.FILE;
+            if (str.contains("...")) return ContentType.PATTERN_STRING;
+            if (looksLikeStructuredContent(str)) return ContentType.STRUCTURED_STRING;
+            if (str.contains("\n")) return ContentType.TEXT_BLOCK;
+            return ContentType.PLAIN_STRING;
+        }
+
+        if (value instanceof List || value.getClass().isArray()) {
+            return ContentType.ARRAY;
+        }
+
+        if (value instanceof Map || isCustomObject(value)) {
+            return ContentType.OBJECT;
+        }
+
+        return ContentType.PRIMITIVE;
+    }
+
+    /**
+     * Enhanced strategy selection that works with the existing ComparisonEngine.compare method.
+     * This provides better content-aware comparison for the unified API with proper circular
+     * reference detection and recursion tracking.
+     */
+    public static ComparisonResult compareWithContentAnalysis(Object expected, Object actual, ComparisonOptions options) {
+        ContentType expectedType = detectType(expected);
+        ContentType actualType = detectType(actual);
+
+        // For file types, we need to load the file first (handled in ExpectBuilder)
+        if (expectedType == ContentType.FILE) {
+            throw new IllegalArgumentException("File content should be loaded before comparison");
+        }
+
+        // Use ComparisonEngine.compare which includes circular reference detection,
+        // recursion tracking, and proper error handling
+        return ComparisonEngine.compare(expected, actual, options);
+    }
+
+    /**
+     * Detect if a string represents a file path.
+     * Enhanced version of the logic from ExpectBuilder.
+     */
+    public static boolean isFilePath(String str) {
+        if (str == null || str.trim().isEmpty()) {
+            return false;
+        }
+
+        // If it contains ellipsis, it's probably pattern content (check this first!)
+        if (str.contains("...")) {
+            return false;
+        }
+
+        // If it looks like structured content, it's probably not a file path
+        String trimmed = str.trim();
+        if (trimmed.startsWith("{") || trimmed.startsWith("[") || trimmed.startsWith("<")) {
+            return false;
+        }
+
+        // File extension patterns
+        if (str.matches(".*\\.(txt|json|jsonl|bson|xml)$")) {
+            return true;
+        }
+
+        // Path-like patterns (contains / or \)
+        if (str.contains("/") || str.contains("\\")) {
+            return true;
+        }
+
+        // Relative path patterns
+        if (str.startsWith("./") || str.startsWith("../")) {
+            return true;
+        }
+
+        // Default to false for ambiguous cases
+        return false;
+    }
+
+
 
     /**
      * Determines whether string-based or structural comparison should be used.

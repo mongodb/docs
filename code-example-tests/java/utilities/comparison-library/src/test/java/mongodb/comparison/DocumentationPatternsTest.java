@@ -66,9 +66,9 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(aggregationTourResults)
-                .withUnorderedArrays() // categories order may vary
-                .assertMatchesContent(expectedAggregationTourPattern);
+            Expect.that(aggregationTourResults)
+                 // categories order may vary
+                .shouldMatch(expectedAggregationTourPattern);
         });
     }
 
@@ -97,8 +97,8 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(findResults)
-                .assertMatchesContent(expectedFindPattern);
+            Expect.that(findResults)
+                .shouldMatch(expectedFindPattern);
         });
 
         // Test with projection (common in documentation)
@@ -110,8 +110,8 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(Arrays.asList(projectedResult))
-                .assertMatchesContent(expectedProjectionPattern);
+            Expect.that(Arrays.asList(projectedResult))
+                .shouldMatch(expectedProjectionPattern);
         });
     }
 
@@ -124,9 +124,9 @@ class DocumentationPatternsTest {
         String expectedInsertOnePattern = "Inserted document id: ...";
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(insertOneOutput)
+            Expect.that(insertOneOutput)
                 
-                .assertMatchesContent(expectedInsertOnePattern);
+                .shouldMatch(expectedInsertOnePattern);
         });
 
         // Pattern from Insert.java - InsertManyResult
@@ -140,9 +140,9 @@ class DocumentationPatternsTest {
         String expectedInsertManyPattern = "Inserted document ids: [...]";
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(insertManyOutput)
+            Expect.that(insertManyOutput)
                 
-                .assertMatchesContent(expectedInsertManyPattern);
+                .shouldMatch(expectedInsertManyPattern);
         });
 
         // Pattern for detailed InsertManyResult output
@@ -150,9 +150,9 @@ class DocumentationPatternsTest {
         String expectedDetailedPattern = "Inserted 3 documents with ids: [...]";
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(detailedInsertManyOutput)
+            Expect.that(detailedInsertManyOutput)
                 
-                .assertMatchesContent(expectedDetailedPattern);
+                .shouldMatch(expectedDetailedPattern);
         });
     }
 
@@ -164,9 +164,9 @@ class DocumentationPatternsTest {
         String expectedUpdateOnePattern = "Modified document count: 1";
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(updateOneOutput)
+            Expect.that(updateOneOutput)
                 
-                .assertMatchesContent(expectedUpdateOnePattern);
+                .shouldMatch(expectedUpdateOnePattern);
         });
 
         // Pattern for UpdateResult with matched and modified counts
@@ -174,9 +174,9 @@ class DocumentationPatternsTest {
         String expectedUpdateResultPattern = "Matched: 3 documents, Modified: 2 documents";
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(updateResultOutput)
+            Expect.that(updateResultOutput)
                 
-                .assertMatchesContent(expectedUpdateResultPattern);
+                .shouldMatch(expectedUpdateResultPattern);
         });
 
         // Pattern for upsert operations
@@ -185,9 +185,9 @@ class DocumentationPatternsTest {
         String expectedUpsertPattern = "Upserted document id: ..., Modified: 0 documents";
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(upsertOutput)
+            Expect.that(upsertOutput)
                 
-                .assertMatchesContent(expectedUpsertPattern);
+                .shouldMatch(expectedUpsertPattern);
         });
     }
 
@@ -199,9 +199,9 @@ class DocumentationPatternsTest {
         String expectedDeleteOnePattern = "Deleted document count: 1";
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(deleteOneOutput)
+            Expect.that(deleteOneOutput)
                 
-                .assertMatchesContent(expectedDeleteOnePattern);
+                .shouldMatch(expectedDeleteOnePattern);
         });
 
         // Pattern for DeleteManyResult
@@ -209,9 +209,9 @@ class DocumentationPatternsTest {
         String expectedDeleteManyPattern = "Deleted document count: ...";
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(deleteManyOutput)
+            Expect.that(deleteManyOutput)
                 
-                .assertMatchesContent(expectedDeleteManyPattern);
+                .shouldMatch(expectedDeleteManyPattern);
         });
 
         // Pattern for no matches
@@ -219,9 +219,9 @@ class DocumentationPatternsTest {
         String expectedNoDeletePattern = "No documents matched the query. Deleted document count: 0";
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(noDeleteOutput)
+            Expect.that(noDeleteOutput)
                 
-                .assertMatchesContent(expectedNoDeletePattern);
+                .shouldMatch(expectedNoDeletePattern);
         });
     }
 
@@ -244,9 +244,9 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(bulkWriteResultOutput)
+            Expect.that(bulkWriteResultOutput)
                 
-                .assertMatchesContent(expectedBulkWritePattern);
+                .shouldMatch(expectedBulkWritePattern);
         });
 
         // Pattern for bulk write with errors
@@ -265,9 +265,9 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(bulkWriteWithErrorsOutput)
+            Expect.that(bulkWriteWithErrorsOutput)
                 
-                .assertMatchesContent(expectedBulkErrorPattern);
+                .shouldMatch(expectedBulkErrorPattern);
         });
     }
 
@@ -279,9 +279,9 @@ class DocumentationPatternsTest {
         String expectedCountPattern = "Number of documents: ...";
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(countOutput)
+            Expect.that(countOutput)
                 
-                .assertMatchesContent(expectedCountPattern);
+                .shouldMatch(expectedCountPattern);
         });
 
         // Pattern from Distinct.java
@@ -296,9 +296,9 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(distinctResultsString)
-                .withUnorderedComparison() // distinct results order can vary
-                .assertMatchesContent(expectedDistinctPattern);
+            Expect.that(distinctResultsString)
+                 // distinct results order can vary
+                .shouldMatch(expectedDistinctPattern);
         });
 
         // Pattern for distinct with complex values
@@ -315,9 +315,9 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(distinctComplexResults)
-                .withUnorderedComparison()
-                .assertMatchesContent(expectedDistinctComplexPattern);
+            Expect.that(distinctComplexResults)
+                
+                .shouldMatch(expectedDistinctComplexPattern);
         });
     }
 
@@ -350,8 +350,8 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(changeStreamResults)
-                .assertMatchesContent(expectedChangeStreamPattern);
+            Expect.that(changeStreamResults)
+                .shouldMatch(expectedChangeStreamPattern);
         });
     }
 
@@ -378,8 +378,8 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(Arrays.asList(commandResult))
-                .assertMatchesContent(expectedCommandPattern);
+            Expect.that(Arrays.asList(commandResult))
+                .shouldMatch(expectedCommandPattern);
         });
 
         // Pattern for diagnostic commands
@@ -398,8 +398,8 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(Arrays.asList(diagnosticResult))
-                .assertMatchesContent(expectedDiagnosticPattern);
+            Expect.that(Arrays.asList(diagnosticResult))
+                .shouldMatch(expectedDiagnosticPattern);
         });
     }
 
@@ -430,8 +430,8 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(Arrays.asList(mixedDataDocument))
-                .assertMatchesContent(expectedMixedDataPattern);
+            Expect.that(Arrays.asList(mixedDataDocument))
+                .shouldMatch(expectedMixedDataPattern);
         });
     }
 
@@ -464,9 +464,9 @@ class DocumentationPatternsTest {
 
         // Should handle nested documents correctly
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(actualResults)
-                    .withUnorderedArrays() // categories can be in any order
-                    .assertMatchesContent(expectedContent);
+            Expect.that(actualResults)
+                     // categories can be in any order
+                    .shouldMatch(expectedContent);
         });
     }
 
@@ -491,8 +491,8 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(actualResults)
-                    .assertMatchesContent(expectedWithEllipsis);
+            Expect.that(actualResults)
+                    .shouldMatch(expectedWithEllipsis);
         });
     }
 
@@ -527,8 +527,8 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(results)
-                    .assertMatchesContent(expectedPattern);
+            Expect.that(results)
+                    .shouldMatch(expectedPattern);
         });
     }
 
@@ -561,9 +561,9 @@ class DocumentationPatternsTest {
         String actualOutput = "Inserted documents with the following ids: " + insertedIds.toString();
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(actualOutput)
+            Expect.that(actualOutput)
                     
-                    .assertMatchesContent(expectedWithEllipsis);
+                    .shouldMatch(expectedWithEllipsis);
         });
     }
 
@@ -585,9 +585,9 @@ class DocumentationPatternsTest {
 
         // Aggregation results often come in different orders
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(aggregationResults)
-                    .withUnorderedComparison()
-                    .assertMatchesContent(expectedContent);
+            Expect.that(aggregationResults)
+                    
+                    .shouldMatch(expectedContent);
         });
     }
 
@@ -609,8 +609,8 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(queryResults)
-                    .assertMatchesContent(expectedWithEllipsis);
+            Expect.that(queryResults)
+                    .shouldMatch(expectedWithEllipsis);
         });
     }
 
@@ -632,8 +632,8 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(queryResults)
-                    .assertMatchesContent(expectedContent);
+            Expect.that(queryResults)
+                    .shouldMatch(expectedContent);
         });
     }
 
@@ -653,9 +653,9 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(connectionErrorOutput)
+            Expect.that(connectionErrorOutput)
                 
-                .assertMatchesContent(expectedConnectionErrorPattern);
+                .shouldMatch(expectedConnectionErrorPattern);
         });
 
         // Pattern for authentication errors
@@ -670,9 +670,9 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(authErrorOutput)
+            Expect.that(authErrorOutput)
                 
-                .assertMatchesContent(expectedAuthErrorPattern);
+                .shouldMatch(expectedAuthErrorPattern);
         });
 
         // Pattern for duplicate key errors
@@ -685,9 +685,9 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(duplicateKeyErrorOutput)
+            Expect.that(duplicateKeyErrorOutput)
                 
-                .assertMatchesContent(expectedDuplicateKeyPattern);
+                .shouldMatch(expectedDuplicateKeyPattern);
         });
     }
 
@@ -707,9 +707,9 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(expectedPartialResults)
+            Expect.that(expectedPartialResults)
                     
-                    .assertMatchesContent(expectedWithEllipsis);
+                    .shouldMatch(expectedWithEllipsis);
         });
     }
 
@@ -730,9 +730,9 @@ class DocumentationPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(pojoOutput)
+            Expect.that(pojoOutput)
                     
-                    .assertMatchesContent(expectedWithEllipsis);
+                    .shouldMatch(expectedWithEllipsis);
         });
     }
 }

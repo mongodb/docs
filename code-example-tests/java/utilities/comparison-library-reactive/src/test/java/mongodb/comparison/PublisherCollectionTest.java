@@ -25,10 +25,10 @@ class PublisherCollectionTest {
     void testSimplePublisherCollection() {
         List<String> sourceData = Arrays.asList("item1", "item2", "item3");
         Publisher<String> publisher = createSimplePublisher(sourceData);
-        
+
         PublisherWrapper wrapper = new PublisherWrapper(publisher, Duration.ofSeconds(5));
         List<Object> results = wrapper.collectToList();
-        
+
         assertEquals(3, results.size());
         assertEquals("item1", results.get(0));
         assertEquals("item2", results.get(1));
@@ -39,10 +39,10 @@ class PublisherCollectionTest {
     @DisplayName("Should handle empty Publisher")
     void testEmptyPublisher() {
         Publisher<String> emptyPublisher = createSimplePublisher(Arrays.asList());
-        
+
         PublisherWrapper wrapper = new PublisherWrapper(emptyPublisher, Duration.ofSeconds(5));
         List<Object> results = wrapper.collectToList();
-        
+
         assertTrue(results.isEmpty());
     }
 
@@ -50,10 +50,10 @@ class PublisherCollectionTest {
     @DisplayName("Should handle Publisher with single item")
     void testSingleItemPublisher() {
         Publisher<String> singleItemPublisher = createSimplePublisher(Arrays.asList("single"));
-        
+
         PublisherWrapper wrapper = new PublisherWrapper(singleItemPublisher, Duration.ofSeconds(5));
         List<Object> results = wrapper.collectToList();
-        
+
         assertEquals(1, results.size());
         assertEquals("single", results.get(0));
     }
@@ -62,25 +62,22 @@ class PublisherCollectionTest {
     @DisplayName("Should handle Publisher errors")
     void testPublisherError() {
         Publisher<String> errorPublisher = createErrorPublisher("Test error");
-        
+
         PublisherWrapper wrapper = new PublisherWrapper(errorPublisher, Duration.ofSeconds(5));
-        
+
         RuntimeException exception = assertThrows(RuntimeException.class, wrapper::collectToList);
         assertTrue(exception.getMessage().contains("Failed to collect Publisher results"));
         assertTrue(exception.getCause().getMessage().contains("Test error"));
     }
 
     @Test
-    @DisplayName("Should work with OutputValidatorReactive")
-    void testIntegrationWithOutputValidatorReactive() {
+    @DisplayName("Should work with ExpectReactive")
+    void testIntegrationWithExpectReactive() {
         List<String> sourceData = Arrays.asList("test1", "test2");
         Publisher<String> publisher = createSimplePublisher(sourceData);
 
-        // This should work without Project Reactor
-        OutputValidator validator = OutputValidatorReactive.expectFromPublisher(publisher);
-
-        ComparisonResult result = validator.toMatch(Arrays.asList("test1", "test2"));
-        assertTrue(result.isMatch(), "Publisher collection should work with OutputValidatorReactive");
+        // This should work without Project Reactor using the new ExpectReactive API
+        ExpectReactive.that(publisher).shouldMatch(Arrays.asList("test1", "test2"));
     }
 
     @Test
@@ -102,14 +99,14 @@ class PublisherCollectionTest {
                     @Override
                     public void request(long n) {
                         if (cancelled) return;
-                        
+
                         try {
                             while (index.get() < items.size() && n > 0) {
                                 if (cancelled) return;
                                 subscriber.onNext(items.get(index.getAndIncrement()));
                                 n--;
                             }
-                            
+
                             if (index.get() >= items.size() && !cancelled) {
                                 subscriber.onComplete();
                             }

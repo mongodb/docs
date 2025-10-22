@@ -15,8 +15,9 @@ import java.util.regex.PatternSyntaxException;
  * Dedicated string comparison strategy that handles string-to-string comparisons
  * with ellipsis pattern support. This eliminates the complexity of mixing
  * string and object comparison logic.
+ * Package-private - internal implementation detail for the Expect API.
  */
-public class StringComparisonStrategy {
+class StringComparisonStrategy {
 
     private static final String ELLIPSIS = "...";
 

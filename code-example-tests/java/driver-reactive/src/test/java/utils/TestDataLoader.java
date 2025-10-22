@@ -1,7 +1,7 @@
 package utils;
 
-import mongodb.comparison.OutputValidator;
-import mongodb.comparison.OutputValidatorReactive;
+import mongodb.comparison.Expect;
+import mongodb.comparison.ExpectReactive;
 import org.bson.Document;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -63,9 +63,8 @@ public class TestDataLoader {
      * @throws AssertionError if validation fails
      */
     public static void validatePublisherResultsFromFile(String expectedFilePath, Publisher<Document> actualPublisher) {
-        OutputValidatorReactive.expectFromPublisher(actualPublisher)
-            .withUnorderedArrays()
-            .assertMatchesFile(expectedFilePath);
+        ExpectReactive.that(actualPublisher)
+            .shouldMatch(expectedFilePath);
     }
 
     /**
@@ -76,8 +75,8 @@ public class TestDataLoader {
      * @throws AssertionError if validation fails
      */
     public static void validateOrderedPublisherResultsFromFile(String expectedFilePath, Publisher<Document> actualPublisher) {
-        OutputValidatorReactive.expectFromPublisher(actualPublisher)
-            .assertMatchesFile(expectedFilePath);
+        ExpectReactive.that(actualPublisher)
+            .shouldMatch(expectedFilePath);
     }
 
     /**
@@ -89,9 +88,8 @@ public class TestDataLoader {
      * @throws AssertionError if validation fails
      */
     public static void validatePublisherResultsFromFile(String expectedFilePath, Publisher<Document> actualPublisher, Duration timeout) {
-        OutputValidatorReactive.expectFromPublisher(actualPublisher, timeout)
-            .withUnorderedArrays()
-            .assertMatchesFile(expectedFilePath);
+        ExpectReactive.that(actualPublisher, timeout)
+            .shouldMatch(expectedFilePath);
     }
 
     /**
@@ -103,10 +101,9 @@ public class TestDataLoader {
      * @throws AssertionError if validation fails
      */
     public static void validatePublisherResultsFromFile(String expectedFilePath, Publisher<Document> actualPublisher, String... ignoredFields) {
-        OutputValidatorReactive.expectFromPublisher(actualPublisher)
-            .withUnorderedArrays()
+        ExpectReactive.that(actualPublisher)
             .withIgnoredFields(ignoredFields)
-            .assertMatchesFile(expectedFilePath);
+            .shouldMatch(expectedFilePath);
     }
 
     /**
@@ -117,9 +114,8 @@ public class TestDataLoader {
      * @throws AssertionError if validation fails (with debug output)
      */
     public static void validatePublisherResultsFromFileWithDebug(String expectedFilePath, Publisher<Document> actualPublisher) {
-        OutputValidatorReactive.expectFromPublisher(actualPublisher)
-            .withUnorderedArrays()
-            .assertMatchesFileWithDebug(expectedFilePath);
+        ExpectReactive.that(actualPublisher)
+            .shouldMatchWithDebug(expectedFilePath);
     }
 
     /**
@@ -184,9 +180,8 @@ public class TestDataLoader {
      * @throws AssertionError if validation fails
      */
     public static void validateResultsFromFile(String expectedFilePath, List<Document> actualResults) {
-        OutputValidator.expect(actualResults)
-            .withUnorderedArrays()
-            .assertMatchesFile(expectedFilePath);
+        Expect.that(actualResults)
+            .shouldMatch(expectedFilePath);
     }
 
     /**
@@ -197,8 +192,8 @@ public class TestDataLoader {
      * @throws AssertionError if validation fails
      */
     public static void validateOrderedResultsFromFile(String expectedFilePath, List<Document> actualResults) {
-        OutputValidator.expect(actualResults)
-            .withOrderedArrays()
-            .assertMatchesFile(expectedFilePath);
+        Expect.that(actualResults)
+            .withOrderedSort()
+            .shouldMatch(expectedFilePath);
     }
 }

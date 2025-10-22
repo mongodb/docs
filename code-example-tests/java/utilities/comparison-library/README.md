@@ -1,10 +1,13 @@
 # MongoDB Core Comparison Library
 
+**NOTE:** This README serves as an internal development resource for the
+DevDocs team in developing this utility.
+
 A specialized library for validating MongoDB Java Driver output against expected results, specifically for MongoDB documentation and code example testing.
 
 This core library provides robust comparison capabilities, handling the complexities of BSON types and various output formats.
 
-**Note:** Support for reactive streams (`Publisher` types) and all reactive dependencies is in the separate [`comparison-library-reactive`](../comparison-library-reactive/README.md) module. The core library is sync-only and does not depend on any reactive APIs.
+Support for reactive streams (`Publisher` types) and all reactive dependencies is in the separate [`comparison-library-reactive`](../comparison-library-reactive/README.md) module. The core library is sync-only and does not depend on any reactive APIs.
 
 ## Key Features
 
@@ -18,19 +21,20 @@ This core library provides robust comparison capabilities, handling the complexi
 
 ### Main Entry Points
 
-- `OutputValidator.expect(results)` - For sync collections and objects
-- `ComparisonEngine.compare()` - Low-level comparison operations
-- `ExpectedOutputParser.parseFile()` - Parse expected output files
+- `Expect.that(results)` - Unified API for sync collections and objects
+- `ExpectBuilder` - Fluent builder for configuring comparisons
+- Internal APIs (ComparisonEngine, ExpectedOutputParser) are package-private
 
 For validating results from reactive streams (`Publisher`), use the API in the [`comparison-library-reactive`](../comparison-library-reactive/README.md) module.
 
 ### Configuration
 
 ```java
-OutputValidator.expect(results)
-    .withOrderedArrays()           // Maintain array order
-    .withUnorderedArrays()         // Ignore array order (default)
+Expect.that(results)
+    .withOrderedSort()             // Maintain array order
+    .withUnorderedSort()           // Ignore array order (default behavior)
     .withIgnoredFields("_id")      // Skip specific fields
+    .shouldMatch("expected.json"); // Validate and throw on mismatch
 ```
 
 **Note:** Performance settings (timeout, recursion depth, array size limits) use sensible defaults. Technical writers do not configure these advanced options.
@@ -39,14 +43,11 @@ OutputValidator.expect(results)
 
 ```java
 // Assert success or throw exception
-validator.assertMatches(expectedResults);
-validator.assertMatchesFile("expected.json");
+Expect.that(results).shouldMatch(expectedResults);
+Expect.that(results).shouldMatch("expected.json");
 
-// Get detailed result for manual handling
-ComparisonResult result = validator.toMatch(expected);
-if (!result.isMatch()) {
-    System.out.println(result.getErrorMessage());
-}
+// Debug mode for detailed error information
+Expect.that(results).shouldMatchWithDebug(expected);
 ```
 
 ### Debug Methods
@@ -57,12 +58,6 @@ When tests fail, use debug methods to get detailed diagnostic information:
 // Debug methods automatically print detailed error information on failure
 validator.assertMatchesWithDebug(expectedResults);        // For object comparison
 validator.assertMatchesFileWithDebug("expected.json");    // For file comparison
-
-// Manual debug output
-ComparisonResult result = validator.toMatch(expected);
-if (!result.isMatch()) {
-    result.printDebugInfo();  // Print detailed comparison analysis
-}
 ```
 
 **Debug output includes:**
@@ -78,8 +73,8 @@ if (!result.isMatch()) {
 
 ```java
 List<Document> results = collection.find().into(new ArrayList<>());
-OutputValidator.expect(results)
-    .assertMatchesFile("expected-documents.json");
+Expect.that(results)
+    .shouldMatch("expected-documents.json");
 ```
 
 ### Debug-Enabled Testing
@@ -89,9 +84,9 @@ Use debug methods during development and troubleshooting:
 ```java
 // File-based comparison with debug output on failure
 List<Document> results = collection.find().into(new ArrayList<>());
-OutputValidator.expect(results)
+Expect.that(results)
     .withIgnoredFields("_id", "timestamp")
-    .assertMatchesFileWithDebug("expected-results.json");
+    .shouldMatchWithDebug("expected-results.json");
 
 // Object-based comparison with debug output on failure
 List<Document> expectedResults = List.of(
@@ -99,25 +94,8 @@ List<Document> expectedResults = List.of(
     Document.parse("{\"name\": \"Bob\", \"status\": \"inactive\"}")
 );
 
-OutputValidator.expect(actualResults)
-    .withUnorderedArrays()
-    .assertMatchesWithDebug(expectedResults);
-
-// Manual debug analysis for complex scenarios
-ComparisonResult result = OutputValidator.expect(complexResults)
-    .withIgnoredFields("createdAt", "version")
-    .toMatch(expectedComplexResults);
-
-if (!result.isMatch()) {
-    System.out.println("=== COMPARISON ANALYSIS ===");
-    result.printDebugInfo();
-
-    // Additional custom analysis
-    System.out.println("Error count: " + result.errors().size());
-    result.errors().forEach(error ->
-        System.out.println("Field '" + error.path() + "': " + error.message())
-    );
-}
+Expect.that(actualResults)
+    .shouldMatchWithDebug(expectedResults);
 ```
 
 ### Reactive Publisher Validation

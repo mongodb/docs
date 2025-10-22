@@ -41,8 +41,8 @@ class ReactiveStreamsRealWorldPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(reactiveBulkResultOutput)
-                .assertMatchesContent(expectedReactiveBulkPattern);
+            Expect.that(reactiveBulkResultOutput)
+                .shouldMatch(expectedReactiveBulkPattern);
         });
 
         // Test 2: Reactive bulk operation with writeErrors
@@ -59,8 +59,8 @@ class ReactiveStreamsRealWorldPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(bulkWithErrorsOutput)
-                .assertMatchesContent(expectedBulkErrorPattern);
+            Expect.that(bulkWithErrorsOutput)
+                .shouldMatch(expectedBulkErrorPattern);
         });
     }
 
@@ -104,8 +104,8 @@ class ReactiveStreamsRealWorldPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(complexReactiveAggregation)
-                .assertMatchesContent(expectedComplexAggregationPattern);
+            Expect.that(complexReactiveAggregation)
+                .shouldMatch(expectedComplexAggregationPattern);
         });
 
         // Test 2: Reactive aggregation with $group and complex expressions
@@ -130,8 +130,8 @@ class ReactiveStreamsRealWorldPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(groupingAggregation)
-                .assertMatchesContent(expectedGroupingPattern);
+            Expect.that(groupingAggregation)
+                .shouldMatch(expectedGroupingPattern);
         });
     }
 
@@ -162,8 +162,8 @@ class ReactiveStreamsRealWorldPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(reactiveTimeoutOutput)
-                .assertMatchesContent(expectedTimeoutPattern);
+            Expect.that(reactiveTimeoutOutput)
+                .shouldMatch(expectedTimeoutPattern);
         });
 
         // Test 2: Reactive stream error with backpressure
@@ -192,8 +192,8 @@ class ReactiveStreamsRealWorldPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(backpressureErrorOutput)
-                .assertMatchesContent(expectedBackpressurePattern);
+            Expect.that(backpressureErrorOutput)
+                .shouldMatch(expectedBackpressurePattern);
         });
     }
 
@@ -231,8 +231,8 @@ class ReactiveStreamsRealWorldPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(chainedResults)
-                .assertMatchesContent(expectedChainedPattern);
+            Expect.that(chainedResults)
+                .shouldMatch(expectedChainedPattern);
         });
 
         // Test 2: Reactive stream with async parallel processing
@@ -272,9 +272,9 @@ class ReactiveStreamsRealWorldPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(parallelResults)
-                .withUnorderedComparison() // Workers can complete in any order
-                .assertMatchesContent(expectedParallelPattern);
+            Expect.that(parallelResults)
+                 // Workers can complete in any order
+                .shouldMatch(expectedParallelPattern);
         });
     }
 
@@ -311,9 +311,9 @@ class ReactiveStreamsRealWorldPatternsTest {
             ''';
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expectFromPublisher(transformedPublisher, Duration.ofSeconds(10))
-                .withUnorderedComparison()
-                .assertMatchesContent(expectedTransformedPattern);
+            Expect.expectFromPublisher(transformedPublisher, Duration.ofSeconds(10))
+                
+                .shouldMatch(expectedTransformedPattern);
         });
         */
     }
@@ -349,8 +349,8 @@ class ReactiveStreamsRealWorldPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(reactiveConfigOutput)
-                .assertMatchesContent(expectedReactiveConfigPattern);
+            Expect.that(reactiveConfigOutput)
+                .shouldMatch(expectedReactiveConfigPattern);
         });
 
         // Test 2: Reactive operation performance metrics
@@ -383,8 +383,8 @@ class ReactiveStreamsRealWorldPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(performanceMetricsOutput)
-                .assertMatchesContent(expectedMetricsPattern);
+            Expect.that(performanceMetricsOutput)
+                .shouldMatch(expectedMetricsPattern);
         });
     }
 
@@ -396,8 +396,8 @@ class ReactiveStreamsRealWorldPatternsTest {
     String expectedEmptyPattern = "[]";
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(emptyReactiveResults)
-                .assertMatchesContent(expectedEmptyPattern);
+            Expect.that(emptyReactiveResults)
+                .shouldMatch(expectedEmptyPattern);
         });
 
         // Test 2: Single element reactive stream
@@ -413,8 +413,8 @@ class ReactiveStreamsRealWorldPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(singleElementStream)
-                .assertMatchesContent(expectedSinglePattern);
+            Expect.that(singleElementStream)
+                .shouldMatch(expectedSinglePattern);
         });
 
         // Test 3: Reactive stream with error element
@@ -439,8 +439,8 @@ class ReactiveStreamsRealWorldPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(errorElementOutput)
-                .assertMatchesContent(expectedErrorElementPattern);
+            Expect.that(errorElementOutput)
+                .shouldMatch(expectedErrorElementPattern);
         });
 
         // Test 4: Very large reactive batch result
@@ -483,8 +483,8 @@ class ReactiveStreamsRealWorldPatternsTest {
             """;
 
         assertDoesNotThrow(() -> {
-            OutputValidator.expect(largeBatchOutput)
-                .assertMatchesContent(expectedLargeBatchPattern);
+            Expect.that(largeBatchOutput)
+                .shouldMatch(expectedLargeBatchPattern);
         });
     }
 
@@ -502,8 +502,8 @@ class ReactiveStreamsRealWorldPatternsTest {
 			""";
 
 		assertDoesNotThrow(() -> {
-			OutputValidator.expect(bulkWriteResultOutput)
-				.assertMatchesContent(expectedWithEllipsis);
+			Expect.that(bulkWriteResultOutput)
+				.shouldMatch(expectedWithEllipsis);
 		});
 	}
 
@@ -529,9 +529,9 @@ class ReactiveStreamsRealWorldPatternsTest {
 
 		// Reactive results might come in different orders due to async nature
 		assertDoesNotThrow(() -> {
-			OutputValidator.expect(reactiveResults)
-				.withUnorderedComparison()
-				.assertMatchesContent(expectedContent);
+			Expect.that(reactiveResults)
+				
+				.shouldMatch(expectedContent);
 		});
 	}
 
@@ -554,8 +554,8 @@ class ReactiveStreamsRealWorldPatternsTest {
 			''';
 
 		assertDoesNotThrow(() -> {
-			OutputValidator.expectFromPublisher(publisher, Duration.ofSeconds(5))
-				.assertMatchesContent(expectedContent);
+			Expect.expectFromPublisher(publisher, Duration.ofSeconds(5))
+				.shouldMatch(expectedContent);
 		});
 		*/
 	}
@@ -578,8 +578,8 @@ class ReactiveStreamsRealWorldPatternsTest {
 			""";
 
 		assertDoesNotThrow(() -> {
-			OutputValidator.expect(connectionOutput)
-				.assertMatchesContent(expectedPattern);
+			Expect.that(connectionOutput)
+				.shouldMatch(expectedPattern);
 		});
 	}
 
@@ -610,15 +610,15 @@ class ReactiveStreamsRealWorldPatternsTest {
 
 		// For ordered operations, sequence matters
 		assertDoesNotThrow(() -> {
-			OutputValidator.expect(orderedResults)
-				.assertMatchesContent(expectedOrdered);
+			Expect.that(orderedResults)
+				.shouldMatch(expectedOrdered);
 		});
 
 		// For unordered operations, sequence doesn't matter
 		assertDoesNotThrow(() -> {
-			OutputValidator.expect(unorderedResults)
-				.withUnorderedComparison()
-				.assertMatchesContent(expectedOrdered);
+			Expect.that(unorderedResults)
+				
+				.shouldMatch(expectedOrdered);
 		});
 	}
 }

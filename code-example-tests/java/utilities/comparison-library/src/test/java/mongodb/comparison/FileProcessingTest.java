@@ -73,11 +73,8 @@ class FileProcessingTest {
             Map.of("id", 3, "name", "Charlie")
         );
 
-        var result1 = OutputValidator.expect(actual).toMatch(parseResult1.getData());
-        var result2 = OutputValidator.expect(actual).toMatch(parseResult2.getData());
-
-        assertTrue(result1.isMatch(), "JSONL format should match expected data");
-        assertTrue(result2.isMatch(), "JSON Array format should match expected data");
+        Expect.that(actual).shouldMatch(parseResult1.getData());
+        Expect.that(actual).shouldMatch(parseResult2.getData());
     }
 
     @Test
@@ -114,9 +111,7 @@ class FileProcessingTest {
             "description", "/* This is not a comment */"
         );
 
-        var result = OutputValidator.expect(actual).toMatch(parseResult.getData());
-        assertTrue(result.isMatch(),
-            "Comments outside strings should be removed, comments inside strings preserved");
+        Expect.that(actual).shouldMatch(parseResult.getData());
     }
 
     @Test
@@ -148,8 +143,7 @@ class FileProcessingTest {
             "complex", "JSON: {'key': 'value', 'number': 42}"
         );
 
-        var result = OutputValidator.expect(actual).toMatch(parseResult.getData());
-        assertTrue(result.isMatch(), "Should handle nested quote escaping correctly");
+        Expect.that(actual).shouldMatch(parseResult.getData());
     }
 
     @Test
@@ -189,8 +183,7 @@ class FileProcessingTest {
             )
         );
 
-        var result = OutputValidator.expect(actual).toMatch(parseResult.getData());
-        assertTrue(result.isMatch(), "Extended JSON should normalize to match Java objects");
+        Expect.that(actual).shouldMatch(parseResult.getData());
     }
 
     @Test
@@ -225,8 +218,7 @@ class FileProcessingTest {
         assertTrue(actualParseResult.isSuccess(), "Should resolve and parse file");
 
         var actual = Map.of("name", "test", "value", 42);
-        var result = OutputValidator.expect(actual).toMatch(actualParseResult.getData());
-        assertTrue(result.isMatch(), "Resolved file should match expected content");
+        Expect.that(actual).shouldMatch(actualParseResult.getData());
     }
 
     @Test

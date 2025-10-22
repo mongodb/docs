@@ -23,10 +23,8 @@ class StressTest {
             deep = Map.of("level" + i, deep);
         }
 
-        var result = OutputValidator.expect(deep)
-            .toMatch(deep);
-
-        assertTrue(result.isMatch(), "Deeply nested structures should be handled");
+        Expect.that(deep)
+            .shouldMatch(deep);
     }
 
     @Test
@@ -46,10 +44,8 @@ class StressTest {
 
         var actualResult = Map.of("largeArray", largeArray);
 
-        var result = OutputValidator.expect(actualResult)
-            .toMatch(actualResult);
-
-        assertTrue(result.isMatch(), "Large arrays with mixed types should be handled");
+        Expect.that(actualResult)
+            .shouldMatch(actualResult);
     }
 
     @Test
@@ -63,11 +59,9 @@ class StressTest {
         // but we can test self-reference patterns
         document.append("self", document);
 
-        var result = OutputValidator.expect(document)
-            .toMatch(document);
-
         // This should either work or fail gracefully, not infinite loop
-        assertTrue(result.isMatch(), "Self-referencing documents should be handled");
+        Expect.that(document)
+            .shouldMatch(document);
     }
 
     @Test
@@ -88,10 +82,8 @@ class StressTest {
         expectedData.put("emptyString", "");
         expectedData.put("whitespaceString", ""); // Trimmed
 
-        var result = OutputValidator.expect(testData)
-            .toMatch(expectedData);
-
-        assertTrue(result.isMatch(), "Empty and null collections should be normalized correctly");
+        Expect.that(testData)
+            .shouldMatch(expectedData);
     }
 
     @Test
@@ -100,10 +92,8 @@ class StressTest {
         var longString = "x".repeat(10000);
         var actualResult = Map.of("longText", longString);
 
-        var result = OutputValidator.expect(actualResult)
-            .toMatch(actualResult);
-
-        assertTrue(result.isMatch(), "Very long strings should be handled");
+        Expect.that(actualResult)
+            .shouldMatch(actualResult);
     }
 
     @Test
@@ -125,10 +115,8 @@ class StressTest {
             "precision", 0.3 // What 0.1 + 0.2 should equal
         );
 
-        var result = OutputValidator.expect(actualData)
-            .toMatch(expectedData);
-
-        assertTrue(result.isMatch(), "Numeric precision should be handled correctly");
+        Expect.that(actualData)
+            .shouldMatch(expectedData);
     }
 
     @Test
@@ -142,10 +130,8 @@ class StressTest {
             "backslashes", "C:\\Windows\\Path\\file.txt"
         );
 
-        var result = OutputValidator.expect(unicodeData)
-            .toMatch(unicodeData);
-
-        assertTrue(result.isMatch(), "Unicode and special characters should be preserved");
+        Expect.that(unicodeData)
+            .shouldMatch(unicodeData);
     }
 
     @Test
@@ -156,25 +142,19 @@ class StressTest {
         var expectedArrayReordered = Arrays.asList("b", "a", "c", "b", "a");
 
         // Ordered arrays - should match exactly
-        var orderedResult = OutputValidator.expect(actualArray)
-            .withOrderedArrays()
-            .toMatch(expectedArrayOrdered);
-
-        assertTrue(orderedResult.isMatch(), "Ordered arrays with duplicates should match exactly");
+        Expect.that(actualArray)
+            .withOrderedSort()
+            .shouldMatch(expectedArrayOrdered);
 
         // Ordered arrays with different order - should NOT match
-        var orderedDifferentResult = OutputValidator.expect(actualArray)
-            .withOrderedArrays()
-            .toMatch(expectedArrayReordered);
-
-        assertFalse(orderedDifferentResult.isMatch(), "Ordered arrays with different order should not match");
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actualArray)
+                        .withOrderedSort()
+                        .shouldMatch(expectedArrayReordered));
 
         // Unordered arrays - should match even with reordering
-        var unorderedResult = OutputValidator.expect(actualArray)
-            .withUnorderedArrays()
-            .toMatch(expectedArrayReordered);
-
-        assertTrue(unorderedResult.isMatch(), "Unordered arrays should match despite reordering");
+        Expect.that(actualArray)
+            .shouldMatch(expectedArrayReordered);
     }
 
     @Test
@@ -200,10 +180,8 @@ class StressTest {
         );
 
         // Should ignore _id and timestamp fields at all levels
-        var result = OutputValidator.expect(actualData)
+        Expect.that(actualData)
             .withIgnoredFields("_id", "timestamp", "created")
-            .toMatch(expectedData);
-
-        assertTrue(result.isMatch(), "Nested field exclusion should work correctly");
+            .shouldMatch(expectedData);
     }
 }

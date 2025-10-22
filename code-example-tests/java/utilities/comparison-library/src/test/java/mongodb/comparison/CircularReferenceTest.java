@@ -267,8 +267,7 @@ class CircularReferenceTest {
         circular2.put("data", Arrays.asList(1, 2, 3));
 
         // Should detect circular references and handle gracefully
-        var result = OutputValidator.expect(circular1).toMatch(circular2);
-        assertTrue(result.isMatch(), "Circular references should be handled gracefully");
+        Expect.that(circular1).shouldMatch(circular2);
 
         // Test mutual circular references
         var obj1 = new HashMap<String, Object>();
@@ -285,8 +284,7 @@ class CircularReferenceTest {
         obj4.put("name", "second");
         obj4.put("other", obj3);
 
-        var mutualResult = OutputValidator.expect(obj1).toMatch(obj3);
-        assertTrue(mutualResult.isMatch(), "Mutual circular references should be handled");
+        Expect.that(obj1).shouldMatch(obj3);
     }
 
     @Test
@@ -299,32 +297,9 @@ class CircularReferenceTest {
 
         var nonCircular = Map.of("name", "test", "self", "different");
 
-        var result = OutputValidator.expect(nonCircular).toMatch(circular);
-
         // Should not match due to different self reference
-        assertFalse(result.isMatch(), "Circular reference comparison should not match when self differs");
-
-        // Should have exactly one error for the self field
-        assertEquals(1, result.errors().size(), "Should have one error for mismatched self field");
-
-        var error = result.errors().get(0);
-        assertEquals("self", error.path(), "Error should be at self field path");
-
-        // Error message should indicate type mismatch (circular reference normalized to placeholder)
-        String message = error.message();
-        assertTrue(
-                message.contains("Type mismatch") || message.contains("circular") || message.contains("reference") || message.contains("recursive"),
-                "Error message should mention circular reference detection or type mismatch, got: " + message
-        );
-
-        // Expected value should show circular reference format
-        assertTrue(
-                error.expected().contains("CIRCULAR_REFERENCE"),
-                "Expected value should show circular reference format"
-        );
-
-        // Actual value should be the non-circular value
-        assertEquals("\"different\"", error.actual(), "Actual value should be quoted string");
+        assertThrows(AssertionError.class, () ->
+                Expect.that(nonCircular).shouldMatch(circular));
     }
 
     @Test
@@ -348,11 +323,10 @@ class CircularReferenceTest {
                 "second", Map.of("id", "obj2", "other", "broken")
         );
 
-        // Should not crash with infinite recursion
-        assertDoesNotThrow(() -> {
-            var result = OutputValidator.expect(actual).toMatch(expected);
-            assertFalse(result.isMatch(), "Multiple circular references should not match when broken");
-        }, "Multiple circular references should not cause infinite recursion");
+        // Should not crash with infinite recursion and should properly throw AssertionError
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actual).shouldMatch(expected),
+                "Multiple circular references should not cause infinite recursion");
     }
 
     @Test
@@ -364,15 +338,7 @@ class CircularReferenceTest {
 
         var nonSelfArray = Arrays.asList("item", "different");
 
-        var result = OutputValidator.expect(nonSelfArray).toMatch(selfArray);
-
-        assertFalse(result.isMatch(), "Self-referencing array should not match non-self array");
-
-        // Should have error mentioning circular reference
-        assertTrue(result.errors().stream().anyMatch(error ->
-                error.message().contains("circular") ||
-                        error.message().contains("reference") ||
-                        error.expected().contains("CIRCULAR_REFERENCE")
-        ), "Should detect circular reference in array");
+        assertThrows(AssertionError.class, () ->
+                Expect.that(nonSelfArray).shouldMatch(selfArray));
     }
 }

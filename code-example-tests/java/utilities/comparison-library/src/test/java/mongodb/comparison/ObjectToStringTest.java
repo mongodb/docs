@@ -23,11 +23,8 @@ class ComplexObjectToStringTest {
         String expected = "Flower{id=..., name='daisy'}";
         String actual = "Flower{id=507f1f77bcf86cd799439013, name='daisy'}";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "POJO toString() should support ellipsis for ObjectId fields");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -36,11 +33,8 @@ class ComplexObjectToStringTest {
         String expected = "Flower{id=..., name='daisy', colors=[purple, white], isBlooming=..., height=21.1}";
         String actual = "Flower{id=507f1f77bcf86cd799439013, name='daisy', colors=[purple, white], isBlooming=true, height=21.1}";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "POJO should support multiple ellipsis fields");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -49,11 +43,8 @@ class ComplexObjectToStringTest {
         String expected = "Flower{id=..., name='daisy'}";
         String actual = "Flower{id=507f1f77bcf86cd799439013, name='daisy', colors=[purple, white], height=21.1, createdAt=2023-09-04}";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "POJO should allow extra fields when using ellipsis");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -62,11 +53,8 @@ class ComplexObjectToStringTest {
         String expected = "Flower{id=..., name='peony', colors=[...], tags={type=..., season=spring}}";
         String actual = "Flower{id=507f1f77bcf86cd799439014, name='peony', colors=[red, green, yellow], tags={type=perennial, season=spring, zone=5}}";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "POJO should support nested collections with ellipsis");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -75,11 +63,8 @@ class ComplexObjectToStringTest {
         String expected = "Flower{id=..., name='daisy'}";
         String actual = "Plant{id=507f1f77bcf86cd799439013, name='daisy'}";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertFalse(result.isMatch(), "POJO comparison should fail when class names don't match");
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actual).shouldMatch(expected));
     }
 
     @Test
@@ -88,11 +73,8 @@ class ComplexObjectToStringTest {
         String expected = "Flower{id=..., name='daisy', height=21.1}";
         String actual = "Flower{id=507f1f77bcf86cd799439013, name='daisy'}"; // height missing
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertFalse(result.isMatch(), "POJO comparison should fail when required fields are missing");
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actual).shouldMatch(expected));
     }
 
     // MongoDB Result Objects Tests
@@ -103,11 +85,8 @@ class ComplexObjectToStringTest {
         String expected = "BulkWriteResult{acknowledged=true, insertedCount=..., deletedCount=0}";
         String actual = "BulkWriteResult{acknowledged=true, insertedCount=25, deletedCount=0, matchedCount=0, modifiedCount=0}";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "BulkWriteResult should support ellipsis for dynamic counts");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -116,11 +95,8 @@ class ComplexObjectToStringTest {
         String expected = "InsertOneResult{acknowledged=true, insertedId=...}";
         String actual = "InsertOneResult{acknowledged=true, insertedId=BsonObjectId{value=507f1f77bcf86cd799439013}}";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "InsertResult should support ellipsis for ObjectId values");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -129,11 +105,8 @@ class ComplexObjectToStringTest {
         String expected = "InsertManyResult{acknowledged=true, insertedIds={...}}";
         String actual = "InsertManyResult{acknowledged=true, insertedIds={0=BsonObjectId{value=507f1f77bcf86cd799439013}, 1=BsonObjectId{value=507f1f77bcf86cd799439014}}}";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "InsertManyResult should support ellipsis for insertedIds map");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -142,11 +115,8 @@ class ComplexObjectToStringTest {
         String expected = "UpdateResult{acknowledged=true, matchedCount=..., modifiedCount=...}";
         String actual = "UpdateResult{acknowledged=true, matchedCount=5, modifiedCount=5, upsertedId=null}";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "Generic MongoDB results should support ellipsis patterns");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     // Collection toString() Support Tests
@@ -157,11 +127,8 @@ class ComplexObjectToStringTest {
         String expected = "[507f1f77bcf86cd799439013, 507f1f77bcf86cd799439014, ...]";
         String actual = "[507f1f77bcf86cd799439013, 507f1f77bcf86cd799439014, 507f1f77bcf86cd799439015, 507f1f77bcf86cd799439016]";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "List toString() should support ellipsis for additional items");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -170,11 +137,8 @@ class ComplexObjectToStringTest {
         String expected = "[red, green, ...]";
         String actual = "[red, green, blue, yellow, purple]";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "Set toString() should support ellipsis for additional items");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -183,11 +147,8 @@ class ComplexObjectToStringTest {
         String expected = "{type=flower, season=spring, ...}";
         String actual = "{type=flower, season=spring, zone=5, watering=weekly, sunlight=full}";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "Map toString() should support ellipsis for additional entries");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -196,11 +157,8 @@ class ComplexObjectToStringTest {
         String expected = "[]";
         String actual = "[]";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "Empty collections should match exactly");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -209,11 +167,8 @@ class ComplexObjectToStringTest {
         String expected = "[...]";
         String actual = "[item1, item2, item3, item4, item5]";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "Collection with only ellipsis should match any content");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     // Complex Nested Structures Tests
@@ -224,11 +179,8 @@ class ComplexObjectToStringTest {
         String expected = "Garden{name='...' flowers=[Flower{name='rose', ...}, ...], tools=[...]}";
         String actual = "Garden{name='My Garden', flowers=[Flower{name='rose', colors=[red]}, Flower{name='tulip', colors=[yellow]}], tools=[shovel, hose, gloves]}";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "Nested POJO with collections should support complex ellipsis patterns");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -245,11 +197,8 @@ class ComplexObjectToStringTest {
             Operation took 127 ms
             """;
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "Complex console output with result objects should work");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -264,11 +213,8 @@ class ComplexObjectToStringTest {
             Total count: 2
             """;
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "POJO arrays in console output should support ellipsis");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     // Real-World MongoDB Documentation Patterns
@@ -279,11 +225,8 @@ class ComplexObjectToStringTest {
         String expected = "Publisher created: ..., Result: BulkWriteResult{acknowledged=true, insertedCount=...}";
         String actual = "Publisher created: reactor.core.publisher.FluxFlatMap@1a2b3c4d, Result: BulkWriteResult{acknowledged=true, insertedCount=15, deletedCount=0, matchedCount=0, modifiedCount=0}";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "Reactive streams with result objects should work");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -302,11 +245,8 @@ class ComplexObjectToStringTest {
             Failed operations: 2
             """;
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "Exception messages with embedded results should work");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -325,11 +265,8 @@ class ComplexObjectToStringTest {
             Execution stats: QueryStats{totalDocsExamined=1500, totalKeysExamined=1500, indexesUsed=[name_1], executionTimeMillis=45}
             """;
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "Performance monitoring output should support ellipsis patterns");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     // Edge Cases and Error Handling
@@ -340,11 +277,8 @@ class ComplexObjectToStringTest {
         String expected = "InvalidClass{field=...}";
         String actual = "InvalidClass{field=value, malformed";  // Missing closing brace
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertFalse(result.isMatch(), "Malformed POJO strings should not match well-formed patterns");
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actual).shouldMatch(expected));
     }
 
     @Test
@@ -359,11 +293,8 @@ class ComplexObjectToStringTest {
             Objects: [Flower{name='daisy', colors=[white]}, Flower{name='rose', colors=[red]}]
             """;
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "Mixed JSON and POJO patterns should be handled correctly");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 
     @Test
@@ -372,17 +303,8 @@ class ComplexObjectToStringTest {
         String expected = "Flower{id=123, name='rose'}";
         String actual = "Flower{id=456, name='daisy'}";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertFalse(result.isMatch(), "POJO field mismatches should fail");
-
-        // Check that error message contains useful information
-        boolean hasUsefulError = result.errors().stream()
-            .anyMatch(error -> error.getDetailedMessage().contains("String content mismatch"));
-
-        assertTrue(hasUsefulError, "Error should provide context about POJO field differences");
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actual).shouldMatch(expected));
     }
 
     // Integration with Existing Features
@@ -395,22 +317,14 @@ class ComplexObjectToStringTest {
         String actual = "Results: [Flower{name='daisy', id=507f1f77bcf86cd799439014}, Flower{name='rose', id=507f1f77bcf86cd799439013}]";
 
         // Test with unordered comparison - should match despite different order
-        ComparisonResult unorderedResult = OutputValidator.expect(actual)
-            .withUnorderedArrays()
-            .toMatchContent(expected);
+        Expect.that(actual)
+            .shouldMatch(expected);
 
         // Test with ordered comparison - should fail due to different order
-        ComparisonResult orderedResult = OutputValidator.expect(actual)
-            .withOrderedArrays()
-            .toMatchContent(expected);
-
-        // The unordered comparison should succeed (array elements can be in any order)
-        assertTrue(unorderedResult.isMatch(),
-            "Unordered comparison should match POJO arrays in different order within string content");
-
-        // The ordered comparison should fail (elements are in different order)
-        assertFalse(orderedResult.isMatch(),
-            "Ordered comparison should fail when POJO array elements are in different order");
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actual)
+                        .withOrderedSort()
+                        .shouldMatch(expected));
     }
 
     @Test
@@ -420,9 +334,7 @@ class ComplexObjectToStringTest {
         String expected = "Simple string with ellipsis: ...";
         String actual = "Simple string with ellipsis: any content here";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            .toMatchContent(expected);
-
-        assertTrue(result.isMatch(), "Backward compatibility with simple ellipsis should be maintained");
+        Expect.that(actual)
+            .shouldMatch(expected);
     }
 }

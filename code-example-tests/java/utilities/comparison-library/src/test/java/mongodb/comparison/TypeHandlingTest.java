@@ -36,10 +36,8 @@ class MissingTypeHandlingTest {
         );
 
         // Current normalizer doesn't handle BsonDocument specifically
-        var result = OutputValidator.expect(actualResult)
-            .toMatch(actualResult);
-
-        assertTrue(result.isMatch(), "BsonDocument should be handled");
+        Expect.that(actualResult)
+            .shouldMatch(actualResult);
     }
 
     @Test
@@ -58,16 +56,12 @@ class MissingTypeHandlingTest {
         );
 
         // Should NOT match because UUIDs are different
-        var result = OutputValidator.expect(actualResult)
-            .toMatch(expectedResult);
-
-        assertFalse(result.isMatch(), "Different UUIDs should not match");
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actualResult).shouldMatch(expectedResult));
 
         // Should match when comparing with itself
-        var matchingResult = OutputValidator.expect(actualResult)
-            .toMatch(actualResult);
-
-        assertTrue(matchingResult.isMatch(), "Same UUIDs should match");
+        Expect.that(actualResult)
+            .shouldMatch(actualResult);
     }
 
     @Test
@@ -80,10 +74,8 @@ class MissingTypeHandlingTest {
             "checksum", "abc123"
         );
 
-        var result = OutputValidator.expect(actualResult)
-            .toMatch(actualResult);
-
-        assertTrue(result.isMatch(), "Binary data should be handled");
+        Expect.that(actualResult)
+            .shouldMatch(actualResult);
     }
 
     @Test
@@ -100,10 +92,8 @@ class MissingTypeHandlingTest {
             "reduceFunction", codeWithScope
         );
 
-        var result = OutputValidator.expect(actualResult)
-            .toMatch(actualResult);
-
-        assertTrue(result.isMatch(), "MongoDB Code types should be handled");
+        Expect.that(actualResult)
+            .shouldMatch(actualResult);
     }
 
     @Test
@@ -116,10 +106,8 @@ class MissingTypeHandlingTest {
             "flags", pattern.flags()
         );
 
-        var result = OutputValidator.expect(actualResult)
-            .toMatch(actualResult);
-
-        assertTrue(result.isMatch(), "Pattern objects should be handled");
+        Expect.that(actualResult)
+            .shouldMatch(actualResult);
     }
 
     @Test
@@ -143,10 +131,8 @@ class MissingTypeHandlingTest {
         );
 
         // This tests how well the library handles extended JSON representations
-        var result = OutputValidator.expect(extendedJsonData)
-            .toMatch(extendedJsonData);
-
-        assertTrue(result.isMatch(), "Extended JSON patterns should match");
+        Expect.that(extendedJsonData)
+            .shouldMatch(extendedJsonData);
     }
 
     @Test
@@ -157,20 +143,17 @@ class MissingTypeHandlingTest {
         // Integer vs Double comparison
         var intVal = 42;
         var doubleVal = 42.0;
-        var result1 = OutputValidator.expect(intVal).toMatch(doubleVal);
-        assertTrue(result1.isMatch(), "Integer should match equivalent double");
+        Expect.that(intVal).shouldMatch(doubleVal);
 
         // Float vs Double comparison
         var floatVal = 85.5f;
         var doubleVal2 = 85.5;
-        var result2 = OutputValidator.expect(floatVal).toMatch(doubleVal2);
-        assertTrue(result2.isMatch(), "Float should match equivalent double");
+        Expect.that(floatVal).shouldMatch(doubleVal2);
 
         // Long vs Integer comparison
         var longVal = 1000L;
         var intVal2 = 1000;
-        var result3 = OutputValidator.expect(longVal).toMatch(intVal2);
-        assertTrue(result3.isMatch(), "Long should match equivalent integer");
+        Expect.that(longVal).shouldMatch(intVal2);
 
         // Document with mixed numeric types
         var expectedDoc = Map.of(
@@ -187,41 +170,31 @@ class MissingTypeHandlingTest {
             "rate", 3.14           // double instead of float
         );
 
-        var documentResult = OutputValidator.expect(actualDoc).toMatch(expectedDoc);
-        assertTrue(documentResult.isMatch(), "Mixed numeric types in documents should match when values are equivalent");
+        Expect.that(actualDoc).shouldMatch(expectedDoc);
     }
 
     @Test
     @DisplayName("Null handling edge cases")
     void testNullHandlingEdgeCases() {
         // Test direct null vs non-null
-        var result1 = OutputValidator.expect("not null").toMatch(null);
-        assertFalse(result1.isMatch(), "Non-null should not match null");
-        assertTrue(result1.errors().stream().anyMatch(e ->
-            e.message().contains("null") || e.message().toLowerCase().contains("mismatch")),
-            "Should provide clear null mismatch message");
+        assertThrows(AssertionError.class, () ->
+                Expect.that("not null").shouldMatch(null));
 
         // Test map with null value vs non-null value
         var expected = new java.util.HashMap<String, Object>();
         expected.put("nullField", null);
         var actual = Map.of("nullField", "not null");
 
-        var result2 = OutputValidator.expect(actual).toMatch(expected);
-        assertFalse(result2.isMatch(), "Null field should not match non-null value");
-        assertTrue(result2.errors().stream().anyMatch(e ->
-            e.path().equals("nullField") && e.message().toLowerCase().contains("null")),
-            "Should report specific null field mismatch");
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actual).shouldMatch(expected));
 
         // Test non-null vs null
         var expected3 = Map.of("field", "value");
         var actual3 = new java.util.HashMap<String, Object>();
         actual3.put("field", null);
 
-        var result3 = OutputValidator.expect(actual3).toMatch(expected3);
-        assertFalse(result3.isMatch(), "Null should not match non-null value");
-        assertTrue(result3.errors().stream().anyMatch(e ->
-            e.path().equals("field") && e.message().toLowerCase().contains("null")),
-            "Should report specific null vs non-null mismatch");
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actual3).shouldMatch(expected3));
     }
 
     @Test
@@ -230,21 +203,7 @@ class MissingTypeHandlingTest {
         String expected = "This is the expected string";
         String actual = "This is the actual string";
 
-        ComparisonResult result = OutputValidator.expect(actual)
-            
-            .toMatchContent(expected);
-
-        assertFalse(result.isMatch(), "Different strings should not match");
-
-        if (!result.errors().isEmpty()) {
-            var error = result.errors().get(0);
-            var detailedMessage = error.getDetailedMessage();
-
-            // Should contain helpful error context
-            assertTrue(detailedMessage.contains("String") || detailedMessage.contains("content"),
-                "Error message should indicate string content mismatch");
-            assertTrue(detailedMessage.contains("expected") && detailedMessage.contains("actual"),
-                "Error message should show both expected and actual values");
-        }
+        assertThrows(AssertionError.class, () ->
+                Expect.that(actual).shouldMatch(expected));
     }
 }
