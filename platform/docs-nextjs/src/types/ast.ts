@@ -893,7 +893,7 @@ interface RefRoleNode extends ParentNode {
 
 type InstruqtOptions = {
   title: string;
-  drawer: boolean;
+  drawer?: boolean;
 };
 
 interface InstruqtNode extends Directive<InstruqtOptions> {

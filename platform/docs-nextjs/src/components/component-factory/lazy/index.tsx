@@ -1,26 +1,31 @@
+import type { InstruqtProps } from '@/components/instruqt';
 import dynamic from 'next/dynamic';
 
-type LazyComponentType = 'instruqt';
-type LazyComponentMap = Record<LazyComponentType, React.ComponentType<Record<string, unknown>>>;
+// Passing an object with nodeData as a property
+type Data = {
+  nodeData: InstruqtProps;
+};
 
-const ComponentMap: LazyComponentMap = {
+type LazyComponentMap = {
+  instruqt: React.ComponentType<Data>;
+};
+
+export const ComponentMap = {
   // TODO: uncomment this out as they get ported over
   // openapi: dynamic(() => import('./OpenAPI')),
   // video: dynamic(() => import('./Video')),
   instruqt: dynamic(() => import('@/components/instruqt')),
-};
+} as const;
 
 /**
  * Creates a map of lazy-loaded components by wrapping each component in a wrapper function.
- * @returns {Record<string, React.ComponentType<Record<string, unknown>>>} An object mapping component names to wrapped React components
  * i.e openapi, video, and instruqt
  */
-type LazyLoadingComponentObject = Record<string, unknown>;
-export const LAZY_COMPONENTS: Record<string, React.ComponentType<Record<string, unknown>>> = (
-  Object.keys(ComponentMap) as LazyComponentType[]
-).reduce<Record<string, React.ComponentType<LazyLoadingComponentObject>>>((res, key) => {
+export const LAZY_COMPONENTS: LazyComponentMap = (
+  Object.keys(ComponentMap) as Array<keyof typeof ComponentMap>
+).reduce<LazyComponentMap>((res, key) => {
   // Offline work will be done in the offline epic
   const LazyComponent = ComponentMap[key];
-  res[key] = (props) => <LazyComponent {...props} />;
+  res[key] = (props) => <LazyComponent {...props.nodeData} />;
   return res;
-}, {});
+}, {} as LazyComponentMap);

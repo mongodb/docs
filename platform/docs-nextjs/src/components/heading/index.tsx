@@ -14,7 +14,7 @@ import { TabContext } from '@/context/tabs-context';
 import useScreenSize from '@/hooks/use-screen-size';
 import { usePageContext } from '@/context/page-context';
 import ConditionalWrapper from '../conditional-wrapper';
-import { InstruqtContext } from '@/context/instruqt-context';
+import { useInstruqt } from '@/context/instruqt-context';
 import { disabledStyle } from '@/components/button/styles';
 import Permalink from '@/components/permalink';
 import Contents from '@/components/contents';
@@ -103,7 +103,7 @@ const Heading = ({ nodeChildren, sectionDepth = 1, id = '', className, as, ...re
   const isPageTitle = sectionDepth === 1;
   const { isTabletOrMobile } = useScreenSize();
   const { selectors } = useContext(TabContext);
-  const { hasDrawer, isOpen, setIsOpen } = useContext(InstruqtContext);
+  const { hasDrawer, isOpen, setIsOpen } = useInstruqt();
   const hasSelectors = selectors && Object.keys(selectors).length > 0;
   const shouldShowLabButton = isPageTitle && hasDrawer;
   const { page, tabsMainColumn, template } = usePageContext();
