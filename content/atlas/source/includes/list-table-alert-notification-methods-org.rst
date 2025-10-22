@@ -138,7 +138,20 @@
   
           .. include:: /includes/fact-datadog-supported-regions.rst
 
-       .. include:: /includes/fact-api-key-redacted.rst
+          .. include:: /includes/fact-api-key-redacted.rst
+       
+       #. (Optional) To enable database metrics tracking, toggle
+          :guilabel:`Send Database Metrics` to :guilabel:`On`.
+         
+       #. (Optional) To enable collection latency metrics tracking, 
+          toggle :guilabel:`Send Collection Latency Metrics` to 
+          :guilabel:`On`.
+
+       #. (Optional) To enable query shape metrics tracking, 
+          toggle :guilabel:`Send Query Shape Metrics` to 
+          :guilabel:`On`.
+
+       #. Click :guilabel:`Save`.
 
    * - VictorOps
 

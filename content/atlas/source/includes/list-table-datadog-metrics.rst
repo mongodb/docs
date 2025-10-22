@@ -105,6 +105,70 @@
      - Average operation time in milliseconds, separated by operation
        type.
 
+   * - | ``QUERY_STATS_BYTES_READ_SUM_TOTAL``
+       | (mongodb.atlas.querystats.bytes_read_sum_total)
+     - Counter
+     - Number of bytes read by the given query shape from the disk to 
+       the cache.
+
+   * - | ``QUERY_STATS_DOCS_EXAMINED_RATIO``
+       | (mongodb.atlas.querystats.docs_examined_ratio)
+     - Gauge
+     - Ratio of documents examined to documents returned by queries 
+       with the given query shape.
+
+   * - | ``QUERY_STATS_DOCS_EXAMINED_ SUM_TOTAL``
+       | (mongodb.atlas.querystats.docs_examined_sum_total)
+     - Counter
+     - Total number of documents examined by queries with the given 
+       query shape.
+
+   * - | ``QUERY_STATS_DOCS_RETURNED_ SUM_TOTAL``
+       | (mongodb.atlas.querystats.docs_returned_sum_total)
+     - Counter
+     - Total number of documents returned by queries with the given 
+       query shape.
+
+   * - | ``QUERY_STATS_EXEC_COUNT_TOTAL``
+       | (mongodb.atlas.querystats.exec_count_total)
+     - Counter
+     - Total number of times that queries with the given query shape 
+       have been executed.
+
+   * - | ``QUERY_STATS_KEYS_EXAMINED_RATIO``
+       | (mongodb.atlas.querystats.keys_examined_ratio)
+     - Gauge
+     - Ratio of in-bounds and out-of-bounds index keys examined to 
+       indexes containing documents returned by queries with the given 
+       query shape.
+
+   * - | ``QUERY_STATS_KEYS_EXAMINED_SUM_TOTAL``
+       | (mongodb.atlas.querystats.keys_examined_sum_total)
+     - Counter
+     - Total number of in-bounds and out-of-bounds index keys examined 
+       by queries with the given query shape.
+
+   * - | ``QUERY_STATS_LAST_EXEC_MICROS``
+       | (mongodb.atlas.querystats.last_exec_micros)
+     - Gauge
+     - Execution runtime in microseconds for the most recent query with 
+       the given query shape.
+
+   * - | ``QUERY_STATS_TIME_TO_RESPONSE_MICROS_SUM_TOTAL``
+       | (mongodb.atlas.querystats.time_to_response_micros_sum_total)
+     - Counter
+     - Time in microseconds spent from the beginning of query 
+       processing to the first server response.
+
+   * - | ``QUERY_STATS_WORKING_MILLIS_SUM_TOTAL``
+       | (mongodb.atlas.querystats.working_millis_sum_total)
+     - Counter
+     - Total time in milliseconds spent running queries with the given 
+       query shape. If the query resulted in ``getMore`` commands, this 
+       metric includes the time spent processing the ``getMore`` 
+       requests. This metric does not include time spent waiting for 
+       the client.
+   
    * - | ``QUERY_TARGETING_SCANNED_OBJECTS_PER_RETURNED``
        | (mongodb.atlas.metrics.queryexecutor.scannedobjectsperreturned)
      - Process
