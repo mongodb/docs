@@ -81,18 +81,8 @@ func testFilterTutorial(t *testing.T) {
 	result := filter.RunPipeline()
 	expectedOutputFilepath := "examples/aggregation/pipelines/filter/output.txt"
 
-	// Compare the actual results with expected output
-	comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)
-
-	if !comparisonResult.IsMatch {
-		t.Errorf("Results do not match expected output: %s", comparisonResult.Error())
-
-		// Print detailed error information
-		for _, err := range comparisonResult.Errors {
-			t.Errorf("  Path: %s, Expected: %s, Actual: %s, Message: %s",
-				err.Path, err.Expected, err.Actual, err.Message)
-		}
-	}
+	// Compare the actual results with expected output using the new fluent API
+	compare.ExpectThat(t, result).ShouldMatch(expectedOutputFilepath)
 }
 
 func testGroupTutorial(t *testing.T) {
@@ -103,18 +93,8 @@ func testGroupTutorial(t *testing.T) {
 	result := group.RunPipeline()
 	expectedOutputFilepath := "examples/aggregation/pipelines/group/output.txt"
 
-	// Compare the actual results with expected output
-	comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)
-
-	if !comparisonResult.IsMatch {
-		t.Errorf("Results do not match expected output: %s", comparisonResult.Error())
-
-		// Print detailed error information
-		for _, err := range comparisonResult.Errors {
-			t.Errorf("  Path: %s, Expected: %s, Actual: %s, Message: %s",
-				err.Path, err.Expected, err.Actual, err.Message)
-		}
-	}
+	// Compare the actual results with expected output using the comparison utility
+	compare.ExpectThat(t, result).ShouldMatch(expectedOutputFilepath)
 }
 
 func testUnwindTutorial(t *testing.T) {
@@ -125,18 +105,8 @@ func testUnwindTutorial(t *testing.T) {
 	result := unwind.RunPipeline()
 	expectedOutputFilepath := "examples/aggregation/pipelines/unwind/output.txt"
 
-	// Compare the actual results with expected output
-	comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)
-
-	if !comparisonResult.IsMatch {
-		t.Errorf("Results do not match expected output: %s", comparisonResult.Error())
-
-		// Print detailed error information
-		for _, err := range comparisonResult.Errors {
-			t.Errorf("  Path: %s, Expected: %s, Actual: %s, Message: %s",
-				err.Path, err.Expected, err.Actual, err.Message)
-		}
-	}
+	// Compare the actual results with expected output using the comparison utility
+	compare.ExpectThat(t, result).ShouldMatch(expectedOutputFilepath)
 }
 
 func testJoinOneToOneTutorial(t *testing.T) {
@@ -147,18 +117,8 @@ func testJoinOneToOneTutorial(t *testing.T) {
 	result := join_one_to_one.RunPipeline()
 	expectedOutputFilepath := "examples/aggregation/pipelines/join_one_to_one/output.txt"
 
-	// Compare the actual results with expected output
-	comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)
-
-	if !comparisonResult.IsMatch {
-		t.Errorf("Results do not match expected output: %s", comparisonResult.Error())
-
-		// Print detailed error information
-		for _, err := range comparisonResult.Errors {
-			t.Errorf("  Path: %s, Expected: %s, Actual: %s, Message: %s",
-				err.Path, err.Expected, err.Actual, err.Message)
-		}
-	}
+	// Compare the actual results with expected output using the comparison utility
+	compare.ExpectThat(t, result).ShouldMatch(expectedOutputFilepath)
 }
 
 func testJoinMultiFieldTutorial(t *testing.T) {
@@ -169,16 +129,6 @@ func testJoinMultiFieldTutorial(t *testing.T) {
 	result := join_multi_field.RunPipeline()
 	expectedOutputFilepath := "examples/aggregation/pipelines/join_multi_field/output.txt"
 
-	// Compare the actual results with expected output
-	comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)
-
-	if !comparisonResult.IsMatch {
-		t.Errorf("Results do not match expected output: %s", comparisonResult.Error())
-
-		// Print detailed error information
-		for _, err := range comparisonResult.Errors {
-			t.Errorf("  Path: %s, Expected: %s, Actual: %s, Message: %s",
-				err.Path, err.Expected, err.Actual, err.Message)
-		}
-	}
+	// Compare the actual results with expected output using the comparison utility
+	compare.ExpectThat(t, result).ShouldMatch(expectedOutputFilepath)
 }

@@ -5,31 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 )
-
-// GetResolvedFilePath resolves the final path for an expected file.
-func GetResolvedFilePath(expectedFilePath string) (string, error) {
-	if filepath.IsAbs(expectedFilePath) {
-		return expectedFilePath, nil
-	}
-
-	possiblePaths := []string{
-		expectedFilePath,
-		filepath.Join("../../../", expectedFilePath),
-		filepath.Join("../../", expectedFilePath),
-		filepath.Join("../", expectedFilePath),
-	}
-
-	for _, path := range possiblePaths {
-		if _, err := os.Stat(path); err == nil {
-			return path, nil
-		}
-	}
-
-	return "", fmt.Errorf("file not found: %s", expectedFilePath)
-}
 
 // readExpectedOutput reads and parses the expected output file
 func readExpectedOutput(filePath string) ([]interface{}, error) {

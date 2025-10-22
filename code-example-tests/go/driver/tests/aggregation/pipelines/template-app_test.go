@@ -2,7 +2,7 @@ package pipelines
 
 import (
 	"context"
-	"reflect"
+	"driver-examples/utils/compare"
 	"testing"
 
 	"driver-examples/examples/aggregation/pipelines"
@@ -71,20 +71,12 @@ func testTemplateApp(t *testing.T) {
 	t.Helper() // Mark this as a helper function for better error reporting
 
 	results := pipelines.RunTemplateApp()
-	expectedOutput := bson.D{
-		{Key: "message", Value: "This is some example data for the template app."},
-		{Key: "timestamp", Value: "2023-01-01T00:00:00Z"},
+	expectedOutput := []bson.D{
+		{
+			{Key: "message", Value: "This is some example data for the template app."},
+			{Key: "timestamp", Value: "2023-01-01T00:00:00Z"},
+		},
 	}
 
-	// Validate we got exactly one result
-	if len(results) != 1 {
-		t.Errorf("Test failed: expected 1 result but got %d", len(results))
-		return
-	}
-
-	// Simple deep compare using reflect.DeepEqual
-	actualOutput := results[0]
-	if !reflect.DeepEqual(actualOutput, expectedOutput) {
-		t.Errorf("Test failed: expected %v but got %v", expectedOutput, actualOutput)
-	}
+	compare.ExpectThat(t, results).ShouldMatch(expectedOutput)
 }

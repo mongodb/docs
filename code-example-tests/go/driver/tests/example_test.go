@@ -80,26 +80,8 @@ func testYourExampleName(t *testing.T) {
 	// Specify the path to the expected output file
 	expectedOutputFilepath := "examples/example-stub-output.txt"
 
-	// Compare the actual results with expected output using compare options
-	comparisonOptions := &compare.Options{
-		IgnoreFieldValues: []string{"_id"}, // Ignore ObjectId since it's auto-generated
-	}
-
-	// For BSON.D results, use BsonDocuments (current approach):
-	comparisonResult := compare.BsonDocuments(expectedOutputFilepath, actualResults, comparisonOptions)
-
-	// Alternative: If your function returns struct types instead of []bson.D,
-	// use StructDocuments for improved type safety:
-	// comparisonResult = utils.StructDocuments(expectedOutputFilepath, actualResults, comparisonOptions)
-
-	// Report test results
-	if !comparisonResult.IsMatch {
-		t.Errorf("Results do not match expected output: %s", comparisonResult.Error())
-
-		// Print detailed error information for debugging
-		for _, err := range comparisonResult.Errors {
-			t.Errorf("  Path: %s, Expected: %s, Actual: %s, Message: %s",
-				err.Path, err.Expected, err.Actual, err.Message)
-		}
-	}
+	// Compare the actual results with expected output using the comparison utility
+	compare.ExpectThat(t, actualResults).
+		WithIgnoredFields("_id"). // Ignore ObjectId since it's auto-generated
+		ShouldMatch(expectedOutputFilepath)
 }

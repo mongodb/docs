@@ -9,16 +9,6 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// BsonDocuments compares actual MongoDB results with expected output from a file
-func BsonDocuments(expectedFilePath string, actualResults []bson.D, options *Options) Result {
-	return compareDocumentsGeneric(expectedFilePath, actualResults, options)
-}
-
-// StructDocuments compares actual struct results with expected output from a file
-func StructDocuments(expectedFilePath string, actualResults interface{}, options *Options) Result {
-	return compareDocumentsGeneric(expectedFilePath, actualResults, options)
-}
-
 // compareDocumentsGeneric is the internal function that handles both BSON.D slices and struct slices
 func compareDocumentsGeneric(expectedFilePath string, actualResults interface{}, options *Options) Result {
 	if options == nil {
@@ -109,9 +99,9 @@ func compareDocumentsGeneric(expectedFilePath string, actualResults interface{},
 			IsMatch: false,
 			Errors: []Error{{
 				Path:     "",
-				Expected: fmt.Sprintf("document count: %d", len(expectedDocs)),
-				Actual:   fmt.Sprintf("document count: %d", len(actualNormalized)),
-				Message:  "document count mismatch",
+				Expected: fmt.Sprintf("%d document(s)", len(expectedDocs)),
+				Actual:   fmt.Sprintf("%d document(s)", len(actualNormalized)),
+				Message:  fmt.Sprintf("document count mismatch: expected %d document(s) but got %d. Check that your expected output has the same number of documents as your actual results.", len(expectedDocs), len(actualNormalized)),
 			}},
 		}
 	}
@@ -153,8 +143,20 @@ func compareDocumentsGeneric(expectedFilePath string, actualResults interface{},
 // compareValues is the main compare function
 func compareValues(expected, actual interface{}, options *Options, hasOmittedFields bool, path string) Result {
 	// Handle ellipsis patterns first
-	if ellipsisResult := handleEllipsisPatterns(expected, actual); ellipsisResult.handled {
-		return Result{IsMatch: ellipsisResult.matches}
+	if result := handleEllipsisPatterns(expected, actual); result.handled {
+		if !result.matches {
+			// Ellipsis pattern didn't match, create error
+			return Result{
+				IsMatch: false,
+				Errors: []Error{{
+					Path:     path,
+					Expected: fmt.Sprintf("%v", expected),
+					Actual:   fmt.Sprintf("%v", actual),
+					Message:  "ellipsis pattern mismatch",
+				}},
+			}
+		}
+		return Result{IsMatch: true}
 	}
 
 	// Handle null/undefined cases
@@ -323,15 +325,8 @@ func compareArraysByBacktracking(expected, actual []interface{}, options *Option
 		return Result{IsMatch: true}
 	}
 
-	return Result{
-		IsMatch: false,
-		Errors: []Error{{
-			Path:     path,
-			Expected: fmt.Sprintf("%#v", expected),
-			Actual:   fmt.Sprintf("%#v", actual),
-			Message:  "no matching arrangement found for unordered array compare",
-		}},
-	}
+	// Backtracking failed - provide detailed error analysis
+	return analyzeUnorderedMismatch(expected, actual, options, hasOmittedFields, path)
 }
 
 // isPrimitiveArray checks if all elements in the array are primitive types
@@ -539,4 +534,118 @@ func comparePrimitives(expected, actual interface{}, path string) Result {
 	}
 
 	return Result{IsMatch: true}
+}
+
+// analyzeUnorderedMismatch provides detailed error analysis when unordered comparison fails
+// We try all pairings and report best matches
+func analyzeUnorderedMismatch(expected, actual []interface{}, options *Options, hasOmittedFields bool, path string) Result {
+	// Try to match each expected document with all actual documents
+	type matchResult struct {
+		expectedIdx int
+		actualIdx   int
+		result      Result
+		errorCount  int
+	}
+
+	var allMatches []matchResult
+	usedActual := make(map[int]bool)
+
+	// For each expected document, find its best match in actual
+	for expIdx, expDoc := range expected {
+		var bestMatch *matchResult
+
+		for actIdx, actDoc := range actual {
+			elemPath := fmt.Sprintf("%s[%d]", path, expIdx)
+			result := compareValues(expDoc, actDoc, options, hasOmittedFields, elemPath)
+
+			match := matchResult{
+				expectedIdx: expIdx,
+				actualIdx:   actIdx,
+				result:      result,
+				errorCount:  len(result.Errors),
+			}
+
+			// Perfect match - use this and mark actual as used
+			if result.IsMatch {
+				bestMatch = &match
+				usedActual[actIdx] = true
+				break
+			}
+
+			// Track best (fewest errors) non-perfect match
+			if bestMatch == nil || match.errorCount < bestMatch.errorCount {
+				bestMatch = &match
+			}
+		}
+
+		if bestMatch != nil {
+			allMatches = append(allMatches, *bestMatch)
+		}
+	}
+
+	// Count how many perfect matches we found
+	perfectMatches := 0
+	for _, match := range allMatches {
+		if match.result.IsMatch {
+			perfectMatches++
+		}
+	}
+
+	// Build comprehensive error message
+	var allErrors []Error
+
+	// Add summary header
+	failedCount := len(expected) - perfectMatches
+	if failedCount == len(expected) {
+		allErrors = append(allErrors, Error{
+			Path:    path,
+			Message: fmt.Sprintf("no matching arrangement found for %d documents in unordered comparison", len(expected)),
+		})
+	} else {
+		allErrors = append(allErrors, Error{
+			Path:    path,
+			Message: fmt.Sprintf("no matching arrangement found: %d of %d documents don't match in any arrangement", failedCount, len(expected)),
+		})
+	}
+
+	// Add detailed analysis for each expected document
+	for _, match := range allMatches {
+		if match.result.IsMatch {
+			// Document matched perfectly - show success marker
+			allErrors = append(allErrors, Error{
+				Path:    fmt.Sprintf("%s[%d]", path, match.expectedIdx),
+				Message: fmt.Sprintf("matches actual[%d] ✓", match.actualIdx),
+			})
+		} else {
+			// Document didn't match - show closest match and differences
+			errorCountMsg := fmt.Sprintf("%d mismatch", match.errorCount)
+			if match.errorCount != 1 {
+				errorCountMsg += "es"
+			}
+
+			allErrors = append(allErrors, Error{
+				Path:    fmt.Sprintf("%s[%d]", path, match.expectedIdx),
+				Message: fmt.Sprintf("closest to actual[%d] (%s):", match.actualIdx, errorCountMsg),
+			})
+
+			// Add the field-level errors, limiting to first 10 to avoid overwhelming output
+			maxErrors := 10
+			for i, err := range match.result.Errors {
+				if i >= maxErrors {
+					remaining := len(match.result.Errors) - maxErrors
+					allErrors = append(allErrors, Error{
+						Path:    fmt.Sprintf("%s[%d]", path, match.expectedIdx),
+						Message: fmt.Sprintf("... and %d more differences", remaining),
+					})
+					break
+				}
+				allErrors = append(allErrors, err)
+			}
+		}
+	}
+
+	return Result{
+		IsMatch: false,
+		Errors:  allErrors,
+	}
 }

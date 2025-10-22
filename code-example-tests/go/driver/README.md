@@ -276,17 +276,7 @@ func testYourFunctionName(t *testing.T) {
     expectedOutputFilepath := "examples/your/path/to/output.txt"
 
     // Step 3: Compare results
-    comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)
-
-    // Step 4: Report test results
-    if !comparisonResult.IsMatch {
-        t.Errorf("Results do not match expected output: %s", comparisonResult.Error())
-
-        for _, err := range comparisonResult.Errors {
-            t.Errorf("  Path: %s, Expected: %s, Actual: %s, Message: %s",
-                err.Path, err.Expected, err.Actual, err.Message)
-        }
-    }
+    compare.ExpectThat(t, result).ShouldMatch(expectedOutputFilepath)
 }
 ```
 
@@ -324,16 +314,7 @@ func testSortTutorial(t *testing.T) {
     result := sort.RunPipeline()
     expectedOutputFilepath := "examples/aggregation/pipelines/sort/output.txt"
 
-    comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)
-
-    if !comparisonResult.IsMatch {
-        t.Errorf("Results do not match expected output: %s", comparisonResult.Error())
-
-        for _, err := range comparisonResult.Errors {
-            t.Errorf("  Path: %s, Expected: %s, Actual: %s, Message: %s",
-                err.Path, err.Expected, err.Actual, err.Message)
-        }
-    }
+    compare.ExpectThat(t, result).ShouldMatch(expectedOutputFilepath)
 }
 ```
 
@@ -411,16 +392,7 @@ func testInsertOne(t *testing.T) {
     result := insert.InsertOneExample()  // Your function name
     expectedOutputFilepath := "examples/crud/insert/insert-one-output.txt"
 
-    comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)
-
-    if !comparisonResult.IsMatch {
-        t.Errorf("Results do not match expected output: %s", comparisonResult.Error())
-
-        for _, err := range comparisonResult.Errors {
-            t.Errorf("  Path: %s, Expected: %s, Actual: %s, Message: %s",
-                err.Path, err.Expected, err.Actual, err.Message)
-        }
-    }
+    compare.ExpectThat(t, result).ShouldMatch(expectedOutputFilepath)
 }
 ```
 
@@ -459,10 +431,7 @@ func testYourExample(t *testing.T) {
     result := yourpackage.YourFunction()
     expectedFile := "examples/your/path/output.txt"
 
-    comparison := compare.BsonDocuments(expectedFile, result, nil)
-    if !comparison.IsMatch {
-        t.Errorf("Test failed: %s", comparison.Error())
-    }
+    compare.ExpectThat(t, result).ShouldMatch(expectedFile)
 }
 ```
 
@@ -487,10 +456,7 @@ func testMovieQuery(t *testing.T) {
     result := examples.QueryMoviesFromSampleData()
     expectedFile := "examples/movie-query-output.txt"
 
-    comparison := compare.BsonDocuments(expectedFile, result, nil)
-    if !comparison.IsMatch {
-        t.Errorf("Test failed: %s", comparison.Error())
-    }
+    compare.ExpectThat(t, result).ShouldMatch(expectedFile)
 }
 ```
 
@@ -512,10 +478,7 @@ func testRestaurantAndTheaterQuery(t *testing.T) {
     result := examples.QueryRestaurantsNearTheaters()
     expectedFile := "examples/restaurant-theater-query-output.txt"
 
-    comparison := compare.BsonDocuments(expectedFile, result, nil)
-    if !comparison.IsMatch {
-        t.Errorf("Test failed: %s", comparison.Error())
-    }
+    compare.ExpectThat(t, result).ShouldMatch(expectedFile)
 }
 ```
 
@@ -554,7 +517,7 @@ Common sample databases include:
 
 ### Define logic to verify the output
 
-You can verify the output using the `compare.BsonDocuments` function or `compare.StructDocuments` function
+You can verify the output using the `compare.ExpectThat` function
 from the `driver-examples/utils/compare` package that compares actual code execution results with expected output from
 a file.
 
@@ -573,28 +536,22 @@ import (
 
 If you are showing the output in the docs, write the output to a file whose
 filename matches the example - i.e. `output.txt`. Then, use the
-`compare.BsonDocuments` or `compare.StructDocuments` function to verify that the output
-matches what the test returns.
+`compare.ExpectThat` function to verify that the output matches what the test returns.
 
 The basic usage is:
 
 ```go
 result := yourPackage.YourFunction()
 expectedOutputFilepath := "examples/your/package/output.txt"
-comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)
 
-if !comparisonResult.IsMatch {
-    t.Errorf("Results do not match expected output: %s", comparisonResult.Error())
-}
+compare.ExpectThat(t, result).ShouldMatch(expectedOutputFilepath)
 ```
 
-The compare functions take three parameters:
-1. **expectedFilePath**: Path to the expected output file
-2. **actualResults**: The results from your Go function
-3. **options**: A `*compare.Options` struct that controls comparison behavior
-
-The `compare.StructDocuments` function supports slices of struct types.
-The `compare.BsonDocuments` function supports slices of BSON.D.
+The `ExpectThat` function automatically detects content types and works with:
+- Slices of BSON.D documents
+- Slices of struct types
+- Individual values
+- File paths
 
 For tests that use MongoDB sample data, see the [sample data section](#writing-tests-that-use-sample-data)
 for information about graceful handling when datasets aren't available.
@@ -604,16 +561,15 @@ for information about graceful handling when datasets aren't available.
 For output that can be in any order (most common case):
 
 ```go
-comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, nil)
+compare.ExpectThat(t, result).ShouldMatch(expectedOutputFilepath)
 ```
 
 Or explicitly specify unordered comparison:
 
 ```go
-options := &compare.Options{
-    ComparisonType: "unordered",
-}
-comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, options)
+compare.ExpectThat(t, result).
+    WithUnorderedSort().
+    ShouldMatch(expectedOutputFilepath)
 ```
 
 ##### Verify ordered output
@@ -621,10 +577,9 @@ comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, option
 For output that must be in a specific order (e.g., when using sort operations):
 
 ```go
-options := &compare.Options{
-    ComparisonType: "ordered",
-}
-comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, options)
+compare.ExpectThat(t, result).
+    WithOrderedSort().
+    ShouldMatch(expectedOutputFilepath)
 ```
 
 ##### Handle variable field values
@@ -634,11 +589,9 @@ When your output contains fields that will have different values between test ru
 specific fields during comparison:
 
 ```go
-options := &compare.Options{
-    ComparisonType:    "unordered",
-    IgnoreFieldValues: []string{"_id", "timestamp", "userId", "uuid", "sessionId"},
-}
-comparisonResult := compare.BsonDocuments(expectedOutputFilepath, result, options)
+compare.ExpectThat(t, result).
+    WithIgnoredFields("_id", "timestamp", "userId", "uuid", "sessionId").
+    ShouldMatch(expectedOutputFilepath)
 ```
 
 This ensures the comparison only validates that the field names are present,
@@ -707,14 +660,25 @@ beyond the `full_name` field.
 
 ##### Complete options reference
 
-The `compare.Options` struct supports these properties:
+The `ExpectThat` API supports these methods:
+
+- **`WithUnorderedSort()`** - Explicitly specify unordered comparison (default
+  behavior). Use when you are not sorting the result of a CRUD or
+  aggregation pipeline, to match MongoDB default unsorted behavior.
+- **`WithOrderedSort()`** - Require elements to be in the same order. Use when
+  you are testing a CRUD or aggregation pipeline example where the order
+  matters, such as when adding an explicit sort operator or stage.
+- **`WithIgnoredFields(fields ...string)`** - Ignore specific field values
+  during comparison. Use for dynamic values that may change between test runs,
+  such as timestamps or ObjectId values.
+
+These can be chained together:
 
 ```go
-type Options struct {
-    ComparisonType    string   // "ordered" | "unordered" (default: "unordered")
-    IgnoreFieldValues []string // Field names to ignore value differences (default: [])
-    TimeoutSeconds    int      // Timeout for compare operations (default: 30)
-}
+compare.ExpectThat(t, result).
+    WithOrderedSort().
+    WithIgnoredFields("_id", "timestamp").
+    ShouldMatch(expectedOutputFilepath)
 ```
 
 ## To run the tests locally
