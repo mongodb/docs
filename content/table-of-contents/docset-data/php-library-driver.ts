@@ -234,7 +234,7 @@ const tocData: TocItem[] = [
             url: "/docs/php-library/:version/indexes/multikey-index",
           },
           {
-            label: "Atlas Search",
+            label: "MongoDB Search",
             contentSite: "php-library",
             url: "/docs/php-library/:version/indexes/atlas-search-index",
           },
@@ -246,12 +246,12 @@ const tocData: TocItem[] = [
         url: "/docs/php-library/:version/run-command",
       },
       {
-        label: "Atlas Search",
+        label: "MongoDB Search",
         contentSite: "php-library",
         url: "/docs/php-library/:version/atlas-search",
       },
       {
-        label: "Atlas Vector Search",
+        label: "MongoDB Vector Search",
         contentSite: "php-library",
         url: "/docs/php-library/:version/vector-search",
       },
