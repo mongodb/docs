@@ -1,6 +1,7 @@
 import type { TocItem } from "../types";
+import docsVersions from "../version-arrays/drivers/rust-versions";
 
-const outdatedVersions = ["v2.7", "v2.8", "v3.0", "v3.1"];
+const outdatedVersions = docsVersions.before("v3.2");
 
 export const tocData: TocItem[] = [
   {
@@ -284,6 +285,7 @@ export const tocData: TocItem[] = [
             contentSite: "rust",
             url: "/docs/drivers/rust/:version/fundamentals/aggregation",
             collapsible: true,
+            versions: { excludes: [...outdatedVersions, "v2.7", "v2.8", "v3.0"] },
             items: [
               {
                 label: "Atlas Vector Search",
@@ -293,10 +295,17 @@ export const tocData: TocItem[] = [
             ],
           },
           {
+            label: "Aggregation",
+            contentSite: "rust",
+            url: "/docs/drivers/rust/:version/fundamentals/aggregation",
+            versions: { includes: [...outdatedVersions, "v2.7", "v2.8", "v3.0"] },
+          },
+          {
             label: "Indexes",
             contentSite: "rust",
             url: "/docs/drivers/rust/:version/fundamentals/indexes",
             collapsible: true,
+            versions: { excludes: [...outdatedVersions, "v2.7"] },
             items: [
               {
                 label: "Atlas Search & Vector Search Indexes",
@@ -304,6 +313,12 @@ export const tocData: TocItem[] = [
                 url: "/docs/drivers/rust/:version/fundamentals/indexes/atlas-search-indexes",
               },
             ],
+          },
+          {
+             label: "Indexes",
+            contentSite: "rust",
+            url: "/docs/drivers/rust/:version/fundamentals/indexes",
+            versions: { includes: [...outdatedVersions, "v2.7"]},
           },
           {
             label: "Transactions",
