@@ -3,25 +3,13 @@
 
    .. step:: Download the tarball. 
 
-      Click the following link to download the Search in Community tarball.
-
-      .. tabs::
-      
-         .. tab:: ARM Architectures
-            :tabid: arm-arch
-
-            For ``ARM`` architectures, use the `ARM-compatible tarball
-            <https://downloads.mongodb.org/mongodb-search-community/0.53.0/mongot_community_0.53.0_linux_aarch64.tgz>`_.
-
-         .. tab:: AMD x86_64 Architectures
-            :tabid: amd-arch
-
-            For ``AMD x86_64`` architectures, use the `AMD x86-64-compatible 
-            tarball <https://downloads.mongodb.org/mongodb-search-community/0.53.0/mongot_community_0.53.0_linux_x86_64.tgz>`_.
+      Download the MongoDB Search in Community tarball from the `MongoDB Download
+      Center <https://www.mongodb.com/try/download/search-in-community>`__. 
 
    .. step:: Extract the tarball from the downloaded file.
 
-      Run the following command to extract the tarball:
+      Replace ``{VERSION_NUMBER}``  with the ``mongot`` version that you downloaded
+      from the MongoDB Download Center and run the following command to extract the tarball:
       
       .. tabs::
       
@@ -30,14 +18,14 @@
 
             .. code-block:: shell
 
-               tar -zxvf mongot_community_0.53.0_linux_aarch64.tgz
+               tar -zxvf mongot_community_{VERSION_NUMBER}_linux_aarch64.tgz
 
          .. tab:: AMD x86_64 Architectures
             :tabid: amd-arch
       
             .. code-block:: shell
 
-               tar -zxvf mongot_community_0.53.0_linux_x86_64.tgz
+               tar -zxvf mongot_community_{VERSION_NUMBER}_linux_x86_64.tgz
 
       .. note::
       
