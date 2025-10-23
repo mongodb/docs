@@ -1,3 +1,9 @@
+- The source cluster cannot have :term:`orphaned documents <orphaned document>`.
+  To clean up any orphaned documents, run the 
+  :dbcommand:`cleanupOrphaned` command on the ``mongod`` instances on every 
+  shard's primary node on their source cluster. Wait for this command to 
+  complete with a status ``{ok:1}`` before starting the migration.
+
 - Writes that produce :term:`DDL <DDL (Data Definition Language)>` events cannot 
   occur on the source cluster during the migration. The following events cannot 
   occur: 
@@ -41,7 +47,3 @@
 - If there are any indexes with inconsistent specs or that are missing on one or 
   more shards, ``mongosync`` returns an error. To check for index 
   inconsistencies, see :ref:`manage-indexes-find-inconsistent-indexes`.
-
-- The source cluster cannot have :term:`orphaned documents <orphaned document>`.
-  To clean up any orphaned documents, run the :dbcommand:`cleanupOrphaned`
-  command on your source cluster.
