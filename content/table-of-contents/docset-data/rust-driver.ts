@@ -284,21 +284,6 @@ export const tocData: TocItem[] = [
             label: "Aggregation",
             contentSite: "rust",
             url: "/docs/drivers/rust/:version/fundamentals/aggregation",
-            collapsible: true,
-            versions: { excludes: [...outdatedVersions, "v2.7", "v2.8", "v3.0"] },
-            items: [
-              {
-                label: "Atlas Vector Search",
-                contentSite: "rust",
-                url: "/docs/drivers/rust/:version/fundamentals/aggregation/vector-search",
-              },
-            ],
-          },
-          {
-            label: "Aggregation",
-            contentSite: "rust",
-            url: "/docs/drivers/rust/:version/fundamentals/aggregation",
-            versions: { includes: [...outdatedVersions, "v2.7", "v2.8", "v3.0"] },
           },
           {
             label: "Indexes",
@@ -315,10 +300,22 @@ export const tocData: TocItem[] = [
             ],
           },
           {
-             label: "Indexes",
+            label: "Indexes",
             contentSite: "rust",
             url: "/docs/drivers/rust/:version/fundamentals/indexes",
             versions: { includes: [...outdatedVersions, "v2.7"]},
+          },
+          {
+            label: "Atlas Search",
+            contentSite: "rust",
+            url: "/docs/drivers/rust/:version/fundamentals/atlas-search",
+            versions: { excludes: [...outdatedVersions, "v2.7", "v2.8", "v3.0"] },
+          },
+          {
+            label: "Atlas Vector Search",
+            contentSite: "rust",
+            url: "/docs/drivers/rust/:version/fundamentals/vector-search",
+            versions: { excludes: [...outdatedVersions, "v2.7", "v2.8", "v3.0"] },
           },
           {
             label: "Transactions",
