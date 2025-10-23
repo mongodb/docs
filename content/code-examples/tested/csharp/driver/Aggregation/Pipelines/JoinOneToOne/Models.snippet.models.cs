@@ -2,6 +2,7 @@ public class Order
 {
     [BsonId]
     public ObjectId Id { get; set; }
+
     public required string CustomerId { get; set; }
     public DateTime OrderDate { get; set; }
     public required string ProductId { get; set; }

@@ -1,7 +1,8 @@
-namespace Examples;
-
+using DotNetEnv;
 using MongoDB.Bson;
 using MongoDB.Driver;
+
+namespace Examples;
 // THIS IS AN EXAMPLE. DO NOT USE ON A PAGE.
 // You can copy this to get started on making a new C# code example.
 // See https://mongodb-university.github.io/Bluehawk/ for more info on Bluehawk.
@@ -14,7 +15,7 @@ public class ExampleStub
 
     public List<BsonDocument> RunApp()
     {
-        var uri = DotNetEnv.Env.GetString("CONNECTION_STRING",
+        var uri = Env.GetString("CONNECTION_STRING",
             "Env variable not found. Verify you have a .env file with a valid connection string.");
         var client = new MongoClient(uri);
         // The text string after the :snippet-start: tag is used in the name of the snippet.

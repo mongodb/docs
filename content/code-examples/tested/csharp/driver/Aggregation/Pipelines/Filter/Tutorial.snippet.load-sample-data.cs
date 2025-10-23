@@ -3,7 +3,7 @@ var persons = aggDB.GetCollection<Person>("persons");
 
 persons.InsertMany(new List<Person>
 {
-    new Person
+    new Person()
     {
         PersonId = "6392529400",
         FirstName = "Elise",
@@ -17,7 +17,7 @@ persons.InsertMany(new List<Person>
             City = "Wojzinmoj"
         }
     },
-    new Person
+    new Person()
     {
         PersonId = "1723338115",
         FirstName = "Olive",
@@ -32,7 +32,7 @@ persons.InsertMany(new List<Person>
             City = "Tobihbo"
         }
     },
-    new Person
+    new Person()
     {
         PersonId = "8732762874",
         FirstName = "Toni",
@@ -46,7 +46,7 @@ persons.InsertMany(new List<Person>
             City = "Upper Abbeywoodington"
         }
     },
-    new Person
+    new Person()
     {
         PersonId = "7363629563",
         FirstName = "Bert",
@@ -60,7 +60,7 @@ persons.InsertMany(new List<Person>
             City = "Redringtonville"
         }
     },
-    new Person
+    new Person()
     {
         PersonId = "1029648329",
         FirstName = "Sophie",
@@ -74,7 +74,7 @@ persons.InsertMany(new List<Person>
             City = "Basilbridge"
         }
     },
-    new Person
+    new Person()
     {
         PersonId = "7363626383",
         FirstName = "Carl",

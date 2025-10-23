@@ -5,6 +5,6 @@
         ProductId = g.Key,
         Product = g.First().Products.Name,
         TotalValue = g.Sum(o => o.Products.Price),
-        Quantity = g.Count(),
+        Quantity = g.Count()
     }
 );

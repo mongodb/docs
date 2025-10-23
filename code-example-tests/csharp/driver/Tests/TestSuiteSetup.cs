@@ -1,6 +1,6 @@
-namespace Tests;
-
 using DotNetEnv;
+
+namespace Tests;
 
 [SetUpFixture]
 public class TestSuiteSetup

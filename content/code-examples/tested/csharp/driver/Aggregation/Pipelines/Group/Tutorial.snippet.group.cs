@@ -1,6 +1,6 @@
 .Group(
-    o => o.CustomerId,
-    g => new
+    id: o => o.CustomerId,
+    group: g => new
     {
         CustomerId = g.Key,
         FirstPurchaseDate = g.First().OrderDate,

@@ -5,7 +5,8 @@
 //      "GroupedResult": ""
 //	  }
 //	}
-using MongoDB.Bson;
+
+using DotNetEnv;
 using MongoDB.Driver;
 
 namespace Examples.Aggregation.Pipelines.Unwind;
@@ -17,7 +18,8 @@ public class Tutorial
 
     public void LoadSampleData()
     {
-        var uri = DotNetEnv.Env.GetString("CONNECTION_STRING", "Env variable not found. Verify you have a .env file with a valid connection string.");
+        var uri = Env.GetString("CONNECTION_STRING",
+            "Env variable not found. Verify you have a .env file with a valid connection string.");
         var client = new MongoClient(uri);
         _aggDB = client.GetDatabase("agg_tutorials_db");
         _orders = _aggDB.GetCollection<Order>("orders");
@@ -28,18 +30,18 @@ public class Tutorial
 
         _orders.InsertMany(new List<Order>
         {
-            new Order
+            new Order()
             {
                 OrderId = 6363763262239L,
                 Products = new List<Product>
                 {
-                    new Product
+                    new Product()
                     {
                         ProductId = "abc12345",
                         Name = "Asus Laptop",
                         Price = 431
                     },
-                    new Product
+                    new Product()
                     {
                         ProductId = "def45678",
                         Name = "Karcher Hose Set",
@@ -47,12 +49,12 @@ public class Tutorial
                     }
                 }
             },
-            new Order
+            new Order()
             {
                 OrderId = 1197372932325L,
                 Products = new List<Product>
                 {
-                    new Product
+                    new Product()
                     {
                         ProductId = "abc12345",
                         Name = "Asus Laptop",
@@ -60,18 +62,18 @@ public class Tutorial
                     }
                 }
             },
-            new Order
+            new Order()
             {
                 OrderId = 9812343774839L,
                 Products = new List<Product>
                 {
-                    new Product
+                    new Product()
                     {
                         ProductId = "pqr88223",
                         Name = "Morphy Richards Food Mixer",
                         Price = 431
                     },
-                    new Product
+                    new Product()
                     {
                         ProductId = "def45678",
                         Name = "Karcher Hose Set",
@@ -79,24 +81,24 @@ public class Tutorial
                     }
                 }
             },
-            new Order
+            new Order()
             {
                 OrderId = 4433997244387L,
                 Products = new List<Product>
                 {
-                    new Product
+                    new Product()
                     {
                         ProductId = "def45678",
                         Name = "Karcher Hose Set",
                         Price = 23
                     },
-                    new Product
+                    new Product()
                     {
                         ProductId = "jkl77336",
                         Name = "Picky Pencil Sharpener",
                         Price = 1
                     },
-                    new Product
+                    new Product()
                     {
                         ProductId = "xyz11228",
                         Name = "Russell Hobbs Chrome Kettle",
@@ -111,9 +113,7 @@ public class Tutorial
     public List<GroupedResult> PerformAggregation()
     {
         if (_aggDB == null || _orders == null)
-        {
             throw new InvalidOperationException("You must call LoadSampleData before performing aggregation.");
-        }
 
         // :snippet-start: unwind
         var results = _orders.Aggregate()
@@ -130,7 +130,7 @@ public class Tutorial
                     ProductId = g.Key,
                     Product = g.First().Products.Name,
                     TotalValue = g.Sum(o => o.Products.Price),
-                    Quantity = g.Count(),
+                    Quantity = g.Count()
                 }
             );
         // :snippet-end:

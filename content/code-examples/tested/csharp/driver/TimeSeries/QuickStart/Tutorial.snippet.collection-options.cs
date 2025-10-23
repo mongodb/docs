@@ -1,7 +1,7 @@
 var timeSeriesOptions = new TimeSeriesOptions(
     timeField: "date",
     metaField: "ticker",
-    granularity: TimeSeriesGranularity.Seconds
+    TimeSeriesGranularity.Seconds
 );
 
 var options = new CreateCollectionOptions

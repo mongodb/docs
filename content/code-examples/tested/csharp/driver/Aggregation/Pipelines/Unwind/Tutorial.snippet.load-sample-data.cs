@@ -2,18 +2,18 @@ var orders = aggDB.GetCollection<Order>("orders");
 
 orders.InsertMany(new List<Order>
 {
-    new Order
+    new Order()
     {
         OrderId = 6363763262239L,
         Products = new List<Product>
         {
-            new Product
+            new Product()
             {
                 ProductId = "abc12345",
                 Name = "Asus Laptop",
                 Price = 431
             },
-            new Product
+            new Product()
             {
                 ProductId = "def45678",
                 Name = "Karcher Hose Set",
@@ -21,12 +21,12 @@ orders.InsertMany(new List<Order>
             }
         }
     },
-    new Order
+    new Order()
     {
         OrderId = 1197372932325L,
         Products = new List<Product>
         {
-            new Product
+            new Product()
             {
                 ProductId = "abc12345",
                 Name = "Asus Laptop",
@@ -34,18 +34,18 @@ orders.InsertMany(new List<Order>
             }
         }
     },
-    new Order
+    new Order()
     {
         OrderId = 9812343774839L,
         Products = new List<Product>
         {
-            new Product
+            new Product()
             {
                 ProductId = "pqr88223",
                 Name = "Morphy Richards Food Mixer",
                 Price = 431
             },
-            new Product
+            new Product()
             {
                 ProductId = "def45678",
                 Name = "Karcher Hose Set",
@@ -53,24 +53,24 @@ orders.InsertMany(new List<Order>
             }
         }
     },
-    new Order
+    new Order()
     {
         OrderId = 4433997244387L,
         Products = new List<Product>
         {
-            new Product
+            new Product()
             {
                 ProductId = "def45678",
                 Name = "Karcher Hose Set",
                 Price = 23
             },
-            new Product
+            new Product()
             {
                 ProductId = "jkl77336",
                 Name = "Picky Pencil Sharpener",
                 Price = 1
             },
-            new Product
+            new Product()
             {
                 ProductId = "xyz11228",
                 Name = "Russell Hobbs Chrome Kettle",

@@ -4,6 +4,8 @@
 //      "_aggDB": "aggDB"
 //	  }
 //	}
+
+using DotNetEnv;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -16,7 +18,8 @@ public class Tutorial
 
     public void LoadSampleData()
     {
-        var uri = DotNetEnv.Env.GetString("CONNECTION_STRING", "Env variable not found. Verify you have a .env file with a valid connection string.");
+        var uri = Env.GetString("CONNECTION_STRING",
+            "Env variable not found. Verify you have a .env file with a valid connection string.");
         var client = new MongoClient(uri);
         _aggDB = client.GetDatabase("agg_tutorials_db");
         _persons = _aggDB.GetCollection<Person>("persons");
@@ -28,7 +31,7 @@ public class Tutorial
 
         _persons.InsertMany(new List<Person>
         {
-            new Person
+            new Person()
             {
                 PersonId = "6392529400",
                 FirstName = "Elise",
@@ -42,7 +45,7 @@ public class Tutorial
                     City = "Wojzinmoj"
                 }
             },
-            new Person
+            new Person()
             {
                 PersonId = "1723338115",
                 FirstName = "Olive",
@@ -57,7 +60,7 @@ public class Tutorial
                     City = "Tobihbo"
                 }
             },
-            new Person
+            new Person()
             {
                 PersonId = "8732762874",
                 FirstName = "Toni",
@@ -71,7 +74,7 @@ public class Tutorial
                     City = "Upper Abbeywoodington"
                 }
             },
-            new Person
+            new Person()
             {
                 PersonId = "7363629563",
                 FirstName = "Bert",
@@ -85,7 +88,7 @@ public class Tutorial
                     City = "Redringtonville"
                 }
             },
-            new Person
+            new Person()
             {
                 PersonId = "1029648329",
                 FirstName = "Sophie",
@@ -99,7 +102,7 @@ public class Tutorial
                     City = "Basilbridge"
                 }
             },
-            new Person
+            new Person()
             {
                 PersonId = "7363626383",
                 FirstName = "Carl",
@@ -120,9 +123,7 @@ public class Tutorial
     public List<BsonDocument> PerformAggregation()
     {
         if (_aggDB == null || _persons == null)
-        {
             throw new InvalidOperationException("You must call LoadSampleData before performing aggregation.");
-        }
 
         // :snippet-start: match
         var results = _persons.Aggregate()

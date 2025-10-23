@@ -1,15 +1,15 @@
-using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using MongoDB.Bson;
 
-namespace Utilities.Comparison;
+namespace Utilities;
 
 /// <summary>
-/// Parses expected output files containing MongoDB document syntax.
-/// Handles MongoDB constructors, single quotes, unquoted keys, and ellipsis patterns.
+///     Parses expected output files containing MongoDB document syntax.
+///     Handles MongoDB constructors, single quotes, unquoted keys, and ellipsis patterns.
 /// </summary>
-public static partial class ExpectedOutputParser
+public static partial class FileContentsParser
 {
     [GeneratedRegex(@"((?<=^|\s|{|,)\$?[a-zA-Z_][\w\-]*)\s*:", RegexOptions.Compiled | RegexOptions.Multiline)]
     private static partial Regex UnquotedKeyRegex();
@@ -33,7 +33,7 @@ public static partial class ExpectedOutputParser
     private static partial Regex CSharpObjectRegex();
 
     /// <summary>
-    /// Parses an expected output file and returns the parsed documents.
+    ///     Parses an expected output file and returns the parsed documents.
     /// </summary>
     /// <param name="filePath">Path to the expected output file</param>
     /// <returns>Parse result containing success flag and data or error</returns>
@@ -41,10 +41,7 @@ public static partial class ExpectedOutputParser
     {
         try
         {
-            if (!File.Exists(filePath))
-            {
-                return ParseResult.Failure($"Expected output file not found: {filePath}");
-            }
+            if (!File.Exists(filePath)) return ParseResult.Failure($"Expected output file not found: {filePath}");
 
             var content = await File.ReadAllTextAsync(filePath);
             return ParseContent(content);
@@ -56,7 +53,7 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Synchronous version of ParseFileAsync.
+    ///     Synchronous version of ParseFileAsync.
     /// </summary>
     public static ParseResult ParseFile(string filePath)
     {
@@ -64,7 +61,7 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Parses expected output content directly from a text string.
+    ///     Parses expected output content directly from a text string.
     /// </summary>
     /// <param name="text">Expected output text content</param>
     /// <returns>List of parsed objects</returns>
@@ -72,14 +69,12 @@ public static partial class ExpectedOutputParser
     {
         var parseResult = ParseContent(text);
         if (!parseResult.IsSuccess)
-        {
             throw new ArgumentException($"Failed to parse expected text: {parseResult.Error}", nameof(text));
-        }
         return parseResult.Data ?? new List<object>();
     }
 
     /// <summary>
-    /// Parses expected output content directly from a string.
+    ///     Parses expected output content directly from a string.
     /// </summary>
     public static ParseResult ParseContent(string content)
     {
@@ -101,10 +96,7 @@ public static partial class ExpectedOutputParser
                 var parsed = ParseBlock(block);
 
                 // Add global ellipsis marker if detected
-                if (hasGlobalEllipsis && parsed is IDictionary<string, object> dict)
-                {
-                    dict["..."] = "...";
-                }
+                if (hasGlobalEllipsis && parsed is IDictionary<string, object> dict) dict["..."] = "...";
 
                 results.Add(parsed);
             }
@@ -118,7 +110,7 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Preprocesses file content into individual document blocks.
+    ///     Preprocesses file content into individual document blocks.
     /// </summary>
     private static List<string> PreprocessContent(string content)
     {
@@ -135,7 +127,7 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Attempts to parse content as a single JSON document (array or object).
+    ///     Attempts to parse content as a single JSON document (array or object).
     /// </summary>
     private static bool TryParseSingleDocument(string content, out string document)
     {
@@ -151,7 +143,7 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Attempts to parse content as JSONL (JSON Lines) format.
+    ///     Attempts to parse content as JSONL (JSON Lines) format.
     /// </summary>
     private static bool TryParseJsonLines(string content, out List<string> jsonLines)
     {
@@ -163,9 +155,7 @@ public static partial class ExpectedOutputParser
         // Check if this looks like JSONL format
         if (nonEmptyLines.Length <= 1 ||
             !nonEmptyLines.All(line => line.Trim().StartsWith('{') && line.Trim().EndsWith('}')))
-        {
             return false;
-        }
 
         foreach (var line in nonEmptyLines)
         {
@@ -181,7 +171,7 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Processes a single line, handling both C# object syntax and JSON syntax.
+    ///     Processes a single line, handling both C# object syntax and JSON syntax.
     /// </summary>
     private static string ProcessSingleLine(string line)
     {
@@ -191,7 +181,7 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Parses content as multiple blocks separated by blank lines.
+    ///     Parses content as multiple blocks separated by blank lines.
     /// </summary>
     private static List<string> ParseMultiBlockContent(string content)
     {
@@ -205,7 +195,7 @@ public static partial class ExpectedOutputParser
                 continue;
 
             var processedBlock = blockTrimmed == "..."
-                ? blockTrimmed  // Keep standalone ellipsis as-is
+                ? blockTrimmed // Keep standalone ellipsis as-is
                 : NormalizeSyntax(blockTrimmed);
 
             processedBlocks.Add(processedBlock);
@@ -215,12 +205,12 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Removes both single-line and multi-line comments from content.
-    /// Essential because expected output files may contain explanatory comments that should not affect parsing.
+    ///     Removes both single-line and multi-line comments from content.
+    ///     Essential because expected output files may contain explanatory comments that should not affect parsing.
     /// </summary>
     private static string RemoveComments(string content)
     {
-        var result = new System.Text.StringBuilder();
+        var result = new StringBuilder();
         var context = new CommentParsingContext();
 
         for (var i = 0; i < content.Length; i++)
@@ -235,14 +225,14 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Processes a single character during comment removal, handling quotes and comments.
+    ///     Processes a single character during comment removal, handling quotes and comments.
     /// </summary>
     private static int ProcessCharacterForCommentRemoval(
         string content,
         int currentIndex,
         char currentChar,
         char nextChar,
-        System.Text.StringBuilder result,
+        StringBuilder result,
         CommentParsingContext context)
     {
         // Handle escaped characters
@@ -277,9 +267,9 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Handles quote character processing and state tracking.
+    ///     Handles quote character processing and state tracking.
     /// </summary>
-    private static bool HandleQuoteToggles(char currentChar, System.Text.StringBuilder result, CommentParsingContext context)
+    private static bool HandleQuoteToggles(char currentChar, StringBuilder result, CommentParsingContext context)
     {
         if (currentChar == '"' && !context.InSingleQuote)
         {
@@ -299,26 +289,20 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Handles comment detection and removal when not inside string literals.
+    ///     Handles comment detection and removal when not inside string literals.
     /// </summary>
     private static int HandleCommentsOutsideStrings(
         string content,
         int currentIndex,
         char currentChar,
         char nextChar,
-        System.Text.StringBuilder result)
+        StringBuilder result)
     {
         // Single-line comment
-        if (currentChar == '/' && nextChar == '/')
-        {
-            return SkipToEndOfLine(content, currentIndex, result);
-        }
+        if (currentChar == '/' && nextChar == '/') return SkipToEndOfLine(content, currentIndex, result);
 
         // Multi-line comment
-        if (currentChar == '/' && nextChar == '*')
-        {
-            return SkipMultiLineComment(content, currentIndex);
-        }
+        if (currentChar == '/' && nextChar == '*') return SkipMultiLineComment(content, currentIndex);
 
         // Regular character - just append
         result.Append(currentChar);
@@ -326,9 +310,9 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Skips to the end of a single-line comment, preserving the newline.
+    ///     Skips to the end of a single-line comment, preserving the newline.
     /// </summary>
-    private static int SkipToEndOfLine(string content, int startIndex, System.Text.StringBuilder result)
+    private static int SkipToEndOfLine(string content, int startIndex, StringBuilder result)
     {
         var i = startIndex;
         while (i < content.Length && content[i] != '\n' && content[i] != '\r')
@@ -345,7 +329,7 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Skips past a multi-line comment block.
+    ///     Skips past a multi-line comment block.
     /// </summary>
     private static int SkipMultiLineComment(string content, int startIndex)
     {
@@ -361,19 +345,7 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Tracks parsing context during comment removal.
-    /// </summary>
-    private class CommentParsingContext
-    {
-        public bool InSingleQuote { get; set; }
-        public bool InDoubleQuote { get; set; }
-        public bool IsEscaped { get; set; }
-
-        public bool IsInString => InSingleQuote || InDoubleQuote;
-    }
-
-    /// <summary>
-    /// Normalizes MongoDB document syntax to valid JSON.
+    ///     Normalizes MongoDB document syntax to valid JSON.
     /// </summary>
     private static string NormalizeSyntax(string mongoSyntax)
     {
@@ -388,7 +360,7 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Transforms MongoDB constructor functions (ObjectId, Decimal128, Date) to JSON strings.
+    ///     Transforms MongoDB constructor functions (ObjectId, Decimal128, Date) to JSON strings.
     /// </summary>
     private static string TransformMongoDBConstructors(string content)
     {
@@ -402,7 +374,7 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Transforms ObjectId(...) constructors to JSON strings.
+    ///     Transforms ObjectId(...) constructors to JSON strings.
     /// </summary>
     private static string TransformObjectIdConstructors(string content)
     {
@@ -420,7 +392,7 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Transforms Decimal128(...) constructors to JSON strings.
+    ///     Transforms Decimal128(...) constructors to JSON strings.
     /// </summary>
     private static string TransformDecimal128Constructors(string content)
     {
@@ -438,7 +410,7 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Transforms Date(...) constructors to JSON strings.
+    ///     Transforms Date(...) constructors to JSON strings.
     /// </summary>
     private static string TransformDateConstructors(string content)
     {
@@ -456,7 +428,7 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Adds quotes around unquoted JSON identifiers (keys and date values).
+    ///     Adds quotes around unquoted JSON identifiers (keys and date values).
     /// </summary>
     private static string QuoteUnquotedIdentifiers(string content)
     {
@@ -472,11 +444,11 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Converts single quotes to double quotes while preserving string content.
+    ///     Converts single quotes to double quotes while preserving string content.
     /// </summary>
     private static string ConvertSingleQuotes(string input)
     {
-        var result = new System.Text.StringBuilder(input.Length * 2);
+        var result = new StringBuilder(input.Length * 2);
         var quoteContext = new QuoteConversionContext();
 
         for (var i = 0; i < input.Length; i++)
@@ -489,22 +461,20 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Processes a single character during quote conversion.
-    /// Returns the number of additional characters processed (0 for single character, 1 for escape sequences).
+    ///     Processes a single character during quote conversion.
+    ///     Returns the number of additional characters processed (0 for single character, 1 for escape sequences).
     /// </summary>
     private static int ProcessCharacterForQuoteConversion(
         string input,
         int currentIndex,
-        System.Text.StringBuilder result,
+        StringBuilder result,
         QuoteConversionContext context)
     {
         var currentChar = input[currentIndex];
 
         // Handle escape sequences
         if (currentChar == '\\' && currentIndex + 1 < input.Length)
-        {
             return HandleEscapeSequence(input, currentIndex, result, context);
-        }
 
         // Handle quote characters
         if (HandleQuoteCharacter(currentChar, result, context))
@@ -516,13 +486,13 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Handles escape sequence processing during quote conversion.
-    /// Returns the number of additional characters processed beyond the current one.
+    ///     Handles escape sequence processing during quote conversion.
+    ///     Returns the number of additional characters processed beyond the current one.
     /// </summary>
     private static int HandleEscapeSequence(
         string input,
         int currentIndex,
-        System.Text.StringBuilder result,
+        StringBuilder result,
         QuoteConversionContext context)
     {
         var nextChar = input[currentIndex + 1];
@@ -550,9 +520,9 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Handles escape sequences specifically within single quotes being converted.
+    ///     Handles escape sequences specifically within single quotes being converted.
     /// </summary>
-    private static void HandleEscapeInSingleQuote(char escapedChar, System.Text.StringBuilder result)
+    private static void HandleEscapeInSingleQuote(char escapedChar, StringBuilder result)
     {
         switch (escapedChar)
         {
@@ -571,9 +541,9 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Handles quote character processing and state transitions.
+    ///     Handles quote character processing and state transitions.
     /// </summary>
-    private static bool HandleQuoteCharacter(char currentChar, System.Text.StringBuilder result, QuoteConversionContext context)
+    private static bool HandleQuoteCharacter(char currentChar, StringBuilder result, QuoteConversionContext context)
     {
         if (currentChar == '"' && !context.InSingleQuote)
         {
@@ -593,9 +563,9 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Handles regular characters, with special processing for double quotes inside converted strings.
+    ///     Handles regular characters, with special processing for double quotes inside converted strings.
     /// </summary>
-    private static void HandleRegularCharacter(char currentChar, System.Text.StringBuilder result, QuoteConversionContext context)
+    private static void HandleRegularCharacter(char currentChar, StringBuilder result, QuoteConversionContext context)
     {
         if (context.InSingleQuote && currentChar == '"')
         {
@@ -610,16 +580,7 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Tracks quote context during conversion.
-    /// </summary>
-    private class QuoteConversionContext
-    {
-        public bool InSingleQuote { get; set; }
-        public bool InDoubleQuote { get; set; }
-    }
-
-    /// <summary>
-    /// Parses a single normalized document block into an object.
+    ///     Parses a single normalized document block into an object.
     /// </summary>
     private static object ParseBlock(string normalizedBlock)
     {
@@ -632,24 +593,27 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Converts JsonElement to a standard object structure.
+    ///     Converts JsonElement to a standard object structure.
     /// </summary>
-    private static object ConvertJsonElement(JsonElement element) => element.ValueKind switch
+    private static object ConvertJsonElement(JsonElement element)
     {
-        JsonValueKind.String => element.GetString()!,
-        JsonValueKind.Number when element.TryGetInt64(out var longValue) => longValue,
-        JsonValueKind.Number when element.TryGetDouble(out var doubleValue) => doubleValue,
-        JsonValueKind.True => true,
-        JsonValueKind.False => false,
-        JsonValueKind.Null => null!,
-        JsonValueKind.Array => element.EnumerateArray().Select(ConvertJsonElement).ToArray(),
-        JsonValueKind.Object => element.EnumerateObject()
-            .ToDictionary(prop => prop.Name, prop => ConvertJsonElement(prop.Value)),
-        _ => element.ToString()!
-    };
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString()!,
+            JsonValueKind.Number when element.TryGetInt64(out var longValue) => longValue,
+            JsonValueKind.Number when element.TryGetDouble(out var doubleValue) => doubleValue,
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Null => null!,
+            JsonValueKind.Array => element.EnumerateArray().Select(ConvertJsonElement).ToArray(),
+            JsonValueKind.Object => element.EnumerateObject()
+                .ToDictionary(prop => prop.Name, prop => ConvertJsonElement(prop.Value)),
+            _ => element.ToString()!
+        };
+    }
 
     /// <summary>
-    /// Processes MongoDB constructor syntax in the original text and applies to parsed objects.
+    ///     Processes MongoDB constructor syntax in the original text and applies to parsed objects.
     /// </summary>
     private static object ProcessMongoConstructors(object obj, string originalText)
     {
@@ -663,22 +627,20 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Processes constructors in object properties.
+    ///     Processes constructors in object properties.
     /// </summary>
-    private static Dictionary<string, object> ProcessObjectConstructors(Dictionary<string, object> dict, string originalText)
+    private static Dictionary<string, object> ProcessObjectConstructors(Dictionary<string, object> dict,
+        string originalText)
     {
         var result = new Dictionary<string, object>();
 
-        foreach (var (key, value) in dict)
-        {
-            result[key] = ProcessMongoConstructors(value, originalText);
-        }
+        foreach (var (key, value) in dict) result[key] = ProcessMongoConstructors(value, originalText);
 
         return result;
     }
 
     /// <summary>
-    /// Processes MongoDB constructors in string values.
+    ///     Processes MongoDB constructors in string values.
     /// </summary>
     private static object ProcessStringConstructor(string value, string originalText)
     {
@@ -687,10 +649,7 @@ public static partial class ExpectedOutputParser
         {
             var idValue = value.Substring(9, value.Length - 10);
             // Handle ellipsis pattern in ObjectId
-            if (idValue == "...")
-            {
-                return "..."; // Return as ellipsis marker
-            }
+            if (idValue == "...") return "..."; // Return as ellipsis marker
             return new ObjectId(idValue);
         }
 
@@ -698,10 +657,7 @@ public static partial class ExpectedOutputParser
         {
             var decimalValue = value.Substring(11, value.Length - 12);
             // Handle ellipsis pattern in Decimal128
-            if (decimalValue == "...")
-            {
-                return "..."; // Return as ellipsis marker
-            }
+            if (decimalValue == "...") return "..."; // Return as ellipsis marker
             return Decimal128.Parse(decimalValue);
         }
 
@@ -709,15 +665,9 @@ public static partial class ExpectedOutputParser
         {
             var dateValue = value.Substring(5, value.Length - 6);
             // Handle ellipsis pattern in Date
-            if (dateValue == "...")
-            {
-                return "..."; // Return as ellipsis marker
-            }
+            if (dateValue == "...") return "..."; // Return as ellipsis marker
             // Parse as UTC DateTime - handle Z suffix specifically
-            if (dateValue.EndsWith('Z'))
-            {
-                return DateTime.Parse(dateValue).ToUniversalTime();
-            }
+            if (dateValue.EndsWith('Z')) return DateTime.Parse(dateValue).ToUniversalTime();
             return DateTime.Parse(dateValue);
         }
 
@@ -725,9 +675,9 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Converts C# object syntax to JSON format.
-    /// Example: "{ ProductId = abc123, Product = Test, TotalValue = 100, Quantity = 1 }"
-    /// becomes: "{ \"ProductId\": \"abc123\", \"Product\": \"Test\", \"TotalValue\": 100, \"Quantity\": 1 }"
+    ///     Converts C# object syntax to JSON format.
+    ///     Example: "{ ProductId = abc123, Product = Test, TotalValue = 100, Quantity = 1 }"
+    ///     becomes: "{ \"ProductId\": \"abc123\", \"Product\": \"Test\", \"TotalValue\": 100, \"Quantity\": 1 }"
     /// </summary>
     private static string ConvertCSharpObjectToJson(string csharpObject)
     {
@@ -745,13 +695,15 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Extracts the inner content from a C# object literal (removes outer braces).
+    ///     Extracts the inner content from a C# object literal (removes outer braces).
     /// </summary>
-    private static string ExtractObjectContent(string csharpObject) =>
-        csharpObject.Trim().TrimStart('{').TrimEnd('}').Trim();
+    private static string ExtractObjectContent(string csharpObject)
+    {
+        return csharpObject.Trim().TrimStart('{').TrimEnd('}').Trim();
+    }
 
     /// <summary>
-    /// Parses C# object properties into JSON key-value format.
+    ///     Parses C# object properties into JSON key-value format.
     /// </summary>
     private static List<string> ParseObjectProperties(string inner)
     {
@@ -779,16 +731,14 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Formats a value appropriately for JSON (adds quotes for strings, leaves numbers/booleans/null as-is).
+    ///     Formats a value appropriately for JSON (adds quotes for strings, leaves numbers/booleans/null as-is).
     /// </summary>
     private static string FormatJsonValue(string value)
     {
         // Numeric, boolean, or null values don't need quotes
         if (decimal.TryParse(value, out _) || int.TryParse(value, out _) ||
             bool.TryParse(value, out _) || value == "null")
-        {
             return value;
-        }
 
         // String values need quotes (remove existing quotes if any)
         var cleanValue = value.Trim('"', '\'');
@@ -796,15 +746,38 @@ public static partial class ExpectedOutputParser
     }
 
     /// <summary>
-    /// Assembles the final JSON object from formatted properties.
+    ///     Assembles the final JSON object from formatted properties.
     /// </summary>
-    private static string AssembleJsonObject(List<string> properties) =>
-        "{ " + string.Join(", ", properties) + " }";
+    private static string AssembleJsonObject(List<string> properties)
+    {
+        return "{ " + string.Join(", ", properties) + " }";
+    }
+
+    /// <summary>
+    ///     Tracks parsing context during comment removal.
+    /// </summary>
+    private class CommentParsingContext
+    {
+        public bool InSingleQuote { get; set; }
+        public bool InDoubleQuote { get; set; }
+        public bool IsEscaped { get; set; }
+
+        public bool IsInString => InSingleQuote || InDoubleQuote;
+    }
+
+    /// <summary>
+    ///     Tracks quote context during conversion.
+    /// </summary>
+    private class QuoteConversionContext
+    {
+        public bool InSingleQuote { get; set; }
+        public bool InDoubleQuote { get; set; }
+    }
 }
 
 /// <summary>
-/// Result of parsing an expected output file.
-/// Uses discriminated union pattern for clean error handling.
+///     Result of parsing an expected output file.
+///     Uses discriminated union pattern for clean error handling.
 /// </summary>
 public abstract record ParseResult
 {
@@ -812,8 +785,15 @@ public abstract record ParseResult
     public abstract List<object>? Data { get; }
     public abstract string? Error { get; }
 
-    public static ParseResult Success(List<object> data) => new ParseSuccess(data);
-    public static ParseResult Failure(string error) => new ParseFailure(error);
+    public static ParseResult Success(List<object> data)
+    {
+        return new ParseSuccess(data);
+    }
+
+    public static ParseResult Failure(string error)
+    {
+        return new ParseFailure(error);
+    }
 }
 
 public sealed record ParseSuccess : ParseResult

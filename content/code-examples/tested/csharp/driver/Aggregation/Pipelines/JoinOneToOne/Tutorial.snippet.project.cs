@@ -5,5 +5,5 @@
     { "OrderDate", 1 },
     { "CustomerId", 1 },
     { "Value", 1 },
-    { "_id", 0 },
+    { "_id", 0 }
 });

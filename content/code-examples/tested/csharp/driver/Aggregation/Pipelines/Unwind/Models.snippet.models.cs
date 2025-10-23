@@ -2,7 +2,9 @@ public class Order
 {
     [BsonId]
     public ObjectId Id { get; set; }
+
     public long OrderId { get; set; }
+
     [Required]
     public required List<Product> Products { get; set; }
 }
@@ -10,6 +12,7 @@ public class Order
 public class OrderUnwound
 {
     public long OrderId { get; set; }
+
     [Required]
     public required Product Products { get; set; }
 }

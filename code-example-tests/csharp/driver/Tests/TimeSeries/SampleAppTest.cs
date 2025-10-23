@@ -9,6 +9,7 @@ public class SampleAppTest
     {
         var results = SampleApp.RunExample();
         var expectedOutput = "ok";
-        Assert.That(results.Contains(expectedOutput), Is.True, $"The result does not contain the expected '{expectedOutput}' key.");
+        Assert.That(results.Contains(expectedOutput), Is.True,
+            $"The result does not contain the expected '{expectedOutput}' key.");
     }
 }

@@ -5,6 +5,8 @@
 //      "_aggDB": "aggDB"
 //	  }
 //	}
+
+using DotNetEnv;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -18,7 +20,7 @@ public class Tutorial
 
     public void LoadSampleData()
     {
-        var uri = DotNetEnv.Env.GetString("CONNECTION_STRING",
+        var uri = Env.GetString("CONNECTION_STRING",
             "Env variable not found. Verify you have a .env file with a valid connection string.");
         var client = new MongoClient(uri);
         _aggDB = client.GetDatabase("agg_tutorials_db");
@@ -33,35 +35,35 @@ public class Tutorial
 
         _products.InsertMany(new List<Product>
         {
-            new Product
+            new Product()
             {
                 Name = "Asus Laptop",
                 Variation = "Ultra HD",
                 Category = "ELECTRONICS",
                 Description = "Great for watching movies"
             },
-            new Product
+            new Product()
             {
                 Name = "Asus Laptop",
                 Variation = "Standard Display",
                 Category = "ELECTRONICS",
                 Description = "Good value laptop for students"
             },
-            new Product
+            new Product()
             {
                 Name = "The Day Of The Triffids",
                 Variation = "1st Edition",
                 Category = "BOOKS",
                 Description = "Classic post-apocalyptic novel"
             },
-            new Product
+            new Product()
             {
                 Name = "The Day Of The Triffids",
                 Variation = "2nd Edition",
                 Category = "BOOKS",
                 Description = "Classic post-apocalyptic novel"
             },
-            new Product
+            new Product()
             {
                 Name = "Morphy Richards Food Mixer",
                 Variation = "Deluxe",
@@ -72,7 +74,7 @@ public class Tutorial
 
         _orders.InsertMany(new List<Order>
         {
-            new Order
+            new Order()
             {
                 CustomerId = "elise_smith@myemail.com",
                 OrderDate = DateTime.Parse("2020-05-30T08:35:52Z"),
@@ -80,7 +82,7 @@ public class Tutorial
                 ProductVariation = "Standard Display",
                 Value = 431.43
             },
-            new Order
+            new Order()
             {
                 CustomerId = "tj@wheresmyemail.com",
                 OrderDate = DateTime.Parse("2019-05-28T19:13:32Z"),
@@ -88,7 +90,7 @@ public class Tutorial
                 ProductVariation = "2nd Edition",
                 Value = 5.01
             },
-            new Order
+            new Order()
             {
                 CustomerId = "oranieri@warmmail.com",
                 OrderDate = DateTime.Parse("2020-01-01T08:25:37Z"),
@@ -96,7 +98,7 @@ public class Tutorial
                 ProductVariation = "Deluxe",
                 Value = 63.13
             },
-            new Order
+            new Order()
             {
                 CustomerId = "jjones@tepidmail.com",
                 OrderDate = DateTime.Parse("2020-12-26T08:55:46Z"),
@@ -111,9 +113,7 @@ public class Tutorial
     public List<BsonDocument> PerformAggregation()
     {
         if (_aggDB == null || _orders == null)
-        {
             throw new InvalidOperationException("You must call LoadSampleData before performing aggregation.");
-        }
 
         // :snippet-start: embedded-pl-match-name-variation
         var embeddedPipeline = new EmptyPipelineDefinition<Order>()

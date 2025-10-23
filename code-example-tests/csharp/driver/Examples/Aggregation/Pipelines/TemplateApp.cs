@@ -1,3 +1,4 @@
+using DotNetEnv;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -7,7 +8,8 @@ public class TemplateApp
 {
     public List<MyClass> RunApp()
     {
-        var uri = DotNetEnv.Env.GetString("CONNECTION_STRING", "Env variable not found. Verify you have a .env file with a valid connection string.");
+        var uri = Env.GetString("CONNECTION_STRING",
+            "Env variable not found. Verify you have a .env file with a valid connection string.");
         // :snippet-start: example
         // :uncomment-start:
         //using MongoDB.Bson;
@@ -34,18 +36,18 @@ public class TemplateApp
         // Delete any existing documents in collections if needed.
         // ... someColl.DeleteMany(Builders<MyClass>.Filter.Empty);
         someColl.DeleteMany(Builders<MyClass>.Filter.Empty); // :remove:
-
         // Insert sample data into the collection or collections.
         // ... someColl.InsertMany(new List<MyClass> { ... });
         // :remove-start:
-        someColl.InsertMany(new List<MyClass> {
-            new MyClass
+        someColl.InsertMany(new List<MyClass>
+        {
+            new()
             {
-                StringValue = "sample1",
+                StringValue = "sample1"
             },
-            new MyClass
+            new()
             {
-                StringValue = "sample2",
+                StringValue = "sample2"
             }
         });
         // :remove-end:

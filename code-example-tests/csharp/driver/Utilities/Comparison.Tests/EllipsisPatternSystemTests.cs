@@ -1,317 +1,253 @@
-using FluentAssertions;
+using System.Collections;
+using System.Reflection;
 using NUnit.Framework;
 
 namespace Utilities.Comparison.Tests;
 
 /// <summary>
-/// System-level integration tests for the EllipsisPatternMatcher framework.
-///
-/// Test Coverage:
-/// - Pattern registration and initialization at startup
-/// - Priority-based pattern matching order (most specific patterns first)
-/// - Cross-pattern integration scenarios
-/// - System behavior with multiple overlapping patterns
-///
-/// Why This Matters:
-/// The ellipsis pattern system allows test writers to use "..." in expected output
-/// to match flexible content. The pattern matcher must try patterns in priority order
-/// to ensure the most specific match wins. These tests verify the overall system
-/// works correctly across all pattern types.
-///
-/// Key Test Categories:
-/// - Pattern inventory: verify all expected patterns are registered
-/// - Priority ordering: ensure specific patterns override general ones
-/// - Integration scenarios: multiple patterns in complex documents
-/// - Error handling: malformed patterns, null inputs, edge cases
+///     System-level integration tests for the EllipsisPatternMatcher framework.
+///     Test Coverage:
+///     - Pattern registration and initialization at startup
+///     - Priority-based pattern matching order (most specific patterns first)
+///     - Cross-pattern integration scenarios
+///     - System behavior with multiple overlapping patterns
+///     Why This Matters:
+///     The ellipsis pattern system allows test writers to use "..." in expected output
+///     to match flexible content. The pattern matcher must try patterns in priority order
+///     to ensure the most specific match wins. These tests verify the overall system
+///     works correctly across all pattern types.
+///     Key Test Categories:
+///     - Pattern inventory: verify all expected patterns are registered
+///     - Priority ordering: ensure specific patterns override general ones
+///     - Integration scenarios: multiple patterns in complex documents
+///     - Error handling: malformed patterns, null inputs, edge cases
 /// </summary>
 [TestFixture]
 public class EllipsisPatternSystemTests
 {
-    #region Pattern Registration and Priority
-
     [Test]
     public void EllipsisPatternMatcher_ShouldHaveAllExpectedPatterns()
     {
-        // Act - Get patterns using reflection
         var patternsField = typeof(EllipsisPatternMatcher)
-            .GetField("Patterns", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            .GetField("Patterns", BindingFlags.NonPublic | BindingFlags.Static);
 
-        // Assert
-        patternsField.Should().NotBeNull("pattern list field should exist");
+        Assert.That(patternsField != null);
 
-        var patterns = patternsField!.GetValue(null) as System.Collections.IList;
-        patterns.Should().NotBeNull("pattern list should be initialized");
-        patterns!.Count.Should().BeGreaterOrEqualTo(5, "should have ExactEllipsisPattern, ArrayWildcardPattern, ObjectWildcardPattern, TruncatedStringPattern, and JsonEllipsisPattern");
+        var patterns = patternsField!.GetValue(null) as IList;
+        Assert.That(patterns != null);
+        Assert.That(patterns != null && patterns.Count >= 5);
     }
 
     [Test]
     public void EllipsisPatternMatcher_ShouldOrderPatternsByPriority()
     {
-        // Act - Get patterns using reflection
         var patternsField = typeof(EllipsisPatternMatcher)
-            .GetField("Patterns", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            .GetField("Patterns", BindingFlags.NonPublic | BindingFlags.Static);
 
-        // Assert
-        patternsField.Should().NotBeNull("pattern list field should exist");
+        Assert.That(patternsField != null, "pattern list field should exist"); ;
 
-        var patterns = patternsField!.GetValue(null) as System.Collections.IList;
-        patterns.Should().NotBeNull("pattern list should be initialized");
-        patterns!.Count.Should().BeGreaterOrEqualTo(5, "should have patterns to test priority ordering");
 
+        var patterns = patternsField!.GetValue(null) as IList;
+        Assert.That(patterns != null, "pattern list should be initialized");
+        Assert.That(patterns != null && patterns.Count >= 5, "should have patterns to test priority ordering");
         // Priority validation is implicit through the behavior tests below
     }
-
-    #endregion
-
-    #region Pattern Selection and Priority Behavior
 
     [Test]
     public void EllipsisPatternMatcher_ExactEllipsisShouldHaveHighestPriority()
     {
-        // Arrange - Testing that "..." exactly matches anything, even JSON-like strings
         var expected = "...";
         var jsonLikeActual = """
-        [{"name": "test", "value": 123}]
-        """;
+                             [{"name": "test", "value": 123}]
+                             """;
         var stringActual = "some random text";
 
-        // Act & Assert - Exact ellipsis should match anything
-        ComparisonEngine.Compare(expected, jsonLikeActual).IsSuccess.Should().BeTrue();
-        ComparisonEngine.Compare(expected, stringActual).IsSuccess.Should().BeTrue();
-        ComparisonEngine.Compare(expected, 123).IsSuccess.Should().BeTrue();
-        ComparisonEngine.Compare(expected, null).IsSuccess.Should().BeTrue();
+
+        Expect.That(jsonLikeActual).ShouldMatch(expected);
+        Expect.That(stringActual).ShouldMatch(expected);
+        Expect.That(123).ShouldMatch(expected);
+        Expect.That(null).ShouldMatch(expected);
     }
 
     [Test]
     public void EllipsisPatternMatcher_PatternSelectionShouldWorkCorrectly()
     {
-        // Test that the correct pattern is selected based on the input format
-
-        // Should use JsonEllipsisPattern for JSON-like strings with ellipsis
-        var jsonResult = ComparisonEngine.Compare(
-            """
-            { "field": "value", ... }
-            """,
-            """
-            { "field": "value", "extra": "data" }
-            """
-        );
-        jsonResult.IsSuccess.Should().BeTrue("JsonEllipsisPattern should handle JSON objects");
-
         // Should use TruncatedStringPattern for non-JSON strings with ellipsis
-        var stringResult = ComparisonEngine.Compare(
-            "Plain text with ellipsis...",
-            "Plain text with ellipsis and more content"
-        );
-        stringResult.IsSuccess.Should().BeTrue("TruncatedStringPattern should handle plain text");
+        Expect.That("Plain text with ellipsis and more content")
+            .ShouldMatch("Plain text with ellipsis...");
 
         // Should use ExactEllipsisPattern for bare ellipsis
-        var exactResult = ComparisonEngine.Compare(
-            "...",
-            "Any content at all"
-        );
-        exactResult.IsSuccess.Should().BeTrue("ExactEllipsisPattern should match anything");
+        Expect.That(
+            "Any content at all").ShouldMatch(
+            "...");
+
     }
 
     [Test]
     public void EllipsisPatternMatcher_ShouldPreferMoreSpecificPatterns()
     {
-        // Arrange - A case where multiple patterns could apply
-        var expected = "...";  // Could match ExactEllipsisPattern
+        var expected = "..."; // Could match ExactEllipsisPattern
         var actual = """
-        { "test": "data" }
-        """;  // JSON-like, but expected is exact ellipsis
+                     { "test": "data" }
+                     """; // JSON-like, but expected is exact ellipsis
 
-        // Act
-        var result = ComparisonEngine.Compare(expected, actual);
+        var result = Expect.That(actual).ShouldMatch(expected);
 
-        // Assert
-        result.IsSuccess.Should().BeTrue("ExactEllipsisPattern should win due to highest priority");
+        Assert.That(result.IsSuccess, "Expected to match ExactEllipsisPattern");
     }
-
-    #endregion
-
-    #region Individual Pattern Integration Tests
 
     [Test]
     public void EllipsisPatternMatcher_ExactEllipsisPattern_ShouldMatchAnything()
     {
-        // Act & Assert
-        ComparisonEngine.Compare("...", "any value").IsSuccess.Should().BeTrue();
-        ComparisonEngine.Compare("...", 123).IsSuccess.Should().BeTrue();
-        ComparisonEngine.Compare("...", new { prop = "value" }).IsSuccess.Should().BeTrue();
-        ComparisonEngine.Compare("...", null).IsSuccess.Should().BeTrue();
+        Expect.That("any value").ShouldMatch("...");
+        Expect.That(123).ShouldMatch("...");
+        Expect.That(new { prop = "value" }).ShouldMatch("...");
+        Expect.That(null).ShouldMatch("...");
     }
 
     [Test]
     public void EllipsisPatternMatcher_TruncatedStringShouldHandleNonJsonStrings()
     {
-        // Arrange
         var expected = "This is a test...";
         var matchingActual = "This is a test with more content";
         var nonMatchingActual = "This is different content";
 
-        // Act & Assert
-        ComparisonEngine.Compare(expected, matchingActual).IsSuccess.Should().BeTrue("should match when actual starts with expected prefix");
-        ComparisonEngine.Compare(expected, nonMatchingActual).IsSuccess.Should().BeFalse("should not match when actual doesn't start with expected prefix");
+
+        Expect.That(matchingActual).ShouldMatch(expected);
+        Expect.That(nonMatchingActual).ShouldNotMatch(expected);
     }
 
     [Test]
     public void EllipsisPatternMatcher_JsonEllipsisShouldHandleJsonStrings()
     {
-        // Arrange - Test successful JsonEllipsisPattern matching
         var expected = """
-        { "name": "test", "value": 123, ... }
-        """;
+                       { "name": "test", "value": 123, ... }
+                       """;
         var matchingActual = """
-        { "name": "test", "value": 123, "extra": "field" }
-        """;
+                             { "name": "test", "value": 123, "extra": "field" }
+                             """;
 
-        // Act & Assert
-        ComparisonEngine.Compare(expected, matchingActual).IsSuccess.Should().BeTrue("should match when required fields are present");
+
+        Expect.That(matchingActual).ShouldMatch(expected);
 
         // Test that JsonEllipsisPattern can handle complex nested structures
         var complexExpected = """
-        { "users": [{"name": "Alice", ...}], "total": 1, ... }
-        """;
+                              { "users": [{"name": "Alice", ...}], "total": 1, ... }
+                              """;
         var complexActual = """
-        { "users": [{"name": "Alice", "id": 1}], "total": 1, "page": 1 }
-        """;
-        ComparisonEngine.Compare(complexExpected, complexActual).IsSuccess.Should().BeTrue("should handle complex nested JSON");
+                            { "users": [{"name": "Alice", "id": 1}], "total": 1, "page": 1 }
+                            """;
+        Expect.That(complexActual).ShouldMatch(complexExpected);
     }
 
     [Test]
     public void EllipsisPatternMatcher_ArrayWildcard_ShouldWork()
     {
-        // Arrange
         var expectedArray = new object[] { "..." };
         var actualArray = new[] { "item1", "item2" };
 
-        // Act & Assert
-        EllipsisPatternMatcher.TryMatch(expectedArray, actualArray).Should().BeTrue();
+
+        Assert.That(EllipsisPatternMatcher.TryMatch(expectedArray, actualArray) == true);
     }
 
     [Test]
     public void EllipsisPatternMatcher_ObjectWildcard_ShouldWork()
     {
-        // Arrange
         var expectedDict = new Dictionary<string, object> { { "...", "..." } };
         var actualDict = new Dictionary<string, object> { { "name", "Alice" } };
 
-        // Act & Assert
-        EllipsisPatternMatcher.TryMatch(expectedDict, actualDict).Should().BeTrue();
+        Assert.That(EllipsisPatternMatcher.TryMatch(expectedDict, actualDict), Is.True);
     }
-
-    #endregion
-
-    #region System-Level Edge Cases
 
     [Test]
     public void EllipsisPatternMatcher_NoMatch_ShouldReturnFalse()
     {
-        // Act & Assert
-        EllipsisPatternMatcher.TryMatch("regular string", "another string").Should().BeFalse();
-        EllipsisPatternMatcher.TryMatch(123, 456).Should().BeFalse();
+        Assert.That(EllipsisPatternMatcher.TryMatch("regular string", "another string") == false);
+        Assert.That(EllipsisPatternMatcher.TryMatch(123, 456) == false);
     }
 
     [Test]
     public void EllipsisPatternMatcher_NullValues_ShouldHandleGracefully()
     {
-        // Arrange & Act & Assert
-        EllipsisPatternMatcher.TryMatch("...", null).Should().BeTrue();
-        EllipsisPatternMatcher.TryMatch(null, "...").Should().BeFalse();
-        EllipsisPatternMatcher.TryMatch(null, null).Should().BeFalse();
+        Assert.That(EllipsisPatternMatcher.TryMatch("...", null));
+        Assert.That(EllipsisPatternMatcher.TryMatch(null, "...") == false);
+        Assert.That(EllipsisPatternMatcher.TryMatch(null, null) == false);
     }
 
     [Test]
     public void EllipsisPatternMatcher_ComplexNestedJsonPattern_ShouldMatch()
     {
-        // Arrange - Testing complex nested case that shows JsonEllipsisPattern working
         var expected = """
-            {
-              "users": [
-                { "name": "Alice", "role": "admin", ... },
-                { "name": "Bob", "role": "user", ... },
-                ...
-              ],
-              "metadata": { "version": "1.0", ... }
-            }
-            """;
+                       {
+                         "users": [
+                           { "name": "Alice", "role": "admin", ... },
+                           { "name": "Bob", "role": "user", ... },
+                           ...
+                         ],
+                         "metadata": { "version": "1.0", ... }
+                       }
+                       """;
         var actual = """
-            {
-              "users": [
-                { "name": "Alice", "role": "admin", "id": 1, "email": "alice@example.com" },
-                { "name": "Bob", "role": "user", "id": 2, "email": "bob@example.com" },
-                { "name": "Charlie", "role": "guest", "id": 3, "email": "charlie@example.com" }
-              ],
-              "metadata": { "version": "1.0", "created": "2023-01-01", "lastModified": "2023-12-01" }
-            }
-            """;
+                     {
+                       "users": [
+                         { "name": "Alice", "role": "admin", "id": 1, "email": "alice@example.com" },
+                         { "name": "Bob", "role": "user", "id": 2, "email": "bob@example.com" },
+                         { "name": "Charlie", "role": "guest", "id": 3, "email": "charlie@example.com" }
+                       ],
+                       "metadata": { "version": "1.0", "created": "2023-01-01", "lastModified": "2023-12-01" }
+                     }
+                     """;
 
-        // Act
-        var result = ComparisonEngine.Compare(expected, actual);
-
-        // Assert
-        result.IsSuccess.Should().BeTrue("complex nested JSON with ellipsis should match when all specified elements are present");
+        Expect.That(actual).ShouldMatch(expected);
     }
-
-    #endregion
-
-    #region Utility Method Tests
 
     [Test]
     public void ArrayContainsEllipsis_WithEllipsisElement_ReturnsTrue()
     {
-        // Arrange
         var array1 = new object[] { "item1", "...", "item3" };
         var array2 = new object[] { "..." };
         var array3 = new object[] { "item1", "item2", "..." };
 
-        // Act & Assert
-        EllipsisPatternMatcher.ArrayContainsEllipsis(array1).Should().BeTrue();
-        EllipsisPatternMatcher.ArrayContainsEllipsis(array2).Should().BeTrue();
-        EllipsisPatternMatcher.ArrayContainsEllipsis(array3).Should().BeTrue();
+
+        Assert.That(EllipsisPatternMatcher.ArrayContainsEllipsis(array1));
+        Assert.That(EllipsisPatternMatcher.ArrayContainsEllipsis(array2));
+        Assert.That(EllipsisPatternMatcher.ArrayContainsEllipsis(array3));
     }
 
     [Test]
     public void ArrayContainsEllipsis_WithoutEllipsisElement_ReturnsFalse()
     {
-        // Arrange
         var array1 = new object[] { "item1", "item2", "item3" };
         var array2 = new object[] { 1, 2, 3 };
         var array3 = Array.Empty<object>();
 
-        // Act & Assert
-        EllipsisPatternMatcher.ArrayContainsEllipsis(array1).Should().BeFalse();
-        EllipsisPatternMatcher.ArrayContainsEllipsis(array2).Should().BeFalse();
-        EllipsisPatternMatcher.ArrayContainsEllipsis(array3).Should().BeFalse();
+
+        Assert.That(EllipsisPatternMatcher.ArrayContainsEllipsis(array1) == false);
+        Assert.That(EllipsisPatternMatcher.ArrayContainsEllipsis(array2) == false);
+        Assert.That(EllipsisPatternMatcher.ArrayContainsEllipsis(array3) == false);
     }
 
     [Test]
     public void HasGlobalEllipsis_WithEllipsisMarker_ReturnsTrue()
     {
-        // Arrange
         var dict = new Dictionary<string, object>
         {
             { "name", "Alice" },
             { "...", "..." }
         };
 
-        // Act & Assert
-        EllipsisPatternMatcher.HasGlobalEllipsis(dict).Should().BeTrue();
+
+        Assert.That(EllipsisPatternMatcher.HasGlobalEllipsis(dict) == true);
     }
 
     [Test]
     public void HasGlobalEllipsis_WithoutEllipsisMarker_ReturnsFalse()
     {
-        // Arrange
         var dict1 = new Dictionary<string, object> { { "name", "Alice" } };
         var dict2 = new Dictionary<string, object>();
 
-        // Act & Assert
-        EllipsisPatternMatcher.HasGlobalEllipsis(dict1).Should().BeFalse();
-        EllipsisPatternMatcher.HasGlobalEllipsis(dict2).Should().BeFalse();
-    }
 
-    #endregion
+        Assert.That(EllipsisPatternMatcher.HasGlobalEllipsis(dict1) == false);
+        Assert.That(EllipsisPatternMatcher.HasGlobalEllipsis(dict2) == false);
+    }
 }

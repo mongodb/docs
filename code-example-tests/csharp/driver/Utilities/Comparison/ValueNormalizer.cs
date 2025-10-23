@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 using MongoDB.Bson;
@@ -6,104 +8,102 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace Utilities.Comparison;
 
 /// <summary>
-/// Normalizes MongoDB-specific types and values for consistent comparison.
-/// Uses modern C# pattern matching and switch expressions.
+///     Normalizes MongoDB-specific types and values for consistent comparison.
+///     Uses modern C# pattern matching and switch expressions.
 /// </summary>
 public static class ValueNormalizer
 {
     /// <summary>
-    /// Normalizes a value to a consistent format for comparison.
+    ///     Normalizes a value to a consistent format for comparison.
     /// </summary>
-    public static object? Normalize(object? value) => value switch
+    public static object? Normalize(object? value)
     {
-        // Handle null
-        null => null,
+        return value switch
+        {
+            // Handle null
+            null => null,
 
-        // DateTime types - normalize to ISO string format
-        DateTime dt => dt.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-        DateTimeOffset dto => dto.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+            // DateTime types - normalize to ISO string format
+            DateTime dt => dt.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+            DateTimeOffset dto => dto.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
 
-        // MongoDB types - handle specific types first
-        Decimal128 dec => dec.ToString(),
-        ObjectId objectId => objectId.ToString(),
+            // MongoDB types - handle specific types first
+            Decimal128 dec => dec.ToString(),
+            ObjectId objectId => objectId.ToString(),
 
-        // BSON types - convert to standard types (specific types first)
-        BsonDocument doc => doc.ToDictionary(element => element.Name, element => Normalize(element.Value)),
-        BsonArray array => array.Select(Normalize).ToArray(),
-        BsonDateTime bsonDt => bsonDt.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-        BsonValue bsonValue => NormalizeBsonValue(bsonValue),
+            // BSON types - convert to standard types (specific types first)
+            BsonDocument doc => doc.ToDictionary(element => element.Name, element => Normalize(element.Value)),
+            BsonArray array => array.Select(Normalize).ToArray(),
+            BsonDateTime bsonDt => bsonDt.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+            BsonValue bsonValue => NormalizeBsonValue(bsonValue),
 
-        // Collections - normalize each element (preserve specific array types for primitives)
-        int[] intArray => intArray,  // Preserve int[] type
-        string[] stringArray => stringArray,  // Preserve string[] type  
-        Array array => array.Cast<object?>().Select(Normalize).ToArray(),
-        IEnumerable<object> enumerable => enumerable.Select(Normalize).ToArray(),
+            // Collections - normalize each element (preserve specific array types for primitives)
+            int[] intArray => intArray, // Preserve int[] type
+            string[] stringArray => stringArray, // Preserve string[] type  
+            Array array => array.Cast<object?>().Select(Normalize).ToArray(),
+            IEnumerable<object> enumerable => enumerable.Select(Normalize).ToArray(),
 
-        // Dictionaries - check for MongoDB Extended JSON patterns first, then normalize
-        IDictionary<string, object> dict => NormalizeDictionary(dict),
+            // Dictionaries - check for MongoDB Extended JSON patterns first, then normalize
+            IDictionary<string, object> dict => NormalizeDictionary(dict),
 
-        // JSON elements
-        JsonElement element => NormalizeJsonElement(element),
+            // JSON elements
+            JsonElement element => NormalizeJsonElement(element),
 
-        // Custom C# types (POCOs)
-        var customType when IsCustomType(customType) => NormalizeCustomType(customType),
+            // Custom C# types (POCOs)
+            var customType when IsCustomType(customType) => NormalizeCustomType(customType),
 
-        // Primitive types and strings
-        string str => NormalizeString(str), // Handle both date normalization and whitespace
-        _ => value
-    };
+            // Primitive types and strings
+            string str => NormalizeString(str), // Handle both date normalization and whitespace
+            _ => value
+        };
+    }
 
     /// <summary>
-    /// Handles normalization of JsonElement values from parsed JSON.
+    ///     Handles normalization of JsonElement values from parsed JSON.
     /// </summary>
-    private static object NormalizeJsonElement(JsonElement element) => element.ValueKind switch
+    private static object NormalizeJsonElement(JsonElement element)
     {
-        JsonValueKind.String => element.GetString()!,
-        JsonValueKind.Number when element.TryGetInt64(out var longValue) => longValue,
-        JsonValueKind.Number when element.TryGetDouble(out var doubleValue) => doubleValue,
-        JsonValueKind.True => true,
-        JsonValueKind.False => false,
-        JsonValueKind.Null => null!,
-        JsonValueKind.Array => element.EnumerateArray().Select(NormalizeJsonElement).ToArray(),
-        JsonValueKind.Object => element.EnumerateObject()
-            .ToDictionary(prop => prop.Name, prop => NormalizeJsonElement(prop.Value)),
-        _ => element.ToString()!
-    };
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString()!,
+            JsonValueKind.Number when element.TryGetInt64(out var longValue) => longValue,
+            JsonValueKind.Number when element.TryGetDouble(out var doubleValue) => doubleValue,
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Null => null!,
+            JsonValueKind.Array => element.EnumerateArray().Select(NormalizeJsonElement).ToArray(),
+            JsonValueKind.Object => element.EnumerateObject()
+                .ToDictionary(prop => prop.Name, prop => NormalizeJsonElement(prop.Value)),
+            _ => element.ToString()!
+        };
+    }
 
     /// <summary>
-    /// Normalizes a dictionary, handling MongoDB Extended JSON patterns.
+    ///     Normalizes a dictionary, handling MongoDB Extended JSON patterns.
     /// </summary>
     private static object NormalizeDictionary(IDictionary<string, object> dict)
     {
         // Check for MongoDB Extended JSON date pattern: { "$date": "2021-12-18T15:55:00Z" }
         if (dict.Count == 1 && dict.TryGetValue("$date", out var dateValue) && dateValue is string dateStr)
-        {
             if (TryParseIsoDate(dateStr, out var parsedDate))
-            {
                 return parsedDate.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-            }
-        }
 
         // Check for MongoDB Extended JSON ObjectId pattern: { "$oid": "507f1f77bcf86cd799439011" }
-        if (dict.Count == 1 && dict.TryGetValue("$oid", out var oidValue) && oidValue is string oidStr)
-        {
-            return oidStr;
-        }
+        if (dict.Count == 1 && dict.TryGetValue("$oid", out var oidValue) && oidValue is string oidStr) return oidStr;
 
         // For regular dictionaries, normalize each key/value pair
         return dict.ToDictionary(kvp => kvp.Key, kvp => Normalize(kvp.Value));
     }
+
     /// <summary>
-    /// Normalizes a string by checking for date patterns and normalizing whitespace.
-    /// First attempts date normalization, then applies whitespace normalization for general strings.
+    ///     Normalizes a string by checking for date patterns and normalizing whitespace.
+    ///     First attempts date normalization, then applies whitespace normalization for general strings.
     /// </summary>
     private static string NormalizeString(string value)
     {
         // First, check if this is a date format
         if (TryParseIsoDate(value, out var dateTime))
-        {
             return dateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-        }
 
         // For non-date strings, normalize whitespace by trimming each line
         // This handles multi-line strings like the BoroughList test case
@@ -120,44 +120,46 @@ public static class ValueNormalizer
     }
 
     /// <summary>
-    /// Legacy method for backward compatibility. Use NormalizeString instead.
+    ///     Legacy method for backward compatibility. Use NormalizeString instead.
     /// </summary>
     public static string NormalizeIfDate(string value)
     {
         if (TryParseIsoDate(value, out var dateTime))
-        {
             return dateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-        }
         return value;
     }
 
     /// <summary>
-    /// Normalizes a BsonValue to a standard .NET type or null.
-    /// Returns null for BsonType.Null values, otherwise returns appropriate .NET equivalents.
+    ///     Normalizes a BsonValue to a standard .NET type or null.
+    ///     Returns null for BsonType.Null values, otherwise returns appropriate .NET equivalents.
     /// </summary>
-    private static object? NormalizeBsonValue(BsonValue bsonValue) => bsonValue.BsonType switch
+    private static object? NormalizeBsonValue(BsonValue bsonValue)
     {
-        BsonType.Double => bsonValue.ToDouble(),
-        BsonType.String => bsonValue.ToString() ?? string.Empty,
-        BsonType.Document => bsonValue.ToBsonDocument().ToDictionary(element => element.Name, element => Normalize(element.Value)),
-        BsonType.Array => bsonValue.AsBsonArray.Select(Normalize).ToArray(),
-        BsonType.Binary => bsonValue.AsByteArray,
-        BsonType.ObjectId => bsonValue.AsObjectId.ToString(),
-        BsonType.Boolean => bsonValue.ToBoolean(),
-        BsonType.DateTime => bsonValue.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-        BsonType.Null => null,
-        BsonType.Int32 => bsonValue.ToInt32(),
-        BsonType.Int64 => bsonValue.ToInt64(),
-        BsonType.Decimal128 => bsonValue.AsDecimal128.ToString(),
-        _ => bsonValue.ToString() ?? string.Empty
-    };
+        return bsonValue.BsonType switch
+        {
+            BsonType.Double => bsonValue.ToDouble(),
+            BsonType.String => bsonValue.ToString() ?? string.Empty,
+            BsonType.Document => bsonValue.ToBsonDocument()
+                .ToDictionary(element => element.Name, element => Normalize(element.Value)),
+            BsonType.Array => bsonValue.AsBsonArray.Select(Normalize).ToArray(),
+            BsonType.Binary => bsonValue.AsByteArray,
+            BsonType.ObjectId => bsonValue.AsObjectId.ToString(),
+            BsonType.Boolean => bsonValue.ToBoolean(),
+            BsonType.DateTime => bsonValue.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
+            BsonType.Null => null,
+            BsonType.Int32 => bsonValue.ToInt32(),
+            BsonType.Int64 => bsonValue.ToInt64(),
+            BsonType.Decimal128 => bsonValue.AsDecimal128.ToString(),
+            _ => bsonValue.ToString() ?? string.Empty
+        };
+    }
 
     /// <summary>
-    /// Attempts to parse a string as an ISO 8601 date with improved timezone handling.
-    /// Supports multiple MongoDB Extended JSON date formats:
-    /// - "2023-09-04T10:15:30.123Z" (UTC with Z)
-    /// - "2023-09-04T10:15:30.123+00:00" (UTC with explicit offset)  
-    /// - "2023-09-04T10:16:30.456000Z" (UTC with microseconds)
+    ///     Attempts to parse a string as an ISO 8601 date with improved timezone handling.
+    ///     Supports multiple MongoDB Extended JSON date formats:
+    ///     - "2023-09-04T10:15:30.123Z" (UTC with Z)
+    ///     - "2023-09-04T10:15:30.123+00:00" (UTC with explicit offset)
+    ///     - "2023-09-04T10:16:30.456000Z" (UTC with microseconds)
     /// </summary>
     private static bool TryParseIsoDate(string value, out DateTime dateTime)
     {
@@ -168,25 +170,20 @@ public static class ValueNormalizer
             return false;
 
         // Try parsing with DateTimeOffset first for better timezone handling
-        if (DateTimeOffset.TryParse(value, null, System.Globalization.DateTimeStyles.RoundtripKind, out var dateTimeOffset))
+        if (DateTimeOffset.TryParse(value, null, DateTimeStyles.RoundtripKind, out var dateTimeOffset))
         {
             dateTime = dateTimeOffset.UtcDateTime;
             return true;
         }
 
         // Fallback to DateTime parsing
-        if (DateTime.TryParse(value, null, System.Globalization.DateTimeStyles.RoundtripKind, out dateTime))
+        if (DateTime.TryParse(value, null, DateTimeStyles.RoundtripKind, out dateTime))
         {
             // Ensure we normalize to UTC for consistent comparison
             if (dateTime.Kind == DateTimeKind.Unspecified)
-            {
                 // Assume UTC if no timezone info (common in MongoDB outputs)
                 dateTime = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
-            }
-            else if (dateTime.Kind == DateTimeKind.Local)
-            {
-                dateTime = dateTime.ToUniversalTime();
-            }
+            else if (dateTime.Kind == DateTimeKind.Local) dateTime = dateTime.ToUniversalTime();
             return true;
         }
 
@@ -194,8 +191,8 @@ public static class ValueNormalizer
     }
 
     /// <summary>
-    /// Determines if a value is a custom C# type that should be normalized.
-    /// Excludes primitives, collections, and framework types.
+    ///     Determines if a value is a custom C# type that should be normalized.
+    ///     Excludes primitives, collections, and framework types.
     /// </summary>
     private static bool IsCustomType(object? value)
     {
@@ -210,7 +207,7 @@ public static class ValueNormalizer
             return false;
 
         // Skip collections, dictionaries, and arrays
-        if (typeof(System.Collections.IEnumerable).IsAssignableFrom(type) && type != typeof(string))
+        if (typeof(IEnumerable).IsAssignableFrom(type) && type != typeof(string))
             return false;
 
         // Skip BSON and MongoDB types (already handled)
@@ -226,8 +223,8 @@ public static class ValueNormalizer
     }
 
     /// <summary>
-    /// Normalizes custom types to dictionaries by extracting properties and fields.
-    /// The resulting dictionary may contain null values for properties/fields that are null.
+    ///     Normalizes custom types to dictionaries by extracting properties and fields.
+    ///     The resulting dictionary may contain null values for properties/fields that are null.
     /// </summary>
     private static object NormalizeCustomType(object value)
     {
@@ -241,8 +238,8 @@ public static class ValueNormalizer
     }
 
     /// <summary>
-    /// Normalizes public properties of a type, respecting BSON attributes.
-    /// Skips null property values and adds normalized values to the result dictionary.
+    ///     Normalizes public properties of a type, respecting BSON attributes.
+    ///     Skips null property values and adds normalized values to the result dictionary.
     /// </summary>
     private static void NormalizeTypeProperties(object value, Type type, Dictionary<string, object?> result)
     {
@@ -259,8 +256,8 @@ public static class ValueNormalizer
     }
 
     /// <summary>
-    /// Normalizes public fields of a type, avoiding duplication with properties.
-    /// Skips null field values and adds normalized values to the result dictionary.
+    ///     Normalizes public fields of a type, avoiding duplication with properties.
+    ///     Skips null field values and adds normalized values to the result dictionary.
     /// </summary>
     private static void NormalizeTypeFields(object value, Type type, Dictionary<string, object?> result)
     {
@@ -274,15 +271,12 @@ public static class ValueNormalizer
             var fieldName = GetBsonFieldName(field);
 
             // Only add if not already added by property
-            if (!result.ContainsKey(fieldName))
-            {
-                result[fieldName] = Normalize(fieldValue);
-            }
+            if (!result.ContainsKey(fieldName)) result[fieldName] = Normalize(fieldValue);
         }
     }
 
     /// <summary>
-    /// Gets properties eligible for BSON serialization.
+    ///     Gets properties eligible for BSON serialization.
     /// </summary>
     private static PropertyInfo[] GetBsonEligibleProperties(Type type)
     {
@@ -292,7 +286,7 @@ public static class ValueNormalizer
     }
 
     /// <summary>
-    /// Gets fields eligible for BSON serialization.
+    ///     Gets fields eligible for BSON serialization.
     /// </summary>
     private static FieldInfo[] GetBsonEligibleFields(Type type)
     {
@@ -302,16 +296,16 @@ public static class ValueNormalizer
     }
 
     /// <summary>
-    /// Checks if a member has the BsonIgnore attribute.
+    ///     Checks if a member has the BsonIgnore attribute.
     /// </summary>
     private static bool HasBsonIgnoreAttribute(MemberInfo member)
     {
-        return member.GetCustomAttributes(typeof(MongoDB.Bson.Serialization.Attributes.BsonIgnoreAttribute), false).Any();
+        return member.GetCustomAttributes(typeof(BsonIgnoreAttribute), false).Any();
     }
 
     /// <summary>
-    /// Normalizes decimal values to consistent string representation.
-    /// Removes trailing zeros for consistent comparison.
+    ///     Normalizes decimal values to consistent string representation.
+    ///     Removes trailing zeros for consistent comparison.
     /// </summary>
     private static string NormalizeDecimal(decimal value)
     {
@@ -320,22 +314,16 @@ public static class ValueNormalizer
     }
 
     /// <summary>
-    /// Gets the BSON field name for a property or field, respecting BsonElement attributes.
+    ///     Gets the BSON field name for a property or field, respecting BsonElement attributes.
     /// </summary>
     private static string GetBsonFieldName(MemberInfo member)
     {
         // Check for BsonElement attribute first
         var bsonElement = member.GetCustomAttribute<BsonElementAttribute>();
-        if (bsonElement != null && !string.IsNullOrEmpty(bsonElement.ElementName))
-        {
-            return bsonElement.ElementName;
-        }
+        if (bsonElement != null && !string.IsNullOrEmpty(bsonElement.ElementName)) return bsonElement.ElementName;
 
         // Check for BsonId attribute (maps to "_id")
-        if (member.GetCustomAttribute<BsonIdAttribute>() != null)
-        {
-            return "_id";
-        }
+        if (member.GetCustomAttribute<BsonIdAttribute>() != null) return "_id";
 
         // Use the member name as fallback
         return member.Name;

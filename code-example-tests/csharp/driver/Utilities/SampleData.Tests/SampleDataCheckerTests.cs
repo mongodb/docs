@@ -1,398 +1,381 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using DotNetEnv;
 using NUnit.Framework;
-using Utilities.SampleData;
 
-namespace Utilities.SampleData.Tests
+namespace Utilities.SampleData.Tests;
+
+[TestFixture]
+public class SampleDataCheckerTests
 {
-    [TestFixture]
-    public class SampleDataCheckerTests
+    [SetUp]
+    public void SetUp()
     {
-        [SetUp]
-        public void SetUp()
+        // Clear cache before each test to ensure fresh checks
+        SampleDataChecker.ClearSampleDataCache();
+    }
+
+    [TestFixture]
+    public class CheckSampleDataAvailableAsyncTests
+    {
+        [Test]
+        [Description(
+            "Verifies that the method returns false when no connection string is present in the environment file")]
+        public async Task ShouldReturnFalse_WhenConnectionStringIsNotInEnvFile()
         {
-            // Clear cache before each test to ensure fresh checks
-            SampleDataChecker.ClearSampleDataCache();
-        }
-
-        [TestFixture]
-        public class CheckSampleDataAvailableAsyncTests : SampleDataCheckerTests
-        {
-            [Test]
-            public async Task ShouldReturnFalse_WhenConnectionStringIsNotInEnvFile()
+            // Skip this test if we're in a CI environment with sample data available
+            // This test is designed to test the case where no connection string is available
+            var existingConnection = Env.GetString("CONNECTION_STRING");
+            if (!string.IsNullOrEmpty(existingConnection))
             {
-                // Skip this test if we're in a CI environment with sample data available
-                // This test is designed to test the case where no connection string is available
-                var existingConnection = DotNetEnv.Env.GetString("CONNECTION_STRING", null);
-                if (!string.IsNullOrEmpty(existingConnection))
-                {
-                    // Check if sample data is actually available with the existing connection
-                    var hasRealSampleData = await SampleDataChecker.CheckSampleDataAvailableAsync("sample_mflix");
-                    if (hasRealSampleData)
-                    {
-                        Assert.Ignore("Skipping test - CI environment has sample data loaded. This test validates behavior when no connection string is available.");
-                    }
-                }
-
-                // Arrange - Create a temporary .env file with no connection string
-                var tempEnvFile = Path.Combine(Path.GetTempPath(), ".env.test.empty");
-                await File.WriteAllTextAsync(tempEnvFile, "SOME_OTHER_VAR=value\n");
-
-                try
-                {
-                    // Load the temporary .env file
-                    DotNetEnv.Env.Load(tempEnvFile);
-
-                    // Act
-                    var result = await SampleDataChecker.CheckSampleDataAvailableAsync("sample_mflix");
-
-                    // Assert
-                    Assert.That(result, Is.False);
-                }
-                finally
-                {
-                    // Cleanup
-                    if (File.Exists(tempEnvFile))
-                    {
-                        File.Delete(tempEnvFile);
-                    }
-                }
-            }
-            [Test]
-            public async Task ShouldCacheResults_ToAvoidRepeatedDatabaseQueries()
-            {
-                // Arrange & Act
-                var result1 = await SampleDataChecker.CheckSampleDataAvailableAsync("nonexistent_database");
-                var result2 = await SampleDataChecker.CheckSampleDataAvailableAsync("nonexistent_database");
-
-                // Assert
-                Assert.That(result1, Is.EqualTo(result2));
+                // Check if sample data is actually available with the existing connection
+                var hasRealSampleData = await SampleDataChecker.CheckSampleDataAvailableAsync("sample_mflix");
+                if (hasRealSampleData)
+                    Assert.Ignore(
+                        "Skipping test - CI environment has sample data loaded. This test validates behavior when no connection string is available.");
             }
 
-            [Test]
-            public async Task ShouldHandleConnectionErrors_Gracefully()
+
+            var tempEnvFile = Path.Combine(Path.GetTempPath(), ".env.test.empty");
+            await File.WriteAllTextAsync(tempEnvFile, "SOME_OTHER_VAR=value\n");
+
+            try
             {
-                // Skip this test if we're in a CI environment with sample data available
-                // This test is designed to test connection error handling with invalid connection strings
-                var existingConnection = DotNetEnv.Env.GetString("CONNECTION_STRING", null);
-                if (!string.IsNullOrEmpty(existingConnection))
-                {
-                    // Check if sample data is actually available with the existing connection
-                    var hasRealSampleData = await SampleDataChecker.CheckSampleDataAvailableAsync("sample_mflix");
-                    if (hasRealSampleData)
-                    {
-                        Assert.Ignore("Skipping test - CI environment has sample data loaded. This test validates connection error handling.");
-                    }
-                }
+                // Load the temporary .env file
+                Env.Load(tempEnvFile);
 
-                // Arrange - Create a temporary .env file with invalid connection string
-                var tempEnvFile = Path.Combine(Path.GetTempPath(), ".env.test.invalid");
-                await File.WriteAllTextAsync(tempEnvFile, "CONNECTION_STRING=mongodb://invalid-host:27017/test\n");
+                var result = await SampleDataChecker.CheckSampleDataAvailableAsync("sample_mflix");
 
-                try
-                {
-                    // Load the temporary .env file
-                    DotNetEnv.Env.Load(tempEnvFile);
 
-                    // Act
-                    var result = await SampleDataChecker.CheckSampleDataAvailableAsync("sample_mflix");
-
-                    // Assert
-                    Assert.That(result, Is.False);
-                }
-                finally
-                {
-                    // Cleanup
-                    if (File.Exists(tempEnvFile))
-                    {
-                        File.Delete(tempEnvFile);
-                    }
-                }
+                Assert.That(result, Is.False);
             }
-
-            [Test]
-            public async Task ShouldReturnTrue_WhenRequiredCollectionsAreEmpty()
+            finally
             {
-                // Arrange
-                var databaseName = "test_empty_collections";
-
-                // Act
-                var result = await SampleDataChecker.CheckSampleDataAvailableAsync(databaseName, Array.Empty<string>());
-
-                // Assert - Should be false since database likely doesn't exist, but won't fail on collections
-                Assert.That(result, Is.TypeOf<bool>());
-            }
-
-            [Test]
-            public async Task ShouldUseDefaultCollections_WhenNotSpecified()
-            {
-                // Arrange
-                var databaseName = "sample_mflix"; // This is in StandardSampleDatabases
-
-                // Act
-                var result = await SampleDataChecker.CheckSampleDataAvailableAsync(databaseName);
-
-                // Assert - Should check the default collections for sample_mflix
-                Assert.That(result, Is.TypeOf<bool>());
+                if (File.Exists(tempEnvFile)) File.Delete(tempEnvFile);
             }
         }
 
-        [TestFixture]
-        public class GetAvailableSampleDatabasesAsyncTests : SampleDataCheckerTests
+        [Test]
+        [Description("Ensures that results are cached to prevent repeated database queries for the same database")]
+        public async Task ShouldCacheResults_ToAvoidRepeatedDatabaseQueries()
         {
-            [Test]
-            public async Task ShouldReturnListOfAvailableDatabases()
+            var result1 = await SampleDataChecker.CheckSampleDataAvailableAsync("nonexistent_database");
+            var result2 = await SampleDataChecker.CheckSampleDataAvailableAsync("nonexistent_database");
+
+            Assert.That(result1, Is.EqualTo(result2));
+        }
+
+        [Test]
+        [Description(
+            "Verifies that connection errors are handled gracefully and return false instead of throwing exceptions")]
+        public async Task ShouldHandleConnectionErrors_Gracefully()
+        {
+            // Skip this test if we're in a CI environment with sample data available
+            // This test is designed to test connection error handling with invalid connection strings
+            var existingConnection = Env.GetString("CONNECTION_STRING");
+            if (!string.IsNullOrEmpty(existingConnection))
             {
-                // Act
+                // Check if sample data is actually available with the existing connection
+                var hasRealSampleData = await SampleDataChecker.CheckSampleDataAvailableAsync("sample_mflix");
+                if (hasRealSampleData)
+                    Assert.Ignore(
+                        "Skipping test - CI environment has sample data loaded. This test validates connection error handling.");
+            }
+
+
+            var tempEnvFile = Path.Combine(Path.GetTempPath(), ".env.test.invalid");
+            await File.WriteAllTextAsync(tempEnvFile, "CONNECTION_STRING=mongodb://invalid-host:27017/test\n");
+
+            try
+            {
+                // Load the temporary .env file
+                Env.Load(tempEnvFile);
+
+                var result = await SampleDataChecker.CheckSampleDataAvailableAsync("sample_mflix");
+
+
+                Assert.That(result, Is.False);
+            }
+            finally
+            {
+                if (File.Exists(tempEnvFile)) File.Delete(tempEnvFile);
+            }
+        }
+
+        [Test]
+        [Description(
+            "Tests that the method returns true when checking for sample data with an empty collections array")]
+        public async Task ShouldReturnTrue_WhenRequiredCollectionsAreEmpty()
+        {
+            var databaseName = "test_empty_collections";
+
+            var result = await SampleDataChecker.CheckSampleDataAvailableAsync(databaseName, []);
+
+
+            Assert.That(result, Is.TypeOf<bool>());
+        }
+
+        [Test]
+        [Description("Verifies that default collections are used when no specific collections are provided")]
+        public async Task ShouldUseDefaultCollections_WhenNotSpecified()
+        {
+            var databaseName = "sample_mflix"; // This is in StandardSampleDatabases
+
+            var result = await SampleDataChecker.CheckSampleDataAvailableAsync(databaseName);
+
+
+            Assert.That(result, Is.TypeOf<bool>());
+        }
+    }
+
+    [TestFixture]
+    public class GetAvailableSampleDatabasesAsyncTests
+    {
+        [Test]
+        [Description("Tests that the method returns a list of available sample databases starting with 'sample_'")]
+        public async Task ShouldReturnListOfAvailableDatabases()
+        {
+            var availableDbs = await SampleDataChecker.GetAvailableSampleDatabasesAsync();
+
+
+            Assert.That(availableDbs, Is.Not.Null);
+            Assert.That(availableDbs, Is.InstanceOf<List<string>>());
+
+            // All returned database names should start with 'sample_'
+            foreach (var dbName in availableDbs) Assert.That(dbName, Does.StartWith("sample_"));
+        }
+
+        [Test]
+        [Description("Verifies that an empty list is returned when no sample databases are available")]
+        public async Task ShouldReturnEmptyList_WhenNoSampleDatabasesAvailable()
+        {
+            // Skip this test if we're in a CI environment with sample data available
+            // This test is designed to test the case where no sample databases are available
+            var existingConnection = Env.GetString("CONNECTION_STRING");
+            if (!string.IsNullOrEmpty(existingConnection))
+            {
+                // Check if sample data is actually available with the existing connection
+                var existingSampleDbs = await SampleDataChecker.GetAvailableSampleDatabasesAsync();
+                if (existingSampleDbs.Any())
+                    Assert.Ignore(
+                        "Skipping test - CI environment has sample data loaded. This test validates behavior when no sample databases are available.");
+            }
+
+
+            var tempEnvFile = Path.Combine(Path.GetTempPath(), ".env.test.empty");
+            await File.WriteAllTextAsync(tempEnvFile, "CONNECTION_STRING=mongodb://invalid-host:27017/test\n");
+
+            try
+            {
+                // Load the temporary .env file
+                Env.Load(tempEnvFile);
+
                 var availableDbs = await SampleDataChecker.GetAvailableSampleDatabasesAsync();
 
-                // Assert
+
                 Assert.That(availableDbs, Is.Not.Null);
-                Assert.That(availableDbs, Is.InstanceOf<List<string>>());
-
-                // All returned database names should start with 'sample_'
-                foreach (var dbName in availableDbs)
-                {
-                    Assert.That(dbName, Does.StartWith("sample_"));
-                }
+                Assert.That(availableDbs, Is.Empty);
             }
-
-            [Test]
-            public async Task ShouldReturnEmptyList_WhenNoSampleDatabasesAvailable()
+            finally
             {
-                // Skip this test if we're in a CI environment with sample data available
-                // This test is designed to test the case where no sample databases are available
-                var existingConnection = DotNetEnv.Env.GetString("CONNECTION_STRING", null);
-                if (!string.IsNullOrEmpty(existingConnection))
-                {
-                    // Check if sample data is actually available with the existing connection
-                    var existingSampleDbs = await SampleDataChecker.GetAvailableSampleDatabasesAsync();
-                    if (existingSampleDbs.Any())
-                    {
-                        Assert.Ignore("Skipping test - CI environment has sample data loaded. This test validates behavior when no sample databases are available.");
-                    }
-                }
-
-                // Arrange - Create a temporary .env file with invalid connection string
-                var tempEnvFile = Path.Combine(Path.GetTempPath(), ".env.test.empty");
-                await File.WriteAllTextAsync(tempEnvFile, "CONNECTION_STRING=mongodb://invalid-host:27017/test\n");
-
-                try
-                {
-                    // Load the temporary .env file
-                    DotNetEnv.Env.Load(tempEnvFile);
-
-                    // Act
-                    var availableDbs = await SampleDataChecker.GetAvailableSampleDatabasesAsync();
-
-                    // Assert
-                    Assert.That(availableDbs, Is.Not.Null);
-                    Assert.That(availableDbs, Is.Empty);
-                }
-                finally
-                {
-                    // Cleanup
-                    if (File.Exists(tempEnvFile))
-                    {
-                        File.Delete(tempEnvFile);
-                    }
-                }
-            }
-        }
-
-        [TestFixture]
-        public class CheckMultipleSampleDatabasesAsyncTests : SampleDataCheckerTests
-        {
-            [Test]
-            public async Task ShouldReturnCorrectAvailability_ForMultipleDatabases()
-            {
-                // Arrange
-                var requiredDatabases = new[] { "sample_mflix", "sample_restaurants" };
-
-                // Act
-                var result = await SampleDataChecker.CheckMultipleSampleDatabasesAsync(requiredDatabases);
-
-                // Assert
-                Assert.That(result, Is.Not.Null);
-                Assert.That(result.IsAvailable, Is.TypeOf<bool>());
-                Assert.That(result.MissingDatabases, Is.Not.Null);
-                Assert.That(result.AvailableDatabases, Is.Not.Null);
-            }
-
-            [Test]
-            public async Task ShouldHandleEmptyDatabaseArray()
-            {
-                // Arrange
-                var requiredDatabases = Array.Empty<string>();
-
-                // Act
-                var result = await SampleDataChecker.CheckMultipleSampleDatabasesAsync(requiredDatabases);
-
-                // Assert
-                Assert.That(result.IsAvailable, Is.True);
-                Assert.That(result.MissingDatabases, Is.Empty);
-                Assert.That(result.AvailableDatabases, Is.Empty);
-            }
-
-            [Test]
-            public async Task ShouldRespectCollectionsPerDatabase()
-            {
-                // Arrange
-                var requiredDatabases = new[] { "sample_mflix" };
-                var collectionsPerDatabase = new Dictionary<string, string[]>
-                {
-                    ["sample_mflix"] = new[] { "movies", "theaters" }
-                };
-
-                // Act
-                var result = await SampleDataChecker.CheckMultipleSampleDatabasesAsync(requiredDatabases, collectionsPerDatabase);
-
-                // Assert
-                Assert.That(result, Is.Not.Null);
-            }
-        }
-
-        [TestFixture]
-        public class CacheManagementTests : SampleDataCheckerTests
-        {
-            [Test]
-            public void ClearSampleDataCache_ShouldClearInternalCache()
-            {
-                // Arrange - populate cache by making a call
-                var task = SampleDataChecker.CheckSampleDataAvailableAsync("test_database");
-                task.Wait();
-
-                // Act
-                SampleDataChecker.ClearSampleDataCache();
-
-                // Assert - Should not throw (cache is cleared)
-                Assert.DoesNotThrow(() => SampleDataChecker.ClearSampleDataCache());
-            }
-
-            [Test]
-            public async Task ShouldShowSummary_OnlyOnce()
-            {
-                // Act
-                await SampleDataChecker.ShowSampleDataSummaryAsync();
-                await SampleDataChecker.ShowSampleDataSummaryAsync(); // Second call should return immediately
-
-                // Assert - Should not hang or throw
-                Assert.Pass();
-            }
-        }
-
-        [TestFixture]
-        public class StandardSampleDatabasesTests
-        {
-            [Test]
-            public void StandardSampleDatabases_ShouldContainExpectedEntries()
-            {
-                // Assert
-                Assert.That(SampleDataChecker.StandardSampleDatabases, Is.Not.Null);
-                Assert.That(SampleDataChecker.StandardSampleDatabases, Contains.Key("sample_mflix"));
-                Assert.That(SampleDataChecker.StandardSampleDatabases, Contains.Key("sample_restaurants"));
-                Assert.That(SampleDataChecker.StandardSampleDatabases, Contains.Key("sample_training"));
-
-                // Check that sample_mflix has expected collections
-                Assert.That(SampleDataChecker.StandardSampleDatabases["sample_mflix"], Contains.Item("movies"));
-                Assert.That(SampleDataChecker.StandardSampleDatabases["sample_mflix"], Contains.Item("theaters"));
+                if (File.Exists(tempEnvFile)) File.Delete(tempEnvFile);
             }
         }
     }
 
-    // Example tests demonstrating the usage of the sample data utilities
     [TestFixture]
-    public class SampleDataAttributeExampleTests
+    public class CheckMultipleSampleDatabasesAsyncTests
     {
         [Test]
-        [RequiresSampleData("sample_mflix")]
-        public async Task ShouldRunOnlyIfSampleMflixIsAvailable()
+        [Description("Tests that the method correctly reports availability status for multiple sample databases")]
+        public async Task ShouldReturnCorrectAvailability_ForMultipleDatabases()
         {
-            // Check sample data at the beginning of the test
-            SampleDataTestHelper.EnsureSampleDataOrSkip("sample_mflix");
+            var requiredDatabases = new[] { "sample_mflix", "sample_restaurants" };
 
-            // This test will only run if sample_mflix database exists with default collections
-            await Task.Delay(1); // Simulate some work
-            Assert.Pass("This test ran because sample_mflix is available");
+            var result = await SampleDataChecker.CheckMultipleSampleDatabasesAsync(requiredDatabases);
+
+
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.IsAvailable, Is.TypeOf<bool>());
+            Assert.That(result.MissingDatabases, Is.Not.Null);
+            Assert.That(result.AvailableDatabases, Is.Not.Null);
         }
 
         [Test]
-        [RequiresSampleData("sample_mflix", "sample_restaurants")]
-        public async Task ShouldRunOnlyIfBothDatabasesAreAvailable()
+        [Description(
+            "Verifies that the method handles empty database arrays gracefully and returns appropriate results")]
+        public async Task ShouldHandleEmptyDatabaseArray()
         {
-            // Check sample data at the beginning of the test
-            SampleDataTestHelper.EnsureSampleDataOrSkip("sample_mflix", "sample_restaurants");
+            var requiredDatabases = Array.Empty<string>();
 
-            // This test will only run if both sample databases exist
-            await Task.Delay(1); // Simulate some work
-            Assert.Pass("This test ran because both sample databases are available");
+            var result = await SampleDataChecker.CheckMultipleSampleDatabasesAsync(requiredDatabases);
+
+
+            Assert.That(result.IsAvailable, Is.True);
+            Assert.That(result.MissingDatabases, Is.Empty);
+            Assert.That(result.AvailableDatabases, Is.Empty);
         }
 
         [Test]
-        [RequiresSampleData("nonexistent_sample_database")]
-        public async Task ShouldBeSkipped_WhenRequiredDatabaseIsMissing()
+        [Description("Tests that the method respects specific collection requirements per database")]
+        public async Task ShouldRespectCollectionsPerDatabase()
         {
-            // Check sample data at the beginning of the test
-            SampleDataTestHelper.EnsureSampleDataOrSkip("nonexistent_sample_database");
-
-            // This test should be skipped since the database doesn't exist
-            await Task.Delay(1);
-            Assert.Fail("This test should have been skipped");
-        }
-
-        [Test]
-        public async Task ShouldAlwaysRun_WhenNoSampleDataRequired()
-        {
-            // Regular test that always runs regardless of sample data
-            await Task.Delay(1);
-            Assert.Pass("This test always runs");
-        }
-
-        [Test]
-        [RequiresSampleData("sample_mflix")]
-        public async Task ShouldUseCollectionsPerDatabase()
-        {
-            // Check for specific collections
+            var requiredDatabases = new[] { "sample_mflix" };
             var collectionsPerDatabase = new Dictionary<string, string[]>
             {
                 ["sample_mflix"] = new[] { "movies", "theaters" }
             };
-            SampleDataTestHelper.EnsureSampleDataOrSkip(new[] { "sample_mflix" }, collectionsPerDatabase);
 
-            await Task.Delay(1);
-            Assert.Pass("This test ran with specific collection requirements");
+            var result =
+                await SampleDataChecker.CheckMultipleSampleDatabasesAsync(requiredDatabases, collectionsPerDatabase);
+
+
+            Assert.That(result, Is.Not.Null);
         }
     }
 
-    // Example test fixture demonstrating fixture-level sample data requirements  
     [TestFixture]
-    [RequiresSampleData("sample_mflix")]
-    public class SampleMflixTestFixture
+    public class CacheManagementTests
     {
-        [SetUp]
-        public void SetUp()
+        [Test]
+        [Description("Verifies that the cache clearing method executes without throwing exceptions")]
+        public void ClearSampleDataCache_ShouldClearInternalCache()
         {
-            // Check sample data at the fixture level
-            SampleDataTestHelper.EnsureSampleDataOrSkip("sample_mflix");
+            var task = SampleDataChecker.CheckSampleDataAvailableAsync("test_database");
+            task.Wait();
+
+            SampleDataChecker.ClearSampleDataCache();
+
+
+            Assert.DoesNotThrow(SampleDataChecker.ClearSampleDataCache);
         }
 
         [Test]
-        public async Task ShouldRunIfSampleMflixAvailable_Test1()
+        [Description("Tests that the summary is shown only once and subsequent calls return immediately")]
+        public async Task ShouldShowSummary_OnlyOnce()
         {
-            // All tests in this fixture require sample_mflix
-            await Task.Delay(1);
-            Assert.Pass("Fixture-level sample data test 1");
-        }
+            await SampleDataChecker.ShowSampleDataSummaryAsync();
+            await SampleDataChecker.ShowSampleDataSummaryAsync(); // Second call should return immediately
 
-        [Test]
-        public async Task ShouldRunIfSampleMflixAvailable_Test2()
-        {
-            // All tests in this fixture require sample_mflix
-            await Task.Delay(1);
-            Assert.Pass("Fixture-level sample data test 2");
+
+            Assert.Pass();
         }
+    }
+
+    [TestFixture]
+    public class StandardSampleDatabasesTests
+    {
+        [Test]
+        [Description(
+            "Verifies that the StandardSampleDatabases contains expected database entries with correct collections")]
+        public void StandardSampleDatabases_ShouldContainExpectedEntries()
+        {
+            Assert.That(SampleDataChecker.StandardSampleDatabases, Is.Not.Null);
+            Assert.That(SampleDataChecker.StandardSampleDatabases, Contains.Key("sample_mflix"));
+            Assert.That(SampleDataChecker.StandardSampleDatabases, Contains.Key("sample_restaurants"));
+            Assert.That(SampleDataChecker.StandardSampleDatabases, Contains.Key("sample_training"));
+
+            // Check that sample_mflix has expected collections
+            Assert.That(SampleDataChecker.StandardSampleDatabases["sample_mflix"], Contains.Item("movies"));
+            Assert.That(SampleDataChecker.StandardSampleDatabases["sample_mflix"], Contains.Item("theaters"));
+        }
+    }
+}
+
+// Example tests demonstrating the usage of the sample data utilities
+[TestFixture]
+public class SampleDataAttributeExampleTests
+{
+    [Test]
+    [RequiresSampleData("sample_mflix")]
+    [Description("Demonstrates a test that only runs when the sample_mflix database is available")]
+    public async Task ShouldRunOnlyIfSampleMflixIsAvailable()
+    {
+        // Check sample data at the beginning of the test
+        SampleDataTestHelper.EnsureSampleDataOrSkip("sample_mflix");
+
+        // This test will only run if sample_mflix database exists with default collections
+        await Task.Delay(1); // Simulate some work
+        Assert.Pass("This test ran because sample_mflix is available");
+    }
+
+    [Test]
+    [RequiresSampleData("sample_mflix", "sample_restaurants")]
+    [Description("Shows how to require multiple sample databases to be available before running a test")]
+    public async Task ShouldRunOnlyIfBothDatabasesAreAvailable()
+    {
+        // Check sample data at the beginning of the test
+        SampleDataTestHelper.EnsureSampleDataOrSkip("sample_mflix", "sample_restaurants");
+
+        // This test will only run if both sample databases exist
+        await Task.Delay(1); // Simulate some work
+        Assert.Pass("This test ran because both sample databases are available");
+    }
+
+    [Test]
+    [RequiresSampleData("nonexistent_sample_database")]
+    [Description("Example test that should be skipped when the required database is not available")]
+    public async Task ShouldBeSkipped_WhenRequiredDatabaseIsMissing()
+    {
+        // Check sample data at the beginning of the test
+        SampleDataTestHelper.EnsureSampleDataOrSkip("nonexistent_sample_database");
+
+        // This test should be skipped since the database doesn't exist
+        await Task.Delay(1);
+        Assert.Fail("This test should have been skipped");
+    }
+
+    [Test]
+    [Description("A regular test that runs regardless of sample data availability")]
+    public async Task ShouldAlwaysRun_WhenNoSampleDataRequired()
+    {
+        // Regular test that always runs regardless of sample data
+        await Task.Delay(1);
+        Assert.Pass("This test always runs");
+    }
+
+    [Test]
+    [RequiresSampleData("sample_mflix")]
+    [Description("Demonstrates how to specify required collections per database for testing")]
+    public async Task ShouldUseCollectionsPerDatabase()
+    {
+        // Check for specific collections
+        var collectionsPerDatabase = new Dictionary<string, string[]>
+        {
+            ["sample_mflix"] = new[] { "movies", "theaters" }
+        };
+        SampleDataTestHelper.EnsureSampleDataOrSkip(new[] { "sample_mflix" }, collectionsPerDatabase);
+
+        await Task.Delay(1);
+        Assert.Pass("This test ran with specific collection requirements");
+    }
+}
+
+// Example test fixture demonstrating fixture-level sample data requirements  
+[TestFixture]
+[RequiresSampleData("sample_mflix")]
+public class SampleMflixTestFixture
+{
+    [SetUp]
+    public void SetUp()
+    {
+        // Check sample data at the fixture level
+        SampleDataTestHelper.EnsureSampleDataOrSkip("sample_mflix");
+    }
+
+    [Test]
+    [Description("First test in a fixture that requires sample_mflix to be available")]
+    public async Task ShouldRunIfSampleMflixAvailable_Test1()
+    {
+        // All tests in this fixture require sample_mflix
+        await Task.Delay(1);
+        Assert.Pass("Fixture-level sample data test 1");
+    }
+
+    [Test]
+    [Description("Second test in a fixture that requires sample_mflix to be available")]
+    public async Task ShouldRunIfSampleMflixAvailable_Test2()
+    {
+        // All tests in this fixture require sample_mflix
+        await Task.Delay(1);
+        Assert.Pass("Fixture-level sample data test 2");
     }
 }

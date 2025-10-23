@@ -22,7 +22,7 @@ Refer to the README at the root of the `code-example-tests` directory for inform
 about how to use the tested code examples in your documentation project after you complete the
 `snip` step.
 
-## Set up environment
+## Set up the environment
 
 This test suite requires you to have `.NET` v9.0 or newer installed. If you
 do not yet have .NET installed, refer to
@@ -36,7 +36,7 @@ to install dependencies:
 dotnet restore
 ```
 
-## To create a new code example
+## Create a new code example
 
 To create a new code example:
 
@@ -129,8 +129,8 @@ public void TestAppProducesExpectedResult()
     // Insert your logic to verify the output matches your expectations - for example:
     var expectedOutputCount = 1;
     var expectedOutputName = "Alice";
-    Assert.That(results.Count, Is.EqualTo(expectedOutputCount), $"Result count {results.Count} does not match output example length {expectedOutputCount}.");
-    Assert.That(results[0].GetValue("name").AsString, Is.EqualTo(expectedOutputName), $"Result name '{results[0]}' does not match expected output name '{expectedOutputName}'.");
+    Expect.That(results.Count).ShouldMatch(expectedOutputCount);
+    Expect.That(results[0].GetValue("name").AsString).ShouldMatch(expectedOutputName);
 }
 ```
 
@@ -177,24 +177,10 @@ for details.
 For an example you can copy/paste to stub out your own test case, refer to
 `Tests/ExampleStubTest.cs`.
 
-### Define logic to verify the output
+In most cases, you should verify the output by using the **Expect** APIs to 
+verify the output against the output we show in the documentation.
 
-You can verify the output in a few different ways:
-
-1. Return a simple string from your example function, and use a strict match
-   to confirm it matches expectations.
-2. Use the **Comparison** library to validate output against the output we show
-   in the documentation.
-
-#### Verify a simple string match
-
-Some code examples might return a simple string. For example:
-
-```csharp
-Console.WriteLine($"Successfully created index named {result}");
-return $"Successfully created index named {result}"; // :remove:
-```
-
+### Using the Expect API
 In the test file, you can call the function that executes your code example,
 establish what the expected string should be, and perform a match to confirm
 that the code executed correctly:
@@ -202,40 +188,34 @@ that the code executed correctly:
 ```csharp
 var result = example.RunApp();
 const expectedReturn = 'some output to verify in a test';
-Assert.That(result, Is.EqualTo(expectedReturn), $"Result '{result}' does not match expected output '{expectedReturn}'.");
+Expect.That(result).ShouldMatch(expectedReturn);
 ```
 
 #### Verify output from a file
 
 If you are showing the output in the docs, write the output to a file whose
 filename matches the example - i.e. `TutorialOutput.txt`. Then, use the
-**Comparison** library to validate that the actual output matches the expected
+**Expect** APIs to validate that the actual output matches the expected
 output from the file:
 
 ```csharp
 var results = _example.PerformAggregation();
 
-// Use the Comparison Library to validate results against expected output file
 var outputLocation = "Examples/Aggregation/Pipelines/Filter/TutorialOutput.txt";
-var validation = OutputValidator.Expect(results).ToMatchFile(outputLocation);
 
-// Verify the validation succeeded
-validation.IsSuccess.Should().BeTrue(validation.ErrorMessage);
+Expect.That(outputLocation)
+    .WithOption(ComparisonOptions.IgnoreFields("_id", "timestamp"))
+    .ShouldMatch(results);
 
-// Alternative: Use the fluent API with options
-OutputValidator.Expect(results)
-    .WithUnorderedArrays()  // For results that can come back in any order
-    .WithIgnoredFields("_id", "timestamp")  // Ignore dynamic fields
-    .ToMatchFile(outputLocation)
-    .IsSuccess.Should().BeTrue();
 ```
 
-## Using the Comparison Library
+## Using the Expect Fluent APIs
 
-This test suite includes a comprehensive **Comparison Library** (`Utilities.Comparison`)
-designed specifically for validating MongoDB C# Driver output against expected results.
+The test suite includes a comprehensive fluent API
+designed specifically for validating MongoDB C# Driver output against expected results. 
+In most cases, you call ``Expect.That(actualResults).ShouldMatch(expectedResults)``.
 
-### Key Features
+**Key Features**
 
 - **MongoDB Type Support**: Automatically handles ObjectId, Decimal128, DateTime, and other MongoDB-specific types
 - **Multiple Input Formats**: Supports JSON, JSONL, MongoDB Extended JSON, and C# object syntax
@@ -246,31 +226,42 @@ designed specifically for validating MongoDB C# Driver output against expected r
 ### Basic Usage
 
 ```csharp
-using Utilities.Comparison;
+using Utilities;
 
-// Simple validation
+// Simple object validation
+Expect.That(actualObject).ShouldMatch(expectedObject);
+
+// Simple file validation
 var results = example.RunExample();
-OutputValidator.Expect(results)
-    .ToMatchFile("Examples/MyExample/ExpectedOutput.txt")
-    .IsSuccess.Should().BeTrue();
+
+Expect.That(results)
+    .ShouldMatch("Examples/MyExample/ExpectedOutput.txt");
 ```
+
+
+**¡Important!**
+The order matters -- be sure you always specify the actual results first in ``Expect.That()``, followed by the expected results in ``ShouldMatch()``.
 
 ### Advanced Options
 
-```csharp
-// With comparison options
-OutputValidator.Expect(results)
-    .WithUnorderedArrays()                    // Arrays can be in any order
-    .WithIgnoredFields("_id", "createdAt")   // Ignore dynamic fields
-    .ToMatchFile("ExpectedOutput.txt")
-    .IsSuccess.Should().BeTrue();
+There are 3 options available to configure the comparison behavior:
 
-// Ordered arrays (for aggregation pipelines, sorted results)
-OutputValidator.Expect(results)
-    .WithOrderedArrays()
-    .ToMatchFile("ExpectedOutput.txt")
-    .IsSuccess.Should().BeTrue();
+- ``WithOrderedSort()`` requires the elements to be in the same order in both the actual and expected results. Use this when your aggregation pipeline or CRUD operation includes a sort operator, so only correctly sorted results will match.
+- ``WithUnorderedSort()`` accepts elements in any order as long as all the elements exist. This is the default behavior. Use when your aggregation pipeline or CRUD operation does not include a sort operator, to match MongoDB's default unsorted behavior.
+- ``WithIgnoredFields(params string[] fieldNames)`` ignores the values of these fields during comparison. Use for dynamic values that may change between test runs, such as timestamps or object IDs.
+
+Here is an example that uses both ordered sort and ignored fields:
+
+```csharp
+
+ Expect.That(actualArray)
+    .WithOrderedSort()
+    .WithIgnoredFields("_id", "name")
+    .ShouldMatch(expectedArray);
 ```
+
+Note that you do not need to set ``WithUnorderedSort()`` because it is the default behavior. It is provided only if you want to be explicit about your intentions.
+
 
 ### Expected Output File Formats
 
@@ -294,7 +285,7 @@ The library supports multiple formats in your expected output files:
 { date: new DateTime(2021, 12, 18, 15, 56, 0), name: "Bob" }
 ```
 
-### Ellipsis Patterns for Dynamic Content
+#### Ellipsis Patterns for Dynamic Content
 
 Use `...` to match dynamic or variable content:
 
@@ -311,19 +302,6 @@ Use `...` to match dynamic or variable content:
 **Array elements:**
 ```json
 ["first", "second", ...]  // Matches arrays starting with these elements
-```
-
-### Error Handling
-
-When validation fails, the library provides detailed error messages:
-
-```csharp
-var validation = OutputValidator.Expect(results).ToMatchFile("Expected.txt");
-if (!validation.IsSuccess)
-{
-    Console.WriteLine($"Validation failed: {validation.ErrorMessage}");
-    // Example output: "Mismatch at path 'users[0].email': expected 'alice@example.com', got 'alice@test.com'"
-}
 ```
 
 ## Working with Sample Data
@@ -547,3 +525,5 @@ automatically outputs to `content/code-examples/tested/csharp/driver/Aggregation
 
 This script will automatically create the specified output path if it does not
 exist.
+
+

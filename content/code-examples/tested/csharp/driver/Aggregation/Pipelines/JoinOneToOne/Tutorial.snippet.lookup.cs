@@ -2,5 +2,5 @@
     foreignCollectionName: "products",
     localField: "ProductId",
     foreignField: "Id",
-    @as: "ProductMapping"
+    "ProductMapping"
 )

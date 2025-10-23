@@ -3,13 +3,13 @@ using System.Collections.Immutable;
 namespace Utilities.Comparison;
 
 /// <summary>
-/// Core comparison engine that implements the comparison specification.
-/// Uses modern C# patterns including async/await, Result types, and LINQ.
+///     Core comparison engine that implements the comparison specification.
+///     Uses modern C# patterns including async/await, Result types, and LINQ.
 /// </summary>
 public static class ComparisonEngine
 {
     /// <summary>
-    /// Compares two values according to the comparison specification.
+    ///     Compares two values according to the comparison specification.
     /// </summary>
     /// <param name="expected">Expected value (may contain ellipsis patterns)</param>
     /// <param name="actual">Actual value to compare</param>
@@ -33,7 +33,7 @@ public static class ComparisonEngine
     }
 
     /// <summary>
-    /// Synchronous version of CompareAsync for simpler usage in tests.
+    ///     Synchronous version of CompareAsync for simpler usage in tests.
     /// </summary>
     public static ComparisonResult Compare(
         object? expected,
@@ -45,8 +45,8 @@ public static class ComparisonEngine
     }
 
     /// <summary>
-    /// Core comparison algorithm that handles the multi-step comparison process.
-    /// Order is critical: ellipsis → null → normalize → primitives → arrays → objects.
+    ///     Core comparison algorithm that handles the multi-step comparison process.
+    ///     Order is critical: ellipsis → null → normalize → primitives → arrays → objects.
     /// </summary>
     private static async Task<ComparisonResult> CompareInternal(
         object? expected,
@@ -58,17 +58,18 @@ public static class ComparisonEngine
         cancellationToken.ThrowIfCancellationRequested();
 
         // Step 1: Handle ellipsis patterns first - these take precedence over all other logic
-        if (EllipsisPatternMatcher.TryMatch(expected, actual))
-        {
-            return ComparisonSuccess.Instance;
-        }
+        if (EllipsisPatternMatcher.TryMatch(expected, actual)) return new ComparisonSuccess();
 
         // Step 2: Handle null cases - must come after ellipsis to allow "..." to match null
         if (expected is null || actual is null)
         {
-            return expected is null && actual is null
-                ? ComparisonSuccess.Instance
-                : CreateFailure(path, SafeToString(expected), SafeToString(actual), "One value is null while the other is not");
+            if (expected is null && actual is null) return new ComparisonSuccess();
+
+            var nullVariable = expected is null ? "expected" : "actual";
+            var nonNullValue = expected is null ? SafeToString(actual) : SafeToString(expected);
+
+            return new ComparisonError(path, SafeToString(expected), SafeToString(actual),
+                $"The {nullVariable} value is null while the other value is '{nonNullValue}'.");
         }
 
         // Step 3: Normalize values - converts MongoDB types to comparable .NET types
@@ -77,85 +78,71 @@ public static class ComparisonEngine
 
         // Step 4: Handle primitives
         if (IsPrimitive(normalizedExpected) || IsPrimitive(normalizedActual))
-        {
             return ComparePrimitives(normalizedExpected, normalizedActual, path);
-        }
 
         // Step 5: Handle arrays
         if (normalizedExpected is object[] expectedArray && normalizedActual is object[] actualArray)
-        {
             return await CompareArraysAsync(expectedArray, actualArray, options, path, cancellationToken);
-        }
 
         // Step 6: Handle objects
         if (normalizedExpected is IDictionary<string, object> expectedDict &&
             normalizedActual is IDictionary<string, object> actualDict)
-        {
             return await CompareObjectsAsync(expectedDict, actualDict, options, path, cancellationToken);
-        }
 
         // Step 7: Type mismatch
-        return new ComparisonFailure(new ComparisonError(
+        return new ComparisonError(
             path,
             normalizedExpected?.GetType().Name ?? "null",
             normalizedActual?.GetType().Name ?? "null",
-            "Type mismatch between expected and actual values"));
+            "Type mismatch between expected and actual values");
     }
 
     /// <summary>
-    /// Compares primitive values with type-flexible numeric comparison.
-    /// Handles the nuanced requirement that numeric types should be compared by value, not type.
+    ///     Compares primitive values with type-flexible numeric comparison.
+    ///     Handles the nuanced requirement that numeric types should be compared by value, not type.
     /// </summary>
     private static ComparisonResult ComparePrimitives(object? expected, object? actual, string path)
     {
         // Check for type mismatch before string conversion
         if (expected?.GetType() != actual?.GetType())
-        {
             // Allow flexible numeric type conversions (e.g., int vs double with same value)
             // This is essential for MongoDB comparisons where numbers may come back as different types
             if (!AreTypesCompatible(expected, actual))
-            {
-                return CreateFailure(path, SafeToString(expected), SafeToString(actual),
+                return new ComparisonError(path, SafeToString(expected), SafeToString(actual),
                     $"Type mismatch: Expected {SafeGetTypeName(expected)}, Actual {SafeGetTypeName(actual)}");
-            }
-        }
 
         var expectedStr = expected?.ToString() ?? "";
         var actualStr = actual?.ToString() ?? "";
 
         // Handle numeric comparisons more precisely
         if (expected is not null && actual is not null && IsNumeric(expected) && IsNumeric(actual))
-        {
             // Convert both to decimal for precise comparison
             if (TryConvertToDecimal(expected, out var expectedDecimal) &&
                 TryConvertToDecimal(actual, out var actualDecimal))
-            {
                 return expectedDecimal == actualDecimal
-                    ? ComparisonSuccess.Instance
-                    : new ComparisonFailure(new ComparisonError(
+                    ? new ComparisonSuccess()
+                    : new ComparisonError(
                         path,
                         expectedStr,
                         actualStr,
-                        "Numeric values do not match"));
-            }
-        }
+                        "Numeric values do not match");
 
         // Handle potential date normalization
         expectedStr = ValueNormalizer.NormalizeIfDate(expectedStr);
         actualStr = ValueNormalizer.NormalizeIfDate(actualStr);
 
         return string.Equals(expectedStr, actualStr, StringComparison.Ordinal)
-            ? ComparisonSuccess.Instance
-            : new ComparisonFailure(new ComparisonError(
+            ? new ComparisonSuccess()
+            : new ComparisonError(
                 path,
                 expectedStr,
                 actualStr,
-                "Primitive values do not match"));
+                "Primitive values do not match");
     }
 
     /// <summary>
-    /// Determines if two values have compatible types for comparison.
-    /// Critical for handling MongoDB's type flexibility where numbers may be returned as different .NET types.
+    ///     Determines if two values have compatible types for comparison.
+    ///     Critical for handling MongoDB's type flexibility where numbers may be returned as different .NET types.
     /// </summary>
     private static bool AreTypesCompatible(object? expected, object? actual)
     {
@@ -171,14 +158,17 @@ public static class ComparisonEngine
         return expected.GetType() == actual.GetType();
     }
 
-    private static bool IsNumeric(object value) => value switch
+    private static bool IsNumeric(object value)
     {
-        byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal => true,
-        _ => false
-    };
+        return value switch
+        {
+            byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal => true,
+            _ => false
+        };
+    }
 
     /// <summary>
-    /// Tries to convert a numeric value to decimal for precise comparison.
+    ///     Tries to convert a numeric value to decimal for precise comparison.
     /// </summary>
     private static bool TryConvertToDecimal(object? value, out decimal result)
     {
@@ -202,7 +192,7 @@ public static class ComparisonEngine
     }
 
     /// <summary>
-    /// Checks if an array contains mixed primitive and object types.
+    ///     Checks if an array contains mixed primitive and object types.
     /// </summary>
     private static bool HasMixedTypes(object[] array)
     {
@@ -215,8 +205,8 @@ public static class ComparisonEngine
     }
 
     /// <summary>
-    /// Compares arrays of primitives using frequency counting.
-    /// Each primitive value must appear the same number of times in both arrays.
+    ///     Compares arrays of primitives using frequency counting.
+    ///     Each primitive value must appear the same number of times in both arrays.
     /// </summary>
     private static bool CompareByFrequency(object[] expected, object[] actual)
     {
@@ -232,16 +222,14 @@ public static class ComparisonEngine
             return false;
 
         foreach (var (key, expectedCount) in expectedFreq)
-        {
             if (!actualFreq.TryGetValue(key, out var actualCount) || expectedCount != actualCount)
                 return false;
-        }
 
         return true;
     }
 
     /// <summary>
-    /// Builds a frequency map for array elements, handling null values and using normalized keys.
+    ///     Builds a frequency map for array elements, handling null values and using normalized keys.
     /// </summary>
     private static Dictionary<string, int> BuildFrequencyMap(object[] array)
     {
@@ -265,24 +253,22 @@ public static class ComparisonEngine
     {
         // Handle array ellipsis patterns
         if (EllipsisPatternMatcher.ArrayContainsEllipsis(expected))
-        {
             return await CompareArrayWithEllipsisAsync(expected, actual, options, path, cancellationToken);
-        }
 
         // Length check for non-ellipsis arrays
         if (expected.Length != actual.Length)
-        {
-            return new ComparisonFailure(new ComparisonError(
+            return new ComparisonError(
                 path,
                 $"Array[{expected.Length}]",
                 $"Array[{actual.Length}]",
-                "Array lengths differ"));
-        }
+                "Array lengths differ");
 
         return options.ArrayMode switch
         {
-            ArrayComparisonMode.Ordered => await CompareArraysOrderedAsync(expected, actual, options, path, cancellationToken),
-            ArrayComparisonMode.Unordered => await CompareArraysUnorderedAsync(expected, actual, options, path, cancellationToken),
+            ArrayComparisonMode.Ordered => await CompareArraysOrderedAsync(expected, actual, options, path,
+                cancellationToken),
+            ArrayComparisonMode.Unordered => await CompareArraysUnorderedAsync(expected, actual, options, path,
+                cancellationToken),
             _ => throw new ArgumentOutOfRangeException(nameof(options.ArrayMode))
         };
     }
@@ -303,7 +289,7 @@ public static class ComparisonEngine
                 return result;
         }
 
-        return ComparisonSuccess.Instance;
+        return new ComparisonSuccess();
     }
 
     private static async Task<ComparisonResult> CompareArraysUnorderedAsync(
@@ -315,17 +301,15 @@ public static class ComparisonEngine
     {
         // Check if arrays contain mixed primitive/object types - use hybrid strategy if so
         if (HasMixedTypes(expected) || HasMixedTypes(actual))
-        {
             return await CompareArraysHybridAsync(expected, actual, options, path, cancellationToken);
-        }
 
         // Use backtracking strategy for homogeneous arrays
         return await CompareArraysByBacktrackingAsync(expected, actual, options, path, cancellationToken);
     }
 
     /// <summary>
-    /// Hybrid strategy for arrays with mixed primitive and object types.
-    /// Separates primitives and objects, uses frequency counting for primitives, backtracking for objects.
+    ///     Hybrid strategy for arrays with mixed primitive and object types.
+    ///     Separates primitives and objects, uses frequency counting for primitives, backtracking for objects.
     /// </summary>
     private static async Task<ComparisonResult> CompareArraysHybridAsync(
         object[] expected,
@@ -344,21 +328,19 @@ public static class ComparisonEngine
 
         // Compare primitives using frequency counting
         if (!CompareByFrequency(expectedPrimitives, actualPrimitives))
-        {
-            return new ComparisonFailure(new ComparisonError(
+            return new ComparisonError(
                 path,
                 $"Primitives: [{string.Join(", ", expectedPrimitives.Select(SafeToString))}]",
                 $"Primitives: [{string.Join(", ", actualPrimitives.Select(SafeToString))}]",
-                "Primitive elements frequency mismatch in array"));
-        }
+                "Primitive elements frequency mismatch in array");
 
         // Compare objects using backtracking
         return await CompareArraysByBacktrackingAsync(expectedObjects, actualObjects, options, path, cancellationToken);
     }
 
     /// <summary>
-    /// Backtracking strategy for unordered array comparison.
-    /// Finds optimal matching between expected and actual elements.
+    ///     Backtracking strategy for unordered array comparison.
+    ///     Finds optimal matching between expected and actual elements.
     /// </summary>
     private static async Task<ComparisonResult> CompareArraysByBacktrackingAsync(
         object[] expected,
@@ -403,22 +385,20 @@ public static class ComparisonEngine
             {
                 // If we have a closest match, return its specific error for better reporting
                 if (closestMatchResult != null && closestMatchIndex >= 0)
-                {
                     // Re-run comparison with correct path for error reporting
                     return await CompareInternal(expectedItem, actual[closestMatchIndex],
                         options.InheritedGlobalEllipsis ? options : options,
                         $"{path}[{closestMatchIndex}]", cancellationToken);
-                }
 
-                return new ComparisonFailure(new ComparisonError(
+                return new ComparisonError(
                     $"{path}[{expectedIndex}]",
                     SafeToString(expectedItem),
                     "No matching element found",
-                    "Expected array element has no corresponding match in actual array"));
+                    "Expected array element has no corresponding match in actual array");
             }
         }
 
-        return ComparisonSuccess.Instance;
+        return new ComparisonSuccess();
     }
 
     private static async Task<ComparisonResult> CompareObjectsAsync(
@@ -444,13 +424,11 @@ public static class ComparisonEngine
             if (!actual.TryGetValue(key, out var actualValue))
             {
                 if (!hasGlobalEllipsis)
-                {
-                    return new ComparisonFailure(new ComparisonError(
+                    return new ComparisonError(
                         $"{path}.{key}",
                         SafeToString(expectedValue),
                         "missing",
-                        "Expected property is missing from actual object"));
-                }
+                        "Expected property is missing from actual object");
                 continue;
             }
 
@@ -466,16 +444,14 @@ public static class ComparisonEngine
         {
             var extraKeys = actual.Keys.Except(expected.Keys).Except(ignoredFields).ToList();
             if (extraKeys.Count > 0)
-            {
-                return new ComparisonFailure(new ComparisonError(
+                return new ComparisonError(
                     path,
                     "No extra properties",
                     $"Extra properties: {string.Join(", ", extraKeys)}",
-                    "Actual object contains unexpected properties"));
-            }
+                    "Actual object contains unexpected properties");
         }
 
-        return ComparisonSuccess.Instance;
+        return new ComparisonSuccess();
     }
 
     private static Task<ComparisonResult> CompareArrayWithEllipsisAsync(
@@ -489,44 +465,45 @@ public static class ComparisonEngine
         var nonEllipsisCount = expected.Count(item => !(item is string str && str == "..."));
 
         if (actual.Length < nonEllipsisCount)
-        {
-            return Task.FromResult<ComparisonResult>(new ComparisonFailure(new ComparisonError(
+            return Task.FromResult<ComparisonResult>(new ComparisonError(
                 path,
                 $"At least {nonEllipsisCount} elements",
                 $"{actual.Length} elements",
-                "Actual array has fewer elements than required by ellipsis pattern")));
-        }
+                "Actual array has fewer elements than required by ellipsis pattern"));
 
         // For now, just verify that non-ellipsis elements exist somewhere in the actual array
         // This can be made more sophisticated based on specific requirements
-        return Task.FromResult<ComparisonResult>(ComparisonSuccess.Instance);
+        return Task.FromResult<ComparisonResult>(new ComparisonSuccess());
     }
 
-    private static bool IsPrimitive(object? value) => value switch
+    private static bool IsPrimitive(object? value)
     {
-        null => true,
-        string => true,
-        bool => true,
-        byte or sbyte or short or ushort or int or uint or long or ulong => true,
-        float or double or decimal => true,
-        DateTime or DateTimeOffset => true,
-        Guid => true,
-        _ => false
-    };
+        return value switch
+        {
+            null => true,
+            string => true,
+            bool => true,
+            byte or sbyte or short or ushort or int or uint or long or ulong => true,
+            float or double or decimal => true,
+            DateTime or DateTimeOffset => true,
+            Guid => true,
+            _ => false
+        };
+    }
 
     /// <summary>
-    /// Helper method to safely convert an object to string, returning "null" for null values.
+    ///     Helper method to safely convert an object to string, returning "null" for null values.
     /// </summary>
-    private static string SafeToString(object? value) => value?.ToString() ?? "null";
+    private static string SafeToString(object? value)
+    {
+        return value?.ToString() ?? "null";
+    }
 
     /// <summary>
-    /// Helper method to safely get the type name of an object, returning "null" for null values.
+    ///     Helper method to safely get the type name of an object, returning "null" for null values.
     /// </summary>
-    private static string SafeGetTypeName(object? value) => value?.GetType()?.Name ?? "null";
-
-    /// <summary>
-    /// Helper method to create a ComparisonFailure with a ComparisonError.
-    /// </summary>
-    private static ComparisonFailure CreateFailure(string path, string expected, string actual, string message) =>
-        new ComparisonFailure(new ComparisonError(path, expected, actual, message));
+    private static string SafeGetTypeName(object? value)
+    {
+        return value?.GetType()?.Name ?? "null";
+    }
 }

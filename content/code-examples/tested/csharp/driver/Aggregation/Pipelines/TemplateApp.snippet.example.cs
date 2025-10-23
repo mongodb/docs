@@ -16,7 +16,6 @@ var aggDB = client.GetDatabase("agg_tutorials_db");
 
 // Delete any existing documents in collections if needed.
 // ... someColl.DeleteMany(Builders<MyClass>.Filter.Empty);
-
 // Insert sample data into the collection or collections.
 // ... someColl.InsertMany(new List<MyClass> { ... });
 

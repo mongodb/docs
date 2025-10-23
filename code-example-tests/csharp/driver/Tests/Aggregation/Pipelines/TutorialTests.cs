@@ -1,4 +1,7 @@
+using DotNetEnv;
+using Examples.Aggregation.Pipelines.Filter;
 using MongoDB.Driver;
+using Utilities;
 using Utilities.Comparison;
 
 namespace Tests.Aggregation.Pipelines;
@@ -6,10 +9,11 @@ namespace Tests.Aggregation.Pipelines;
 public class TutorialTests
 {
     private IMongoClient _client;
+
     [SetUp]
     public void Setup()
     {
-        var connectionString = DotNetEnv.Env.GetString("CONNECTION_STRING",
+        var connectionString = Env.GetString("CONNECTION_STRING",
             "Env variable not found. Verify you have a .env file with a valid connection string.");
         _client = new MongoClient(connectionString);
     }
@@ -17,18 +21,18 @@ public class TutorialTests
     [Test]
     public void TestFilterOutputMatchesDocs()
     {
-        var example = new Examples.Aggregation.Pipelines.Filter.Tutorial();
+        var example = new Tutorial();
         example.LoadSampleData();
         var results = example.PerformAggregation();
 
-        var solutionRoot = DotNetEnv.Env.GetString("SOLUTION_ROOT", "Env variable not found. Verify you have a .env file with a valid connection string.");
+        var solutionRoot = Env.GetString("SOLUTION_ROOT",
+            "Env variable not found. Verify you have a .env file with a valid connection string.");
         var outputLocation = "Examples/Aggregation/Pipelines/Filter/TutorialOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
-        var validationResult = OutputValidator.Expect(results)
-            .WithOrderedArrays()
-            .ToMatchFile(fullPath);
-        validationResult.ThrowIfFailed();
+        Expect.That(fullPath)
+            .WithOrderedSort()
+            .ShouldMatch(results);
     }
 
     [Test]
@@ -38,14 +42,15 @@ public class TutorialTests
         example.LoadSampleData();
         var results = example.PerformAggregation();
 
-        var solutionRoot = DotNetEnv.Env.GetString("SOLUTION_ROOT", "Env variable not found. Verify you have a .env file with a valid connection string.");
+        var solutionRoot = Env.GetString("SOLUTION_ROOT",
+            "Env variable not found. Verify you have a .env file with a valid connection string.");
         var outputLocation = "Examples/Aggregation/Pipelines/Group/TutorialOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
-        var validationResult = OutputValidator.Expect(results)
-            .WithOrderedArrays()
-            .ToMatchFile(fullPath);
-        validationResult.ThrowIfFailed();
+        Expect.That(fullPath)
+            .WithOrderedSort()
+            .ShouldMatch(results);
+
     }
 
     [Test]
@@ -55,13 +60,12 @@ public class TutorialTests
         example.LoadSampleData();
         var results = example.PerformAggregation();
 
-        var solutionRoot = DotNetEnv.Env.GetString("SOLUTION_ROOT", "Env variable not found. Verify you have a .env file with a valid connection string.");
+        var solutionRoot = Env.GetString("SOLUTION_ROOT",
+            "Env variable not found. Verify you have a .env file with a valid connection string.");
         var outputLocation = "Examples/Aggregation/Pipelines/Unwind/TutorialOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
-        var validationResult = OutputValidator.Expect(results)
-            .ToMatchFile(fullPath);
-        validationResult.ThrowIfFailed();
+        Expect.That(fullPath).ShouldMatch(results);
     }
 
     [Test]
@@ -71,14 +75,14 @@ public class TutorialTests
         example.LoadSampleData();
         var results = example.PerformAggregation();
 
-        var solutionRoot = DotNetEnv.Env.GetString("SOLUTION_ROOT", "Env variable not found. Verify you have a .env file with a valid connection string.");
+        var solutionRoot = Env.GetString("SOLUTION_ROOT",
+            "Env variable not found. Verify you have a .env file with a valid connection string.");
         var outputLocation = "Examples/Aggregation/Pipelines/JoinOneToOne/TutorialOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
-        var validationResult = OutputValidator.Expect(results)
-            .WithOrderedArrays()
-            .ToMatchFile(fullPath);
-        validationResult.ThrowIfFailed();
+        Expect.That(fullPath)
+            .WithOrderedSort()
+            .ShouldMatch(results);
     }
 
     [Test]
@@ -88,14 +92,14 @@ public class TutorialTests
         example.LoadSampleData();
         var results = example.PerformAggregation();
 
-        var solutionRoot = DotNetEnv.Env.GetString("SOLUTION_ROOT", "Env variable not found. Verify you have a .env file with a valid connection string.");
+        var solutionRoot = Env.GetString("SOLUTION_ROOT",
+            "Env variable not found. Verify you have a .env file with a valid connection string.");
         var outputLocation = "Examples/Aggregation/Pipelines/JoinMultiField/TutorialOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
-        var validationResult = OutputValidator.Expect(results)
-            .WithOrderedArrays()
-            .ToMatchFile(fullPath);
-        validationResult.ThrowIfFailed();
+        Expect.That(fullPath)
+            .WithOrderedSort()
+            .ShouldMatch(results);
     }
 
     [TearDown]
