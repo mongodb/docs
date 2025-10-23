@@ -180,37 +180,54 @@ Examples
 
       .. _aggregation-group-count:
 
-      Count the Number of Documents in a Collection
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      Group and Count Documents By Field
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       .. include:: /includes/fact-group-sales-documents.rst
 
       The following aggregation operation uses the :pipeline:`$group` stage
-      to count the number of documents in the ``sales`` collection:
+      to group documents in the ``sales`` collection by the ``price`` field. 
+      One group contains the items with a price greater than or equal to 10. 
+      The second group contains the number of items with a price less than 10. The pipeline then counts the number of documents in each group.
 
       .. code-block:: javascript
 
-         db.sales.aggregate( [
-           {
-             $group: {
-                _id: null,
-                count: { $count: { } }
-             }
-           }
-         ] )
+         db.sales.aggregate(  [
+            {
+               $group: {
+                   _id: {
+                     $cond: {
+                       if: { $gte: [ "$price", Decimal128("10") ] },
+                       then: "Price >= 10",
+                       else: "Price < 10"
+                     }
+                   },
+                   count: { $sum: 1 }
+               }
+            }
+         ]  )
 
       The operation returns the following result:
 
       .. code-block:: javascript
          :copyable: false
 
-         { "_id" : null, "count" : 8 }
+         { _id: 'Price >= 10', count: 4 }, { _id: 'Price < 10', count: 4 }
 
       This aggregation operation is equivalent to the following SQL statement:
 
       .. code-block:: sql
 
-         SELECT COUNT(*) AS count FROM sales
+         SELECT
+            CASE
+               WHEN price >= 10 THEN 'Price >= 10'
+               ELSE 'Price < 10'
+            END AS price_group,
+            COUNT(*) AS count
+         FROM
+           sales
+         GROUP BY
+           price_group;
 
       .. seealso::
 
