@@ -2,7 +2,9 @@
 
 [PR Reviewing Guidelines](https://github.com/mongodb/docs-java/blob/master/REVIEWING.md)
 
-JIRA - <https://jira.mongodb.org/browse/DOCSP-NNNNN>
+### JIRA Ticket
+
+<!-- start jira --><!-- end jira -->
 
 ### Staging Links
 

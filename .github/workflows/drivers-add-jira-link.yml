@@ -1,0 +1,58 @@
+name: Add JIRA Ticket Link
+on:
+  pull_request_target:
+    types: [opened]
+    paths:
+      - content/c-driver/**
+      - content/cpp-driver/**
+      - content/csharp/**
+      - content/django-mongodb/**
+      - content/drivers/**
+      - content/entity-framework/**
+      - content/golang/**
+      - content/hibernate/**
+      - content/java/**
+      - content/java-rs/**
+      - content/kotlin/**
+      - content/kotlin-sync/**
+      - content/laravel-mongodb/**
+      - content/mongodb-analyzer/**
+      - content/mongoid/**
+      - content/node/**
+      - content/php-library/**
+      - content/pymongo-arrow-driver/**
+      - content/pymongo-driver/**
+      - content/ruby-driver/**
+      - content/rust/**
+      - content/scala-driver/**
+      - content/spark-connector/**
+
+jobs:
+  get-pr-changes:
+    name: Get JIRA Ticket Link & Update PR Description
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: write
+      pull-requests: write
+      repository-projects: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get JIRA Ticket Number
+        id: jira-ticket
+        run: |
+          # Extract just the number from branch name
+          ticket_number=$(echo ${{ github.event.pull_request.head.ref }} | grep -o '^[A-Za-z]*-\([0-9]*\)' | grep -o '[0-9]*')
+          if [ -z "$ticket_number" ]; then
+            ticket_number="NNNNN"
+          fi
+          echo "JIRA_NUM=${ticket_number}" >> $GITHUB_ENV
+      - name: Update the PR Description
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_number=${{ github.event.number }}
+          body=$(gh pr view $pr_number --json body -q ".body")
+          jira_link="https://jira.mongodb.org/browse/DOCSP-${{ env.JIRA_NUM }}"
+          new_body=$(echo "$body" | perl -0777 -pe "s|<!-- start jira -->.*<!-- end jira -->|<!-- start jira -->\n${jira_link}\n<!-- end jira -->|is")
+          gh pr edit $pr_number --body "$new_body"
