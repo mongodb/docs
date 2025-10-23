@@ -73,6 +73,22 @@ class Meta:
     ]
 # end-atlas-search
 
+# start-atlas-search-advanced
+class Meta:
+    db_table = "recipes"
+    indexes = [
+        SearchIndex(
+            name="cuisine_search_idx",
+            field_mappings={
+                "cuisine": {
+                    "type": "token"
+                }
+            },
+            analyzer="lucene.simple"
+        )
+    ]
+# end-atlas-search-advanced
+
 # start-vector-search
 class Meta:
     db_table = "recipes"

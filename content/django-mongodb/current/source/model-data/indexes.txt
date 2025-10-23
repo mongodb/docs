@@ -207,54 +207,102 @@ index types:
 - :ref:`django-indexes-partial`
 - :ref:`django-indexes-unique`
 
+.. warning:: Search Index Migrations
+
+   After you create a new MongoDB Search or Vector Search Index and run
+   the database migration commands, {+framework+} might take some time to apply
+   the migrations. To ensure data consistency, {+framework+} blocks until
+   MongoDB completes the index operation. The migrations can take seconds or
+   minutes to complete, depending on the size of your collection.
+
 .. _django-indexes-atlas-search:
 
-Atlas Search Indexes
-~~~~~~~~~~~~~~~~~~~~
+Search Indexes
+~~~~~~~~~~~~~~
 
-Atlas Search indexes specify the behavior of an Atlas Search, which is a
-full-text search on collections hosted on MongoDB Atlas.
+MongoDB Search indexes specify the behavior of a MongoDB Search query, which is a
+full-text search on your MongoDB collections.
 
-To create an Atlas Search index, assign the ``indexes`` option in your model's
+To create a Search index, assign the ``indexes`` option in your model's
 ``Meta`` class to a ``SearchIndex`` object. Pass the following arguments to the
-``SearchIndex()`` constructor:
+``SearchIndex()`` constructor in any order:
 
 - ``fields``: The fields you want to index.
-- ``name``: *(Optional)* The name of your Atlas Search index. If you do not
+- ``name``: *(Optional)* The name of your Search index. If you do not
   specify this argument, {+framework+} automatically generates an index name.
 
+.. _django-search-index-advanced:
+
+Starting in {+django-odm+} v5.2.2, you can also pass the following arguments to
+``SearchIndex()``:
+
+- ``field_mappings``: *(Optional)* A dictionary that maps field names to index options. 
+  You can use this argument instead of ``fields`` to create a complex search index that
+  specifies index behavior for individual fields.
+- ``analyzer``: *(Optional)* The analyzer to apply to string fields while indexing. If you do not
+  specify this argument, {+mdb-server+} defaults to ``lucene.standard``.
+- ``search_analyzer``: *(Optional)* The analyzer to apply to query text. If you do not
+  specify this argument, its value is the same as your ``analyzer`` value. If you omit both
+  arguments, {+mdb-server+} defaults to ``lucene.standard``.
+
+.. tip::
+
+   To learn more about MongoDB Search queries and indexes, see the following resources:
+   
+   - :ref:`django-atlas-search` guide
+   - :ref:`Search Index Reference <ref-index-definitions>` in the Atlas documentation
+   - :ref:`Search analyzers <analyzers-ref>` in the Atlas documentation
+   - `SearchIndex <{+api+}ref/models/indexes/#searchindex>`__ class in the
+     {+django-odm+} API documentation
+
+Basic Search Index Example
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 The following example updates the ``Recipe`` model's ``Meta`` class to create
-an Atlas Search index named ``"title_search_idx"`` on the ``title`` field:
+a basic Search index named ``"title_search_idx"`` on the ``title`` field:
 
 .. literalinclude:: /includes/model-data/indexes.py
    :start-after: start-atlas-search
    :end-before: end-atlas-search
    :language: python
    :copyable:
-   :emphasize-lines: 3-8
+   :emphasize-lines: 4-7
+
+Advanced Search Index Example
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following example creates a Search index that indexes the 
+``cuisine`` field as the ``token`` type and sets the analyzer to ``lucene.simple``:
+
+.. literalinclude:: /includes/model-data/indexes.py
+   :start-after: start-atlas-search-advanced
+   :end-before: end-atlas-search-advanced
+   :language: python
+   :copyable:
+   :emphasize-lines: 4-12
 
 .. tip::
 
-   To learn more about Atlas Search queries and indexes, see the following resources:
-   
-   - :atlas:`Atlas Search </atlas-search>` in the Atlas documentation.
-   - `SearchIndex <{+api+}ref/models/indexes/#searchindex>`__ class in the
-     {+django-odm+} API documentation.
+   To learn more about the Search index configuration in the preceding
+   example, see the following resources from the Atlas documentation:
+
+   - :ref:`bson-data-types-token`
+   - :ref:`analyzers-ref`
 
 .. _django-indexes-vector-search:
 
-Atlas Vector Search Indexes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Vector Search Indexes
+~~~~~~~~~~~~~~~~~~~~~
 
-Atlas Vector Search indexes allow you to query data based on its semantic meaning
+MongoDB Vector Search indexes allow you to query data based on its semantic meaning
 rather than by keyword matches. You can integrate vector search with full-text search
 queries and AI frameworks to support a range of use cases.
 
 To create a vector search index, assign the ``indexes`` option in your model's
 ``Meta`` class to a ``VectorSearchIndex`` object. Pass the following arguments to the
-``VectorSearchIndex()`` constructor:
+``VectorSearchIndex()`` constructor in any order:
 
-- ``name``: *(Optional)* The name of your Atlas Vector Search index. If you do not
+- ``name``: *(Optional)* The name of your Vector Search index. If you do not
   specify this argument, {+framework+} automatically generates an index name.
 - ``fields``: The fields you want to index. At least one must be a vector
   field, represented by an array of ``FloatField`` or ``IntegerField`` values with
@@ -277,9 +325,9 @@ and the ``cook_time`` numeric field:
 
 .. tip::
 
-   To learn more about Atlas Vector Search queries and indexes, see the following resources:
+   To learn more about Vector Search queries and indexes, see the following resources:
    
-   - :atlas:`Atlas Vector Search </atlas-vector-search>` in the Atlas documentation.
+   - :atlas:`Vector Search </atlas-vector-search>` in the Atlas documentation.
    - `VectorSearchIndex <{+api+}ref/models/indexes//#vectorsearchindex>`__ class in the
      {+django-odm+} API documentation.
 
@@ -323,7 +371,7 @@ the specified field. On multiple fields, unique indexes ensure that any given
 combination of the index key values appears at most once. 
 
 Single Field Example
-````````````````````
+^^^^^^^^^^^^^^^^^^^^
 
 The following example updates the ``Recipe`` model's ``cuisine`` field,
 setting the ``unique`` option to ``True`` to create a unique single field index:
@@ -340,7 +388,7 @@ setting the ``unique`` option to ``True`` to create a unique single field index:
    an index on the given field.
 
 Compound Example
-````````````````
+^^^^^^^^^^^^^^^^
 
 The following example updates the ``Recipe`` model's ``Meta`` class to create
 a compound index on the ``title`` and ``cuisine`` fields. The code
