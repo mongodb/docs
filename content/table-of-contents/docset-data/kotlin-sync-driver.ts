@@ -291,7 +291,7 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-            label: "Atlas Search and Vector Search Indexes",
+            label: "MongoDB Search and Vector Search Indexes",
             contentSite: "kotlin-sync",
             url: "/docs/languages/kotlin/kotlin-sync-driver/:version/indexes/atlas-search-index",
           },
@@ -303,12 +303,12 @@ const tocData: TocItem[] = [
         url: "/docs/languages/kotlin/kotlin-sync-driver/:version/run-command",
       },
       {
-        label: "Atlas Search",
+        label: "MongoDB Search",
         contentSite: "kotlin-sync",
         url: "/docs/languages/kotlin/kotlin-sync-driver/:version/atlas-search",
       },
       {
-        label: "Atlas Vector Search",
+        label: "MongoDB Vector Search",
         contentSite: "kotlin-sync",
         url: "/docs/languages/kotlin/kotlin-sync-driver/:version/atlas-vector-search",
       },
