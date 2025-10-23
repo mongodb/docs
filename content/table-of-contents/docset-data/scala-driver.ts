@@ -221,7 +221,7 @@ const tocData: TocItem[] = [
             versions: { excludes: outdatedVersions },
           },
           {
-            label: "Atlas Search",
+            label: "MongoDB Search",
             contentSite: "scala",
             url: "/docs/languages/scala/scala-driver/:version/indexes/atlas-search-index",
             versions: { excludes: outdatedVersions },
@@ -422,7 +422,7 @@ const tocData: TocItem[] = [
             url: "/docs/languages/scala/scala-driver/:version/tutorials/change-stream",
           },
           {
-            label: "Text Search",
+            label: "Query Text",
             contentSite: "scala",
             url: "/docs/languages/scala/scala-driver/:version/tutorials/text-search",
           },
