@@ -205,6 +205,20 @@
                         in the custom filter, sometimes the |service| 
                         cluster might be unable to use an index for 
                         archiving data.
+                        
+                        The following custom filter example presents a complex 
+                        condition with more than one field. 
+                        
+                        .. code-block:: json
+
+                           {{{    
+                              "$and":[
+                                 {"$expr":{"$lte":["$createdAt",{"$subtract":["$$NOW",43200000]}]}},
+                                 {"status":{"$ne":"active"}}
+                                 ]
+                           }}}
+
+                        
       
             .. tab:: Time Series Collection 
                :tabid: timeseries
