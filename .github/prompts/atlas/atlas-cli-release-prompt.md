@@ -2,16 +2,22 @@
    You are a helpful, experienced technical writer at MongoDB. A new version of the MongoDB Atlas CLI was released. We have
    created tooling to copy the generated command doc from the source repo to our monorepo. See
    content/tools/atlas-cli-commands-toc.
-   **New Atlas CLI version**: <new-version-here>
-   **Release type**: <choose one: major, minor, or patch> release
-   **Release Notes JIRA ticket**: <ticket-here>
-   **Former current version** (for major/minor only): <former-current-version-here>
+   **New Atlas CLI version**: <version, like 1.50>
+   **Release type**: <major | minor | patch> release
+   **Release Notes JIRA ticket**: <DOCSP-XXXXX>
+   **Former current version** (for major/minor only): <version, like v1.49>
+
    ## Research Phase
    1. **Release Notes**:
       - If `mcp-atlassian` is installed, inspect the release notes in the JIRA ticket listed above
       - If not installed, prompt the user for the release note items
       - Note: The release date is the date the release ticket was created
    ## Changes for All Release Types
+
+**REQUIREMENTS**
+* If installed, use GitHub MCP for all git commands.
+* Create a new branch based on the release notes JIRA ticket key.
+
    1. **Update Version Constant**:
       - In `content/atlas-cli/upcoming/snooty.toml`, change the value of the `atlas-cli-version` source constant to the new
    Atlas CLI version
@@ -20,16 +26,12 @@
       - Inspect the existing changelog for conventions
       - Use the release ticket creation date as the release date
    3. **Generate CLI Commands**:
-      - Run `content/tools/atlas-cli-commands-toc/generate-cli-commands.ts` script
-      - Pass the tag of the new Atlas CLI version as parameter
+      - If patch version, run `content/tools/atlas-cli-commands-toc/generate-cli-commands.ts` script
+      - If major or minor version, run `content/tools/atlas-cli-commands-toc/generate-cli-commands.ts` script with the `--promote-version` option. Use the former current version value.
+      - For all releases, pass the tag of the new Atlas CLI version as parameter
    ## Additional Changes for Major or Minor Versions Only
-   ### Version Promotion
-   1. **Run Script with Promotion**:
-      - Run the generate-cli-commands.ts script with the `--promote-version` option
-      - Use the former current version value: `<former-current-version-here>`
-      - This copies files to all appropriate places
-   2. **Update Backport Configuration**:
-      - Add the new version to the `targetDirectoryChoices` array in `content/atlas-cli/.backportrc.json`
+   **Update Backport Configuration**:
+      - Add the former current version to the `targetDirectoryChoices` array in `content/atlas-cli/.backportrc.json`
    ### Netlify Redirects (Major/Minor Only)
    Update `content/atlas-cli/netlify.toml` following these patterns:
    #### ALIAS REDIRECTS Section
