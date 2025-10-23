@@ -238,12 +238,12 @@ const tocData: TocItem[] = [
         url: "/docs/languages/python/pymongo-driver/:version/run-command",
       },
       {
-        label: "Atlas Search",
+        label: "MongoDB Search",
         contentSite: "pymongo",
         url: "/docs/languages/python/pymongo-driver/:version/atlas-search",
       },
       {
-        label: "Atlas Vector Search",
+        label: "MongoDB Vector Search",
         contentSite: "cloud-docs",
         url: "https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview",
       },
