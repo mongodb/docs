@@ -168,6 +168,11 @@ const tocData: TocItem[] = [{
           contentSite: "mongodb-vscode",
           url: "/docs/mongodb-vscode/settings",
         },
+        {
+            label: "Logs",
+            contentSite: "mongodb-vscode",
+            url: "/docs/mongodb-vscode/logs",
+        }
       ]
     },
     {
