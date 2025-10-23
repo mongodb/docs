@@ -20,279 +20,88 @@ Configure Database Users
    :depth: 1
    :class: singlecol
 
-Create database users to provide clients access to the {+database-deployments+} in your
-project. 
-
-A database user's access is determined by the roles assigned
-to the user. When you create a database user, any of the :ref:`built-in roles <atlas-user-privileges>` 
-add the user to all {+database-deployments+} in your |service| project. 
-To specify which resources a database user can access in your project, you 
-can select the option :guilabel:`Restrict Access to Specific Clusters` in the {+atlas-ui+}
-or set :ref:`specific privileges <atlas-specific-privileges>`
-and :ref:`custom roles <mongodb-roles>`.
-
-Database users are separate from |service| users. Database users have
-access to MongoDB databases, while |service| users have access to the
-|service| application itself. |service| supports creating temporary
-database users that automatically expire within a user-configurable
-7-day period.
-
-.. include:: /includes/fact-user-auditing.rst
-
-.. include:: /includes/fact-database-user-limits.rst
-
-.. important::
-
-   You must use the :atlascli:`{+atlas-cli+} 
-   </command/atlas-dbusers-create/>`, 
-   :oas-atlas-tag:`{+atlas-admin-api+} </Database-Users>`, 
-   {+atlas-ui+}, or a supported :ref:`integration 
-   <partner-integrations>` to add, modify, or delete database users on 
-   |service| {+database-deployments+}. Otherwise, |service| rolls back 
-   any user modifications.
-
-Database User Authentication
-----------------------------
-
-|service| offers the following forms of authentication for database users:
-
-.. tabs::
-
-   tabs:
-   - id: scram
-     name: Password
-     content: |
-       :ref:`SCRAM <authentication-scram>` is MongoDB's
-       default authentication method. SCRAM requires a password for
-       each user.
-
-       The :ref:`authentication database <user-authentication-database>` for
-       SCRAM-authenticated users is the ``admin`` database.
-
-       .. note::
-
-          By default, Atlas supports SCRAM-SHA-256 authentication. 
-          If you have any database users created before the release of 
-          MongoDB 4.0, update their passwords to generate SCRAM-SHA-256
-          credentials. You may reuse existing passwords.
-
-   - id: x509
-     name: X.509 Certificates
-     content: |
-       :manual:`X.509 Certificates </core/security-x.509/>`, also known 
-       as mutual TLS or mTLS, allow passwordless authentication by using 
-       a trusted certificate.
-  
-       The :ref:`authentication database <user-authentication-database>` for
-       X.509-authenticated users is the ``$external`` database.
-
-       If you :ref:`enable LDAP authorization 
-       <ldaps-authentication-authorization>`, you can't connect to your
-       {+database-deployments+} with users that authenticate with an
-       |service|-managed X.509 certificate. To enable |ldap| and
-       connecting to your {+database-deployments+} with X.509 users, see
-       :ref:`self-managed-x509`.
-  
-   - id: aws-iam
-     name: AWS IAM
-     content: |
- 
-       You can create a database user which uses an `AWS IAM
-       <https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html>`__
-       User or Role :abbr:`ARN (Amazon Resource Name)` for authentication.
-  
-       The :ref:`authentication database <user-authentication-database>` for
-       AWS IAM-authenticated users is the ``$external`` database.
-  
-       AWS IAM authentication is available only on {+database-deployments+} which use MongoDB
-       version 7.0 and higher.
-
-   - id: ldap
-     name: LDAP
-     content: |
-
-        .. include:: /includes/ldap-deprecated.rst
- 
-        You can create a database user that uses :ref:`LDAP <ldaps-authentication-authorization>`
-        for authentication.
-
-        The :ref:`authentication database <user-authentication-database>` for
-        |ldap|-authenticated users is the ``$external`` database.
-
-        If you :ref:`enable LDAP authorization <ldaps-authentication-authorization>`, you 
-        can't connect to your {+database-deployments+} with users that authenticate with an
-        |service|-managed X.509 certificate. To enable |ldap| and
-        connecting to your {+database-deployments+} with X.509 users, see
-        :ref:`self-managed-x509`.
-
-   - id: oidc
-     name: OIDC
-     content: |
-
-        You can create a database user that uses :ref:`OIDC <oidc-authentication-authorization>`
-        for authentication.
-
-        The :ref:`authentication database <user-authentication-database>` for
-        |oidc|-authenticated users is the ``$external`` database.
-
-        |oidc| authentication is available only on {+database-deployments+} that use MongoDB
-        version 7.0 and higher.
-
-Required Access
----------------
-
-To add database users, you must have
-:authrole:`Organization Owner`, :authrole:`Project Owner`, or 
-:authrole:`Project Database Access Admin` access to |service|.
-
-.. _add-mongodb-users:
-
-Add Database Users
-------------------
-
-A project can have users with different authentication methods.
-
-You cannot change a user's authentication method after creating that
-user. To use an alternative authentication method, you must create a
-new user.
-
-.. Attention writers: If you make changes to the following
-.. procedure please check the related procedures in the following
-.. Server docs page(s) to see if they require changes as well: 
-.. www.mongodb.com/docs/manual/tutorial/create-users/
-
-.. tabs::
-
-   .. tab:: {+atlas-cli+}
-      :tabid: atlascli
-
-      The {+atlas-cli+} uses the following commands to create new database users and X.509 certificates. The options you specify determine the authentication method.
-
-      .. include:: /includes/extracts/atlas-dbusers-create-and-certs-create.rst
-
-   .. tab:: {+atlas-admin-api+}
-      :tabid: api
-
-      You can add database users through the {+atlas-admin-api+}. The 
-      options you specify determine the authentication method. To learn 
-      more, see :oas-atlas-op:`Create One Database User 
-      </createDatabaseUser>`.
-
-   .. tab:: {+atlas-ui+}
-      :tabid: ui
-
-      Select an authentication mechanism and follow the steps to create
-      a new database user using the {+atlas-ui+}.
-
-      .. include:: /includes/create-db-user-ui.rst
-
-.. _view-mongodb-users:
-
-View Database Users and Certificates
-------------------------------------
-
-.. tabs::
-
-   .. tab:: {+atlas-cli+}
-      :tabid: atlascli
-
-      View Database Users
-      ~~~~~~~~~~~~~~~~~~~
-
-      .. include:: /includes/extracts/atlas-dbusers-describe-and-list.rst
-
-      View X.509 Certificates for a Database User
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      .. include:: /includes/extracts/atlas-dbusers-certs-list.rst
-
-   .. tab:: {+atlas-admin-api+}
-      :tabid: api
-
-      To view |service| database users using the 
-      {+atlas-admin-api+}, see :oas-atlas-op:`Get All
-      </listDatabaseUsers>`. 
-
-   .. tab:: {+atlas-ui+}
-      :tabid: ui
-
-      To view |service| database users and X.509 certificates in the 
-      {+atlas-ui+}:
-
-      .. procedure::
-         :style: normal
-
-         .. include:: /includes/nav/steps-db-access.rst
-
-         .. step:: View |service| database users.
-      
-            a. If it's not already displayed, click the 
-               :guilabel:`Database Users` tab.
-
-            #. Click :icon-fa4:`pencil` :guilabel:`Edit` for the user 
-               to view their privileges, authentication details, and 
-               X.509 certificates.
 
 .. _modify-mongodb-users:
-
-Modify Database Users
----------------------
-
-.. tabs::
-
-   .. tab:: {+atlas-cli+}
-      :tabid: atlascli
-
-      .. include:: /includes/extracts/atlas-dbusers-update.rst
-
-   .. tab:: {+atlas-admin-api+}
-      :tabid: api
-
-      You can update database users through the {+atlas-admin-api+}. To 
-      learn more, see :oas-atlas-op:`Update One 
-      </updateDatabaseUser>`.
-
-   .. tab:: {+atlas-ui+}
-      :tabid: ui
-
-      .. include:: /includes/modify-db-user-ui.rst
-
+.. _view-mongodb-users:
+.. _add-mongodb-users:
 .. _delete-mongodb-users:
 
-Delete Database Users
----------------------
+.. composable-tutorial::
+   :options: interface-default-atlas-cli, auth-method
+   :defaults: atlas-ui, password
 
-.. tabs::
 
-   .. tab:: {+atlas-cli+}
-      :tabid: atlascli
+   .. selected-content::
+      :selections: atlas-ui, password
 
-      .. include:: /includes/extracts/atlas-dbusers-delete.rst
+      .. include:: /includes/composable-includes/security-add-mongodb-users/atlas-ui-password.rst
 
-   .. tab:: {+atlas-admin-api+}
-      :tabid: api
+   .. selected-content::
+      :selections: atlas-ui, x509
 
-      You can delete database users through the {+atlas-admin-api+}. To 
-      learn more, see :oas-atlas-op:`Delete One 
-      </deleteDatabaseUser>`.
+      .. include:: /includes/composable-includes/security-add-mongodb-users/atlas-ui-x509.rst
 
-   .. tab:: {+atlas-ui+}
-      :tabid: ui
+   .. selected-content::
+      :selections: atlas-ui, ldap
 
-      To delete existing users for an |service| project using the 
-      {+atlas-ui+}:
+      .. include:: /includes/composable-includes/security-add-mongodb-users/atlas-ui-ldap.rst
 
-      .. procedure::
-         :style: normal
+   .. selected-content::
+      :selections: atlas-ui, oidc
 
-         .. include:: /includes/nav/steps-db-access.rst
+      .. include:: /includes/composable-includes/security-add-mongodb-users/atlas-ui-oidc.rst
 
-         .. step:: Delete an existing user.
+   .. selected-content::
+      :selections: atlas-ui, aws-iam
 
-            a. If it's not already displayed, click the    
-               :guilabel:`Database Users` tab.
+      .. include:: /includes/composable-includes/security-add-mongodb-users/atlas-ui-aws-iam.rst
 
-            #. Click :icon-fa4:`trash-o` :guilabel:`Delete` next to 
-               the user you want to delete.
+   .. selected-content::
+      :selections: atlas-cli, password
 
-            #. Click :guilabel:`Delete` again to confirm.
+      .. include:: /includes/composable-includes/security-add-mongodb-users/atlas-cli-password.rst
+
+   .. selected-content::
+      :selections: atlas-cli, ldap
+
+      .. include:: /includes/composable-includes/security-add-mongodb-users/atlas-cli-ldap.rst
+
+   .. selected-content::
+      :selections: atlas-cli, x509
+
+      .. include:: /includes/composable-includes/security-add-mongodb-users/atlas-cli-x509.rst
+
+   .. selected-content::
+      :selections: atlas-cli, oidc
+
+      .. include:: /includes/composable-includes/security-add-mongodb-users/atlas-cli-oidc.rst
+
+   .. selected-content::
+      :selections: atlas-cli, aws-iam
+
+      .. include:: /includes/composable-includes/security-add-mongodb-users/atlas-cli-aws-iam.rst
+
+   .. selected-content::
+      :selections: admin-api, password
+
+      .. include:: /includes/composable-includes/security-add-mongodb-users/atlas-admin-api-password.rst
+
+   .. selected-content::
+      :selections: admin-api, x509
+
+      .. include:: /includes/composable-includes/security-add-mongodb-users/atlas-admin-api-x509.rst
+ 
+   .. selected-content::
+      :selections: admin-api, ldap
+
+      .. include:: /includes/composable-includes/security-add-mongodb-users/atlas-admin-api-ldap.rst
+
+   .. selected-content::
+      :selections: admin-api, oidc
+
+      .. include:: /includes/composable-includes/security-add-mongodb-users/atlas-admin-api-oidc.rst
+
+   .. selected-content::
+      :selections: admin-api, aws-iam
+
+      .. include:: /includes/composable-includes/security-add-mongodb-users/atlas-admin-api-aws-iam.rst
