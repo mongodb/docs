@@ -1,4 +1,4 @@
-const { matchWithEllipsis, isTruncatedValue } = require('../ellipsis');
+const { matchWithEllipsis, isTruncatedValue } = require('../comparison/ellipsis');
 
 describe('ellipsis.js - Extended Coverage', () => {
   describe('isTruncatedValue', () => {

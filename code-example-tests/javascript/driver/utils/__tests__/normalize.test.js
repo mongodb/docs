@@ -2,7 +2,7 @@ const {
   isObjectIdLike,
   normalizeItem,
   preprocessFileContents,
-} = require('../normalize');
+} = require('../comparison/normalize');
 const { Decimal128, ObjectId } = require('mongodb');
 
 describe('normalize.js', () => {

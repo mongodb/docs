@@ -5,7 +5,7 @@ import {
 } from '../../examples/time-series/quick-start/quick-start.js';
 
 import { MongoClient } from 'mongodb';
-import outputMatchesExampleOutput from '../../utils/outputMatchesExampleOutput.js';
+import Expect from '../../utils/Expect.js';
 
 describe('Time series quick start tests', () => {
   beforeEach(async () => {
@@ -26,19 +26,19 @@ describe('Time series quick start tests', () => {
     const result = await runMetaFieldQuery();
     const outputFilepath =
       'time-series/quick-start/quick-start-meta-field-output.sh';
-    const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-      comparisonType: 'unordered',
-    });
-    expect(arraysMatch).toBe(true);
+
+    Expect.that(result)
+      .withUnorderedSort()
+      .shouldMatch(outputFilepath);
   });
 
   it('Should return the expected result from the time field query', async () => {
     const result = await runTimeFieldQuery();
     const outputFilepath =
       'time-series/quick-start/quick-start-time-field-output.sh';
-    const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-      comparisonType: 'unordered',
-    });
-    expect(arraysMatch).toBe(true);
+
+    Expect.that(result)
+      .withUnorderedSort()
+      .shouldMatch(outputFilepath);
   });
 });

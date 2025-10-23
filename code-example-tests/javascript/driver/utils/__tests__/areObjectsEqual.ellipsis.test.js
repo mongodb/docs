@@ -1,4 +1,4 @@
-const { areObjectsEqual } = require('../areObjectsEqual');
+const { areObjectsEqual } = require('../comparison/areObjectsEqual');
 
 // Tests for ellipsis, truncation, and omission logic in areObjectsEqual
 

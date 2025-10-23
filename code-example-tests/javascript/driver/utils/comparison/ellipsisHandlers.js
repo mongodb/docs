@@ -1,4 +1,4 @@
-const { isTruncatedValue } = require('../ellipsis');
+const { isTruncatedValue } = require('./ellipsis');
 
 /**
  * Handles property-level ellipsis and truncation patterns in value comparisons.

@@ -10,7 +10,7 @@ import { runUnwindTutorial } from '../../../examples/aggregation/pipelines/unwin
 import { runJoinOneToOneTutorial } from '../../../examples/aggregation/pipelines/join-one-to-one/tutorial.js';
 import { runJoinMultiFieldTutorial } from '../../../examples/aggregation/pipelines/join-multi-field/tutorial.js';
 import { MongoClient } from 'mongodb';
-import outputMatchesExampleOutput from '../../../utils/outputMatchesExampleOutput.js';
+import Expect from '../../../utils/Expect.js';
 
 describe('Aggregation pipeline filter tutorial tests', () => {
   afterEach(async () => {
@@ -31,30 +31,30 @@ describe('Aggregation pipeline filter tutorial tests', () => {
     await loadFilterSampleData();
     const result = await runFilterTutorial();
     const outputFilepath = 'aggregation/pipelines/filter/tutorial-output.sh';
-    const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-      comparisonType: 'unordered',
-    });
-    expect(arraysMatch).toBe(true);
+
+    Expect.that(result)
+      .withUnorderedSort()
+      .shouldMatch(outputFilepath);
   });
 
   it('Should return grouped output that includes the three specified customer order records', async () => {
     await loadGroupSampleData();
     const result = await runGroupTutorial();
     const outputFilepath = 'aggregation/pipelines/group/tutorial-output.sh';
-    const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-      comparisonType: 'unordered',
-    });
-    expect(arraysMatch).toBe(true);
+
+    Expect.that(result)
+      .withUnorderedSort()
+      .shouldMatch(outputFilepath);
   });
 
   it('Should return unpacked output grouped by product name', async () => {
     await loadUnwindSampleData();
     const result = await runUnwindTutorial();
     const outputFilepath = 'aggregation/pipelines/unwind/tutorial-output.sh';
-    const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-      comparisonType: 'unordered',
-    });
-    expect(arraysMatch).toBe(true);
+
+    Expect.that(result)
+      .withUnorderedSort()
+      .shouldMatch(outputFilepath);
   });
 
   it('Should return joined data with the customer product name and category', async () => {
@@ -62,10 +62,10 @@ describe('Aggregation pipeline filter tutorial tests', () => {
     const result = await runJoinOneToOneTutorial();
     const outputFilepath =
       'aggregation/pipelines/join-one-to-one/tutorial-output.sh';
-    const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-      comparisonType: 'unordered',
-    });
-    expect(arraysMatch).toBe(true);
+
+    Expect.that(result)
+      .withUnorderedSort()
+      .shouldMatch(outputFilepath);
   });
 
   it('Should return joined data based on multiple fields', async () => {
@@ -73,9 +73,9 @@ describe('Aggregation pipeline filter tutorial tests', () => {
     const result = await runJoinMultiFieldTutorial();
     const outputFilepath =
       'aggregation/pipelines/join-multi-field/tutorial-output.sh';
-    const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-      comparisonType: 'unordered',
-    });
-    expect(arraysMatch).toBe(true);
+
+    Expect.that(result)
+      .withUnorderedSort()
+      .shouldMatch(outputFilepath);
   });
 });

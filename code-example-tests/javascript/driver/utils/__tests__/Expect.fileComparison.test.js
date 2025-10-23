@@ -1,10 +1,10 @@
-const { outputMatchesExampleOutput } = require('../outputMatchesExampleOutput');
-const { areObjectsEqual } = require('../areObjectsEqual');
+const Expect = require('../Expect');
+const { areObjectsEqual } = require('../comparison/areObjectsEqual');
 const fs = require('fs');
 const path = require('path');
 const { Decimal128, ObjectId } = require('mongodb');
 
-describe('outputMatchesExampleOutput', () => {
+describe('Expect API (file-based comparison tests)', () => {
   const tempExamplesDir = path.join(__dirname, '../../examples');
   const tempFile = path.join(tempExamplesDir, 'temp-output.json');
 
@@ -31,7 +31,9 @@ describe('outputMatchesExampleOutput', () => {
         { b: 'bar', a: 2 },
         { b: 'foo', a: 1 },
       ];
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('does not match arrays with different objects (unordered)', () => {
@@ -44,9 +46,9 @@ describe('outputMatchesExampleOutput', () => {
         { a: 1, b: 'foo' },
         { a: 3, b: 'baz' },
       ];
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(
-        false
-      );
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).toThrow();
     });
 
     it('matches arrays in order when comparisonType is ordered', () => {
@@ -60,11 +62,11 @@ describe('outputMatchesExampleOutput', () => {
 `;
       fs.writeFileSync(tempFile, expected);
       const actual = [{ a: 1 }, { a: 2 }];
-      expect(
-        outputMatchesExampleOutput('temp-output.json', actual, {
-          comparisonType: 'ordered',
-        })
-      ).toBe(true);
+      expect(() => {
+        Expect.that(actual)
+          .withOrderedSort()
+          .shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('does not match arrays out of order when comparisonType is ordered', () => {
@@ -78,11 +80,11 @@ describe('outputMatchesExampleOutput', () => {
 `;
       fs.writeFileSync(tempFile, expected);
       const actual = [{ a: 2 }, { a: 1 }];
-      expect(
-        outputMatchesExampleOutput('temp-output.json', actual, {
-          comparisonType: 'ordered',
-        })
-      ).toBe(false);
+      expect(() => {
+        Expect.that(actual)
+          .withOrderedSort()
+          .shouldMatch('temp-output.json');
+      }).toThrow();
     });
 
     it('matches arrays of objects with different key order in nested objects', () => {
@@ -133,7 +135,9 @@ describe('outputMatchesExampleOutput', () => {
           date: '2020-01-01T00:00:00.000Z',
         },
       ];
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('treats _id: ... as a wildcard and matches any value', () => {
@@ -145,7 +149,9 @@ describe('outputMatchesExampleOutput', () => {
 `;
       fs.writeFileSync(tempFile, expected);
       const actual = [{ _id: '507f1f77bcf86cd799439011', name: 'Alice' }];
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('matches nested objects and arrays', () => {
@@ -157,7 +163,9 @@ describe('outputMatchesExampleOutput', () => {
 `;
       fs.writeFileSync(tempFile, expected);
       const actual = [{ a: 1, b: { c: 2, d: [3, 4] } }];
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('returns false if expected and actual types do not match', () => {
@@ -168,9 +176,9 @@ describe('outputMatchesExampleOutput', () => {
 `;
       fs.writeFileSync(tempFile, expected);
       const actual = [{ a: 1 }, { a: 2 }];
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(
-        false
-      );
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).toThrow();
     });
 
     it('normalizes and matches date strings in different formats', () => {
@@ -195,7 +203,9 @@ describe('outputMatchesExampleOutput', () => {
       const expected = ``; // No objects in file
       fs.writeFileSync(tempFile, expected);
       const actual = [];
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
   });
 
@@ -209,11 +219,11 @@ describe('outputMatchesExampleOutput', () => {
 `;
       fs.writeFileSync(tempFile, expected);
       const actual = [{ _id: 'aaaaaaaaaaaaaaaaaaaaaaaa', name: 'Alice' }];
-      expect(
-        outputMatchesExampleOutput('temp-output.json', actual, {
-          ignoreFieldValues: ['_id'],
-        })
-      ).toBe(true);
+      expect(() => {
+        Expect.that(actual)
+          .withIgnoredFields('_id')
+          .shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('does not treat _id fields as equal if ignoreFieldValues is not set', () => {
@@ -225,9 +235,9 @@ describe('outputMatchesExampleOutput', () => {
 `;
       fs.writeFileSync(tempFile, expected);
       const actual = [{ _id: 'aaaaaaaaaaaaaaaaaaaaaaaa', name: 'Alice' }];
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(
-        false
-      );
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).toThrow();
     });
 
     it('handles various dynamic field types with ignoreFieldValues', () => {
@@ -252,11 +262,11 @@ describe('outputMatchesExampleOutput', () => {
           status: 'active',
         },
       ];
-      expect(
-        outputMatchesExampleOutput('temp-output.json', actual, {
-          ignoreFieldValues: ['_id', 'uuid', 'timestamp', 'sessionId'],
-        })
-      ).toBe(true);
+      expect(() => {
+        Expect.that(actual)
+          .withIgnoredFields('_id', 'uuid', 'timestamp', 'sessionId')
+          .shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('ignoreFieldValues works with nested objects', () => {
@@ -287,11 +297,11 @@ describe('outputMatchesExampleOutput', () => {
           data: { value: 42 },
         },
       ];
-      expect(
-        outputMatchesExampleOutput('temp-output.json', actual, {
-          ignoreFieldValues: ['_id', 'sessionId', 'lastLogin'],
-        })
-      ).toBe(true);
+      expect(() => {
+        Expect.that(actual)
+          .withIgnoredFields('_id', 'sessionId', 'lastLogin')
+          .shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
   });
 
@@ -299,25 +309,25 @@ describe('outputMatchesExampleOutput', () => {
     it('returns false and logs if expected output file is invalid', () => {
       fs.writeFileSync(tempFile, '{ invalid json }');
       const actual = [{ a: 1 }];
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(
-        false
-      );
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).toThrow();
     });
 
     it('handles single object correctly (treats as array of one)', () => {
       const expected = `{ a: 1 }`;
       fs.writeFileSync(tempFile, expected);
-      expect(outputMatchesExampleOutput('temp-output.json', { a: 1 })).toBe(
-        true
-      );
+      expect(() => {
+        Expect.that({ a: 1 }).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('returns false for malformed object syntax', () => {
       fs.writeFileSync(tempFile, '({ unclosed: "object" ');
       const actual = [{ test: true }];
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(
-        false
-      );
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).toThrow();
     });
   });
 
@@ -325,21 +335,25 @@ describe('outputMatchesExampleOutput', () => {
     it('should compare two objects directly when both are objects', () => {
       fs.writeFileSync(tempFile, '{ "name": "test", "value": 42 }');
       const actual = { name: 'test', value: 42 };
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('should handle object comparison with mismatches', () => {
       fs.writeFileSync(tempFile, '{ "a": 1, "b": 2 }');
       const actual = { a: 1, b: 3 };
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(
-        false
-      );
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).toThrow();
     });
 
     it('should handle object-to-object comparison with automatic ellipsis detection', () => {
       fs.writeFileSync(tempFile, '{ "_id": "...", "name": "Alice" }');
       const actual = { _id: 'some-random-id', name: 'Alice' };
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('should automatically enable ellipsis matching when standalone ... is detected', () => {
@@ -359,7 +373,9 @@ describe('outputMatchesExampleOutput', () => {
         { _id: 'id1', name: 'Alice' },
         { _id: 'id2', name: 'Bob' },
       ];
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('should allow extra fields and documents when standalone ... is detected', () => {
@@ -372,7 +388,9 @@ describe('outputMatchesExampleOutput', () => {
       const actual = [
         { name: 'Alice', extra: 'field1', anotherField: 'value1' },
       ];
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('should not match ellipsis patterns when not detected in output file', () => {
@@ -381,50 +399,56 @@ describe('outputMatchesExampleOutput', () => {
         '{ "_id": "507f1f77bcf86cd799439011", "name": "Alice" }'
       );
       const actual = { _id: 'some-different-id', name: 'Alice' };
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(
-        false
-      );
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).toThrow();
     });
   });
 
   describe('error handling for non-comparable types', () => {
     it('should handle undefined actual output', () => {
       fs.writeFileSync(tempFile, '{ "test": true }');
-      expect(outputMatchesExampleOutput('temp-output.json', undefined)).toBe(
-        false
-      );
+      expect(() => {
+        Expect.that(undefined).shouldMatch('temp-output.json');
+      }).toThrow();
     });
 
     it('should handle null actual output', () => {
       fs.writeFileSync(tempFile, '{ "test": true }');
-      expect(outputMatchesExampleOutput('temp-output.json', null)).toBe(false);
+      expect(() => {
+        Expect.that(null).shouldMatch('temp-output.json');
+      }).toThrow();
     });
 
     it('should handle primitive actual output vs object expected', () => {
       fs.writeFileSync(tempFile, '{ "key": "value" }');
-      expect(
-        outputMatchesExampleOutput('temp-output.json', 'string primitive')
-      ).toBe(false);
+      expect(() => {
+        Expect.that('string primitive').shouldMatch('temp-output.json');
+      }).toThrow();
     });
 
     it('should handle array vs object mismatch', () => {
       fs.writeFileSync(tempFile, '{ "single": "object" }');
-      expect(
-        outputMatchesExampleOutput('temp-output.json', [{ different: 'array' }])
-      ).toBe(false);
+      expect(() => {
+        Expect.that([{ different: 'array' }]).shouldMatch('temp-output.json');
+      }).toThrow();
     });
   });
 
   describe('edge cases for expected output handling', () => {
     it('should handle empty expected output file', () => {
       fs.writeFileSync(tempFile, '');
-      expect(outputMatchesExampleOutput('temp-output.json', [])).toBe(true);
+      expect(() => {
+        Expect.that([]).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('should properly handle single object conversion to array', () => {
       fs.writeFileSync(tempFile, '{ "convert": "me" }');
       const actual = { convert: 'me' };
-      expect(outputMatchesExampleOutput('temp-output.json', actual)).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
   });
 
@@ -457,11 +481,11 @@ describe('outputMatchesExampleOutput', () => {
         },
       ];
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual, {
-        comparisonType: 'ordered',
-      });
-
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual)
+          .withOrderedSort()
+          .shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('matches single objects with new Date expressions', () => {
@@ -478,8 +502,9 @@ describe('outputMatchesExampleOutput', () => {
         temp: 48.2,
       };
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual);
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('matches objects with mixed new Date and bare date expressions', () => {
@@ -510,10 +535,11 @@ describe('outputMatchesExampleOutput', () => {
         },
       ];
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual, {
-        comparisonType: 'ordered',
-      });
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual)
+          .withOrderedSort()
+          .shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('does not double-wrap new Date expressions', () => {
@@ -529,8 +555,9 @@ describe('outputMatchesExampleOutput', () => {
         value: 123,
       };
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual);
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
   });
 
@@ -549,8 +576,9 @@ describe('outputMatchesExampleOutput', () => {
         age: 30,
       };
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual);
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('matches arrays with new ObjectId expressions', () => {
@@ -577,10 +605,11 @@ describe('outputMatchesExampleOutput', () => {
         },
       ];
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual, {
-        comparisonType: 'ordered',
-      });
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual)
+          .withOrderedSort()
+          .shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('works with ObjectId constructor without new keyword', () => {
@@ -595,8 +624,9 @@ describe('outputMatchesExampleOutput', () => {
         name: 'Test',
       };
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual);
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
   });
 
@@ -615,8 +645,9 @@ describe('outputMatchesExampleOutput', () => {
         quantity: 10,
       };
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual);
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('matches arrays with Decimal128 values', () => {
@@ -643,10 +674,11 @@ describe('outputMatchesExampleOutput', () => {
         },
       ];
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual, {
-        comparisonType: 'ordered',
-      });
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual)
+          .withOrderedSort()
+          .shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('works with Decimal128 constructor without new keyword', () => {
@@ -661,8 +693,9 @@ describe('outputMatchesExampleOutput', () => {
         label: 'Test',
       };
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual);
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
   });
 
@@ -679,8 +712,9 @@ describe('outputMatchesExampleOutput', () => {
         description: 'A movie about a "time machine" and adventure',
       };
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual);
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('matches strings containing URLs with colons', () => {
@@ -695,8 +729,9 @@ describe('outputMatchesExampleOutput', () => {
         website: 'http://test.org',
       };
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual);
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('matches complex strings with multiple special characters', () => {
@@ -711,8 +746,9 @@ describe('outputMatchesExampleOutput', () => {
         url: 'https://example.com:8080/path?query=value',
       };
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual);
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
   });
 
@@ -739,8 +775,9 @@ describe('outputMatchesExampleOutput', () => {
         plot: 'A teenager travels back in time...',
       };
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual);
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('matches with truncated string values using ellipsis', () => {
@@ -761,8 +798,9 @@ describe('outputMatchesExampleOutput', () => {
         cast: ['Michael J. Fox', 'Christopher Lloyd'],
       };
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual);
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('allows missing fields when global ellipsis is present', () => {
@@ -781,8 +819,9 @@ describe('outputMatchesExampleOutput', () => {
         runtime: 116,
       };
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual);
-      expect(result).toBe(true);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).not.toThrow();
     });
 
     it('does not match when required fields are missing and no global ellipsis', () => {
@@ -800,8 +839,9 @@ describe('outputMatchesExampleOutput', () => {
         runtime: 116,
       };
 
-      const result = outputMatchesExampleOutput('temp-output.json', actual);
-      expect(result).toBe(false);
+      expect(() => {
+        Expect.that(actual).shouldMatch('temp-output.json');
+      }).toThrow();
     });
   });
 });

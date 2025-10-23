@@ -283,44 +283,37 @@ expect(actualReturn).toStrictEqual(expectedReturn);
 
 If you are showing the output in the docs, write the output to a file whose
 filename matches the example - i.e. `tutorial-output.sh`. Then, use the
-`outputMatchesExampleOutput` helper function to verify that the output matches
-what the test returns.
+`Expect` API to verify that the output matches what the test returns.
 
-Import the helper function at the top of the test file:
+Import the Expect API at the top of the test file:
 
 ```javascript
-import outputMatchesExampleOutput from '../../../utils/outputMatchesExampleOutput.js';
+import Expect from '../utils/Expect.js';
 ```
 
-Use this function to verify the output based on what your output contains:
+Use the Expect API to verify the output based on what your output contains:
 
 ```javascript
 const result = await runTutorial();
 const outputFilepath = 'aggregation/pipelines/filter/tutorial-output.sh';
-const comparisonOptions = { comparisonType: 'ordered' };
-const arraysMatch = outputMatchesExampleOutput(
-  outputFilepath,
-  result,
-  comparisonOptions
-);
-expect(arraysMatch).toBe(true);
+
+Expect.that(result).withOrderedSort().shouldMatch(outputFilepath);
 ```
 
-The `comparisonOptions` parameter is an object that controls how the comparison
-is performed. Choose the appropriate options based on your output characteristics:
+The Expect API uses a fluent interface with method chaining to control how
+the comparison is performed. Choose the appropriate methods based on your
+output characteristics:
 
 ##### Verify unordered output (default behavior)
 
 For output that can be in any order (most common case):
 
 ```javascript
-// Pass the `comparisonType` option explicitly:
-const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-  comparisonType: 'unordered',
-});
+// Use withUnorderedSort() explicitly:
+Expect.that(result).withUnorderedSort().shouldMatch(outputFilepath);
 
-// Omit the options object (unordered comparison is used by default)
-const arraysMatch = outputMatchesExampleOutput(outputFilepath, result);
+// Or omit the method (unordered comparison is the default)
+Expect.that(result).shouldMatch(outputFilepath);
 ```
 
 ##### Verify ordered output
@@ -328,9 +321,7 @@ const arraysMatch = outputMatchesExampleOutput(outputFilepath, result);
 For output that must be in a specific order (e.g., when using sort operations):
 
 ```javascript
-const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-  comparisonType: 'ordered',
-});
+Expect.that(result).withOrderedSort().shouldMatch(outputFilepath);
 ```
 
 ##### Handle variable field values
@@ -340,10 +331,9 @@ When your output contains fields that will have different values between test ru
 specific fields during comparison:
 
 ```javascript
-const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-  comparisonType: 'unordered',
-  ignoreFieldValues: ['_id', 'timestamp', 'userId', 'uuid', 'sessionId'],
-});
+Expect.that(result)
+  .withIgnoredFields('_id', 'timestamp', 'userId', 'uuid', 'sessionId')
+  .shouldMatch(outputFilepath);
 ```
 
 This ensures the comparison only validates that the field names are present,
@@ -420,15 +410,25 @@ You can also interject standalone `...` lines between properties, similar to:
 }
 ```
 
-##### Complete options reference
+##### Complete API reference
 
-The `options` object supports these properties:
+The Expect API supports these methods:
 
 ```javascript
-{
-  comparisonType: 'ordered' | 'unordered',        // Default: 'unordered'
-  ignoreFieldValues: ['field1', 'field2']         // Default: []
-}
+Expect.that(result)
+  .withUnorderedSort()              // Default behavior - arrays compared without order
+  .withOrderedSort()                // Arrays compared in strict order
+  .withIgnoredFields('field1', 'field2')  // Ignore specified fields during comparison
+  .shouldMatch(expectedValue);      // Performs the comparison
+```
+
+You can chain multiple methods together:
+
+```javascript
+Expect.that(result)
+  .withOrderedSort()
+  .withIgnoredFields('_id', 'timestamp')
+  .shouldMatch(outputFilepath);
 ```
 
 ## To run the tests locally

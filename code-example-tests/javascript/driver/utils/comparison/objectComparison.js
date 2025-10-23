@@ -135,6 +135,5 @@ function compareObjectProperties(
 
 module.exports = {
   compareObjectKeys,
-  shouldIgnoreKey,
   compareObjectProperties,
 };

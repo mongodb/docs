@@ -1,18 +1,18 @@
-const { comparePrimitives } = require('./comparison/primitiveComparison');
+const { comparePrimitives } = require('./primitiveComparison');
 const {
   compareArraysByBacktracking,
   compareArraysHybrid,
   compareArraysOrdered,
-} = require('./comparison/arrayComparison');
+} = require('./arrayComparison');
 const {
   compareObjectKeys,
   compareObjectProperties,
-} = require('./comparison/objectComparison');
+} = require('./objectComparison');
 const {
   handlePropertyLevelEllipsis,
   handleArrayLevelEllipsis,
   handleObjectLevelEllipsis,
-} = require('./comparison/ellipsisHandlers');
+} = require('./ellipsisHandlers');
 const { matchWithEllipsis } = require('./ellipsis');
 
 /**

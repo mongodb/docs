@@ -79,8 +79,7 @@ function matchWithEllipsis(eArr, aArr, options = {}, depth = 0) {
   }
   // Only actual exhausted: must be all trailing ellipsis
   if (aArr.length === 0) {
-    const allEllipsis = eArr.every((el) => el === '...');
-    return allEllipsis;
+    return eArr.every((el) => el === '...');
   }
   // Ellipsis handling
   if (eArr[0] === '...') {
@@ -123,4 +122,4 @@ function matchWithEllipsis(eArr, aArr, options = {}, depth = 0) {
   return matchWithEllipsis(eArr.slice(1), aArr.slice(1), options, depth + 1);
 }
 
-module.exports = { isTruncatedValue, isObjectEllipsis, matchWithEllipsis };
+module.exports = { isTruncatedValue, matchWithEllipsis };
