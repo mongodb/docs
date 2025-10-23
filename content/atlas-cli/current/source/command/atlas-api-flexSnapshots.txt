@@ -12,9 +12,9 @@ atlas api flexSnapshots
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns and requests to download flex database deployment snapshots.
+Returns and requests to download flex database deployment snapshots.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 
@@ -54,14 +54,14 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-flexSnapshots-downloadFlexBackup` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Requests one snapshot for the specified flex cluster.
-* :ref:`atlas-api-flexSnapshots-getFlexBackup` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one snapshot of one flex cluster from the specified project.
-* :ref:`atlas-api-flexSnapshots-listFlexBackups` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all snapshots of one flex cluster from the specified project.
+* :ref:`atlas-api-flexSnapshots-downloadFlexBackup` - Requests one snapshot for the specified flex cluster.
+* :ref:`atlas-api-flexSnapshots-getFlexBackupSnapshot` - Returns one snapshot of one flex cluster from the specified project.
+* :ref:`atlas-api-flexSnapshots-listFlexBackupSnapshots` - Returns all snapshots of one flex cluster from the specified project.
 
 
 .. toctree::
    :titlesonly:
 
    downloadFlexBackup </command/atlas-api-flexSnapshots-downloadFlexBackup>
-   getFlexBackup </command/atlas-api-flexSnapshots-getFlexBackup>
-   listFlexBackups </command/atlas-api-flexSnapshots-listFlexBackups>
+   getFlexBackupSnapshot </command/atlas-api-flexSnapshots-getFlexBackupSnapshot>
+   listFlexBackupSnapshots </command/atlas-api-flexSnapshots-listFlexBackupSnapshots>

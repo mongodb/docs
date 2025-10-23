@@ -12,9 +12,9 @@ atlas api projectIpAccessList
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, edits, and removes network access limits to database deployments in Atlas.
+Returns, adds, edits, and removes network access limits to database deployments in Atlas.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 This resource replaces the whitelist resource. Atlas removed whitelists in July 2021. Update your applications to use this new resource. This resource manages a project's IP Access List and supports creating temporary Access List entries that automatically expire within a user-configurable 7-day period.
@@ -54,18 +54,18 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-projectIpAccessList-createProjectIpAccessList` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Adds one or more access list entries to the specified project.
-* :ref:`atlas-api-projectIpAccessList-deleteProjectIpAccessList` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one access list entry from the specified project's IP access list.
-* :ref:`atlas-api-projectIpAccessList-getProjectIpAccessListStatus` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the status of one project IP access list entry.
-* :ref:`atlas-api-projectIpAccessList-getProjectIpList` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one access list entry from the specified project's IP access list.
-* :ref:`atlas-api-projectIpAccessList-listProjectIpAccessLists` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all access list entries from the specified project's IP access list.
+* :ref:`atlas-api-projectIpAccessList-createAccessListEntry` - Adds one or more access list entries to the specified project.
+* :ref:`atlas-api-projectIpAccessList-deleteAccessListEntry` - Removes one access list entry from the specified project's IP access list.
+* :ref:`atlas-api-projectIpAccessList-getAccessListEntry` - Returns one access list entry from the specified project's IP access list.
+* :ref:`atlas-api-projectIpAccessList-getAccessListStatus` - Returns the status of one project IP access list entry.
+* :ref:`atlas-api-projectIpAccessList-listAccessListEntries` - Returns all access list entries from the specified project's IP access list.
 
 
 .. toctree::
    :titlesonly:
 
-   createProjectIpAccessList </command/atlas-api-projectIpAccessList-createProjectIpAccessList>
-   deleteProjectIpAccessList </command/atlas-api-projectIpAccessList-deleteProjectIpAccessList>
-   getProjectIpAccessListStatus </command/atlas-api-projectIpAccessList-getProjectIpAccessListStatus>
-   getProjectIpList </command/atlas-api-projectIpAccessList-getProjectIpList>
-   listProjectIpAccessLists </command/atlas-api-projectIpAccessList-listProjectIpAccessLists>
+   createAccessListEntry </command/atlas-api-projectIpAccessList-createAccessListEntry>
+   deleteAccessListEntry </command/atlas-api-projectIpAccessList-deleteAccessListEntry>
+   getAccessListEntry </command/atlas-api-projectIpAccessList-getAccessListEntry>
+   getAccessListStatus </command/atlas-api-projectIpAccessList-getAccessListStatus>
+   listAccessListEntries </command/atlas-api-projectIpAccessList-listAccessListEntries>

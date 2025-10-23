@@ -12,9 +12,9 @@ atlas api root
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns details that describe the MongoDB Cloud build and the access token that requests this resource.
+Returns details that describe the MongoDB Cloud build and the access token that requests this resource.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 This starts the MongoDB Cloud API.
@@ -54,12 +54,12 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-root-getSystemStatus` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: This resource returns information about the MongoDB application along with API key meta data.
-* :ref:`atlas-api-root-returnAllControlPlaneIpAddresses` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all control plane IP addresses.
+* :ref:`atlas-api-root-getSystemStatus` - This resource returns information about the MongoDB application along with API key meta data.
+* :ref:`atlas-api-root-listControlPlaneAddresses` - Returns all control plane IP addresses.
 
 
 .. toctree::
    :titlesonly:
 
    getSystemStatus </command/atlas-api-root-getSystemStatus>
-   returnAllControlPlaneIpAddresses </command/atlas-api-root-returnAllControlPlaneIpAddresses>
+   listControlPlaneAddresses </command/atlas-api-root-listControlPlaneAddresses>

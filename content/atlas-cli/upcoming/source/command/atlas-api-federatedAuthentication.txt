@@ -12,9 +12,9 @@ atlas api federatedAuthentication
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, edits, and removes federation-related features such as role mappings and connected organization configurations.
+Returns, adds, edits, and removes federation-related features such as role mappings and connected organization configurations.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 
@@ -54,24 +54,24 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-federatedAuthentication-createIdentityProvider` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one identity provider within the specified federation.
-* :ref:`atlas-api-federatedAuthentication-createRoleMapping` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Adds one role mapping to the specified organization in the specified federation.
-* :ref:`atlas-api-federatedAuthentication-deleteFederationApp` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Deletes the federation settings instance and all associated data, including identity providers and domains.
-* :ref:`atlas-api-federatedAuthentication-deleteIdentityProvider` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Deletes one identity provider in the specified federation.
-* :ref:`atlas-api-federatedAuthentication-deleteRoleMapping` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one role mapping in the specified organization from the specified federation.
-* :ref:`atlas-api-federatedAuthentication-getConnectedOrgConfig` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the specified connected org config from the specified federation.
-* :ref:`atlas-api-federatedAuthentication-getFederationSettings` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns information about the federation settings for the specified organization.
-* :ref:`atlas-api-federatedAuthentication-getIdentityProvider` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one identity provider in the specified federation by the identity provider's id.
-* :ref:`atlas-api-federatedAuthentication-getIdentityProviderMetadata` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the metadata of one identity provider in the specified federation.
-* :ref:`atlas-api-federatedAuthentication-getRoleMapping` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one role mapping from the specified organization in the specified federation.
-* :ref:`atlas-api-federatedAuthentication-listConnectedOrgConfigs` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all connected org configs in the specified federation.
-* :ref:`atlas-api-federatedAuthentication-listIdentityProviders` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all identity providers with the provided protocol and type in the specified federation.
-* :ref:`atlas-api-federatedAuthentication-listRoleMappings` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all role mappings from the specified organization in the specified federation.
-* :ref:`atlas-api-federatedAuthentication-removeConnectedOrgConfig` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one connected organization configuration from the specified federation.
-* :ref:`atlas-api-federatedAuthentication-revokeJwksFromIdentityProvider` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Revokes the JWKS tokens from the requested OIDC identity provider.
-* :ref:`atlas-api-federatedAuthentication-updateConnectedOrgConfig` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates one connected organization configuration from the specified federation.
-* :ref:`atlas-api-federatedAuthentication-updateIdentityProvider` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates one identity provider in the specified federation.
-* :ref:`atlas-api-federatedAuthentication-updateRoleMapping` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates one role mapping in the specified organization in the specified federation.
+* :ref:`atlas-api-federatedAuthentication-createIdentityProvider` - Creates one identity provider within the specified federation.
+* :ref:`atlas-api-federatedAuthentication-createRoleMapping` - Adds one role mapping to the specified organization in the specified federation.
+* :ref:`atlas-api-federatedAuthentication-deleteFederationSetting` - Deletes the federation settings instance and all associated data, including identity providers and domains.
+* :ref:`atlas-api-federatedAuthentication-deleteIdentityProvider` - Deletes one identity provider in the specified federation.
+* :ref:`atlas-api-federatedAuthentication-deleteRoleMapping` - Removes one role mapping in the specified organization from the specified federation.
+* :ref:`atlas-api-federatedAuthentication-getConnectedOrgConfig` - Returns the specified connected org config from the specified federation.
+* :ref:`atlas-api-federatedAuthentication-getFederationSettings` - Returns information about the federation settings for the specified organization.
+* :ref:`atlas-api-federatedAuthentication-getIdentityProvider` - Returns one identity provider in the specified federation by the identity provider's id.
+* :ref:`atlas-api-federatedAuthentication-getIdentityProviderMetadata` - Returns the metadata of one identity provider in the specified federation.
+* :ref:`atlas-api-federatedAuthentication-getRoleMapping` - Returns one role mapping from the specified organization in the specified federation.
+* :ref:`atlas-api-federatedAuthentication-listConnectedOrgConfigs` - Returns all connected org configs in the specified federation.
+* :ref:`atlas-api-federatedAuthentication-listIdentityProviders` - Returns all identity providers with the provided protocol and type in the specified federation.
+* :ref:`atlas-api-federatedAuthentication-listRoleMappings` - Returns all role mappings from the specified organization in the specified federation.
+* :ref:`atlas-api-federatedAuthentication-removeConnectedOrgConfig` - Removes one connected organization configuration from the specified federation.
+* :ref:`atlas-api-federatedAuthentication-revokeIdentityProviderJwks` - Revokes the JWKS tokens from the requested OIDC identity provider.
+* :ref:`atlas-api-federatedAuthentication-updateConnectedOrgConfig` - Updates one connected organization configuration from the specified federation.
+* :ref:`atlas-api-federatedAuthentication-updateIdentityProvider` - Updates one identity provider in the specified federation.
+* :ref:`atlas-api-federatedAuthentication-updateRoleMapping` - Updates one role mapping in the specified organization in the specified federation.
 
 
 .. toctree::
@@ -79,7 +79,7 @@ Related Commands
 
    createIdentityProvider </command/atlas-api-federatedAuthentication-createIdentityProvider>
    createRoleMapping </command/atlas-api-federatedAuthentication-createRoleMapping>
-   deleteFederationApp </command/atlas-api-federatedAuthentication-deleteFederationApp>
+   deleteFederationSetting </command/atlas-api-federatedAuthentication-deleteFederationSetting>
    deleteIdentityProvider </command/atlas-api-federatedAuthentication-deleteIdentityProvider>
    deleteRoleMapping </command/atlas-api-federatedAuthentication-deleteRoleMapping>
    getConnectedOrgConfig </command/atlas-api-federatedAuthentication-getConnectedOrgConfig>
@@ -91,7 +91,7 @@ Related Commands
    listIdentityProviders </command/atlas-api-federatedAuthentication-listIdentityProviders>
    listRoleMappings </command/atlas-api-federatedAuthentication-listRoleMappings>
    removeConnectedOrgConfig </command/atlas-api-federatedAuthentication-removeConnectedOrgConfig>
-   revokeJwksFromIdentityProvider </command/atlas-api-federatedAuthentication-revokeJwksFromIdentityProvider>
+   revokeIdentityProviderJwks </command/atlas-api-federatedAuthentication-revokeIdentityProviderJwks>
    updateConnectedOrgConfig </command/atlas-api-federatedAuthentication-updateConnectedOrgConfig>
    updateIdentityProvider </command/atlas-api-federatedAuthentication-updateIdentityProvider>
    updateRoleMapping </command/atlas-api-federatedAuthentication-updateRoleMapping>

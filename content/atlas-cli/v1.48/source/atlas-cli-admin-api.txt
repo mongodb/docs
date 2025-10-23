@@ -1,0 +1,205 @@
+.. _atlas-cli-admin-api:
+
+===============================================================
+Use the {+atlas-admin-api+} from the {+atlas-cli+}
+===============================================================
+
+.. meta::
+   :description: Learn to execute Atlas CLI commands using the Atlas Administration API.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The {+atlas-cli+} provides the ``api`` subcommand with which you can
+access every {+atlas-admin-api+} endpoint directly from the
+{+atlas-cli+}. This feature is a robust and reliable way to use every
+capability of the {+atlas-admin-api+}. It provides access to
+the entire {+atlas-admin-api+} so that you can script or automate any
+task, with the benefits that come from using a command-line interface: 
+
+- Full feature parity with the {+atlas-admin-api+}.
+- Quicker access to new {+atlas-admin-api+} resources and endpoints.
+- A unified, predictable command structure for automation.
+- Ability to pin a desired API version, ensuring your scripts remain
+  reliable, even if you update the CLI. 
+- Ability to watch a command until the operation completes.
+ 
+This tutorial demonstrates how to use the {+atlas-admin-api+} from the
+{+atlas-cli+} commands. 
+
+.. note:: 
+
+   The |api| subcommands are automatically generated from the
+   {+atlas-admin-api+} and provide access to the entire {+atlas-admin-api+}
+   (including preview resources). You must have some familiarity with
+   the {+atlas-admin-api+} as well as an understanding that the default
+   input and output is a direct mapping of the API media type to
+   benefit from this {+atlas-cli+} feature.
+
+Syntax 
+------
+
+To use {+atlas-cli+} with the {+atlas-admin-api+}, run the command in
+the following format: 
+
+.. code-block:: shell 
+
+   atlas api <tag> <operationId> [options]|--file <fileName>.json --version <api-resource-version>
+
+Arguments 
+~~~~~~~~~
+
+.. list-table:: 
+   :widths: 20 10 70 
+   :header-rows: 1
+
+   * - Argument 
+     - Necessity
+     - Description
+
+   * - ``<tag>``
+     - Required
+     - The name of the tag used in the {+atlas-admin-api+} documentation
+       |url| for the |api| resource. The tag is hyphen-separated in the
+       {+atlas-admin-api+} documentation |url|. However, you must
+       convert it to camelcase in the {+atlas-cli+} command syntax. 
+
+       For example, consider the following |url| for an
+       {+atlas-admin-api+} resource:
+
+       .. code-block:: shell 
+
+          https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Example-Tag-Name/
+       
+       For accessing the resource in the preceding |url|, replace
+       ``<tag>`` with ``exampleTagName`` in the command syntax: 
+
+       .. code-block:: shell 
+
+          atlas api exampleTagName <operationId> 
+
+       For more examples, see :ref:`atlas-cli-admin-api-examples`.
+
+   * - ``<operationId>``
+     - Required
+     - The identifier of the operation in the {+atlas-admin-api+}
+       documentation |url| for the |api| endpoint. The value is in
+       camelcase format.  
+
+       For example, consider the following |url| for an
+       {+atlas-admin-api+} endpoint operation:
+
+       .. code-block:: shell 
+
+          https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Example-Tag-Name/operation/exampleEndpointOperationId
+       
+       For performing the operation supported by the endpoint in the
+       preceding |url|, replace ``<tag>`` with ``exampleTagName`` and use
+       the ID of the operation, ``exampleEndpointOperationId``, as shown the
+       command. 
+
+       .. code-block:: shell 
+
+          atlas api exampleTagName exampleEndpointOperationId [options]
+
+       For more examples, see :ref:`atlas-cli-admin-api-examples`.
+
+Options 
+~~~~~~~
+
+You can pass the |api| path, query, and request body parameters as
+options with the command. You can specify the options directly 
+with the command or using a |json| file. The command also supports the 
+following options: 
+
+.. list-table:: 
+   :widths: 20 10 70 
+   :header-rows: 1
+
+   * - Option 
+     - Necessity 
+     - Description
+
+   * - ``--file`` 
+     - Conditional 
+     - |json| file that contains the |api| path, query, and request body
+       parameters for the operation. This is required only if there are
+       required path, query, or request body parameters for the
+       operation that you aren't specifying directly with the command. 
+
+   * - ``--version`` 
+     - Optional 
+     - |api| resource version to use. We recommend using it to pin your
+       scripts to specific |api| versions. If omitted, the command
+       defaults to the latest version (or your profile's configured
+       version). However, we recommend explicitly setting the version to
+       ensure your scripts remain stable. This protects your scripts
+       from breaking when new |api| versions are released with
+       potentially incompatible changes.
+
+   * - ``--watch`` 
+     - Optional
+     - Flag that specifies whether to watch the operation until it 
+       completes.
+
+.. _atlas-cli-admin-api-examples:
+
+Examples 
+--------
+
+The following {+atlas-cli+} command with the {+atlas-admin-api+}
+demonstrates how to retrieve a compressed (``.gz``) log file that
+contains a range of log messages for the specified host for the
+specified project:  
+
+.. code-block:: shell 
+
+   atlas api monitoringAndLogs getHostLogs --groupId 5e2211c17a3e5a48f5497de3 --hostName mycluster-shard-00-02.7hgjn.mongodb.net --logName mongodb --output gzip --version 2025-03-12
+
+The following {+atlas-cli+} command with the {+atlas-admin-api+}
+demonstrates how to create a cluster by using the ``--file`` option.
+
+.. code-block:: shell 
+
+   atlas api clusters createCluster --groupId 5e2211c17a3e5a48f5497de3 --file cluster-config.json --version 2025-03-12
+
+To learn more about creating a configuration file for a cluster, see
+:ref:`atlas-cli-cluster-config-file`. 
+
+The following {+atlas-cli+} command with the {+atlas-admin-api+}
+demonstrates how to simulate regional cloud provider outages.
+This simulation lets you test your application's failover behavior and
+disaster recovery procedures in a controlled environment separate from
+production. The command uses a file named ``outage_simulation.json``
+with the following settings: 
+
+.. code-block:: 
+
+   {
+      "outageFilters": [
+         {
+            "cloudProvider": "AWS",
+            "regionName": "US_EAST_1",
+            "type": "REGION"
+         }
+      ]
+   }
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: shell 
+
+      atlas api clusterOutageSimulation startOutageSimulation --groupId 5e2211c17a3e5a48f5497de3 --clusterName myCluster --file outage_simulation.json --version 2025-03-12
+
+   .. output:: 
+      :language: shell 
+
+      {"clusterName":"myCluster","groupId":"5e2211c17a3e5a48f5497de3","id":"6808ed9bed0b0b51caee336b","outageFilters":[{"cloudProvider":"AWS","regionName":"US_EAST_1","type":"REGION"}],"startRequestDate":"2025-04-23T13:39:39Z","state":"START_REQUESTED"}
+

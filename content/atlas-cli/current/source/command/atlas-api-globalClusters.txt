@@ -12,9 +12,9 @@ atlas api globalClusters
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, and removes Global Cluster managed namespaces and custom zone mappings.
+Returns, adds, and removes Global Cluster managed namespaces and custom zone mappings.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 Each collection in a Global Cluster is associated with a managed namespace. When you create a managed namespace for a Global Cluster, MongoDB Cloud creates an empty collection for that namespace. Creating a managed namespace doesn't populate a collection with data. Similarly, deleting a managed namespace doesn't delete the associated collection.
@@ -55,11 +55,11 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-globalClusters-createCustomZoneMapping` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one custom zone mapping for the specified global cluster.
-* :ref:`atlas-api-globalClusters-createManagedNamespace` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one managed namespace within the specified global cluster.
-* :ref:`atlas-api-globalClusters-deleteAllCustomZoneMappings` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes all custom zone mappings for the specified global cluster.
-* :ref:`atlas-api-globalClusters-deleteManagedNamespace` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one managed namespace within the specified global cluster.
-* :ref:`atlas-api-globalClusters-getManagedNamespace` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one managed namespace within the specified global cluster.
+* :ref:`atlas-api-globalClusters-createCustomZoneMapping` - Creates one custom zone mapping for the specified global cluster.
+* :ref:`atlas-api-globalClusters-createManagedNamespace` - Creates one managed namespace within the specified global cluster.
+* :ref:`atlas-api-globalClusters-deleteCustomZoneMapping` - Removes all custom zone mappings for the specified global cluster.
+* :ref:`atlas-api-globalClusters-deleteManagedNamespaces` - Removes one managed namespace within the specified global cluster.
+* :ref:`atlas-api-globalClusters-getClusterGlobalWrites` - Returns one managed namespace within the specified global cluster.
 
 
 .. toctree::
@@ -67,6 +67,6 @@ Related Commands
 
    createCustomZoneMapping </command/atlas-api-globalClusters-createCustomZoneMapping>
    createManagedNamespace </command/atlas-api-globalClusters-createManagedNamespace>
-   deleteAllCustomZoneMappings </command/atlas-api-globalClusters-deleteAllCustomZoneMappings>
-   deleteManagedNamespace </command/atlas-api-globalClusters-deleteManagedNamespace>
-   getManagedNamespace </command/atlas-api-globalClusters-getManagedNamespace>
+   deleteCustomZoneMapping </command/atlas-api-globalClusters-deleteCustomZoneMapping>
+   deleteManagedNamespaces </command/atlas-api-globalClusters-deleteManagedNamespaces>
+   getClusterGlobalWrites </command/atlas-api-globalClusters-getClusterGlobalWrites>

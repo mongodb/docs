@@ -12,9 +12,9 @@ atlas api maintenanceWindows
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, edits, and removes maintenance windows.
+Returns, edits, and removes maintenance windows.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 The maintenance procedure that MongoDB Cloud performs requires at least one replica set election during the maintenance window per replica set. You can defer a scheduled maintenance event for a project up to two times. Deferred maintenance events occur during your preferred maintenance window exactly one week after the previously scheduled date and time.
@@ -54,11 +54,11 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-maintenanceWindows-deferMaintenanceWindow` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Defers the maintenance window for the specified project.
-* :ref:`atlas-api-maintenanceWindows-getMaintenanceWindow` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the maintenance window for the specified project.
-* :ref:`atlas-api-maintenanceWindows-resetMaintenanceWindow` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Resets the maintenance window for the specified project.
-* :ref:`atlas-api-maintenanceWindows-toggleMaintenanceAutoDefer` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Toggles automatic deferral of the maintenance window for the specified project.
-* :ref:`atlas-api-maintenanceWindows-updateMaintenanceWindow` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the maintenance window for the specified project.
+* :ref:`atlas-api-maintenanceWindows-deferMaintenanceWindow` - Defers the maintenance window for the specified project.
+* :ref:`atlas-api-maintenanceWindows-getMaintenanceWindow` - Returns the maintenance window for the specified project.
+* :ref:`atlas-api-maintenanceWindows-resetMaintenanceWindow` - Resets the maintenance window for the specified project.
+* :ref:`atlas-api-maintenanceWindows-toggleMaintenanceAutoDefer` - Toggles automatic deferral of the maintenance window for the specified project.
+* :ref:`atlas-api-maintenanceWindows-updateMaintenanceWindow` - Updates the maintenance window for the specified project.
 
 
 .. toctree::

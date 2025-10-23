@@ -12,9 +12,9 @@ atlas api serviceAccounts
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Endpoints for managing Service Accounts and secrets.
+Endpoints for managing Service Accounts and secrets.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 Service Accounts are used for programmatic access to the Atlas Admin API through the OAuth 2.0 Client Credentials flow.
@@ -54,52 +54,52 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-serviceAccounts-addProjectServiceAccount` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Assigns the specified Service Account to the specified Project.
-* :ref:`atlas-api-serviceAccounts-createProjectServiceAccount` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one Service Account for the specified Project.
-* :ref:`atlas-api-serviceAccounts-createProjectServiceAccountAccessList` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Add Access List Entries for the specified Service Account for the project.
-* :ref:`atlas-api-serviceAccounts-createProjectServiceAccountSecret` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Create a secret for the specified Service Account in the specified Project.
-* :ref:`atlas-api-serviceAccounts-createServiceAccount` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one Service Account for the specified Organization.
-* :ref:`atlas-api-serviceAccounts-createServiceAccountAccessList` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Add Access List Entries for the specified Service Account for the organization.
-* :ref:`atlas-api-serviceAccounts-createServiceAccountSecret` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Create a secret for the specified Service Account.
-* :ref:`atlas-api-serviceAccounts-deleteProjectServiceAccount` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes the specified Service Account from the specified project.
-* :ref:`atlas-api-serviceAccounts-deleteProjectServiceAccountAccessListEntry` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes the specified access list entry from the specified Service Account for the project.
-* :ref:`atlas-api-serviceAccounts-deleteProjectServiceAccountSecret` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Deletes the specified Service Account secret.
-* :ref:`atlas-api-serviceAccounts-deleteServiceAccount` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Deletes the specified Service Account.
-* :ref:`atlas-api-serviceAccounts-deleteServiceAccountAccessListEntry` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes the specified access list entry from the specified Service Account for the organization.
-* :ref:`atlas-api-serviceAccounts-deleteServiceAccountSecret` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Deletes the specified Service Account secret.
-* :ref:`atlas-api-serviceAccounts-getProjectServiceAccount` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one Service Account in the specified Project.
-* :ref:`atlas-api-serviceAccounts-getServiceAccount` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the specified Service Account.
-* :ref:`atlas-api-serviceAccounts-listProjectServiceAccountAccessList` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all access list entries that you configured for the specified Service Account for the project.
-* :ref:`atlas-api-serviceAccounts-listProjectServiceAccounts` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all Service Accounts for the specified Project.
-* :ref:`atlas-api-serviceAccounts-listServiceAccountAccessList` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all access list entries that you configured for the specified Service Account for the organization.
-* :ref:`atlas-api-serviceAccounts-listServiceAccountProjects` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns a list of all projects the specified Service Account is a part of.
-* :ref:`atlas-api-serviceAccounts-listServiceAccounts` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all Service Accounts for the specified Organization.
-* :ref:`atlas-api-serviceAccounts-updateProjectServiceAccount` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates one Service Account in the specified Project.
-* :ref:`atlas-api-serviceAccounts-updateServiceAccount` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the specified Service Account in the specified Organization.
+* :ref:`atlas-api-serviceAccounts-createAccessList` - Add Access List Entries for the specified Service Account for the project.
+* :ref:`atlas-api-serviceAccounts-createGroupSecret` - Create a secret for the specified Service Account in the specified Project.
+* :ref:`atlas-api-serviceAccounts-createGroupServiceAccount` - Creates one Service Account for the specified Project.
+* :ref:`atlas-api-serviceAccounts-createOrgAccessList` - Add Access List Entries for the specified Service Account for the organization.
+* :ref:`atlas-api-serviceAccounts-createOrgSecret` - Create a secret for the specified Service Account.
+* :ref:`atlas-api-serviceAccounts-createOrgServiceAccount` - Creates one Service Account for the specified Organization.
+* :ref:`atlas-api-serviceAccounts-deleteGroupAccessEntry` - Removes the specified access list entry from the specified Service Account for the project.
+* :ref:`atlas-api-serviceAccounts-deleteGroupSecret` - Deletes the specified Service Account secret.
+* :ref:`atlas-api-serviceAccounts-deleteGroupServiceAccount` - Removes the specified Service Account from the specified project.
+* :ref:`atlas-api-serviceAccounts-deleteOrgAccessEntry` - Removes the specified access list entry from the specified Service Account for the organization.
+* :ref:`atlas-api-serviceAccounts-deleteOrgSecret` - Deletes the specified Service Account secret.
+* :ref:`atlas-api-serviceAccounts-deleteOrgServiceAccount` - Deletes the specified Service Account.
+* :ref:`atlas-api-serviceAccounts-getGroupServiceAccount` - Returns one Service Account in the specified Project.
+* :ref:`atlas-api-serviceAccounts-getOrgServiceAccount` - Returns the specified Service Account.
+* :ref:`atlas-api-serviceAccounts-getServiceAccountGroups` - Returns a list of all projects the specified Service Account is a part of.
+* :ref:`atlas-api-serviceAccounts-inviteGroupServiceAccount` - Assigns the specified Service Account to the specified Project.
+* :ref:`atlas-api-serviceAccounts-listAccessList` - Returns all access list entries that you configured for the specified Service Account for the project.
+* :ref:`atlas-api-serviceAccounts-listGroupServiceAccounts` - Returns all Service Accounts for the specified Project.
+* :ref:`atlas-api-serviceAccounts-listOrgAccessList` - Returns all access list entries that you configured for the specified Service Account for the organization.
+* :ref:`atlas-api-serviceAccounts-listOrgServiceAccounts` - Returns all Service Accounts for the specified Organization.
+* :ref:`atlas-api-serviceAccounts-updateGroupServiceAccount` - Updates one Service Account in the specified Project.
+* :ref:`atlas-api-serviceAccounts-updateOrgServiceAccount` - Updates the specified Service Account in the specified Organization.
 
 
 .. toctree::
    :titlesonly:
 
-   addProjectServiceAccount </command/atlas-api-serviceAccounts-addProjectServiceAccount>
-   createProjectServiceAccount </command/atlas-api-serviceAccounts-createProjectServiceAccount>
-   createProjectServiceAccountAccessList </command/atlas-api-serviceAccounts-createProjectServiceAccountAccessList>
-   createProjectServiceAccountSecret </command/atlas-api-serviceAccounts-createProjectServiceAccountSecret>
-   createServiceAccount </command/atlas-api-serviceAccounts-createServiceAccount>
-   createServiceAccountAccessList </command/atlas-api-serviceAccounts-createServiceAccountAccessList>
-   createServiceAccountSecret </command/atlas-api-serviceAccounts-createServiceAccountSecret>
-   deleteProjectServiceAccount </command/atlas-api-serviceAccounts-deleteProjectServiceAccount>
-   deleteProjectServiceAccountAccessListEntry </command/atlas-api-serviceAccounts-deleteProjectServiceAccountAccessListEntry>
-   deleteProjectServiceAccountSecret </command/atlas-api-serviceAccounts-deleteProjectServiceAccountSecret>
-   deleteServiceAccount </command/atlas-api-serviceAccounts-deleteServiceAccount>
-   deleteServiceAccountAccessListEntry </command/atlas-api-serviceAccounts-deleteServiceAccountAccessListEntry>
-   deleteServiceAccountSecret </command/atlas-api-serviceAccounts-deleteServiceAccountSecret>
-   getProjectServiceAccount </command/atlas-api-serviceAccounts-getProjectServiceAccount>
-   getServiceAccount </command/atlas-api-serviceAccounts-getServiceAccount>
-   listProjectServiceAccountAccessList </command/atlas-api-serviceAccounts-listProjectServiceAccountAccessList>
-   listProjectServiceAccounts </command/atlas-api-serviceAccounts-listProjectServiceAccounts>
-   listServiceAccountAccessList </command/atlas-api-serviceAccounts-listServiceAccountAccessList>
-   listServiceAccountProjects </command/atlas-api-serviceAccounts-listServiceAccountProjects>
-   listServiceAccounts </command/atlas-api-serviceAccounts-listServiceAccounts>
-   updateProjectServiceAccount </command/atlas-api-serviceAccounts-updateProjectServiceAccount>
-   updateServiceAccount </command/atlas-api-serviceAccounts-updateServiceAccount>
+   createAccessList </command/atlas-api-serviceAccounts-createAccessList>
+   createGroupSecret </command/atlas-api-serviceAccounts-createGroupSecret>
+   createGroupServiceAccount </command/atlas-api-serviceAccounts-createGroupServiceAccount>
+   createOrgAccessList </command/atlas-api-serviceAccounts-createOrgAccessList>
+   createOrgSecret </command/atlas-api-serviceAccounts-createOrgSecret>
+   createOrgServiceAccount </command/atlas-api-serviceAccounts-createOrgServiceAccount>
+   deleteGroupAccessEntry </command/atlas-api-serviceAccounts-deleteGroupAccessEntry>
+   deleteGroupSecret </command/atlas-api-serviceAccounts-deleteGroupSecret>
+   deleteGroupServiceAccount </command/atlas-api-serviceAccounts-deleteGroupServiceAccount>
+   deleteOrgAccessEntry </command/atlas-api-serviceAccounts-deleteOrgAccessEntry>
+   deleteOrgSecret </command/atlas-api-serviceAccounts-deleteOrgSecret>
+   deleteOrgServiceAccount </command/atlas-api-serviceAccounts-deleteOrgServiceAccount>
+   getGroupServiceAccount </command/atlas-api-serviceAccounts-getGroupServiceAccount>
+   getOrgServiceAccount </command/atlas-api-serviceAccounts-getOrgServiceAccount>
+   getServiceAccountGroups </command/atlas-api-serviceAccounts-getServiceAccountGroups>
+   inviteGroupServiceAccount </command/atlas-api-serviceAccounts-inviteGroupServiceAccount>
+   listAccessList </command/atlas-api-serviceAccounts-listAccessList>
+   listGroupServiceAccounts </command/atlas-api-serviceAccounts-listGroupServiceAccounts>
+   listOrgAccessList </command/atlas-api-serviceAccounts-listOrgAccessList>
+   listOrgServiceAccounts </command/atlas-api-serviceAccounts-listOrgServiceAccounts>
+   updateGroupServiceAccount </command/atlas-api-serviceAccounts-updateGroupServiceAccount>
+   updateOrgServiceAccount </command/atlas-api-serviceAccounts-updateOrgServiceAccount>

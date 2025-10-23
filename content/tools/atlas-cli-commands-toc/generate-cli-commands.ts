@@ -69,6 +69,33 @@ async function runCommand(command: string): Promise<string> {
 }
 
 /**
+ * Run the consolidated fixers script on the specified directory
+ */
+async function runFixersScript(scope: string): Promise<void> {
+  const fixersScript = path.join(__dirname, 'run-all-fixers.py');
+  
+  if (!fs.existsSync(fixersScript)) {
+    console.log('⚠️  Fixers script not found, skipping fixers step');
+    return;
+  }
+
+  console.log(`🔧 Running fixers script on ${scope}...`);
+  
+  try {
+    // Run the fixers script with --apply to actually make changes
+    const command = `python3 "${fixersScript}" --apply --scope "${scope}"`;
+    const output = await runCommand(command);
+    
+    if (output) {
+      console.log('🔧 Fixers output:', output);
+    }
+    console.log('✅ Fixers script completed successfully');
+  } catch (error) {
+    console.warn('⚠️  Fixers script failed, but continuing:', (error as Error).message);
+  }
+}
+
+/**
  * Handle directory structure for version promotion or normal operation
  */
 async function handleDirectoryStructure(tagOrBranch: string, isVersionPromotion: boolean, newVersionName: string): Promise<string[]> {
@@ -186,16 +213,19 @@ async function copyCommandFilesFromGit(tagOrBranch: string): Promise<string[]> {
     console.log(`🔗 Cloning ${repoUrl} (${tagOrBranch})...`);
     await runCommand(`git clone --depth 1 --branch "${tagOrBranch}" "${repoUrl}" "${tempDir}"`);
     
-    // Ensure destination directories exist
-    fs.mkdirSync(upcomingCommandDir, { recursive: true });
-    fs.mkdirSync(currentCommandDir, { recursive: true });
-    fs.mkdirSync(atlasCommandDir, { recursive: true });
-    
     // Copy command files from repository
     const sourceCommandDir = path.join(tempDir, 'docs', 'command');
     if (!fs.existsSync(sourceCommandDir)) {
       throw new Error(`Command directory not found: ${sourceCommandDir}`);
     }
+
+    // Run fixers on the cloned command files before copying to destinations
+    await runFixersScript(sourceCommandDir);
+    
+    // Ensure destination directories exist
+    fs.mkdirSync(upcomingCommandDir, { recursive: true });
+    fs.mkdirSync(currentCommandDir, { recursive: true });
+    fs.mkdirSync(atlasCommandDir, { recursive: true });
 
     const files = getFilesRecursively(sourceCommandDir, [])
       .filter(file => file.endsWith('.txt') && !file.toLowerCase().includes('serverless'));
@@ -734,6 +764,7 @@ export {
   copyCommandFilesFromGit,
   copyExamplesFromGit,
   runCommand,
+  runFixersScript,
   getFilesRecursively,
   createHierarchicalStructure, 
   treeToArray, 

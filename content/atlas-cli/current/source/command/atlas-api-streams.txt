@@ -12,9 +12,9 @@ atlas api streams
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, edits, and removes Streams Instances.
+Returns, adds, edits, and removes Streams Instances.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 This resource requires your project ID.
@@ -54,36 +54,36 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-streams-acceptVpcPeeringConnection` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Requests the acceptance of an incoming VPC Peering connection.
-* :ref:`atlas-api-streams-createPrivateLinkConnection` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one Private Link in the specified project.
-* :ref:`atlas-api-streams-createStreamConnection` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one connection for a stream instance in the specified project.
-* :ref:`atlas-api-streams-createStreamInstance` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one stream instance in the specified project.
-* :ref:`atlas-api-streams-createStreamInstanceWithSampleConnections` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one stream instance in the specified project with sample connections.
-* :ref:`atlas-api-streams-createStreamProcessor` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Create one Stream Processor within the specified stream instance.
-* :ref:`atlas-api-streams-deletePrivateLinkConnection` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Deletes one Private Link in the specified project.
-* :ref:`atlas-api-streams-deleteStreamConnection` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Delete one connection of the specified stream instance.
-* :ref:`atlas-api-streams-deleteStreamInstance` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Delete one stream instance in the specified project.
-* :ref:`atlas-api-streams-deleteStreamProcessor` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Delete a Stream Processor within the specified stream instance.
-* :ref:`atlas-api-streams-deleteVpcPeeringConnection` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Deletes an incoming VPC Peering connection.
-* :ref:`atlas-api-streams-downloadStreamTenantAuditLogs` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Downloads the audit logs for the specified Atlas Streams Processing instance.
-* :ref:`atlas-api-streams-getAccountDetails` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the Account ID, and the VPC ID for the group and region specified.
-* :ref:`atlas-api-streams-getActiveVpcPeeringConnections` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns a list of active incoming VPC Peering Connections.
-* :ref:`atlas-api-streams-getPrivateLinkConnection` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the details of one Private Link connection within the project.
-* :ref:`atlas-api-streams-getStreamConnection` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the details of one stream connection within the specified stream instance.
-* :ref:`atlas-api-streams-getStreamInstance` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the details of one stream instance within the specified project.
-* :ref:`atlas-api-streams-getStreamProcessor` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Get one Stream Processor within the specified stream instance.
-* :ref:`atlas-api-streams-getVpcPeeringConnections` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns a list of incoming VPC Peering Connections.
-* :ref:`atlas-api-streams-listPrivateLinkConnections` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all Private Link connections for the specified project.
-* :ref:`atlas-api-streams-listStreamConnections` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all connections of the stream instance for the specified project.
-* :ref:`atlas-api-streams-listStreamInstances` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all stream instances for the specified project.
-* :ref:`atlas-api-streams-listStreamProcessors` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all Stream Processors within the specified stream instance.
-* :ref:`atlas-api-streams-modifyStreamProcessor` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Modify one existing Stream Processor within the specified stream instance.
-* :ref:`atlas-api-streams-rejectVpcPeeringConnection` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Requests the rejection of an incoming VPC Peering connection.
-* :ref:`atlas-api-streams-startStreamProcessor` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Start a Stream Processor within the specified stream instance.
-* :ref:`atlas-api-streams-startStreamProcessorWith` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Start a Stream Processor within the specified stream instance.
-* :ref:`atlas-api-streams-stopStreamProcessor` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Stop a Stream Processor within the specified stream instance.
-* :ref:`atlas-api-streams-updateStreamConnection` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Update one connection for the specified stream instance in the specified project.
-* :ref:`atlas-api-streams-updateStreamInstance` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Update one stream instance in the specified project.
+* :ref:`atlas-api-streams-acceptVpcPeeringConnection` - Requests the acceptance of an incoming VPC Peering connection.
+* :ref:`atlas-api-streams-createPrivateLinkConnection` - Creates one Private Link in the specified project.
+* :ref:`atlas-api-streams-createStreamConnection` - Creates one connection for a stream instance in the specified project.
+* :ref:`atlas-api-streams-createStreamProcessor` - Create one Stream Processor within the specified stream instance.
+* :ref:`atlas-api-streams-createStreamWorkspace` - Creates one stream instance in the specified project.
+* :ref:`atlas-api-streams-deletePrivateLinkConnection` - Deletes one Private Link in the specified project.
+* :ref:`atlas-api-streams-deleteStreamConnection` - Delete one connection of the specified stream instance.
+* :ref:`atlas-api-streams-deleteStreamProcessor` - Delete a Stream Processor within the specified stream instance.
+* :ref:`atlas-api-streams-deleteStreamWorkspace` - Delete one stream instance in the specified project.
+* :ref:`atlas-api-streams-deleteVpcPeeringConnection` - Deletes an incoming VPC Peering connection.
+* :ref:`atlas-api-streams-downloadAuditLogs` - Downloads the audit logs for the specified Atlas Streams Processing instance.
+* :ref:`atlas-api-streams-getAccountDetails` - Returns the Account ID, and the VPC ID for the group and region specified.
+* :ref:`atlas-api-streams-getPrivateLinkConnection` - Returns the details of one Private Link connection within the project.
+* :ref:`atlas-api-streams-getStreamConnection` - Returns the details of one stream connection within the specified stream instance.
+* :ref:`atlas-api-streams-getStreamProcessor` - Get one Stream Processor within the specified stream instance.
+* :ref:`atlas-api-streams-getStreamProcessors` - Returns all Stream Processors within the specified stream instance.
+* :ref:`atlas-api-streams-getStreamWorkspace` - Returns the details of one stream instance within the specified project.
+* :ref:`atlas-api-streams-listActivePeeringConnections` - Returns a list of active incoming VPC Peering Connections.
+* :ref:`atlas-api-streams-listPrivateLinkConnections` - Returns all Private Link connections for the specified project.
+* :ref:`atlas-api-streams-listStreamConnections` - Returns all connections of the stream instance for the specified project.
+* :ref:`atlas-api-streams-listStreamWorkspaces` - Returns all stream instances for the specified project.
+* :ref:`atlas-api-streams-listVpcPeeringConnections` - Returns a list of incoming VPC Peering Connections.
+* :ref:`atlas-api-streams-rejectVpcPeeringConnection` - Requests the rejection of an incoming VPC Peering connection.
+* :ref:`atlas-api-streams-startStreamProcessor` - Start a Stream Processor within the specified stream instance.
+* :ref:`atlas-api-streams-startStreamProcessorWith` - Start a Stream Processor within the specified stream instance.
+* :ref:`atlas-api-streams-stopStreamProcessor` - Stop a Stream Processor within the specified stream instance.
+* :ref:`atlas-api-streams-updateStreamConnection` - Update one connection for the specified stream instance in the specified project.
+* :ref:`atlas-api-streams-updateStreamProcessor` - Modify one existing Stream Processor within the specified stream instance.
+* :ref:`atlas-api-streams-updateStreamWorkspace` - Update one stream instance in the specified project.
+* :ref:`atlas-api-streams-withStreamSampleConnections` - Creates one stream instance in the specified project with sample connections.
 
 
 .. toctree::
@@ -92,30 +92,30 @@ Related Commands
    acceptVpcPeeringConnection </command/atlas-api-streams-acceptVpcPeeringConnection>
    createPrivateLinkConnection </command/atlas-api-streams-createPrivateLinkConnection>
    createStreamConnection </command/atlas-api-streams-createStreamConnection>
-   createStreamInstance </command/atlas-api-streams-createStreamInstance>
-   createStreamInstanceWithSampleConnections </command/atlas-api-streams-createStreamInstanceWithSampleConnections>
    createStreamProcessor </command/atlas-api-streams-createStreamProcessor>
+   createStreamWorkspace </command/atlas-api-streams-createStreamWorkspace>
    deletePrivateLinkConnection </command/atlas-api-streams-deletePrivateLinkConnection>
    deleteStreamConnection </command/atlas-api-streams-deleteStreamConnection>
-   deleteStreamInstance </command/atlas-api-streams-deleteStreamInstance>
    deleteStreamProcessor </command/atlas-api-streams-deleteStreamProcessor>
+   deleteStreamWorkspace </command/atlas-api-streams-deleteStreamWorkspace>
    deleteVpcPeeringConnection </command/atlas-api-streams-deleteVpcPeeringConnection>
-   downloadStreamTenantAuditLogs </command/atlas-api-streams-downloadStreamTenantAuditLogs>
+   downloadAuditLogs </command/atlas-api-streams-downloadAuditLogs>
    getAccountDetails </command/atlas-api-streams-getAccountDetails>
-   getActiveVpcPeeringConnections </command/atlas-api-streams-getActiveVpcPeeringConnections>
    getPrivateLinkConnection </command/atlas-api-streams-getPrivateLinkConnection>
    getStreamConnection </command/atlas-api-streams-getStreamConnection>
-   getStreamInstance </command/atlas-api-streams-getStreamInstance>
    getStreamProcessor </command/atlas-api-streams-getStreamProcessor>
-   getVpcPeeringConnections </command/atlas-api-streams-getVpcPeeringConnections>
+   getStreamProcessors </command/atlas-api-streams-getStreamProcessors>
+   getStreamWorkspace </command/atlas-api-streams-getStreamWorkspace>
+   listActivePeeringConnections </command/atlas-api-streams-listActivePeeringConnections>
    listPrivateLinkConnections </command/atlas-api-streams-listPrivateLinkConnections>
    listStreamConnections </command/atlas-api-streams-listStreamConnections>
-   listStreamInstances </command/atlas-api-streams-listStreamInstances>
-   listStreamProcessors </command/atlas-api-streams-listStreamProcessors>
-   modifyStreamProcessor </command/atlas-api-streams-modifyStreamProcessor>
+   listStreamWorkspaces </command/atlas-api-streams-listStreamWorkspaces>
+   listVpcPeeringConnections </command/atlas-api-streams-listVpcPeeringConnections>
    rejectVpcPeeringConnection </command/atlas-api-streams-rejectVpcPeeringConnection>
    startStreamProcessor </command/atlas-api-streams-startStreamProcessor>
    startStreamProcessorWith </command/atlas-api-streams-startStreamProcessorWith>
    stopStreamProcessor </command/atlas-api-streams-stopStreamProcessor>
    updateStreamConnection </command/atlas-api-streams-updateStreamConnection>
-   updateStreamInstance </command/atlas-api-streams-updateStreamInstance>
+   updateStreamProcessor </command/atlas-api-streams-updateStreamProcessor>
+   updateStreamWorkspace </command/atlas-api-streams-updateStreamWorkspace>
+   withStreamSampleConnections </command/atlas-api-streams-withStreamSampleConnections>

@@ -12,9 +12,9 @@ atlas api organizations
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, and edits organizational units in MongoDB Cloud.
+Returns, adds, and edits organizational units in MongoDB Cloud.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 
@@ -54,38 +54,38 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-organizations-createOrganization` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one organization in MongoDB Cloud and links it to the requesting Service Account's or API Key's organization.
-* :ref:`atlas-api-organizations-createOrganizationInvitation` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Invites one MongoDB Cloud user to join the specified organization.
-* :ref:`atlas-api-organizations-deleteOrganization` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one specified organization.
-* :ref:`atlas-api-organizations-deleteOrganizationInvitation` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Cancels one pending invitation sent to the specified MongoDB Cloud user to join an organization.
-* :ref:`atlas-api-organizations-getOrganization` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one organization to which the requesting Service Account or API Key has access.
-* :ref:`atlas-api-organizations-getOrganizationInvitation` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the details of one pending invitation to the specified organization.
-* :ref:`atlas-api-organizations-getOrganizationSettings` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns details about the specified organization's settings.
-* :ref:`atlas-api-organizations-listOrganizationInvitations` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all pending invitations to the specified organization.
-* :ref:`atlas-api-organizations-listOrganizationProjects` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns multiple projects in the specified organization.
-* :ref:`atlas-api-organizations-listOrganizations` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all organizations to which the requesting Service Account or API Key has access.
-* :ref:`atlas-api-organizations-updateOrganization` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates one organization.
-* :ref:`atlas-api-organizations-updateOrganizationInvitation` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the details of one pending invitation, identified by the username of the invited user, to the specified organization.
-* :ref:`atlas-api-organizations-updateOrganizationInvitationById` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the details of one pending invitation, identified by its unique ID, to the specified organization.
-* :ref:`atlas-api-organizations-updateOrganizationRoles` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the roles of the specified user in the specified organization.
-* :ref:`atlas-api-organizations-updateOrganizationSettings` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the organization's settings.
+* :ref:`atlas-api-organizations-createOrg` - Creates one organization in MongoDB Cloud and links it to the requesting Service Account's or API Key's organization.
+* :ref:`atlas-api-organizations-createOrgInvite` - Invites one MongoDB Cloud user to join the specified organization.
+* :ref:`atlas-api-organizations-deleteOrg` - Removes one specified organization.
+* :ref:`atlas-api-organizations-deleteOrgInvite` - Cancels one pending invitation sent to the specified MongoDB Cloud user to join an organization.
+* :ref:`atlas-api-organizations-getOrg` - Returns one organization to which the requesting Service Account or API Key has access.
+* :ref:`atlas-api-organizations-getOrgGroups` - Returns multiple projects in the specified organization.
+* :ref:`atlas-api-organizations-getOrgInvite` - Returns the details of one pending invitation to the specified organization.
+* :ref:`atlas-api-organizations-getOrgSettings` - Returns details about the specified organization's settings.
+* :ref:`atlas-api-organizations-listOrgInvites` - Returns all pending invitations to the specified organization.
+* :ref:`atlas-api-organizations-listOrgs` - Returns all organizations to which the requesting Service Account or API Key has access.
+* :ref:`atlas-api-organizations-updateOrg` - Updates one organization.
+* :ref:`atlas-api-organizations-updateOrgInviteById` - Updates the details of one pending invitation, identified by its unique ID, to the specified organization.
+* :ref:`atlas-api-organizations-updateOrgInvites` - Updates the details of one pending invitation, identified by the username of the invited user, to the specified organization.
+* :ref:`atlas-api-organizations-updateOrgSettings` - Updates the organization's settings.
+* :ref:`atlas-api-organizations-updateOrgUserRoles` - Updates the roles of the specified user in the specified organization.
 
 
 .. toctree::
    :titlesonly:
 
-   createOrganization </command/atlas-api-organizations-createOrganization>
-   createOrganizationInvitation </command/atlas-api-organizations-createOrganizationInvitation>
-   deleteOrganization </command/atlas-api-organizations-deleteOrganization>
-   deleteOrganizationInvitation </command/atlas-api-organizations-deleteOrganizationInvitation>
-   getOrganization </command/atlas-api-organizations-getOrganization>
-   getOrganizationInvitation </command/atlas-api-organizations-getOrganizationInvitation>
-   getOrganizationSettings </command/atlas-api-organizations-getOrganizationSettings>
-   listOrganizationInvitations </command/atlas-api-organizations-listOrganizationInvitations>
-   listOrganizationProjects </command/atlas-api-organizations-listOrganizationProjects>
-   listOrganizations </command/atlas-api-organizations-listOrganizations>
-   updateOrganization </command/atlas-api-organizations-updateOrganization>
-   updateOrganizationInvitation </command/atlas-api-organizations-updateOrganizationInvitation>
-   updateOrganizationInvitationById </command/atlas-api-organizations-updateOrganizationInvitationById>
-   updateOrganizationRoles </command/atlas-api-organizations-updateOrganizationRoles>
-   updateOrganizationSettings </command/atlas-api-organizations-updateOrganizationSettings>
+   createOrg </command/atlas-api-organizations-createOrg>
+   createOrgInvite </command/atlas-api-organizations-createOrgInvite>
+   deleteOrg </command/atlas-api-organizations-deleteOrg>
+   deleteOrgInvite </command/atlas-api-organizations-deleteOrgInvite>
+   getOrg </command/atlas-api-organizations-getOrg>
+   getOrgGroups </command/atlas-api-organizations-getOrgGroups>
+   getOrgInvite </command/atlas-api-organizations-getOrgInvite>
+   getOrgSettings </command/atlas-api-organizations-getOrgSettings>
+   listOrgInvites </command/atlas-api-organizations-listOrgInvites>
+   listOrgs </command/atlas-api-organizations-listOrgs>
+   updateOrg </command/atlas-api-organizations-updateOrg>
+   updateOrgInviteById </command/atlas-api-organizations-updateOrgInviteById>
+   updateOrgInvites </command/atlas-api-organizations-updateOrgInvites>
+   updateOrgSettings </command/atlas-api-organizations-updateOrgSettings>
+   updateOrgUserRoles </command/atlas-api-organizations-updateOrgUserRoles>

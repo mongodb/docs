@@ -12,9 +12,9 @@ atlas api rollingIndex
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one index to a database deployment in a rolling manner.
+Creates one index to a database deployment in a rolling manner.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 Rolling indexes build indexes on the applicable nodes sequentially and may reduce the performance impact of an index build if your deployment's average CPU utilization exceeds (N-1)/N-10% where N is the number of CPU threads available to mongod of if the WiredTiger cache fill ratio regularly exceeds 90%. If your deployment does not meet this criteria, use the default index build. You can't create a rolling index on an M0 free cluster or M2/M5 shared cluster.
@@ -54,7 +54,7 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-rollingIndex-createRollingIndex` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates an index on the cluster identified by its name in a rolling manner.
+* :ref:`atlas-api-rollingIndex-createRollingIndex` - Creates an index on the cluster identified by its name in a rolling manner.
 
 
 .. toctree::

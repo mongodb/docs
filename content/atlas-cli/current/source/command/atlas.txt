@@ -53,7 +53,7 @@ Related Commands
 * :ref:`atlas-accessLists` - Manage the list of IP addresses that can access your Atlas project.
 * :ref:`atlas-accessLogs` - Return the access logs for a cluster.
 * :ref:`atlas-alerts` - Manage alerts for your project.
-* :ref:`atlas-api` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Access all features of the Atlas Administration API by using the Atlas CLI with the syntax: 'atlas api <tag> <operationId>'.
+* :ref:`atlas-api` - Access all features of the Atlas Administration API through the Atlas CLI by using the 'atlas api <tag> <operationId>' command.
 * :ref:`atlas-auditing` - Returns database auditing settings for MongoDB Cloud projects.
 * :ref:`atlas-auth` - Manage the CLI's authentication state.
 * :ref:`atlas-backups` - Manage cloud backups for your project.

@@ -12,9 +12,9 @@ atlas api flexRestoreJobs
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns and adds restore jobs for flex database deployments.
+Returns and adds restore jobs for flex database deployments.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 
@@ -54,14 +54,14 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-flexRestoreJobs-createFlexBackupRestoreJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Restores one snapshot of one flex cluster from the specified project.
-* :ref:`atlas-api-flexRestoreJobs-getFlexBackupRestoreJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one restore job for one flex cluster from the specified project.
-* :ref:`atlas-api-flexRestoreJobs-listFlexBackupRestoreJobs` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all restore jobs for one flex cluster from the specified project.
+* :ref:`atlas-api-flexRestoreJobs-createFlexRestoreJob` - Restores one snapshot of one flex cluster from the specified project.
+* :ref:`atlas-api-flexRestoreJobs-getFlexRestoreJob` - Returns one restore job for one flex cluster from the specified project.
+* :ref:`atlas-api-flexRestoreJobs-listFlexRestoreJobs` - Returns all restore jobs for one flex cluster from the specified project.
 
 
 .. toctree::
    :titlesonly:
 
-   createFlexBackupRestoreJob </command/atlas-api-flexRestoreJobs-createFlexBackupRestoreJob>
-   getFlexBackupRestoreJob </command/atlas-api-flexRestoreJobs-getFlexBackupRestoreJob>
-   listFlexBackupRestoreJobs </command/atlas-api-flexRestoreJobs-listFlexBackupRestoreJobs>
+   createFlexRestoreJob </command/atlas-api-flexRestoreJobs-createFlexRestoreJob>
+   getFlexRestoreJob </command/atlas-api-flexRestoreJobs-getFlexRestoreJob>
+   listFlexRestoreJobs </command/atlas-api-flexRestoreJobs-listFlexRestoreJobs>

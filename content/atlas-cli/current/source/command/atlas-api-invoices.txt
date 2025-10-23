@@ -12,9 +12,9 @@ atlas api invoices
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns invoices.
+Returns invoices.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 
@@ -54,22 +54,22 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-invoices-createCostExplorerQueryProcess` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates a query process within the Cost Explorer for the given parameters.
-* :ref:`atlas-api-invoices-downloadInvoiceCsv` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one invoice that MongoDB issued to the specified organization in CSV format.
-* :ref:`atlas-api-invoices-getCostExplorerQueryProcess` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the usage details for a Cost Explorer query, if the query is finished and the data is ready to be viewed.
-* :ref:`atlas-api-invoices-getInvoice` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one invoice that MongoDB issued to the specified organization.
-* :ref:`atlas-api-invoices-listInvoices` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all invoices that MongoDB issued to the specified organization.
-* :ref:`atlas-api-invoices-listPendingInvoices` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all invoices accruing charges for the current billing cycle for the specified organization.
-* :ref:`atlas-api-invoices-queryLineItemsFromSingleInvoice` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Query the lineItems of the specified invoice and return the result JSON.
+* :ref:`atlas-api-invoices-createCostExplorerProcess` - Creates a query process within the Cost Explorer for the given parameters.
+* :ref:`atlas-api-invoices-getCostExplorerUsage` - Returns the usage details for a Cost Explorer query, if the query is finished and the data is ready to be viewed.
+* :ref:`atlas-api-invoices-getInvoice` - Returns one invoice that MongoDB issued to the specified organization.
+* :ref:`atlas-api-invoices-getInvoiceCsv` - Returns one invoice that MongoDB issued to the specified organization in CSV format.
+* :ref:`atlas-api-invoices-listInvoicePending` - Returns all invoices accruing charges for the current billing cycle for the specified organization.
+* :ref:`atlas-api-invoices-listInvoices` - Returns all invoices that MongoDB issued to the specified organization.
+* :ref:`atlas-api-invoices-searchInvoiceLineItems` - Query the lineItems of the specified invoice and return the result JSON.
 
 
 .. toctree::
    :titlesonly:
 
-   createCostExplorerQueryProcess </command/atlas-api-invoices-createCostExplorerQueryProcess>
-   downloadInvoiceCsv </command/atlas-api-invoices-downloadInvoiceCsv>
-   getCostExplorerQueryProcess </command/atlas-api-invoices-getCostExplorerQueryProcess>
+   createCostExplorerProcess </command/atlas-api-invoices-createCostExplorerProcess>
+   getCostExplorerUsage </command/atlas-api-invoices-getCostExplorerUsage>
    getInvoice </command/atlas-api-invoices-getInvoice>
+   getInvoiceCsv </command/atlas-api-invoices-getInvoiceCsv>
+   listInvoicePending </command/atlas-api-invoices-listInvoicePending>
    listInvoices </command/atlas-api-invoices-listInvoices>
-   listPendingInvoices </command/atlas-api-invoices-listPendingInvoices>
-   queryLineItemsFromSingleInvoice </command/atlas-api-invoices-queryLineItemsFromSingleInvoice>
+   searchInvoiceLineItems </command/atlas-api-invoices-searchInvoiceLineItems>

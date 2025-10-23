@@ -12,9 +12,9 @@ atlas api cloudMigrationService
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Manages the Cloud Migration Service.
+Manages the Cloud Migration Service.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 Source organizations, projects, and MongoDB clusters reside on Cloud Manager or Ops Manager. Destination organizations, projects, and MongoDB clusters reside on MongoDB Cloud. Source databases can't use any authentication except SCRAM-SHA.
@@ -54,24 +54,24 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-cloudMigrationService-createLinkToken` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Create one link-token that contains all the information required to complete the link.
-* :ref:`atlas-api-cloudMigrationService-createPushMigration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Migrate one cluster that Cloud or Ops Manager manages to MongoDB Atlas.
-* :ref:`atlas-api-cloudMigrationService-cutoverMigration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Cut over the migrated cluster to MongoDB Atlas.
-* :ref:`atlas-api-cloudMigrationService-deleteLinkToken` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Remove one organization link and its associated public API key.
-* :ref:`atlas-api-cloudMigrationService-getPushMigration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Return details of one cluster migration job.
-* :ref:`atlas-api-cloudMigrationService-getValidationStatus` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Return the status of one migration validation job.
-* :ref:`atlas-api-cloudMigrationService-listSourceProjects` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Return all projects that you can migrate to the specified organization.
-* :ref:`atlas-api-cloudMigrationService-validateMigration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Verifies whether the provided credentials, available disk space, MongoDB versions, and so on meet the requirements of the migration request.
+* :ref:`atlas-api-cloudMigrationService-createGroupLiveMigration` - Migrate one cluster that Cloud or Ops Manager manages to MongoDB Atlas.
+* :ref:`atlas-api-cloudMigrationService-createLinkToken` - Create one link-token that contains all the information required to complete the link.
+* :ref:`atlas-api-cloudMigrationService-cutoverMigration` - Cut over the migrated cluster to MongoDB Atlas.
+* :ref:`atlas-api-cloudMigrationService-deleteLinkTokens` - Remove one organization link and its associated public API key.
+* :ref:`atlas-api-cloudMigrationService-getGroupLiveMigration` - Return details of one cluster migration job.
+* :ref:`atlas-api-cloudMigrationService-getMigrationValidateStatus` - Return the status of one migration validation job.
+* :ref:`atlas-api-cloudMigrationService-listAvailableProjects` - Return all projects that you can migrate to the specified organization.
+* :ref:`atlas-api-cloudMigrationService-validateLiveMigrations` - Verifies whether the provided credentials, available disk space, MongoDB versions, and so on meet the requirements of the migration request.
 
 
 .. toctree::
    :titlesonly:
 
+   createGroupLiveMigration </command/atlas-api-cloudMigrationService-createGroupLiveMigration>
    createLinkToken </command/atlas-api-cloudMigrationService-createLinkToken>
-   createPushMigration </command/atlas-api-cloudMigrationService-createPushMigration>
    cutoverMigration </command/atlas-api-cloudMigrationService-cutoverMigration>
-   deleteLinkToken </command/atlas-api-cloudMigrationService-deleteLinkToken>
-   getPushMigration </command/atlas-api-cloudMigrationService-getPushMigration>
-   getValidationStatus </command/atlas-api-cloudMigrationService-getValidationStatus>
-   listSourceProjects </command/atlas-api-cloudMigrationService-listSourceProjects>
-   validateMigration </command/atlas-api-cloudMigrationService-validateMigration>
+   deleteLinkTokens </command/atlas-api-cloudMigrationService-deleteLinkTokens>
+   getGroupLiveMigration </command/atlas-api-cloudMigrationService-getGroupLiveMigration>
+   getMigrationValidateStatus </command/atlas-api-cloudMigrationService-getMigrationValidateStatus>
+   listAvailableProjects </command/atlas-api-cloudMigrationService-listAvailableProjects>
+   validateLiveMigrations </command/atlas-api-cloudMigrationService-validateLiveMigrations>

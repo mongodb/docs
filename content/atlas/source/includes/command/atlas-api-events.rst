@@ -12,9 +12,9 @@ atlas api events
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns events.
+Returns events.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 This collection remains under revision and may change.
@@ -54,18 +54,18 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-events-getOrganizationEvent` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one event for the specified organization.
-* :ref:`atlas-api-events-getProjectEvent` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one event for the specified project.
-* :ref:`atlas-api-events-listEventTypes` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns a list of all event types, along with a description and additional metadata about each event.
-* :ref:`atlas-api-events-listOrganizationEvents` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns events for the specified organization.
-* :ref:`atlas-api-events-listProjectEvents` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns events for the specified project.
+* :ref:`atlas-api-events-getGroupEvent` - Returns one event for the specified project.
+* :ref:`atlas-api-events-getOrgEvent` - Returns one event for the specified organization.
+* :ref:`atlas-api-events-listEventTypes` - Returns a list of all event types, along with a description and additional metadata about each event.
+* :ref:`atlas-api-events-listGroupEvents` - Returns events for the specified project.
+* :ref:`atlas-api-events-listOrgEvents` - Returns events for the specified organization.
 
 
 .. toctree::
    :titlesonly:
 
-   getOrganizationEvent </command/atlas-api-events-getOrganizationEvent>
-   getProjectEvent </command/atlas-api-events-getProjectEvent>
+   getGroupEvent </command/atlas-api-events-getGroupEvent>
+   getOrgEvent </command/atlas-api-events-getOrgEvent>
    listEventTypes </command/atlas-api-events-listEventTypes>
-   listOrganizationEvents </command/atlas-api-events-listOrganizationEvents>
-   listProjectEvents </command/atlas-api-events-listProjectEvents>
+   listGroupEvents </command/atlas-api-events-listGroupEvents>
+   listOrgEvents </command/atlas-api-events-listOrgEvents>

@@ -12,9 +12,9 @@ atlas api sharedTierRestoreJobs
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns and adds restore jobs for shared-tier database deployments.
+Returns and adds restore jobs for shared-tier database deployments.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 
@@ -54,14 +54,14 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-sharedTierRestoreJobs-createSharedClusterBackupRestoreJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Restores the specified M2 or M5 cluster.
-* :ref:`atlas-api-sharedTierRestoreJobs-getSharedClusterBackupRestoreJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the specified restore job for the specified M2 or M5 cluster.
-* :ref:`atlas-api-sharedTierRestoreJobs-listSharedClusterBackupRestoreJobs` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all restore jobs for the specified M2 or M5 cluster.
+* :ref:`atlas-api-sharedTierRestoreJobs-createBackupTenantRestore` - Restores the specified M2 or M5 cluster.
+* :ref:`atlas-api-sharedTierRestoreJobs-getBackupTenantRestore` - Returns the specified restore job for the specified M2 or M5 cluster.
+* :ref:`atlas-api-sharedTierRestoreJobs-listBackupTenantRestores` - Returns all restore jobs for the specified M2 or M5 cluster.
 
 
 .. toctree::
    :titlesonly:
 
-   createSharedClusterBackupRestoreJob </command/atlas-api-sharedTierRestoreJobs-createSharedClusterBackupRestoreJob>
-   getSharedClusterBackupRestoreJob </command/atlas-api-sharedTierRestoreJobs-getSharedClusterBackupRestoreJob>
-   listSharedClusterBackupRestoreJobs </command/atlas-api-sharedTierRestoreJobs-listSharedClusterBackupRestoreJobs>
+   createBackupTenantRestore </command/atlas-api-sharedTierRestoreJobs-createBackupTenantRestore>
+   getBackupTenantRestore </command/atlas-api-sharedTierRestoreJobs-getBackupTenantRestore>
+   listBackupTenantRestores </command/atlas-api-sharedTierRestoreJobs-listBackupTenantRestores>

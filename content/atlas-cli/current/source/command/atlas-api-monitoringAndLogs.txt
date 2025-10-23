@@ -12,9 +12,9 @@ atlas api monitoringAndLogs
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns database deployment monitoring and logging data.
+Returns database deployment monitoring and logging data.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 
@@ -54,36 +54,36 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-monitoringAndLogs-getAtlasProcess` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the processes for the specified host for the specified project.
-* :ref:`atlas-api-monitoringAndLogs-getDatabase` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one database running on the specified host for the specified project.
-* :ref:`atlas-api-monitoringAndLogs-getDatabaseMeasurements` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the measurements of one database for the specified host for the specified project.
-* :ref:`atlas-api-monitoringAndLogs-getDiskMeasurements` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the measurements of one disk or partition for the specified host for the specified project.
-* :ref:`atlas-api-monitoringAndLogs-getHostLogs` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns a compressed (.gz) log file that contains a range of log messages for the specified host for the specified project.
-* :ref:`atlas-api-monitoringAndLogs-getHostMeasurements` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns disk, partition, or host measurements per process for the specified host for the specified project.
-* :ref:`atlas-api-monitoringAndLogs-getIndexMetrics` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the Atlas Search metrics data series within the provided time range for one namespace and index name on the specified process.
-* :ref:`atlas-api-monitoringAndLogs-getMeasurements` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the Atlas Search hardware and status data series within the provided time range for one process in the specified project.
-* :ref:`atlas-api-monitoringAndLogs-listAtlasProcesses` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns details of all processes for the specified project.
-* :ref:`atlas-api-monitoringAndLogs-listDatabases` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the list of databases running on the specified host for the specified project.
-* :ref:`atlas-api-monitoringAndLogs-listDiskMeasurements` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns measurement details for one disk or partition for the specified host for the specified project.
-* :ref:`atlas-api-monitoringAndLogs-listDiskPartitions` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the list of disks or partitions for the specified host for the specified project.
-* :ref:`atlas-api-monitoringAndLogs-listIndexMetrics` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the Atlas Search index metrics within the specified time range for one namespace in the specified process.
-* :ref:`atlas-api-monitoringAndLogs-listMetricTypes` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all Atlas Search metric types available for one process in the specified project.
+* :ref:`atlas-api-monitoringAndLogs-downloadClusterLog` - Returns a compressed (.gz) log file that contains a range of log messages for the specified host for the specified project.
+* :ref:`atlas-api-monitoringAndLogs-getDatabase` - Returns one database running on the specified host for the specified project.
+* :ref:`atlas-api-monitoringAndLogs-getDatabaseMeasurements` - Returns the measurements of one database for the specified host for the specified project.
+* :ref:`atlas-api-monitoringAndLogs-getGroupProcess` - Returns the processes for the specified host for the specified project.
+* :ref:`atlas-api-monitoringAndLogs-getIndexMeasurements` - Returns the Atlas Search metrics data series within the provided time range for one namespace and index name on the specified process.
+* :ref:`atlas-api-monitoringAndLogs-getProcessDisk` - Returns measurement details for one disk or partition for the specified host for the specified project.
+* :ref:`atlas-api-monitoringAndLogs-getProcessDiskMeasurements` - Returns the measurements of one disk or partition for the specified host for the specified project.
+* :ref:`atlas-api-monitoringAndLogs-getProcessMeasurements` - Returns disk, partition, or host measurements per process for the specified host for the specified project.
+* :ref:`atlas-api-monitoringAndLogs-listDatabases` - Returns the list of databases running on the specified host for the specified project.
+* :ref:`atlas-api-monitoringAndLogs-listGroupProcesses` - Returns details of all processes for the specified project.
+* :ref:`atlas-api-monitoringAndLogs-listHostFtsMetrics` - Returns all Atlas Search metric types available for one process in the specified project.
+* :ref:`atlas-api-monitoringAndLogs-listIndexMeasurements` - Returns the Atlas Search index metrics within the specified time range for one namespace in the specified process.
+* :ref:`atlas-api-monitoringAndLogs-listMeasurements` - Returns the Atlas Search hardware and status data series within the provided time range for one process in the specified project.
+* :ref:`atlas-api-monitoringAndLogs-listProcessDisks` - Returns the list of disks or partitions for the specified host for the specified project.
 
 
 .. toctree::
    :titlesonly:
 
-   getAtlasProcess </command/atlas-api-monitoringAndLogs-getAtlasProcess>
+   downloadClusterLog </command/atlas-api-monitoringAndLogs-downloadClusterLog>
    getDatabase </command/atlas-api-monitoringAndLogs-getDatabase>
    getDatabaseMeasurements </command/atlas-api-monitoringAndLogs-getDatabaseMeasurements>
-   getDiskMeasurements </command/atlas-api-monitoringAndLogs-getDiskMeasurements>
-   getHostLogs </command/atlas-api-monitoringAndLogs-getHostLogs>
-   getHostMeasurements </command/atlas-api-monitoringAndLogs-getHostMeasurements>
-   getIndexMetrics </command/atlas-api-monitoringAndLogs-getIndexMetrics>
-   getMeasurements </command/atlas-api-monitoringAndLogs-getMeasurements>
-   listAtlasProcesses </command/atlas-api-monitoringAndLogs-listAtlasProcesses>
+   getGroupProcess </command/atlas-api-monitoringAndLogs-getGroupProcess>
+   getIndexMeasurements </command/atlas-api-monitoringAndLogs-getIndexMeasurements>
+   getProcessDisk </command/atlas-api-monitoringAndLogs-getProcessDisk>
+   getProcessDiskMeasurements </command/atlas-api-monitoringAndLogs-getProcessDiskMeasurements>
+   getProcessMeasurements </command/atlas-api-monitoringAndLogs-getProcessMeasurements>
    listDatabases </command/atlas-api-monitoringAndLogs-listDatabases>
-   listDiskMeasurements </command/atlas-api-monitoringAndLogs-listDiskMeasurements>
-   listDiskPartitions </command/atlas-api-monitoringAndLogs-listDiskPartitions>
-   listIndexMetrics </command/atlas-api-monitoringAndLogs-listIndexMetrics>
-   listMetricTypes </command/atlas-api-monitoringAndLogs-listMetricTypes>
+   listGroupProcesses </command/atlas-api-monitoringAndLogs-listGroupProcesses>
+   listHostFtsMetrics </command/atlas-api-monitoringAndLogs-listHostFtsMetrics>
+   listIndexMeasurements </command/atlas-api-monitoringAndLogs-listIndexMeasurements>
+   listMeasurements </command/atlas-api-monitoringAndLogs-listMeasurements>
+   listProcessDisks </command/atlas-api-monitoringAndLogs-listProcessDisks>

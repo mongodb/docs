@@ -12,9 +12,9 @@ atlas api auditing
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns and edits database auditing settings for MongoDB Cloud projects.
+Returns and edits database auditing settings for MongoDB Cloud projects.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 
@@ -54,12 +54,12 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-auditing-getAuditingConfiguration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the auditing configuration for the specified project.
-* :ref:`atlas-api-auditing-updateAuditingConfiguration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the auditing configuration for the specified project.
+* :ref:`atlas-api-auditing-getGroupAuditLog` - Returns the auditing configuration for the specified project.
+* :ref:`atlas-api-auditing-updateAuditLog` - Updates the auditing configuration for the specified project.
 
 
 .. toctree::
    :titlesonly:
 
-   getAuditingConfiguration </command/atlas-api-auditing-getAuditingConfiguration>
-   updateAuditingConfiguration </command/atlas-api-auditing-updateAuditingConfiguration>
+   getGroupAuditLog </command/atlas-api-auditing-getGroupAuditLog>
+   updateAuditLog </command/atlas-api-auditing-updateAuditLog>

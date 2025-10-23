@@ -12,9 +12,9 @@ atlas api queryShapeInsights
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_:
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 
@@ -54,12 +54,12 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-queryShapeInsights-getGroupClusterQueryShapeInsightDetails` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the metadata and statistics summary for a given query shape hash.
-* :ref:`atlas-api-queryShapeInsights-getGroupClusterQueryShapeInsightSummaries` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns a list of query shape statistics summaries for a given cluster.
+* :ref:`atlas-api-queryShapeInsights-getQueryShapeDetails` - Returns the metadata and statistics summary for a given query shape hash.
+* :ref:`atlas-api-queryShapeInsights-listQueryShapeSummaries` - Returns a list of query shape statistics summaries for a given cluster.
 
 
 .. toctree::
    :titlesonly:
 
-   getGroupClusterQueryShapeInsightDetails </command/atlas-api-queryShapeInsights-getGroupClusterQueryShapeInsightDetails>
-   getGroupClusterQueryShapeInsightSummaries </command/atlas-api-queryShapeInsights-getGroupClusterQueryShapeInsightSummaries>
+   getQueryShapeDetails </command/atlas-api-queryShapeInsights-getQueryShapeDetails>
+   listQueryShapeSummaries </command/atlas-api-queryShapeInsights-listQueryShapeSummaries>

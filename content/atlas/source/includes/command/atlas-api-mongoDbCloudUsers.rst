@@ -12,9 +12,9 @@ atlas api mongoDbCloudUsers
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, and edits MongoDB Cloud users.
+Returns, adds, and edits MongoDB Cloud users.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 
@@ -54,46 +54,46 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-mongoDbCloudUsers-addOrganizationRole` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Adds one organization-level role to the MongoDB Cloud user.
-* :ref:`atlas-api-mongoDbCloudUsers-addProjectRole` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Adds one project-level role to the MongoDB Cloud user.
-* :ref:`atlas-api-mongoDbCloudUsers-addProjectUser` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Adds one MongoDB Cloud user to one project.
-* :ref:`atlas-api-mongoDbCloudUsers-addUserToTeam` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Adds one MongoDB Cloud user to one team.
-* :ref:`atlas-api-mongoDbCloudUsers-createOrganizationUser` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Invites one new or existing MongoDB Cloud user to join the organization.
-* :ref:`atlas-api-mongoDbCloudUsers-createUser` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one MongoDB Cloud user account.
-* :ref:`atlas-api-mongoDbCloudUsers-getOrganizationUser` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns information about the specified MongoDB Cloud user within the context of the specified organization.
-* :ref:`atlas-api-mongoDbCloudUsers-getProjectUser` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns information about the specified MongoDB Cloud user within the context of the specified project.
-* :ref:`atlas-api-mongoDbCloudUsers-getUser` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the details for one MongoDB Cloud user account with the specified unique identifier for the user.
-* :ref:`atlas-api-mongoDbCloudUsers-getUserByUsername` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the details for one MongoDB Cloud user account with the specified username.
-* :ref:`atlas-api-mongoDbCloudUsers-listOrganizationUsers` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns details about the pending and active MongoDB Cloud users associated with the specified organization.
-* :ref:`atlas-api-mongoDbCloudUsers-listProjectUsers` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns details about the pending and active MongoDB Cloud users associated with the specified project.
-* :ref:`atlas-api-mongoDbCloudUsers-listTeamUsers` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns details about the pending and active MongoDB Cloud users associated with the specified team in the organization.
-* :ref:`atlas-api-mongoDbCloudUsers-removeOrganizationRole` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one organization-level role from the MongoDB Cloud user.
-* :ref:`atlas-api-mongoDbCloudUsers-removeOrganizationUser` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one MongoDB Cloud user in the specified organization.
-* :ref:`atlas-api-mongoDbCloudUsers-removeProjectRole` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one project-level role from the MongoDB Cloud user.
-* :ref:`atlas-api-mongoDbCloudUsers-removeProjectUser` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one MongoDB Cloud user from the specified project.
-* :ref:`atlas-api-mongoDbCloudUsers-removeUserFromTeam` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one MongoDB Cloud user from one team.
-* :ref:`atlas-api-mongoDbCloudUsers-updateOrganizationUser` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates one MongoDB Cloud user in the specified organization.
+* :ref:`atlas-api-mongoDbCloudUsers-addGroupUserRole` - Adds one project-level role to the MongoDB Cloud user.
+* :ref:`atlas-api-mongoDbCloudUsers-addGroupUsers` - Adds one MongoDB Cloud user to one project.
+* :ref:`atlas-api-mongoDbCloudUsers-addOrgRole` - Adds one organization-level role to the MongoDB Cloud user.
+* :ref:`atlas-api-mongoDbCloudUsers-addOrgTeamUser` - Adds one MongoDB Cloud user to one team.
+* :ref:`atlas-api-mongoDbCloudUsers-createOrgUser` - Invites one new or existing MongoDB Cloud user to join the organization.
+* :ref:`atlas-api-mongoDbCloudUsers-createUser` - Creates one MongoDB Cloud user account.
+* :ref:`atlas-api-mongoDbCloudUsers-getGroupUser` - Returns information about the specified MongoDB Cloud user within the context of the specified project.
+* :ref:`atlas-api-mongoDbCloudUsers-getOrgUser` - Returns information about the specified MongoDB Cloud user within the context of the specified organization.
+* :ref:`atlas-api-mongoDbCloudUsers-getUser` - Returns the details for one MongoDB Cloud user account with the specified unique identifier for the user.
+* :ref:`atlas-api-mongoDbCloudUsers-getUserByName` - Returns the details for one MongoDB Cloud user account with the specified username.
+* :ref:`atlas-api-mongoDbCloudUsers-listGroupUsers` - Returns details about the pending and active MongoDB Cloud users associated with the specified project.
+* :ref:`atlas-api-mongoDbCloudUsers-listOrgUsers` - Returns details about the pending and active MongoDB Cloud users associated with the specified organization.
+* :ref:`atlas-api-mongoDbCloudUsers-listTeamUsers` - Returns details about the pending and active MongoDB Cloud users associated with the specified team in the organization.
+* :ref:`atlas-api-mongoDbCloudUsers-removeGroupUser` - Removes one MongoDB Cloud user from the specified project.
+* :ref:`atlas-api-mongoDbCloudUsers-removeGroupUserRole` - Removes one project-level role from the MongoDB Cloud user.
+* :ref:`atlas-api-mongoDbCloudUsers-removeOrgRole` - Removes one organization-level role from the MongoDB Cloud user.
+* :ref:`atlas-api-mongoDbCloudUsers-removeOrgTeamUser` - Removes one MongoDB Cloud user from one team.
+* :ref:`atlas-api-mongoDbCloudUsers-removeOrgUser` - Removes one MongoDB Cloud user in the specified organization.
+* :ref:`atlas-api-mongoDbCloudUsers-updateOrgUser` - Updates one MongoDB Cloud user in the specified organization.
 
 
 .. toctree::
    :titlesonly:
 
-   addOrganizationRole </command/atlas-api-mongoDbCloudUsers-addOrganizationRole>
-   addProjectRole </command/atlas-api-mongoDbCloudUsers-addProjectRole>
-   addProjectUser </command/atlas-api-mongoDbCloudUsers-addProjectUser>
-   addUserToTeam </command/atlas-api-mongoDbCloudUsers-addUserToTeam>
-   createOrganizationUser </command/atlas-api-mongoDbCloudUsers-createOrganizationUser>
+   addGroupUserRole </command/atlas-api-mongoDbCloudUsers-addGroupUserRole>
+   addGroupUsers </command/atlas-api-mongoDbCloudUsers-addGroupUsers>
+   addOrgRole </command/atlas-api-mongoDbCloudUsers-addOrgRole>
+   addOrgTeamUser </command/atlas-api-mongoDbCloudUsers-addOrgTeamUser>
+   createOrgUser </command/atlas-api-mongoDbCloudUsers-createOrgUser>
    createUser </command/atlas-api-mongoDbCloudUsers-createUser>
-   getOrganizationUser </command/atlas-api-mongoDbCloudUsers-getOrganizationUser>
-   getProjectUser </command/atlas-api-mongoDbCloudUsers-getProjectUser>
+   getGroupUser </command/atlas-api-mongoDbCloudUsers-getGroupUser>
+   getOrgUser </command/atlas-api-mongoDbCloudUsers-getOrgUser>
    getUser </command/atlas-api-mongoDbCloudUsers-getUser>
-   getUserByUsername </command/atlas-api-mongoDbCloudUsers-getUserByUsername>
-   listOrganizationUsers </command/atlas-api-mongoDbCloudUsers-listOrganizationUsers>
-   listProjectUsers </command/atlas-api-mongoDbCloudUsers-listProjectUsers>
+   getUserByName </command/atlas-api-mongoDbCloudUsers-getUserByName>
+   listGroupUsers </command/atlas-api-mongoDbCloudUsers-listGroupUsers>
+   listOrgUsers </command/atlas-api-mongoDbCloudUsers-listOrgUsers>
    listTeamUsers </command/atlas-api-mongoDbCloudUsers-listTeamUsers>
-   removeOrganizationRole </command/atlas-api-mongoDbCloudUsers-removeOrganizationRole>
-   removeOrganizationUser </command/atlas-api-mongoDbCloudUsers-removeOrganizationUser>
-   removeProjectRole </command/atlas-api-mongoDbCloudUsers-removeProjectRole>
-   removeProjectUser </command/atlas-api-mongoDbCloudUsers-removeProjectUser>
-   removeUserFromTeam </command/atlas-api-mongoDbCloudUsers-removeUserFromTeam>
-   updateOrganizationUser </command/atlas-api-mongoDbCloudUsers-updateOrganizationUser>
+   removeGroupUser </command/atlas-api-mongoDbCloudUsers-removeGroupUser>
+   removeGroupUserRole </command/atlas-api-mongoDbCloudUsers-removeGroupUserRole>
+   removeOrgRole </command/atlas-api-mongoDbCloudUsers-removeOrgRole>
+   removeOrgTeamUser </command/atlas-api-mongoDbCloudUsers-removeOrgTeamUser>
+   removeOrgUser </command/atlas-api-mongoDbCloudUsers-removeOrgUser>
+   updateOrgUser </command/atlas-api-mongoDbCloudUsers-updateOrgUser>

@@ -12,9 +12,9 @@ atlas api ldapConfiguration
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, edits, verifies, and removes LDAP configurations.
+Returns, edits, verifies, and removes LDAP configurations.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 An LDAP configuration defines settings for MongoDB Cloud to connect to your LDAP server over TLS for user authentication and authorization. Your LDAP server must be visible to the internet or connected to your MongoDB Cloud cluster with VPC Peering. Also, your LDAP server must use TLS. You must have the MongoDB Cloud admin user privilege to use these endpoints. Also, to configure user authentication and authorization with LDAPS, your cluster must run MongoDB 3.6 or higher. Groups for which you have configured LDAPS can't create a cluster using a version of MongoDB 3.6 or lower.
@@ -54,18 +54,18 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-ldapConfiguration-deleteLdapConfiguration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes the current LDAP Distinguished Name mapping captured in the userToDNMapping document from the LDAP configuration for the specified project.
-* :ref:`atlas-api-ldapConfiguration-getLdapConfiguration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the current LDAP configuration for the specified project.
-* :ref:`atlas-api-ldapConfiguration-getLdapConfigurationStatus` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the status of one request to verify one LDAP configuration for the specified project.
-* :ref:`atlas-api-ldapConfiguration-saveLdapConfiguration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Edits the LDAP configuration for the specified project.
-* :ref:`atlas-api-ldapConfiguration-verifyLdapConfiguration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Verifies the LDAP configuration for the specified project.
+* :ref:`atlas-api-ldapConfiguration-deleteLdapUserMapping` - Removes the current LDAP Distinguished Name mapping captured in the userToDNMapping document from the LDAP configuration for the specified project.
+* :ref:`atlas-api-ldapConfiguration-getUserSecurity` - Returns the current LDAP configuration for the specified project.
+* :ref:`atlas-api-ldapConfiguration-getUserSecurityVerify` - Returns the status of one request to verify one LDAP configuration for the specified project.
+* :ref:`atlas-api-ldapConfiguration-updateUserSecurity` - Edits the LDAP configuration for the specified project.
+* :ref:`atlas-api-ldapConfiguration-verifyUserSecurityLdap` - Verifies the LDAP configuration for the specified project.
 
 
 .. toctree::
    :titlesonly:
 
-   deleteLdapConfiguration </command/atlas-api-ldapConfiguration-deleteLdapConfiguration>
-   getLdapConfiguration </command/atlas-api-ldapConfiguration-getLdapConfiguration>
-   getLdapConfigurationStatus </command/atlas-api-ldapConfiguration-getLdapConfigurationStatus>
-   saveLdapConfiguration </command/atlas-api-ldapConfiguration-saveLdapConfiguration>
-   verifyLdapConfiguration </command/atlas-api-ldapConfiguration-verifyLdapConfiguration>
+   deleteLdapUserMapping </command/atlas-api-ldapConfiguration-deleteLdapUserMapping>
+   getUserSecurity </command/atlas-api-ldapConfiguration-getUserSecurity>
+   getUserSecurityVerify </command/atlas-api-ldapConfiguration-getUserSecurityVerify>
+   updateUserSecurity </command/atlas-api-ldapConfiguration-updateUserSecurity>
+   verifyUserSecurityLdap </command/atlas-api-ldapConfiguration-verifyUserSecurityLdap>

@@ -12,9 +12,9 @@ atlas api x509Authentication
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, edits, and removes user-managed X.509 configurations.
+Returns, edits, and removes user-managed X.509 configurations.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 Also returns and generates MongoDB Cloud-managed X.509 certificates for database users. The following resources help manage database users who authenticate using X.509 certificates. You can manage these X.509 certificates or let MongoDB Cloud do it for you. If MongoDB Cloud manages your certificates, it also manages your Certificate Authority and can generate certificates for your database users. No additional X.509 configuration is required. If you manage your certificates, you must provide a Certificate Authority and generate certificates for your database users.
@@ -54,14 +54,14 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-x509Authentication-createDatabaseUserCertificate` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Generates one X.509 certificate for the specified MongoDB user.
-* :ref:`atlas-api-x509Authentication-disableCustomerManagedX509` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Clears the customer-managed X.509 settings on a project, including the uploaded Certificate Authority, which disables self-managed X.509.
-* :ref:`atlas-api-x509Authentication-listDatabaseUserCertificates` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all unexpired X.509 certificates for the specified MongoDB user.
+* :ref:`atlas-api-x509Authentication-createDatabaseUserCert` - Generates one X.509 certificate for the specified MongoDB user.
+* :ref:`atlas-api-x509Authentication-disableSecurityCustomerX509` - Clears the customer-managed X.509 settings on a project, including the uploaded Certificate Authority, which disables self-managed X.509.
+* :ref:`atlas-api-x509Authentication-listDatabaseUserCerts` - Returns all unexpired X.509 certificates for the specified MongoDB user.
 
 
 .. toctree::
    :titlesonly:
 
-   createDatabaseUserCertificate </command/atlas-api-x509Authentication-createDatabaseUserCertificate>
-   disableCustomerManagedX509 </command/atlas-api-x509Authentication-disableCustomerManagedX509>
-   listDatabaseUserCertificates </command/atlas-api-x509Authentication-listDatabaseUserCertificates>
+   createDatabaseUserCert </command/atlas-api-x509Authentication-createDatabaseUserCert>
+   disableSecurityCustomerX509 </command/atlas-api-x509Authentication-disableSecurityCustomerX509>
+   listDatabaseUserCerts </command/atlas-api-x509Authentication-listDatabaseUserCerts>

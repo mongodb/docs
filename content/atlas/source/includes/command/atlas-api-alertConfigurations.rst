@@ -12,9 +12,9 @@ atlas api alertConfigurations
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns and edits the conditions that trigger alerts and how MongoDB Cloud notifies users.
+Returns and edits the conditions that trigger alerts and how MongoDB Cloud notifies users.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 This collection remains under revision and may change.
@@ -54,24 +54,24 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-alertConfigurations-createAlertConfiguration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one alert configuration for the specified project.
-* :ref:`atlas-api-alertConfigurations-deleteAlertConfiguration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one alert configuration from the specified project.
-* :ref:`atlas-api-alertConfigurations-getAlertConfiguration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the specified alert configuration from the specified project.
-* :ref:`atlas-api-alertConfigurations-listAlertConfigurationMatchersFieldNames` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Get all field names that the matchers.fieldName parameter accepts when you create or update an Alert Configuration.
-* :ref:`atlas-api-alertConfigurations-listAlertConfigurations` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all alert configurations for one project.
-* :ref:`atlas-api-alertConfigurations-listAlertConfigurationsByAlertId` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all alert configurations set for the specified alert.
-* :ref:`atlas-api-alertConfigurations-toggleAlertConfiguration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Enables or disables the specified alert configuration in the specified project.
-* :ref:`atlas-api-alertConfigurations-updateAlertConfiguration` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates one alert configuration in the specified project.
+* :ref:`atlas-api-alertConfigurations-createAlertConfig` - Creates one alert configuration for the specified project.
+* :ref:`atlas-api-alertConfigurations-deleteAlertConfig` - Removes one alert configuration from the specified project.
+* :ref:`atlas-api-alertConfigurations-getAlertConfig` - Returns the specified alert configuration from the specified project.
+* :ref:`atlas-api-alertConfigurations-getAlertConfigs` - Returns all alert configurations set for the specified alert.
+* :ref:`atlas-api-alertConfigurations-listAlertConfigs` - Returns all alert configurations for one project.
+* :ref:`atlas-api-alertConfigurations-listMatcherFieldNames` - Get all field names that the matchers.fieldName parameter accepts when you create or update an Alert Configuration.
+* :ref:`atlas-api-alertConfigurations-toggleAlertConfig` - Enables or disables the specified alert configuration in the specified project.
+* :ref:`atlas-api-alertConfigurations-updateAlertConfig` - Updates one alert configuration in the specified project.
 
 
 .. toctree::
    :titlesonly:
 
-   createAlertConfiguration </command/atlas-api-alertConfigurations-createAlertConfiguration>
-   deleteAlertConfiguration </command/atlas-api-alertConfigurations-deleteAlertConfiguration>
-   getAlertConfiguration </command/atlas-api-alertConfigurations-getAlertConfiguration>
-   listAlertConfigurationMatchersFieldNames </command/atlas-api-alertConfigurations-listAlertConfigurationMatchersFieldNames>
-   listAlertConfigurations </command/atlas-api-alertConfigurations-listAlertConfigurations>
-   listAlertConfigurationsByAlertId </command/atlas-api-alertConfigurations-listAlertConfigurationsByAlertId>
-   toggleAlertConfiguration </command/atlas-api-alertConfigurations-toggleAlertConfiguration>
-   updateAlertConfiguration </command/atlas-api-alertConfigurations-updateAlertConfiguration>
+   createAlertConfig </command/atlas-api-alertConfigurations-createAlertConfig>
+   deleteAlertConfig </command/atlas-api-alertConfigurations-deleteAlertConfig>
+   getAlertConfig </command/atlas-api-alertConfigurations-getAlertConfig>
+   getAlertConfigs </command/atlas-api-alertConfigurations-getAlertConfigs>
+   listAlertConfigs </command/atlas-api-alertConfigurations-listAlertConfigs>
+   listMatcherFieldNames </command/atlas-api-alertConfigurations-listMatcherFieldNames>
+   toggleAlertConfig </command/atlas-api-alertConfigurations-toggleAlertConfig>
+   updateAlertConfig </command/atlas-api-alertConfigurations-updateAlertConfig>

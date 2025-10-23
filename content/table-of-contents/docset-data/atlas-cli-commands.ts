@@ -1,7 +1,7 @@
 /**
  * Atlas CLI Commands Table of Contents
  * Generated automatically from MongoDB Atlas CLI repository
- * Source: mongodb/mongodb-atlas-cli repository (atlascli/v1.48.0)
+ * Source: mongodb/mongodb-atlas-cli repository (atlascli/v1.49.0)
  * 
  * DO NOT EDIT MANUALLY - this file is auto-generated
  * To regenerate: run the atlas-cli-commands generation script
@@ -39,7 +39,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -60,7 +61,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -81,7 +83,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -102,7 +105,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -131,7 +135,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -160,7 +165,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -181,7 +187,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -202,7 +209,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -229,7 +237,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -250,7 +259,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -271,7 +281,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -292,7 +303,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -313,7 +325,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -340,7 +353,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -363,7 +377,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -384,7 +399,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -407,7 +423,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -436,7 +453,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -457,7 +475,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -486,7 +505,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -507,7 +527,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -528,7 +549,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -549,7 +571,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -590,7 +613,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -611,7 +635,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -634,7 +659,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -655,7 +681,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -682,7 +709,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -703,7 +731,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -732,7 +761,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -761,7 +791,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -788,7 +819,8 @@ export const atlasCliCommands: TocItem[] = [
                             "v1.44",
                             "v1.45",
                             "v1.46",
-                            "v1.47"
+                            "v1.47",
+                            "v1.48"
                           ]
                         }
                       },
@@ -809,7 +841,8 @@ export const atlasCliCommands: TocItem[] = [
                             "v1.44",
                             "v1.45",
                             "v1.46",
-                            "v1.47"
+                            "v1.47",
+                            "v1.48"
                           ]
                         }
                       },
@@ -830,7 +863,8 @@ export const atlasCliCommands: TocItem[] = [
                             "v1.44",
                             "v1.45",
                             "v1.46",
-                            "v1.47"
+                            "v1.47",
+                            "v1.48"
                           ]
                         }
                       }
@@ -859,7 +893,8 @@ export const atlasCliCommands: TocItem[] = [
                             "v1.44",
                             "v1.45",
                             "v1.46",
-                            "v1.47"
+                            "v1.47",
+                            "v1.48"
                           ]
                         }
                       },
@@ -880,7 +915,8 @@ export const atlasCliCommands: TocItem[] = [
                             "v1.44",
                             "v1.45",
                             "v1.46",
-                            "v1.47"
+                            "v1.47",
+                            "v1.48"
                           ]
                         }
                       }
@@ -905,7 +941,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -940,7 +977,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -961,7 +999,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -982,7 +1021,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -1003,7 +1043,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -1032,7 +1073,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -1053,7 +1095,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -1074,7 +1117,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -1095,7 +1139,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -1126,7 +1171,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1147,7 +1193,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1168,7 +1215,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1189,7 +1237,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -1218,7 +1267,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1239,7 +1289,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1260,7 +1311,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -1289,7 +1341,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1310,7 +1363,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1331,7 +1385,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1352,7 +1407,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1373,7 +1429,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1394,7 +1451,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -1437,7 +1495,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -1458,7 +1517,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -1479,7 +1539,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -1502,7 +1563,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -1539,7 +1601,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1560,7 +1623,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -1589,7 +1653,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -1618,7 +1683,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -1641,7 +1707,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -1662,7 +1729,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -1683,7 +1751,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -1704,7 +1773,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -1731,7 +1801,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -1754,7 +1825,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -1781,7 +1853,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1802,7 +1875,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1823,7 +1897,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1844,7 +1919,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1865,7 +1941,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1886,7 +1963,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1907,7 +1985,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1928,7 +2007,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -1951,7 +2031,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -1978,7 +2059,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -1999,7 +2081,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -2020,7 +2103,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -2055,7 +2139,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -2076,7 +2161,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -2097,7 +2183,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -2118,7 +2205,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -2139,7 +2227,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -2168,7 +2257,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -2189,7 +2279,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -2210,7 +2301,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -2231,7 +2323,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -2256,7 +2349,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2277,7 +2371,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2298,7 +2393,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2319,7 +2415,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -2348,7 +2445,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2369,7 +2467,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2390,7 +2489,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2411,7 +2511,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -2457,7 +2558,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2478,7 +2580,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2516,7 +2619,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2537,7 +2641,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2558,7 +2663,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -2587,7 +2693,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2608,7 +2715,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2629,7 +2737,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2650,7 +2759,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2671,7 +2781,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -2706,7 +2817,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -2727,7 +2839,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -2748,7 +2861,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -2779,7 +2893,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2800,7 +2915,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2821,7 +2937,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2842,7 +2959,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2863,7 +2981,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -2890,7 +3009,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -2911,7 +3031,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -2932,7 +3053,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -2953,7 +3075,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -2982,7 +3105,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -3003,7 +3127,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -3024,7 +3149,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -3045,7 +3171,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -3068,7 +3195,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -3103,7 +3231,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -3124,7 +3253,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -3147,7 +3277,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -3168,7 +3299,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -3189,7 +3321,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -3210,7 +3343,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -3231,7 +3365,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -3260,7 +3395,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -3281,7 +3417,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -3302,7 +3439,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -3323,7 +3461,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -3344,7 +3483,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -3377,7 +3517,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -3398,7 +3539,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -3419,7 +3561,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -3440,7 +3583,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -3465,7 +3609,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -3486,7 +3631,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -3521,7 +3667,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -3550,7 +3697,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -3593,7 +3741,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -3614,7 +3763,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -3635,7 +3785,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -3656,7 +3807,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -3677,7 +3829,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -3698,7 +3851,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -3721,7 +3875,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -3754,7 +3909,8 @@ export const atlasCliCommands: TocItem[] = [
                             "v1.44",
                             "v1.45",
                             "v1.46",
-                            "v1.47"
+                            "v1.47",
+                            "v1.48"
                           ]
                         }
                       }
@@ -3777,7 +3933,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -3798,7 +3955,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -3819,7 +3977,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -3840,7 +3999,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -3867,7 +4027,8 @@ export const atlasCliCommands: TocItem[] = [
                             "v1.44",
                             "v1.45",
                             "v1.46",
-                            "v1.47"
+                            "v1.47",
+                            "v1.48"
                           ]
                         }
                       }
@@ -3908,7 +4069,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -3929,7 +4091,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -3950,7 +4113,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -3971,7 +4135,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -3992,7 +4157,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -4015,7 +4181,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -4036,7 +4203,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -4057,7 +4225,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -4092,7 +4261,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -4113,7 +4283,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -4139,7 +4310,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -4168,7 +4340,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -4199,7 +4372,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -4220,7 +4394,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -4241,7 +4416,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -4268,7 +4444,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -4289,7 +4466,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -4318,7 +4496,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -4339,7 +4518,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -4370,7 +4550,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -4399,7 +4580,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -4420,7 +4602,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -4441,7 +4624,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -4462,7 +4646,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -4497,7 +4682,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -4518,7 +4704,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -4547,7 +4734,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -4568,7 +4756,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -4591,7 +4780,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -4626,7 +4816,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -4647,7 +4838,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -4682,7 +4874,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -4703,7 +4896,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -4724,7 +4918,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -4747,7 +4942,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -4768,7 +4964,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -4789,7 +4986,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -4832,7 +5030,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -4853,7 +5052,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -4874,7 +5074,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -4897,7 +5098,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -4918,7 +5120,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -4939,7 +5142,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -4960,7 +5164,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -4981,7 +5186,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -5004,7 +5210,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -5025,7 +5232,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -5046,7 +5254,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -5073,7 +5282,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5094,7 +5304,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5115,7 +5326,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5136,7 +5348,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5157,7 +5370,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -5180,7 +5394,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -5207,7 +5422,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -5244,7 +5460,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -5273,7 +5490,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5294,7 +5512,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -5323,7 +5542,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -5352,7 +5572,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -5383,7 +5604,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -5404,7 +5626,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -5425,7 +5648,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -5446,7 +5670,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -5481,7 +5706,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5502,7 +5728,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5523,7 +5750,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5550,7 +5778,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -5571,7 +5800,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -5592,7 +5822,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -5615,7 +5846,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5636,7 +5868,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -5665,7 +5898,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5686,7 +5920,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5707,7 +5942,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5734,7 +5970,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -5755,7 +5992,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -5776,7 +6014,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -5799,7 +6038,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5820,7 +6060,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -5849,7 +6090,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5870,7 +6112,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5891,7 +6134,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -5918,7 +6162,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -5939,7 +6184,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   },
@@ -5960,7 +6206,8 @@ export const atlasCliCommands: TocItem[] = [
                         "v1.44",
                         "v1.45",
                         "v1.46",
-                        "v1.47"
+                        "v1.47",
+                        "v1.48"
                       ]
                     }
                   }
@@ -5983,7 +6230,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6004,7 +6252,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -6033,7 +6282,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6054,7 +6304,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6075,7 +6326,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -6106,7 +6358,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -6127,7 +6380,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -6162,7 +6416,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6183,7 +6438,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6204,7 +6460,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6225,7 +6482,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -6248,7 +6506,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -6269,7 +6528,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -6290,7 +6550,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -6311,7 +6572,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -6338,7 +6600,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6359,7 +6622,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -6388,7 +6652,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6409,7 +6674,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6430,7 +6696,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6451,7 +6718,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -6474,7 +6742,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -6501,7 +6770,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6522,7 +6792,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -6559,7 +6830,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6580,7 +6852,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6601,7 +6874,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -6630,7 +6904,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6651,7 +6926,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6672,7 +6948,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6705,7 +6982,8 @@ export const atlasCliCommands: TocItem[] = [
                             "v1.44",
                             "v1.45",
                             "v1.46",
-                            "v1.47"
+                            "v1.47",
+                            "v1.48"
                           ]
                         }
                       }
@@ -6734,7 +7012,8 @@ export const atlasCliCommands: TocItem[] = [
             "v1.44",
             "v1.45",
             "v1.46",
-            "v1.47"
+            "v1.47",
+            "v1.48"
           ]
         }
       },
@@ -6767,7 +7046,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6788,7 +7068,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6809,7 +7090,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6830,7 +7112,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6851,7 +7134,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -6880,7 +7164,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6901,7 +7186,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6922,7 +7208,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6943,7 +7230,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6964,7 +7252,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -6985,7 +7274,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -7013,7 +7303,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -7032,7 +7323,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -7051,7 +7343,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -7070,7 +7363,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -7101,7 +7395,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7122,7 +7417,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7143,7 +7439,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7164,7 +7461,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7185,7 +7483,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7212,7 +7511,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -7233,7 +7533,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               },
@@ -7254,7 +7555,8 @@ export const atlasCliCommands: TocItem[] = [
                     "v1.44",
                     "v1.45",
                     "v1.46",
-                    "v1.47"
+                    "v1.47",
+                    "v1.48"
                   ]
                 }
               }
@@ -7285,7 +7587,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7306,7 +7609,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -7327,13 +7631,33 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "getAccessHistoryCluster",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-accessTracking-getAccessHistoryCluster/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getAccessHistoryProcess",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-accessTracking-getAccessHistoryProcess/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "listAccessLogsByClusterName",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-accessTracking-listAccessLogsByClusterName/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7343,7 +7667,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7353,8 +7678,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-accessTracking-listAccessLogsByHostname/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7364,7 +7687,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -7377,13 +7701,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "createAlertConfig",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-createAlertConfig/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "createAlertConfiguration",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-createAlertConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7393,7 +7726,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteAlertConfig",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-deleteAlertConfig/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -7403,8 +7748,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-deleteAlertConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7414,7 +7757,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getAlertConfig",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-getAlertConfig/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getAlertConfigs",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-getAlertConfigs/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -7424,8 +7790,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-getAlertConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7435,7 +7799,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listAlertConfigs",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-listAlertConfigs/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -7445,8 +7821,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-listAlertConfigurationMatchersFieldNames/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7456,7 +7830,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7466,8 +7841,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-listAlertConfigurations/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7477,7 +7850,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7487,8 +7861,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-listAlertConfigurationsByAlertId/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7498,7 +7870,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listMatcherFieldNames",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-listMatcherFieldNames/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "toggleAlertConfig",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-toggleAlertConfig/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -7508,8 +7903,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-toggleAlertConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7519,7 +7912,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateAlertConfig",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-updateAlertConfig/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -7529,8 +7934,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-updateAlertConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7540,7 +7943,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -7569,7 +7973,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7590,7 +7995,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getAlertConfigAlerts",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-alerts-getAlertConfigAlerts/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -7611,7 +8028,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7621,8 +8039,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-alerts-listAlertsByAlertConfigurationId/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7632,7 +8048,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -7650,8 +8067,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-createAtlasSearchDeployment/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7661,7 +8076,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7671,8 +8087,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-createAtlasSearchIndex/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7682,7 +8096,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7692,8 +8107,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-createAtlasSearchIndexDeprecated/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7703,7 +8116,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "createClusterFtsIndex",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-createClusterFtsIndex/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "createClusterSearchDeployment",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-createClusterSearchDeployment/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "createClusterSearchIndex",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-createClusterSearchIndex/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -7713,8 +8160,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-deleteAtlasSearchDeployment/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7724,7 +8169,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7734,8 +8180,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-deleteAtlasSearchIndex/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7745,7 +8189,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7755,8 +8200,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-deleteAtlasSearchIndexByName/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7766,7 +8209,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7776,8 +8220,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-deleteAtlasSearchIndexDeprecated/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7787,7 +8229,52 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteClusterFtsIndex",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-deleteClusterFtsIndex/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteClusterSearchDeployment",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-deleteClusterSearchDeployment/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteClusterSearchIndex",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-deleteClusterSearchIndex/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteIndexByName",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-deleteIndexByName/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -7797,8 +8284,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-getAtlasSearchDeployment/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7808,7 +8293,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7818,8 +8304,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-getAtlasSearchIndex/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7829,7 +8313,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7839,8 +8324,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-getAtlasSearchIndexByName/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7850,7 +8333,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7860,8 +8344,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-getAtlasSearchIndexDeprecated/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7871,7 +8353,52 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getClusterFtsIndex",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-getClusterFtsIndex/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getClusterSearchDeployment",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-getClusterSearchDeployment/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getClusterSearchIndex",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-getClusterSearchIndex/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getIndexByName",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-getIndexByName/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -7881,8 +8408,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-listAtlasSearchIndexes/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7892,7 +8417,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7902,8 +8428,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-listAtlasSearchIndexesCluster/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7913,7 +8437,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7923,8 +8448,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-listAtlasSearchIndexesDeprecated/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7934,7 +8457,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listClusterFtsIndex",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-listClusterFtsIndex/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listClusterSearchIndexes",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-listClusterSearchIndexes/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listSearchIndex",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-listSearchIndex/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -7944,8 +8501,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-updateAtlasSearchDeployment/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7955,7 +8510,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7965,8 +8521,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-updateAtlasSearchIndex/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7976,7 +8530,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -7986,8 +8541,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-updateAtlasSearchIndexByName/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -7997,7 +8550,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8007,8 +8561,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-updateAtlasSearchIndexDeprecated/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8018,7 +8570,52 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateClusterFtsIndex",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-updateClusterFtsIndex/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateClusterSearchDeployment",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-updateClusterSearchDeployment/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateClusterSearchIndex",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-updateClusterSearchIndex/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateIndexByName",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-atlasSearch-updateIndexByName/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -8036,8 +8633,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-auditing-getAuditingConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8047,7 +8642,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getGroupAuditLog",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-auditing-getGroupAuditLog/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8057,8 +8664,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-auditing-updateAuditingConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8068,7 +8673,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateAuditLog",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-auditing-updateAuditLog/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -8097,7 +8714,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8118,7 +8736,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -8147,7 +8766,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "createBackupExport",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-createBackupExport/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8157,8 +8788,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-createBackupExportJob/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8168,7 +8797,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8189,7 +8819,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8210,7 +8841,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8220,8 +8852,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-deleteAllBackupSchedules/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8231,7 +8861,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteBackupShardedCluster",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-deleteBackupShardedCluster/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteClusterBackupSchedule",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-deleteClusterBackupSchedule/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteClusterBackupSnapshot",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-deleteClusterBackupSnapshot/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8252,7 +8916,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8262,8 +8927,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-deleteReplicaSetBackup/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8273,7 +8936,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8283,8 +8947,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-deleteShardedClusterBackup/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8294,7 +8956,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "disableCompliancePolicy",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-disableCompliancePolicy/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8304,8 +8978,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-disableDataProtectionSettings/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8315,7 +8987,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getBackupExport",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getBackupExport/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8325,8 +9009,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getBackupExportJob/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8336,7 +9018,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8357,7 +9040,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8378,7 +9062,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getBackupShardedCluster",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getBackupShardedCluster/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getClusterBackupSnapshot",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getClusterBackupSnapshot/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getCompliancePolicy",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getCompliancePolicy/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8388,8 +9106,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getDataProtectionSettings/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8399,7 +9115,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8420,7 +9137,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8430,8 +9148,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getReplicaSetBackup/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8441,7 +9157,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8451,8 +9168,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getShardedClusterBackup/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8462,7 +9177,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8472,8 +9188,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-listBackupExportJobs/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8483,7 +9197,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listBackupExports",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-listBackupExports/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8504,7 +9230,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listBackupShardedClusters",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-listBackupShardedClusters/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listBackupSnapshots",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-listBackupSnapshots/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8525,7 +9274,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8535,8 +9285,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-listReplicaSetBackups/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8546,7 +9294,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8556,8 +9305,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-listShardedClusterBackups/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8567,7 +9314,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8577,8 +9325,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-takeSnapshot/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8588,7 +9334,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "takeSnapshots",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-takeSnapshots/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8609,7 +9367,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateBackupSnapshot",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-updateBackupSnapshot/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateCompliancePolicy",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-updateCompliancePolicy/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8619,8 +9400,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-updateDataProtectionSettings/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8630,7 +9409,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8640,8 +9420,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudBackups-updateSnapshotRetention/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8651,7 +9429,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -8663,6 +9442,17 @@ export const atlasCliCommands: TocItem[] = [
         url: "/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService/",
         collapsible: true,
         items: [
+          {
+            label: "createGroupLiveMigration",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-createGroupLiveMigration/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
           {
             label: "createLinkToken",
             contentSite: "atlas-cli",
@@ -8680,7 +9470,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8690,8 +9481,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-createPushMigration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8701,7 +9490,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8722,7 +9512,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8732,8 +9523,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-deleteLinkToken/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8743,7 +9532,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteLinkTokens",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-deleteLinkTokens/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getGroupLiveMigration",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-getGroupLiveMigration/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getMigrationValidateStatus",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-getMigrationValidateStatus/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8753,8 +9576,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-getPushMigration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8764,7 +9585,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8774,8 +9596,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-getValidationStatus/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8785,7 +9605,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listAvailableProjects",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-listAvailableProjects/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8795,8 +9627,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-listSourceProjects/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8806,7 +9636,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "validateLiveMigrations",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-validateLiveMigrations/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8816,8 +9658,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-validateMigration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8827,7 +9667,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -8845,8 +9686,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-authorizeCloudProviderAccessRole/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8856,7 +9695,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "authorizeProviderAccessRole",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-authorizeProviderAccessRole/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "createCloudProviderAccess",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-createCloudProviderAccess/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8866,8 +9728,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-createCloudProviderAccessRole/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8877,7 +9737,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8887,8 +9748,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-deauthorizeCloudProviderAccessRole/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8898,7 +9757,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deauthorizeProviderAccessRole",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-deauthorizeProviderAccessRole/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getCloudProviderAccess",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-getCloudProviderAccess/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8908,8 +9790,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-getCloudProviderAccessRole/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8919,7 +9799,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listCloudProviderAccess",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-listCloudProviderAccess/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -8929,8 +9821,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-listCloudProviderAccessRoles/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -8940,7 +9830,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -8969,7 +9860,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -8990,7 +9882,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9011,7 +9904,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -9037,7 +9931,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9058,7 +9953,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9079,7 +9975,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9100,7 +9997,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9110,8 +10008,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-clusters-getClusterAdvancedConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9121,7 +10017,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9142,7 +10039,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getProcessArgs",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-clusters-getProcessArgs/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getSampleDatasetLoad",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-clusters-getSampleDatasetLoad/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -9152,8 +10072,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-clusters-getSampleDatasetLoadStatus/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9163,7 +10081,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9173,8 +10092,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-clusters-grantMongoDbEmployeeAccess/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9184,7 +10101,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "grantMongoEmployeeAccess",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-clusters-grantMongoEmployeeAccess/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -9194,8 +10123,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-clusters-listCloudProviderRegions/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9205,7 +10132,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listClusterDetails",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-clusters-listClusterDetails/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listClusterProviderRegions",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-clusters-listClusterProviderRegions/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -9226,7 +10176,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9236,8 +10187,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-clusters-listClustersForAllProjects/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9247,7 +10196,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9257,8 +10207,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-clusters-loadSampleDataset/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9268,7 +10216,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9289,7 +10238,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "requestSampleDatasetLoad",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-clusters-requestSampleDatasetLoad/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "restartPrimaries",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-clusters-restartPrimaries/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -9299,8 +10271,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-clusters-revokeMongoDbEmployeeAccess/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9310,7 +10280,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "revokeMongoEmployeeAccess",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-clusters-revokeMongoEmployeeAccess/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -9320,8 +10302,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-clusters-testFailover/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9331,7 +10311,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9352,7 +10333,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9373,7 +10355,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9383,8 +10366,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-clusters-updateClusterAdvancedConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9394,7 +10375,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateProcessArgs",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-clusters-updateProcessArgs/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -9404,8 +10397,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-clusters-upgradeSharedCluster/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9415,7 +10406,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "upgradeTenantUpgrade",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-clusters-upgradeTenantUpgrade/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -9428,13 +10431,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "getClusterNamespaces",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-getClusterNamespaces/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "getCollStatsLatencyNamespaceClusterMeasurements",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-getCollStatsLatencyNamespaceClusterMeasurements/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9444,7 +10456,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9454,8 +10467,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-getCollStatsLatencyNamespaceHostMeasurements/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9465,7 +10476,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9475,8 +10487,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-getCollStatsLatencyNamespaceMetrics/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9486,7 +10496,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9496,8 +10507,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-getCollStatsLatencyNamespacesForCluster/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9507,7 +10516,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9517,8 +10527,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-getCollStatsLatencyNamespacesForHost/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9528,7 +10536,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9538,8 +10547,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-getPinnedNamespaces/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9549,7 +10556,74 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getProcessNamespaces",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-getProcessNamespaces/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listCollStatMeasurements",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-listCollStatMeasurements/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listCollStatMetrics",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-listCollStatMetrics/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listPinnedNamespaces",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-listPinnedNamespaces/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listProcessMeasurements",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-listProcessMeasurements/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "pinNamespaces",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-pinNamespaces/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -9559,8 +10633,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-pinNamespacesPatch/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9570,7 +10642,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9580,8 +10653,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-pinNamespacesPut/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9591,7 +10662,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9612,7 +10684,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updatePinnedNamespaces",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-updatePinnedNamespaces/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -9630,8 +10714,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-createCustomDatabaseRole/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9641,7 +10723,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "createCustomDbRole",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-createCustomDbRole/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -9651,8 +10745,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-deleteCustomDatabaseRole/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9662,7 +10754,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteCustomDbRole",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-deleteCustomDbRole/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -9672,8 +10776,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-getCustomDatabaseRole/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9683,7 +10785,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getCustomDbRole",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-getCustomDbRole/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -9693,8 +10807,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-listCustomDatabaseRoles/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9704,7 +10816,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listCustomDbRoles",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-listCustomDbRoles/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -9714,8 +10838,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-updateCustomDatabaseRole/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9725,7 +10847,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateCustomDbRole",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-updateCustomDbRole/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -9754,7 +10888,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9775,7 +10910,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9796,7 +10932,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9817,7 +10954,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9838,7 +10976,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -9851,13 +10990,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "createDataFederation",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-createDataFederation/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "createDataFederationPrivateEndpoint",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-createDataFederationPrivateEndpoint/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9867,7 +11015,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9877,8 +11026,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-createFederatedDatabase/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9888,7 +11035,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9898,8 +11046,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-createOneDataFederationQueryLimit/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9909,7 +11055,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "createPrivateEndpointId",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-createPrivateEndpointId/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteDataFederation",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-deleteDataFederation/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteDataFederationLimit",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-deleteDataFederationLimit/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -9919,8 +11099,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-deleteDataFederationPrivateEndpoint/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9930,7 +11108,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9940,8 +11119,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-deleteFederatedDatabase/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9951,7 +11128,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -9961,8 +11139,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-deleteOneDataFederationInstanceQueryLimit/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9972,7 +11148,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deletePrivateEndpointId",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-deletePrivateEndpointId/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -9982,8 +11170,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-downloadFederatedDatabaseQueryLogs/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -9993,7 +11179,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "downloadFederationQueryLogs",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-downloadFederationQueryLogs/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getDataFederation",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-getDataFederation/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getDataFederationLimit",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-getDataFederationLimit/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -10003,8 +11223,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-getDataFederationPrivateEndpoint/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10014,7 +11232,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10024,8 +11243,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-getFederatedDatabase/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10035,7 +11252,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getPrivateEndpointId",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-getPrivateEndpointId/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listDataFederation",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-listDataFederation/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listDataFederationLimits",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-listDataFederationLimits/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -10045,8 +11296,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-listDataFederationPrivateEndpoints/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10056,7 +11305,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10066,8 +11316,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-listFederatedDatabases/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10077,7 +11325,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listPrivateEndpointIds",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-listPrivateEndpointIds/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -10087,8 +11347,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-returnFederatedDatabaseQueryLimit/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10098,7 +11356,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10108,8 +11367,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-returnFederatedDatabaseQueryLimits/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10119,7 +11376,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "setDataFederationLimit",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-setDataFederationLimit/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateDataFederation",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-updateDataFederation/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -10129,8 +11409,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-dataFederation-updateFederatedDatabase/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10140,7 +11418,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -10387,8 +11666,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-createEncryptionAtRestPrivateEndpoint/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10398,7 +11675,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "createRestPrivateEndpoint",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-createRestPrivateEndpoint/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -10419,7 +11708,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10429,8 +11719,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-getEncryptionAtRestPrivateEndpoint/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10440,7 +11728,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10450,8 +11739,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-getEncryptionAtRestPrivateEndpointsForCloudProvider/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10461,7 +11748,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getRestPrivateEndpoint",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-getRestPrivateEndpoint/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listRestPrivateEndpoints",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-listRestPrivateEndpoints/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -10471,8 +11781,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-requestEncryptionAtRestPrivateEndpointDeletion/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10482,7 +11790,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "requestPrivateEndpointDeletion",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-requestPrivateEndpointDeletion/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -10503,7 +11823,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -10516,13 +11837,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "getGroupEvent",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-events-getGroupEvent/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "getOrganizationEvent",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-events-getOrganizationEvent/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10532,7 +11862,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getOrgEvent",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-events-getOrgEvent/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -10542,8 +11884,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-events-getProjectEvent/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10553,7 +11893,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10574,7 +11915,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listGroupEvents",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-events-listGroupEvents/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -10584,8 +11937,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-events-listOrganizationEvents/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10595,7 +11946,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listOrgEvents",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-events-listOrgEvents/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -10605,8 +11968,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-events-listProjectEvents/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10616,7 +11977,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -10645,7 +12007,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10666,7 +12029,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10676,8 +12040,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-deleteFederationApp/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10687,7 +12049,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteFederationSetting",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-deleteFederationSetting/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -10708,7 +12082,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10729,7 +12104,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10750,7 +12126,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10771,7 +12148,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10792,7 +12170,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10813,7 +12192,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10834,7 +12214,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10855,7 +12236,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10876,7 +12258,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10897,7 +12280,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10918,7 +12302,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "revokeIdentityProviderJwks",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-revokeIdentityProviderJwks/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -10928,8 +12324,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-revokeJwksFromIdentityProvider/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -10939,7 +12333,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10960,7 +12355,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -10981,7 +12377,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11002,7 +12399,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -11031,7 +12429,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11052,7 +12451,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11073,7 +12473,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11094,7 +12495,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "tenantUpgrade",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-flexClusters-tenantUpgrade/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -11115,7 +12528,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11125,8 +12539,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-flexClusters-upgradeFlexCluster/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11136,7 +12548,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -11154,8 +12567,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-flexRestoreJobs-createFlexBackupRestoreJob/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11165,7 +12576,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "createFlexRestoreJob",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-flexRestoreJobs-createFlexRestoreJob/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -11175,8 +12598,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-flexRestoreJobs-getFlexBackupRestoreJob/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11186,7 +12607,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getFlexRestoreJob",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-flexRestoreJobs-getFlexRestoreJob/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -11196,8 +12629,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-flexRestoreJobs-listFlexBackupRestoreJobs/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11207,7 +12638,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listFlexRestoreJobs",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-flexRestoreJobs-listFlexRestoreJobs/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -11236,7 +12679,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11246,8 +12690,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-flexSnapshots-getFlexBackup/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11257,7 +12699,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getFlexBackupSnapshot",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-flexSnapshots-getFlexBackupSnapshot/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -11267,8 +12721,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-flexSnapshots-listFlexBackups/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11278,7 +12730,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listFlexBackupSnapshots",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-flexSnapshots-listFlexBackupSnapshots/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -11307,7 +12771,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11328,7 +12793,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11338,8 +12804,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-globalClusters-deleteAllCustomZoneMappings/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11349,7 +12813,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteCustomZoneMapping",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-globalClusters-deleteCustomZoneMapping/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -11359,8 +12835,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-globalClusters-deleteManagedNamespace/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11370,7 +12844,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteManagedNamespaces",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-globalClusters-deleteManagedNamespaces/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getClusterGlobalWrites",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-globalClusters-getClusterGlobalWrites/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -11380,8 +12877,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-globalClusters-getManagedNamespace/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11391,7 +12886,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -11404,13 +12900,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "createCostExplorerProcess",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-invoices-createCostExplorerProcess/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "createCostExplorerQueryProcess",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-invoices-createCostExplorerQueryProcess/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11420,7 +12925,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11430,8 +12936,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-invoices-downloadInvoiceCsv/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11441,7 +12945,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11451,8 +12956,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-invoices-getCostExplorerQueryProcess/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11462,7 +12965,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getCostExplorerUsage",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-invoices-getCostExplorerUsage/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -11483,7 +12998,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getInvoiceCsv",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-invoices-getInvoiceCsv/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listInvoicePending",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-invoices-listInvoicePending/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -11504,7 +13042,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11514,8 +13053,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-invoices-listPendingInvoices/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11525,7 +13062,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11535,8 +13073,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-invoices-queryLineItemsFromSingleInvoice/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11546,7 +13082,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "searchInvoiceLineItems",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-invoices-searchInvoiceLineItems/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -11564,8 +13112,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-deleteLdapConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11575,7 +13121,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteLdapUserMapping",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-deleteLdapUserMapping/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -11585,8 +13143,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-getLdapConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11596,7 +13152,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11606,8 +13163,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-getLdapConfigurationStatus/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11617,7 +13172,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getUserSecurity",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-getUserSecurity/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getUserSecurityVerify",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-getUserSecurityVerify/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -11627,8 +13205,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-saveLdapConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11638,7 +13214,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateUserSecurity",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-updateUserSecurity/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -11648,8 +13236,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-verifyLdapConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11659,7 +13245,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "verifyUserSecurityLdap",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-verifyUserSecurityLdap/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -11672,13 +13270,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "createClusterRestoreJob",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-createClusterRestoreJob/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "createLegacyBackupRestoreJob",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-createLegacyBackupRestoreJob/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11688,7 +13295,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteClusterSnapshot",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-deleteClusterSnapshot/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -11698,8 +13317,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-deleteLegacySnapshot/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11709,7 +13326,52 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getClusterBackupCheckpoint",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-getClusterBackupCheckpoint/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getClusterRestoreJob",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-getClusterRestoreJob/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getClusterSnapshot",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-getClusterSnapshot/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getClusterSnapshotSchedule",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-getClusterSnapshotSchedule/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -11719,8 +13381,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-getLegacyBackupCheckpoint/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11730,7 +13390,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11740,8 +13401,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-getLegacyBackupRestoreJob/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11751,7 +13410,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11761,8 +13421,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-getLegacySnapshot/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11772,7 +13430,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11782,8 +13441,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-getLegacySnapshotSchedule/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11793,7 +13450,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listClusterBackupCheckpoints",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-listClusterBackupCheckpoints/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listClusterRestoreJobs",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-listClusterRestoreJobs/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listClusterSnapshots",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-listClusterSnapshots/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -11803,8 +13494,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-listLegacyBackupCheckpoints/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11814,7 +13503,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11824,8 +13514,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-listLegacyBackupRestoreJobs/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11835,7 +13523,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11845,8 +13534,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-listLegacySnapshots/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11856,7 +13543,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateClusterSnapshot",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-updateClusterSnapshot/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateClusterSnapshotSchedule",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-updateClusterSnapshotSchedule/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -11866,8 +13576,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-updateLegacySnapshotRetention/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11877,7 +13585,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11887,8 +13596,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-legacyBackup-updateLegacySnapshotSchedule/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -11898,7 +13605,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -11927,7 +13635,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11948,7 +13657,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11969,7 +13679,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -11990,7 +13701,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12011,7 +13723,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -12024,13 +13737,33 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "addGroupUserRole",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-addGroupUserRole/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "addGroupUsers",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-addGroupUsers/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "addOrganizationRole",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-addOrganizationRole/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12040,7 +13773,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "addOrgRole",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-addOrgRole/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "addOrgTeamUser",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-addOrgTeamUser/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12050,8 +13806,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-addProjectRole/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12061,7 +13815,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12071,8 +13826,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-addProjectUser/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12082,7 +13835,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12092,8 +13846,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-addUserToTeam/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12103,7 +13855,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12113,8 +13866,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-createOrganizationUser/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12124,7 +13875,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "createOrgUser",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-createOrgUser/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12145,7 +13908,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getGroupUser",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-getGroupUser/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12155,8 +13930,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-getOrganizationUser/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12166,7 +13939,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getOrgUser",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-getOrgUser/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12176,8 +13961,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-getProjectUser/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12187,7 +13970,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12208,7 +13992,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getUserByName",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-getUserByName/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12218,8 +14014,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-getUserByUsername/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12229,7 +14023,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listGroupUsers",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-listGroupUsers/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12239,15 +14045,25 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-listOrganizationUsers/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.41",
                 "v1.42",
                 "v1.43",
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listOrgUsers",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-listOrgUsers/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12257,15 +14073,14 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-listProjectUsers/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.41",
                 "v1.42",
                 "v1.43",
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12283,7 +14098,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "removeGroupUser",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeGroupUser/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "removeGroupUserRole",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeGroupUserRole/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12293,8 +14131,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeOrganizationRole/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12304,7 +14140,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12314,15 +14151,47 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeOrganizationUser/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.41",
                 "v1.42",
                 "v1.43",
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "removeOrgRole",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeOrgRole/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "removeOrgTeamUser",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeOrgTeamUser/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "removeOrgUser",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeOrgUser/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12332,8 +14201,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeProjectRole/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12343,7 +14210,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12353,15 +14221,14 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeProjectUser/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.41",
                 "v1.42",
                 "v1.43",
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12371,8 +14238,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeUserFromTeam/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12382,7 +14247,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12392,8 +14258,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-updateOrganizationUser/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12403,7 +14267,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateOrgUser",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-updateOrgUser/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -12416,13 +14292,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "downloadClusterLog",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-downloadClusterLog/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "getAtlasProcess",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getAtlasProcess/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12432,7 +14317,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12453,7 +14339,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12474,7 +14361,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12484,8 +14372,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getDiskMeasurements/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12495,7 +14381,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getGroupProcess",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getGroupProcess/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12505,8 +14403,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getHostLogs/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12516,7 +14412,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12526,8 +14423,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getHostMeasurements/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12537,7 +14432,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getIndexMeasurements",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getIndexMeasurements/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12547,8 +14454,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getIndexMetrics/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12558,7 +14463,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12568,8 +14474,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getMeasurements/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12579,7 +14483,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getProcessDisk",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getProcessDisk/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getProcessDiskMeasurements",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getProcessDiskMeasurements/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getProcessMeasurements",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getProcessMeasurements/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12589,8 +14527,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listAtlasProcesses/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12600,7 +14536,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12621,7 +14558,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12631,8 +14569,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listDiskMeasurements/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12642,7 +14578,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12652,8 +14589,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listDiskPartitions/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12663,7 +14598,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listGroupProcesses",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listGroupProcesses/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listHostFtsMetrics",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listHostFtsMetrics/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listIndexMeasurements",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listIndexMeasurements/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12673,8 +14642,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listIndexMetrics/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12684,7 +14651,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listMeasurements",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listMeasurements/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12694,8 +14673,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listMetricTypes/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12705,7 +14682,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listProcessDisks",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listProcessDisks/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -12718,13 +14707,33 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "createGroupContainer",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-createGroupContainer/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "createGroupPeer",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-createGroupPeer/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "createPeeringConnection",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-createPeeringConnection/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12734,7 +14743,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12744,8 +14754,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-createPeeringContainer/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12755,7 +14763,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteGroupContainer",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-deleteGroupContainer/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteGroupPeer",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-deleteGroupPeer/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12765,8 +14796,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-deletePeeringConnection/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12776,7 +14805,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12786,8 +14816,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-deletePeeringContainer/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12797,7 +14825,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12818,7 +14847,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getGroupContainer",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-getGroupContainer/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getGroupPeer",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-getGroupPeer/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12828,8 +14880,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-getPeeringConnection/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12839,7 +14889,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12849,8 +14900,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-getPeeringContainer/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12860,7 +14909,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listGroupContainerAll",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-listGroupContainerAll/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listGroupContainers",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-listGroupContainers/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listGroupPeers",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-listGroupPeers/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12870,8 +14953,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-listPeeringConnections/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12881,7 +14962,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12891,8 +14973,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-listPeeringContainerByCloudProvider/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12902,7 +14982,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12912,8 +14993,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-listPeeringContainers/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12923,7 +15002,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateGroupContainer",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-updateGroupContainer/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateGroupPeer",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-updateGroupPeer/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -12933,8 +15035,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-updatePeeringConnection/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12944,7 +15044,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12954,8 +15055,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-updatePeeringContainer/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12965,7 +15064,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -12975,8 +15075,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-verifyConnectViaPeeringOnlyModeForOneProject/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -12986,7 +15084,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "verifyPrivateIpMode",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-networkPeering-verifyPrivateIpMode/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -13015,7 +15125,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13036,7 +15147,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13046,8 +15158,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-onlineArchive-downloadOnlineArchiveQueryLogs/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13057,7 +15167,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "downloadQueryLogs",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-onlineArchive-downloadQueryLogs/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -13078,7 +15200,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13099,7 +15222,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13120,7 +15244,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -13133,13 +15258,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "createOrg",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-organizations-createOrg/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "createOrganization",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-organizations-createOrganization/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13149,7 +15283,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13159,8 +15294,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-organizations-createOrganizationInvitation/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13170,7 +15303,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "createOrgInvite",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-organizations-createOrgInvite/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteOrg",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-organizations-deleteOrg/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -13180,8 +15336,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-organizations-deleteOrganization/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13191,7 +15345,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13201,8 +15356,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-organizations-deleteOrganizationInvitation/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13212,7 +15365,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteOrgInvite",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-organizations-deleteOrgInvite/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getOrg",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-organizations-getOrg/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -13222,8 +15398,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-organizations-getOrganization/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13233,7 +15407,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13243,8 +15418,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-organizations-getOrganizationInvitation/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13254,7 +15427,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13264,8 +15438,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-organizations-getOrganizationSettings/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13275,7 +15447,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getOrgGroups",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-organizations-getOrgGroups/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getOrgInvite",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-organizations-getOrgInvite/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getOrgSettings",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-organizations-getOrgSettings/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -13285,8 +15491,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-organizations-listOrganizationInvitations/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13296,7 +15500,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13306,8 +15511,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-organizations-listOrganizationProjects/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13317,7 +15520,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13327,8 +15531,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-organizations-listOrganizations/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13338,7 +15540,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listOrgInvites",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-organizations-listOrgInvites/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listOrgs",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-organizations-listOrgs/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateOrg",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrg/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -13348,8 +15584,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrganization/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13359,7 +15593,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13369,8 +15604,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrganizationInvitation/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13380,7 +15613,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13390,8 +15624,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrganizationInvitationById/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13401,7 +15633,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13411,8 +15644,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrganizationRoles/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13422,7 +15653,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13432,8 +15664,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrganizationSettings/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13443,7 +15673,52 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateOrgInviteById",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrgInviteById/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateOrgInvites",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrgInvites/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateOrgSettings",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrgSettings/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateOrgUserRoles",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrgUserRoles/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -13456,13 +15731,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "disableManagedSlowMs",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-disableManagedSlowMs/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "disableSlowOperationThresholding",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-disableSlowOperationThresholding/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13472,7 +15756,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "enableManagedSlowMs",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-enableManagedSlowMs/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -13482,8 +15778,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-enableSlowOperationThresholding/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13493,7 +15787,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13514,7 +15809,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13535,7 +15831,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13545,8 +15842,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-listDropIndexes/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13556,7 +15851,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listDropIndexSuggestions",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-listDropIndexSuggestions/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listPerformanceAdvisorNamespaces",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-listPerformanceAdvisorNamespaces/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -13577,7 +15895,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13587,8 +15906,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-listSlowQueries/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13598,7 +15915,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listSlowQueryLogs",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-listSlowQueryLogs/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -13608,8 +15937,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-listSlowQueryNamespaces/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13619,7 +15946,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13640,7 +15968,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -13669,7 +15998,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13690,7 +16020,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13711,7 +16042,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13732,7 +16064,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13753,7 +16086,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13774,7 +16108,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getRegionalEndpointMode",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-getRegionalEndpointMode/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -13784,8 +16130,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-getRegionalizedPrivateEndpointSetting/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13795,7 +16139,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listPrivateEndpointService",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-listPrivateEndpointService/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -13805,8 +16161,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-listPrivateEndpointServices/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13816,7 +16170,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "toggleRegionalEndpointMode",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-toggleRegionalEndpointMode/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -13826,8 +16192,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-toggleRegionalizedPrivateEndpointSetting/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13837,7 +16201,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -13850,13 +16215,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "addGroupApiKey",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-addGroupApiKey/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "addProjectApiKey",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-addProjectApiKey/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13866,7 +16240,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13876,8 +16251,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-createApiKey/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13887,7 +16260,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13897,8 +16271,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-createApiKeyAccessList/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13908,7 +16280,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "createGroupApiKey",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-createGroupApiKey/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "createOrgAccessEntry",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-createOrgAccessEntry/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "createOrgApiKey",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-createOrgApiKey/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -13918,8 +16324,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-createProjectApiKey/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13929,7 +16333,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteAccessEntry",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-deleteAccessEntry/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -13939,8 +16355,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-deleteApiKey/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13950,7 +16364,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -13960,8 +16375,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-deleteApiKeyAccessListEntry/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13971,7 +16384,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteOrgApiKey",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-deleteOrgApiKey/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -13981,8 +16406,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-getApiKey/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -13992,7 +16415,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14002,8 +16426,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-getApiKeyAccessList/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14013,7 +16435,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getOrgAccessEntry",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-getOrgAccessEntry/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getOrgApiKey",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-getOrgApiKey/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14023,8 +16468,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-listApiKeyAccessListsEntries/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14034,7 +16477,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14044,8 +16488,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-listApiKeys/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14055,7 +16497,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listGroupApiKeys",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-listGroupApiKeys/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listOrgAccessEntries",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-listOrgAccessEntries/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listOrgApiKeys",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-listOrgApiKeys/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14065,8 +16541,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-listProjectApiKeys/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14076,7 +16550,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "removeGroupApiKey",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-removeGroupApiKey/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14086,8 +16572,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-removeProjectApiKey/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14097,7 +16581,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14107,8 +16592,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-updateApiKey/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14118,7 +16601,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14139,7 +16623,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateOrgApiKey",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-updateOrgApiKey/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -14152,13 +16648,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "createAccessListEntry",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-createAccessListEntry/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "createProjectIpAccessList",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-createProjectIpAccessList/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14168,7 +16673,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteAccessListEntry",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-deleteAccessListEntry/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14178,8 +16695,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-deleteProjectIpAccessList/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14189,7 +16704,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getAccessListEntry",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-getAccessListEntry/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getAccessListStatus",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-getAccessListStatus/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14199,8 +16737,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-getProjectIpAccessListStatus/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14210,7 +16746,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14220,8 +16757,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-getProjectIpList/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14231,7 +16766,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listAccessListEntries",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-listAccessListEntries/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14241,8 +16788,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-listProjectIpAccessLists/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14252,7 +16797,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -14265,13 +16811,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "addGroupUser",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-addGroupUser/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "addUserToProject",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-addUserToProject/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14281,7 +16836,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "createGroup",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-createGroup/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "createGroupInvite",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-createGroupInvite/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14291,8 +16869,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-createProject/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14302,7 +16878,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14312,8 +16889,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-createProjectInvitation/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14323,7 +16898,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteGroup",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-deleteGroup/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteGroupInvite",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-deleteGroupInvite/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteGroupLimit",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-deleteGroupLimit/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14333,8 +16942,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-deleteProject/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14344,7 +16951,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14354,8 +16962,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-deleteProjectInvitation/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14365,7 +16971,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14375,8 +16982,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-deleteProjectLimit/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14386,7 +16991,85 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getGroup",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-getGroup/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getGroupByName",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-getGroupByName/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getGroupInvite",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-getGroupInvite/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getGroupIpAddresses",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-getGroupIpAddresses/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getGroupLimit",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-getGroupLimit/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getGroupSettings",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-getGroupSettings/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getMongoDbVersions",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-getMongoDbVersions/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14396,8 +17079,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-getProject/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14407,7 +17088,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14417,8 +17099,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-getProjectByName/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14428,7 +17108,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14438,8 +17119,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-getProjectInvitation/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14449,7 +17128,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14459,8 +17139,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-getProjectLimit/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14470,7 +17148,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14480,8 +17159,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-getProjectLtsVersions/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14491,7 +17168,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14501,8 +17179,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-getProjectSettings/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14512,7 +17188,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listGroupInvites",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-listGroupInvites/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listGroupLimits",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-listGroupLimits/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listGroups",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-listGroups/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14522,8 +17232,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-listProjectInvitations/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14533,7 +17241,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14543,8 +17252,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-listProjectLimits/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14554,7 +17261,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14564,8 +17272,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-listProjects/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14575,7 +17281,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "migrateGroup",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-migrateGroup/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14585,8 +17303,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-migrateProjectToAnotherOrg/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14596,7 +17312,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14606,8 +17323,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-returnAllIpAddresses/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14617,7 +17332,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "setGroupLimit",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-setGroupLimit/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14627,8 +17354,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-setProjectLimit/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14638,7 +17363,63 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateGroup",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-updateGroup/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateGroupInvites",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-updateGroupInvites/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateGroupSettings",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-updateGroupSettings/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateGroupUserRoles",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-updateGroupUserRoles/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateInviteById",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-projects-updateInviteById/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14648,8 +17429,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-updateProject/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14659,7 +17438,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14669,8 +17449,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-updateProjectInvitation/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14680,7 +17458,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14690,8 +17469,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-updateProjectInvitationById/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14701,7 +17478,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14711,8 +17489,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-updateProjectRoles/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14722,7 +17498,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14732,8 +17509,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-projects-updateProjectSettings/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14743,7 +17518,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -14756,13 +17532,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "createLogExport",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport-createLogExport/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "createPushBasedLogConfiguration",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport-createPushBasedLogConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14772,7 +17557,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteLogExport",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport-deleteLogExport/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14782,8 +17579,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport-deletePushBasedLogConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14793,7 +17588,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getLogExport",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport-getLogExport/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14803,8 +17610,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport-getPushBasedLogConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14814,7 +17619,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateLogExport",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport-updateLogExport/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -14824,8 +17641,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport-updatePushBasedLogConfiguration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -14835,7 +17650,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -14853,10 +17669,9 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-queryShapeInsights-getGroupClusterQueryShapeInsightDetails/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14866,10 +17681,31 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-queryShapeInsights-getGroupClusterQueryShapeInsightSummaries/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getQueryShapeDetails",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-queryShapeInsights-getQueryShapeDetails/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listQueryShapeSummaries",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-queryShapeInsights-listQueryShapeSummaries/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -14907,7 +17743,8 @@ export const atlasCliCommands: TocItem[] = [
                 "current",
                 "upcoming",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14937,7 +17774,8 @@ export const atlasCliCommands: TocItem[] = [
                 "current",
                 "upcoming",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14976,6 +17814,17 @@ export const atlasCliCommands: TocItem[] = [
             }
           },
           {
+            label: "getNonCompliantResources",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-getNonCompliantResources/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "getOrgResourcePolicy",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-getOrgResourcePolicy/",
@@ -14984,7 +17833,8 @@ export const atlasCliCommands: TocItem[] = [
                 "current",
                 "upcoming",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -14994,8 +17844,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-getResourcesNonCompliant/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15005,7 +17853,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15018,7 +17867,8 @@ export const atlasCliCommands: TocItem[] = [
                 "current",
                 "upcoming",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15048,7 +17898,8 @@ export const atlasCliCommands: TocItem[] = [
                 "current",
                 "upcoming",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15058,8 +17909,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-validateAtlasResourcePolicy/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15069,7 +17918,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "validateResourcePolicies",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-validateResourcePolicies/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -15098,7 +17959,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -15127,7 +17989,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listControlPlaneAddresses",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-root-listControlPlaneAddresses/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -15137,8 +18011,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-root-returnAllControlPlaneIpAddresses/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15148,7 +18020,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -15166,8 +18039,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-addProjectServiceAccount/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15177,7 +18048,74 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "createAccessList",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createAccessList/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "createGroupSecret",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createGroupSecret/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "createGroupServiceAccount",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createGroupServiceAccount/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "createOrgAccessList",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createOrgAccessList/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "createOrgSecret",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createOrgSecret/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "createOrgServiceAccount",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createOrgServiceAccount/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -15187,8 +18125,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createProjectServiceAccount/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15198,7 +18134,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15208,8 +18145,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createProjectServiceAccountAccessList/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15219,7 +18154,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15229,8 +18165,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createProjectServiceAccountSecret/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15240,7 +18174,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15250,8 +18185,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createServiceAccount/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15261,7 +18194,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15271,8 +18205,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createServiceAccountAccessList/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15282,7 +18214,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15292,8 +18225,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createServiceAccountSecret/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15303,7 +18234,74 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteGroupAccessEntry",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteGroupAccessEntry/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteGroupSecret",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteGroupSecret/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteGroupServiceAccount",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteGroupServiceAccount/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteOrgAccessEntry",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteOrgAccessEntry/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteOrgSecret",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteOrgSecret/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "deleteOrgServiceAccount",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteOrgServiceAccount/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -15313,8 +18311,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteProjectServiceAccount/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15324,7 +18320,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15334,8 +18331,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteProjectServiceAccountAccessListEntry/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15345,7 +18340,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15355,8 +18351,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteProjectServiceAccountSecret/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15366,7 +18360,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15376,8 +18371,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteServiceAccount/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15387,7 +18380,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15397,8 +18391,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteServiceAccountAccessListEntry/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15408,7 +18400,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15418,8 +18411,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteServiceAccountSecret/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15429,7 +18420,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getGroupServiceAccount",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-getGroupServiceAccount/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getOrgServiceAccount",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-getOrgServiceAccount/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -15439,8 +18453,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-getProjectServiceAccount/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15450,7 +18462,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15460,8 +18473,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-getServiceAccount/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15471,7 +18482,74 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getServiceAccountGroups",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-getServiceAccountGroups/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "inviteGroupServiceAccount",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-inviteGroupServiceAccount/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listAccessList",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-listAccessList/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listGroupServiceAccounts",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-listGroupServiceAccounts/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listOrgAccessList",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-listOrgAccessList/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listOrgServiceAccounts",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-listOrgServiceAccounts/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -15481,8 +18559,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-listProjectServiceAccountAccessList/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15492,7 +18568,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15502,8 +18579,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-listProjectServiceAccounts/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15513,7 +18588,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15523,8 +18599,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-listServiceAccountAccessList/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15534,7 +18608,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15544,8 +18619,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-listServiceAccountProjects/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15555,7 +18628,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15565,8 +18639,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-listServiceAccounts/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15576,7 +18648,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateGroupServiceAccount",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-updateGroupServiceAccount/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateOrgServiceAccount",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-updateOrgServiceAccount/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -15586,8 +18681,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-updateProjectServiceAccount/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15597,7 +18690,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15607,8 +18701,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-updateServiceAccount/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15618,7 +18710,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -15631,13 +18724,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "createBackupTenantRestore",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-sharedTierRestoreJobs-createBackupTenantRestore/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "createSharedClusterBackupRestoreJob",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-sharedTierRestoreJobs-createSharedClusterBackupRestoreJob/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15647,7 +18749,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getBackupTenantRestore",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-sharedTierRestoreJobs-getBackupTenantRestore/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -15657,8 +18771,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-sharedTierRestoreJobs-getSharedClusterBackupRestoreJob/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15668,7 +18780,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listBackupTenantRestores",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-sharedTierRestoreJobs-listBackupTenantRestores/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -15678,8 +18802,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-sharedTierRestoreJobs-listSharedClusterBackupRestoreJobs/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15689,7 +18811,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -15702,13 +18825,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "downloadClusterBackupTenant",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-sharedTierSnapshots-downloadClusterBackupTenant/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "downloadSharedClusterBackup",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-sharedTierSnapshots-downloadSharedClusterBackup/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15718,7 +18850,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getBackupTenantSnapshot",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-sharedTierSnapshots-getBackupTenantSnapshot/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -15728,8 +18872,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-sharedTierSnapshots-getSharedClusterBackup/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15739,7 +18881,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listClusterBackupSnapshots",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-sharedTierSnapshots-listClusterBackupSnapshots/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -15749,8 +18903,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-sharedTierSnapshots-listSharedClusterBackups/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15760,7 +18912,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -15789,7 +18942,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15810,7 +18964,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15831,7 +18986,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15841,8 +18997,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-streams-createStreamInstance/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15852,7 +19006,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15862,8 +19017,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-streams-createStreamInstanceWithSampleConnections/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15873,7 +19026,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15894,7 +19048,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "createStreamWorkspace",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-streams-createStreamWorkspace/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -15915,7 +19081,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15936,7 +19103,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15946,8 +19114,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-streams-deleteStreamInstance/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -15957,7 +19123,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -15978,7 +19145,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteStreamWorkspace",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-streams-deleteStreamWorkspace/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -15999,7 +19178,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "downloadAuditLogs",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-streams-downloadAuditLogs/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16009,8 +19200,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-streams-downloadStreamTenantAuditLogs/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16020,7 +19209,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16041,7 +19231,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16051,8 +19242,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-streams-getActiveVpcPeeringConnections/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.39",
                 "v1.40",
                 "v1.41",
@@ -16061,7 +19250,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16082,7 +19272,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16103,7 +19294,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16113,8 +19305,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-streams-getStreamInstance/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16124,7 +19314,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16145,7 +19336,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getStreamProcessors",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-streams-getStreamProcessors/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getStreamWorkspace",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-streams-getStreamWorkspace/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16155,8 +19369,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-streams-getVpcPeeringConnections/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16166,7 +19378,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listActivePeeringConnections",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-streams-listActivePeeringConnections/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16187,7 +19411,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16208,7 +19433,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16218,8 +19444,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-streams-listStreamInstances/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16229,7 +19453,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16239,8 +19464,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-streams-listStreamProcessors/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16250,7 +19473,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listStreamWorkspaces",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-streams-listStreamWorkspaces/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "listVpcPeeringConnections",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-streams-listVpcPeeringConnections/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16260,8 +19506,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-streams-modifyStreamProcessor/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16271,7 +19515,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16292,7 +19537,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16313,7 +19559,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16329,7 +19576,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16350,7 +19598,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16371,7 +19620,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16381,8 +19631,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-streams-updateStreamInstance/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16392,7 +19640,41 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateStreamProcessor",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-streams-updateStreamProcessor/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "updateStreamWorkspace",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-streams-updateStreamWorkspace/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "withStreamSampleConnections",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-streams-withStreamSampleConnections/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }
@@ -16410,8 +19692,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-teams-addAllTeamsToProject/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16421,7 +19701,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "addGroupTeams",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-teams-addGroupTeams/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16431,8 +19723,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-teams-addTeamUser/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16442,7 +19732,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "addTeamUsers",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-teams-addTeamUsers/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "createOrgTeam",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-teams-createOrgTeam/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16452,8 +19765,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-teams-createTeam/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16463,7 +19774,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteOrgTeam",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-teams-deleteOrgTeam/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16473,8 +19796,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-teams-deleteTeam/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16484,7 +19805,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getGroupTeam",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-teams-getGroupTeam/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "getOrgTeam",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-teams-getOrgTeam/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16494,10 +19838,9 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-teams-getProjectTeam/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16507,8 +19850,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-teams-getTeamById/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16518,7 +19859,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16539,7 +19881,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listGroupTeams",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-teams-listGroupTeams/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16549,8 +19903,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-teams-listOrganizationTeams/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16560,7 +19912,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listOrgTeams",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-teams-listOrgTeams/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16570,8 +19934,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-teams-listProjectTeams/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16581,7 +19943,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "removeGroupTeam",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-teams-removeGroupTeam/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16591,8 +19965,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-teams-removeProjectTeam/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16602,7 +19974,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16612,8 +19985,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-teams-removeTeamUser/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16623,7 +19994,30 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "removeUserFromTeam",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-teams-removeUserFromTeam/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
+            label: "renameOrgTeam",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-teams-renameOrgTeam/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16633,8 +20027,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-teams-renameTeam/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16644,7 +20036,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateGroupTeam",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-teams-updateGroupTeam/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16654,8 +20058,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-teams-updateTeamRoles/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16665,7 +20067,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -16678,13 +20081,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "createGroupIntegration",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-createGroupIntegration/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "createThirdPartyIntegration",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-createThirdPartyIntegration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16694,7 +20106,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "deleteGroupIntegration",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-deleteGroupIntegration/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16704,8 +20128,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-deleteThirdPartyIntegration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16715,7 +20137,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "getGroupIntegration",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-getGroupIntegration/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16725,8 +20159,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-getThirdPartyIntegration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16736,7 +20168,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listGroupIntegrations",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-listGroupIntegrations/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16746,8 +20190,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-listThirdPartyIntegrations/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16757,7 +20199,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "updateGroupIntegration",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-updateGroupIntegration/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16767,8 +20221,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-updateThirdPartyIntegration/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16778,7 +20230,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           }
@@ -16791,13 +20244,22 @@ export const atlasCliCommands: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: "createDatabaseUserCert",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-x509Authentication-createDatabaseUserCert/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
+              ]
+            }
+          },
+          {
             label: "createDatabaseUserCertificate",
             contentSite: "atlas-cli",
             url: "/docs/atlas/cli/:version/command/atlas-api-x509Authentication-createDatabaseUserCertificate/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16807,7 +20269,8 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
               ]
             }
           },
@@ -16817,8 +20280,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-x509Authentication-disableCustomerManagedX509/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16828,7 +20289,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "disableSecurityCustomerX509",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-x509Authentication-disableSecurityCustomerX509/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           },
@@ -16838,8 +20311,6 @@ export const atlasCliCommands: TocItem[] = [
             url: "/docs/atlas/cli/:version/command/atlas-api-x509Authentication-listDatabaseUserCertificates/",
             versions: {
               includes: [
-                "current",
-                "upcoming",
                 "v1.38",
                 "v1.39",
                 "v1.40",
@@ -16849,7 +20320,19 @@ export const atlasCliCommands: TocItem[] = [
                 "v1.44",
                 "v1.45",
                 "v1.46",
-                "v1.47"
+                "v1.47",
+                "v1.48"
+              ]
+            }
+          },
+          {
+            label: "listDatabaseUserCerts",
+            contentSite: "atlas-cli",
+            url: "/docs/atlas/cli/:version/command/atlas-api-x509Authentication-listDatabaseUserCerts/",
+            versions: {
+              includes: [
+                "current",
+                "upcoming"
               ]
             }
           }

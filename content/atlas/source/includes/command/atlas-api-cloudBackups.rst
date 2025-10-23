@@ -12,9 +12,9 @@ atlas api cloudBackups
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Manages Cloud Backup snapshots, snapshot export buckets, restore jobs, and schedules.
+Manages Cloud Backup snapshots, snapshot export buckets, restore jobs, and schedules.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 This resource applies only to clusters that use Cloud Backups.
@@ -54,63 +54,63 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-cloudBackups-cancelBackupRestoreJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Cancels one cloud backup restore job of one cluster from the specified project.
-* :ref:`atlas-api-cloudBackups-createBackupExportJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Exports one backup Snapshot for dedicated Atlas cluster using Cloud Backups to an Export Bucket.
-* :ref:`atlas-api-cloudBackups-createBackupRestoreJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Restores one snapshot of one cluster from the specified project.
-* :ref:`atlas-api-cloudBackups-createExportBucket` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates a Snapshot Export Bucket for an AWS S3 Bucket, Azure Blob Storage Container, or Google Cloud Storage Bucket.
+* :ref:`atlas-api-cloudBackups-cancelBackupRestoreJob` - Cancels one cloud backup restore job of one cluster from the specified project.
+* :ref:`atlas-api-cloudBackups-createBackupExport` - Exports one backup Snapshot for dedicated Atlas cluster using Cloud Backups to an Export Bucket.
+* :ref:`atlas-api-cloudBackups-createBackupRestoreJob` - Restores one snapshot of one cluster from the specified project.
+* :ref:`atlas-api-cloudBackups-createExportBucket` - Creates a Snapshot Export Bucket for an AWS S3 Bucket, Azure Blob Storage Container, or Google Cloud Storage Bucket.
 
-* :ref:`atlas-api-cloudBackups-deleteAllBackupSchedules` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes all cloud backup schedules for the specified cluster.
-* :ref:`atlas-api-cloudBackups-deleteExportBucket` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Deletes an Export Bucket.
-* :ref:`atlas-api-cloudBackups-deleteReplicaSetBackup` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes the specified snapshot.
-* :ref:`atlas-api-cloudBackups-deleteShardedClusterBackup` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one snapshot of one sharded cluster from the specified project.
-* :ref:`atlas-api-cloudBackups-disableDataProtectionSettings` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Disables the Backup Compliance Policy settings with the specified project.
-* :ref:`atlas-api-cloudBackups-getBackupExportJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one Cloud Backup Snapshot Export Job associated with the specified Atlas cluster.
-* :ref:`atlas-api-cloudBackups-getBackupRestoreJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one cloud backup restore job for one cluster from the specified project.
-* :ref:`atlas-api-cloudBackups-getBackupSchedule` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the cloud backup schedule for the specified cluster within the specified project.
-* :ref:`atlas-api-cloudBackups-getDataProtectionSettings` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the Backup Compliance Policy settings with the specified project.
-* :ref:`atlas-api-cloudBackups-getExportBucket` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one Export Bucket associated with the specified Project.
-* :ref:`atlas-api-cloudBackups-getReplicaSetBackup` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one snapshot from the specified cluster.
+* :ref:`atlas-api-cloudBackups-deleteBackupShardedCluster` - Removes one snapshot of one sharded cluster from the specified project.
+* :ref:`atlas-api-cloudBackups-deleteClusterBackupSchedule` - Removes all cloud backup schedules for the specified cluster.
+* :ref:`atlas-api-cloudBackups-deleteClusterBackupSnapshot` - Removes the specified snapshot.
+* :ref:`atlas-api-cloudBackups-deleteExportBucket` - Deletes an Export Bucket.
+* :ref:`atlas-api-cloudBackups-disableCompliancePolicy` - Disables the Backup Compliance Policy settings with the specified project.
+* :ref:`atlas-api-cloudBackups-getBackupExport` - Returns one Cloud Backup Snapshot Export Job associated with the specified Atlas cluster.
+* :ref:`atlas-api-cloudBackups-getBackupRestoreJob` - Returns one cloud backup restore job for one cluster from the specified project.
+* :ref:`atlas-api-cloudBackups-getBackupSchedule` - Returns the cloud backup schedule for the specified cluster within the specified project.
+* :ref:`atlas-api-cloudBackups-getBackupShardedCluster` - Returns one snapshot of one sharded cluster from the specified project.
+* :ref:`atlas-api-cloudBackups-getClusterBackupSnapshot` - Returns one snapshot from the specified cluster.
+* :ref:`atlas-api-cloudBackups-getCompliancePolicy` - Returns the Backup Compliance Policy settings with the specified project.
+* :ref:`atlas-api-cloudBackups-getExportBucket` - Returns one Export Bucket associated with the specified Project.
 
-* :ref:`atlas-api-cloudBackups-getShardedClusterBackup` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one snapshot of one sharded cluster from the specified project.
-* :ref:`atlas-api-cloudBackups-listBackupExportJobs` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all Cloud Backup Snapshot Export Jobs associated with the specified Atlas cluster.
-* :ref:`atlas-api-cloudBackups-listBackupRestoreJobs` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all cloud backup restore jobs for one cluster from the specified project.
-* :ref:`atlas-api-cloudBackups-listExportBuckets` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all Export Buckets associated with the specified Project.
-* :ref:`atlas-api-cloudBackups-listReplicaSetBackups` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all snapshots of one cluster from the specified project.
+* :ref:`atlas-api-cloudBackups-listBackupExports` - Returns all Cloud Backup Snapshot Export Jobs associated with the specified Atlas cluster.
+* :ref:`atlas-api-cloudBackups-listBackupRestoreJobs` - Returns all cloud backup restore jobs for one cluster from the specified project.
+* :ref:`atlas-api-cloudBackups-listBackupShardedClusters` - Returns all snapshots of one sharded cluster from the specified project.
+* :ref:`atlas-api-cloudBackups-listBackupSnapshots` - Returns all snapshots of one cluster from the specified project.
+* :ref:`atlas-api-cloudBackups-listExportBuckets` - Returns all Export Buckets associated with the specified Project.
 
-* :ref:`atlas-api-cloudBackups-listShardedClusterBackups` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all snapshots of one sharded cluster from the specified project.
-* :ref:`atlas-api-cloudBackups-takeSnapshot` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Takes one on-demand snapshot for the specified cluster.
-* :ref:`atlas-api-cloudBackups-updateBackupSchedule` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the cloud backup schedule for one cluster within the specified project.
-* :ref:`atlas-api-cloudBackups-updateDataProtectionSettings` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the Backup Compliance Policy settings for the specified project.
-* :ref:`atlas-api-cloudBackups-updateSnapshotRetention` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Changes the expiration date for one cloud backup snapshot for one cluster in the specified project.
+* :ref:`atlas-api-cloudBackups-takeSnapshots` - Takes one on-demand snapshot for the specified cluster.
+* :ref:`atlas-api-cloudBackups-updateBackupSchedule` - Updates the cloud backup schedule for one cluster within the specified project.
+* :ref:`atlas-api-cloudBackups-updateBackupSnapshot` - Changes the expiration date for one cloud backup snapshot for one cluster in the specified project.
+* :ref:`atlas-api-cloudBackups-updateCompliancePolicy` - Updates the Backup Compliance Policy settings for the specified project.
 
 .. toctree::
    :titlesonly:
 
    cancelBackupRestoreJob </command/atlas-api-cloudBackups-cancelBackupRestoreJob>
-   createBackupExportJob </command/atlas-api-cloudBackups-createBackupExportJob>
+   createBackupExport </command/atlas-api-cloudBackups-createBackupExport>
    createBackupRestoreJob </command/atlas-api-cloudBackups-createBackupRestoreJob>
    createExportBucket </command/atlas-api-cloudBackups-createExportBucket>
 
-   deleteAllBackupSchedules </command/atlas-api-cloudBackups-deleteAllBackupSchedules>
+   deleteBackupShardedCluster </command/atlas-api-cloudBackups-deleteBackupShardedCluster>
+   deleteClusterBackupSchedule </command/atlas-api-cloudBackups-deleteClusterBackupSchedule>
+   deleteClusterBackupSnapshot </command/atlas-api-cloudBackups-deleteClusterBackupSnapshot>
    deleteExportBucket </command/atlas-api-cloudBackups-deleteExportBucket>
-   deleteReplicaSetBackup </command/atlas-api-cloudBackups-deleteReplicaSetBackup>
-   deleteShardedClusterBackup </command/atlas-api-cloudBackups-deleteShardedClusterBackup>
-   disableDataProtectionSettings </command/atlas-api-cloudBackups-disableDataProtectionSettings>
-   getBackupExportJob </command/atlas-api-cloudBackups-getBackupExportJob>
+   disableCompliancePolicy </command/atlas-api-cloudBackups-disableCompliancePolicy>
+   getBackupExport </command/atlas-api-cloudBackups-getBackupExport>
    getBackupRestoreJob </command/atlas-api-cloudBackups-getBackupRestoreJob>
    getBackupSchedule </command/atlas-api-cloudBackups-getBackupSchedule>
-   getDataProtectionSettings </command/atlas-api-cloudBackups-getDataProtectionSettings>
+   getBackupShardedCluster </command/atlas-api-cloudBackups-getBackupShardedCluster>
+   getClusterBackupSnapshot </command/atlas-api-cloudBackups-getClusterBackupSnapshot>
+   getCompliancePolicy </command/atlas-api-cloudBackups-getCompliancePolicy>
    getExportBucket </command/atlas-api-cloudBackups-getExportBucket>
-   getReplicaSetBackup </command/atlas-api-cloudBackups-getReplicaSetBackup>
 
-   getShardedClusterBackup </command/atlas-api-cloudBackups-getShardedClusterBackup>
-   listBackupExportJobs </command/atlas-api-cloudBackups-listBackupExportJobs>
+   listBackupExports </command/atlas-api-cloudBackups-listBackupExports>
    listBackupRestoreJobs </command/atlas-api-cloudBackups-listBackupRestoreJobs>
+   listBackupShardedClusters </command/atlas-api-cloudBackups-listBackupShardedClusters>
+   listBackupSnapshots </command/atlas-api-cloudBackups-listBackupSnapshots>
    listExportBuckets </command/atlas-api-cloudBackups-listExportBuckets>
-   listReplicaSetBackups </command/atlas-api-cloudBackups-listReplicaSetBackups>
 
-   listShardedClusterBackups </command/atlas-api-cloudBackups-listShardedClusterBackups>
-   takeSnapshot </command/atlas-api-cloudBackups-takeSnapshot>
+   takeSnapshots </command/atlas-api-cloudBackups-takeSnapshots>
    updateBackupSchedule </command/atlas-api-cloudBackups-updateBackupSchedule>
-   updateDataProtectionSettings </command/atlas-api-cloudBackups-updateDataProtectionSettings>
-   updateSnapshotRetention </command/atlas-api-cloudBackups-updateSnapshotRetention>
+   updateBackupSnapshot </command/atlas-api-cloudBackups-updateBackupSnapshot>
+   updateCompliancePolicy </command/atlas-api-cloudBackups-updateCompliancePolicy>

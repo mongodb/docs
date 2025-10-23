@@ -12,9 +12,9 @@ atlas api projects
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, and edits collections of clusters and users in MongoDB Cloud.
+Returns, adds, and edits collections of clusters and users in MongoDB Cloud.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 
@@ -54,54 +54,54 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-projects-addUserToProject` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Adds one MongoDB Cloud user to the specified project.
-* :ref:`atlas-api-projects-createProject` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one project.
-* :ref:`atlas-api-projects-createProjectInvitation` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Invites one MongoDB Cloud user to join the specified project.
-* :ref:`atlas-api-projects-deleteProject` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes the specified project.
-* :ref:`atlas-api-projects-deleteProjectInvitation` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Cancels one pending invitation sent to the specified MongoDB Cloud user to join a project.
-* :ref:`atlas-api-projects-deleteProjectLimit` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes the specified project limit.
-* :ref:`atlas-api-projects-getProject` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns details about the specified project.
-* :ref:`atlas-api-projects-getProjectByName` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns details about the project identified by its name.
-* :ref:`atlas-api-projects-getProjectInvitation` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the details of one pending invitation to the specified project.
-* :ref:`atlas-api-projects-getProjectLimit` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the specified limit for the specified project.
-* :ref:`atlas-api-projects-getProjectLtsVersions` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the MongoDB Long Term Support Major Versions available to new clusters in this project.
-* :ref:`atlas-api-projects-getProjectSettings` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns details about the specified project's settings.
-* :ref:`atlas-api-projects-listProjectInvitations` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all pending invitations to the specified project.
-* :ref:`atlas-api-projects-listProjectLimits` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all the limits for the specified project.
-* :ref:`atlas-api-projects-listProjects` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns details about all projects.
-* :ref:`atlas-api-projects-migrateProjectToAnotherOrg` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Migrates a project from its current organization to another organization.
-* :ref:`atlas-api-projects-returnAllIpAddresses` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all IP addresses for this project.
-* :ref:`atlas-api-projects-setProjectLimit` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Sets the specified project limit.
-* :ref:`atlas-api-projects-updateProject` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the human-readable label that identifies the specified project, or the tags associated with the project.
-* :ref:`atlas-api-projects-updateProjectInvitation` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the details of one pending invitation, identified by the username of the invited user, to the specified project.
-* :ref:`atlas-api-projects-updateProjectInvitationById` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the details of one pending invitation, identified by its unique ID, to the specified project.
-* :ref:`atlas-api-projects-updateProjectRoles` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the roles of the specified user in the specified project.
-* :ref:`atlas-api-projects-updateProjectSettings` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the settings of the specified project.
+* :ref:`atlas-api-projects-addGroupUser` - Adds one MongoDB Cloud user to the specified project.
+* :ref:`atlas-api-projects-createGroup` - Creates one project.
+* :ref:`atlas-api-projects-createGroupInvite` - Invites one MongoDB Cloud user to join the specified project.
+* :ref:`atlas-api-projects-deleteGroup` - Removes the specified project.
+* :ref:`atlas-api-projects-deleteGroupInvite` - Cancels one pending invitation sent to the specified MongoDB Cloud user to join a project.
+* :ref:`atlas-api-projects-deleteGroupLimit` - Removes the specified project limit.
+* :ref:`atlas-api-projects-getGroup` - Returns details about the specified project.
+* :ref:`atlas-api-projects-getGroupByName` - Returns details about the project identified by its name.
+* :ref:`atlas-api-projects-getGroupInvite` - Returns the details of one pending invitation to the specified project.
+* :ref:`atlas-api-projects-getGroupIpAddresses` - Returns all IP addresses for this project.
+* :ref:`atlas-api-projects-getGroupLimit` - Returns the specified limit for the specified project.
+* :ref:`atlas-api-projects-getGroupSettings` - Returns details about the specified project's settings.
+* :ref:`atlas-api-projects-getMongoDbVersions` - Returns the MongoDB Long Term Support Major Versions available to new clusters in this project.
+* :ref:`atlas-api-projects-listGroupInvites` - Returns all pending invitations to the specified project.
+* :ref:`atlas-api-projects-listGroupLimits` - Returns all the limits for the specified project.
+* :ref:`atlas-api-projects-listGroups` - Returns details about all projects.
+* :ref:`atlas-api-projects-migrateGroup` - Migrates a project from its current organization to another organization.
+* :ref:`atlas-api-projects-setGroupLimit` - Sets the specified project limit.
+* :ref:`atlas-api-projects-updateGroup` - Updates the human-readable label that identifies the specified project, or the tags associated with the project.
+* :ref:`atlas-api-projects-updateGroupInvites` - Updates the details of one pending invitation, identified by the username of the invited user, to the specified project.
+* :ref:`atlas-api-projects-updateGroupSettings` - Updates the settings of the specified project.
+* :ref:`atlas-api-projects-updateGroupUserRoles` - Updates the roles of the specified user in the specified project.
+* :ref:`atlas-api-projects-updateInviteById` - Updates the details of one pending invitation, identified by its unique ID, to the specified project.
 
 
 .. toctree::
    :titlesonly:
 
-   addUserToProject </command/atlas-api-projects-addUserToProject>
-   createProject </command/atlas-api-projects-createProject>
-   createProjectInvitation </command/atlas-api-projects-createProjectInvitation>
-   deleteProject </command/atlas-api-projects-deleteProject>
-   deleteProjectInvitation </command/atlas-api-projects-deleteProjectInvitation>
-   deleteProjectLimit </command/atlas-api-projects-deleteProjectLimit>
-   getProject </command/atlas-api-projects-getProject>
-   getProjectByName </command/atlas-api-projects-getProjectByName>
-   getProjectInvitation </command/atlas-api-projects-getProjectInvitation>
-   getProjectLimit </command/atlas-api-projects-getProjectLimit>
-   getProjectLtsVersions </command/atlas-api-projects-getProjectLtsVersions>
-   getProjectSettings </command/atlas-api-projects-getProjectSettings>
-   listProjectInvitations </command/atlas-api-projects-listProjectInvitations>
-   listProjectLimits </command/atlas-api-projects-listProjectLimits>
-   listProjects </command/atlas-api-projects-listProjects>
-   migrateProjectToAnotherOrg </command/atlas-api-projects-migrateProjectToAnotherOrg>
-   returnAllIpAddresses </command/atlas-api-projects-returnAllIpAddresses>
-   setProjectLimit </command/atlas-api-projects-setProjectLimit>
-   updateProject </command/atlas-api-projects-updateProject>
-   updateProjectInvitation </command/atlas-api-projects-updateProjectInvitation>
-   updateProjectInvitationById </command/atlas-api-projects-updateProjectInvitationById>
-   updateProjectRoles </command/atlas-api-projects-updateProjectRoles>
-   updateProjectSettings </command/atlas-api-projects-updateProjectSettings>
+   addGroupUser </command/atlas-api-projects-addGroupUser>
+   createGroup </command/atlas-api-projects-createGroup>
+   createGroupInvite </command/atlas-api-projects-createGroupInvite>
+   deleteGroup </command/atlas-api-projects-deleteGroup>
+   deleteGroupInvite </command/atlas-api-projects-deleteGroupInvite>
+   deleteGroupLimit </command/atlas-api-projects-deleteGroupLimit>
+   getGroup </command/atlas-api-projects-getGroup>
+   getGroupByName </command/atlas-api-projects-getGroupByName>
+   getGroupInvite </command/atlas-api-projects-getGroupInvite>
+   getGroupIpAddresses </command/atlas-api-projects-getGroupIpAddresses>
+   getGroupLimit </command/atlas-api-projects-getGroupLimit>
+   getGroupSettings </command/atlas-api-projects-getGroupSettings>
+   getMongoDbVersions </command/atlas-api-projects-getMongoDbVersions>
+   listGroupInvites </command/atlas-api-projects-listGroupInvites>
+   listGroupLimits </command/atlas-api-projects-listGroupLimits>
+   listGroups </command/atlas-api-projects-listGroups>
+   migrateGroup </command/atlas-api-projects-migrateGroup>
+   setGroupLimit </command/atlas-api-projects-setGroupLimit>
+   updateGroup </command/atlas-api-projects-updateGroup>
+   updateGroupInvites </command/atlas-api-projects-updateGroupInvites>
+   updateGroupSettings </command/atlas-api-projects-updateGroupSettings>
+   updateGroupUserRoles </command/atlas-api-projects-updateGroupUserRoles>
+   updateInviteById </command/atlas-api-projects-updateInviteById>

@@ -12,9 +12,9 @@ atlas api legacyBackup
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Manages Legacy Backup snapshots, restore jobs, schedules and checkpoints.
+Manages Legacy Backup snapshots, restore jobs, schedules and checkpoints.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 
@@ -54,30 +54,30 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-legacyBackup-createLegacyBackupRestoreJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Restores one legacy backup for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-deleteLegacySnapshot` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one legacy backup snapshot for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-getLegacyBackupCheckpoint` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one legacy backup checkpoint for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-getLegacyBackupRestoreJob` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one legacy backup restore job for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-getLegacySnapshot` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one legacy backup snapshot for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-getLegacySnapshotSchedule` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns the snapshot schedule for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-listLegacyBackupCheckpoints` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all legacy backup checkpoints for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-listLegacyBackupRestoreJobs` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all legacy backup restore jobs for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-listLegacySnapshots` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all legacy backup snapshots for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-updateLegacySnapshotRetention` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Changes the expiration date for one legacy backup snapshot for one cluster in the specified project.
-* :ref:`atlas-api-legacyBackup-updateLegacySnapshotSchedule` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates the snapshot schedule for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-createClusterRestoreJob` - Restores one legacy backup for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-deleteClusterSnapshot` - Removes one legacy backup snapshot for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-getClusterBackupCheckpoint` - Returns one legacy backup checkpoint for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-getClusterRestoreJob` - Returns one legacy backup restore job for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-getClusterSnapshot` - Returns one legacy backup snapshot for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-getClusterSnapshotSchedule` - Returns the snapshot schedule for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-listClusterBackupCheckpoints` - Returns all legacy backup checkpoints for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-listClusterRestoreJobs` - Returns all legacy backup restore jobs for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-listClusterSnapshots` - Returns all legacy backup snapshots for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-updateClusterSnapshot` - Changes the expiration date for one legacy backup snapshot for one cluster in the specified project.
+* :ref:`atlas-api-legacyBackup-updateClusterSnapshotSchedule` - Updates the snapshot schedule for one cluster in the specified project.
 
 
 .. toctree::
    :titlesonly:
 
-   createLegacyBackupRestoreJob </command/atlas-api-legacyBackup-createLegacyBackupRestoreJob>
-   deleteLegacySnapshot </command/atlas-api-legacyBackup-deleteLegacySnapshot>
-   getLegacyBackupCheckpoint </command/atlas-api-legacyBackup-getLegacyBackupCheckpoint>
-   getLegacyBackupRestoreJob </command/atlas-api-legacyBackup-getLegacyBackupRestoreJob>
-   getLegacySnapshot </command/atlas-api-legacyBackup-getLegacySnapshot>
-   getLegacySnapshotSchedule </command/atlas-api-legacyBackup-getLegacySnapshotSchedule>
-   listLegacyBackupCheckpoints </command/atlas-api-legacyBackup-listLegacyBackupCheckpoints>
-   listLegacyBackupRestoreJobs </command/atlas-api-legacyBackup-listLegacyBackupRestoreJobs>
-   listLegacySnapshots </command/atlas-api-legacyBackup-listLegacySnapshots>
-   updateLegacySnapshotRetention </command/atlas-api-legacyBackup-updateLegacySnapshotRetention>
-   updateLegacySnapshotSchedule </command/atlas-api-legacyBackup-updateLegacySnapshotSchedule>
+   createClusterRestoreJob </command/atlas-api-legacyBackup-createClusterRestoreJob>
+   deleteClusterSnapshot </command/atlas-api-legacyBackup-deleteClusterSnapshot>
+   getClusterBackupCheckpoint </command/atlas-api-legacyBackup-getClusterBackupCheckpoint>
+   getClusterRestoreJob </command/atlas-api-legacyBackup-getClusterRestoreJob>
+   getClusterSnapshot </command/atlas-api-legacyBackup-getClusterSnapshot>
+   getClusterSnapshotSchedule </command/atlas-api-legacyBackup-getClusterSnapshotSchedule>
+   listClusterBackupCheckpoints </command/atlas-api-legacyBackup-listClusterBackupCheckpoints>
+   listClusterRestoreJobs </command/atlas-api-legacyBackup-listClusterRestoreJobs>
+   listClusterSnapshots </command/atlas-api-legacyBackup-listClusterSnapshots>
+   updateClusterSnapshot </command/atlas-api-legacyBackup-updateClusterSnapshot>
+   updateClusterSnapshotSchedule </command/atlas-api-legacyBackup-updateClusterSnapshotSchedule>

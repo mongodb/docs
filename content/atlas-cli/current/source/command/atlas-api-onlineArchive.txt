@@ -12,9 +12,9 @@ atlas api onlineArchive
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, edits, or removes an online archive.
+Returns, adds, edits, or removes an online archive.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 
@@ -54,12 +54,12 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-onlineArchive-createOnlineArchive` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one online archive.
-* :ref:`atlas-api-onlineArchive-deleteOnlineArchive` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one online archive.
-* :ref:`atlas-api-onlineArchive-downloadOnlineArchiveQueryLogs` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Downloads query logs for the specified online archive.
-* :ref:`atlas-api-onlineArchive-getOnlineArchive` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one online archive for one cluster.
-* :ref:`atlas-api-onlineArchive-listOnlineArchives` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns details of all online archives.
-* :ref:`atlas-api-onlineArchive-updateOnlineArchive` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates, pauses, or resumes one online archive.
+* :ref:`atlas-api-onlineArchive-createOnlineArchive` - Creates one online archive.
+* :ref:`atlas-api-onlineArchive-deleteOnlineArchive` - Removes one online archive.
+* :ref:`atlas-api-onlineArchive-downloadQueryLogs` - Downloads query logs for the specified online archive.
+* :ref:`atlas-api-onlineArchive-getOnlineArchive` - Returns one online archive for one cluster.
+* :ref:`atlas-api-onlineArchive-listOnlineArchives` - Returns details of all online archives.
+* :ref:`atlas-api-onlineArchive-updateOnlineArchive` - Updates, pauses, or resumes one online archive.
 
 
 .. toctree::
@@ -67,7 +67,7 @@ Related Commands
 
    createOnlineArchive </command/atlas-api-onlineArchive-createOnlineArchive>
    deleteOnlineArchive </command/atlas-api-onlineArchive-deleteOnlineArchive>
-   downloadOnlineArchiveQueryLogs </command/atlas-api-onlineArchive-downloadOnlineArchiveQueryLogs>
+   downloadQueryLogs </command/atlas-api-onlineArchive-downloadQueryLogs>
    getOnlineArchive </command/atlas-api-onlineArchive-getOnlineArchive>
    listOnlineArchives </command/atlas-api-onlineArchive-listOnlineArchives>
    updateOnlineArchive </command/atlas-api-onlineArchive-updateOnlineArchive>

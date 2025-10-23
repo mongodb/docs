@@ -12,9 +12,9 @@ atlas api databaseUsers
    :depth: 1
    :class: singlecol
 
-`Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns, adds, edits, and removes database users.
+Returns, adds, edits, and removes database users.
 
-The atlas api sub-command, automatically generated from the MongoDB Atlas Admin API, offers full coverage of the Admin API and is currently in Public Preview (please provide feedback at https://feedback.mongodb.com/forums/930808-atlas-cli).
+The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
 
@@ -54,11 +54,11 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-databaseUsers-createDatabaseUser` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Creates one database user in the specified project.
-* :ref:`atlas-api-databaseUsers-deleteDatabaseUser` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Removes one database user from the specified project.
-* :ref:`atlas-api-databaseUsers-getDatabaseUser` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns one database user that belong to the specified project.
-* :ref:`atlas-api-databaseUsers-listDatabaseUsers` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Returns all database users that belong to the specified project.
-* :ref:`atlas-api-databaseUsers-updateDatabaseUser` - `Public Preview: please provide feedback <https://feedback.mongodb.com/forums/930808-atlas-cli>`_: Updates one database user that belongs to the specified project.
+* :ref:`atlas-api-databaseUsers-createDatabaseUser` - Creates one database user in the specified project.
+* :ref:`atlas-api-databaseUsers-deleteDatabaseUser` - Removes one database user from the specified project.
+* :ref:`atlas-api-databaseUsers-getDatabaseUser` - Returns one database user that belong to the specified project.
+* :ref:`atlas-api-databaseUsers-listDatabaseUsers` - Returns all database users that belong to the specified project.
+* :ref:`atlas-api-databaseUsers-updateDatabaseUser` - Updates one database user that belongs to the specified project.
 
 
 .. toctree::
