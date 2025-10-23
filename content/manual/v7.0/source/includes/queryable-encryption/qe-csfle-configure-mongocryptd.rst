@@ -1,5 +1,6 @@
 If the driver has access to the ``mongocryptd`` process, it spawns the
-process by default.
+process by default. Your application must have write permissions on the 
+working directory to create the ``mongocryptd.pid`` file.
 
 .. note:: mongocryptd Port In Use
 
