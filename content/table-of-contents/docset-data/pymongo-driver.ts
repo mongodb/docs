@@ -1,6 +1,7 @@
 import type { TocItem } from "../types";
 
 const outdatedIntegrationVersions = ["v4.7", "v4.8", "v4.9", "v4.10", "v4.11", "v4.12"];
+const outdatedPreAsyncVersions = ["v4.7", "v4.8"];
 
 const tocData: TocItem[] = [
   {
@@ -369,6 +370,7 @@ const tocData: TocItem[] = [
             label: "Migrate to PyMongo Async",
             contentSite: "pymongo",
             url: "/docs/languages/python/pymongo-driver/:version/reference/migration",
+            versions: { excludes: outdatedPreAsyncVersions },
           },
           {
             label: "Previous Versions",
