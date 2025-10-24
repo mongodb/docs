@@ -493,6 +493,44 @@ const tocData: TocItem[] = [
         url: "/docs/compass/import-export",
       },
       {
+        label: "Data Modeling", 
+        contentSite: "compass", 
+        url: "/docs/compass/data-modeling", 
+        collapsible: true,
+        items: [
+          {
+            label: "Generate Diagram", 
+            contentSite: "compass", 
+            url: "/docs/compass/data-modeling/generate-diagram"
+          }, 
+          {
+            label: "Modify Collections", 
+            contentSite: "compass", 
+            url: "/docs/compass/data-modeling/modify-collections"
+          }, 
+          {
+            label: "Modify Fields", 
+            contentSite: "compass", 
+            url: "/docs/compass/data-modeling/modify-fields"
+          }, 
+          {
+            label: "Manage Relationships", 
+            contentSite: "compass", 
+            url: "/docs/compass/data-modeling/relationships"
+          }, 
+          {
+            label: "Export Diagram", 
+            contentSite: "compass", 
+            url: "/docs/compass/data-modeling/export-diagram"
+          },
+          {
+            label: "Import Diagram", 
+            contentSite: "compass", 
+            url: "/docs/compass/data-modeling/import-diagram"
+          }
+        ]
+      },
+      {
         label: "Embedded MongoDB Shell",
         contentSite: "compass",
         url: "/docs/compass/embedded-shell",
