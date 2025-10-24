@@ -13,7 +13,7 @@ $collection = $client->sample_mflix->embedded_movies;
 
 define('WAIT_TIMEOUT_SEC', 300);
 
-echo "\nCreating the Atlas Vector Search index.\n";
+echo "\nCreating the MongoDB Vector Search index.\n";
 $collection->createSearchIndex(
     [
         'fields' => [[

@@ -14,7 +14,7 @@ $collection = $client->sample_restaurants->restaurants;
 
 define('WAIT_TIMEOUT_SEC', 300);
 
-echo "\nCreating the Atlas Search index.\n";
+echo "\nCreating the MongoDB Search index.\n";
 $collection->createSearchIndex(
     ['mappings' => ['dynamic' => true]],
 );
@@ -72,7 +72,7 @@ foreach ($cursor as $doc) {
 }
 // end-compound-search-query
 
-echo "\nUpdating the Atlas Search index for autocomplete.\n";
+echo "\nUpdating the MongoDB Search index for autocomplete.\n";
 $collection->updateSearchIndex(
     'default',
     ['mappings' => [
