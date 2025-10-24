@@ -1,4 +1,4 @@
-// Runs an Atlas Search query by using the Kotlin sync driver
+// Runs a MongoDB Search query by using the Kotlin sync driver
 
 package org.example
 

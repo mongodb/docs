@@ -289,6 +289,7 @@ const tocData: TocItem[] = [
         contentSite: "kotlin-sync",
         url: "/docs/languages/kotlin/kotlin-sync-driver/:version/indexes",
         collapsible: true,
+        versions: { excludes: ["v5.1"] },
         items: [
           {
             label: "MongoDB Search and Vector Search Indexes",
@@ -296,6 +297,12 @@ const tocData: TocItem[] = [
             url: "/docs/languages/kotlin/kotlin-sync-driver/:version/indexes/atlas-search-index",
           },
         ]
+      },
+      {
+        label: "Indexes",
+        contentSite: "kotlin-sync",
+        url: "/docs/languages/kotlin/kotlin-sync-driver/:version/indexes",
+        versions: { includes: ["v5.1"] },
       },
       {
         label: "Run a Database Command",
@@ -306,11 +313,13 @@ const tocData: TocItem[] = [
         label: "MongoDB Search",
         contentSite: "kotlin-sync",
         url: "/docs/languages/kotlin/kotlin-sync-driver/:version/atlas-search",
+        versions: { excludes: ["v5.1"] },
       },
       {
         label: "MongoDB Vector Search",
         contentSite: "kotlin-sync",
         url: "/docs/languages/kotlin/kotlin-sync-driver/:version/atlas-vector-search",
+        versions: { excludes: ["v5.1"] },
       },
       {
         label: "Logging and Monitoring",
