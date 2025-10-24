@@ -3,12 +3,12 @@ import { jiraClientWithAuth } from '@/utils/jira-client';
 import type JiraApi from 'jira-client';
 import type { S3ScreenshotAttachment } from './handle-screenshot-feedback';
 import type { Attachment } from './feedback-types';
+import type { ProjectDocument } from '../db/docs-metadata';
 
 export const JIRA_CONSTS = {
   projectId: '14181',
   issuetypeId: '3',
   priorityId: '3',
-  components: [],
   defaultLabels: ['request'],
   baseUrl: 'https://jira.mongodb.org/secure/CreateIssueDetails!init.jspa',
 };
@@ -38,7 +38,7 @@ export interface JiraQueryParams {
   description: string;
 }
 
-export async function buildJiraString(feedback: FeedbackDocument) {
+export function buildJiraDescription(feedback: FeedbackDocument) {
   const description = [
     `*Feedback for page:* [${feedback.page.title}|${feedback.page.url}]`,
     `*Feedback Date:* ${feedback.submittedAt}`,
@@ -57,9 +57,22 @@ export async function buildJiraString(feedback: FeedbackDocument) {
   return description.join('\n');
 }
 
-export function getJiraTicketUrl(feedback: FeedbackDocument): string {
-  const queryParams = buildJiraString(feedback);
-  const queryString = Object.entries(queryParams)
+export function createJiraTicketUrl({ feedback, project }: { feedback: FeedbackDocument; project: ProjectDocument }) {
+  if (!feedback) {
+    throw Error('Cannot create Jira ticket without a feedback document.');
+  }
+
+  const ticketQueryParams = {
+    pid: JIRA_CONSTS.projectId,
+    issuetype: JIRA_CONSTS.issuetypeId,
+    priority: JIRA_CONSTS.priorityId,
+    labels: 'request',
+    components: encodeURIComponent(project.jira.component),
+    summary: encodeURIComponent(`[Docs Feedback] ${feedback.page.title} (${feedback.page.slug})`),
+    description: encodeURIComponent(buildJiraDescription(feedback)),
+  };
+
+  const queryString = Object.entries(ticketQueryParams)
     .filter(([, value]) => value !== undefined)
     .map(([key, value]) => `${key}=${value}`)
     .join('&');

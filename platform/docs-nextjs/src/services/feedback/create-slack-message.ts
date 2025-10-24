@@ -20,7 +20,7 @@ import {
   type SlackAction,
 } from './feedback-types';
 import type { S3ScreenshotAttachment } from './handle-screenshot-feedback';
-import { getJiraTicketUrl } from './jira-builder';
+import { createJiraTicketUrl } from './jira-builder';
 
 export async function createSlackMessagePayload(feedback: FeedbackDocument): Promise<SlackAction[]> {
   const docs_projects = await getProjectsCollection();
@@ -271,7 +271,7 @@ async function createSlackMessage(
             emoji: true,
           },
           value: `jira-create-issue__${feedback._id.toString()}`,
-          url: getJiraTicketUrl(feedback),
+          url: createJiraTicketUrl({ feedback, project }),
         },
         {
           text: {
