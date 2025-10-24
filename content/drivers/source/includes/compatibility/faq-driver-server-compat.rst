@@ -1,7 +1,8 @@
 My driver version is partially compatible (⊛) with MongoDB {+newest-mdb-server-major-version+}. Will my application work?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Your application might work with MongoDB {+newest-mdb-server-major-version+}, but we
+If your application works on a currently supported MongoDB version, it should also
+work with {+newest-mdb-server-major-version+}, but we
 strongly recommend that you test it in a non-production environment. A partially
 compatible driver version doesn't support every new feature of the {+mdb-server+} version
 it's connecting to. All versions of |the-driver-name| between
