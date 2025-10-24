@@ -31,39 +31,43 @@ const _getSnootyMetadata = async (build_id: string) => {
   try {
     log({ message: `Querying db ${collection.namespace} for metadata with build_id=${build_id}` });
 
-    const metadataDoc = await collection
-      .aggregate<DBMetadataDocument>([
-        { $match: { build_id: new ObjectId(build_id) } },
-        { $sort: { _id: -1 } },
-        { $limit: 1 },
-        {
-          $project: {
-            _id: 0,
-            project: 1,
-            branch: 1,
-            title: 1,
-            eol: 1,
-            slugToTitle: 1,
-            toctree: 1,
-            toctreeOrder: 1,
-            parentPaths: 1,
-            // Convert static_files buffers to base64 strings
-            static_files: {
-              $arrayToObject: {
-                $map: {
-                  input: { $objectToArray: '$static_files' },
-                  as: 'item',
-                  in: {
-                    k: '$$item.k',
-                    v: { $toString: '$$item.v' },
+    // Checking for the build_id to not be an empty string because new ObjectID expects that the input must be a 24 character hex string, 12 byte Uint8Array, or an integer
+    const metadataDoc =
+      build_id !== ''
+        ? await collection
+            .aggregate<DBMetadataDocument>([
+              { $match: { build_id: new ObjectId(build_id) } },
+              { $sort: { _id: -1 } },
+              { $limit: 1 },
+              {
+                $project: {
+                  _id: 0,
+                  project: 1,
+                  branch: 1,
+                  title: 1,
+                  eol: 1,
+                  slugToTitle: 1,
+                  toctree: 1,
+                  toctreeOrder: 1,
+                  parentPaths: 1,
+                  // Convert static_files buffers to base64 strings
+                  static_files: {
+                    $arrayToObject: {
+                      $map: {
+                        input: { $objectToArray: '$static_files' },
+                        as: 'item',
+                        in: {
+                          k: '$$item.k',
+                          v: { $toString: '$$item.v' },
+                        },
+                      },
+                    },
                   },
                 },
               },
-            },
-          },
-        },
-      ])
-      .next();
+            ])
+            .next()
+        : null;
 
     if (!metadataDoc) return;
     return metadataDoc;
