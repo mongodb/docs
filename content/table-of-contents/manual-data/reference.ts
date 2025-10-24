@@ -2103,6 +2103,11 @@ const tocData: TocItem[] = [
             url: "/docs/:version/reference/method/sh.disableBalancing",
           },
           {
+            label: "sh.disableMigrations",
+            contentSite: "docs",
+            url: "/docs/:version/reference/method/sh.disableMigrations",
+          },
+          {
             label: "sh.enableAutoMerger",
             contentSite: "docs",
             url: "/docs/:version/reference/method/sh.enableAutoMerger",
@@ -2116,6 +2121,11 @@ const tocData: TocItem[] = [
             label: "sh.enableAutoSplit",
             contentSite: "docs",
             url: "/docs/:version/reference/method/sh.enableAutoSplit",
+          },
+          {
+            label: "sh.enableMigrations",
+            contentSite: "docs",
+            url: "/docs/:version/reference/method/sh.enableMigrations",
           },
           {
             label: "sh.enableSharding",
