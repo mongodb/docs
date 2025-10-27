@@ -1,23 +1,35 @@
 import type { ASTDocument } from '@/services/db/pages';
 import type { RemoteMetadata, Docset } from '@/types/data';
-import type { DocumentTemplateProps } from '@/components/templates/document';
-import DocumentTemplate from '@/components/templates/document';
 import ComponentFactory from '@/components/component-factory';
 import RootProvider from '@/components/root-provider';
 import type { ImageContextType } from '@/context/image-context';
 import type { Environments } from '@/utils/env-config';
+import type { BaseTemplateProps } from '@/components/templates';
+import { DocumentTemplate, OpenAPITemplate } from '@/components/templates';
+import ActionBar from '@/components/action-bar';
+import layoutStyles from '@/app/layout.module.scss';
 
-type TemplateComponent = React.ComponentType<DocumentTemplateProps>;
+type TemplateComponent = React.ComponentType<BaseTemplateProps>;
 
-/** given a snooty template option, returns the appropriate template component */
-function getTemplate(templateOption: string): TemplateComponent {
+/** given a snooty template option, returns the appropriate template component and boolean flag for rendering the sidenav */
+function getTemplate(templateOption: string): { Template: TemplateComponent; renderSidenav: boolean } {
+  let Template;
+  let renderSidenav = false;
   switch (templateOption) {
     case 'document':
-      return DocumentTemplate;
+      renderSidenav = true;
+      Template = DocumentTemplate;
+      break;
+    case 'openapi':
+      Template = OpenAPITemplate;
+      break;
     default:
       console.warn(`Unknown template option: ${templateOption}. Defaulting to DocumentTemplate.`);
-      return DocumentTemplate;
+      renderSidenav = true;
+      Template = DocumentTemplate;
   }
+
+  return { Template, renderSidenav };
 }
 
 interface CustomTemplateProps {
@@ -30,13 +42,28 @@ interface CustomTemplateProps {
 
 export const CustomTemplate = ({ pageDoc, metadata, assets, docsets, env }: CustomTemplateProps) => {
   const template = pageDoc.ast.options?.template || 'document';
-  const TemplateComponent = getTemplate(pageDoc.ast.options?.template || 'document');
+  const { Template, renderSidenav } = getTemplate(pageDoc.ast.options?.template || 'document');
 
   return (
     <RootProvider page={pageDoc} metadata={metadata} assets={assets} docsets={docsets} env={env} template={template}>
-      <TemplateComponent pageOptions={pageDoc.ast.options} slug={pageDoc.filename}>
-        <ComponentFactory nodeData={pageDoc.ast} slug={pageDoc.page_path} key={pageDoc.page_id} />
-      </TemplateComponent>
+      {renderSidenav && (
+        // TODO: return a sidenav here
+        <div
+          className={layoutStyles['sidenav-container']}
+          style={{
+            gridArea: 'sidenav',
+            width: '268px',
+          }}
+        >
+          REPLACE WITH SIDENAV
+        </div>
+      )}
+      <div className={layoutStyles['content-container']}>
+        <ActionBar template="document" sidenav={true} />
+        <Template pageOptions={pageDoc.ast.options} slug={pageDoc.filename}>
+          <ComponentFactory nodeData={pageDoc.ast} slug={pageDoc.page_path} key={pageDoc.page_id} />
+        </Template>
+      </div>
     </RootProvider>
   );
 };

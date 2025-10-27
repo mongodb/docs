@@ -31,7 +31,7 @@ export default async function Page({ params: { path } }: PageProps) {
     return (
       <>
         {localeLinks}
-        <CustomTemplate pageDoc={pageDoc} metadata={metadata} assets={assetMap} docsets={docsets} env={env} />;
+        <CustomTemplate pageDoc={pageDoc} metadata={metadata} assets={assetMap} docsets={docsets} env={env} />
       </>
     );
   }
