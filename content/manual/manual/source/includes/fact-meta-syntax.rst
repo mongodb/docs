@@ -48,6 +48,8 @@ additional ``$meta`` keywords, such as:
 
 - :atlas:`"searchScore" </atlas-search/scoring>`
 - :atlas:`"searchHighlights" </atlas-search/highlighting>`
+- :atlas:`"searchScoreDetails" </atlas-search/scoring>`
 - :atlas:`"searchSequenceToken" </atlas-search/paginate-results>`
+- :atlas:`"vectorSearchScore" </atlas-vector-search/vector-search-stage/#mongodb-vector-search-score>`
 
 Refer to the {+fts+} documentation for details.
