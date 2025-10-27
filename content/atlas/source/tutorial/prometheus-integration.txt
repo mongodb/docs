@@ -137,6 +137,70 @@ with the following sub-fields:
              username: prom_user_618d48e05277a606ed2496fe
              password: fSIMUngfTmOTVEB4
 
+AWS PrivateLink
+````````````````
+
+The HTTP Service Discovery method for AWS PrivateLink also contains the 
+``url`` field with the following variables that you should define with 
+your values:
+
+.. note::
+
+   Each private endpoint handles metric scraping for a single region. 
+   For multi-region clusters, you must specify different scrape 
+   configurations for the Prometheus instances in each regions.
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``group_id``
+     - Unique string that identifies the |service| project. For 
+       example, ``5f4a8b9c1d2e3f4a5b6c7d8e``.
+
+   * - ``endpoint_id``
+     - AWS PrivateLink Endpoint ID (format: ``vpce-xxxxxxxxxxxxx``). 
+       For example, ``vpce-0a1b2c3d4e5f6g7h8``. To find your endpoint 
+       ID, do one of the following steps:
+
+       - In the {+atlas-ui+}, go to the :guilabel:`Network Access` tab, 
+         :guilabel:`Private Endpoint` section, and copy the 
+         :guilabel:`Endpoint ID` value.
+
+       - In the AWS Console, go to the VPC service, 
+         :guilabel:`Endpoints` section, and copy the
+         :guilabel:`VPC Endpoint ID` value for your |service| endpoint.
+
+.. code-block:: yaml
+
+   global:
+     scrape_interval: 10s
+     evaluation_interval: 10s
+
+   scrape_configs:
+     - job_name: "Cloud-Testing-mongo-metrics"
+       scrape_interval: 10s
+       scrape_timeout: 10s
+       metrics_path: /metrics
+       scheme : https
+       basic_auth:
+         username: prom_user_618d48e05277a606ed2496fe
+         password: fSIMUngfTmOTVEB4
+       http_sd_configs:
+         - url: https://cloud.mongodb.com/prometheus/v1.0/groups/{group_id}/discovery?targetScheme=PRIVATE_ENDPOINT&endpointId={endpoint_id}
+           refresh_interval: 60s
+           basic_auth:
+             username: prom_user_618d48e05277a606ed2496fe
+             password: fSIMUngfTmOTVEB4
+       relabel_configs:
+         - source_labels: [__metrics_path__]
+           target_label: __metrics_path__
+         - source_labels: [__instance__]
+           target_label: instance
+
 .. _filesd-prometheus-config:
 
 File Service Discovery

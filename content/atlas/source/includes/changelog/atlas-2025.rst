@@ -1,3 +1,10 @@
+.. _atlas_2025_10_22:
+
+22 October 2025 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds AWS PrivateLink support for the Prometheus integration.
+
 .. _atlas_2025_08_27:
 
 27 August 2025 Release
