@@ -21,4 +21,4 @@ we recommend using environment variables for sensitive data.
 
        To learn more, see :ref:`Find Your Connection String
        <find-connection-string>` and :ref:`Examples
-       <connections-connection-examples>`.
+       <connection-string-formats>`.
