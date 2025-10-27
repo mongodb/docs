@@ -36,7 +36,7 @@
          that uses OpenAI's ``text-embedding-3-small`` model to generate an 
          embedding for a given input.
 
-         .. literalinclude:: /includes/avs/rag/get-embeddings-openai.js
+         .. literalinclude:: /includes/avs/rag/ingest/get-embeddings-openai.js
             :language: js
             :copyable:
             :caption: get-embeddings.js

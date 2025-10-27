@@ -47,7 +47,7 @@
          - The `mxbai-embed-large-v1 <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__ 
            embedding model.
 
-         .. literalinclude:: /includes/avs/rag/get-embeddings.go
+         .. literalinclude:: /includes/avs/rag/ingest/get-embeddings.go
             :language: go
             :copyable:
             :caption: get-embeddings.go

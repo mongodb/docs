@@ -26,7 +26,6 @@
             go get github.com/tmc/langchaingo/llms
             go get github.com/tmc/langchaingo/documentloaders
             go get github.com/tmc/langchaingo/embeddings/huggingface
-            go get github.com/tmc/langchaingo/embeddings/voyageai
             go get github.com/tmc/langchaingo/llms/openai
             go get github.com/tmc/langchaingo/prompts
             go get github.com/tmc/langchaingo/vectorstores/mongovector
@@ -34,14 +33,13 @@
       #. Create a ``.env`` file.
 
          In your project, create a ``.env`` file to store your MongoDB connection
-         string and any API keys that you need to access the models.
+         string and API keys.
 
          .. code-block::
             :caption: .env
 
             MONGODB_URI = "<connection-string>"
-            VOYAGEAI_API_KEY = "<voyage-api-key>"   # If using Voyage AI embedding model
-            HUGGINGFACEHUB_API_TOKEN = "<hf-token>" # If using Hugging Face embedding model
+            HUGGINGFACEHUB_API_TOKEN = "<hf-token>"
             OPENAI_API_KEY = "<openai-api-key>"
 
          Replace the placeholder values with your credentials.
@@ -72,7 +70,7 @@
       #. Create a file called ``process-file.go`` in the ``common`` directory,
          and paste the following code into it:
 
-         .. literalinclude:: /includes/avs/rag/process-file.go
+         .. literalinclude:: /includes/avs/rag/ingest/process-file.go
             :language: go
             :caption: process-file.go
 
@@ -85,7 +83,7 @@
       and :driver:`Go driver </go/current/quick-start>` to perform the
       following tasks:
 
-      - Load the embedding model.
+      - Load the Hugging Face embedding model.
       - Create an instance of `mongovector
         <https://pkg.go.dev/github.com/tmc/langchaingo/vectorstores/mongovector>`__
         from your Go driver client and Hugging Face embedding model to
@@ -99,28 +97,13 @@
       #. Create a file called ``ingest-data.go`` in your project, and paste the
          following code into it:
 
-         .. tabs::
+         This code uses the `mxbai-embed-large-v1
+         <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__
+         embedding model from Hugging Face to generate vector embeddings.
 
-            .. tab:: Voyage AI
-               :tabid: voyage-ai
-
-               This code uses the ``voyage-3-large`` embedding model from
-               `Voyage AI <https://docs.voyageai.com/docs/embeddings>`__ to generate vector embeddings.
-
-               .. literalinclude:: /includes/avs/rag/ingest-data-voyage.go
-                  :language: go
-                  :caption: ingest-data.go
-
-            .. tab:: Open-Source
-               :tabid: open-source
-
-               This code uses the `mxbai-embed-large-v1
-               <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__
-               embedding model from Hugging Face to generate vector embeddings.
-
-               .. literalinclude:: /includes/avs/rag/ingest-data-hf.go
-                  :language: go
-                  :caption: ingest-data.go
+         .. literalinclude:: /includes/avs/rag/ingest/ingest-data-hf.go
+            :language: go
+            :caption: ingest-data.go
 
       #. Run the following command to execute the code:
 
@@ -132,7 +115,7 @@
 
                go run ingest-data.go
 
-            .. output:: /includes/avs/rag/ingest-data-output-go.sh
+            .. output:: /includes/avs/rag/output/ingest-data-output-go.sh
                :language: console
                :visible: false
    
@@ -148,7 +131,7 @@
          creates an index of the :ref:`vectorSearch <avs-types-vector-search>`
          type on the ``rag_db.test`` collection.
 
-         .. literalinclude:: /includes/avs/rag/create-index.go
+         .. literalinclude:: /includes/avs/rag/index/create-index.go
             :language: go
             :caption: rag-vector-index.go
 
@@ -171,26 +154,13 @@
          In the ``common`` directory, create a new file called
          ``get-query-results.go``, and paste the following code into it:
 
-         .. tabs::
-            :hidden: true
+         This code uses the `mxbai-embed-large-v1
+         <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__
+         embedding model from Hugging Face to generate vector embeddings.
 
-            .. tab:: Voyage AI
-               :tabid: voyage-ai
-
-               .. literalinclude:: /includes/avs/rag/get-query-results-voyage.go
-                  :language: go
-                  :caption: get-query-results.go
-
-            .. tab:: Open-Source
-               :tabid: open-source
-
-               This code uses the `mxbai-embed-large-v1
-               <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__
-               embedding model from Hugging Face to generate vector embeddings.
-
-               .. literalinclude:: /includes/avs/rag/get-query-results-hf.go
-                  :language: go
-                  :caption: get-query-results.go
+         .. literalinclude:: /includes/avs/rag/retrieve/get-query-results-hf.go
+            :language: go
+            :caption: get-query-results.go
 
       #. Test retrieving the data.
 
@@ -199,13 +169,14 @@
 
          #. Paste this code into your file:
 
-            .. literalinclude:: /includes/avs/rag/retrieve-documents-test.go
+            .. literalinclude:: /includes/avs/rag/retrieve/retrieve-documents-test.go
                :language: go
                :caption: retrieve-documents-test.go
 
-         #. Run the following command to execute the code:
+         #. Run the following command to execute the code.
+            Your results might vary depending on the embedding model you use.
 
-            .. io-code-block::
+            .. io-code-block:: 
                :copyable: true
 
                .. input::
@@ -213,25 +184,26 @@
 
                   go run retrieve-documents-test.go
 
-               .. output:: /includes/avs/rag/retrieve-documents-output-go.sh
+               .. output:: /includes/avs/rag/output/retrieve-data-output.sh
                   :language: console
                   :visible: false
 
    .. step:: Generate responses with the LLM.
 
       In this section, you :ref:`generate <rag-ingestion>` 
-      responses by prompting an LLM from OpenAI to use the retrieved documents 
-      as context. This example uses the function you just defined to retrieve
-      matching documents from the database, and additionally:
-      
+      responses by prompting an LLM to use the retrieved documents 
+      as context. This example uses the 
+      function you just defined to retrieve matching documents from the 
+      database, and additionally:
+
       - Instructs the LLM to include the user's question and retrieved
         documents in the prompt.
       - Prompts the LLM about MongoDB's latest AI announcements.
       
-      a. Create a new file called ``generate-responses.go``, and paste the following
+      a. In the ``rag-mongodb`` project directory, create a new file called ``generate-responses.go``, and paste the following
          code into it:
 
-         .. literalinclude:: /includes/avs/rag/generate-responses.go
+         .. literalinclude:: /includes/avs/rag/generate/generate-responses.go
             :language: go
             :caption: generate-responses.go
 
@@ -243,9 +215,15 @@
 
             .. input::
                :language: shell
-      
+         
                go run generate-responses.go
 
-            .. output:: /includes/avs/rag/generate-responses-output-openai.sh
-               :language: console
-               :visible: false
+            .. output:: 
+               
+               MongoDB's latest AI announcements include the MongoDB AI Applications
+               Program (MAAP), which provides customers with reference architectures,
+               pre-built partner integrations, and professional services to help them
+               quickly build AI-powered applications. Accenture will establish a
+               center of excellence focused on MongoDB projects and is the first
+               global systems integrator to join MAAP.
+

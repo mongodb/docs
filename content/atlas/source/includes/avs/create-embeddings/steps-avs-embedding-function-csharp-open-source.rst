@@ -35,7 +35,7 @@
       <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__ 
       embedding model.
 
-      .. literalinclude:: /includes/avs/rag/AIService-GetEmbeddingsAsync-Open-Source.cs
+      .. literalinclude:: /includes/avs/rag/ingest/AIService-GetEmbeddingsAsync-Open-Source.cs
          :language: csharp
          :copyable:
          :caption: AIService.cs

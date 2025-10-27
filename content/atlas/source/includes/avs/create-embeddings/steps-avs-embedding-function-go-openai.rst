@@ -41,7 +41,7 @@
          that uses OpenAI's ``text-embedding-3-small`` model to generate an 
          embedding for a given input.
 
-         .. literalinclude:: /includes/avs/rag/get-embeddings-openai.go
+         .. literalinclude:: /includes/avs/rag/ingest/get-embeddings-openai.go
             :language: go
             :copyable:
             :caption: get-embeddings.go

@@ -48,7 +48,7 @@
       of given string inputs. This function uses Voyage AI's
       ``voyage-3-large`` model to generate an embedding for a given input.
 
-      .. literalinclude:: /includes/avs/rag/AIService-GetEmbeddingsAsync-VoyageAI-RAG.cs
+      .. literalinclude:: /includes/avs/rag/ingest/AIService-GetEmbeddingsAsync-VoyageAI-RAG.cs
          :language: csharp
          :copyable:
          :caption: AIService.cs
@@ -71,7 +71,7 @@
            (number of characters) and chunk overlap (number of overlapping
            characters between consecutive chunks).
 
-         .. literalinclude:: /includes/avs/rag/PdfIngester.cs
+         .. literalinclude:: /includes/avs/rag/ingest/PdfIngester.cs
             :language: csharp
             :copyable:
             :caption: PdfIngester.cs
@@ -87,7 +87,7 @@
          code stores the embeddings alongside the chunked data in the
          ``rag_db.test`` collection.
 
-         .. literalinclude:: /includes/avs/rag/MongoDBDataService-AddDocumentsAsync.cs
+         .. literalinclude:: /includes/avs/rag/ingest/MongoDBDataService-AddDocumentsAsync.cs
             :language: csharp
             :copyable:
             :caption: MongoDBDataService.cs
@@ -100,7 +100,7 @@
          corresponding vector embeddings. You generate these embeddings 
          using the ``GetEmbeddingsAsync()`` function that you defined earlier.
 
-         .. literalinclude:: /includes/avs/rag/EmbeddingGenerator.cs
+         .. literalinclude:: /includes/avs/rag/ingest/EmbeddingGenerator.cs
             :language: csharp
             :copyable:
             :caption: EmbeddingGenerator.cs
@@ -109,7 +109,7 @@
 
          Paste this code in your ``Program.cs``:
 
-         .. literalinclude:: /includes/avs/rag/Program-CreateEmbeddings.cs
+         .. literalinclude:: /includes/avs/rag/ingest/Program-CreateEmbeddings.cs
             :language: csharp
             :copyable:
             :caption: Program.cs
@@ -136,7 +136,7 @@
 
                dotnet run MyCompany.RAG.csproj
 
-            .. output:: /includes/avs/rag/ingest-data-output-csharp.sh
+            .. output:: /includes/avs/rag/output/ingest-data-output-csharp.sh
                :language: shell
                :visible: false
    
@@ -148,139 +148,112 @@
       or later, perform the following steps:
       
       a. Define the {+avs+} index.
-      
-         Add a new ``CreateVectorIndex()`` method in the file named
-         ``MongoDBDataService.cs`` to define the search index. This code
-         connects to your MongoDB deployment and creates an index of the
-         :ref:`vectorSearch <avs-types-vector-search>`
-         type on the ``rag_db.test`` collection.    
 
-         .. literalinclude:: /includes/avs/rag/MongoDBDataService-CreateIndex.cs
+         In the ``MongoDBDataService`` class, add the following code to define
+         a {+avs+} index on the ``embedding`` field:
+
+         .. literalinclude:: /includes/avs/rag/index/MongoDBDataService-CreateIndex.cs
             :language: csharp
-            :caption: MongoDBDataService.cs
-            :emphasize-lines: 18-66
+            :copyable:
 
-      #. Update the ``Program.cs`` file.
+      #. Create the {+avs+} index.
 
-         Replace the code in ``Program.cs`` with the following code to create
-         the index:
+         In the ``Program.cs`` file, replace the existing code with the
+         following code to create the index:
 
-         .. literalinclude:: /includes/avs/rag/Program-CreateIndex.cs
+         .. literalinclude:: /includes/avs/rag/index/Program-CreateIndex.cs
             :language: csharp
+            :copyable:
             :caption: Program.cs
 
       #. Compile and run your project to create the index.
 
-         .. code-block:: csharp
-            :copyable: true
+         .. code-block:: shell
 
             dotnet run MyCompany.RAG.csproj
 
       #. Define a function to retrieve relevant data.
 
-         Add a new ``PerformVectorQuery`` method in the file named
-         ``MongoDBDataService.cs`` to retrieve relevant documents. To learn
-         more, refer to :ref:`return-vector-search-results`.
+         In the ``MongoDBDataService`` class, add the following code to define
+         a function that runs a query to retrieve relevant documents.
+         It uses the ``GetEmbeddingsAsync()`` function to create an embedding from the
+         search query. Then, it runs the query to return semantically-similar
+         documents. 
 
-         .. literalinclude:: /includes/avs/rag/MongoDBDataService-PerformVectorQuery.cs
+         To learn more, refer to :ref:`return-vector-search-results`.
+
+         .. literalinclude:: /includes/avs/rag/retrieve/MongoDBDataService-PerformVectorQuery.cs
             :language: csharp
-            :caption: MongoDBDataService.cs
-            :emphasize-lines: 23-58
+            :copyable:
 
       #. Test retrieving the data.
-      
-         i. Create a new class named ``PerformTestQuery`` in a file of the same 
-            name by pasting the following code. This code transforms a text
-            input string into vector embeddings, and queries the database for
-            matching results. It uses the ``GetEmbeddingsAsync()`` function to create
-            embeddings from the search query. Then, it runs the query to return
-            semantically-similar documents.
 
-            .. literalinclude:: /includes/avs/rag/PerformTestQuery.cs
-               :language: csharp
-               :caption: PerformTestQuery.cs
+         In the ``Program.cs`` file, replace the existing code with the
+         following code to test the retrieval function:
 
-         #. Update the ``Program.cs`` file.
+         .. literalinclude:: /includes/avs/rag/retrieve/Program-TestQuery.cs
+            :language: csharp
+            :copyable:
+            :caption: Program.cs
 
-            Replace the code in ``Program.cs`` with the following code to
-            perform a test query:
+      #. Compile and run your project to test the retrieval function.
 
-            .. literalinclude:: /includes/avs/rag/Program-TestQuery.cs
-               :language: csharp
-               :caption: Program.cs
+         .. io-code-block:: 
+            :copyable: true
 
-         #. Compile and run your project to check the query results.
+            .. input::
+               :language: shell
 
-            .. io-code-block:: 
-               :copyable: true
+               dotnet run MyCompany.RAG.csproj
 
-               .. input::
-                  :language: shell
+            .. output:: /includes/avs/rag/output/retrieve-data-output.sh
+               :language: shell
+               :visible: false
 
-                  dotnet run MyCompany.RAG.csproj
-
-               .. output:: /includes/avs/rag/retrieve-documents-output-csharp.sh
-                  :language: shell
-                  :visible: false
-
-   .. step:: Generate responses with the |llm|.
+   .. step:: Generate responses with the LLM.
 
       In this section, you :ref:`generate <rag-ingestion>` 
       responses by prompting an LLM to use the retrieved documents 
-      as context. This example uses the function you just defined to retrieve
-      matching documents from the database, and additionally:
+      as context.
       
-      - Accesses the `gpt-4o-mini <https://platform.openai.com/docs/models/gpt-4o-mini>`__ 
-        model from OpenAI.
-      - Instructs the LLM to include the user's question and retrieved
-        documents in the prompt.
-      - Prompts the LLM about MongoDB's latest AI announcements.
-      
-      a. Add the imports, the new ``ChatClient`` information, and a new method
-         called ``GenerateAnswer`` in the file named ``AIService.cs``.
+      a. In the ``AIService`` class, add the following code to define a
+         function that prompts the LLM to use the retrieved documents as
+         context:
 
-         .. literalinclude:: /includes/avs/rag/OpenAIService-GenerateAnswer.cs
+         .. literalinclude:: /includes/avs/rag/generate/OpenAIService-GenerateAnswer.cs
             :language: csharp
-            :caption: AIService.cs
-            :emphasize-lines: 3, 18-20, 27-43
+            :copyable:
 
-      #. Create a ``RAGPipeline`` class.
+      #. In the ``Program.cs`` file, replace the existing code with the
+         following code. This example uses the 
+         function you just defined to retrieve matching documents from the 
+         database, and additionally:
 
-         Create a new class named ``RAGPipeline`` in a file of the same name
-         by pasting the following code. This code coordinates the following
-         components:
+         - Instructs the LLM to include the user's question and retrieved
+           documents in the prompt.
+         - Prompts the LLM about MongoDB's latest AI announcements.
 
-         - ``GetEmbeddingsAsync()`` function: transform the string query into vector
-           embeddings.
-         - ``PerformVectorQuery`` function: retrieve semantically-similar
-           results from the database.
-         - ``GenerateAnswer`` function: pass the documents retrieved from the
-           database to the LLM to generate the response.
-
-         .. literalinclude:: /includes/avs/rag/RAGPipeline.cs
+         .. literalinclude:: /includes/avs/rag/generate/Program-RAGPipeline.cs
             :language: csharp
-            :caption: RAGPipeline.cs
-
-      #. Update the ``Program.cs`` file.
-
-         Replace the code in ``Program.cs`` with the following code to call
-         your RAG pipeline:
-
-         .. literalinclude:: /includes/avs/rag/Program-RAGPipeline.cs
-            :language: csharp
+            :copyable:
             :caption: Program.cs
 
-      #. Compile and run your project to perform RAG. The generated
-         response might vary.
+      #. Compile and run your project. The generated response might vary.
 
          .. io-code-block:: 
             :copyable: true 
 
             .. input::
                :language: shell
-      
+         
                dotnet run MyCompany.RAG.csproj
 
-            .. output:: /includes/avs/rag/generate-responses-output-csharp.sh
-               :language: shell
-               :visible: false
+            .. output:: 
+               
+               MongoDB's latest AI announcements include the MongoDB AI Applications
+               Program (MAAP), which provides customers with reference architectures,
+               pre-built partner integrations, and professional services to help them
+               quickly build AI-powered applications. Accenture will establish a
+               center of excellence focused on MongoDB projects and is the first
+               global systems integrator to join MAAP.
+

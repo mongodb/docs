@@ -47,7 +47,7 @@
 
                .. include:: /includes/avs/extracts/avs-voyage-model-description.rst
 
-               .. literalinclude:: /includes/avs/rag/get-embeddings-voyage.py
+               .. literalinclude:: /includes/avs/rag/ingest/get-embeddings-voyage.py
                   :language: python
                   :copyable:
 
@@ -63,7 +63,7 @@
                   NOTE: If you edit this Python file, also update the Jupyter Notebook
                   at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
 
-               .. literalinclude:: /includes/avs/rag/get-embeddings.py
+               .. literalinclude:: /includes/avs/rag/ingest/get-embeddings.py
                   :language: python
                   :copyable:
             
@@ -445,7 +445,7 @@
                   )
                   print(completion.choices[0].message.content)
 
-               .. output:: /includes/avs/rag/generate-responses-output-openai.sh
+               .. output:: /includes/avs/rag/output/generate-responses-output-openai.sh
 
          .. tab:: Open-Source
             :tabid: open-source

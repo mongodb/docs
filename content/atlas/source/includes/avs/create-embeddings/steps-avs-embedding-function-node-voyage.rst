@@ -36,7 +36,7 @@
          that uses the ``voyage-3-large`` model to generate an 
          embedding for a given text input.
 
-         .. literalinclude:: /includes/avs/rag/get-embeddings-voyage.js
+         .. literalinclude:: /includes/avs/rag/ingest/get-embeddings-voyage.js
             :language: js
             :copyable:
             :caption: get-embeddings.js

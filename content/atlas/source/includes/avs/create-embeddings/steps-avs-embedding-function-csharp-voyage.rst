@@ -34,7 +34,7 @@
       of given string inputs. This function uses Voyage AI's
       ``voyage-3-large`` model to generate an embedding for a given input.
 
-      .. literalinclude:: /includes/avs/rag/AIService-GetEmbeddingsAsync-VoyageAI.cs
+      .. literalinclude:: /includes/avs/rag/ingest/AIService-GetEmbeddingsAsync-VoyageAI.cs
          :language: csharp
          :copyable:
          :caption: AIService.cs

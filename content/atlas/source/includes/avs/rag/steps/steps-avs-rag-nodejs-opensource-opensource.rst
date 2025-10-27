@@ -3,45 +3,66 @@
 
    .. step:: Set up the environment.
 
-      .. include:: /includes/avs/rag/avs-rag-set-up-environment-node.rst
+      a. Initialize your Node.js project.
+
+         Run the following commands in your terminal 
+         to create a new directory named ``rag-mongodb`` and
+         initialize your project:
+
+         .. code-block::
+
+            mkdir rag-mongodb
+            cd rag-mongodb
+            npm init -y
+
+      #. Install and import dependencies.
+
+         Run the following command:
+
+         .. code-block::
+
+            npm install mongodb @xenova/transformers @huggingface/inference langchain @langchain/community pdf-parse
+
+      #. Update your ``package.json`` file.
+
+         In your project's ``package.json`` file, specify the 
+         ``type`` field as shown in the following example,
+         and then save the file.
+
+         .. code-block:: javascript
+            :emphasize-lines: 3
+
+            {
+               "name": "rag-mongodb",
+               "type": "module",
+               ...
+
+      #. Create a ``.env`` file.
+
+         In your project, create a ``.env`` file to store your MongoDB connection
+         string and API keys:
+
+         .. code-block::
+
+            MONGODB_URI = "<connection-string>"
+            HUGGING_FACE_ACCESS_TOKEN = "<hf-token>"
+
+         .. include:: /includes/search-shared/find-connection-string.rst
+
+         .. include:: /includes/avs/shared/note-node-js-env-minimum-requirement.rst
 
    .. step:: Create a function to generate vector embeddings.
 
-      To generate embeddings, use an embedding model. For this tutorial,
-      you can use an open-source model from Hugging Face or a 
-      proprietary model from Voyage AI.
-         
       In your project, create a file called ``get-embeddings.js`` and paste
       the following code:
 
-      .. tabs::
-         
-         .. tab:: Voyage AI
-            :tabid: voyage-ai
+      .. literalinclude:: /includes/avs/rag/ingest/get-embeddings.js
+         :language: javascript
 
-            .. literalinclude:: /includes/avs/rag/get-embeddings-voyage.js
-               :language: python
-               :copyable:
+      The ``getEmbedding()`` function generates vector embeddings by 
+      using the `nomic-embed-text-v1 <https://huggingface.co/nomic-ai/nomic-embed-text-v1>`__ embedding model
+      from `Sentence Transformers <https://huggingface.co/sentence-transformers>`__.
 
-            The ``getEmbedding()`` function generates vector embeddings by 
-            using the ``voyage-3-large`` embedding model
-            from `Voyage AI <https://docs.voyageai.com/docs/embeddings>`__.
-
-            .. tip::
-
-               To learn more, see `Voyage AI Typescript Library 
-               <https://www.npmjs.com/package/voyageai>`__.
-
-         .. tab:: Open-Source
-            :tabid: open-source
-
-            .. literalinclude:: /includes/avs/rag/get-embeddings.js
-               :language: javascript
-
-            The ``getEmbedding()`` function generates vector embeddings by 
-            using the `nomic-embed-text-v1 <https://huggingface.co/nomic-ai/nomic-embed-text-v1>`__ embedding model
-            from `Sentence Transformers <https://huggingface.co/sentence-transformers>`__.
-         
    .. step:: Ingest data into your MongoDB deployment.
 
       In this section, you :ref:`ingest <rag-ingestion>` sample 
@@ -63,7 +84,7 @@
       Create a file called ``ingest-data.js`` in your project, and paste the
       following code:
 
-      .. literalinclude:: /includes/avs/rag/ingest-data.js
+      .. literalinclude:: /includes/avs/rag/ingest/ingest-data.js
          :language: javascript
 
       Then, run the following command to execute the code:
@@ -98,13 +119,9 @@
          Create a new file named ``rag-vector-index.js`` and paste the following code. 
          This code connects to your MongoDB deployment and creates an 
          index of the :ref:`vectorSearch <avs-types-vector-search>` type on 
-         the ``rag_db.test`` collection. Replace the ``<dimensions>`` placeholder 
-         with one of the following values:
-         
-         - ``768`` if you used ``nomic-embed-text-v1``
-         - ``1024`` if you used ``voyage-3-large``
+         the ``rag_db.test`` collection with 768 dimensions for the open-source embedding model.
 
-         .. literalinclude:: /includes/avs/rag/create-index.js
+         .. literalinclude:: /includes/avs/rag/index/create-index.js
             :language: javascript
 
          Then, run the following command to execute the code:
@@ -127,7 +144,7 @@
 
          Paste this code into your file:
 
-         .. literalinclude:: /includes/avs/rag/retrieve-documents.js
+         .. literalinclude:: /includes/avs/rag/retrieve/retrieve-documents.js
             :language: javascript
 
       #. Test retrieving the data.
@@ -135,10 +152,9 @@
          Create a new file called ``retrieve-documents-test.js``. In this step,
          you check that the function you just defined returns relevant results.
          
-         
          Paste this code into your file:
 
-         .. literalinclude:: /includes/avs/rag/retrieve-documents-test.js
+         .. literalinclude:: /includes/avs/rag/retrieve/retrieve-documents-test.js
             :language: javascript
 
          Then, run the following command to execute the code.
@@ -152,7 +168,7 @@
 
                node --env-file=.env retrieve-documents-test.js
 
-            .. output:: /includes/avs/rag/retrieve-data-output.sh
+            .. output:: /includes/avs/rag/output/retrieve-data-output.sh
                :language: console
                :visible: false
 
@@ -160,8 +176,7 @@
 
       In this section, you :ref:`generate <rag-ingestion>` 
       responses by prompting an LLM to use the retrieved documents 
-      as context. For this tutorial, you can use a model from OpenAI or an 
-      open-source model from Hugging Face. This example uses the 
+      as context. This example uses the 
       function you just defined to retrieve matching documents from the 
       database, and additionally:
 
@@ -172,19 +187,8 @@
       Create a new file called ``generate-responses.js``, and paste the following
       code into it:
 
-      .. tabs::
-
-         .. tab:: OpenAI
-            :tabid: openai
-
-            .. literalinclude:: /includes/avs/rag/generate-responses-openai.js
-               :language: javascript
-
-         .. tab:: Open-Source
-            :tabid: open-source
-
-            .. literalinclude:: /includes/avs/rag/generate-responses-hf.js
-               :language: javascript
+      .. literalinclude:: /includes/avs/rag/generate/generate-responses-hf.js
+         :language: javascript
 
       Then, run this command to execute the code. The generated response might
       vary.
@@ -199,13 +203,12 @@
 
          .. output:: 
             
-            MongoDB's latest AI announcements include the launch of the MongoDB
-            AI Applications Program (MAAP), which provides customers with
-            reference architectures, pre-built partner integrations, and
-            professional services to help them build AI-powered applications
-            quickly. Accenture has joined MAAP as the first global systems
-            integrator, establishing a center of excellence focused on MongoDB
-            projects. Additionally, Bendigo and Adelaide Bank have partnered
-            with MongoDB to modernize their core banking technology using
-            MongoDB's Relational Migrator and generative AI-powered
-            modernization tools.
+            MongoDB's latest AI announcements include the MongoDB AI Applications
+            Program (MAAP), which provides customers with reference architectures,
+            pre-built partner integrations, and professional services to help them
+            quickly build AI-powered applications. Accenture will establish a
+            center of excellence focused on MongoDB projects and is the first
+            global systems integrator to join MAAP. Additionally, MongoDB has
+            announced significant performance improvements in MongoDB 8.0,
+            featuring faster reads, updates, bulk inserts, and time series queries.
+

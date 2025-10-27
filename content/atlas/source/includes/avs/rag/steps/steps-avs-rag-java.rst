@@ -144,7 +144,7 @@
         and *chunk overlap* (number of overlapping characters between
         consecutive chunks). The method returns a list of text segments.
 
-      .. literalinclude:: /includes/avs/rag/PDFProcessor.java
+      .. literalinclude:: /includes/avs/rag/ingest/PDFProcessor.java
          :language: java
          :caption: PDFProcessor.java
 
@@ -195,7 +195,7 @@
                your vector data. The method converts the API-provided array of floats
                to a BSON array of doubles to use when querying your collection.
 
-            .. literalinclude:: /includes/avs/rag/EmbeddingProvider.java
+            .. literalinclude:: /includes/avs/rag/ingest/EmbeddingProvider.java
                :language: java
                :caption: EmbeddingProvider.java
 
@@ -222,7 +222,7 @@
       #. Stores the embeddings alongside the chunked data in the
          ``rag_db.test`` collection.
 
-         .. literalinclude:: /includes/avs/rag/DataIngest.java
+         .. literalinclude:: /includes/avs/rag/ingest/DataIngest.java
             :language: java
             :caption: DataIngest.java
 
@@ -232,7 +232,7 @@
 
       Save and run the ``DataIngest.java`` file. The output resembles:
 
-      .. literalinclude:: /includes/avs/rag/ingest-data-output-java.sh
+      .. literalinclude:: /includes/avs/rag/output/ingest-data-output-java.sh
          :language: shell
    
    .. step:: Use {+avs+} to retrieve documents.
@@ -253,7 +253,7 @@
          - Enforce ``1024`` vector dimensions and measure similarity between
            vectors using ``cosine``.
 
-         .. literalinclude:: /includes/avs/rag/VectorIndex.java
+         .. literalinclude:: /includes/avs/rag/index/VectorIndex.java
             :language: java
             :caption: VectorIndex.java
 
@@ -292,7 +292,7 @@
       #. Prompts the LLM about MongoDB's latest AI announcements, then returns
          a generated response.
       
-         .. literalinclude:: /includes/avs/rag/LLMPrompt.java
+         .. literalinclude:: /includes/avs/rag/generate/LLMPrompt.java
             :language: java
             :caption: LLMPrompt.java
 
@@ -301,5 +301,5 @@
       Save and run the file. The output resembles the following, but note that
       the generated response might vary.
 
-      .. literalinclude:: /includes/avs/rag/generate-responses-output-java.sh
+      .. literalinclude:: /includes/avs/rag/output/generate-responses-output-java.sh
          :language: console

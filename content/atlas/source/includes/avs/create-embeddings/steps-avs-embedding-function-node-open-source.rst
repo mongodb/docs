@@ -44,7 +44,7 @@
          - The `nomic-embed-text-v1 <https://huggingface.co/xenova/nomic-embed-text-v1>`__ 
            embedding model.
 
-         .. literalinclude:: /includes/avs/rag/get-embeddings.js
+         .. literalinclude:: /includes/avs/rag/ingest/get-embeddings.js
             :language: js
             :copyable:
             :caption: get-embeddings.js

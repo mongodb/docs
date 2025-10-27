@@ -40,7 +40,7 @@
          that uses Voyage AI's ``voyage-3-large`` model to generate an 
          embedding for a given input.
 
-         .. literalinclude:: /includes/avs/rag/get-embeddings-voyage.go
+         .. literalinclude:: /includes/avs/rag/ingest/get-embeddings-voyage.go
             :language: go
             :copyable:
             :caption: get-embeddings.go
