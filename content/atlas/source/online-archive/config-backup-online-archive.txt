@@ -1,5 +1,3 @@
-.. _config-backup:
-
 .. default-domain:: mongodb
 
 .. meta::
@@ -12,44 +10,65 @@
    :depth: 1
    :class: singlecol
 
-===========================
-Back Up Online Archive Data
-===========================
+
+.. _oa-config-backup:
+
+=========================================
+Back Up and Restore Archived Data
+=========================================
 
 .. include:: /includes/flex-serverless-dont-use.rst
 
-After you archive data, it is not covered by the backup 
-configuration on your live |service| cluster. However, archived data 
-has the same redundancy guarantees that the |s3| vendor provides. If 
-you have :ref:`configured online archive <config-online-archive>` on 
-your |service| cluster, use :ref:`pit-restore` to mitigate data loss 
-and have an easy restore process.
+This page describes how to mitigate data loss and execute an easy restore process with
+:ref:`pit-restore`. 
 
-Consider the following scenarios:
+If you need a more granular restore that follows specific criteria, see
+:ref:`restore-archived-data`.
 
-- You archived part of your collection data and then backed up the 
-  remaining data on your |service| cluster. If your cluster goes down 
-  when data exists in your cluster and in your Online Archive, you can 
-  restore your cluster data to the last state preserved in your backup 
-  strategy, and your Online Archive will remain unchanged. 
-- You backed up data on your |service| cluster and then archived part 
-  of your collection data. If your cluster goes down and you need to 
-  restore from a backup that is older than the time when archiving was 
-  stopped for the data, you may restore documents to your cluster that 
-  already exist in your Online Archive. 
+Prerequisites
+-----------------
+
+You must have :ref:`configured {+Online-Archive+} <config-online-archive>` on
+your |service| cluster to use :ref:`pit-restore`. 
+
+Considerations
+------------------
+
+Your |service| cluster :ref:`backup configuration <backup-cloud-provider>` only captures
+data that is active in your cluster at the time of the backup. However, archived data has
+the same redundancy guarantees that the |s3| vendor provides. 
+
+The order in which you execute archive and backup operations has a direct impact on what data
+you restore to your cluster. Consider the following scenarios:
+
+- **Scenario 1: You archived data before backing up.** 
   
-If you use :ref:`pit-restore`, you can replay the :manual:`oplog 
-</reference/glossary/#term-oplog>` to restore your cluster to a point 
-in time that matches the last time documents on the cluster were 
-archived and avoid any data loss or data redundancy.
+  Part of your data lives in your cluster and the remaining part lives in your
+  {+Online-Archive+}. If your cluster goes down, you restore data to the last state
+  preserved in your backup strategy. Your {+Online-Archive+} remains unchanged.
 
-If you have configured :ref:`pit-restore` and :ref:`online archive 
-<config-online-archive>` on your |service| cluster, do the following 
-to restore your cluster if your cluster goes down:
+- **Scenario 2: You backed up data before archiving.** 
+  
+  You took a snapshot of the entirety of your data before archiving part of it. If your
+  cluster goes down and you restore to a snapshot older than the moment you archived data,
+  you may restore older data that already lives in your {+Online-Archive+}.  
 
-1. :ref:`Pause <pause-resume-online-archive>` online archive.
+If you use :ref:`pit-restore`, you can replay the :manual:`oplog
+</reference/glossary/#std-term-oplog>` to restore your cluster to a point in time that matches
+the last time documents on the cluster were archived and avoid any data loss or redundancy.
 
-#. :ref:`Restore <restore-from-continuous>` your cluster 
-   from the :ref:`pit-restore`.
+Procedure
+-------------
 
-#. :ref:`Resume <pause-resume-online-archive>` online archive.
+If you have configured :ref:`pit-restore` and :ref:`{+Online-Archive+}
+<config-online-archive>` on your |service| cluster, take the following steps to restore your
+cluster:
+
+1. :ref:`Pause <pause-resume-online-archive>` {+Online-Archive+}.
+
+#. :ref:`Restore <restore-from-continuous>` your cluster from the :ref:`pit-restore`.
+
+#. :ref:`Resume <pause-resume-online-archive>` {+Online-Archive+}.
+
+
+

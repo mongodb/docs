@@ -578,14 +578,14 @@ const tocData: TocItem[] = [
             url: "/docs/atlas/online-archive/pause-resume-online-archive",
           },
           {
-            label: "Back Up Online Archive",
+            label: "Back Up and Restore",
             contentSite: "cloud-docs",
             url: "/docs/atlas/online-archive/config-backup-online-archive",
           },
           {
-            label: "Restore Archived Data",
+            label: "Granular Restore",
             contentSite: "cloud-docs",
-            url: "/docs/atlas/online-archive/restore-archived-data",
+            url: "/docs/atlas/online-archive/restore-archived-data-with-merge",
           },
           {
             label: "Download Query Logs",
