@@ -35,7 +35,21 @@ Definition
    only for the query. To retrieve metadata results and query results 
    using the :pipeline:`$search` stage, you must use the 
    ``$$SEARCH_META`` aggregation variable. See 
-   :ref:`fts-facet-aggregation-variable` to learn more.
+   :ref:`fts-facet-aggregation-variable` to learn more. 
+   
+   If you define :ref:`storedSource <fts-stored-source-definition>` in your
+   :ref:`embeddedDocuments <bson-data-types-embedded-documents>` field
+   type definition, you can use :ref:`returnScope <fts-return-scope>`
+   with :ref:`returnStoredSource <fts-return-stored-source-option>` to
+   facet on nested fields inside an array of objects. Otherwise, you can
+   only facet on the root :ref:`embeddedDocuments
+   <bson-data-types-embedded-documents>` type field. For an example of
+   faceting on: 
+  
+   - Nested fields inside an array of objects, see :ref:`returnScope
+     Example <fts-facet-egs>`.
+   - Root ``embeddedDocuments`` type field, see
+     :ref:`Facet Query <embedded-document-query-examples>`. 
 
 .. _fts-facet-syntax:
 
@@ -58,7 +72,11 @@ Syntax
          "facets": {
            <facet-definitions>
          }
-       }
+       },
+       "returnScope": {
+         "path": "<embedded-documents-field-to-query>"
+       },
+       "returnStoredSource": true
      }
    }
 
@@ -757,295 +775,407 @@ The following limitations apply:
 Examples 
 --------
 
-The following examples use the ``sample_mflix.movies`` collection. The
+The following examples use the :ref:`sample data <sample-data>`. The
 metadata results example demonstrates how to run a
 :pipeline:`$searchMeta` query with ``facet`` to retrieve only the
 metadata in the results. The metadata and search results example
 demonstrates how to run a :pipeline:`$search` query with ``facet`` and
 the ``$SEARCH_META`` aggregation variable to retrieve both the search
-and metadata results. 
+and metadata results. The ``returnScope`` example demonstrates how to
+facet on nested fields in an array of objects dynamically indexed using
+the ``embeddedDocuments`` type.
 
-.. tabs:: 
-  
-   .. tab:: Metadata Results Example 
-      :tabid: faceteg
+.. collapsible::
+   :heading: Metadata Results Example
+   :sub_heading: Complete the previous steps in the tutorial and install dependencies
+   :expanded: false
 
-      The index definition specifies the following for the fields to 
-      index:
+   The index definition on the ``sample_mflix.movies`` collection
+   specifies the following for the fields to index:
 
-      .. list-table:: 
-         :header-rows: 1
-         :widths: 30 70
+   .. list-table:: 
+      :header-rows: 1
+      :widths: 30 70
 
-         * - Field Name
-           - Data Type
+      * - Field Name
+        - Data Type
 
-         * - ``directors`` 
-           - :ref:`token <bson-data-types-token>`
-    
-         * - ``year`` 
-           - :ref:`number <bson-data-types-number>` 
-    
-         * - ``released`` 
-           - :ref:`date <bson-data-types-date>`
+      * - ``directors`` 
+        - :ref:`token <bson-data-types-token>`
 
-      .. code-block:: json 
+      * - ``year`` 
+        - :ref:`number <bson-data-types-number>` 
 
-         {
-           "mappings": {
-             "dynamic": false,
-             "fields": {
-               "directors": {
-                 "type": "token"
-               },
-               "year": {
-                 "type": "number"
-               },
-               "released": {
-                 "type": "date"
-               }
-             }
-           }
-         }
+      * - ``released`` 
+        - :ref:`date <bson-data-types-date>`
 
-      The following query searches for movies released between January 
-      01, 2000 and January 31, 2015. It requests metadata on the 
-      ``directors`` and ``year`` field.
+   .. code-block:: json 
 
-      .. io-code-block:: 
-         :copyable: true
+      {
+        "mappings": {
+          "dynamic": false,
+          "fields": {
+            "directors": {
+              "type": "token"
+            },
+            "year": {
+              "type": "number"
+            },
+            "released": {
+              "type": "date"
+            }
+          }
+        }
+      }
 
-         .. input:: 
-            :language: json 
-            :linenos:
+   The following query searches for movies released between January 
+   01, 2000 and January 31, 2015. It requests metadata on the 
+   ``directors`` and ``year`` field.
 
-            db.movies.aggregate([
-              {
-                "$searchMeta": {
-                  "facet": {
-                    "operator": {
-                      "range": {
-                        "path": "released",
-                        "gte": ISODate("2000-01-01T00:00:00.000Z"),
-                        "lte": ISODate("2015-01-31T00:00:00.000Z")
-                      }
-                    },
-                    "facets": {
-                      "directorsFacet": {
-                        "type": "string",
-                        "path": "directors",
-                        "numBuckets" : 7
-                      },
-                      "yearFacet" : {
-                        "type" : "number",
-                        "path" : "year",
-                        "boundaries" : [2000,2005,2010, 2015]
-                      }
-                    }
+   .. io-code-block:: 
+      :copyable: true
+
+      .. input:: 
+        :language: json 
+        :linenos:
+
+        db.movies.aggregate([
+          {
+            "$searchMeta": {
+              "facet": {
+                "operator": {
+                  "range": {
+                    "path": "released",
+                    "gte": ISODate("2000-01-01T00:00:00.000Z"),
+                    "lte": ISODate("2015-01-31T00:00:00.000Z")
                   }
-                }
-              }
-            ])
-
-         .. output:: 
-            :language: shell 
-            :linenos:
-            :visible: false
-
-            [
-              {
-                count: { lowerBound: Long('11922') },
-                facet: {
-                  yearFacet: {
-                    buckets: [
-                      { _id: 2000, count: Long('3064') },
-                      { _id: 2005, count: Long('4035') },
-                      { _id: 2010, count: Long('4553') }
-                    ]
+                },
+                "facets": {
+                  "directorsFacet": {
+                    "type": "string",
+                    "path": "directors",
+                    "numBuckets" : 7
                   },
-                  directorsFacet: {
-                    buckets: [
-                      { _id: 'Takashi Miike', count: Long('26') },
-                      { _id: 'Johnnie To', count: Long('20') },
-                      { _id: 'Steven Soderbergh', count: Long('18') },
-                      { _id: 'Michael Winterbottom', count: Long('16') },
-                      { _id: 'Ridley Scott', count: Long('15') },
-                      { _id: 'Tyler Perry', count: Long('15') },
-                      { _id: 'Clint Eastwood', count: Long('14') }
-                    ]
+                  "yearFacet" : {
+                    "type" : "number",
+                    "path" : "year",
+                    "boundaries" : [2000,2005,2010, 2015]
                   }
                 }
               }
-            ]
+            }
+          }
+        ])
 
-      The results show a count of the following in the 
-      ``sample_mflix.movies`` collection: 
+      .. output:: 
+        :language: shell 
+        :linenos:
+        :visible: false
 
-      - Number of movies from the year 2000, inclusive lower bound, to 
-        2015, exclusive upper bound, that |fts| returned for the query
-      - Number of movies for each director that |fts| returned for the 
-        query
+        [
+          {
+            count: { lowerBound: Long('11922') },
+            facet: {
+              yearFacet: {
+                buckets: [
+                  { _id: 2000, count: Long('3064') },
+                  { _id: 2005, count: Long('4035') },
+                  { _id: 2010, count: Long('4553') }
+                ]
+              },
+              directorsFacet: {
+                buckets: [
+                  { _id: 'Takashi Miike', count: Long('26') },
+                  { _id: 'Johnnie To', count: Long('20') },
+                  { _id: 'Steven Soderbergh', count: Long('18') },
+                  { _id: 'Michael Winterbottom', count: Long('16') },
+                  { _id: 'Ridley Scott', count: Long('15') },
+                  { _id: 'Tyler Perry', count: Long('15') },
+                  { _id: 'Clint Eastwood', count: Long('14') }
+                ]
+              }
+            }
+          }
+        ]
 
-   .. tab:: Metadata and Search Results Example 
-      :tabid: aggvariableeg
+   The results show a count of the following in the 
+   ``sample_mflix.movies`` collection: 
 
-      The index definition specifies the following for the fields to 
-      index:
+   - Number of movies from the year 2000, inclusive lower bound, to 
+     2015, exclusive upper bound, that |fts| returned for the query
+   - Number of movies for each director that |fts| returned for the 
+     query
 
-      .. list-table:: 
-         :header-rows: 1
-         :widths: 30 70
+   To learn more about these results, see :ref:`fts-facet-results`.
 
-         * - Field Name
-           - Data Type
+.. collapsible::
+   :heading: Metadata and Search Results Example
+   :sub_heading: Search using $search and retrieve both search and metadata results using $$SEARCH_META variable.
+   :expanded: false
 
-         * - ``genres`` 
-           - :ref:`token <bson-data-types-token>`
-    
-         * - ``released`` 
-           - :ref:`date <bson-data-types-date>`
+   The index definition on the ``sample_mflix.movies`` collection
+   specifies the following for the fields to index:
 
-      .. code-block:: json 
+   .. list-table:: 
+      :header-rows: 1
+      :widths: 30 70
 
-         {
-           "mappings": {
-             "dynamic": false,
-             "fields": {
-               "genres": {
-                 "type": "token"
-               },
-               "released": {
-                 "type": "date"
-               }
-             }
-           }
-         }
+      * - Field Name
+        - Data Type
 
-      The following query searches for movies released near July 01, 
-      1999 using the :pipeline:`$search` stage. The query includes a 
-      :pipeline:`$facet` stage to process the input documents using 
-      the following sub-pipeline stages:
+      * - ``genres`` 
+        - :ref:`token <bson-data-types-token>`
 
-      - :pipeline:`$project` stage to exclude all fields in the 
-        documents except the ``title`` and ``released`` fields in the ``docs`` output field  
+      * - ``released`` 
+        - :ref:`date <bson-data-types-date>`
 
-      - :pipeline:`$limit` stage to do the following: 
-      
-        - Limit the ``$search`` stage output to ``2`` documents  
-        - Limit the output to ``1`` document in the ``meta`` output field 
+   .. code-block:: json 
 
-        .. note:: 
+      {
+        "mappings": {
+          "dynamic": false,
+          "fields": {
+            "genres": {
+              "type": "token"
+            },
+            "released": {
+              "type": "date"
+            }
+          }
+        }
+      }
 
-           The limit must be small for the results to fit in a 16 MB 
-           document.
+   The following query searches for movies released near July 01, 
+   1999 using the :pipeline:`$search` stage. The query includes a 
+   :pipeline:`$facet` stage to process the input documents using 
+   the following sub-pipeline stages:
 
-      - :pipeline:`$replaceWith` stage to include the metadata results 
-        stored in the ``$$SEARCH_META`` variable in the ``meta`` output 
-        field
+   - :pipeline:`$project` stage to exclude all fields in the 
+     documents except the ``title`` and ``released`` fields in the ``docs`` output field  
+
+   - :pipeline:`$limit` stage to do the following: 
+  
+     - Limit the ``$search`` stage output to ``2`` documents  
+     - Limit the output to ``1`` document in the ``meta`` output field 
+
+     .. note:: 
+
+        The limit must be small for the results to fit in a 16 MB 
+        document.
+
+   - :pipeline:`$replaceWith` stage to include the metadata results 
+     stored in the ``$$SEARCH_META`` variable in the ``meta`` output 
+     field
         
-      The query also includes a :pipeline:`$set` stage to add the 
-      ``meta`` field.
+   The query also includes a :pipeline:`$set` stage to add the 
+   ``meta`` field.
 
-      .. note:: 
+   .. note:: 
 
-         To see the metadata results for the following query, |fts| 
-         must return documents that match the query.
+      To see the metadata results for the following query, |fts| 
+      must return documents that match the query.
 
-      .. io-code-block:: 
-         :copyable: true 
+   .. io-code-block:: 
+      :copyable: true 
 
-         .. input:: 
-            :language: json 
-            :linenos: 
+      .. input:: 
+         :language: json 
+         :linenos: 
 
-            db.movies.aggregate([
-              {
-                "$search": {
-                  "facet": {
-                    "operator": {
-                      "near": {
-                        "path": "released",
-                        "origin": ISODate("1999-07-01T00:00:00.000+00:00"),
-                        "pivot": 7776000000
-                      }
-                    },
-                    "facets": {
-                      "genresFacet": {
-                        "type": "string",
-                        "path": "genres"
-                      }
-                    }
+         db.movies.aggregate([
+          {
+            "$search": {
+              "facet": {
+                "operator": {
+                  "near": {
+                    "path": "released",
+                    "origin": ISODate("1999-07-01T00:00:00.000+00:00"),
+                    "pivot": 7776000000
+                  }
+                },
+                "facets": {
+                  "genresFacet": {
+                    "type": "string",
+                    "path": "genres"
                   }
                 }
-              },
-              { "$limit": 2 },
+              }
+            }
+          },
+          { "$limit": 2 },
+          {
+            "$facet": {
+              "docs": [ 
+                { "$project":
+                  {
+                    "title": 1,
+                    "released": 1
+                  }
+                }
+              ],
+              "meta": [
+                {"$replaceWith": "$$SEARCH_META"},
+                {"$limit": 1}
+              ]
+            }
+          },
+          {
+            "$set": {
+              "meta": {
+                "$arrayElemAt": ["$meta", 0]
+              }
+            }
+          }
+         ])
+
+      .. output:: 
+         :language: shell 
+         :linenos:
+         :visible: false
+
+         [
+          {
+            docs: [
               {
-                "$facet": {
-                  "docs": [ 
-                    { "$project":
-                      {
-                        "title": 1,
-                        "released": 1
-                      }
-                    }
-                  ],
-                  "meta": [
-                    {"$replaceWith": "$$SEARCH_META"},
-                    {"$limit": 1}
+                _id: ObjectId('573a1393f29313caabcde1ae'),
+                title: 'Begone Dull Care',
+                released: ISODate('1999-07-01T00:00:00.000Z')
+              },
+              {
+                _id: ObjectId('573a13a9f29313caabd2048a'),
+                title: 'Fara'                released: ISODate('1999-07-01T00:00:00.000Z')
+              }
+            ],
+            meta: {
+              count: { lowerBound: Long('20878') },
+              facet: {
+                genresFacet: {
+                  buckets: [
+                    { _id: 'Drama', count: Long('12149') },
+                    { _id: 'Comedy', count: Long('6436') },
+                    { _id: 'Romance', count: Long('3274') },
+                    { _id: 'Crime', count: Long('2429') },
+                    { _id: 'Thriller', count: Long('2400') },
+                    { _id: 'Action', count: Long('2349') },
+                    { _id: 'Adventure', count: Long('1876') },
+                    { _id: 'Documentary', count: Long('1755') },
+                    { _id: 'Horror', count: Long('1432') },
+                    { _id: 'Biography', count: Long('1244') }
                   ]
                 }
+              }
+            }
+          }
+         ]
+
+   To learn more about these results, see :ref:`fts-facet-results`.
+
+.. collapsible::
+   :heading: returnScope Example
+   :sub_heading: Search using facet and facet on child fields in embeddedDocuments.
+   :expanded: false
+
+   The index definition on the ``sample_training.companies`` collection
+   indexes the ``funding_rounds`` field as the :ref:`embeddedDocuments
+   <bson-data-types-embedded-documents>` type. It dynamically indexes
+   all fields in the ``funding_rounds`` array of objects and stores the
+   ``raised_currency_code`` and ``raised_amount`` fields in the
+   ``funding_rounds`` array of objects using the :ref:`storedSource
+   <fts-stored-source-definition>` option.   
+
+   .. code-block:: json 
+
+      {
+        "mappings": {
+          "dynamic": false,
+          "fields": {
+            "funding_rounds": {
+              "type": "embeddedDocuments",
+              "dynamic": true,
+              "storedSource": {
+                "include": [
+                  "raised_currency_code",
+                  "raised_amount"
+                ]
+              }
+            }
+          }
+        }
+      }
+
+   The following query:
+
+   - Uses the :ref:`text-ref` to search for funds raised in ``USD`` .
+   - Uses :ref:`returnScope <fts-return-scope>` options to set the
+     query context to the ``embeddedDocuments`` field named
+     ``funding_rounds``. To use ``returnScope``, the query:
+     
+     - Specifies the :ref:`returnStoredSource
+       <fts-return-stored-source-option>` option, which is required, to
+       return the stored source fields. 
+   
+   - Facets on the ``raised_amount`` field in the ``funding_rounds``
+     array of objects. The query specifies three buckets:
+
+     - 5000000, inclusive lower bound for this bucket
+     - 5250000, exclusive upper bound for the 5000000 bucket and
+       inclusive lower bound for this bucket 
+     - 5500000, exclusive upper bound for the 5250000 bucket
+
+   .. io-code-block:: 
+      :copyable: true 
+
+      .. input:: 
+         :language: json 
+         :linenos: 
+
+         db.companies.aggregate([
+          {
+            "$searchMeta": {
+              "returnStoredSource": true,
+              "returnScope": {
+                "path": "funding_rounds"
               },
-              {
-                "$set": {
-                  "meta": {
-                    "$arrayElemAt": ["$meta", 0]
+              "facet": {
+                "operator": {
+                  "text": {
+                    "path": "funding_rounds.raised_currency_code",
+                    "query": "USD"
+                  }
+                },
+                "facets": {
+                  "raisedAmountFacet": {
+                    "type": "number",
+                    "path": "funding_rounds.raised_amount",
+                    "boundaries": [5000000, 5250000, 5500000]
                   }
                 }
               }
-            ])
+            }
+          }
+         ])
 
-         .. output:: 
-            :language: shell 
-            :linenos:
-            :visible: false
+      .. output:: 
+         :language: shell 
+         :linenos:
+         :visible: false
 
-            [
-              {
-                docs: [
-                  {
-                    _id: ObjectId('573a1393f29313caabcde1ae'),
-                    title: 'Begone Dull Care',
-                    released: ISODate('1999-07-01T00:00:00.000Z')
-                  },
-                  {
-                    _id: ObjectId('573a13a9f29313caabd2048a'),
-                    title: 'Fara',
-                    released: ISODate('1999-07-01T00:00:00.000Z')
-                  }
-                ],
-                meta: {
-                  count: { lowerBound: Long('20878') },
-                  facet: {
-                    genresFacet: {
-                      buckets: [
-                        { _id: 'Drama', count: Long('12149') },
-                        { _id: 'Comedy', count: Long('6436') },
-                        { _id: 'Romance', count: Long('3274') },
-                        { _id: 'Crime', count: Long('2429') },
-                        { _id: 'Thriller', count: Long('2400') },
-                        { _id: 'Action', count: Long('2349') },
-                        { _id: 'Adventure', count: Long('1876') },
-                        { _id: 'Documentary', count: Long('1755') },
-                        { _id: 'Horror', count: Long('1432') },
-                        { _id: 'Biography', count: Long('1244') }
-                      ]
-                    }
-                  }
-                }
-              }
-            ]
+         [
+           {
+             count: { lowerBound: Long('5329') },
+             facet: {
+               raisedAmountFacet: {
+                 buckets: [
+                   { _id: 5000000, count: Long('251') },
+                   { _id: 5250000, count: Long('32') }
+                 ]
+               }
+             }
+           }
+         ]
 
-To learn more about these results, see :ref:`fts-facet-results`.
+   In the preceding |fts| results, the facet counts are based on the
+   embedded child documents and not the parents.
 
 Continue Learning 
 -----------------

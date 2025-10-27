@@ -1,0 +1,204 @@
+.. _fts-return-scope:
+
+=============================================
+Query, Filter, and Retrieve Arrays of Objects 
+=============================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: retrieve nested fields
+   :description: Use returnScope option in Search to retrieve nested fields inside array of objects as individual documents.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+You can use the ``returnScope`` option to set the context of the query
+and return arrays of objects as individual documents.  
+
+Requirements 
+------------
+
+To retrieve nested objects as individual documents using ``returnScope``,
+you must: 
+
+- Index the arrays of objects as the :ref:`embeddedDocuments
+  <bson-data-types-embedded-documents>` type.  
+- Define :ref:`storedSource <fts-stored-source-definition>` for the
+  nested fields that you want to retrieve. |fts| only returns fields
+  defined in the ``storedSource``. 
+- Set the :ref:`returnStoredSource <fts-return-stored-source-option>`
+  option to ``true`` in the query.
+
+Syntax 
+------
+
+``returnScope`` has the following syntax in your queries:
+
+.. tabs:: 
+
+   .. tab:: $search Syntax
+      :tabid: search
+
+      .. code-block:: json
+         :emphasize-lines: 6 - 8
+
+         {
+           $search: {  
+            "<operator>": { 
+               <operator-specification>,
+            },
+            "returnScope": {
+               "path": "<embedded-documents-field-to-retrieve>"
+            },
+            "returnStoredSource": true
+           }
+         }
+
+   .. tab:: $searchMeta Syntax
+      :tabid: search-meta
+
+      .. code-block:: json
+         :emphasize-lines: 3 - 5
+
+         {
+           $searchMeta: {  
+            "returnScope": {
+               "path": "<embedded-documents-field-to-retrieve>"
+            },
+            "returnStoredSource": true
+           },
+           "facet": {
+             "<operator>": { 
+               <operator-specification>,
+            },
+             "facets": {
+               <facet-definition>
+             }
+           }
+         }
+
+To learn more about query syntax, see :pipeline:`$search`.
+
+Behavior
+--------
+
+The ``returnScope`` option sets the retrieval context for the query. If
+you specify ``returnScope`` in your query, |fts| scores, sorts, and
+counts each embedded document as if it were an individual document. 
+
+Considerations
+--------------
+
+In your operator specification, you must specify the full path to the
+field that you want to query.
+
+When you use the ``returnScope`` option, |fts| only returns the fields
+that you configured as ``storedSource`` within the ``embeddedDocument``.
+Fields outside of the ``embeddedDocument`` path (such as fields at the
+root level) and fields that are not configured as ``storedSource`` are
+not returned. 
+
+Examples 
+--------
+
+The following examples demonstrate how to use the ``returnScope`` option
+in queries. The examples use the ``sample_training.companies`` sample
+dataset. If you load the data on your cluster and create the sample index
+on the fields in the collection, you can try the following queries 
+against the sample data.
+
+Sample Index 
+~~~~~~~~~~~~
+
+.. literalinclude:: /includes/fts/return-scope/index.json 
+   :language: json
+   :copyable: true 
+   :linenos:
+
+.. include:: /includes/fts/return-scope/index-desc.rst
+
+.. code-block:: json 
+   :copyable: false 
+   :emphasize-lines: 6, 9-10, 17-25
+   :caption: Sample Document Structure from sample_training.companies Collection
+
+   {
+     ...,
+     "funding_rounds": [
+       {
+         "id": <integer>,
+         "round_code": "<string>",
+         "source_url": "<string>",
+         "source_description": "<string>",
+         "raised_amount": <integer>,
+         "raised_currency_code": "<string>",
+         "funded_year": <integer>,
+         "funded_month": "<string>",
+         "funded_day": "<string>",
+         "investments": [
+            {
+              "company": "<string>",
+              "financial_org": {
+                "name": "<string>",
+                "permalink": "<string>"
+              },
+              "person": {
+                "first_name": "<string>",
+                "last_name": "<string>",
+                "permalink": "<string>"
+              }
+            },
+            ...
+         ]
+       },
+       ...
+     ],
+     ...
+   }
+
+Sample Queries 
+~~~~~~~~~~~~~~
+
+The following sections demonstrate sample queries that use the
+``returnScope`` option to retrieve fields in ``embeddedDocuments``
+type fields that were stored on ``mongot``. 
+
+.. collapsible::
+   :heading: Simple Query
+   :sub_heading: Query and retrieve embedded document fields.
+   :expanded: false
+
+   .. include:: /includes/fts/return-scope/simple-query-desc.rst
+
+   .. io-code-block:: 
+      :copyable: true
+
+      .. input:: /includes/fts/return-scope/simple-query-mongosh.sh 
+         :language: javascript 
+         :linenos: 
+
+      .. output:: /includes/fts/return-scope/simple-query-mongosh-output.js
+         :language: javascript 
+         :visible: false
+
+.. collapsible::
+   :heading: Compound Query 
+   :sub_heading: Query and retrieve multiple embedded document fields.
+   :expanded: false
+
+   .. include:: /includes/fts/return-scope/compound-query-desc.rst
+
+   .. io-code-block:: 
+      :copyable: true
+
+      .. input:: /includes/fts/return-scope/compound-query-mongosh.sh 
+         :language: javascript 
+         :linenos: 
+
+      .. output:: /includes/fts/return-scope/compound-query-mongosh-output.js
+         :language: javascript 
+         :visible: false

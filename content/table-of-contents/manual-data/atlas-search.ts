@@ -379,6 +379,11 @@ const tocData: TocItem[] = [
                 url: "/docs/atlas/atlas-search/paginate-results",
               },
               {
+                label: "returnScope",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/atlas-search/return-scope",
+              },
+              {
                 label: "tracking",
                 contentSite: "cloud-docs",
                 url: "/docs/atlas/atlas-search/tracking",
