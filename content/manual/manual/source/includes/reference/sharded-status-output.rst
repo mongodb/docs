@@ -5,6 +5,7 @@
       shard key: { <shard key> : <1 or hashed> }
       unique: <boolean>
       balancing: <boolean>
+      allowMigrations: <boolean>
       chunks:
          <shard name1> <number of chunks>
          <shard name2> <number of chunks>

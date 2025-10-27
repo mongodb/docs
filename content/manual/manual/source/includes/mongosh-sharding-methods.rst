@@ -72,6 +72,10 @@
      - Disable balancing on a single collection in a sharded database. 
        Does not affect balancing of other collections in a sharded cluster.
 
+   * - :method:`sh.disableMigrations()`
+     - Disables chunk migrations for a specific collection in a sharded
+       cluster.
+
    * - :method:`sh.enableAutoMerger()`
      - .. include:: /includes/enableAutoMerger.rst
 
@@ -85,6 +89,10 @@
    * - :method:`sh.enableBalancing()`
      - Activates the sharded collection balancer process 
        if previously disabled using :method:`sh.disableBalancing()`.
+
+   * - :method:`sh.enableMigrations()`
+     - Enables chunk migrations for a specific collection in a sharded
+       cluster that were previously disabled using :method:`sh.disableMigrations()`.
 
    * - :method:`sh.enableSharding()`
      - Creates a database.
