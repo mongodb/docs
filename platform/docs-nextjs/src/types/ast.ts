@@ -396,14 +396,14 @@ interface FieldListNode extends BaseFieldNode {
 
 interface ParentListNode extends ParentNode {
   type: 'list';
-  enumtype: 'unordered' | 'ordered';
+  enumtype?: 'unordered' | 'ordered';
   startat?: number;
   children: ParentListItemNode[];
 }
 
 interface ListNode extends ParentNode {
   type: 'list';
-  enumtype: 'unordered' | 'ordered' | '1' | 'a' | 'A' | 'i' | 'I';
+  enumtype?: 'unordered' | 'ordered' | '1' | 'a' | 'A' | 'i' | 'I';
   startat?: number;
   children: ListItemNode[];
 }

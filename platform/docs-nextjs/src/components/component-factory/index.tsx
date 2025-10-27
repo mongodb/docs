@@ -45,6 +45,7 @@ import type {
   HeadingNode,
   ImageNode,
   CollapsibleNode,
+  ListTableNode,
 } from '@/types/ast';
 import type { ComponentMap } from '@/components/component-factory/lazy';
 import { LAZY_COMPONENTS } from '@/components/component-factory/lazy';
@@ -126,6 +127,7 @@ import DefinitionList, { type DefinitionListProps } from '@/components/definitio
 import Image, { type ImageProps } from '@/components/image';
 import SeeAlso, { type SeeAlsoProps } from '@/components/admonition/see-also';
 import Collapsible, { type CollapsibleProps } from '@/components/collapsible';
+import ListTable, { type ListTableProps } from '@/components/list-table';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -237,7 +239,7 @@ const getComponent = (() => {
         line_block: LineBlock as React.ComponentType<SupportedComponentProps>,
         list: List as React.ComponentType<SupportedComponentProps>,
         listItem: ListItem as React.ComponentType<SupportedComponentProps>,
-        // 'list-table': ListTable,
+        'list-table': ListTable as React.ComponentType<SupportedComponentProps>,
         literal: Literal as React.ComponentType<SupportedComponentProps>,
         // literal_block: LiteralBlock,
         literalinclude: Include as React.ComponentType<SupportedComponentProps>,
@@ -367,7 +369,8 @@ type SupportedComponentProps =
   | ImageProps
   | GlossaryProps
   | ImageProps
-  | CollapsibleProps;
+  | CollapsibleProps
+  | ListTableProps;
 
 type RoleComponentProps =
   | AbbrProps
@@ -639,6 +642,9 @@ const renderComponentWithProps = (
     return (
       <ComponentType nodeChildren={collapsibleNode.children} options={collapsibleNode.options} {...propsToDrill} />
     );
+  } else if (ComponentType === getComponent('list-table')) {
+    const listTableNode = nodeData as ListTableNode;
+    return <ListTable nodeChildren={listTableNode.children} options={listTableNode.options} />;
   }
 
   // Default: spread all props for other components
