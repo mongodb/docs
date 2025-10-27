@@ -30,7 +30,6 @@ const agg = [
 
 MongoClient.connect(
   "<connection-string>",
-  { useNewUrlParser: true, useUnifiedTopology: true },
   async function (connectErr, client) {
     assert.equal(null, connectErr);
     const coll = client.db("sample_mflix").collection("movies");

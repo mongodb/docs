@@ -81,8 +81,6 @@ const extraOptions = {
 
 // start-client
 const secureClient = new MongoClient(connectionString, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
   autoEncryption: {
     keyVaultNamespace,
     kmsProviders,
@@ -92,10 +90,7 @@ const secureClient = new MongoClient(connectionString, {
   },
 });
 // end-client
-const regularClient = new MongoClient(connectionString, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+const regularClient = new MongoClient(connectionString);
 
 async function main() {
   try {

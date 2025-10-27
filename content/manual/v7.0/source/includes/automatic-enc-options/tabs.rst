@@ -12,7 +12,7 @@
 
      .. literalinclude:: /includes/automatic-enc-options/code-snippets/opts.js
          :language: javascript
-         :emphasize-lines: 5-9
+         :emphasize-lines: 3-7
 
    .. tab::
      :tabid: python
