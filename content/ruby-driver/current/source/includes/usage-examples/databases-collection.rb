@@ -51,6 +51,12 @@ Mongo::Client.new(uri) do |client|
   collection.drop
   # end-delete
 
+  # start-delete-db
+  client = Mongo::Client.new(['127.0.0.1:27017'], database: 'test_database')
+  database = client.database
+  database.drop
+  # end-delete-db
+
   # start-with-database
   database_with_settings = client.use('test_database').with(
     read: { mode: :secondary },
