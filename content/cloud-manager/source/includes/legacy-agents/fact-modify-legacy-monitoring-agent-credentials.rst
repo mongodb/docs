@@ -1,10 +1,8 @@
 To modify the legacy Monitoring Agent credentials:
 
-a. .. include:: /includes/nav/list-deployment.rst
+a. .. include:: /includes/nav/list-processes.rst
     
-b. .. include:: /includes/nav/list-processes.rst
-    
-c. Modify the credentials.
+#. Modify the credentials.
     
    i. Click :icon-mms:`ellipsis`.
 

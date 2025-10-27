@@ -20,8 +20,6 @@
       
           The backup region can only be changed once all backup jobs are 
           in the ``inactive`` state.
-      
-   .. include:: /includes/nav/steps-org-settings.rst
    
    .. include:: /includes/nav/steps-org-support.rst
       

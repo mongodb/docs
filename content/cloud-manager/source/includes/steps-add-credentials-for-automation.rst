@@ -7,8 +7,6 @@
       databases. Make sure this MongoDB user has the
       :ref:`proper privileges <mms-req-cred-automation>`.
 
-   .. include:: /includes/nav/steps-deployment.rst
-
    .. include:: /includes/nav/steps-security.rst
       
    .. step:: Go to the :guilabel:`Security Settings` dialog for your deployment.

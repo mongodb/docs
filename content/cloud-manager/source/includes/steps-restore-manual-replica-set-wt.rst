@@ -476,7 +476,7 @@
          rs.add( { host: "<host2>:<port>" } )
          rs.add( { host: "<host3>:<port>" } )
 
-   .. include:: /includes/nav/steps-deployment.rst   
+   .. include:: /includes/nav/steps-processes.rst   
    
    .. step:: Reimport the Replica Set.
       

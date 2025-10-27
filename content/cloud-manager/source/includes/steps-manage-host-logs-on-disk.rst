@@ -1,7 +1,7 @@
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-deployment.rst   
+   .. include:: /includes/nav/steps-processes.rst   
       
    .. step:: Open the :guilabel:`MongoDB Log Settings`.
       

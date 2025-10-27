@@ -1,7 +1,7 @@
 .. procedure::
    :style: normal
       
-   .. include:: /includes/nav/steps-deployment.rst
+   .. include:: /includes/nav/steps-processes.rst
       
    .. step:: On the line listing the deployment item, click :guilabel:`Modify`.
       

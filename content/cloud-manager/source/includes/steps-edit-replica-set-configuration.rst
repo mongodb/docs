@@ -1,7 +1,5 @@
 .. procedure::
    :style: normal
-      
-   .. include:: /includes/nav/steps-deployment.rst
 
    .. include:: /includes/nav/steps-processes.rst
    

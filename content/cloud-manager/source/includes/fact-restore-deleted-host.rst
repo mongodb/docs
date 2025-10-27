@@ -13,8 +13,6 @@ To locate and undelete a previously deleted host:
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-deployment.rst
-
    .. include:: /includes/nav/steps-deleted-hosts.rst
 
    .. step:: Undelete the host.

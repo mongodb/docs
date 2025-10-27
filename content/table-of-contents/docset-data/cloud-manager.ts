@@ -2594,6 +2594,11 @@ const tocData: TocItem[] = [
             contentSite: "cloud-manager",
             url: "/docs/cloud-manager/reference/faq/faq-mongodb-agent",
           },
+          {
+            label: "Navigation Improvements",
+            contentSite: "cloud-manager",
+            url: "/docs/cloud-manager/reference/faq/faq-nav-improvements",
+          },
         ],
       },
       {

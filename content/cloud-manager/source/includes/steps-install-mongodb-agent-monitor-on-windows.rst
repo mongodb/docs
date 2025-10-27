@@ -1,7 +1,5 @@
 .. procedure::
    :style: normal
-      
-   .. include:: /includes/nav/steps-deployment.rst
 
    .. include:: /includes/nav/steps-agents.rst
 
@@ -174,9 +172,7 @@
       
       **To change the location of the {+mdbagent+} Binaries**
       
-      a. .. include:: /includes/nav/list-deployment.rst
-         
-      #. .. include:: /includes/nav/list-agents.rst
+      a. .. include:: /includes/nav/list-agents.rst
          
       #. Click the :guilabel:`Downloads & Settings` tab.
       

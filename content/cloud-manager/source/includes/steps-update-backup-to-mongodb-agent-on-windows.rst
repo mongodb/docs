@@ -270,9 +270,7 @@
       
       **To change the location of the {+mdbagent+} Binaries**
       
-      a. .. include:: /includes/nav/list-deployment.rst
-
-      #. .. include:: /includes/nav/list-agents
+      a. .. include:: /includes/nav/list-agents.rst
       
       #. Click the :guilabel:`Downloads & Settings` tab.
       

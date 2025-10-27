@@ -274,7 +274,7 @@
       
       To view the new configuration in the |mms| console:
 
-      1. .. include:: /includes/nav/list-deployment.rst
+      1. .. include:: /includes/nav/list-processes.rst
       
       #. Review the new configuration.
       

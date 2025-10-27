@@ -1,9 +1,7 @@
 .. procedure::
    :style: normal
       
-   .. include:: /includes/nav/steps-org-billing.rst   
-      
-   .. step:: Click the :guilabel:`Overview` tab.
+   .. include:: /includes/nav/steps-org-billing-overview.rst   
       
    .. step:: Click :guilabel:`Edit` in the :guilabel:`Payment Method` card.
       

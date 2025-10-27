@@ -1,8 +1,6 @@
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-deployment.rst
-
    .. include:: /includes/nav/steps-security.rst
       
    .. step:: Click the :guilabel:`MongoDB Roles` tab.

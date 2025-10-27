@@ -1,8 +1,6 @@
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-deployment.rst
-
    .. include:: /includes/nav/steps-agents.rst
       
    .. step:: Click the :guilabel:`Agent API Keys` Tab.

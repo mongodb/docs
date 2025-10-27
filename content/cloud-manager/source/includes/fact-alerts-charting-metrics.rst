@@ -3,8 +3,6 @@ You can create charts for a selection of these metrics in |mms|.
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-deployment.rst
-
    .. include:: /includes/nav/steps-processes.rst
 
    .. step:: Select the metrics to chart.

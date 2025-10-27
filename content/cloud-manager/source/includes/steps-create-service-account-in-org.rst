@@ -1,9 +1,7 @@
 .. procedure::
    :style: normal
-      
-   .. include:: /includes/nav/steps-org-settings.rst
 
-   .. include:: /includes/nav/steps-org-access-manager.rst
+   .. include:: /includes/nav/steps-org-access-manager-apps.rst
       
    .. step:: Click :guilabel:`Add new` :icon:`arrow-right` :guilabel:`Application` :icon:`arrow-right` :guilabel:`Service Account`. 
 

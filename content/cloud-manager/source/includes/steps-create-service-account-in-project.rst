@@ -1,7 +1,7 @@
 .. procedure::
    :style: normal
       
-   .. include:: /includes/nav/steps-project-access-manager.rst
+   .. include:: /includes/nav/steps-project-access-manager-apps.rst
       
    .. step:: Click :guilabel:`Create Application` :icon:`arrow-right` :guilabel:`Service Account`. 
 

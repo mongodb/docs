@@ -6,9 +6,7 @@ directory, follow these procedures:
 
 **To change the location of the Agent Binaries:**
 
-a. .. include:: /includes/nav/list-deployment.rst
-
-#. .. include:: /includes/nav/list-agents.rst
+a. .. include:: /includes/nav/list-agents.rst
 
 #. Change the path.
 

@@ -1,7 +1,5 @@
 .. procedure::
    :style: normal
-      
-   .. include:: /includes/nav/steps-org-settings.rst
 
    .. include:: /includes/nav/steps-org-alerts.rst
 

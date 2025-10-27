@@ -1,7 +1,7 @@
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-deployment.rst
+   .. include:: /includes/nav/steps-processes.rst
       
    .. step:: Go to the :guilabel:`Monitoring Settings` dialog for your deployment.
 

@@ -1,11 +1,7 @@
 .. procedure::
    :style: normal
-      
-   .. include:: /includes/nav/steps-org-settings.rst
 
-   .. include:: /includes/nav/steps-org-access-manager.rst
-      
-   .. step:: Click the :guilabel:`Users` tab.
+   .. include:: /includes/nav/steps-org-access-manager-users.rst
       
    .. step:: Click :guilabel:`Edit Permissions` next to the organization you want to modify.
       

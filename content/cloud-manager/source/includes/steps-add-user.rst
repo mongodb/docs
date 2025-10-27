@@ -1,9 +1,7 @@
 .. procedure::
    :style: normal
       
-   .. include:: /includes/nav/steps-project-access-manager.rst
-
-   .. step:: Click the :guilabel:`Users` tab.
+   .. include:: /includes/nav/steps-project-access-manager-users.rst
       
    .. step:: Specify User or Team.
       

@@ -1,7 +1,7 @@
 .. procedure::
    :style: normal
       
-   .. include:: /includes/nav/steps-deployment.rst
+   .. include:: /includes/nav/steps-processes.rst
 
    .. step:: Click the replica set where the collection resides.
 

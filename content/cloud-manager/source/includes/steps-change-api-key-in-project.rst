@@ -1,9 +1,7 @@
 .. procedure::
    :style: normal
       
-   .. include:: /includes/nav/steps-project-access-manager.rst
-      
-   .. step:: Click the :guilabel:`Applications` tab.
+   .. include:: /includes/nav/steps-project-access-manager-apps.rst
 
    .. step:: Click :guilabel:`API Keys`.
       

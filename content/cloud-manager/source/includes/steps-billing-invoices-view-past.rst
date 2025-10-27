@@ -1,11 +1,7 @@
 .. procedure::
    :style: normal
       
-   .. include:: /includes/nav/steps-org-billing.rst
-      
-   .. step:: Click the :guilabel:`Invoices` tab.
-      
-      |mms| displays a list of your invoices.
+   .. include:: /includes/nav/steps-org-billing-invoice.rst
       
    .. step:: Filter your list of invoices, if desired.
       

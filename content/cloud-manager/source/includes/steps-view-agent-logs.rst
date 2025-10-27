@@ -1,7 +1,5 @@
 .. procedure::
    :style: normal
-      
-   .. include:: /includes/nav/steps-deployment.rst
 
    .. include:: /includes/nav/steps-agents.rst
 
@@ -28,7 +26,6 @@
       
          To view logs for a specific agent, you can alternatively:
          
-         1. .. include:: /includes/nav/list-deployment.rst
-         #. .. include:: /includes/nav/list-agents.rst
+         1. .. include:: /includes/nav/list-agents.rst
          #. Click :guilabel:`All Agents`.
          #. Click :guilabel:`view logs` for the agent.  

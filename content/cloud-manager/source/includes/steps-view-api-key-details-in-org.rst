@@ -1,11 +1,7 @@
 .. procedure::
    :style: normal
-      
-   .. include:: /includes/nav/steps-org-settings.rst
 
-   .. include:: /includes/nav/steps-org-access-manager.rst
-      
-   .. step:: Click the :guilabel:`Applications` tab.
+   .. include:: /includes/nav/steps-org-access-manager-apps.rst
 
    .. step:: Click :guilabel:`API Keys`.
 

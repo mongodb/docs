@@ -10,8 +10,6 @@ create one:
 .. procedure::
    :style: normal
 
-   .. include:: /includes/nav/steps-deployment.rst
-
    .. include:: /includes/nav/steps-agents.rst
 
    .. step:: Generate the |api| key.

@@ -1,11 +1,7 @@
 .. procedure::
    :style: normal
-      
-   .. include:: /includes/nav/steps-org-settings.rst
 
-   .. include:: /includes/nav/steps-org-access-manager.rst
-      
-   .. step:: Click the :guilabel:`Teams` tab.
+   .. include:: /includes/nav/steps-org-access-manager-teams.rst
       
    .. step:: Rename the team.
       

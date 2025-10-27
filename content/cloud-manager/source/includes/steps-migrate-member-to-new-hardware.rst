@@ -4,8 +4,6 @@
    .. step:: Provision the new server.
 
       See :doc:`/tutorial/nav/add-servers`.
-      
-   .. include:: /includes/nav/steps-deployment.rst
 
    .. include:: /includes/nav/steps-processes.rst
       
@@ -91,7 +89,7 @@
       Otherwise, click :guilabel:`Cancel` and you can make
       additional changes.
       
-   .. include:: /includes/nav/steps-deployment.rst
+   .. include:: /includes/nav/steps-processes.rst
    
    .. step:: Verify that the new member has synchronized.
 
@@ -100,7 +98,7 @@
       :manual:`status </reference/replica-states>` for each
       new member is no longer in the ``Recovering`` state.
 
-   .. include:: /includes/nav/steps-deployment.rst
+   .. include:: /includes/nav/steps-processes.rst
       
    .. step:: Remove the old member from the replica set.
       
@@ -125,7 +123,7 @@
       replica set member to a standalone cluster visible in the
       :guilabel:`Deployment` view.
       
-   .. include:: /includes/nav/steps-deployment.rst
+   .. include:: /includes/nav/steps-processes.rst
    
    .. step:: Shut down the old member.
       
