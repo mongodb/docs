@@ -34,6 +34,16 @@ var index = new CreateSearchIndexModel(
                         { "type", "string" },
                         { "analyzer", "lucene.french" }
                       }
+                    },
+                    { "stableSimilarity", new BsonDocument
+                      {
+                        { "type", "string" },
+                        { "similarity", new BsonDocument
+                          {
+                            { "type", "stableTfl" }
+                          }
+                        }
+                      }
                     }
                   }
                 }

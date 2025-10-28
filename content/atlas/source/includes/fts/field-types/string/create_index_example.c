@@ -36,7 +36,7 @@ int main (void)
                         "title" : {
                             "type": "string"
                         }
-                    } 
+                    }
                 },
             }
 	    } ]

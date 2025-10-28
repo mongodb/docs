@@ -42,6 +42,7 @@ func main() {
 						{"minGrams", 3},
 						{"maxGrams", 5},
 						{"foldDiacritics", false},
+						{"similarity", bson.D{{"type", "stableTfl"}}},
 					}},
 				}},
 			}},

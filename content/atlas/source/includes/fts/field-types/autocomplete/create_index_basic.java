@@ -24,6 +24,7 @@ public class CreateIndex {
                                                   .append("minGrams", 3)
                                                   .append("maxGrams", 5)
                                                   .append("foldDiacritics", false)
+                                                  .append("similarity", new Document("type", "stableTfl"))
                                                   )));
 
             collection.createSearchIndex(indexName, searchIdx);

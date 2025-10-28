@@ -13,10 +13,18 @@ collection = database["<collection>"]
 search_index_model = SearchIndexModel(
     definition={
         "mappings": {
-            "dynamic": true|false,
+            "dynamic": True|False,
             "fields": {
                 "<field_name>":{
-                   "type": "string"
+                   "type": "string",
+                   "analyzer": "<analyzer-name>",
+                   "searchAnalyzer": "<search-analyzer-name>",
+                   "indexOptions": "docs|freqs|positions|offsets",
+                   "store": True|False,
+                   "ignoreAbove": <integer>,
+                   "similarity": { "type": "bm25|boolean|stableTfl" },
+                   "multi": { <string-field-definition> },
+                   "norms": "include|omit"
                 }
             }
         },

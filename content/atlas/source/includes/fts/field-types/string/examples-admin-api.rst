@@ -30,12 +30,7 @@ Try an Example for the |fts-field-type| Type
    .. tab:: Multi Example
       :tabid: multi
 
-      The following index definition for the 
-      ``sample_mflix.movies`` collection in the :ref:`sample 
-      dataset <available-sample-datasets>` indexes the 
-      ``title`` field with string values. It also specifies the analyzers
-      :ref:`lucene.english <ref-language-analyzers>` and :ref:`lucene.french
-      <ref-language-analyzers>` as alternate analyzers for the ``title`` field.
+      .. include:: /includes/fts/field-types/string/multi-example-intro.rst
 
       .. io-code-block:: 
          :copyable: true
@@ -47,4 +42,4 @@ Try an Example for the |fts-field-type| Type
          .. output:: 
             :visible: false
 
-            {"collectionName":"movies","database":"sample_mflix","indexID":"<indexID>","latestDefinition":{"mappings":{"dynamic":false,"fields":{"title":{"multi":{"english":{"analyzer":"lucene.english","type":"string"},"french":{"analyzer":"lucene.french","type":"string"}},"type":"string"}}}},"latestDefinitionVersion":{"version":0},"name":"default","queryable":false,"status":"PENDING","type":"search"} 
+            {"collectionName":"movies","database":"sample_mflix","indexID":"<indexID>","latestDefinition":{"mappings":{"dynamic":false,"fields":{"title":{"multi":{"english":{"analyzer":"lucene.english","type":"string"},"french":{"analyzer":"lucene.french","type":"string"},"stableSimilarity":{"similarity":{"type":"stableTfl"},"type":"string"}},"type":"string"}}}},"latestDefinitionVersion":{"version":0},"name":"default","queryable":false,"status":"PENDING","type":"search"} 

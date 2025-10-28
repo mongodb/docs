@@ -23,12 +23,7 @@ Try an Example for the |fts-field-type| Type
    .. tab:: Multi Example
       :tabid: multi
 
-      The following index definition for the 
-      ``sample_mflix.movies`` collection in the :ref:`sample 
-      dataset <available-sample-datasets>` indexes the 
-      ``title`` field with string values. It also specifies the analyzers
-      :ref:`lucene.english <ref-language-analyzers>` and :ref:`lucene.french
-      <ref-language-analyzers>` as alternate analyzers for the ``title`` field.
+      .. include:: /includes/fts/field-types/string/multi-example-intro.rst
 
       .. literalinclude:: /includes/fts/field-types/string/CreateIndexExampleMulti.java
          :language: java

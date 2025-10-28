@@ -33,7 +33,10 @@ int main(){
                         kvp("tokenization", "edgeGram|rightEdgeGram|nGram"),
                         kvp("minGrams", <2>),
                         kvp("maxGrams", <15>),
-                        kvp("foldDiacritics", true|false)
+                        kvp("foldDiacritics", true|false),
+                        kvp("similarity", make_document(
+                            kvp("type", "bm25|boolean|stableTfl")
+                        ))
                     ))
                 ))
             ))

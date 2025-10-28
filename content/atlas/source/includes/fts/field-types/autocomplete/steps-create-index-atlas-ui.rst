@@ -11,6 +11,11 @@ select the database and collection.
 
       .. include:: /includes/fts/extracts/fts-vib-index-definition-advanced.rst 
 
+      .. note:: 
+         
+         To configure the ``similarity.type`` property for string fields, use the
+         |json| Editor.
+         
    .. tab:: JSON Editor 
       :tabid: jsonib
 

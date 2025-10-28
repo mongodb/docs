@@ -46,6 +46,11 @@ func main() {
 								{"type", "string"},
 								{"analyzer", "lucene.french"},
 							}},
+							{"stableSimilarity", bson.D{
+								{"type", "string"},
+								{"similarity", bson.D{
+									{"type", "stableTfl"},
+								}},
 						}},
 					}},
 				}},

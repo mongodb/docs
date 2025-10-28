@@ -13,6 +13,10 @@ db.movies.createSearchIndex(
             "french": {
               "type": "string",
               "analyzer": "lucene.french"
+            },
+            "stableSimilarity": {
+              "type": "string",
+              "similarity": { "type": "stableTfl" }
             }
           }
         }

@@ -44,14 +44,17 @@ mappings.
    .. tab:: Multi Example
       :tabid: multi
 
-      The following index definition indexes string values in the  
-      ``title`` field with the ``lucene.english`` and ``lucene.french`` 
-      analyzers in addition to the default ``lucene.standard`` analyzer:
+      .. include:: /includes/fts/field-types/string/multi-example-intro.rst
 
       .. tabs::
 
          .. tab:: Visual Editor 
             :tabid: vib
+
+            .. note::
+               
+               To confgure the ``similarity.type`` property, you must use the
+               |json| Editor.
 
             a. In the :guilabel:`Add Field Mapping` window, select
                :guilabel:`title` from the :guilabel:`Field Name` 

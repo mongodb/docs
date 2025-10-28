@@ -35,8 +35,16 @@ int main (void)
                     "fields": { 
                         "<fieldName>" : {
                             "type": "string"
+                            "analyzer": "<atlas-search-analyzer>",
+                            "searchAnalyzer": "<atlas-search-analyzer>",
+                            "indexOptions": "docs|freqs|positions|offsets",
+                            "store": true|false,
+                            "ignoreAbove": <integer>,
+                            "similarity": { "type": "bm25|boolean|stableTfl" },
+                            "multi": { <string-field-definition> },
+                            "norms": "include|omit"
                         }
-                    } 
+                    },
                 },
             }
 	    } ]

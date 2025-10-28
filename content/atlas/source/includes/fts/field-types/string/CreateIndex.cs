@@ -20,7 +20,15 @@ var index =  new CreateSearchIndexModel(
           {
             { "<field-name>", new BsonDocument
               {
-                { "type", "string" }
+                { "type", "string" },
+                { "analyzer", "<analyzer-name>"},
+                { "searchAnalyzer", "<search-analyzer-name>"},
+                { "indexOptions", "docs|freqs|positions|offsets"},
+                { "store", true|false },
+                { "ignoreAbove", <integer> }, 
+                { "similarity", new BsonDocument { { "type", "bm25|boolean|stableTfl" } } },
+                { "multi", new BsonDocument { <string-field-definition> },
+                { "norms", "include|omit" }            
               }
             }
           }

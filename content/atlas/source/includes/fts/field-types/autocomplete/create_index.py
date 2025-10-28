@@ -21,7 +21,8 @@ search_index_model = SearchIndexModel(
                    "tokenization": "nGram",
                    "minGrams": <2>,
                    "maxGrams": <15>,
-                   "foldDiacritics": True|False
+                   "foldDiacritics": True|False,
+                   "similarity": { "type": "bm25|boolean|stableTfl" }
                 }
             }
         },

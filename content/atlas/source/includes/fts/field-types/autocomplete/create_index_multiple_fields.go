@@ -43,7 +43,7 @@ func main() {
 							{"minGrams", 2},
 							{"maxGrams", 15},
 							{"foldDiacritics", false},
-					    },
+						},
 						bson.D{{"type", "string"}},
 					}},
 				}},

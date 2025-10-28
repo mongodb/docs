@@ -20,6 +20,10 @@ curl --header "Authorization: Bearer ${ACCESS_TOKEN}" \
                   "french": {
                     "type": "string",
                     "analyzer": "lucene.french"
+                  },
+                  "stableSimilarity": {
+                    "type": "string",
+                    "similarity": { "type": "stableTfl" }
                   }
                 }
               } 

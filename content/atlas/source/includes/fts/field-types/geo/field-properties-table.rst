@@ -32,5 +32,4 @@ The |fts| ``geo`` type takes the following parameters:
 
        - ``true`` to index shapes and points 
        - ``false`` to index only points
-
      - ``false``

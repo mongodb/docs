@@ -8,7 +8,12 @@ Choose your preferred configuration method in the {+atlas-ui+} and then select t
    .. tab:: Visual Editor 
       :tabid: vib
 
-      .. include:: /includes/fts/extracts/fts-vib-index-definition-advanced.rst 
+      .. include:: /includes/fts/extracts/fts-vib-index-definition-advanced.rst
+      
+      .. note:: 
+         
+         To configure the ``similarity.type`` property for string fields, use the
+         |json| Editor.
 
    .. tab:: JSON Editor 
       :tabid: jsonib

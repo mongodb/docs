@@ -206,3 +206,15 @@ The |fts| |fts-field-type| type takes the following parameters:
          ``cafe`` returns results only with the characters ``cafe``.
 
      - ``true``
+
+   * - ``similarity.type``
+     - string
+     - optional
+     - Name of the similarity algorithm to use with this string mapping
+       when scoring with the :ref:`autocomplete <autocomplete-ref>`
+       operator. Value can be one of the following: ``bm25``,
+       ``boolean``, or ``stableTfl``. 
+       
+       To learn more about the available similarity algorithms, see
+       :ref:`Score Details <fts-similarity-algorithms>`.       
+     - ``bm25``

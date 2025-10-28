@@ -33,6 +33,7 @@ collection, and refine your index to add field mappings.
             - :guilabel:`Min Grams` to ``2``.
             - :guilabel:`Max Grams` to ``15``.
             - :guilabel:`Fold Diacritics` to ``true``.
+            - :guilabel:`Similarity.type` to ``stableTfl``.
           
          #. Click :guilabel:`Add`. 
 
@@ -55,7 +56,8 @@ collection, and refine your index to add field mappings.
                      "tokenization": "edgeGram",
                      "minGrams": 2,
                      "maxGrams": 15,
-                     "foldDiacritics": true
+                     "foldDiacritics": true,
+                     "similarity": { "type": "stableTfl" }
                   }
                 }
               }

@@ -99,11 +99,10 @@ in the result:
        formula. The top-level ``value`` shows the entire score of the result
        document, and is equal to the value of ``$searchScore``.
        
-       The scoring formula varies based on the operator used in the query.
-       For example, |fts| uses the following scoring formula for a
-       :ref:`compound <compound-ref>` operator query with :ref:`text <text-ref>`
-       and :ref:`near <near-ref>` operators: ``BM25Similarity + distance decay function``. 
-  
+       The scoring formula varies based on the operator used in the
+       query. For example, |fts| uses a :ref:`distance decay function
+       <near-query-score>` to calculate the score for the :ref:`near
+       <near-ref>` operator. 
 
    * - ``description``
      - string
@@ -125,17 +124,101 @@ in the result:
 Factors That Contribute to the Score 
 ------------------------------------
 
-For ``BM25Similarity``, the score is computed as ``boost * idf * tf``.
-|fts| takes into account the following ``BM25Similarity`` factors for
-calculating the score: 
+Different query operators use different algorithms to calculate the
+``searchScore`` for each document in the results. The following sections
+describe how common query operators handle scoring:
+
+.. _fts-similarity-algorithms: 
+
+text, phrase, queryString, and autocomplete Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the :ref:`text <text-ref>`, :ref:`phrase <phrase-ref>`,
+:ref:`queryString <querystring-ref>` and :ref:`autocomplete
+<autocomplete-ref>` operators use the ``bm25`` similarity algorithm to
+score documents. 
+
+We recommend using the ``stableTfl`` or ``boolean`` algorithms when you
+need consistent results across multiple queries, especially if both of
+the following are true: 
+
+- Your application sorts results by ``searchScore`` and :ref:`paginates
+  results <fts-paginate-results>`, which relies on deterministic scoring
+  to prevent duplicates or skipped documents 
+- Your deployment uses :ref:`dedicated {+fts+} nodes <node-architecture>`
+  or has :manual:`read preference </reference/read-preference/>` set to
+  ``secondary`` or ``nearest``, which increases the likelihood that
+  initial and subsequent queries are routed to different |fts| nodes
+
+``bm25`` scores might not be consistent between subsequent queries. Each
+|fts| node builds |fts| indexes and performs update and delete
+operations independently, resulting in a document corpus that might vary
+between different |fts| nodes. Since ``bm25`` calculations depend on the
+document corpus, subsequent queries that are routed to different |fts|
+nodes might calculate different ``bm25`` scores for the same documents.  
+
+To use a different similarity algorithm, specify the ``similarity.type``
+property in the |fts| index definition for fields that you index as
+|fts| ``string`` or ``autocomplete`` type.  To learn how to configure a
+|fts| index for these types, see :ref:`bson-data-types-string` or
+:ref:`bson-data-types-autocomplete`.
+
+You can choose from the following similarity algorithms when you specify
+the ``similarity.type`` property in your |fts| index definition:
+
+bm25
+````
+
+``bm25`` is a popular ranking algorithm that ranks documents based on:
+ 
+- Term frequency, where documents in which the query terms occur more
+  often receive higher scores
+- Document length, where longer documents receive lower scores 
+- Term rarity, where terms that are less frequent in the corpus are
+  weighted more heavily
+
+``bm25`` computes the score as ``boost * idf * tf``, where each
+factor is defined as follows:
 
 .. include:: /includes/fts/list-tables/list-table-fts-bm25similarity.rst
 
-For distance decay function, the score is computed as ``pivot / (pivot +
-abs(fieldValue - origin))``. |fts| takes into account the following
-factors for calculating the score: 
 
-.. include:: /includes/fts/list-tables/list-table-fts-distance-decay-function.rst 
+boolean
+```````
+
+``boolean`` is a scoring algorithm that checks whether each query term
+is present in a document and counts how many terms are found. All
+matching terms are treated equally, with no adjustment for term
+importance or frequency. 
+
+For ``boolean``, the score is computed as the sum of all query terms
+which are present in the document, where each term contributes a value
+of ``1`` to the score if it is present in the document.
+
+stableTfl
+`````````
+
+``stableTfl`` is a custom |fts| ranking algorithm that uses the length
+of terms to derive term rarity. This is based on **Zipf's law**, which
+states that longer words appear less frequently (are more rare).
+ 
+``stableTfl`` computes the score as ``boost * tr * tf``, where each
+factor is defined as follows:
+
+.. include:: includes/fts/list-tables/list-table-stabletflsimilarity.rst
+
+near Operator
+~~~~~~~~~~~~~
+
+The :ref:`near <near-ref>` operator uses a distance decay function to
+score documents. It measures the proximity of the |fts| results to the
+number, date, or geographic :ref:`point <geojson-point>` that you set as
+the ``origin`` value. 
+
+The distance decay function computes the score as ``pivot / (pivot +
+distance)``, where each factor is defined as follows:
+
+.. include:: /includes/fts/list-tables/list-table-fts-distance-decay-function.rst
 
 .. _fts-score-details-egs:
 

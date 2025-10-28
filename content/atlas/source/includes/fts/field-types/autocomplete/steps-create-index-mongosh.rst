@@ -47,7 +47,8 @@ Define the Index for the |fts-field-type| Type
                       "tokenization": "edgeGram|rightEdgeGram|nGram",
                       "minGrams": <2>,
                       "maxGrams": <15>,
-                      "foldDiacritics": true|false
+                      "foldDiacritics": true|false,
+                      "similarity": { "type": "bm25|boolean|stableTfl" }
                     }
                   }
                 }

@@ -30,6 +30,10 @@ async function run() {
                             "french": {
                                 "type": "string",
                                 "analyzer": "lucene.french"
+                            },
+                            "stableSimilarity": {
+                                "type": "string",
+                                "similarity": { "type": "stableTfl" }
                             }
                         }
                     }

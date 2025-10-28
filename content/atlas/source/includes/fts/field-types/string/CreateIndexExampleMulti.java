@@ -23,7 +23,8 @@ public class IndexExample {
                                                             .append("analyzer", "lucene.english"))
                                                     .append("french", new Document("type", "string")
                                                             .append("analyzer", "lucene.french"))
-                                            )
+                                                    .append("stableSimilarity", new Document("type", "string")
+                                                            .append("similarity", new Document("type", "stableTfl"))))
                             )));
             String result = collection.createSearchIndex(index);
             System.out.println("New index name: " + result);

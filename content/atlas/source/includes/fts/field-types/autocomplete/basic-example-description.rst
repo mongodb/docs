@@ -13,3 +13,6 @@ operator. The index definition also specifies the following:
 - Index a minimum of ``3`` characters per indexed sequence.
 - Index a maximum of ``5`` characters per indexed sequence.
 - Include diacritic marks in the index and query text.
+- Use the ``stableTfl`` :ref:`similarity algorithm
+  <fts-similarity-algorithms>` to ensure consistent document scoring
+  across all search nodes and replica set members.

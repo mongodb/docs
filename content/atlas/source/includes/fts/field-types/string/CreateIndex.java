@@ -15,9 +15,17 @@ public class CreateIndex {
             MongoCollection<Document> collection = database.getCollection("<collection>");
 
             Document index = new Document("mappings",
-                    new Document("dynamic", true|false)
+                    new Document("dynamic", true|false),
                         .append("fields", new Document("<field-name>", 
                                               new Document("type", "string")
+                                              .append("analyzer", "<analyzer-name>")
+                                              .append("searchAnalyzer", "<search-analyzer-name>")
+                                              .append("indexOptions", "docs|freqs|positions|offsets")
+                                              .append("store", true|false)
+                                              .append("ignoreAbove", <integer>)
+                                              .append("similarity", new Document("type", "bm25|boolean|stableTfl"))
+                                              .append("multi", new Document(<string-field-definition>))
+                                              .append("norms", "include|omit")
                                                   )));
 
             String result = collection.createSearchIndex(index);

@@ -38,7 +38,11 @@ int main(){
                             kvp("french", make_document(
                                 kvp("type", "string"),
                                 kvp("analyzer", "lucene.french")
-                            ))
+                            )),
+                            kvp("stableSimilarity", make_document(
+                                kvp("type", "string"),
+                                kvp("similarity", make_document(
+                                    kvp("type", "stableTfl") 
                         ))
                     ))
                 ))

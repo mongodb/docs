@@ -181,10 +181,11 @@ To learn how to add your |fts| index to your cluster, see the :ref:`fts-tutorial
 
    .. step:: Choose which fields to index. 
 
-      If you know which fields you want to query in your collection, enable
-      static mappings and specify the fields in your |fts| index definition.
-      Otherwise, you can enable dynamic mappings to automatically index all 
-      the fields of :ref:`supported types <bson-data-chart>`.
+      If you know which fields you want to query in your collection,
+      enable static mappings and specify the fields in your |fts| index
+      definition. Otherwise, you can enable dynamic mappings to
+      automatically index all fields based on a default or configured
+      set of field types (``typeSet``). 
       
       To learn more, see :ref:`static-dynamic-mappings`.
 
@@ -212,20 +213,22 @@ To learn how to add your |fts| index to your cluster, see the :ref:`fts-tutorial
 
    .. step:: *(Optional)* Apply text analysis rules. 
 
-      If you have special language or parsing requirements, you can apply the following 
-      options to your index definition:
+      If you have special language, parsing, or scoring requirements for
+      your ``string`` data, you can apply the following options to your
+      index definition:
 
       .. tabs:: 
          
          .. tab:: Built-in Analyzers
             :tabid: analyzers-syntax
 
-            Specify which :ref:`built-in analyzers <analyzers-ref>` to apply to the string fields you are indexing 
-            in the ``analyzer``, ``searchAnalyzer``, or ``fields.<field-name>.analyzer`` fields.
+            To specify how |fts| breaks your text fields into tokens,
+            you can set :ref:`built-in analyzers
+            <ref-built-in-analyzers>` in your |fts| index.
 
             .. code-block:: json
                :copyable: true 
-               :emphasize-lines: 2,3,10
+               :emphasize-lines: 2,3,10,14
                :linenos:
 
                {
@@ -236,8 +239,14 @@ To learn how to add your |fts| index to your cluster, see the :ref:`fts-tutorial
                    "fields":{
                      "<field-name>": [
                        {
-                         "type": "string",
+                         "type": "string|autocomplete",
                          "analyzer": "<field-analyzer-name>" // field-specific index analyzer
+                         "multi": {
+                           "<multi-option-name>": {
+                             "type": "string|autocomplete",
+                             "analyzer": "<alternate-analyzer-name>" // multi-option specific index analyzer
+                           }
+                         }
                        }
                      ]
                    }
@@ -246,9 +255,11 @@ To learn how to add your |fts| index to your cluster, see the :ref:`fts-tutorial
 
          .. tab:: Custom Analyzers
             :tabid: custom-analyzers-syntax
-        
-            Define :ref:`custom analyzers <custom-analyzers>` for your |fts| index in the ``analyzers`` field.
 
+            To customize how |fts| breaks text into tokens, you can
+            define a :ref:`custom analyzer <custom-analyzers>` in the
+            ``analyzers`` field of your |fts| index.
+        
             .. code-block:: json
                :copyable: true
                :linenos: 
@@ -267,11 +278,34 @@ To learn how to add your |fts| index to your cluster, see the :ref:`fts-tutorial
 
          .. tab:: Synonyms
             :tabid: synonyms-syntax 
-           
-            Define :ref:`synonyms <synonyms-ref>` for terms that have the same or similar meanings 
-            in the ``synonyms`` field. 
+
+            To run queries with the :ref:`text <text-ref>` operator that
+            account for terms with the same or similar meanings, you can
+            define :ref:`synonyms <synonyms-ref>` in the ``synonyms``
+            field of your |fts| index. 
 
             .. literalinclude:: /includes/fts/syntax/fts-index-definition-syntax-synonyms.json 
+               :language: json
+               :copyable: true
+               :linenos:
+
+         .. tab:: Scoring
+            :tabid: scoring-syntax
+
+            To set which similarity algorithm |fts| uses to calculate
+            relevance scores during queries, specify an algorithm in the
+            ``similarity.type`` property for your ``string`` fields
+            indexed as the |fts| :ref:`string <bson-data-types-string>`
+            or :ref:`autocomplete <bson-data-types-autocomplete>` type.
+
+            This option determines how the :ref:`text <text-ref>`,
+            :ref:`phrase <phrase-ref>`, :ref:`queryString
+            <querystring-ref>`, and :ref:`autocomplete
+            <more-like-this-ref>` operators calculate relevance scores.
+            To learn more about the different similarity algorithms, see
+            :ref:`Score Details <fts-similarity-algorithms>`.
+
+            .. literalinclude:: /includes/fts/syntax/fts-index-definition-syntax-similarity.json
                :language: json
                :copyable: true
                :linenos:

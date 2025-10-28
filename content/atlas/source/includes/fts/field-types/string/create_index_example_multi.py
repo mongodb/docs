@@ -25,6 +25,10 @@ search_index_model = SearchIndexModel(
                        "french": {
                            "type": "string",
                            "analyzer": "lucene.french"
+                       }, 
+                       "stableSimilarity": {
+                           "type": "string",
+                           "similarity": { "type": "stableTfl" }
                        }
                    }
                 }

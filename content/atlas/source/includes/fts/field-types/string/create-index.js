@@ -22,7 +22,15 @@ async function run() {
                 "dynamic": true|false,
                 "fields": {
                     "<field-name>": {
-                        "type": "string"
+                        "type": "string",
+                        "analyzer": "<analyzer-name>",
+                        "searchAnalyzer": "<search-analyzer-name>",
+                        "indexOptions": "docs|freqs|positions|offsets",
+                        "store": true|false,
+                        "ignoreAbove": <integer>,
+                        "similarity": { "type": "bm25|boolean|stableTfl" },
+                        "multi": { <string-field-definition> },
+                        "norms": "include|omit"
                     }
                 }
             }

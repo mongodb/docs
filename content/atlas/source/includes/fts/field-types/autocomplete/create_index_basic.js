@@ -26,7 +26,8 @@ async function run() {
               "tokenization": "edgeGram",
               "minGrams": 3,
               "maxGrams": 5,
-              "foldDiacritics": false
+              "foldDiacritics": false,
+              "similarity": { "type": "stableTfl" }
             }
           }
         }

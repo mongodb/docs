@@ -39,7 +39,8 @@ int main (void)
                     "tokenization": "edgeGram|rightEdgeGram|nGram",
                     "minGrams": <2>,
                     "maxGrams": <15>,
-                    "foldDiacritics": true|false
+                    "foldDiacritics": true|false,
+                    "similarity": { "type": "bm25|boolean|stableTfl" }
                   }
                 }
               },

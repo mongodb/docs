@@ -89,6 +89,20 @@ The |fts| ``string`` type takes the following parameters:
        the specified number of characters.
      - 
 
+   * - ``similarity.type``
+     - String
+     - Optional
+     - Name of the similarity algorithm to use with this string mapping
+       when scoring with the :ref:`text <text-ref>`, :ref:`phrase
+       <phrase-ref>`, or :ref:`queryString <querystring-ref>` operators.
+       Value can be one of the following: ``bm25``, ``boolean``, or
+       ``stableTfl``. 
+       
+       To learn more about the available similarity algorithms, see
+       :ref:`Score Details <fts-similarity-algorithms>`.
+     
+     - ``bm25``
+
    * - ``multi``
      - String Field Definition
      - Optional 

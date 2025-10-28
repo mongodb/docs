@@ -37,6 +37,14 @@ func main() {
 				{"fields", bson.D{
 					{"<field-name>", bson.D{
 						{"type", "string"},
+						{"analyzer", "<analyzer-name>"},
+						{"searchAnalyzer", "<search-analyzer-name>"},
+						{"indexOptions", "docs|freqs|positions|offsets"}
+						{"store", true|false},
+						{"ignoreAbove", <integer>},
+						{"similarity", bson.D{{"type", "bm25|boolean|stableTfl"}}},
+						{"multi", bson.D{<string-field-definition>}},
+						{"norms", "include|omit"},
 					}},
 				}},
 			}},

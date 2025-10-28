@@ -15,7 +15,8 @@ public class IndexExample {
             MongoCollection<Document> collection = database.getCollection("movies");
 
             Document index = new Document("mappings",
-                    new Document("dynamic", false)
+                    new Document("dynamic", false),
+                            .append("similarity": { "type": "bm25" }),
                             .append("fields", new Document("title", new Document("type", "string"))));
             String result = collection.createSearchIndex(index);
             System.out.println("New index name: " + result);

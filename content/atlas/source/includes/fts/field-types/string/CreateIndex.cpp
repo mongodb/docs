@@ -29,7 +29,15 @@ int main(){
                 kvp("dynamic", true|false),
                 kvp("fields", make_document(
                     kvp("<field-name>", make_document(
-                        kvp("type", "string")
+                        kvp("type", "string"),
+                        kvp("analyzer", "<analyzer-name>"),
+                        kvp("searchAnalyzer", "<search-analyzer-name>"),
+                        kvp("indexOptions", "docs|freqs|positions|offsets"),
+                        kvp("store", true|false),
+                        kvp("ignoreAbove", <integer>),
+                        kvp("similarity", make_document( kvp("type", "bm25|boolean|stableTfl"))),
+                        kvp("multi", make_document( <string-field-definition> )),
+                        kvp("norms", "include|omit")
                     ))
                 ))
             ))
