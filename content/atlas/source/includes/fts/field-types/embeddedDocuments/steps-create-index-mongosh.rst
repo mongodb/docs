@@ -35,22 +35,35 @@ Define the Index for the |fts-field-type| Type
          .. input::
             :language: shell
 
-            db.<collection>.createSearchIndex(
-              "default",
+            {
+              "name": "default",
+              "collectionName": "<collection>",
+              "database": "<database>",
               "definition": {
                 "mappings": {
-                  "dynamic": true|false {
+                  "dynamic": <true|false> | {
                     "typeSet": "<typeSet-name>"
-                  }
+                  },
                   "fields": {
                     "<field-name>": {
                       "type": "embeddedDocuments",
-                      "dynamic": true|false {
+                      "dynamic": <true|false> | {
                         "typeSet": "<typeSet-name>"
+                      },
+                      "fields": {
+                        "<field-name>": {
+                          <field-mapping-definition>
+                        }
+                      },
+                      "storedSource": <true|false> | {
+                        "include" | "exclude": [
+                          "<field-name>", 
+                          ...
+                        ]
                       }
-                    },
-                    ...
-                  }
+                    }
+                  },
+                  ...
                 },
                 "typeSets": [
                   {
@@ -66,7 +79,7 @@ Define the Index for the |fts-field-type| Type
                   ...
                 ]
               }
-            )
+            }
 
          .. output::
             :visible: false

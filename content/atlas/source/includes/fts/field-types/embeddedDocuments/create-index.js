@@ -15,23 +15,19 @@ async function run() {
         name: "default",
         definition: {
           "mappings": {
-            "dynamic": <true|false> | {
-              "typeSet": "<type-set-name>"
-            },
+            "dynamic": true, // or false, or { "typeset": "<type-set-name>" }
             "fields": {
               "<field-name>": {
                 "type": "embeddedDocuments",
-                "dynamic": <true|false> | {
-                  "typeSet": "<type-set-name>"
-                }>,
+                "dynamic": true, // or false, or { "typeSet": "<type-set-name>" }
                 "fields": {
                   "<field-name>": {
-                    <field-mapping-definition>
-                  },
-                  ...
-                }
-              },
-              ...
+                    // <field-mapping-definition>
+                  }
+                },
+                "storedSource": true // or false, or { "include": ["<field-name>", ...] } or { "exclude": ["<field-name>", ...] }
+              }
+              // ... additional fields
             }
           },
           "typeSets": [
@@ -39,13 +35,13 @@ async function run() {
               "name": "<type-set-name>",
               "types": [
                 {
-                  "type": "<field-type>",
-                  ...
-                },
-                ...
+                  "type": "<field-type>"
+                  // ... additional field type configuration
+                }
+                // ... additional types
               ]
-            },
-            ...
+            }
+            // ... additional typeSets
           ]
         }
     }

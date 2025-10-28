@@ -18,7 +18,7 @@ Try an Example for the |fts-field-type| Type
       :copyable: true 
 
 .. collapsible::
-   :heading: Dynamic Index Example
+   :heading: Dynamic Index Examples
    :sub_heading: Combine dynamic mappings with static mappings to index nested fields as different field types.
    :expanded: false
 
@@ -50,6 +50,25 @@ Try an Example for the |fts-field-type| Type
    .. include:: /includes/fts/field-types/embeddedDocuments/specified-fields-example-description.rst
 
    .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-specified.sh
+      :language: bash
+      :linenos:
+      :copyable: true
+
+.. collapsible::
+   :heading: Stored Source Examples
+   :sub_heading: Use storedSource to configure storage for nested fields in the array of objects for query and retrieval.
+   :expanded: false
+
+   .. include:: /includes/fts/field-types/embeddedDocuments/extracts/stored-source-relative-path.rst
+
+   .. literalinclude:: /includes/fts/field-types/embeddedDocuments/stored-source-relative-path.sh
+      :language: bash
+      :linenos:
+      :copyable: true
+
+   .. include:: /includes/fts/field-types/embeddedDocuments/extracts/multiple-stored-source-configs.rst 
+
+   .. literalinclude:: /includes/fts/field-types/embeddedDocuments/stored-source-mltpl-conf.sh
       :language: bash
       :linenos:
       :copyable: true

@@ -5,11 +5,6 @@ Try an Example for the |fts-field-type| Type
 
 .. include:: /includes/fts/field-types/configure-and-run.rst
 
-When defining the index: 
-
-- For a guided experience, select Visual Editor.
-- To edit the raw |json| index definition, select |json| Editor.
-
 .. collapsible::
    :heading: Basic Example
    :sub_heading: Automatically index all dynamically indexable fields inside the array of objects.
@@ -18,7 +13,7 @@ When defining the index:
    .. include:: /includes/fts/field-types/embeddedDocuments/basic-example-description.rst
 
    .. tabs::
-
+      
       .. tab:: Visual Editor
          :tabid: vib
 
@@ -113,7 +108,7 @@ When defining the index:
       .. tab:: Visual Editor
          :tabid: vib
 
-         1. In the :guilabel:`Add Field Mapping` window, select
+         2. In the :guilabel:`Add Field Mapping` window, select
             :guilabel:`items` from the :guilabel:`Field Name` dropdown. 
          #. Click the :guilabel:`Data Type` dropdown and select
             :guilabel:`EmbeddedDocuments`.  
@@ -147,3 +142,49 @@ When defining the index:
             :language: json
             :linenos:
             :copyable: true
+
+.. collapsible::
+   :heading: Stored Source Examples
+   :sub_heading: Use storedSource to configure storage for nested fields in the array of objects for query and retrieval.
+   :expanded: false
+
+   Use Relative Path for Stored Source  
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. include:: /includes/fts/field-types/embeddedDocuments/extracts/stored-source-relative-path.rst
+
+   .. tabs::
+      
+      .. tab:: Visual Editor
+         :tabid: vib
+
+         This is not supported in the {+atlas-ui+} :guilabel:`Visual Editor`.
+
+      .. tab:: JSON Editor
+         :tabid: jib
+
+         .. literalinclude:: /includes/fts/field-types/embeddedDocuments/stored-source-relative-path-ui.json
+            :language: json
+            :linenos:
+            :copyable: true
+
+   Configure Multiple Stored Source
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. include:: /includes/fts/field-types/embeddedDocuments/extracts/multiple-stored-source-configs.rst 
+
+   .. tabs::
+      
+      .. tab:: Visual Editor
+         :tabid: vib
+
+         This is not supported in the {+atlas-ui+} :guilabel:`Visual Editor`.
+
+      .. tab:: JSON Editor
+         :tabid: jib
+
+         .. literalinclude:: /includes/fts/field-types/embeddedDocuments/stored-source-mltpl-conf-ui.json
+            :language: json
+            :linenos:
+            :copyable: true
+

@@ -14,14 +14,14 @@ The |fts| ``embeddedDocuments`` type takes the following parameters:
      - Default
 
    * - ``type``
-     - string
+     - String
      - Required
      - Human-readable label that identifies the field type.
        Value must be ``embeddedDocuments``.
      - 
 
    * - ``dynamic``
-     - boolean or object
+     - Boolean or Object
      - Optional
      - Flag that specifies whether to dynamically index using default
        type set or object that references the name of the configured
@@ -46,7 +46,7 @@ The |fts| ``embeddedDocuments`` type takes the following parameters:
      - ``false``
 
    * - ``dynamic.typeSet``
-     - string
+     - String
      - Optional
      - Name of the ``typeSet`` array of objects that configures the 
        field types to index. To learn more, see
@@ -56,7 +56,7 @@ The |fts| ``embeddedDocuments`` type takes the following parameters:
      - 
 
    * - ``fields``
-     - document
+     - Object
      - Optional
      - Fields to index. This is required if ``dynamic`` is ``false``.
      
@@ -69,8 +69,28 @@ The |fts| ``embeddedDocuments`` type takes the following parameters:
 
      - ``{}``
 
+   * - ``storedSource``
+     - Boolean or :ref:`Stored Source Definition<fts-stored-source-definition>`
+     - Optional
+     - Specifies fields in the documents to store for query-time 
+       look-ups using the :ref:`returnedStoredSource 
+       <fts-return-stored-source-option>` option. You can store fields 
+       of all :ref:`bson-data-chart` on |fts|. Value can be one of 
+       the following:
+
+       - ``true``, to store all fields  
+       - ``false``, to not store any fields 
+       - :ref:`Object <fts-stored-source-document>` that specifies 
+         the fields to ``include`` or ``exclude`` from storage
+
+       If omitted, defaults to ``false``. 
+       
+       To learn more, see :ref:`fts-stored-source-definition`.
+
+     - ``false``
+
    * - ``typeSets`` 
-     - array of objects
+     - Array of Objects
      - Optional 
      - Field types to index automatically using dynamic mappings. To
        learn about the field types that you can configure for dynamic 
@@ -78,21 +98,21 @@ The |fts| ``embeddedDocuments`` type takes the following parameters:
      -
 
    * - ``typeSets.[n].name`` 
-     - string
+     - String
      - Required 
      - Human-readable label that identifies the configuration for the
        fields types to dynamically index.
      - 
 
    * - ``typeSets.[n].types`` 
-     - array of objects
+     - Array of Objects
      - Required 
      - Field types, one per object, to index automatically using dynamic
        mappings. 
      -
 
    * - ``typeSets.[n].types.[n].type`` 
-     - string
+     - String
      - Required 
      - Field type to automatically index. You can also configure the
        settings for each field type. If you don't configure any

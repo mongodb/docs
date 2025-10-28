@@ -21,47 +21,30 @@ int main (void)
     }
 
     // Access your database and collection
-    database = mongoc_client_get_database(client, "<databaseName>");
-    collection = mongoc_database_get_collection(database, "<collectionName>");
+    database = mongoc_client_get_database(client, "sample_training");
+    collection = mongoc_database_get_collection(database, "companies");
 
     // Specify the command and the new index
     const char *cmd_str = BSON_STR({
-        "createSearchIndexes" : "<collectionName>",
+        "createSearchIndexes" : collection,
         "indexes" : [ {
             "name" : "default",
             "definition" : {
-              "mappings": {
-                "dynamic": true, // or false, or { "typeset": "<type-set-name>" }
-                "fields": {
-                  "<field-name>": {
+              "mappings": { 
+                "dynamic": false,
+                "fields": { 
+                  "funding_rounds": { 
                     "type": "embeddedDocuments",
-                    "dynamic": true, // or false, or { "typeSet": "<type-set-name>" }
-                    "fields": {
-                      "<field-name>": {
-                        // <field-mapping-definition>
-                      }
-                    },
-                    "storedSource": true // or false, or { "include": ["<field-name>", ...] } or { "exclude": ["<field-name>", ...] }
-                  }
-                  // ... additional fields
-                }
-              },
-              "typeSets": [
-                {
-                  "name": "<type-set-name>",
-                  "types": [
-                    {
-                      "type": "<field-type>"
-                      // ... additional field type configuration
+                    "dynamic": true,
+                    "storedSource": {
+                      "include": ["round_code", "raised_currency_code", "raised_amount"] 
                     }
-                    // ... additional types
-                  ]
+                  } 
                 }
-                // ... additional typeSets
-              ]
+              }
             }
-        } ]
-    });
+	    } ]
+	});
 
     // Convert your command to BSON
     if (!bson_init_from_json(&cmd, cmd_str, -1, &error)) {
@@ -70,7 +53,7 @@ int main (void)
         goto cleanup;
     }
 
-    // Create the MongoDB Search index by running the command
+    // Create the Atlas search index by running the command
     if (!mongoc_collection_command_simple (collection, &cmd, NULL, NULL, &error)) {
         fprintf(stderr, "Failed to run createSearchIndexes: %s\n", error.message);
         ok = false;

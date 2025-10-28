@@ -3,47 +3,68 @@
    .. include:: /includes/fts/facts/fact-embedded-document-preview.rst
 
 You can use the |fts| ``embeddedDocuments`` type to index fields in
-documents and objects that are elements of an array. 
+documents and objects that are elements of an array. |fts| indexes
+embedded documents independent of their parent document. Each indexed
+document contains only fields that are part of the embedded document
+array element. 
 
-|fts| indexes embedded documents independent of their parent document. 
-Each indexed document contains only the fields that are part of the 
-embedded document array element. 
+To query fields indexed within an ``embeddedDocuments``
+mapping, you must do one of the following:
 
-You can use the :ref:`embeddedDocument <embedded-document-ref>`
-operator to perform element-wise queries (similar to ``$elemMatch``) on 
-fields indexed within ``embeddedDocuments`` type. By default, |fts|
-returns all documents with at least one array element matching the
-query. You can filter the results to return only the matching array
-elements by using the ``storedSource`` option in your index, and then
-specifying ``returnScope`` in your query. 
+- Use the :ref:`embeddedDocument <embedded-document-ref>` operator with
+  the ``path`` specified as the ``embeddedDocuments`` field. 
+- Use ``storedSource`` index option and specify the
+  ``embeddedDocuments`` field in the ``returnScope`` query option. 
+  
+You can also :ref:`configure dynamic mappings <fts-configure-dynamic-mappings>` 
+to automatically index fields that are part of the embedded document
+array element.
 
-You can facet on date, numeric, and string fields in arrays of objects. 
-When you facet on these fields using the root ``embeddedDocument``
-operator, |fts| returns facet counts based on the number of matching
-root documents.
+Considerations 
+--------------
 
-To retrieve facet counts based on ``embeddedDocuments`` array elements,
-configure ``storedSource`` to store the fields on ``mongot`` and set the
-context for the query by using the ``returnScope`` option. To learn more
-about the syntax and usage of ``returnScope``, see :ref:`fts-return-scope`. 
+Facet on Embedded Documents 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note:: 
+You can facet on date, numeric, and string fields within
+``embeddedDocuments`` type field to retrieve facet counts based on the
+number of matching ``embeddedDocuments`` elements. To do this, you must:  
 
-   Use the ``embeddedDocuments`` type to index fields inside array of
-   documents so that you can query each nested document individually. If
-   you only need to query nested documents in relation to the parent
-   document, use the :ref:`document <bson-data-types-document>` type.  
+1. Configure ``storedSource`` to store ``embeddedDocuments`` type fields. 
+#. Set the query option ``returnScope.path`` as the
+   ``embeddedDocuments`` field. To learn more about the syntax and usage
+   of ``returnScope``, see :ref:`fts-return-scope`. 
 
-.. include:: /includes/fts/extracts/fts-ib-static-mappings.rst
+To facet on fields within objects in arrays based on the number of
+matching root documents, index the path as a ``document`` type. 
 
-To index all fields in an embedded document including fields that
-|fts| doesn't dynamically index, define the fields in the index
-definition.
+Stored Source for Embedded Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the :ref:`storedSource <fts-stored-source-definition>`
+option to store and return fields inside an ``embeddedDocuments`` type.
+You can configure all or a subset of the fields to store or exclude from
+storage at each level of nesting. This allows you to return only the
+objects within the array that match the query criteria, rather than the
+entire root document. To learn more about the syntax for
+``storedSource``, see :ref:`fts-stored-source-definition`.  
+
+To return the stored field:
+
+- Specify ``returnScope.path`` option as the ``embeddedDocuments`` type
+  field. To learn more, see :ref:`fts-return-scope`. 
+- Set ``returnStoredSource`` to ``true`` to retrieve only the stored
+  fields instead of entire documents from the collection. To learn more,
+  see :ref:`fts-return-stored-source-option`.  
+
+You can't include ``embeddedDocuments`` fields that were specified as
+``storedSource.exclude`` at a higher-level. 
 
 ``embeddedDocuments`` Type Limitations 
---------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following limitations apply when indexing with the ``embeddedDocuments`` type:
+The following limitations apply when indexing with the
+``embeddedDocument`` type: 
 
 - You can use ``embeddedDocuments`` only on fields with up to ``5`` 
   levels of nesting. An ``embeddedDocuments`` field can't have more 
@@ -57,16 +78,14 @@ The following limitations apply when indexing with the ``embeddedDocuments`` typ
   embedded document child field as the :ref:`document
   <bson-data-types-document>` type: 
   
-  - :ref:`Faceted search <fts-facet-ref>` on nested fields to retrieve
-    counts based on the parent documents. You must also index the field
-    that you want to facet on as the ``token``, ``number`` or ``date``
-    type, respectively.
+  - :ref:`Facet <fts-facet-ref>` on fields within objects in arrays
+    based on the number of matching root documents.
   - :ref:`Highlight <highlight-ref>` fields within embedded documents.
     For an example, see the :ref:`embedded-documents-tutorial` tutorial.
   - :ref:`Sort <sort-ref>` the parent documents by a nested field. You
     must also index the fields that you want to use for sorting.
   
 2,100,000,000 Index Objects Limit 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+`````````````````````````````````
 
 .. include:: /includes/fts/facts/fact-fts-embedded-documents-limitation.rst

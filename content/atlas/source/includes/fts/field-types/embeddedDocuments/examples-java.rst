@@ -54,3 +54,29 @@ Try an Example for the |fts-field-type| Type
       :language: java
       :linenos:
       :copyable: true
+
+.. Hide until DRIVERS-3088 completes
+   .. collapsible::
+      :heading: Stored Source Examples
+      :sub_heading: Use storedSource to configure storage for nested fields in the array of objects for query and retrieval.
+      :expanded: false
+
+      Use Relative Path for Stored Source  
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/fts/field-types/embeddedDocuments/extracts/stored-source-relative-path.rst 
+
+      .. literalinclude:: /includes/fts/field-types/embeddedDocuments/stored-source-relative-path.java
+         :language: java
+         :linenos:
+         :copyable: true
+
+      Configure Multiple Stored Source
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/fts/field-types/embeddedDocuments/extracts/multiple-stored-source-configs.rst 
+
+      .. literalinclude:: /includes/fts/field-types/embeddedDocuments/stored-source-mltpl-conf.java
+         :language: java
+         :linenos:
+         :copyable: true

@@ -55,3 +55,28 @@ Try an Example for the |fts-field-type| Type
       :language: bash
       :linenos:
       :copyable: true
+
+.. collapsible::
+   :heading: Stored Source Examples
+   :sub_heading: Use storedSource to configure storage for nested fields in the array of objects for query and retrieval.
+   :expanded: false
+
+   Use Relative Path for Stored Source  
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. include:: /includes/fts/field-types/embeddedDocuments/extracts/stored-source-relative-path.rst
+
+   .. literalinclude:: /includes/fts/field-types/embeddedDocuments/stored-source-relative-path-api.sh 
+      :language: bash
+      :linenos:
+      :copyable: true
+
+   Configure Multiple Stored Source
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. include:: /includes/fts/field-types/embeddedDocuments/extracts/multiple-stored-source-configs.rst 
+
+   .. literalinclude:: /includes/fts/field-types/embeddedDocuments/stored-source-mltpl-conf-api.sh 
+      :language: bash
+      :linenos:
+      :copyable: true

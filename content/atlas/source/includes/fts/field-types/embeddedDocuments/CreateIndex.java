@@ -12,28 +12,27 @@ public class CreateIndex {
             String indexName = "default";
 
             // Create the MongoDB Search index definition for the embeddedDocuments field
-            Document searchIdx = new Document(
-                "mappings",
-                new Document("dynamic", <true|false> | new Document("typeSet", "<typeSet-name>"))
-                    .append("fields",
-                        new Document("<field-name>",
-                            new Document("type", "embeddedDocuments")
-                                .append("dynamic", <true|false> | new Document("typeSet", "<typeSet-name>"))
-                                .append("fields",
-                                    new Document("<field-name>",
-                                        new Document() // <field-mapping-definition>
-                                        // ... additional fields 
-                                    )
-                                )
+            Document searchIdx = new Document("mappings",
+                new Document("dynamic", true) // or false, or new Document("typeset", "<type-set-name>")
+                    .append("fields", new Document(
+                        "<field-name>", new Document()
+                            .append("type", "embeddedDocuments")
+                            .append("dynamic", true) // or false, or new Document("typeSet", "<type-set-name>")
+                            .append("fields", new Document(
+                                "<field-name>", new Document()
+                                    // <field-mapping-definition>
+                            ))
+                            .append("storedSource", true) // or false, or new Document("include", java.util.Arrays.asList("<field-name>", ...)) or new Document("exclude", java.util.Arrays.asList("<field-name>", ...))
                         )
-                        // ... additional fields 
-                    )
+                        // ... additional fields
+                    ))
             ).append("typeSets",
                 java.util.Arrays.asList(
-                    new Document("name", "<typeSet-name>")
+                    new Document("name", "<type-set-name>")
                         .append("types", java.util.Arrays.asList(
-                            new Document() // <field-type-configuration>
-                            // ... additional types 
+                            new Document("type", "<field-type>")
+                                // ... additional field type configuration
+                            // ... additional types
                         ))
                     // ... additional typeSets
                 )

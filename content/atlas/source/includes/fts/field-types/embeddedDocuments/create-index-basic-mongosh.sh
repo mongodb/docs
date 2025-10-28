@@ -8,7 +8,13 @@ db.companies.createSearchIndex(
           "type": "embeddedDocuments",
           "dynamic": true
         }
-      }
+      },
+      "storedSource": true | false | {
+       "include" | "exclude": [
+         "<field-name>", 
+         ...
+       ]
+     }
     }
   }
 )

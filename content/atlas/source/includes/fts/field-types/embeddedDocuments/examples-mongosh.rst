@@ -40,7 +40,7 @@ Try an Example for the |fts-field-type| Type
    .. literalinclude:: /includes/fts/field-types/embeddedDocuments/configure-dynamic-index-mongosh.sh
       :language: javascript
       :linenos:
-      :copyable: true 
+      :copyable: true  
 
 .. collapsible::
    :heading: Specified Fields Example
@@ -50,6 +50,31 @@ Try an Example for the |fts-field-type| Type
    .. include:: /includes/fts/field-types/embeddedDocuments/specified-fields-example-description.rst
 
    .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-specified-mongosh.sh
+      :language: javascript
+      :linenos:
+      :copyable: true
+
+.. collapsible::
+   :heading: Stored Source Examples
+   :sub_heading: Use storedSource to configure storage for nested fields in the array of objects for query and retrieval.
+   :expanded: false
+
+   Use Relative Path for Stored Source  
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. include:: /includes/fts/field-types/embeddedDocuments/extracts/stored-source-relative-path.rst 
+
+   .. literalinclude:: /includes/fts/field-types/embeddedDocuments/stored-source-relative-path-mongosh.sh
+      :language: javascript
+      :linenos:
+      :copyable: true
+
+   Configure Multiple Stored Source
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. include:: /includes/fts/field-types/embeddedDocuments/extracts/multiple-stored-source-configs.rst 
+
+   .. literalinclude:: /includes/fts/field-types/embeddedDocuments/stored-source-mltpl-conf-mongosh.sh
       :language: javascript
       :linenos:
       :copyable: true

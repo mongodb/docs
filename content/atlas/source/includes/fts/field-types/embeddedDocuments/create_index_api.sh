@@ -20,8 +20,13 @@ curl --header "Authorization: Bearer ${ACCESS_TOKEN}" \
                 "fields": {
                   "<field-name>": {
                     <field-mapping-definition>
-                  },
-                  ...
+                  }
+                },
+                "storedSource": <true|false> | {
+                  "include" | "exclude": [
+                    "<field-name>", 
+                    ...
+                  ]
                 }
               },
               ...

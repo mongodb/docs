@@ -33,38 +33,36 @@ func main() {
 	searchIndexModel := mongo.SearchIndexModel{
 		Definition: bson.D{
 			{"mappings", bson.D{
-				// "dynamic" can be a boolean or an object with "typeSet" name
-				{"dynamic", <true|false> | bson.D{
-					{"typeSet", "<typeSet-name>"},
-				}},
+				// "dynamic" can be a boolean or an object with "typeset" name
+				{"dynamic", true}, // or false, or bson.D{{"typeset", "<type-set-name>"}}
 				{"fields", bson.D{
 					{"<field-name>", bson.D{
 						{"type", "embeddedDocuments"},
 						// "dynamic" can be a boolean or an object with "typeSet" name
-						{"dynamic", <true|false> | bson.D{
-							{"typeSet", "<typeSet-name>"},
-						}},
+						{"dynamic", true}, // or false, or bson.D{{"typeSet", "<type-set-name>"}}
 						{"fields", bson.D{
 							{"<field-name>", bson.D{
 								// <field-mapping-definition>
 							}},
-							// ... additional fields 
+							// ... additional fields
 						}},
+						{"storedSource", true}, // or false, or bson.D{{"include", bson.A{"<field-name>", /* ... */}}} or bson.D{{"exclude", bson.A{"<field-name>", /* ... */}}}
 					}},
-					// ... additional fields 
+					// ... additional fields
 				}},
 			}},
 			{"typeSets", bson.A{
 				bson.D{
-					{"name", "<typeSet-name>"},
+					{"name", "<type-set-name>"},
 					{"types", bson.A{
 						bson.D{
-							// <field-type-configuration>
+							{"type", "<field-type>"},
+							// ... additional field type configuration
 						},
-						// ... additional types 
+						// ... additional types
 					}},
 				},
-				// ... additional typeSets 
+				// ... additional typeSets
 			}},
 		},
 		Options: opts,

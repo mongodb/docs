@@ -25,38 +25,34 @@ int main() {
     auto name = "default";
     auto definition = make_document(
         kvp("mappings", make_document(
-            // "dynamic" can be a boolean or an object with "typeSet" name
-            kvp("dynamic", <true|false> | make_document(
-                kvp("typeSet", "<typeSet-name>")
-            )),
+            kvp("dynamic", true|false) | make_document(kvp("typeset", "<type-set-name>")),
             kvp("fields", make_document(
                 kvp("<field-name>", make_document(
                     kvp("type", "embeddedDocuments"),
-                    // "dynamic" can be a boolean or an object with "typeSet" name
-                    kvp("dynamic", <true|false> | make_document(
-                        kvp("typeSet", "<typeSet-name>")
-                    )),
+                    kvp("dynamic", true|false) | make_document(kvp("typeset", "<type-set-name>")),
                     kvp("fields", make_document(
                         kvp("<field-name>", make_document(
                             // <field-mapping-definition>
-                        ))
-                        // ... additional fields 
-                    ))
-                ))
-                // ... additional fields 
+                        )),
+                        // ... additional fields
+                    )),
+                    kvp("storedSource", true|false) | make_document(kvp("include", bsoncxx::builder::basic::array{"<field-name>", ...})) | make_document(kvp("exclude", bsoncxx::builder::basic::array{"<field-name>", ...}))
+                )),
+                // ... additional fields
             ))
         )),
         kvp("typeSets", bsoncxx::builder::basic::array{
             make_document(
-                kvp("name", "<typeSet-name>"),
+                kvp("name", "<type-set-name>"),
                 kvp("types", bsoncxx::builder::basic::array{
                     make_document(
-                        // <field-type-configuration>
+                        kvp("type", "<field-type>")
+                        // ... additional field type configuration
                     )
-                    // ... additional types 
+                    // ... additional types
                 })
             )
-            // ... additional typeSets 
+            // ... additional typeSets
         })
     );
     auto model = mongocxx::search_index_model(name, definition.view());
@@ -68,5 +64,4 @@ int main() {
     } catch (const std::exception& e) {
         std::cerr << "Error creating Atlas Search index: " << e.what() << std::endl;
     }
-
 }

@@ -18,7 +18,7 @@ Try an Example for the |fts-field-type| Type
       :copyable: true 
 
 .. collapsible::
-   :heading: Dynamic Index Example
+   :heading: Dynamic Index Examples
    :sub_heading: Combine dynamic mappings with static mappings to index nested fields as different field types.
    :expanded: false
 
@@ -40,7 +40,7 @@ Try an Example for the |fts-field-type| Type
    .. literalinclude:: /includes/fts/field-types/embeddedDocuments/configure-dynamic-index.go
       :language: go
       :linenos:
-      :copyable: true 
+      :copyable: true  
 
 .. collapsible::
    :heading: Specified Fields Example
@@ -50,6 +50,31 @@ Try an Example for the |fts-field-type| Type
    .. include:: /includes/fts/field-types/embeddedDocuments/specified-fields-example-description.rst
 
    .. literalinclude:: /includes/fts/field-types/embeddedDocuments/create-index-specified.go
+      :language: go
+      :linenos:
+      :copyable: true
+
+.. collapsible::
+   :heading: Stored Source Examples
+   :sub_heading: Use storedSource to configure storage for nested fields in the array of objects for query and retrieval.
+   :expanded: false
+
+   Use Relative Path for Stored Source  
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. include:: /includes/fts/field-types/embeddedDocuments/extracts/stored-source-relative-path.rst 
+
+   .. literalinclude:: /includes/fts/field-types/embeddedDocuments/stored-source-relative-path.go
+      :language: go
+      :linenos:
+      :copyable: true
+
+   Configure Multiple Stored Source
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. include:: /includes/fts/field-types/embeddedDocuments/extracts/multiple-stored-source-configs.rst 
+
+   .. literalinclude:: /includes/fts/field-types/embeddedDocuments/stored-source-mltpl-conf.go
       :language: go
       :linenos:
       :copyable: true
