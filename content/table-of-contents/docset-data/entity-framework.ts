@@ -85,7 +85,7 @@ const tocData: TocItem[] = [
       {
         label: "Compatibility",
         contentSite: "drivers",
-        url: "https://www.mongodb.com/docs/drivers/compatibility/?all-languages=csharp&csharp-driver-framework=entity-framework",
+        url: "/docs/drivers/compatibility/?driver-language=csharp&csharp-driver-framework=entity-framework",
       },
       {
         label: "API Documentation",

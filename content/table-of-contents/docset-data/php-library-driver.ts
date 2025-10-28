@@ -339,7 +339,7 @@ const tocData: TocItem[] = [
       {
         label: "Compatibility",
         contentSite: "drivers",
-        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=php-library",
+        url: "/docs/drivers/compatibility/?driver-language=php&php-driver-framework=php-driver",
       },
       {
         label: "API Documentation",

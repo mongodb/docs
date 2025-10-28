@@ -706,7 +706,7 @@ const tocData: TocItem[] = [
       {
         label: "Compatibility",
         contentSite: "drivers",
-        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=java-sync",
+        url: "/docs/drivers/compatibility/?driver-language=java&java-driver-framework=java-sync",
       },
       {
         label: "API Documentation",

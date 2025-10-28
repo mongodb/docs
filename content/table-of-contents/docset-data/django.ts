@@ -132,7 +132,7 @@ const tocData: TocItem[] = [
             contentSite: "django",
             url: "/docs/languages/python/django-mongodb/:version/interact-data/transactions",
             versions: { excludes: ["v5.1"] },
-          }
+          },
         ],
       },
       {
@@ -148,7 +148,7 @@ const tocData: TocItem[] = [
       {
         label: "Version Compatibility",
         contentSite: "drivers",
-        url: "/docs/drivers/compatibility/?all-languages=python&python-driver-framework=django",
+        url: "/docs/drivers/compatibility/?driver-language=python&python-driver-framework=django",
       },
       {
         label: "API Documentation",

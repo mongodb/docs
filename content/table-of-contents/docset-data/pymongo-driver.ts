@@ -382,7 +382,7 @@ const tocData: TocItem[] = [
       {
         label: "Compatibility",
         contentSite: "drivers",
-        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=python",
+        url: "/docs/drivers/compatibility/?driver-language=python&python-driver-framework=pymongo",
       },
       {
         label: "API Documentation",

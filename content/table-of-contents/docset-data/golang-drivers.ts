@@ -424,7 +424,7 @@ const tocData: TocItem[] = [
       {
         label: "Compatibility",
         contentSite: "drivers",
-        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&all-languages=go",
+        url: "/docs/drivers/compatibility/?driver-language=go",
         versions: { excludes: outdatedVersions },
       },
       {
@@ -844,8 +844,8 @@ const tocData: TocItem[] = [
       },
       {
         label: "Compatibility",
-        contentSite: "golang",
-        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&all-languages=go",
+        contentSite: "drivers",
+        url: "/docs/drivers/compatibility/?driver-language=go",
         versions: { includes: outdatedVersions },
       },
       {

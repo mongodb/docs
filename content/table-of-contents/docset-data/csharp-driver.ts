@@ -534,7 +534,7 @@ const tocData: TocItem[] = [
       {
         label: "Compatibility",
         contentSite: "drivers",
-        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=csharp",
+        url: "/docs/drivers/compatibility/?driver-language=csharp&csharp-driver-framework=csharp-driver",
         versions: { excludes: outdatedVersions },
       },
       {
@@ -964,8 +964,8 @@ const tocData: TocItem[] = [
       },
       {
         label: "Compatibility",
-        contentSite: "csharp",
-        url: "/docs/drivers/csharp/:version/compatibility",
+        contentSite: "drivers",
+        url: "/docs/drivers/compatibility/?driver-language=csharp",
         versions: { includes: outdatedVersions },
       },
       {

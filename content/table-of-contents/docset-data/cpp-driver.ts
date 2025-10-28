@@ -343,7 +343,7 @@ const tocData: TocItem[] = [
       {
         label: "Compatibility",
         contentSite: "drivers",
-        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=cpp",
+        url: "/docs/drivers/compatibility/?driver-language=cpp",
         versions: { excludes: outdatedVersions },
       },
       {

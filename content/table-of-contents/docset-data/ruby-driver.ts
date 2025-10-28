@@ -355,7 +355,7 @@ const tocData: TocItem[] = [
       {
         label: "Compatibility",
         contentSite: "drivers",
-        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=ruby",
+        url: "/docs/drivers/compatibility/?driver-language=ruby&ruby-driver-framework=ruby-driver",
       },
       {
         label: "API Documentation",

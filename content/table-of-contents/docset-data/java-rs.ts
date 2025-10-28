@@ -352,7 +352,7 @@ const tocData: TocItem[] = [
       {
         label: "Compatibility",
         contentSite: "drivers",
-        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=java-async",
+        url: "/docs/drivers/compatibility/?driver-language=java&java-driver-framework=java-async",
         versions: { excludes: outdatedVersions },
       },
       {

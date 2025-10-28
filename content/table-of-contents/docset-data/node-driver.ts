@@ -596,7 +596,7 @@ const tocData: TocItem[] = [
       {
         label: "Compatibility",
         contentSite: "drivers",
-        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=nodejs",
+        url: "/docs/drivers/compatibility/?driver-language=javascript&javascript-driver-framework=nodejs",
       },
       {
         label: "TypeScript",

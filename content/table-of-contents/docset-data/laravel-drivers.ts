@@ -57,7 +57,7 @@ const tocData: TocItem[] = [
             label: "Tutorial: Build a Back End",
             contentSite: "laravel",
             url: "/docs/drivers/php/laravel-mongodb/:version/quick-start/backend-service-tutorial",
-            versions: {"excludes":["v4.x"]}
+            versions: { excludes: ["v4.x"] },
           },
         ],
       },
@@ -186,7 +186,7 @@ const tocData: TocItem[] = [
                 label: "Query Logging",
                 contentSite: "laravel",
                 url: "/docs/drivers/php/laravel-mongodb/:version/fundamentals/read-operations/query-logging",
-                versions: {"excludes":["v4.x"]}
+                versions: { excludes: ["v4.x"] },
               },
             ],
           },
@@ -222,13 +222,13 @@ const tocData: TocItem[] = [
             label: "Atlas Search",
             contentSite: "laravel",
             url: "/docs/drivers/php/laravel-mongodb/:version/fundamentals/atlas-search",
-            versions: {"excludes":["v4.x"]}
+            versions: { excludes: ["v4.x"] },
           },
           {
             label: "Atlas Vector Search",
             contentSite: "laravel",
             url: "/docs/drivers/php/laravel-mongodb/:version/fundamentals/vector-search",
-            versions: {"excludes":["v4.x"]}
+            versions: { excludes: ["v4.x"] },
           },
         ],
       },
@@ -287,13 +287,13 @@ const tocData: TocItem[] = [
         label: "Scout Integration",
         contentSite: "laravel",
         url: "/docs/drivers/php/laravel-mongodb/:version/scout",
-        versions: {"excludes":["v4.x"]}
+        versions: { excludes: ["v4.x"] },
       },
       {
         label: "HTTP Sessions",
         contentSite: "laravel",
         url: "/docs/drivers/php/laravel-mongodb/:version/sessions",
-        versions: {"excludes":["v4.x"]}
+        versions: { excludes: ["v4.x"] },
       },
       {
         label: "Queues",
@@ -322,8 +322,8 @@ const tocData: TocItem[] = [
       },
       {
         label: "Compatibility",
-        contentSite: "laravel",
-        url: "https://www.mongodb.com/docs/drivers/compatibility/?all-languages=php&php-driver-framework=laravel",
+        contentSite: "drivers",
+        url: "/docs/drivers/compatibility/?driver-language=php&php-driver-framework=laravel",
       },
       {
         label: "Upgrade",

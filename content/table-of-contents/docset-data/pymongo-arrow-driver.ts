@@ -50,7 +50,7 @@ const tocData: TocItem[] = [
       {
         label: "Compatibility",
         contentSite: "drivers",
-        url: "https://www.mongodb.com/docs/drivers/compatibility/?all-languages=python&python-driver-framework=arrow",
+        url: "/docs/drivers/compatibility/?driver-language=python&python-driver-framework=arrow",
       },
       {
         label: "API Documentation",

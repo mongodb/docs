@@ -427,7 +427,7 @@ export const tocData: TocItem[] = [
       {
         label: "Compatibility",
         contentSite: "drivers",
-        url: "https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=rust",
+        url: "/docs/drivers/compatibility/?driver-language=rust",
       },
       {
         label: "View the Source",
