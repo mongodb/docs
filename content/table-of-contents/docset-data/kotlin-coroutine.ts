@@ -496,7 +496,7 @@ const tocData: TocItem[] = [
       {
         label: "Compatibility",
         contentSite: "drivers",
-        url: "/docs/drivers/compatibility/?driver-language=kotlin&kotlin-driver-framework=async",
+        url: "/docs/drivers/compatibility/?driver-language=kotlin&kotlin-driver-framework=kotlin-async",
       },
       {
         label: "Migrate from KMongo",
