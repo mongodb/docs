@@ -171,6 +171,109 @@ For a full list of available arguments, see the
 `API documentation <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.find>`__
 for the  ``find() method``.
 
+Troubleshooting Invalid Documents
+----------------------------------
+
+If a document that you try to find is invalid or corrupt, the driver throws an
+``InvalidBSON`` exception. The following examples show how to troubleshoot an
+``InvalidBSON`` exception and find the invalid documents in your collection.
+
+Finding Invalid Documents in Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows how to identify invalid documents when iterating over a collection.
+Select the :guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding code:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. code-block:: python
+
+         import bson
+
+         # Use RawBSONDocument to delay BSON decoding
+         raw_coll = collection.with_options(
+             codec_options=collection.codec_options.with_options(
+                 document_class=bson.raw_bson.RawBSONDocument
+             )
+         )
+
+         # Iterate through documents and check for BSON errors
+         for doc in raw_coll.find():
+             try:
+                 bson.decode(doc.raw)
+             except bson.errors.InvalidBSON as exc:
+                 print(f"Invalid document {exc}, raw bson: {doc.raw}")
+   
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. code-block:: python
+
+         import bson
+
+         # Use RawBSONDocument to delay BSON decoding
+         raw_coll = collection.with_options(
+             codec_options=collection.codec_options.with_options(
+                 document_class=bson.raw_bson.RawBSONDocument
+             )
+         )
+
+         # Iterate through documents and check for BSON errors
+         async for doc in raw_coll.find():
+             try:
+                 bson.decode(doc.raw)
+             except bson.errors.InvalidBSON as exc:
+                 print(f"Invalid document {exc}, raw bson: {doc.raw}")
+
+Finding Invalid Documents in Command Responses
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows how to handle invalid BSON in database command responses.
+Select the :guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding code:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. code-block:: python
+
+         import bson
+
+         # Execute command with raw BSON options
+         res = client.admin.command(
+             "serverStatus", 
+             codec_options=bson.raw_bson.DEFAULT_RAW_BSON_OPTIONS
+         )
+
+         # Check for BSON errors in the response
+         try:
+             bson.decode(res.raw)
+         except bson.errors.InvalidBSON as exc:
+             print(f"Invalid BSON found in serverStatus response {exc}, raw bson: {res.raw}")
+   
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. code-block:: python
+
+         import bson
+
+         # Execute command with raw BSON options
+         res = await client.admin.command(
+             "serverStatus", 
+             codec_options=bson.raw_bson.DEFAULT_RAW_BSON_OPTIONS
+         )
+
+         # Check for BSON errors in the response
+         try:
+             bson.decode(res.raw)
+         except bson.errors.InvalidBSON as exc:
+             print(f"Invalid BSON found in serverStatus response {exc}, raw bson: {res.raw}")
+
 .. _pymongo-retrieve-additional-information:
 
 Additional Information
