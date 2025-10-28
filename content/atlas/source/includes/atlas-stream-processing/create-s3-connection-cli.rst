@@ -2,7 +2,7 @@
 Add an S3 Connection through {+atlas-cli+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To add an |s3| connection to your {+spi+} through
+To add an |s3| connection to your {+spw+} through
 {+atlas-cli+}, follow these steps:
 
 .. procedure::

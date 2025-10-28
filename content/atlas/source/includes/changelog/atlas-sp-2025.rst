@@ -69,7 +69,7 @@
 25 July 2025 Release
 --------------------
 
-- Adds support for Stream Processing Instances to deploy on Google Cloud. 
+- Adds support for Stream Processing Workspaces to deploy on Google Cloud. 
   To learn more, see `Google Cloud (GCP) Stream Processing Regions <https://www.mongodb.com/docs/atlas/reference/google-gcp/#std-label-gcp-stream-processing-regions>`__.
 
 
@@ -154,7 +154,7 @@
 
 - Allows you to :ref:`add a Kafka Private Link Connection <atlas-sp-pl-kafka-add>`
   for {+aws-msk+} clusters.
-- Allows you to deploy Stream Processing Instances on AWS ``us-east-2``.
+- Allows you to deploy Stream Processing Workspaces on AWS ``us-east-2``.
   To learn more, see :ref:`atlas-sp-regions`.
 
 .. _atlas-sp-20250120:
@@ -163,7 +163,7 @@
 -----------------------
 
 - Supports the :ref:`$currentDate <atlas-sp-agg-currentdate>` expression
-  that returns the system time of your {+spi+} each time {+atlas-sp+} evaluates it.
+  that returns the system time of your {+spw+} each time {+atlas-sp+} evaluates it.
 - Supports reading JSON documents with embedded file signatures (magic bytes).
 - Fixes an issue that prevented the configuration of hopping windows with
   ``hopSize`` greater than ``interval``.

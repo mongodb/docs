@@ -24,10 +24,8 @@ An {+atlas-sp+} stream processor applies the logic of a uniquely named
 :ref:`stream aggregation pipeline <atlas-sp-aggregation>` to your 
 streaming data. {+atlas-sp+} saves each stream processor definition to
 persistent storage so that it can be reused. You can only use a given
-stream processor in the :ref:`{+spi+} <manage-spi>` its definition is
-stored in. {+atlas-sp+} supports up to 4 stream processors per worker.
-For additional processors that exceed this limit, {+atlas-sp+} allocates
-a new resource. 
+stream processor in the :ref:`{+spw+} <manage-spi>` in which its definition is
+stored. 
 
 .. _atlas-sp-manage-processor-prereqs:
 
@@ -36,8 +34,7 @@ Prerequisites
 
 To create and manage a stream processor, you must have:
 
-- A :ref:`{+spi+} <manage-spi>`
-- {+mongosh+} version 2.0 or higher
+- A :ref:`{+spw+} <manage-spi>`
 - A database user with the :atlasrole:`atlasAdmin` role to create
   and run stream processors
 - An |service| {+cluster+}
@@ -101,14 +98,14 @@ To create a stream processor interactively:
 .. procedure::
    :style: normal
 
-   .. step:: Connect to your {+spi+}.
+   .. step:: Connect to your {+spw+}.
       
-      Use the connection string associated with your {+spi+}
+      Use the connection string associated with your {+spw+}
       to connect using {+mongosh+}.
 
       .. example::
 
-         The following command connects to a {+spi+} as a user named
+         The following command connects to a {+spw+} as a user named
          ``streamOwner`` using `x.059 <https://www.mongodb.com/docs/manual/core/security-x.509/>`_ 
          authentication:
 
@@ -201,7 +198,7 @@ To create a stream processor that persists until you drop it:
           - string
           - Required
           - Logical name for the stream processor. This must be unique
-            within the {+spi+}. This name should contain only alphanumeric
+            within the {+spw+}. This name should contain only alphanumeric
             characters.
 
         * - ``pipeline``
@@ -220,7 +217,7 @@ To create a stream processor that persists until you drop it:
           - object
           - Conditional
           - Object assigning a 
-            :term:`dead letter queue` for your {+spi+}. This field is 
+            :term:`dead letter queue` for your {+spw+}. This field is 
             necessary if you define the ``options`` field.
 
         * - ``options.dlq.connectionName``
@@ -244,23 +241,32 @@ To create a stream processor that persists until you drop it:
           - Name of a collection in the database specified in
             ``options.dlq.db``. This field is necessary if you 
             define the ``options.dlq`` field.
+	    
+        * - ``options.tier``
+          - string
+          - Optional
+          - The tier of the pod to which {+atlas-sp+} assigns the
+	    processor. If you do not declare this option,
+	    {+atlas-sp+} assigns the processor to a pod of the
+	    {+spw+}'s default tier. To learn more, see :ref:`Tiers
+	    <atlas-sp-architecture-tiers>`.	   
 
       .. procedure::
         :style: normal
 
-        .. step:: Connect to your {+spi+}.
+        .. step:: Connect to your {+spw+}.
             
-            Use the connection string associated with your {+spi+}
+            Use the connection string associated with your {+spw+}
             to connect using {+mongosh+}.
 
-            a. In the pane for your {+spi+}, click :guilabel:`Connect`.
+            a. In the pane for your {+spw+}, click :guilabel:`Connect`.
 
-            #. In the :guilabel:`Connect to your instance` dialog, 
+            #. In the :guilabel:`Connect to your workspace` dialog, 
                select the :guilabel:`Shell` tab.
 
             #. Copy the connection string displayed in the dialog. It has
                the following format, where
-               ``<atlas-stream-processing-url>`` is the URL of your {+spi+}
+               ``<atlas-stream-processing-url>`` is the URL of your {+spw+}
                and ``<username>`` is the username of a database user with
                the :atlasrole:`atlasAdmin` role:
 
@@ -273,11 +279,11 @@ To create a stream processor that persists until you drop it:
             #. Paste the connection string into your terminal and replace
                the ``<password>`` placeholder with the credentials for
                the user. Press Enter to run it to connect to your
-               {+spi+}.
+               {+spw+}.
 
             .. example::
 
-              The following command connects to a {+spi+} as a user named
+              The following command connects to a {+spw+} as a user named
               ``streamOwner`` using `x.059 <https://www.mongodb.com/docs/manual/core/security-x.509/>`_
               authentication.
               
@@ -383,7 +389,7 @@ To start a stream processor:
 
       To start a stream processor in the {+atlas-ui+}, go to the
       :guilabel:`Stream Processing` page for your {+service+} project
-      and click :guilabel:`Configure` in the pane for your {+spi+} to
+      and click :guilabel:`Configure` in the pane for your {+spw+} to
       view the list of stream processors defined for it. 
       
       Then, click the :guilabel:`Start` icon for your stream processor.
@@ -391,17 +397,35 @@ To start a stream processor:
    .. tab:: ``mongosh``
       :tabid: mongosh
 
-      To create a new stream processor with {+mongosh+}, use the 
-      :method:`sp.createStreamProcessor()` method. It has the following syntax:
+      To start a stream processor with {+mongosh+}, use the 
+      :method:`sp.processor.start()` method. It has the following syntax:
 
       .. code-block:: sh
 
          sp.processor.start(<options>)
 
-      Where ``<options>`` may be one of either ``startAfter`` or
-      ``startAtOperationTime``. To learn more about these parameters,
-      see :ref:`<atlas-sp-agg-source-syntax-coll>`
+      Where ``<options>`` may be one of the following:
 
+      .. list-table::
+         :widths: 30 70
+         :header-rows: 1
+
+         * - Option
+	   - Description
+
+         * - ``startAfter``
+	   - See :ref:`<atlas-sp-agg-source-syntax-coll>`
+
+         * - ``startAtOperationTime``
+	   - See :ref:`<atlas-sp-agg-source-syntax-coll>`
+
+         * - ``tier``
+	   - The tier of the pod to which {+atlas-sp+} assigns the
+	     processor. If you do not declare this option,
+	     {+atlas-sp+} assigns the processor to a pod of the
+	     {+spw+}'s default tier. To learn more, see :ref:`Tiers
+	     <atlas-sp-architecture-tiers>`.
+	   
       For example, to start a stream processor named ``proc01``, run the 
       following command:
 
@@ -449,7 +473,7 @@ To stop a stream processor:
 
       To pause a stream processor in the {+atlas-ui+}, go to the
       :guilabel:`Stream Processing` page for your {+service+} project
-      and click :guilabel:`Configure` in the pane for your {+spi+} to
+      and click :guilabel:`Configure` in the pane for your {+spw+} to
       view the list of stream processors defined for it. 
 
       Then, click the :guilabel:`Pause` icon for your stream processor.
@@ -544,7 +568,7 @@ To modify a stream processor:
       
       Use the ``sp.<streamprocessor>.modify()`` command to modify an existing 
       stream processor. ``<streamprocessor>`` must be the name of a stopped stream 
-      processor defined for the current {+spi+}.
+      processor defined for the current {+spw+}.
 
       For example, to modify a stream processor named ``proc01``, run the
       following command:
@@ -688,7 +712,7 @@ To drop a stream processor:
 
       To delete a stream processor in the {+atlas-ui+}, go to the
       :guilabel:`Stream Processing` page for your {+service+} project
-      and click :guilabel:`Configure` in the pane for your {+spi+} to
+      and click :guilabel:`Configure` in the pane for your {+spw+} to
       view the list of stream processors defined for it.
 
       Then, click the :guilabel:`Delete` (:icon:`trash-alt`) icon for
@@ -739,17 +763,17 @@ To list all available stream processors:
    .. tab:: {+atlas-ui+} 
       :tabid: atlas-ui
 
-      To view the list of stream processors defined for your {+spi+} in
+      To view the list of stream processors defined for your {+spw+} in
       the {+atlas-ui+}, go to the :guilabel:`Stream Processing` page
       for your {+service+} project and click :guilabel:`Configure` in
-      the pane for your {+spi+}.
+      the pane for your {+spw+}.
 
       The list of stream processors and their statuses displays.
 
    .. tab:: ``mongosh``
       :tabid: mongosh
 
-      To list all available stream processors on the current {+spi+}
+      To list all available stream processors on the current {+spw+}
       with {+mongosh+}, use the :method:`sp.listStreamProcessors()`
       method. This returns a list of documents containing the name,
       start time, current state, and pipeline associated with each
@@ -835,7 +859,7 @@ To list all available stream processors:
                 lastStateChange: ISODate("2023-03-21T20:18:26.139Z")
               }
 
-        If you run the command again on the same {+spi+}, filtering for a 
+        If you run the command again on the same {+spw+}, filtering for a 
         ``"state"`` of ``"running"``, you see the following output:
 
         .. io-code-block::
@@ -917,7 +941,7 @@ a ``_dlqMessage`` document of the following form:
 	 ...
        },
        processorName: '<procName>',
-       instanceName: '<instanceName>',
+       workspaceName: '<workspaceName>',
        dlqTime: ISODate('2024-09-19T20:04:34.263+00:00')
      }
   }
@@ -1211,7 +1235,7 @@ To view statistics of a stream processor:
             value defaults to ``false``. 
 
       For example, the following shows the status of a stream processor named 
-      ``proc01`` on a {+spi+} named ``inst01`` with item sizes displayed in 
+      ``proc01`` on a {+spw+} named ``inst01`` with item sizes displayed in 
       KB:
 
       .. code-block:: sh

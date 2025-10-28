@@ -3495,7 +3495,7 @@
    * - ``MAX_PROCESSOR_COUNT_REACHED``
      - .. _atlas_event_max_processor_count_reached:
 
-       Processor limit reached for Stream Processing Instance
+       Processor limit reached for Stream Processing Workspace
      - no
 
    * - ``MEMBER_ADDED``
@@ -5397,55 +5397,55 @@
    * - ``STREAM_TENANT_AUDIT_LOGS``
      - .. _atlas_event_stream_tenant_audit_logs:
 
-       Stream Processing Instance audit logs downloaded
+       Stream Processing Workspace audit logs downloaded
      - no
 
    * - ``STREAM_TENANT_AUDIT_LOGS_DELETED``
      - .. _atlas_event_stream_tenant_audit_logs_deleted:
 
-       Stream Processing Instance audit logs deleted
+       Stream Processing Workspace audit logs deleted
      - no
 
    * - ``STREAM_TENANT_CONNECTIONS_LISTED``
      - .. _atlas_event_stream_tenant_connections_listed:
 
-       Stream Processing Instance connections listed
+       Stream Processing Workspace connections listed
      - no
 
    * - ``STREAM_TENANT_CONNECTION_DELETED``
      - .. _atlas_event_stream_tenant_connection_deleted:
 
-       Stream Processing Instance connection deleted
+       Stream Processing Workspace connection deleted
      - no
 
    * - ``STREAM_TENANT_CONNECTION_UPDATED``
      - .. _atlas_event_stream_tenant_connection_updated:
 
-       Stream Processing Instance connection updated
+       Stream Processing Workspace connection updated
      - no
 
    * - ``STREAM_TENANT_CONNECTION_VIEWED``
      - .. _atlas_event_stream_tenant_connection_viewed:
 
-       Stream Processing Instance connection viewed
+       Stream Processing Workspace connection viewed
      - no
 
    * - ``STREAM_TENANT_CREATED``
      - .. _atlas_event_stream_tenant_created:
 
-       Stream Processing Instance created
+       Stream Processing Workspace created
      - no
 
    * - ``STREAM_TENANT_DELETED``
      - .. _atlas_event_stream_tenant_deleted:
 
-       Stream Processing Instance deleted
+       Stream Processing Workspace deleted
      - no
 
    * - ``STREAM_TENANT_UPDATED``
      - .. _atlas_event_stream_tenant_updated:
 
-       Stream Processing Instance updated
+       Stream Processing Workspace updated
      - no
 
    * - ``SUBSCRIPTION_USAGE_DOC_RATE_CHANGED_DRASTICALLY``

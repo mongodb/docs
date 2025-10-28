@@ -1,13 +1,13 @@
 Add an External Function Connection through {+atlas-ui+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To add an external function connection to your Stream Processing Instance through
+To add an external function connection to your Stream Processing Workspace through
 {+atlas-ui+}, follow these steps:
 
 .. procedure::
    :style: normal 
 
-   .. step:: Navigate to your {+spi+}.
+   .. step:: Navigate to your {+spw+}.
 
       Select the :guilabel:`Stream Processing` tab in the left sidebar 
       menu in the |service| UI. 

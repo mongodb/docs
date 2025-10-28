@@ -27,7 +27,7 @@ project, follow these steps:
      
          Confluent accepts incoming connections only from {+aws+}. To
          use a Confluent Private Link connection, you must host your
-         {+spi+}s on {+aws+}.
+         {+spw+}s on {+aws+}.
 
       a. Call the :oas-atlas-tag:`Return Account ID and VPC ID for group and region </Streams/operation/getAccountDetails>`
          {+atlas-admin-api+} endpoint. Note the value of

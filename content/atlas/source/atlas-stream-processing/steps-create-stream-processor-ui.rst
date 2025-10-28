@@ -1,6 +1,6 @@
 To create a stream processor in the {+atlas-ui+}, go to the
 :guilabel:`Stream Processing` page for your {+service+} project and
-click :guilabel:`Configure` in the pane for your {+spi+}.
+click :guilabel:`Configure` in the pane for your {+spw+}.
 
 You can choose between using the Visual Builder or the |json| editor to
 configure your stream processor:
@@ -15,7 +15,7 @@ configure your stream processor:
          
          .. step:: Click :guilabel:`Create with visual builder`.
 
-            If there are existing stream processors in your {+spi+},
+            If there are existing stream processors in your {+spw+},
             click the :guilabel:`+ Create stream processor` button, then
             select :guilabel:`Visual Builder` from the drop-down
             options.
@@ -136,7 +136,7 @@ configure your stream processor:
 
          .. step:: Click :guilabel:`Use JSON editor`.
 
-            If there are existing stream processors in your {+spi+},
+            If there are existing stream processors in your {+spw+},
             click the :guilabel:`+ Create stream processor` button, then
             select :guilabel:`Visual Builder` from the drop-down
             options.

@@ -1,6 +1,6 @@
 To create a stream processor in the {+atlas-ui+}, go to the
 :guilabel:`Stream Processing` page for your {+service+} project and
-click :guilabel:`Configure` in the pane for your {+spi+}. Then choose
+click :guilabel:`Configure` in the pane for your {+spw+}. Then choose
 between using the visual builder or the JSON editor to configure a
 stream processor named ``solarDemo``:
 

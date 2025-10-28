@@ -3,4 +3,4 @@
 
    .. include:: /includes/nav/steps-stream-processing.rst
 
-   .. step:: Edit your {+spi+}
+   .. step:: Edit your {+spw+}

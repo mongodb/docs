@@ -3,7 +3,7 @@
 Add an HTTPS Connection through Atlas CLI
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To add an HTTPS connection to your {+spi+} through
+To add an HTTPS connection to your {+spw+} through
 {+atlas-cli+}, follow these steps:
 
 .. procedure:: 

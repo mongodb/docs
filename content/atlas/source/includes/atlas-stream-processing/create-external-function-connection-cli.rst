@@ -1,7 +1,7 @@
 Add an External Function Connection through {+atlas-cli+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To add an external connection to your Stream Processing Instance through
+To add an external connection to your Stream Processing Workspace through
 Atlas CLI, follow these steps:
 
 .. procedure:: 

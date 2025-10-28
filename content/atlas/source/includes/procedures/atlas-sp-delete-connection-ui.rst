@@ -5,7 +5,7 @@
 
    .. step:: Go to the :guilabel:`Connection Registry`.
 
-      a. Locate the overview panel of the {+spi+} that 
+      a. Locate the overview panel of the {+spw+} that 
          contains the connection registry that you want to modify 
       
       #. Click :guilabel:`Configure` in the upper right.

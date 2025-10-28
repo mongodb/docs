@@ -3,4 +3,4 @@
 
    .. include:: /includes/nav/steps-stream-processing.rst
 
-      {+service+} displays all {+spi+}s running in your project.
+      {+service+} displays all {+spw+}s running in your project.

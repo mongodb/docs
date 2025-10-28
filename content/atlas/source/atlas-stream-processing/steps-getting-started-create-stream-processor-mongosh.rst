@@ -1,19 +1,19 @@
 Run the following commands in {+mongosh+} to create a persistent stream
 processor named ``solarDemo``:
 
-a. Connect to your {+spi+}.
+a. Connect to your {+spw+}.
 
-   Use the connection string associated with your {+spi+}
+   Use the connection string associated with your {+spw+}
    to connect using {+mongosh+}.
 
-   i. In the pane for your {+spi+}, click :guilabel:`Connect`.
+   i. In the pane for your {+spw+}, click :guilabel:`Connect`.
 
-   #. In the :guilabel:`Connect to your instance` dialog, 
+   #. In the :guilabel:`Connect to your workspace` dialog, 
       select the :guilabel:`Shell` tab.
 
    #. Copy the connection string displayed in the dialog. It has
       the following format, where
-      ``<atlas-stream-processing-url>`` is the URL of your {+spi+}
+      ``<atlas-stream-processing-url>`` is the URL of your {+spw+}
       and ``<username>`` is the username of a database user with
       the :atlasrole:`atlasAdmin` role:
 
@@ -27,7 +27,7 @@ a. Connect to your {+spi+}.
       the ``<password>`` placeholder with the credentials for the
       user. 
       
-      Press Enter to run it and connect to your {+spi+}.
+      Press Enter to run it and connect to your {+spw+}.
 
 #. Configure a :pipeline:`$source` stage.
 

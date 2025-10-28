@@ -5,7 +5,7 @@
 
    .. step:: Go to the :guilabel:`Connection Registry`.
 
-      a. Locate the overview panel of the {+spi+} you want to 
+      a. Locate the overview panel of the {+spw+} you want to 
          modify and click :guilabel:`Configure`. 
 
       #. Select the :guilabel:`Connection Registry` tab.
@@ -25,7 +25,7 @@
                connection.
 
             #. Provide a :guilabel:`Connection Name`. Each
-               connection name must be unique within a {+spi+}.
+               connection name must be unique within a {+spw+}.
                This is the name used to reference the connection in 
                {+atlas-sp+} :ref:`aggregations <atlas-sp-aggregation>`.
 
@@ -141,7 +141,7 @@
                connection.
 
             #. Provide a :guilabel:`Connection Name`. Each
-               connection name must be unique within an {+spi+}. 
+               connection name must be unique within an {+spw+}. 
                This is the name used to reference the connection in 
                {+atlas-sp+} :ref:`aggregations <atlas-sp-aggregation>`.
 

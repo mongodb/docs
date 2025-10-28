@@ -1,7 +1,7 @@
 .. versionadded:: 1.50
 
 You can use |vsce| to connect to :ref:`Atlas Stream Processing <atlas-sp-overview>`
-by providing a Stream Processing Interface (SPI) connection string.
+by providing a Stream Processing Workspace (SPW) connection string.
 
 For details on how to configure Atlas Stream Processing, see 
 :ref:`manage-spi`. 
@@ -17,12 +17,12 @@ For details on how to configure Atlas Stream Processing, see
       #. Click the More Actions menu (...) and select
          :guilabel:`Add MongoDB Connection with Connection String...`
 
-   .. step:: Paste in an SPI connection string
+   .. step:: Paste in an SPW connection string
 
-      To obtain an SPI connection string login to your 
+      To obtain an SPW connection string login to your 
       :atlas:`Atlas </>` account.
       Click :guilabel:`Stream Processing` from the left-hand navigation 
-      and then select a Stream Processing Instance. Click 
+      and then select a Stream Processing Workspace. Click 
       :guilabel:`Connect` and choose :guilabel:`MongoDB for VSCode` from
       the :guilabel:`Choose a Connection Method` page of the connect 
       dialog.
@@ -32,7 +32,7 @@ For details on how to configure Atlas Stream Processing, see
          For full details on using and configuring 
          Atlas Stream Processing, see :ref:`atlas-sp-overview`. 
 
-      The following code block is an example of SPI connection string:
+      The following code block is an example of SPW connection string:
 
       .. code-block::
 

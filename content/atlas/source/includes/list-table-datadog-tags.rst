@@ -46,8 +46,8 @@
      - Unique identifier of the stream processor associated with the metric.
 
    * - ``tenant_name``
-     - Name of the {+spi+} associated with the metric.
+     - Name of the {+spw+} associated with the metric.
 
    * - ``tenant_id``
-     - Unique identifier of the {+spi+} associated with the metric.
+     - Unique identifier of the {+spw+} associated with the metric.
 

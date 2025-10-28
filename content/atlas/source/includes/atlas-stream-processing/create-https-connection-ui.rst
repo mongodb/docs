@@ -3,20 +3,20 @@
 Add an HTTPS Connection through {+atlas-ui+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To add an HTTPS connection to your {+spi+} through
+To add an HTTPS connection to your {+spw+} through
 {+atlas-ui++}, follow these steps:
 
 .. procedure::
    :style: normal 
 
-   .. step:: Navigate to your {+spi+}.
+   .. step:: Navigate to your {+spw+}.
 
       Select the :guilabel:`Stream Processing` tab in the left sidebar 
       menu in the |service| UI. 
 
    .. step:: Configure your connection.
 
-      #. Click the :guilabel:`Configure` button for the {+spi+} to which you 
+      #. Click the :guilabel:`Configure` button for the {+spw+} to which you 
          want to register a connection. 
 
       #. Select the :guilabel:`Connection Registry` tab. 

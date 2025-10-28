@@ -27,32 +27,70 @@ processor is a MongoDB :manual:`aggregation pipeline
 streaming data from a specified source and writes the output to a
 sink. To learn more, see :ref:`atlas-sp-processor-structure`.
 
-Stream processing takes place on {+spi+}s. Each {+spi+} is an
+Stream processing takes place on {+spw+}s. Each {+spw+} is an
 |service| namespace that associates the following:
 
-- One or more **workers**, which provide the RAM and CPUs necessary
-  to run your stream processors.
+- One or more stream processors, each running on its own allocation of
+  RAM and CPUs.
+- A default tier, which determines the amount of memory and compute
+  available to each stream processor when you don't specify a tier.
+- A maximum tier, which determines the highest amount of memory and
+  compute that you can allocate to a pod within that {+spw+}.
 - A cloud provider and cloud region. 
 - A **connection registry**, which stores the list of available
   sources and sinks of streaming data.
 - A security context in which to define user authorizations.
 - A :manual:`Connection String </reference/connection-string>` to
-  the {+spi+} itself.
+  the {+spw+} itself.
 
-Workers
-~~~~~~~
+.. _atlas-sp-architecture-tiers:
+
+Tiers
+~~~~~
 
 When you define a stream processor, it becomes available only for the
-{+spi+} in which you define it. Each worker can host up to four
-running stream processors; {+atlas-sp+} automatically scales your
-{+spi+} up as you start stream processors by provisioning workers
-as needed. You can deprovision a worker by stopping all stream
-processors on it. {+atlas-sp+} always prefers to assign a stream
-processor to an existing worker over provisioning new workers.
+{+spw+} in which you define it. Each stream processor runs on
+resources allocated according to its tier. {+atlas-sp+} bills users for
+a stream processor only while it's running running.
+
+If you start a stream processor without declaring a tier size, it will
+run the {+spw+}'s tier. You can start a stream processor of any tier
+up to and including the maximum tier of the {+spw+}
 
 .. example::
 
-   You have a {+spi+} running eight stream processors, named
+   You define a stream processor on a {+spw+} named ``myWorkspace``
+   with a default tier of ``SP10``, and a maximum tier of ``SP30``. If
+   you start the processor without specifying a tier, {+atlas-sp+}
+   assigns it to an ``SP10`` pod. However, you can declare any tier
+   from ``SP2`` up to ``SP30`` and {+atlas-sp+} will assign the
+   processor to an appropriately sized pod.
+
+.. _atlas-sp-architecture-workers-legacy:
+
+Workers (Legacy)
+~~~~~~~~~~~~~~~~
+
+.. important::
+
+   The following architecture applies only to ``SP10`` and ``SP30``
+   workspaces created before October 22nd, 2025. All workspaces
+   created on or after October 22nd, 2025 operate according to a
+   :ref:`processor-tier model <atlas-sp-architecture-tiers>`. Existing
+   ``SP10`` and ``SP30`` workspaces operating according to the worker
+   model will migrate to the processor-tier model by December 1st, 2025.
+
+Each worker can host up to four running stream processors. {+spw+}s
+that run on the legacy workers model bill users according to the
+number of workers. {+atlas-sp+} automatically scales your {+spw+} up
+as you start stream processors by provisioning workers as needed. You
+can deprovision a worker by stopping all stream processors on
+it. {+atlas-sp+} always prefers to assign a stream processor to an
+existing worker over provisioning new workers.
+
+.. example::
+
+   You have a {+spw+} running eight stream processors, named
    ``proc01`` through ``proc08``. ``proc01`` through ``proc04`` run on
    one worker, ``proc05`` through ``proc08`` run on a second
    worker. You start a new stream processor named
@@ -69,7 +107,7 @@ processor to an existing worker over provisioning new workers.
 
 When scaling, {+atlas-sp+} only considers the number of currently
 running stream processors; it doesn't count defined stream processors
-that aren't running. The tier of the {+spi+} determines the RAM and
+that aren't running. The tier of the {+spw+} determines the RAM and
 CPU allotment of its workers.
 
 Connection Registry
@@ -80,8 +118,8 @@ assigns a name to the combination of networking and security details
 that allow a stream processor to interact with external
 services. Connections exhibit the following behavior:
 
-- Only a connection defined in a given {+spi+}'s connection registry
-  can service stream processors hosted on that {+spi+}.
+- Only a connection defined in a given {+spw+}'s connection registry
+  can service stream processors hosted on that {+spw+}.
 - Each connection can service an arbitrary number of stream processors
 - Only a single connection can serve as a given stream processor's source.
 - Only a single connection can serve as a given stream processor's sink.
@@ -251,7 +289,7 @@ delays, with and without watermarks.
      - 12:05-12:10
 
 Without watermarks, the ``12:00-12:05`` window closes at ``12:05``
-according to the system clock of the {+spi+}, and the ``12:05-12:10``
+according to the system clock of the {+spw+}, and the ``12:05-12:10``
 window opens immediately. Thus, though the source generated
 four of the documents during the ``12:00-12:05`` interval, the
 relevant window captures only two documents.

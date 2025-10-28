@@ -9,7 +9,7 @@
       .. important::
 
 	 {+aws-msk+} accepts incoming connections from {+aws+} only. To use an
-	 {+aws-msk+} Private Link connection, you must host your {+spi+}s on
+	 {+aws-msk+} Private Link connection, you must host your {+spw+}s on
 	 {+aws+}.
 
       a. Use the :oas-atlas-tag:`Get Account Details

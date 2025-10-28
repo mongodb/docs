@@ -2,7 +2,7 @@
 Add a S3 Connection through the {+atlas-admin-api+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To add an |s3| connection to your {+spi+} through the
+To add an |s3| connection to your {+spw+} through the
 {+atlas-admin-api+}, follow these steps:
 
 .. procedure::
