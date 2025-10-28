@@ -22,7 +22,7 @@
       By default, a user can access all {+clusters+} and {+fdi+}s in projects to which
       they have access. If you restricted access to specific {+clusters+} and {+fdi+}s,
       you can grant access to the new {+fdi+} in the Edit User menu. To learn more, see
-      :ref:`modify-mongodb-users`.
+      :ref:`Configure Database Users <modify-mongodb-users>`.
 
 .. step:: Power BI Service Configuration
 

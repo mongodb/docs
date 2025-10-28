@@ -120,7 +120,7 @@ Grant Database Access to AWS IAM Roles
 To grant database access to the |aws| |iam| role, complete the steps
 described in the :ref:`mongodb-users` section for |aws| |iam|. For
 more information on granting database access using {+atlas-cli+},
-{+atlas-admin-api+}, or {+atlas-ui+}, see :ref:`add-mongodb-users`. 
+{+atlas-admin-api+}, or {+atlas-ui+}, see :ref:`Configure Database Users <add-mongodb-users>`. 
 
 Connect to |service| {+Cluster+} Using AWS IAM
 ----------------------------------------------

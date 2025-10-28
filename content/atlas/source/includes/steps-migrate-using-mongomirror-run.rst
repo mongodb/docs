@@ -17,7 +17,7 @@
       
       You must specify a database user with the
       :atlasrole:`Atlas admin` role to run |mongomirror|.
-      See :ref:`add-mongodb-users` for documentation on creating a database
+      See :ref:`Configure Database Users <add-mongodb-users>` for documentation on creating a database
       user.
       
       If no such user exists, create the user:
