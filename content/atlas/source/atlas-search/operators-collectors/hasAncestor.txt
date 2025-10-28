@@ -1,0 +1,146 @@
+.. _has-ancestor-ref:
+
+========================
+``hasAncestor`` Operator
+========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas search, hasAncestor operator, hasAncestor, search hasAncestor operator, Atlas search hasAncestor operator, query embedded documents, query array of objects
+   :description: Query embeddedDocuments type fields to retrieve nested fields based on parent document criteria. 
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: hasAncestor 
+
+   The ``hasAncestor`` operator queries an ``embeddedDocuments`` type field that
+   you specify in the ``ancestorPath``. The ``ancestorPath`` is a parent
+   of the field that you specify in the ``returnScope``. The
+   ``returnScope`` specifies the nested field, including the level of
+   nesting, that you want to retrieve. 
+
+   You can use this operator when scoring and retrieving objects within
+   arrays as independent documents to:  
+
+   - Filter on ancestor fields (higher level of nesting). 
+   - Filter on sibling fields (equal level of nesting).
+
+Syntax 
+------
+
+The ``hasAncestor`` operator has the following syntax:
+
+.. code-block:: javascript
+   :linenos:
+
+   {
+     $search: {
+       "index": "<index name>", // optional, defaults to "default"
+       "hasAncestor": {
+         "ancestorPath": "<embeddedDocuments-type-higher-level-field>",
+         "operator": {
+           <operator-specification>
+         }
+       },
+       "returnScope": {
+         "path": "<embeddedDocuments-type-field-to-retrieve>"
+       }
+     }
+   }
+
+Fields 
+------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 60 10
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+
+   * - ``ancestorPath`` 
+     - String
+     - Name of the ``embeddedDocuments`` type field that is an
+       intermediary ancestor of the nested field used in the query. This
+       is the parent document that the operator evaluates.
+     - Required
+
+   * - ``operator``
+     - Object
+     - Operator to use to query the nested field inside the 
+       ``embeddedDocuments`` type field specified in the
+       ``ancestorPath``. The query path must be a child of the 
+       ``ancestorPath``, regardless of the level of nesting. This
+       specifies the search criteria to filter the parent document.
+       
+       You can't use the ``hasAncestor`` operator inside the operator
+       specification. 
+
+     - Required
+
+Requirements 
+------------
+
+To use this operator, you must: 
+
+- Index the ancestor fields as the :ref:`embeddedDocuments
+  <bson-data-types-embedded-documents>` type. In the query, specify
+  ``ancestorPath`` as this field. If the field is on the root level, use
+  :ref:`hasRoot <has-root-ref>`. 
+- Specify :ref:`returnScope <fts-return-scope>` to set the scope of the
+  document to query and retrieve.
+
+Examples 
+--------
+
+The examples in this section use the ``sample_training.companies``
+dataset. If you load the sample dataset and create the index on the
+collection, you can try the sample queries demonstrated in this section.
+
+Sample Index 
+~~~~~~~~~~~~~
+
+The queries in this section use the following index. This index
+definition configures |fts| to do the following: 
+
+- Automatically index all the dynamically indexable fields in the collection.
+- Index the ``funding_rounds`` and ``funding_rounds.investments``
+  fields as the :ref:`embeddedDocuments
+  <bson-data-types-embedded-documents>` type. 
+- Store the following fields on ``mongot``: 
+
+  - ``funding_rounds.investments.financial_org``
+  - ``funding_rounds.investments.person``
+
+.. literalinclude:: /includes/fts/has-ancestor/sample-index.json
+   :language: json 
+   :copyable: true 
+   :linenos: 
+
+Sample Query 
+~~~~~~~~~~~~
+
+The following query searches the ``funding_rounds.founded_year`` field
+for companies that were founded in the year ``2005`` using the
+``equals`` operator to retrieve investment details such as the financial
+organizations or individuals that invested in the companies. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: /includes/fts/has-ancestor/query-mongosh.js 
+      :language: javascript 
+      :linenos: 
+
+   .. output:: /includes/fts/has-ancestor/query-mongosh-output.js
+      :language: javascript 

@@ -1,0 +1,180 @@
+.. _has-root-ref:
+
+====================
+``hasRoot`` Operator
+====================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas search, hasRoot operator, hasRoot, search hasRoot operator, Atlas search hasRoot operator, query embedded documents, query array of objects
+   :description: Retrieve nested fields as individual documents by searching for the parent embeddedDocuments field. 
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: hasRoot 
+
+   The ``hasRoot`` operator can be used to query root-level fields when
+   you specify the ``returnScope`` and ``returnStoredSource`` options.  
+
+Syntax 
+------
+
+``hasRoot`` has the following syntax:
+
+.. code-block:: javascript
+   :linenos:
+   :emphasize-lines: 4-8
+
+   {
+     $search: {
+       "index": "<index name>", // optional, defaults to "default"
+       "hasRoot": {
+         "operator": {
+           <operator-specification>
+         }
+       },
+       "returnScope": {
+         "path": "<embedded-documents-field-to-retrieve>"
+       },
+       "returnStoredSource": true,
+     }
+   }
+
+Fields 
+------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 20 55 10
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+
+   * - ``operator``
+     - Object
+     - Operator to use to query an indexed field. This specifies the
+       search criteria to filter the child documents.
+     - Required
+
+Requirements 
+------------
+
+To use this operator, you must do the following in the index definition:  
+
+- Index the root-level field that you want to query.
+- Index the array of objects that you want to retrieve as the
+  ``embeddedDocuments`` type. You must also configure ``storedSource``
+  for nested fields that you want to retrieve.
+
+In the query, you must do the following: 
+
+- Specify ``returnScope`` to set the scope of the field to search for 
+  the operator.  
+- Set ``returnStoredSource`` to ``true`` to return the ``storedSource``
+  fields. 
+
+Examples 
+--------
+
+The examples in this section use the ``sample_training.companies``
+namespace. If you load the sample dataset and create the index on the
+collection, you can try the sample queries demonstrated in this section.
+
+Sample Index 
+~~~~~~~~~~~~~
+
+The queries in this section use the following index. This index
+definition configures |fts| to do the following: 
+
+- Automatically index all the dynamically indexable fields in the collection.
+- Index the ``products``, ``funding_rounds``, and
+  ``funding_rounds.investments`` fields as the :ref:`embeddedDocuments
+  <bson-data-types-embedded-documents>` type.
+- Store the following fields on ``mongot``: 
+
+  - ``funding_rounds.raised_currency_code``
+  - ``funding_rounds.raised_amount``
+  - ``funding_rounds.investments``
+  - ``products.name``
+
+.. literalinclude:: /includes/fts/has-root/sample-index.json
+   :language: json 
+   :copyable: true 
+   :linenos: 
+
+Simple Query 
+~~~~~~~~~~~~
+
+The following query returns ``products`` where the root-level field
+``founded_year`` is in between the years ``2005`` and ``2010``.  
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: /includes/fts/has-root/simple-query-mongosh.js 
+      :language: javascript 
+      :linenos: 
+
+   .. output:: /includes/fts/has-root/simple-query-mongosh-output.js
+      :language: javascript 
+      :visible: false
+
+Multi-Level Query 
+~~~~~~~~~~~~~~~~~
+
+The following query searches the ``name`` field for the company named
+``Facebook`` using the ``text`` operator to retrieve the amount invested 
+(``funding_rounds.raised_amount`` and
+``funding_rounds.raised_currency_code``) by all the investors 
+(``investments.person`` and ``investments.financial_org``) in the
+company. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: /includes/fts/has-root/nested-fields-query-mongosh.js 
+      :language: javascript 
+      :linenos: 
+
+   .. output:: /includes/fts/has-root/nested-fields-query-mongosh-output.js
+      :language: javascript 
+      :visible: false
+
+Compound Query 
+~~~~~~~~~~~~~~
+
+The following query searches the nested ``funding_rounds.investments``
+field for financial organizations with the term ``Ventures`` (anywhere
+in the ``name`` field) that have invested in companies that are described
+using the term ``network`` (anywhere in the ``description`` field). The
+query uses the :ref:`compound <compound-ref>` operator to search the: 
+
+- Nested ``funding_rounds.investments.financial_org.name`` field using the
+  ``embeddedDocument`` operator
+- Root-level ``description`` field using the ``hasRoot`` operator
+
+The ``returnScope`` sets the context for the operators to the
+``funding_rounds`` ``embeddedDocuments`` type field and the
+``returnStoredSource`` field is set to ``true`` to return only the 
+``storedSource`` fields. The query limits the results to ``5`` documents.
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: /includes/fts/has-root/compound-query-mongosh.js 
+      :language: javascript 
+      :linenos: 
+
+   .. output:: /includes/fts/has-root/compound-query-mongosh-output.js
+      :language: javascript 
+      :visible: false

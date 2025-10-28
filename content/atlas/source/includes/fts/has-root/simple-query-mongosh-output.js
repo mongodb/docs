@@ -1,0 +1,22 @@
+[
+  { name: 'Wikison Wetpaint' },
+  { name: 'Wetpaint Social Distribution System' },
+  { name: 'Omnidrive' },
+  { name: 'Twitter Blocks' },
+  { name: 'Twicco' },
+  { name: 'Slacker Web Player' },
+  { name: 'Slacker Desktop Radio' },
+  { name: 'Slacker Portable Player' },
+  { name: 'Babelgum' },
+  { name: 'Powerset' },
+  { name: 'OpenX Enterprise' },
+  { name: 'OpenX Market' },
+  { name: 'OpenX Lift' },
+  { name: 'Sparter' },
+  { name: 'Thoof' },
+  { name: 'MyFree411' },
+  { name: 'Wesabe' },
+  { name: 'Prosper' },
+  { name: 'Stickam' },
+  { name: 'PayPerLive.com' }
+]
