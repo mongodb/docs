@@ -293,13 +293,13 @@ const tocData: TocItem[] = [
         versions: { excludes: outdatedVersions },
       },
       {
-        label: "Atlas Search",
+        label: "MongoDB Search",
         contentSite: "golang",
         url: "/docs/drivers/go/:version/atlas-search",
         versions: { excludes: outdatedVersions },
       },
       {
-        label: "Atlas Vector Search",
+        label: "MongoDB Vector Search",
         contentSite: "golang",
         url: "/docs/drivers/go/:version/atlas-vector-search",
         versions: { excludes: outdatedVersions },
@@ -682,7 +682,7 @@ const tocData: TocItem[] = [
                     url: "/docs/drivers/go/:version/fundamentals/crud/read-operations/project",
                   },
                   {
-                    label: "Search Text",
+                    label: "Query Text",
                     contentSite: "golang",
                     url: "/docs/drivers/go/:version/fundamentals/crud/read-operations/text",
                   },

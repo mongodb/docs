@@ -226,7 +226,7 @@ const tocData: TocItem[] = [
                 url: "/docs/drivers/java/sync/:version/crud/query-documents/geo",
               },
               {
-                label: "Search Text",
+                label: "Query Text",
                 contentSite: "java",
                 url: "/docs/drivers/java/sync/:version/crud/query-documents/text",
               },
@@ -353,7 +353,7 @@ const tocData: TocItem[] = [
                 url: "/docs/drivers/java/sync/:version/crud/read-operations/geo",
               },
               {
-                label: "Search Text",
+                label: "Query Text",
                 contentSite: "java",
                 url: "/docs/drivers/java/sync/:version/crud/read-operations/text",
               },
@@ -539,12 +539,12 @@ const tocData: TocItem[] = [
         url: "/docs/drivers/java/sync/:version/command",
       },
       {
-        label: "Atlas Search",
+        label: "MongoDB Search",
         contentSite: "java",
         url: "/docs/drivers/java/sync/:version/atlas-search",
       },
       {
-        label: "Atlas Vector Search",
+        label: "MongoDB Vector Search",
         contentSite: "java",
         url: "/docs/drivers/java/sync/:version/atlas-vector-search",
       },

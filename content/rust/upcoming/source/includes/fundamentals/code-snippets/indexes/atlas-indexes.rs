@@ -51,7 +51,7 @@ async fn main() -> mongodb::error::Result<()> {
         .build();
 
     let result = my_coll.create_search_index(idx_model).await?;
-    println!("Created Atlas Search index:\n{}", result);
+    println!("Created MongoDB Search index:\n{}", result);
     // end-atlas-create-one
 
     // begin-atlas-create-many

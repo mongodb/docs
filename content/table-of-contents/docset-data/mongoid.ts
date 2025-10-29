@@ -191,7 +191,7 @@ const tocData: TocItem[] = [
             url: "/docs/mongoid/:version/interact-data/aggregation",
           },
           {
-            label: "Search Text",
+            label: "Query Text",
             contentSite: "mongoid",
             url: "/docs/mongoid/:version/interact-data/text-search",
           },
@@ -206,7 +206,7 @@ const tocData: TocItem[] = [
             url: "/docs/mongoid/:version/interact-data/nested-attributes",
           },
           {
-            label: "Tutorial: Atlas Search",
+            label: "Tutorial: MongoDB Search",
             contentSite: "mongoid",
             url: "/docs/mongoid/:version/interact-data/atlas-search-tutorial",
           },

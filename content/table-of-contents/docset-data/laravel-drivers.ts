@@ -219,13 +219,13 @@ const tocData: TocItem[] = [
             url: "/docs/drivers/php/laravel-mongodb/:version/fundamentals/aggregation-builder",
           },
           {
-            label: "Atlas Search",
+            label: "MongoDB Search",
             contentSite: "laravel",
             url: "/docs/drivers/php/laravel-mongodb/:version/fundamentals/atlas-search",
             versions: { excludes: ["v4.x"] },
           },
           {
-            label: "Atlas Vector Search",
+            label: "MongoDB Vector Search",
             contentSite: "laravel",
             url: "/docs/drivers/php/laravel-mongodb/:version/fundamentals/vector-search",
             versions: { excludes: ["v4.x"] },

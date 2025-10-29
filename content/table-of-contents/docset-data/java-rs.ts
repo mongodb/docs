@@ -478,7 +478,7 @@ const tocData: TocItem[] = [
             url: "/docs/languages/java/reactive-streams-driver/:version/tutorials/change-stream",
           },
           {
-            label: "Text Search",
+            label: "Text Query",
             contentSite: "java-rs",
             url: "/docs/languages/java/reactive-streams-driver/:version/tutorials/text-search",
           },

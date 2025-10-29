@@ -15,7 +15,7 @@ use futures::stream::TryStreamExt;
         .database("sample_mflix")
         .collection("movies");
 
-    // Defines the Atlas Search query
+    // Defines the MongoDB Search query
     let pipeline = vec![
         doc! {
           "$search": {
