@@ -33,7 +33,7 @@ const tocData: TocItem[] = [
 	collapsible: true,
 	items: [
 	  {
-	    label: "Manage Stream Processing Instances",
+	    label: "Manage Stream Processing Workspaces",
 	    contentSite: "cloud-docs",
 	    url: "/docs/atlas/atlas-stream-processing/manage-processing-instance",
 	  },
