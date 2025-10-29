@@ -70,11 +70,11 @@ func main() {
 	// Creates the index
 	searchIndexName, err := coll.SearchIndexes().CreateOne(ctx, vectorSearchIndexModel)
 	if err != nil {
-		log.Fatalf("Failed to create the Atlas Vector Search index: %v", err)
+		log.Fatalf("Failed to create the MongoDB Vector Search index: %v", err)
 	}
 	// end-create-vector-search
 
-	// Creates an Atlas Search index
+	// Creates a MongoDB Search index
 	// start-create-atlas-search
 	// Sets the index name and type to "search"
 	const indexName = "search_index"
@@ -98,7 +98,7 @@ func main() {
 	// Creates the index
 	searchIndexName, err := coll.SearchIndexes().CreateOne(ctx, searchIndexModel)
 	if err != nil {
-		log.Fatalf("Failed to create the Atlas Search index: %v", err)
+		log.Fatalf("Failed to create the MongoDB Search index: %v", err)
 	}
 	// end-create-atlas-search
 
