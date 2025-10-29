@@ -8,6 +8,7 @@ import type { BaseTemplateProps } from '@/components/templates';
 import { DocumentTemplate, OpenAPITemplate } from '@/components/templates';
 import ActionBar from '@/components/action-bar';
 import layoutStyles from '@/app/layout.module.scss';
+import ChangelogTemplate from '@/components/templates/changelog';
 
 type TemplateComponent = React.ComponentType<BaseTemplateProps>;
 
@@ -22,6 +23,10 @@ function getTemplate(templateOption: string): { Template: TemplateComponent; ren
       break;
     case 'openapi':
       Template = OpenAPITemplate;
+      break;
+    case 'changelog':
+      Template = ChangelogTemplate;
+      renderSidenav = true;
       break;
     default:
       console.warn(`Unknown template option: ${templateOption}. Defaulting to DocumentTemplate.`);
