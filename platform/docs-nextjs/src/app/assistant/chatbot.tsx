@@ -15,11 +15,11 @@ const env = process.env.NEXT_PUBLIC_ENV as Environments;
 
 const CHATBOT_SERVER_BASE_URL = ['dotcomprd', 'production'].includes(env)
   ? 'https://knowledge.mongodb.com/api/v1'
-  : 'https://knowledge.staging.corp.mongodb.com/api/v1';
+  : 'https://knowledge-dev.mongodb.com/api/v1';
 
 function ChatbotComponent() {
   const shouldStream = false;
-  const { contextDarkMode: darkMode = false, setDarkMode } = useDarkModeContext();
+  const { contextDarkMode: darkMode = false } = useDarkModeContext();
 
   return (
     <LeafyGreenProvider darkMode={darkMode}>

@@ -1,55 +1,63 @@
 import { useChatbotContext } from 'mongodb-chatbot-ui';
 import { useEffect, useState } from 'react';
-import Button from '@leafygreen-ui/button';
-import Icon from '@leafygreen-ui/icon';
-import { Body } from '@leafygreen-ui/typography';
+import { useConversationContext } from './contexts/ConversationContext';
 
 function ConversationCacheInfo() {
-  const [info, setInfo] = useState<{ _id: string; name: string }[]>([]);
+  const [firstLoad, setFirstLoad] = useState(true);
   const { conversation } = useChatbotContext();
-  const cacheVersion = conversation.getCacheVersion();
+  const {
+    createNewChat,
+    setCreateNewChat,
+    conversations,
+    setConversations,
+    setActiveConversation,
+    changedConversation,
+    setChangedConversation,
+  } = useConversationContext();
 
+  // updates the conversation list with the new conversation
   useEffect(() => {
     const fetchInfo = async () => {
-      const info = await conversation.getCachedConversationInfo();
-      setInfo(info);
+      if (firstLoad && conversation.conversationId) {
+        // updates the conversation list with the real conversation id
+        const updatedConversations = [...conversations];
+        updatedConversations[0] = {
+          ...updatedConversations[0],
+          id: conversation.conversationId,
+        };
+        setConversations(updatedConversations);
+        setActiveConversation(updatedConversations[0]);
+        setFirstLoad(false);
+      } else if (conversation.conversationId && !conversations.some((c) => c.id === conversation.conversationId)) {
+        // Add the new conversation to the list
+        const newConversation = {
+          id: conversation.conversationId,
+          title: `Conversation ${conversations.length + 1}`,
+        };
+        setConversations([...conversations, newConversation]);
+        setActiveConversation(newConversation);
+      }
     };
     fetchInfo().catch(console.error);
-  }, [conversation]);
+  }, [conversation]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return (
-    <div>
-      <Button
-        leftGlyph={<Icon glyph="Plus" />}
-        onClick={() => {
-          conversation.createConversation();
-        }}
-      >
-        New Conversation
-      </Button>
-      <Body>Cached Conversations</Body>
-      {info.length > 0 ? (
-        info.map((i) => {
-          const isCurrent = conversation.conversationId === i._id;
-          return (
-            <Button
-              key={i._id}
-              variant={isCurrent ? 'primary' : 'default'}
-              onClick={() => {
-                conversation.switchConversation(i._id, {
-                  from: 'cache',
-                });
-              }}
-            >
-              {i.name}
-            </Button>
-          );
-        })
-      ) : (
-        <Body>{cacheVersion === -1 ? 'No cache defined' : 'No conversations in cache'}</Body>
-      )}
-    </div>
-  );
+  useEffect(() => {
+    if (createNewChat) {
+      conversation.createConversation();
+      setCreateNewChat(false);
+    }
+  }, [createNewChat]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (changedConversation) {
+      conversation.switchConversation(changedConversation, {
+        from: 'cache',
+      });
+      setChangedConversation(null);
+    }
+  }, [changedConversation]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return <></>;
 }
 
 export default ConversationCacheInfo;
