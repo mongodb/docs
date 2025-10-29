@@ -11,7 +11,7 @@
 
       .. code-block:: python
 
-         pip install --quiet --upgrade langchain langchain-community langchain-core langchain-mongodb langchain-voyageai langchain-openai pymongo pypdf
+         pip install --quiet --upgrade langchain langchain-community langchain-core langchain-mongodb langchain-voyageai langchain-openai langchain-text-splitters pymongo pypdf
 
       Then, run the following code to import the required packages:
 
@@ -29,7 +29,7 @@
          from langchain_voyageai import VoyageAIEmbeddings
          from langchain_openai import ChatOpenAI
          from langchain.prompts import PromptTemplate
-         from langchain.text_splitter import RecursiveCharacterTextSplitter
+         from langchain_text_splitters import RecursiveCharacterTextSplitter
          from pymongo import MongoClient
          from pymongo.operations import SearchIndexModel
 

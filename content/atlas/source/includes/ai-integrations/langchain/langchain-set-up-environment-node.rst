@@ -19,7 +19,7 @@
 
       .. code-block::
 
-         npm install langchain @langchain/community @langchain/mongodb @langchain/openai pdf-parse fs
+         npm install langchain @langchain/community @langchain/mongodb @langchain/openai @langchain/textsplitters pdf-parse fs
 
    .. include:: /includes/avs/shared/steps-avs-nodejs-config-modules.rst
 
@@ -42,7 +42,7 @@
          import { VoyageEmbeddings } from "@langchain/community/embeddings/voyage";
          import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
          import { PromptTemplate } from "@langchain/core/prompts";
-         import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+         import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
          import { RunnableSequence, RunnablePassthrough } from "@langchain/core/runnables";
          import { StringOutputParser } from "@langchain/core/output_parsers";
          import * as fs from 'fs';

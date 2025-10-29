@@ -1,7 +1,7 @@
 from config import vector_collection, voyage_client, VOYAGE_MODEL
 from pymongo.operations import SearchIndexModel
 from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 import time
 
 # Define a function to generate embeddings

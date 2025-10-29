@@ -26,7 +26,7 @@
 
       .. code-block:: python
 
-         pip install --upgrade --quiet langchain langchain-mongodb pymongo sentence-transformers gpt4all
+         pip install --upgrade --quiet langchain langchain-mongodb langchain-text-splitters pymongo sentence-transformers gpt4all
 
    .. step:: Set your MongoDB connection string.
 
