@@ -376,30 +376,16 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: "Serverless Instances (deprecated)",
+        label: "Flex Clusters",
         contentSite: "cloud-docs",
-        url: "/docs/atlas/manage-serverless-instances",
+        url: "/docs/atlas/manage-flex-clusters",
         collapsible: true,
         items: [
-          {
-            label: "Configure Backup",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/configure-serverless-backup",
-          },
-          {
-            label: "Auto-Create Indexes",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/performance-advisor/auto-index-serverless",
-          },
-          {
-            label: "Convert to Dedicated",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/tutorial/convert-serverless-to-dedicated",
-          },
+          
           {
             label: "Terminate",
             contentSite: "cloud-docs",
-            url: "/docs/atlas/terminate-serverless-instance",
+            url: "/docs/atlas/terminate-flex-clusters",
           },
         ],
       },
@@ -444,11 +430,6 @@ const tocData: TocItem[] = [
             label: "Flex Cluster",
             contentSite: "cloud-docs",
             url: "/docs/atlas/backup/cloud-backup/flex-cluster-backup",
-          },
-          {
-            label: "Serverless Instance (Deprecated)",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/backup/cloud-backup/serverless-backup",
           },
           {
             label: "Options",
@@ -865,9 +846,9 @@ const tocData: TocItem[] = [
             url: "/docs/atlas/review-all-cluster-metrics",
           },
           {
-            label: "Serverless (Deprecated)",
+            label: "Flex Clusters",
             contentSite: "cloud-docs",
-            url: "/docs/atlas/review-serverless-metrics",
+            url: "/docs/atlas/review-flex-metrics",
           },
           {
             label: "Replica Sets",
@@ -981,11 +962,6 @@ const tocData: TocItem[] = [
         label: "Cluster Configuration",
         contentSite: "cloud-docs",
         url: "/docs/atlas/billing/cluster-configuration-costs",
-      },
-      {
-        label: "Serverless Instances",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/billing/serverless-instance-costs",
       },
       {
         label: "Atlas Flex Costs",
@@ -1334,11 +1310,6 @@ const tocData: TocItem[] = [
             label: "Atlas Flex Limits",
             contentSite: "cloud-docs",
             url: "/docs/atlas/reference/flex-limitations",
-          },
-          {
-            label: "Serverless Limits",
-            contentSite: "cloud-docs",
-            url: "/docs/atlas/reference/serverless-instance-limitations",
           },
           {
             label: "M0 Limits",

@@ -4,6 +4,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 - Adds AWS PrivateLink support for the Prometheus integration.
+- Removes the ability to create new Serverless instances in |service|.
+  To learn more, see :ref:`flex-migration`.
 
 .. _atlas_2025_08_27:
 

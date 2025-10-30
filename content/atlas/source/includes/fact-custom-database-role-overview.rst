@@ -12,9 +12,9 @@ roles together with:
 
 You can assign multiple custom roles to each database user.
 
-.. note:: {+Free-Cluster+}, {+Flex-cluster+}, and {+Serverless-Instance+} Limitation
+.. note:: {+Free-Cluster+} and {+Flex-cluster+} Limitation
 
    Changes to :doc:`custom roles </security-add-mongodb-roles>`
-   might take up to 30 seconds to deploy in ``M0`` {+Free-clusters+}, {+Flex-clusters+},
-   and {+Serverless-instances+} (deprecated).
+   might take up to 30 seconds to deploy in ``M0`` {+Free-clusters+}and {+Flex-clusters+}.
+  
    

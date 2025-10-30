@@ -92,31 +92,3 @@
          Address: 10.0.30.194
          Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com
          Address: 10.0.20.54
-
-   .. tab:: {+Serverless-Instances+}
-      :tabid: serverless-instances
-
-      When you configure a private endpoint, |service| generates DNS
-      seedlist connection strings:
-
-      DNS seedlist connection
-
-      .. code-block:: none
-         :copyable: false
-
-         mongodb+srv://serverlessinstance0-pl-0.k45tj.mongodb.net
-
-      .. include:: /includes/fact-pl-connection-strings.rst
-
-      .. include:: /includes/fact-pl-serverless-srv-record-aws.rst
-
-      **Hostname DNS Resolution in Private Endpoint-Aware Connection 
-      Strings and SRV Records**
-
-      The hostname in the SRV record and the standard connection string 
-      is a |dns| Canonical Name (``CNAME``) record that resolves to the
-      endpoint-specific regional |dns| name that |aws| generates for the
-      interface endpoint. A |dns| ``ALIAS`` record exists for each 
-      subnet in your |vpc| that you deployed the interface endpoint to. 
-      Each ``ALIAS`` record contains the private IP address of the 
-      :term:`interface endpoint` for that subnet.

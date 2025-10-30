@@ -85,13 +85,6 @@
 01 June 2022 Release
 ~~~~~~~~~~~~~~~~~~~~
 
-- Introduces the General Availability of |service| 
-  {+Serverless-instances+}, which includes the following changes:
-
-  - Supports :ref:`{+aws-pl+} connections <private-endpoint>`
-  - Adds :ref:`continuous backup <serverless-snapshots>`
-  - Reduces :ref:`RPU and WPU pricing <serverless-instance-costs>`
-
 - Supports :ref:`using GitHub credentials <github-accounts>` to sign 
   in to MongoDB Cloud.
 

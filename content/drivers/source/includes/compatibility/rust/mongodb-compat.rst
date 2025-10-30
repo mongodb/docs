@@ -93,6 +93,5 @@ older than 4.2.
    :ref:`Client-Side Field Level Encryption <manual-csfle-feature>`,
    :manual:`GridFS </core/gridfs/>`,
    :manual:`OCSP </core/security-transport-encryption/#ocsp--online-certificate-status-protocol->`,
-   :ref:`change streams <changeStreams>`,
-   :manual:`Causal Consistency </core/causal-consistency-read-write-concerns>`, or
-   :atlas:`Serverless Instances </create-database-deployment/#serverless-instances>`.
+   :ref:`change streams <changeStreams>`, or
+   :manual:`Causal Consistency </core/causal-consistency-read-write-concerns>`.

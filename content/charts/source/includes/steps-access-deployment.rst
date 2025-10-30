@@ -24,7 +24,7 @@
 
       * - :guilabel:`Type`
         - Label that identifies the deployment as a replica set, 
-          {+serverless-instance+}, or {+fdi+}.
+          or {+fdi+}.
 
       * - :guilabel:`Status`
         - Label that indicates the current operating
@@ -37,12 +37,8 @@
 
       * - :guilabel:`Region`
         - Label that indicates the cloud provider and region where
-          MongoDB provisions the deployment. |charts-short|
-          doesn't display :guilabel:`Region` for 
-          {+serverless-instances+}.
+          MongoDB provisions the deployment.
 
       * - :guilabel:`Tier`
         - Label that indicates the |service| :ref:`{+cluster+} tier
-          <create-cluster-instance>` for the deployment. |charts-short|
-          doesn't display :guilabel:`Tier` for {+fdis+} and 
-          {+serverless-instances+}.
+          <create-cluster-instance>` for the deployment.

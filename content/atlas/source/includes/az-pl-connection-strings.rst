@@ -88,36 +88,3 @@
          Non-authoritative answer:
          Name:	pl-0-eastus2.uzgh6.mongodb.net
          Address: 10.0.0.4
-
-   .. tab:: {+Serverless-Instances+}
-      :tabid: serverless-instances
-
-      When you configure a private endpoint, |service| generates a DNS
-      seedlist connection string:
-
-      - DNS seedlist connection
-
-        .. code-block:: none
-           :copyable: false
-
-           mongodb+srv://cluster0-pl-0.uzgh6.mongodb.net
-
-      When a client in your VNet connects to an |service| 
-      {+database-deployment+} using the private-endpoint-aware
-      connection string, the client attempts to establish a connection
-      to the Private Link Service in the |service| VNet through the
-      private endpoint's network interface. The Private Link service
-      sends traffic through an |azure| Standard Load Balancer to the 
-      |service| {+database-deployment+} that you deployed in that
-      region. Your client's |dns| resolution mechanism handles
-      resolving the hostname to the network interface's private IP
-      address. The driver is only aware of the hostname in the
-      connection string.
-
-      .. include:: /includes/fact-pl-serverless-srv-record-azure.rst
-
-      **Hostname DNS Resolution in Private Endpoint-Aware Connection Strings and SRV Records**
-
-      The hostname in the SRV record and the standard connection string
-      is an |dns| ``A`` record that resolves to the private IP address
-      of the private endpoint's network interface. 

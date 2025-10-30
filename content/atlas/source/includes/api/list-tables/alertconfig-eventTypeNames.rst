@@ -83,12 +83,6 @@
 - | ``REPLICATION_OPLOG_WINDOW_RUNNING_OUT``
   | Replication Oplog Window is...
 
-**Serverless**
-
-- | ``OUTSIDE_SERVERLESS_METRIC_THRESHOLD``.
-  | Serverless metric occurred outside of the metric threshold.
-  | To learn more, see :ref:`review-serverless-metrics`.
-
 **Sharded Cluster**
 
 - | ``CLUSTER_MONGOS_IS_MISSING``

@@ -12,9 +12,8 @@ roles together with:
 
 You can assign multiple custom roles to each database user.
 
-.. note:: {+Free-Cluster+}, {+Shared-Cluster+}, and {+Serverless-Instance+} Limitation
+.. note::
 
    Changes to :atlas:`custom roles </security-add-mongodb-roles>`
-   might take up to 30 seconds to deploy in ``M0`` {+free-clusters+},
-   ``M2/M5`` {+shared-clusters+}, and {+serverless-instances+}.
+   might take up to 30 seconds to deploy in ``M0`` {+free-clusters+} and {+Flex-clusters+}.
    

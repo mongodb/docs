@@ -126,8 +126,6 @@ Disable this setting to disable schema suggestions in the
 :ref:`Performance Advisor <performance-advisor>` and the
 :ref:`{+atlas-ui+} <atlas-ui-dbs>`.
 
-.. include:: /includes/fact-serverless-schema-advisor.rst
-
 Managed Slow Operations
 ~~~~~~~~~~~~~~~~~~~~~~~
 

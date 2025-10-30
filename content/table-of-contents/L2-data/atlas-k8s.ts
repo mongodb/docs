@@ -89,11 +89,6 @@ const tocData: TocItem[] = [
                 url: "/docs/atlas/operator/:version/ak8so-private-link-dedicated",
               },
               {
-                label: "Serverless",
-                contentSite: "atlas-operator",
-                url: "/docs/atlas/operator/:version/ak8so-private-link-serverless",
-              },
-              {
                 label: "Federated",
                 contentSite: "atlas-operator",
                 url: "/docs/atlas/operator/:version/ak8so-private-link-datafederation",
