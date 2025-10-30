@@ -1,0 +1,458 @@
+.. _golang-query-document:
+.. _golang-query:
+.. _golang-crud-read-operations:
+
+===============
+Specify a Query
+===============
+
+.. meta::
+   :description: Learn how to specify queries in Go to match subsets of documents using filters, operators, and various criteria.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to specify a query to match a subset
+of documents.
+
+.. _golang-query-filter-definition:
+
+To match a subset of documents, specify a **query filter** containing
+your **match criteria**. Match criteria consist of the fields and
+values you want present in a document. A query filter contains at least
+one set of match criteria to determine which documents to include in the
+resulting set.
+
+In a query filter, you can match fields with :ref:`literal values
+<golang-literal-values>` or with :ref:`query operators
+<golang-query-operators>`. Query operators allow you to perform mathematical
+or logical operations to locate documents within a collection.
+
+Match criteria with literal values use the following format:
+
+.. code-block:: go
+   :copyable: false
+
+   filter := bson.D{{"<field>", "<value>"}}
+
+Match criteria with a query operator use the following format:
+
+.. code-block:: go
+   :copyable: false
+
+   filter := bson.D{{"<field>", bson.D{{"<operator>", "<value>"}}}}
+
+The following sections use :ref:`literal values <golang-literal-values>`
+and :ref:`query operators <golang-query-operators>` with the ``Find()``
+method to match a subset of documents.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this section use the following ``Tea`` struct as a model for documents
+in the ``tea`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/query.go
+   :start-after: start-tea-struct
+   :end-before: end-tea-struct
+   :language: go
+   :dedent:
+
+The ``omitempty`` :ref:`struct tag<golang-struct-tags>` omits the corresponding 
+field from the inserted document when left empty.
+
+To run the examples in this guide, load the sample data into the ``tea`` collection in
+the ``db`` database with the following snippet:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/query.go
+   :language: go
+   :dedent:
+   :start-after: begin insert docs
+   :end-before: end insert docs
+
+.. include:: /includes/fundamentals/automatic-db-coll-creation.rst
+
+Each document describes a tea type, its rating, and the vendors that
+carry that variety. These items correspond to the ``type``, ``rating``, and
+``vendor`` fields.
+
+.. _golang-literal-values:
+
+Literal Values
+--------------
+
+Literal value query filters return documents with an exact match to your
+match criteria.
+
+.. tip::
+
+   If you specify an empty query filter, CRUD operations match all the
+   documents in a collection.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``type`` is "Oolong":
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{{"type", "Oolong"}}
+      
+      cursor, err := coll.Find(context.TODO(), filter)
+      if err != nil {
+          panic(err)
+      }
+      
+      var results []Tea
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"type":"Oolong","rating":7,"vendor":["C"]}
+
+.. tip::
+
+   Literal value queries return the same value as the ``$eq``
+   comparison operator. For example, the following query filters produce
+   the same result:
+
+   .. code-block:: go
+
+      filter := bson.D{{"type", "Oolong"}}
+
+   .. code-block:: go
+
+      filter := bson.D{{"type", bson.D{{"$eq", "Oolong"}}}}
+
+.. _golang-query-operators:
+
+Comparison
+----------
+
+Comparison operators analyze the value in a document against the specified
+value in your match criteria. Common comparison operators include
+``$gt`` for "greater than" comparisons, ``$lte`` for "less than or equal
+to" comparisons, and ``$ne`` for "not equal to" comparisons.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``rating`` is less
+than ``7``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{{"rating", bson.D{{"$lt", 7}}}}
+
+      cursor, err := coll.Find(context.TODO(), filter)
+      if err != nil {
+         panic(err)
+      }
+
+      var results []Tea
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"type":"English Breakfast","rating":6}
+      {"type":"Assam","rating":5}
+
+For a full list of comparison operators, see the :manual:`Comparison
+Query Operators </reference/operator/query-comparison/>` page.
+
+Logical
+-------
+
+Logical operators require at least two match criteria. They check if
+documents meet all, at lease one, or none of the specified criteria.
+Common logical operators include ``$and`` where all match criteria must
+be true, and ``$or`` where at least one of the match criteria must be
+true.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``rating`` is greater
+than ``7`` and less than or equal to ``10``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{
+         {"$and",
+            bson.A{
+               bson.D{{"rating", bson.D{{"$gt", 7}}}},
+               bson.D{{"rating", bson.D{{"$lte", 10}}}},
+            },
+         },
+      }
+
+      cursor, err := coll.Find(context.TODO(), filter)
+      if err != nil {
+         panic(err)
+      }
+
+      var results []Tea
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"type":"Masala","rating":10,"vendor":["A","C"]}
+      {"type":"Earl Grey","rating":8,"vendor":["A","B"]}
+
+For a full list of logical operators, see the :manual:`Logical
+Query Operators </reference/operator/query-logical/>` page.
+
+.. tip::
+
+   Multiple match criteria resembling an ``$eq`` comparison operator in
+   a literal query return the same value as the ``$and`` logical
+   operator. For example, the following query filters produce the same result:
+
+   .. code-block:: go
+
+      filter := bson.D{{"type", "Oolong"}, {"rating", 7}}
+
+   .. code-block:: go
+
+      filter := bson.D{
+        {"$and",
+          bson.A{
+            bson.D{{"type", "Oolong"}},
+            bson.D{{"rating", 7}},
+          }},
+      }
+
+Element
+-------
+
+Element operators check for the presence or type of the specified field.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``vendor`` field does
+not exist:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{{"vendor", bson.D{{"$exists", false}}}}
+
+      cursor, err := coll.Find(context.TODO(), filter)
+      if err != nil {
+         panic(err)
+      }
+
+      var results []Tea
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"type":"English Breakfast","rating":6}
+      {"type":"Assam","rating":5}
+
+For a full list of element operators, see the :manual:`Element
+Query Operators </reference/operator/query-element/>` page.
+
+Evaluation
+----------
+
+Evaluation operators analyze values in a document based on the
+specified value in your match criteria. Common evaluation operators
+include ``$regex`` where a field's value must match the specified
+regular expression and ``$text`` where the field's value must contain
+the specified string.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``type`` begins with
+the letter "E":
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{{"type", bson.D{{"$regex", "^E"}}}}
+
+      cursor, err := coll.Find(context.TODO(), filter)
+      if err != nil {
+         panic(err)
+      }
+
+      var results []Tea
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"type":"English Breakfast","rating":6}
+      {"type":"Earl Grey","rating":8,"vendor":["A","B"]}
+
+For a full list of evaluation operators, see the :manual:`Evaluation
+Query Operators </reference/operator/query-evaluation/>` page.
+
+Array
+-----
+
+Array operators check the values or amount of elements in an array field.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``vendor`` contains "C":
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{{"vendor", bson.D{{"$all", bson.A{"C"}}}}}
+
+      cursor, err := coll.Find(context.TODO(), filter)
+      if err != nil {
+         panic(err)
+      }
+
+      var results []Tea
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"type":"Masala","rating":10,"vendor":["A","C"]}
+      {"type":"Oolong","rating":7,"vendor":["C"]}
+
+For a full list of array operators, see the :manual:`Array
+Query Operators </reference/operator/query-array/>` page.
+
+Bitwise
+-------
+
+Bitwise operators convert a numeric field from a base-10 (decimal)
+number into the corresponding base-2 (binary) number. They check whether
+the value in a document has the same bits set as the value in your match
+criteria.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``rating`` has the same
+bits set as ``6`` (which is "00000110"):
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{{"rating", bson.D{{"$bitsAllSet", 6}}}}
+
+      cursor, err := coll.Find(context.TODO(), filter)
+      if err != nil {
+         panic(err)
+      }
+
+      var results []Tea
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"type":"English Breakfast","rating":6}
+      {"type":"Oolong","rating":7,"vendor":["C"]}
+
+For a full list of bitwise operators, see the :manual:`Bitwise
+Query Operators </reference/operator/query-bitwise/>` page.
+
+Additional Information
+----------------------
+
+For information on specifying a geospatial query, see the guide on
+:ref:`Geospatial Data <golang-geo>`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types used in this
+guide, see the following API Documentation:
+
+- `Find() <{+api+}/mongo#Collection.Find>`__
+- `Cursor <{+api+}/mongo#Cursor>`__

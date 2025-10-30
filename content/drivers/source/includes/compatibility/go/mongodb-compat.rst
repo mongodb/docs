@@ -14,7 +14,7 @@ The following table shows compatibility between the Go driver and {+mdb-server+}
      - MongoDB 4.4
      - MongoDB 4.2
 
-   * - 2.1 to 2.3
+   * - 2.1 to 2.4
      - ✓
      - ✓
      - ✓

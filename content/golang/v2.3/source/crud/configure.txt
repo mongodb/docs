@@ -1,0 +1,630 @@
+.. _golang-configure-crud:
+
+=========================
+Configure CRUD Operations
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: insert, update, replace, delete, options, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to configure read
+and write operations.
+
+.. _golang-write-read-pref:
+
+Read and Write Settings
+-----------------------
+
+You can control how the driver routes read operations by setting a
+**read preference**. You can also control how the driver handles data
+consistency and durability by setting a **read concern** or **write concern**.
+Read concerns specify the level of durability required for the data when
+performing read operations, and write concerns specify how the driver waits for
+acknowledgement of write operations in a replica set.
+
+You can set write concern, read concern, and read preference options at
+the following levels:
+
+- Client level, which sets the *default for all operation executions*
+  unless overridden
+- Session level
+- Transaction level
+- Database level
+- Collection level
+
+The preceding list also indicates the increasing order of precedence of the
+option settings. For example, if you set a read concern for a transaction, it
+will override a read concern set for the client.
+
+.. _golang-writeconcern:
+
+Write Concern
+~~~~~~~~~~~~~
+
+A write concern describes the number of data-bearing
+members in a replica set that must acknowledge a write operation, such
+as an insert or update, before the operation returns as successful.
+By default, the write operation is successful if only the primary
+replica set member acknowledges it.
+
+Options
+```````
+
+The {+driver-long+} provides the ``writeconcern`` package, which lets you
+specify the write concern for a replica set. Set the write concern by passing an
+instance of the ``WriteConcern`` type to the ``SetWriteConcern()`` method. The
+``WriteConcern`` type provides the following methods to select common write
+concern specifications:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``Custom()``
+     - | The client requests acknowledgement that write operations propagate to
+         tagged members of a ``mongod`` instance. For more
+         information, see the :rapid:`Write Concern specification
+         </reference/write-concern/#mongodb-writeconcern-writeconcern.-custom-write-concern-name->`.
+       |
+       | **Parameter**: ``tag (string)``
+
+   * - ``Journaled()``
+     - | The client requests acknowledgement that the replica set has
+         written the changes to the on-disk journal. For more information, see the
+         :rapid:`Write Concern specification </reference/write-concern/#j-option>`.
+       |
+       | **Parameter**: none
+
+   * - ``Majority()``
+     - | The client requests acknowledgement that write operations propagate to the
+         majority of data-bearing voting members. For more information, see the
+         :rapid:`Write Concern specification
+         </reference/write-concern/#mongodb-writeconcern-writeconcern.-majority->`.
+       |
+       | **Parameter**: none
+
+   * - ``Unacknowledged()``
+     - | The client requests requests no acknowledgment of write
+         operations. For more information, see the
+         :rapid:`Write Concern specification for w: 0
+         </reference/write-concern/#mongodb-writeconcern-writeconcern.-number->`.
+       |
+       | **Parameter**: none
+
+   * - ``W1()``
+     - | The client requests acknowledgement that the replica set has
+         written the changes to memory on one node, such as the standalone mongod or
+         the primary in a replica set. For more
+         information, see the :rapid:`Write Concern specification for w: 1
+         </reference/write-concern/#mongodb-writeconcern-writeconcern.-number->`.
+       |
+       | **Parameter**: none
+
+.. tip:: Write Concern Timeout
+
+   You cannot set a timeout on a ``WriteConcern`` instance. Instead, set
+   the timeout at the operation level by using the ``WithTimeout()``
+   method when creating a Context. To learn more, see
+   :ref:`golang-timeout-setting` in the Connection Options guide.
+
+If you require a more specialized write concern, you can define a custom
+``WriteConcern`` struct literal. You can set the following fields in a
+``WriteConcern`` struct:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``W``
+     - | Specifies the number of ``mongod`` instances or tagged members
+         that write operations must propagate to for acknowledgement. Common values include
+         ``1``, ``0``, and ``"majority"``.
+       |
+       | **Type**: ``string`` or ``int``
+
+   * - ``Journal``
+     - | Specifies whether the replica set must write the changes to the on-disk
+         journal for acknowledgement.
+       |
+       | **Type**: ``bool``
+
+.. tip::
+
+   Alternatively, you can specify a write concern in your connection
+   string. See the :manual:`Server manual entry on Write Concern Options
+   </reference/connection-string/#write-concern-options>` for more information.
+
+Example
+```````
+
+The following code shows how you can specify different write concerns
+at the client and collection level. The client-level write concern
+requests acknowledgement from two replica set members and sets journaling to
+``false``. The collection-level write concern requests
+acknowledgement from the majority of replica set members.
+
+.. code-block:: go
+   :emphasize-lines: 2-7,11-12
+   
+   uri := "mongodb://<hostname>:<port>"
+   journal := false
+   cliWC := &writeconcern.WriteConcern{
+       W: 2,
+       Journal: &journal,
+   }
+   clOpts := options.Client().ApplyURI(uri).SetWriteConcern(cliWC)
+   client, err := mongo.Connect(clOpts)
+   ...
+   
+   collWC := writeconcern.Majority()
+   collOpts := options.Collection().SetWriteConcern(collWC)
+   coll := client.Database("db").Collection("myColl", collOpts) 
+
+.. _golang-readconcern:
+
+Read Concern
+~~~~~~~~~~~~
+
+The read concern option allows you to determine which data the client
+returns from a query. The default read concern level is "local", meaning
+that the client returns the instance’s most recent data, with no guarantee that
+the data has been written to a majority of the replica set members.
+
+Options
+```````
+
+The {+driver-long+} provides the ``readconcern`` package, which lets you specify
+the read concern for a replica set. Set the read concern by passing an instance
+of a ``ReadConcern`` type to the ``SetReadConcern()`` method. The
+``ReadConcern`` type has the following methods to specify the read concern:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``Available()``
+     - The query returns data from the instance
+       with no guarantee that the data has been written to a majority of
+       the replica set members. For more information, see the
+       :rapid:`Read Concern specification </reference/read-concern-available/#mongodb-readconcern-readconcern.-available->`.
+
+   * - ``Linearizable()``
+     - The query returns data that reflects all
+       successful writes issued with a write concern of ``majority`` and
+       acknowledged before the read operation begins. For more information, see the
+       :rapid:`Read Concern specification </reference/read-concern-linearizable/#mongodb-readconcern-readconcern.-linearizable->`.
+
+   * - ``Local()``
+     - The query returns the instance’s most recent
+       data. For more information, see the
+       :rapid:`Read Concern specification </reference/read-concern-local/#mongodb-readconcern-readconcern.-local->`.
+
+   * - ``Majority()``
+     - The query returns the instance’s most recent
+       data acknowledged as having been written to a majority of members
+       in the replica set. For more information, see the
+       :rapid:`Read Concern specification </reference/read-concern-majority/#mongodb-readconcern-readconcern.-majority->`.
+
+   * - ``Snapshot()``
+     - The query returns a complete copy of the
+       data in a ``mongod`` instance at a specific point in time. This option is 
+       available only for operations within multi-document transactions. For more information, see the
+       :rapid:`Read Concern specification </reference/read-concern-snapshot/#mongodb-readconcern-readconcern.-snapshot->`.
+
+Example
+```````
+
+The following code shows how you can specify a read concern of
+"majority". The code then selects a ``Collection``
+with this option.
+
+.. code-block:: go
+   :emphasize-lines: 1-2
+
+   rc := readconcern.Majority()
+   opts := options.Collection().SetReadConcern(rc)
+   database := client.Database("db")
+   coll := database.Collection("myCollection", opts)
+
+.. _golang-read-pref:
+
+Read Preference
+~~~~~~~~~~~~~~~
+
+The read preference option specifies how the MongoDB client routes read
+operations to the members of a replica set. By default, an application
+directs its read operations to the primary member in a replica set.
+
+Read preference consists of the read preference mode and, optionally, a
+:rapid:`tag set list </core/read-preference-tags/>`, the
+:rapid:`maxStalenessSeconds </core/read-preference-staleness/>` option, and the
+:rapid:`hedged read </core/read-preference-hedge-option/>` option.
+
+Options
+```````
+
+The {+driver-long+} provides the ``readpref`` package, which lets you specify
+the read preference for a replica set. Set the read preference by passing an
+instance of the ``ReadPref`` type to the ``SetReadPreference()`` method. The
+``ReadPref`` type has the following methods to specify the read preference:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``Nearest()``
+     - The client reads from a random eligible replica set member,
+       based on a specified latency threshold. For more information, see the
+       :rapid:`Read Preference Server manual entry </core/read-preference/#mongodb-readmode-nearest>`.
+
+   * - ``Primary()``
+     - The client reads from the current replica set primary node. For more information, see the
+       :rapid:`Read Preference Server manual entry </core/read-preference/#mongodb-readmode-primary>`.
+
+   * - ``PrimaryPreferred()``
+     - The client reads from the primary node if it's available. If the primary is
+       unavailable, operations read from secondary members. For more
+       information, see the :rapid:`Read Preference Server manual entry </core/read-preference/#mongodb-readmode-primaryPreferred>`.
+
+   * - ``Secondary()``
+     - The client reads from the secondary members of the replica set. For more information, see the
+       :rapid:`Read Preference Server manual entry </core/read-preference/#mongodb-readmode-secondary>`.
+
+   * - ``SecondaryPreferred()``
+     - The client reads from the secondary nodes if one or more is available. If the secondaries are
+       unavailable, operations read from the primary member. For more information, see the
+       :rapid:`Read Preference Server manual entry </core/read-preference/#mongodb-readmode-secondaryPreferred>`.
+
+.. tip::
+
+   Alternatively, you can specify a read preference in your connection
+   string. See the :manual:`Server manual entry on Read Preference
+   Options </reference/connection-string/#read-preference-options>` for
+   more information.
+
+Example
+```````
+
+The following code shows how you can specify a read preference to read
+from secondary nodes. The code then selects a ``Database``
+with this option.
+
+.. code-block:: go
+   :emphasize-lines: 1-2
+
+   rp := readpref.Secondary()
+   opts := options.Database().SetReadPreference(rp)
+   database := client.Database("db", opts)
+
+Retryable Reads and Writes
+--------------------------
+
+The {+driver-short+} automatically retries certain read and write operations a single time
+if they fail due to a network or server error.
+
+You can explicitly disable retryable reads or retryable writes by setting the
+``RetryReads`` or ``RetryWrites`` option to ``False`` when creating a new client
+by using the ``options.Client`` struct. 
+
+The following example disables retryable reads and writes for a client by using
+the ``ClientOptions`` setter functions:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/retryableReadsWrites.go
+   :start-after: start-retryable-example
+   :end-before: end-retryable-example
+   :language: go
+   :dedent:
+
+To learn more about supported retryable read operations, see :manual:`Retryable Reads </core/retryable-reads/>`
+in the {+mdb-server+} manual. To learn more about supported retryable write
+operations, see :manual:`Retryable Writes </core/retryable-writes/>` in the {+mdb-server+} manual.
+
+.. _golang-collations:
+
+Collation
+---------
+
+You can specify a **collation** to modify the behavior of read
+and write operations. A collation is a set of language-specific rules for string
+comparison, such as for letter case and accent marks.
+
+By default, MongoDB sorts strings using *binary collation*. This default
+collation uses the :wikipedia:`ASCII standard <ASCII>`
+character values to compare and order strings. Languages and locales
+have specific character-ordering conventions that differ from the ASCII
+standard, and you can choose to apply a different set of collation rules
+to your operation.
+
+You can specify a collation at the following levels:
+
+- Collection: Sets the default collation for operations on the collection.
+  You cannot define a collation for an existing collection.
+
+- Index: Sets the collation for operations that use the index.
+
+- Operation: Sets the operation's collation and overrides any inherited collations.
+
+Specify a Collation
+~~~~~~~~~~~~~~~~~~~
+
+To specify a collation, create a ``Collation`` object. You must define the ``Locale`` field
+of the ``Collation`` object, but all other fields are optional. For example, the following code
+example specifies a ``Collation`` object with the ``"en_US"`` locale collation:
+
+.. code-block:: go
+
+   myCollation := &options.Collation{Locale: "en_US"}
+
+For a complete list of ``Collation`` object fields, visit the `Collation API documentation 
+<{+api+}/mongo/options#Collation>`__. To see all the supported locales and the
+default values for the ``Locale`` fields, visit :manual:`Supported Languages and Locales
+</reference/collation-locales-defaults/#supported-languages-and-locales>`.
+
+Set a Collation on a Collection or View
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can apply a collation when you create a new collection or view. This defines the default
+collation for any operations called on that collection or view. Set a collation through a 
+``CreateCollectionOptions`` or ``CreateViewOptions`` object. Then, call the
+``CreateCollection()`` or ``CreateView()`` method with your options object as an argument.
+
+.. _golang-create-collection:
+
+Create a Collection Example
+````````````````````````````
+
+The following example creates a new collection called ``books`` and specifies a default
+collation with the ``"fr"`` locale. The ``Strength`` collation field has a value of ``1``
+to ignore differences in letter accents.
+
+.. code-block:: go
+
+   myCollation := &options.Collation{Locale: "fr", Strength: 1}
+   opts := options.CreateCollection().SetCollation(myCollation)
+   err := db.CreateCollection(context.TODO(), "books", opts)
+
+   if err != nil {
+      panic(err)
+   }
+
+Use the Default Collation Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you call an operation that uses a collation on the ``books`` collection, the operation
+uses the default collation specified in the :ref:`golang-create-collection`.
+
+Assume the ``books`` collection contains the following documents:
+
+.. code-block:: json
+
+   {"name" : "Emma", "length" : "474"}
+   {"name" : "Les Misérables", "length": "1462"}
+   {"name" : "Infinite Jest", "length" : "1104"}
+   {"name" : "Cryptonomicon", "length" : "918"}
+   {"name" : "Ça", "length" : "1138"}
+
+.. note::
+
+   To learn how to insert documents, see :ref:`golang-insert-guide`.
+   
+The following example uses the ``Find()`` method to return all documents with a ``name`` value
+that alphabetically precedes ``"Infinite Jest"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{{"name", bson.D{{"$lt", "Infinite Jest"}}}}
+      cursor, err := coll.Find(context.TODO(), filter)
+      if err != nil {
+         panic(err)
+      }
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+
+      for _, result := range results {
+         res, _ := bson.MarshalExtJSON(result, false, false)
+         fmt.Println(string(res))
+      } 
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"name":"Emma","length":"474"}
+      {"name":"Cryptonomicon","length":"918"}
+      {"name":"Ça","length":"1138"}
+
+If the code doesn't specify a default ``books`` collation, the ``Find()`` method
+follows default binary collation rules to determine the ``name`` values
+that precede ``"Infinite Jest"``. These rules place words beginning with "Ç"
+after those beginning with "I". The output resembles the following:
+
+.. code-block:: json
+   :copyable: false
+
+   {"name":"Emma","length":"474"}
+   {"name":"Cryptonomicon","length":"918"}
+
+To learn more about the ``Find()`` method, see :ref:`golang-retrieve`.
+
+Set a Collation on an Index 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can apply a collation when you create a new index on a collection. The index stores
+an ordered representation of the documents in the collection, so your MongoDB instance
+doesn't perform the ordering for sorting operations in-memory. 
+
+To use the index in an operation, your operation must use the same collation as the one
+specified in the index. Additionally, ensure that the operation is covered by the index that
+contains the collation. Set a collation through an ``IndexOptions`` object and pass this object
+as an argument to the ``CreateOne()`` method.
+
+Example
+````````
+
+After creating the ``books`` collection and applying a default collation, as shown in the
+:ref:`golang-create-collection` section, you cannot change the collection's default collation.
+However, you can create an index for the collection with a different collation. 
+
+The following example uses the ``CreateOne()`` method to create an ascending index on the
+``name`` field and specifies a new collation with an ``"en_US"`` locale:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+       myCollation := &options.Collation{Locale: "en_US"}
+       opts := options.Index().SetCollation(myCollation)
+
+       indexModel := mongo.IndexModel{
+         Keys:    bson.D{{"name", 1}},
+         Options: opts,
+       }
+
+       name, err := coll.Indexes().CreateOne(context.TODO(), indexModel)
+       if err != nil {
+         panic(err)
+       }
+       fmt.Println("Name of Index Created: " + name)
+
+   .. output::
+      :language: none
+      :visible: false
+
+       Name of Index Created: name_1
+
+.. _golang-op-collation:
+
+Set a Collation on an Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Operations that read, update, and delete documents from a collection can use collations.
+Applying a collation to an operation overrides any default collation previously defined
+for a collection. 
+
+If you apply a new collation to an operation that differs from an index's collation,
+you cannot use that index. As a result, the operation may not perform as well as one
+that is covered by an index. For more information on the disadvantages of sorting operations
+not covered by an index, see :manual:`Using Indexes to Sort Query Results </tutorial/sort-results-with-indexes/>`.
+See the :manual:`MongoDB manual </reference/collation/#collation-document>` for a list of
+operations that support collation.
+
+Example
+```````
+
+You can use operations that support collation to update and query documents in the 
+``books`` collection. 
+
+The following example uses the ``Find()`` method to return documents in which the ``length`` 
+value is greater than ``"1000"``. The ``NumericOrdering`` collation field has a value of
+``true`` to ensure that values are sorted in numerical order rather than alphabetical
+order:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{{"length", bson.D{{"$gt", "1000"}}}}
+      myCollation := &options.Collation{Locale: "en_US", NumericOrdering: true}
+      opts := options.Find().SetCollation(myCollation)
+
+      cursor, err := coll.Find(context.TODO(), filter, opts)
+      if err != nil {
+         panic(err)
+      }
+      
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      
+      for _, result := range results {
+         res, _ := bson.MarshalExtJSON(result, false, false)
+         fmt.Println(string(res))
+      } 
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"name":"Les Misérables","length":"1462"}
+      {"name":"Infinite Jest","length":"1104"}
+      {"name":"Ça","length":"1138"}
+
+If the code doesn't specify a collation with a ``NumericOrdering`` field set to
+``true``, the same ``Find()`` operation compares ``length`` values as
+strings. In this case, the output resembles the following:
+
+.. code-block:: json
+   :copyable: false
+   
+   {"name":"Emma","length":"474"}
+   {"name":"Les Misérables","length":"1462"}
+   {""name":"Infinite Jest","length":"1104"}
+   {"name":"Cryptonomicon","length":"918"}
+   {"name":"Ça","length":"1138"}
+
+Additional Information
+----------------------
+
+To learn more about the ``Find()`` method, see the :ref:`golang-retrieve` guide.
+
+To learn more about the concepts discussed in this guide, visit the following manual pages:
+
+- :manual:`Read Preference </core/read-preference/>`
+- :manual:`Read Concern </reference/read-concern/>`
+- :manual:`Write Concern </reference/write-concern/>`
+- :manual:`Collation </reference/collation/#collation-document>`
+- :manual:`Collation Locales and Default Parameters </reference/collation-locales-defaults/#supported-languages-and-locales>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods discussed in this guide, see the following
+API Documentation:
+
+- `WriteConcern <{+api+}/mongo/writeconcern#WriteConcern>`__
+- `ReadConcern <{+api+}/mongo/readconcern#ReadConcern>`__
+- `ReadPref <{+api+}/mongo/readpref#ReadPref>`__
+- `Collation <{+api+}/mongo/options#Collation>`__
+- `CreateCollectionOptions <{+api+}/mongo/options#CreateCollectionOptions>`__
+- `IndexModel <{+api+}/mongo#IndexModel>`__
+- `CreateOne() <{+api+}/mongo#IndexView.CreateOne>`__
+- `IndexOptions <{+api+}/mongo/options#IndexOptions>`__
+- `UpdateOneOptions <{+api+}/mongo/options#UpdateOneOptions>`__
+- `UpdateManyOptions <{+api+}/mongo/options#UpdateManyOptions>`__

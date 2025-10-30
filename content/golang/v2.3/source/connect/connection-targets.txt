@@ -1,0 +1,146 @@
+.. _golang-connection-targets:
+
+==========================
+Choose a Connection Target
+==========================
+
+.. meta::
+   :keywords: connection string, URI, server, settings, client, load balancing, srv, dns
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use a connection string and a ``MongoClient`` 
+object to connect to different types of MongoDB deployments by using the Go driver.
+
+.. tip::
+
+   To see how to create and configure your ``MongoClient`` object, see the :ref:`Create a Mongo Client <golang-mongoclient>` page.
+
+.. _go-atlas-connection-target:
+
+Connect to Atlas
+----------------
+
+To connect to a MongoDB deployment on Atlas, include the following elements
+in your connection string:
+
+- URL of your Atlas cluster
+- MongoDB username
+- MongoDB password
+
+Then, pass your connection string to the ``MongoClient`` constructor.
+
+When you connect to Atlas, we recommend using the {+stable-api+} client option to avoid
+breaking changes when Atlas upgrades to a new version of {+mdb-server+}.
+To learn more about the {+stable-api+} feature, see the :ref:`<golang-stable-api>`
+guide.
+
+The following code shows how you can create a client that uses an Atlas
+connection string and the {+stable-api+} version, connect to MongoDB, and
+verify that the connection is successful:
+
+.. _go-connection-example-code:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/srv.go
+   :language: go
+
+.. important::
+
+   New Serverless instances can no longer be created, and as of May 5 2025, all
+   existing Serverless instances have been migrated. The `All Clusters
+   <https://cloud.mongodb.com/v2#/clusters>`__ page in the Atlas UI shows which tiers
+   your instances are migrated to based on usage. See the :ref:`Manage
+   Serverless Instances <manage-serverless-instances>` page to learn more about
+   how to manually handle existing Serverless instances.
+
+.. _go-local-connection-target:
+
+Connect to Local Deployments
+----------------------------
+
+.. include:: /includes/localhost-connection.rst
+
+To test whether you can connect to your server, replace the connection
+string with your localhost connection string in the preceding :ref:`code example
+<go-connection-example-code>`.
+
+.. _go-replica-set-connection-target:
+
+Connect to Replica Sets
+-----------------------
+
+A MongoDB replica set deployment is a group of connected instances that
+store the same set of data. This configuration provides data
+redundancy and high data availability.
+
+To connect to a replica set deployment, specify the hostname and port numbers
+of each instance, separated by commas, and the replica set name as the value
+of the ``replicaSet`` parameter in the connection string. In the following
+example connection string, the hostnames are ``host1``, ``host2``, and ``host3``, and the
+port numbers are all ``27017``. The replica set name is ``myRS``.
+
+.. code-block:: none
+
+   mongodb://host1:27017,host2:27017,host3:27017/?replicaSet=myRS
+
+When connecting to a replica set, the driver takes the following actions by default:
+
+- Discovers all replica set members when given the address of any one member.
+- Dispatches operations to the appropriate member, such as instructions
+  to write against the **primary**.
+
+.. tip::
+
+   You can specify just one host to connect to a replica set. However, you must
+   provide the full list of hosts to ensure connectivity when the specified host
+   is unavailable.
+
+To learn more about replica sets, see the :manual:`Replication </replication>` 
+entry in the Server manual.
+
+.. _go-direct-connection-target:
+
+Direct Connection
+~~~~~~~~~~~~~~~~~
+
+To force operations on the host designated in the connection string,
+specify the ``directConnection`` option. Direct connections exhibit the
+following behavior:
+
+- They don't support SRV strings.
+- They fail on writes when the specified host is not the **primary**.
+- They require you to specify a **secondary** node with :ref:`secondary read
+  preference <read-preference-use-cases>` when the specified host isn't the
+  **primary** node.
+
+.. note:: Replica Set in Docker
+
+   .. sharedinclude:: dbx/docker-replica-set.rst
+
+DNS Service Discovery
+---------------------
+
+.. sharedinclude:: dbx/srv-polling.rst
+
+   .. replacement:: srv-uri
+
+      .. code-block:: go
+
+         uri := "mongodb+srv://<hostname>/"
+
+API Documentation
+-----------------
+
+To learn more about connecting to different MongoDB instances with a
+``MongoClient``, see the following API documentation:
+
+- `Client <{+api+}/mongo#Client>`__
+- `ClientOptions <{+api+}/mongo/options#ClientOptions>`__
+- `Connect <{+api+}/mongo#Connect>`__
