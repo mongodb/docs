@@ -8,11 +8,6 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
-        label: "Overview",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/atlas-stream-processing/overview",
-      },
-      {
         label: "Get Started",
         contentSite: "cloud-docs",
         url: "/docs/atlas/atlas-stream-processing/quickstart",

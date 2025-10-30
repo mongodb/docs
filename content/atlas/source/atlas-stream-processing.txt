@@ -1,63 +1,206 @@
 .. _atlas-sp:
+.. _atlas-sp-overview:
 
 ===================================
 {+atlas-sp+}
 ===================================
 
-.. meta::
-   :description: Explore how to process complex data streams using Atlas Stream Processing, including setup, security, and managing stream processors.
-
 .. default-domain:: mongodb
 
-Atlas Stream Processing enables you to process streams of complex data using 
-the same /query-api used in Atlas databases.
+.. meta::
+   :keywords: data stream, real time, data processing, apache kafka
+   :description: Explore how to process complex data streams using Atlas Stream Processing, including setup, security, and managing stream processors.
 
-Section Overview
-----------------
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
 
-:ref:`{+atlas-sp+} Windows <atlas-sp-windows>`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Atlas Stream Processing enables you to read, write, and transform streams of 
+complex data using the same :ref:`aggregation operations <aggregation>` 
+used in {+service+} databases. {+atlas-sp+} allows you to:
 
-Learn about how {+atlas-sp+} windows facilitate the collection of time-bounded 
-subsets of a data stream.
+- Build :ref:`aggregation pipelines <atlas-sp-aggregation>` to 
+  continuously operate on streaming data.
+- Perform continuous :ref:`validation
+  <atlas-sp-agg-validate>` to check that messages are properly
+  formed, detect message corruption, and detect late-arriving data.
+- Transform fields as documents flow through your pipelines and route
+  those documents to distinct databases, Kafka topics, or other
+  external sinks using fields or expressions in each document as keys.
+- Continuously publish results to 
+  {+service+} collections or {+kafka+} clusters, ensuring up-to-date 
+  views and analysis of data.
 
-:ref:`{+atlas-sp+} Security <atlas-sp-security>`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+{+atlas-sp+} components belong directly to |service| projects and
+operate independent of |service| {+clusters+}.
 
-Learn about managing user permissions at the organization, project, and 
-database levels for {+atlas-sp+}.
+.. note::
 
-:ref:`Get Started with {+atlas-sp+} <atlas-sp-quickstart>`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   {+atlas-sp+} provides extended functionality beyond MongoDB :manual:`change streams </changeStreams/>`,
+   including managing multiple data event types and processing streams of complex data 
+   from various sources like Kafka, external APIs, and cloud storage. Unlike change streams
+   which are restricted to database events, {+atlas-sp+} enables comprehensive stream 
+   processing workflows with the same query API used in |service| databases. 
 
-Learn how to get started with {+atlas-sp+}.
+Configure a {+SPW+}
+--------------------------------------
 
-:ref:`Configure a {+SPW+} <atlas-sp-manage-spi>`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To get started with {+atlas-sp+}, you must first :ref:`configure a {+SPW+} <atlas-sp-manage-spw>`.
+This involves learning how to create, modify, and delete an {+atlas-sp+} Workspace to begin processing 
+your streaming data.
 
-Learn how to create, modify, and delete an {+atlas-sp+} Workspace.
+.. _atlas-sp-data:
+.. _atlas-sp-stream:
 
-:ref:`Manage Stream Processors <atlas-sp-manage-processor>`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Streaming Data
+--------------
 
-Learn how to create and manage {+atlas-sp+} Stream Processors.
+A stream is a continuous flow of immutable data originating from one
+or more sources. Examples of data streams include temperature or
+pressure readings from sensors, records of financial transactions, or
+change data capture events.
 
-:ref:`Aggregation Pipelines <atlas-sp-agg-source>`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Data streams originate from **sources** such as {+kafka-topics+} or
+MongoDB :manual:`change streams </changeStreams/>`. You can then write
+processed data to **sinks** including {+kafka-topics+}, |service|
+collections, external functions, or cloud data stores.
 
-Learn how to define {+atlas-sp+} aggregation pipelines.
+{+atlas-sp+} provides native stream processing capabilities to operate
+on continuous data without the time and computational constraints of
+an at-rest database.
 
-:ref:`Limitations <atlas-sp-limitations>`
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _atlas-sp-processor-structure:
 
-Learn about specific limitations of {+atlas-sp+}.
+Structure of a Stream Processor
+-------------------------------
 
+:ref:`Stream processors <atlas-sp-manage-processor>` take the form of a pipeline which can be
+conceptually divided into three phases. Once you understand this structure, you can create and manage stream processors 
+to continuously process your streaming data.
 
+.. _atlas-sp-processor-structure-source:
+
+Sources
+~~~~~~~
+
+Stream processors begin by ingesting documents from sources of
+streaming data to which {+atlas-sp+} is connected. These can be
+broker systems like {+kafka+}, or database change streams such as
+those generated by {+service+} read/write operations. These inputs
+must be valid ``json`` or ``ejson`` documents. Once the
+:pipeline:`$source` stage ingests a document, you can apply
+:manual:`MongoDB aggregation </aggregation>` to that document
+to transform it as needed.
+
+In addition to ingesting data from a streaming source, {+atlas-sp+}
+also supports enriching your documents with data from :ref:`HTTPS
+<atlas-sp-agg-https>` requests and :ref:`$lookup
+<atlas-sp-agg-lookup>` operations to join data from connected
+{+service+} clusters.
+
+.. _atlas-sp-processor-structure-pipeline:
+
+Pipelines
+~~~~~~~~~
+
+A stream processor leverages :ref:`Aggregation pipeline stages
+<atlas-sp-aggregation>` and :ref:`Aggregation operators
+<atlas-sp-aggregation-operators>` in addition to the standard MongoDB
+suite of :manual:`aggregation operators and stages
+</aggregation-operations>` to transform ingested data and extract
+valuable insights. To learn how to define {+atlas-sp+} :ref:`aggregation pipelines <atlas-sp-agg-source>`, 
+see the aggregation pipeline documentation. {+atlas-sp+} can write documents it can't process
+to a :ref:`Dead Letter Queue <atlas-sp-dlq>`.
+
+You can enrich documents by restructuring them, adding or removing
+fields, looking up information from your collections, and
+more. {+atlas-sp+} also enables you to collect events using
+:ref:`windows <atlas-sp-processor-structure-window>` and execute
+arbitrary :ref:`functions <atlas-sp-processor-structure-function>`.
+
+.. _atlas-sp-processor-structure-window:
+
+Windows
+```````
+
+:ref:`Windows <atlas-sp-windows>` are pipeline stages that aggregate
+streaming data within a set time period. This enables you to group the
+data, take averages, find minima and maxima, and perform various other
+operations that are otherwise inapplicable to streaming data. Each
+stream processor can only have one window stage.
+
+.. _atlas-sp-processor-structure-function:
+
+Functions
+`````````
+
+{+atlas-sp+} supports calls to either custom JavaScript
+:ref:`functions <atlas-sp-agg-function>` or {+aws+} Lambda
+:ref:`functions <atlas-sp-agg-external-function>` that run against
+each document that the stream processes passes to them.
+
+.. _atlas-sp-processor-structure-sink:
+
+Sinks
+~~~~~
+
+After processing the ingested data, the stream processor persits it be
+writing it to a sink. {+atlas-sp+} offers the :ref:`$emit
+<atlas-sp-agg-emit>` and :ref:`$merge <atlas-sp-agg-merge>` stages for
+writing to different sink types. These stages are mutually exclusive
+with each other, and each stream processor can have only one sink
+stage. Your pipeline can include logic to write processed documents to
+different Kafka topics or |service| collections within the same sink
+connections.
+
+.. _atlas-sp-regions:
+
+{+atlas-sp+} Regions 
+---------------------------------------
+
+{+atlas-sp+} supports creating {+spw+}s on |aws|, |azure|, and |gcp|. For a
+list of available regions, see the Stream Processing Worspaces
+sections of the:
+
+- :ref:`Amazon Web Services <aws-stream-processing-regions>`
+  feature reference.
+- :ref:`Microsoft Azure <azure-stream-processing-regions>`
+  feature reference.
+- :ref:`Google Cloud Platform <gcp-stream-processing-regions>`
+  feature reference.
+
+Stream processors can read from and write to {+clusters+} hosted on
+different cloud providers, or in different regions.
+
+.. _atlas-sp-billing:
+
+Billing
+-------
+
+For information on billing, see the :ref:`Atlas Stream Processing
+<stream-processing-costs>` billing page.
+
+.. _atlas-sp-next:
+
+Next Steps
+----------
+
+To begin working hands-on with {+atlas-sp+}, see
+:ref:`<atlas-sp-quickstart>`.
+
+For more detailed information on core {+atlas-sp+} concepts,
+see the following:
+
+- :ref:`<atlas-sp-windows>`
+- :ref:`<atlas-sp-security>`
+
+Learn about specific :ref:`limitations <atlas-sp-limitations>` of {+atlas-sp+}.
 
 .. toctree::
    :titlesonly:
 
-   Overview </atlas-stream-processing/overview>
    Get Started </atlas-stream-processing/quickstart>
    Architecture </atlas-stream-processing/architecture>
    Stream Processor Windows </atlas-stream-processing/windows>
