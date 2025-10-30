@@ -7,14 +7,15 @@ import { useEffect, useState } from 'react';
  * @returns The current hash string (including the # symbol)
  */
 export const useHash = () => {
-  const [hash, setHash] = useState('');
+  const [hash, setHash] = useState(() => {
+    // Initialize with the actual hash if available (client-side)
+    if (typeof window !== 'undefined') {
+      return window.location.hash ?? '';
+    }
+    return '';
+  });
 
   useEffect(() => {
-    // Set initial hash value on client side
-    if (typeof window !== 'undefined') {
-      setHash(window.location.hash ?? '');
-    }
-
     // Listen for hash changes
     const handleHashChange = () => {
       setHash(window.location.hash ?? '');

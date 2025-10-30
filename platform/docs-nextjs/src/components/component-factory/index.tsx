@@ -46,6 +46,8 @@ import type {
   ImageNode,
   CollapsibleNode,
   ListTableNode,
+  ComposableNode,
+  ComposableTutorialNode,
 } from '@/types/ast';
 import type { ComponentMap } from '@/components/component-factory/lazy';
 import { LAZY_COMPONENTS } from '@/components/component-factory/lazy';
@@ -128,6 +130,8 @@ import Image, { type ImageProps } from '@/components/image';
 import SeeAlso, { type SeeAlsoProps } from '@/components/admonition/see-also';
 import Collapsible, { type CollapsibleProps } from '@/components/collapsible';
 import ListTable, { type ListTableProps } from '@/components/list-table';
+import ComposableContent, { type ComposableContentProps } from '@/components/composable-tutorial/composable-content';
+import ComposableTutorial, { type ComposableTutorialProps } from '@/components/composable-tutorial';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -186,14 +190,11 @@ const roleMap: Record<RoleName, React.ComponentType<RoleComponentProps>> = {
   'link-new-tab': RoleLinkNewTab as React.ComponentType<RoleComponentProps>,
 };
 
-type validComponentKey = Exclude<ComponentType, 'toctree' | 'role' | 'tab' | 'selected-content'>;
+type validComponentKey = Exclude<ComponentType, 'toctree' | 'role' | 'tab'>;
 
 const getComponent = (() => {
   let componentMap:
-    | Record<
-        Exclude<ComponentType, 'toctree' | 'role' | 'tab' | 'selected-content'>,
-        React.ComponentType<SupportedComponentProps>
-      >
+    | Record<Exclude<ComponentType, 'toctree' | 'role' | 'tab'>, React.ComponentType<SupportedComponentProps>>
     | Record<string, React.ComponentType<SupportedComponentProps>>
     | undefined = undefined;
   return (key: validComponentKey) => {
@@ -210,7 +211,7 @@ const getComponent = (() => {
         code: Code as React.ComponentType<SupportedComponentProps>,
         collapsible: Collapsible as React.ComponentType<SupportedComponentProps>,
         'community-driver': CommunityPillLink as React.ComponentType<SupportedComponentProps>,
-        // 'composable-tutorial': ComposableTutorial,
+        'composable-tutorial': ComposableTutorial as React.ComponentType<SupportedComponentProps>,
         // 'io-code-block': CodeIO,
         cond: Cond as React.ComponentType<SupportedComponentProps>,
         // container: Container,
@@ -257,6 +258,7 @@ const getComponent = (() => {
         section: Section as React.ComponentType<SupportedComponentProps>,
         see: SeeAlso as React.ComponentType<SupportedComponentProps>,
         seealso: SeeAlso as React.ComponentType<SupportedComponentProps>,
+        'selected-content': ComposableContent as React.ComponentType<SupportedComponentProps>,
         // sharedinclude: Include,
         strong: Strong as React.ComponentType<SupportedComponentProps>,
         // superscript: Superscript,
@@ -370,7 +372,9 @@ type SupportedComponentProps =
   | GlossaryProps
   | ImageProps
   | CollapsibleProps
-  | ListTableProps;
+  | ListTableProps
+  | ComposableContentProps
+  | ComposableTutorialProps;
 
 type RoleComponentProps =
   | AbbrProps
@@ -645,6 +649,19 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('list-table')) {
     const listTableNode = nodeData as ListTableNode;
     return <ListTable nodeChildren={listTableNode.children} options={listTableNode.options} />;
+  } else if (ComponentType === getComponent('composable-tutorial')) {
+    const composableTutorialNode = nodeData as ComposableTutorialNode;
+    return (
+      <ComposableTutorial
+        nodeChildren={composableTutorialNode.children}
+        composableOptions={composableTutorialNode.composable_options}
+      />
+    );
+  } else if (ComponentType === getComponent('selected-content')) {
+    const selectedContentNode = nodeData as ComposableNode;
+    return (
+      <ComposableContent nodeChildren={selectedContentNode.children} selections={selectedContentNode.selections} />
+    );
   }
 
   // Default: spread all props for other components
