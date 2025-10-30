@@ -238,7 +238,7 @@ const tocData: TocItem[] = [
             label: "Spring AI",
             contentSite: "cloud-docs",
             url: "/docs/atlas/ai-integrations/spring-ai",
-          },
+          }
         ]
       },
       {
@@ -284,6 +284,18 @@ const tocData: TocItem[] = [
                 url: "/docs/atlas/ai-integrations/crewai/build-agents",
               },
             ],
+          },
+          {
+            label: "Community-Maintained",
+            contentSite: "cloud-docs",
+            collapsible: true,
+            items: [
+              {
+                label: "Mastra",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/ai-integrations/mastra",
+              },
+            ]
           },
         ]
       },

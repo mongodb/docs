@@ -1,0 +1,1 @@
+npm install mastra @ai-sdk/openai
