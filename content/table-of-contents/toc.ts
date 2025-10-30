@@ -1,8 +1,8 @@
 import AtlasArchData from './L1-data/atlas-architecture-center';
-import ToolsData from './L1-data/tools';
+import ClientLibData from './L1-data/client-libraries';
 import DevelopmentData from './L1-data/development';
 import ManagementData from './L1-data/management';
-import ClientLibData from './L1-data/client-libraries';
+import ToolsData from './L1-data/tools';
 import type { TocItem } from './types';
 
 // These are the L1's items for the Unified ToC
@@ -21,7 +21,7 @@ export const toc: TocItem[] = [
   {
     label: 'Management',
     contentSite: 'landing',
-    url: "/docs/management",
+    url: '/docs/management',
     items: ManagementData,
   },
   {
@@ -32,8 +32,8 @@ export const toc: TocItem[] = [
   },
   {
     label: 'Tools',
-    contentSite: "landing",
-    url: "/docs/tools-and-connectors",
+    contentSite: 'landing',
+    url: '/docs/tools-and-connectors',
     items: ToolsData,
   },
   {

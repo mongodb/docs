@@ -136,3 +136,84 @@ npm run api:dev
 
 This will watch for file changes and automatically restart the development server.
 
+## Tests
+
+This project includes comprehensive testing, linting, and formatting to ensure code quality and reliability.
+
+### Test Framework
+
+The project uses **Jest** as the testing framework with **ts-jest** for TypeScript support. Tests are located in the `tests/` directory and follow the naming convention `*.test.ts`.
+
+### Running Tests Locally
+
+#### Run All Tests
+```bash
+npm test
+```
+
+#### Run Tests in Watch Mode
+```bash
+npm run test:watch
+```
+
+This will automatically re-run tests when files change, making it ideal for development.
+
+### Linting and Formatting
+
+The project uses **Biome** for both linting and code formatting, providing fast and consistent code quality checks.
+
+#### Linting Commands
+```bash
+# Check for linting issues
+npm run lint
+
+# Fix linting issues automatically
+npm run lint:fix
+```
+
+#### Formatting Commands
+```bash
+# Check code formatting
+npm run format
+
+# Fix formatting issues automatically
+npm run format:fix
+```
+
+#### Combined Check
+```bash
+# Run both linting and formatting checks
+npm run check
+
+# Fix both linting and formatting issues
+npm run check:fix
+```
+
+### Test Coverage
+
+The test suite includes:
+
+- **Structure Validation**: Ensures the table of contents data has the correct structure and required properties
+- **Content Validation**: Verifies that expected sections and content sites are present
+- **Nested Structure Testing**: Validates the hierarchical structure of navigation items
+- **URL Validation**: Checks that all URLs follow the expected format
+- **Output File Testing**: Confirms that the generated `toc.json` file is created correctly
+
+### Automated Testing
+
+Tests are automatically triggered in the following scenarios:
+
+#### Pull Requests & Push Events
+- Tests run on **all pull requests** targeting the `main`
+- Only runs when files in the `content/table-of-contents/` directory are modified
+
+
+#### CI/CD Pipeline Steps
+1. **Install Dependencies**: Installs npm packages using Node.js 24
+2. **Lint & Format Check**: Runs `npm run lint && npm run format` to ensure code quality
+3. **Test Execution**: Runs `npm run test` to execute the full test suite
+
+### Configuration Files
+
+- **GitHub Actions**: `.github/workflows/toc-test.yml` - Defines the CI/CD pipeline for all things relating to testing.
+

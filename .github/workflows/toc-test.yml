@@ -1,0 +1,45 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'content/table-of-contents/**'
+      
+  pull_request:
+    branches:
+      - main
+      - DOP-6315
+    paths:
+      - 'content/table-of-contents/**'
+
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        platform: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.platform }}
+      
+    env:
+      NPM_BASE_64_AUTH: ${{ secrets.NPM_BASE_64_AUTH }}
+      NPM_EMAIL: ${{ secrets.NPM_EMAIL }}
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '24'
+
+      - name: Install
+        run: npm install
+        working-directory: ./content/table-of-contents
+
+      - name: Lint & Format
+        run: npm run lint && npm run format
+        working-directory: ./content/table-of-contents
+
+      - name: Test
+        run: npm run test
+        working-directory: ./content/table-of-contents

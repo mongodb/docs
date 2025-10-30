@@ -3,51 +3,51 @@
 // Generated: 2025-10-01T17:39:38.730Z
 // Do not edit manually - your changes will be overwritten
 
-import type { TocItem } from "../types";
+import type { TocItem } from '../types';
 
 export const atlasCliK8sCommands: TocItem[] = [
   {
-    label: "config",
-    contentSite: "atlas-cli",
-    url: "/docs/atlas/cli/:version/command/atlas-kubernetes-config/",
+    label: 'config',
+    contentSite: 'atlas-cli',
+    url: '/docs/atlas/cli/:version/command/atlas-kubernetes-config/',
     collapsible: true,
     items: [
       {
-        label: "apply",
-        contentSite: "atlas-cli",
-        url: "/docs/atlas/cli/:version/command/atlas-kubernetes-config-apply/"
+        label: 'apply',
+        contentSite: 'atlas-cli',
+        url: '/docs/atlas/cli/:version/command/atlas-kubernetes-config-apply/',
       },
       {
-        label: "generate",
-        contentSite: "atlas-cli",
-        url: "/docs/atlas/cli/:version/command/atlas-kubernetes-config-generate/"
-      }
-    ]
+        label: 'generate',
+        contentSite: 'atlas-cli',
+        url: '/docs/atlas/cli/:version/command/atlas-kubernetes-config-generate/',
+      },
+    ],
   },
   {
-    label: "dry",
-    contentSite: "atlas-cli",
-    url: "/docs/atlas/cli/:version/command/atlas-kubernetes-dry/",
+    label: 'dry',
+    contentSite: 'atlas-cli',
+    url: '/docs/atlas/cli/:version/command/atlas-kubernetes-dry/',
     collapsible: true,
     items: [
       {
-        label: "run",
-        contentSite: "atlas-cli",
-        url: "/docs/atlas/cli/:version/command/atlas-kubernetes-dry-run/"
-      }
-    ]
+        label: 'run',
+        contentSite: 'atlas-cli',
+        url: '/docs/atlas/cli/:version/command/atlas-kubernetes-dry-run/',
+      },
+    ],
   },
   {
-    label: "operator",
-    contentSite: "atlas-cli",
-    url: "/docs/atlas/cli/:version/command/atlas-kubernetes-operator/",
+    label: 'operator',
+    contentSite: 'atlas-cli',
+    url: '/docs/atlas/cli/:version/command/atlas-kubernetes-operator/',
     collapsible: true,
     items: [
       {
-        label: "install",
-        contentSite: "atlas-cli",
-        url: "/docs/atlas/cli/:version/command/atlas-kubernetes-operator-install/"
-      }
-    ]
-  }
+        label: 'install',
+        contentSite: 'atlas-cli',
+        url: '/docs/atlas/cli/:version/command/atlas-kubernetes-operator-install/',
+      },
+    ],
+  },
 ];

@@ -6,19 +6,19 @@ export const tableOfContentApiOptions = yargs(hideBin(process.argv))
     alias: 'b',
     type: 'string',
     demandOption: true,
-    describe: 'Assigns which branch to use to point the build webhook to.'
+    describe: 'Assigns which branch to use to point the build webhook to.',
   })
   .option('all-prod', {
     alias: 'ap',
     type: 'boolean',
     default: false,
-    describe: 'Triggers a deploy all for prod sites'
+    describe: 'Triggers a deploy all for prod sites',
   })
   .option('all-predprod', {
     alias: 'aprd',
     type: 'boolean',
     default: false,
-    describe: 'Triggers a deploy all for predprod sites'
+    describe: 'Triggers a deploy all for predprod sites',
   })
   .help()
-  .alias('help', 'h').argv
+  .alias('help', 'h').argv;
