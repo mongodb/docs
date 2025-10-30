@@ -27,7 +27,7 @@ a. Select the dataset for your {+fdi+} from the :guilabel:`Data Sources`
    .. seealso:: 
 
       - :atlas:`Set Up GCP Service Account Access </security/set-up-gcp-access>`.
-      - :oas-atlas-op:`Create a Cloud Provider Access Role </createCloudProviderAccessRole>`
+      - :oas-bump-atlas-op:`Create a Cloud Provider Access Role <createcloudprovideraccessrole>`
 
 #. In the :guilabel:`Configure Google Cloud Storage` modal, follow the
    provided instructions to configure the {+gcp+} CLI, then click

@@ -6,8 +6,8 @@
 
    You can't have more than one Private Link connection to a given
    Confluent cluster per |service| project. Before you begin this
-   procedure, call the :oas-atlas-tag:`Return All Private Link
-   Connections </Streams/operation/listPrivateLinkConnections>`
+   procedure, call the :oas-bump-atlas-op:`Return All Private Link
+   Connections <listgroupstreamprivatelinkconnections>`
    endpoint. If you have an existing Private Link connection to your
    Confluent cluster within {+service+} but not within your Confluent
    account, only perform those steps that configure your
@@ -29,7 +29,7 @@ project, follow these steps:
          use a Confluent Private Link connection, you must host your
          {+spw+}s on {+aws+}.
 
-      a. Call the :oas-atlas-tag:`Return Account ID and VPC ID for group and region </Streams/operation/getAccountDetails>`
+      a. Call the :oas-bump-atlas-op:`Return Account ID and VPC ID for group and region <getgroupstreamaccountdetails>`
          {+atlas-admin-api+} endpoint. Note the value of
          ``awsAccountId``, you will need this in a later step.
 
@@ -53,8 +53,8 @@ project, follow these steps:
       The {+atlas-admin-api+} provides an endpoint for requesting a
       Private Link connection configured for {+atlas-sp+}.
 
-      :oas-atlas-tag:`Create One Private Link
-      </Streams/operation/createPrivateLinkConnection>`
+      :oas-bump-atlas-op:`Create One Private Link
+      <creategroupstreamprivatelinkconnection>`
 
       .. tip::
 
@@ -125,9 +125,9 @@ project, follow these steps:
       .. note::
 
          This step applies only to Confluent serverless clusters.
-         
-      Call the :oas-atlas-tag:`Return All Private Link Connections
-      </Streams/operation/listPrivateLinkConnections>` endpoint. Note
+
+      Call the :oas-bump-atlas-op:`Return All Private Link Connections
+      <listgroupstreamprivatelinkconnections>` endpoint. Note
       the value of ``interfaceEndpointId``.
 
       In your Confluent account, navigate to the cluster you want to

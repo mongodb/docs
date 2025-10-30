@@ -1,4 +1,4 @@
-The :oas-atlas-tag:`Create One Connection </Streams/operation/createStreamConnection>`
+The :oas-bump-atlas-op:`Create One Connection <creategroupstreamconnection>`
 API endpoint requires digest authorization when creating an |s3| connection. To
 support this, you must create an API Key.
 

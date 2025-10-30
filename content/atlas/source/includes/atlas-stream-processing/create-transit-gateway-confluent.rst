@@ -13,8 +13,8 @@
 
 	 Ensure that your Confluent Cloud |cidr| does not overlap with
 	 your {+service+} |vpc| |cidr|. Retrieve your {+service+}
-	 |vpc| |cidr| with the :oas-atlas-tag:`Get Account Details
-	 </Streams/operation/getAccountDetails>` endpoint.
+	 |vpc| |cidr| with the :oas-bump-atlas-op:`Get Account Details
+	 <getgroupstreamaccountdetails>` endpoint.
 
    .. step:: Create an {+aws+} Resource Share.
 
@@ -48,8 +48,8 @@
    .. step:: Configure a connection between your {+tgw+} and {+service+} 
 	 
       a. Retrieve your {+service+} account details with the
-         :oas-atlas-tag:`Get Account Details
-         </Streams/operation/getAccountDetails>` endpoint. Note your
+         :oas-bump-atlas-op:`Get Account Details
+         <getgroupstreamaccountdetails>` endpoint. Note your
          ``awsAccountId``, ``cidrBlock``, and ``vpcId`` for later.
 
       #. Create an {+aws+} Resource Share.	 
@@ -81,8 +81,8 @@
 
    .. step:: Create a Kafka {+tgw+} connection.
 	     
-      Call the :oas-atlas-tag:`Create One Connection
-      </Streams/operation/createStreamConnection>` endpoint with the
+      Call the :oas-bump-atlas-op:`Create One Connection
+      <creategroupstreamconnection>` endpoint with the
       following parameters:
 
       - Set ``networking.access.tgwId`` to the {+aws+} ID of your

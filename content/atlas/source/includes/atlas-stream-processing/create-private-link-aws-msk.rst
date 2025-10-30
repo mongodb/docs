@@ -12,8 +12,8 @@
 	 {+aws-msk+} Private Link connection, you must host your {+spw+}s on
 	 {+aws+}.
 
-      a. Use the :oas-atlas-tag:`Get Account Details
-         </Streams/operation/getAccountDetails>` endpoint to retrieve
+      a. Use the :oas-bump-atlas-op:`Get Account Details
+         <getgroupstreamaccountdetails>` endpoint to retrieve
          the {+aws+} Principal identity. You will need this value for
          your {+aws-msk+} cluster policy.
 
@@ -57,8 +57,8 @@
       The {+atlas-admin-api+} provides an endpoint for requesting a
       Private Link connection configured for {+atlas-sp+}.
 
-      :oas-atlas-tag:`Create One Private Link
-      </Streams/operation/createPrivateLinkConnection>`
+      :oas-bump-atlas-op:`Create One Private Link
+      <creategroupstreamprivatelinkconnection>`
 
       .. tip::
 

@@ -3,7 +3,7 @@ secured using ``SASL_SSL``. You can also secure a connection using
 mutual ``SSL``.
 
 For more information, on the supported fields for this API for ``SSL`` authentication, see the 
-:oas-atlas-op:`Atlas Admin API documentation </createStreamConnection>`.
+:oas-bump-atlas-op:`Atlas Admin API documentation <creategroupstreamconnection>`.
 
 :ref:`Add a connection <atlas-sp-manage-connection-add>`
 with the following key-value pairs:

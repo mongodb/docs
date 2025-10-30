@@ -127,7 +127,7 @@
 - Introduces the ability to visualize slow queries in times series 
   collections.
 - Introduces the ability to deploy ``M0`` {+Free-clusters+} using the
-  :oas-atlas-op:`create </createOneCluster>` endpoint.
+  :oas-bump-atlas-op:`create <createcluster>` endpoint.
 
 .. _atlas_20210824:
 
@@ -147,8 +147,8 @@
   </reference/collation/>` query options when you :ref:`query your data
   <atlas-ui-view-documents>` using the {+atlas-ui+}.
 - Adds the ability for a user with the 
-  :authrole:`Project Cluster Manager` role to :oas-atlas-op:`test 
-  failover </testFailoverForOneCluster>`.
+  :authrole:`Project Cluster Manager` role to :oas-bump-atlas-op:`test 
+  failover <testfailoverforonecluster>`.
 
 .. _atlas_20210803:
 
@@ -173,15 +173,15 @@
 
 - Introduces the ability to set an |service| user account to be granted 
   the :authrole:`Project Owner` role on a specified project 
-  :oas-atlas-op:`via the API </createProject>`.
+  :oas-bump-atlas-op:`via the API <createproject>`.
 
 - Removes IP Whitelist resources. The 
-  :oas-atlas-tag:`IP Access List </Project-IP-Access-List>` resource 
+  :oas-bump-atlas-tag:`IP Access List <project-ip-access-list>` resource 
   replaces the whitelist resource. We encourage you to update your 
   applications to use this new resource.
 
 - Removes the API Key Whitelist endpoints. The 
-  :oas-atlas-tag:`API Key Access List </Programmatic-API-Keys>` 
+  :oas-bump-atlas-tag:`API Key Access List <programmatic-api-keys>` 
   endpoints replace the whitelist endpoints. We encourage you to update 
   your applications to use these new endpoints.
 
@@ -333,8 +333,8 @@
 
 - Introduces the ability to peer to |service| VPCs on |gcp| with a
   smaller |cidr| block. When you create the network peering container
-  using the |service| :oas-atlas-op:`API 
-  </createOneNewNetworkPeeringConnection>`,
+  using the |service| :oas-bump-atlas-op:`API 
+  <creategrouppeer>`,
   you can specify a |cidr| block between ``/21`` and ``/24``, inclusive,
   instead of the default, ``/18``.
 - Adds the ability to specify an |aws| |arn| with a compound path when

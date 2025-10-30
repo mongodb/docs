@@ -4,7 +4,7 @@
    .. step:: Send a ``POST`` request.
     
       Send a ``POST`` request to the ``search/indexes`` 
-      :oas-atlas-op:`endpoint </createAtlasSearchIndex>`.
+      :oas-bump-atlas-op:`endpoint <createatlassearchindex>`.
 
       .. code-block:: sh
 
@@ -44,8 +44,8 @@
               }'
 
       To learn more about the syntax and parameters for this 
-      endpoint, see :oas-atlas-op:`Create One 
-      </createAtlasSearchIndex>`.
+      endpoint, see :oas-bump-atlas-op:`Create One 
+      <createatlassearchindex>`.
 
    .. step:: Review the response.
 

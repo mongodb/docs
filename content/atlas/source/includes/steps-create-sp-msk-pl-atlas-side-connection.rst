@@ -3,8 +3,8 @@ secured using ``SASL_SSL``. You can also secure a connection using
 mutual ``SSL``.
 
 For more information, on the supported fields for this API for ``SSL``
-authentication, see the :oas-atlas-op:`createStreamConnection
-</createStreamConnection>` {+atlas-admin-api+} endpoint.
+authentication, see the :oas-bump-atlas-op:`createStreamConnection
+<creategroupstreamconnection>` {+atlas-admin-api+} endpoint.
 
 :ref:`Add a connection <atlas-sp-manage-connection-add>`
 with the following key-value pairs:

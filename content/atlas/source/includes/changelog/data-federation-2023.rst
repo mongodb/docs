@@ -148,7 +148,7 @@
 - Adds the application name to connections that {+adf+} creates to your
   |service| {+clusters+}.
 - Adds the ability to set and update the storage configuration using the
-  |service| :oas-atlas-tag:`Data Federation API </Data-Federation>`.
+  |service| :oas-bump-atlas-tag:`API <data-federation>`.
 
 .. _adf-v20230111:
 

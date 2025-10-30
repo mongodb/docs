@@ -3,8 +3,8 @@
 
    .. step:: Create a private endpoint.
     
-      Send a ``POST`` request to the :oas-atlas-op:`endpoint 
-      </createEncryptionAtRestPrivateEndpoint>` with the |azure|
+      Send a ``POST`` request to the :oas-bump-atlas-op:`endpoint 
+      <createencryptionatrestprivateendpoint>` with the |azure|
       region in which you want |service| to create the private
       endpoint. You must send a separate request for each region
       in which you want |service| to create a private endpoint. 
@@ -32,7 +32,7 @@
    .. step:: Check the status of your request.
 
       To check the status of the private endpoint, send a ``GET``
-      request to the ``encryptionAtRest`` :oas-atlas-op:`endpoint </getEncryptionAtRestPrivateEndpointsForCloudProvider>`. 
+      request to the ``encryptionAtRest`` :oas-bump-atlas-op:`endpoint <getencryptionatrestprivateendpointsforcloudprovider>`. 
       
       .. example:: 
 

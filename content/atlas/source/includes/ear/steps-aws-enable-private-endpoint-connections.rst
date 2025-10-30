@@ -3,13 +3,13 @@
 
    .. step:: Enable private networking.
     
-      Send a ``PATCH`` request to the ``encryptionAtRest`` :oas-atlas-op:`endpoint 
-      </updateEncryptionAtRest>` and set the ``requirePrivateNetworking`` 
+      Send a ``PATCH`` request to the ``encryptionAtRest`` :oas-bump-atlas-op:`endpoint 
+      <updateencryptionatrest>` and set the ``requirePrivateNetworking`` 
       flag value to ``true``.
 
       To learn more about the required parameters, see 
-      :oas-atlas-op:`Update Configuration for Encryption at Rest using Customer-Managed Keys for One Project 
-      </updateEncryptionAtRest>`.
+      :oas-bump-atlas-op:`Update Configuration for Encryption at Rest using Customer-Managed Keys for One Project 
+      <updateencryptionatrest>`.
 
       .. example:: 
 
@@ -39,8 +39,8 @@
       Use the {+atlas-admin-api+} to create a private endpoint to 
       communicate with your |aws| |kms|.  
     
-      Send a ``POST`` request to the ``encryptionAtRest`` :oas-atlas-op:`endpoint 
-      </createEncryptionAtRestPrivateEndpoint>` with the |aws|
+      Send a ``POST`` request to the ``encryptionAtRest`` :oas-bump-atlas-op:`endpoint 
+      <createencryptionatrestprivateendpoint>` with the |aws|
       region that you want |service| to create the private
       endpoint in. You must send a separate request for each region
       that you want |service| to create a private endpoint in. 
@@ -70,7 +70,7 @@
    .. step:: Check the status of your request.
 
       To check the status of the private endpoint, send a ``GET``
-      request to the ``encryptionAtRest`` :oas-atlas-op:`endpoint </getEncryptionAtRestPrivateEndpointsForCloudProvider>`. 
+      request to the ``encryptionAtRest`` :oas-bump-atlas-op:`endpoint <getencryptionatrestprivateendpointsforcloudprovider>`. 
       
       .. example:: 
 

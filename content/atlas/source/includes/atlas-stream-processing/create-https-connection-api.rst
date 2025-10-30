@@ -7,7 +7,7 @@ Add an HTTPS Connection through {+atlas-admin-api+}
 The {+atlas-admin-api+} provides an endpoint for adding a 
 connection to a connection registry.
 
-:oas-atlas-tag:`Create One Connection </Streams/operation/createStreamConnection>`
+:oas-bump-atlas-op:`Create One Connection <creategroupstreamconnection>`
 
 If the API endpoint requires authentication, such as an API key or 
 Bearer Access Token authentication, you should add

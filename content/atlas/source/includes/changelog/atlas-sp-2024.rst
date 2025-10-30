@@ -60,4 +60,4 @@
 
 - Supports converting from :bsontype:`Binary` data to various data types using :manual:`$convert </reference/operator/aggregation/convert>`. This allows you to transform Kafka headers into specific data types as needed.
 - Stream processors that use {+kafka+} as a source expose per-partition watermarks in :method:`sp.processor.stats()`.
-- Fixes a bug where users were unable to create {+spw+}s in certain regions through the :oas-atlas-op:`API </createStreamInstance>`.
+- Fixes a bug where users were unable to create {+spw+}s in certain regions through the :oas-bump-atlas-op:`API <creategroupstreamworkspace>`.

@@ -22,8 +22,8 @@
   .. include:: /includes/tls-deprecation.rst
 
 -  When you create a cluster, |service| creates a 
-   :oas-atlas-op:`network container 
-   </createOneNewNetworkPeeringContainer>` in the project for the cloud 
+   :oas-bump-atlas-op:`network container 
+   <creategroupcontainer>` in the project for the cloud 
    provider to which you deploy the cluster if one does not already 
    exist.
    

@@ -30,6 +30,6 @@ The following table shows the modes of access that the following :ref:`Project U
      - ✓
 
 .. [*] Each role grants permission to call either a subset or the full set
-       of :oas-atlas-tag:`{+fts+} API endpoints </Atlas-Search>` in the {+atlas-admin-api+}.
+       of :oas-bump-atlas-tag:`{+fts+} API endpoints <atlas-search>` in the {+atlas-admin-api+}.
        See the {+fts+} Action column for descriptions of the API endpoints
        that each role grants access to. 

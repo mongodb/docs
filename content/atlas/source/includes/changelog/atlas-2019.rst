@@ -38,12 +38,12 @@
 - Enables always-on database-level authentication
   :ref:`access auditing <access-tracking>` for {+dedicated-clusters+}.
 
-- Enables API management for :oas-atlas-tag:`third party service 
-  integrations </Third-Party-Service-Integrations>` like DataDog and 
+- Enables API management for :oas-bump-atlas-tag:`third party service 
+  integrations <third-party-integrations>` like DataDog and 
   Slack.
 
 - Enables API management for AWS security group IDs on the |service|
-  :oas-atlas-tag:`project IP access list </Project-IP-Access-List>` 
+  :oas-bump-atlas-tag:`project IP access list <project-ip-access-list>` 
   when using VPC peering.
 
 - Introduces the ``humanReadable`` field to webhook alert

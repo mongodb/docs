@@ -33,8 +33,8 @@ documentation.
       :tabid: api
 
       To create custom roles through the {+atlas-admin-api+}, 
-      see :oas-atlas-op:`Create One Custom Role 
-      </createCustomDatabaseRole>`.
+      see :oas-bump-atlas-op:`Create One Custom Role 
+      <createcustomdatabaserole>`.
 
    .. tab:: {+atlas-ui+}
       :tabid: ui

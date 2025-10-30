@@ -196,7 +196,7 @@
        request to an endpoint for programmatic processing. The 
        request body contains a |json| document that uses the same
        format as the {+atlas-admin-api+}
-       :oas-atlas-op:`Alerts resource </Alerts>`.
+       :oas-bump-atlas-op:`Alerts resource <listgroupalerts>`.
         
        This option is available only if you have configured Webhook 
        settings on the :ref:`Integrations 

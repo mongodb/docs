@@ -29,8 +29,8 @@ To add an |s3| connection to your {+spw+} through the
    .. step:: Create the S3 Connection.
 
       The {+atlas-admin-api+} provides an endpoint to
-      :oas-atlas-tag:`Create One Connection
-      </Streams/operation/createStreamConnection>`. You must send this
+      :oas-bump-atlas-op:`Create One Connection
+      <creategroupstreamconnection>`. You must send this
       request using digest authorization.
 
       In your HTTP request interface, enable digest authorization. For

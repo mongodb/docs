@@ -23,7 +23,7 @@ database users that automatically expire within a user-configurable
 
    You must use the :atlascli:`{+atlas-cli+} 
    </command/atlas-dbusers-create/>`, 
-   :oas-atlas-tag:`{+atlas-admin-api+} </Database-Users>`, 
+   :oas-bump-atlas-tag:`{+atlas-admin-api+} <database-users>`, 
    {+atlas-ui+}, or a supported :ref:`integration 
    <partner-integrations>` to add, modify, or delete database users on 
    |service| {+database-deployments+}. Otherwise, |service| rolls back 
@@ -59,29 +59,29 @@ Add Database Users
 
 You can add database users through the {+atlas-admin-api+}. The 
 options you specify determine the authentication method. To learn 
-more, see :oas-atlas-op:`Create One Database User 
-</createDatabaseUser>`.
+more, see :oas-bump-atlas-op:`Create One Database User 
+<createdatabaseuser>`.
 
 
 View Database Users and Certificates
 ------------------------------------
 
 To view |service| database users using the 
-{+atlas-admin-api+}, see :oas-atlas-op:`Get All
-</listDatabaseUsers>`.
+{+atlas-admin-api+}, see :oas-bump-atlas-op:`Get All
+<listdatabaseusers>`.
 
 
 Modify Database Users
 ---------------------
 
 You can update database users through the {+atlas-admin-api+}. To 
-learn more, see :oas-atlas-op:`Update One 
-</updateDatabaseUser>`.
+learn more, see :oas-bump-atlas-op:`Update One 
+<updatedatabaseuser>`.
 
 
 Delete Database Users
 ---------------------
 
 You can delete database users through the {+atlas-admin-api+}. To 
-learn more, see :oas-atlas-op:`Delete One 
-</deleteDatabaseUser>`.
+learn more, see :oas-bump-atlas-op:`Delete One 
+<deletedatabaseuser>`.

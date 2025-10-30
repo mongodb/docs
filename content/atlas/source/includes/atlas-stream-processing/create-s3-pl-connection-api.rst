@@ -17,8 +17,8 @@
 
    .. step:: Create an API key.
 
-      The :oas-atlas-tag:`Create One Connection
-      </Streams/operation/createStreamConnection>` API endpoint
+      The :oas-bump-atlas-op:`Create One Connection
+      <creategroupstreamconnection>` API endpoint
       requires digest authorization when creating an S3 Connection. To
       support this, you must create an API Key.
 
@@ -37,8 +37,8 @@
    .. step:: Create the Private Link Connection.
 
       The {+atlas-admin-api+} provides an endpoint to
-      :oas-atlas-tag:`Create One Private Link Connection
-      </Streams/operation/createPrivateLinkConnection>`. 
+      :oas-bump-atlas-op:`Create One Private Link
+      <creategroupstreamprivatelinkconnection>`
 
       For an {+aws+} |s3| Private Link connection, set the
       following key-value pairs:
@@ -64,8 +64,8 @@
 	     is the name of the {+aws+} region in which you
 	     create the endpoint.
 
-      Use :oas-atlas-tag:`Return All Private Link Connections
-      </Streams/operation/listPrivateLinkConnections>` to check
+      Use :oas-bump-atlas-op:`Return All Private Link Connections
+      <listgroupstreamprivatelinkconnections>` to check
       the ``state`` of your endpoint. When it reaches a ``DONE``
       state, note the value of the ``_id`` field and proceed to
       the next step.
@@ -73,8 +73,8 @@
    .. step:: Create the S3 Connection.
 
       The {+atlas-admin-api+} provides an endpoint to
-      :oas-atlas-tag:`Create One Connection
-      </Streams/operation/createStreamConnection>`. You must send this
+      :oas-bump-atlas-op:`Create One Connection
+      <creategroupstreamconnection>`. You must send this
       request using digest authorization.
 
       In your HTTP request interface, enable digest authorization. For

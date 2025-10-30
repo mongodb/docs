@@ -6,8 +6,8 @@
       Use the {+atlas-admin-api+} to create a private endpoint to 
       communicate with your |aws| |kms|.  
     
-      Send a ``POST`` request to the ``encryptionAtRest`` :oas-atlas-op:`endpoint 
-      </createEncryptionAtRestPrivateEndpoint>` with the |aws|
+      Send a ``POST`` request to the ``encryptionAtRest`` :oas-bump-atlas-op:`endpoint 
+      <createencryptionatrestprivateendpoint>` with the |aws|
       region in which you want |service| to create the private
       endpoint. You must send a separate request for each region
       in which you want |service| to create a private endpoint. 
@@ -37,7 +37,7 @@
    .. step:: Check the status of your request.
 
       To check the status of the private endpoint, send a ``GET``
-      request to the ``encryptionAtRest`` :oas-atlas-op:`endpoint </getEncryptionAtRestPrivateEndpointsForCloudProvider>`. 
+      request to the ``encryptionAtRest`` :oas-bump-atlas-op:`endpoint <getencryptionatrestprivateendpointsforcloudprovider>`. 
       
       .. example:: 
 

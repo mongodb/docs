@@ -34,7 +34,7 @@
 
 - Supports :ref:`Flex clusters <flex-migration>`.
 - Allows you to :ref:`verify your data during live migrations to Atlas <verify-migrations>`.
-- Updates the :oas-atlas-op:`createThirdPartyIntegration </createThirdPartyIntegration>`
+- Updates the :oas-bump-atlas-op:`createThirdPartyIntegration <createthirdpartyintegration>`
   API resource for the :ref:`Datadog integration <datadog-integration>` with
   ``sendCollectionLatencyMetrics`` and ``sendDatabaseMetrics`` options
   for sending data from your |service| {+cluster+} to Datadog.

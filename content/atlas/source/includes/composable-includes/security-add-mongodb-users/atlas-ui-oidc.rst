@@ -23,7 +23,7 @@ database users that automatically expire within a user-configurable
 
    You must use the :atlascli:`{+atlas-cli+} 
    </command/atlas-dbusers-create/>`, 
-   :oas-atlas-tag:`{+atlas-admin-api+} </Database-Users>`, 
+   :oas-bump-atlas-tag:`{+atlas-admin-api+} <database-users>`, 
    {+atlas-ui+}, or a supported :ref:`integration 
    <partner-integrations>` to add, modify, or delete database users on 
    |service| {+database-deployments+}. Otherwise, |service| rolls back 

@@ -71,8 +71,8 @@ a. Select the dataset for your {+fdi+} from the :guilabel:`Data Sources`
       For further information, see
         - :atlas:`Set Up Unified AWS Access 
           </security/set-up-unified-aws-access/>`
-        - :oas-atlas-op:`Create a Cloud Provider Access Role 
-          </createCloudProviderAccessRole>`
+        - :oas-bump-atlas-op:`Create a Cloud Provider Access Role 
+          <createcloudprovideraccessrole>`
 
    #. Click :guilabel:`Next`.
 

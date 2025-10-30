@@ -6,8 +6,8 @@
       The {+atlas-admin-api+} provides an endpoint for requesting a
       Private Link connection configured for {+atlas-sp+}.
 
-      :oas-atlas-tag:`Create One Private Link
-      </Streams/operation/createPrivateLinkConnection>`
+      :oas-bump-atlas-op:`Create One Private Link
+      <creategroupstreamprivatelinkconnection>`
 
       For an |azure| Private Link connection, you must set the
       following key-value pairs:

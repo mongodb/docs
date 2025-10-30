@@ -25,8 +25,8 @@
   plans.
   
 - You can manually link a paying organization with the {+atlas-ui+},
-  or :oas-atlas-op:`programatically link a paying organization
-  </createOrganization>` with the Atlas Admin API to a maximum of
+  or :oas-bump-atlas-op:`programatically link a paying organization
+  <createorganization>` with the Atlas Admin API to a maximum of
   250 other organizations. To link a paying organization to more than
   250 other organizations, :ref:`contact support <request-support>`.
 

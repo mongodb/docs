@@ -3,7 +3,7 @@
 14 December 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Adds the ability to configure some |service| project limits using the :oas-atlas-op:`Projects Administration API resource </updateProjectInvitationById>`.
+- Adds the ability to configure some |service| project limits using the :oas-bump-atlas-op:`Projects Administration API resource <updateprojectinvitationbyid>`.
 - Adds the ability to push live migrations of replica sets using private endpoints.
 - Introduces :ref:`atlas-go-to`.
 
@@ -102,8 +102,8 @@
 
 - Adds additional privileges to custom database roles.
 - Adds the ``OPLOG_REPLICATION_LAG_TIME`` host measurement series to
-  the :oas-atlas-op:`Measurements Administration API resource 
-  </returnMeasurementsForOneMongodbProcess>`.
+  the :oas-bump-atlas-op:`Measurements Administration API resource 
+  <returnmeasurementsforonemongodbprocess>`.
 - Updates PagerDuty integration to use the
   `PagerDuty Events API v2 <https://developer.pagerduty.com/docs/ZG9jOjExMDI5NTgw-events-api-v2-overview>`__.
 
@@ -175,11 +175,11 @@
 31 March 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
-- Adds support for :oas-atlas-op:`upgrading shared tiers 
-  </upgradeOneTenantCluster>` through the |service| Administration
+- Adds support for :oas-bump-atlas-op:`upgrading shared tiers 
+  <upgradegroupsharedcluster>` through the |service| Administration
   API.
-- Adds support for :oas-atlas-op:`managing project settings 
-  </updateProjectSettings>` through the |service| Administration
+- Adds support for :oas-bump-atlas-op:`managing project settings 
+  <updateprojectsettings>` through the |service| Administration
   API.
 
 .. _atlas_20220309:
@@ -189,9 +189,9 @@
 
 - Introduces a :ref:`metrics integration with Prometheus <prometheus-integration>`.
 - Introduces a new :authrole:`Project Search Index Editor` role to manage |fts| indexes using the |service| UI or Administration API.
-- Introduces the ability to :oas-atlas-tag:`configure Federated 
+- Introduces the ability to :oas-bump-atlas-tag:`configure Federated 
   Authentication with the Atlas Administration API 
-  </Federated-Authentication>`.
+  <federated-authentication>`.
 - Introduces the :ref:`M140 and M250 cluster tiers in all GCP regions <google-gcp>`. 
 
 .. _atlas_20220216:

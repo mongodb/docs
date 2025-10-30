@@ -11,7 +11,7 @@
 - Supports programmatic IP access list for secure |service| communication
   by using customer-managed encryption keys. To learn more, see :ref:`atlas-add-nodes-to-encrypted-cluster`.
 - Rejects :ref:`test failover <test-failover>` if {+cluster+} is not fully healthy.
-- Adds the :oas-atlas-op:`returnAllControlPlaneIpAddresses API endpoint </returnAllControlPlaneIpAddresses>`
+- Adds the :oas-bump-atlas-op:`returnAllControlPlaneIpAddresses API endpoint <returnallcontrolplaneipaddresses>`
   that returns a list of inbound and outbound |service| control plane IP
   addresses in |cidr| categorized by cloud provider and region. To learn more,
   see :ref:`Allow Access From the Atlas Control Plane <atlas-ear-allow-access-via-control-plane>`.
@@ -105,7 +105,7 @@
 
      This version unifies the |api| endpoints for single-cloud {+clusters+}
      and :ref:`multi-cloud <create-cluster-multi-region>` {+clusters+}
-     under the :oas-atlas-tag:`Clusters </Clusters>` |api| resource.
+     under the :oas-bump-atlas-tag:`Clusters <clusters>` |api| resource.
 
 .. _atlas_2023_06_14:
 
@@ -126,7 +126,7 @@
 - Introduces new :authrole:`Organization Billing Viewer` :ref:`role
   <user-roles>` to restrict billing access to authorized users. 
 - Supports an optional ``federationSettingsId`` parameter in the 
-  :oas-atlas-tag:`createOneOrganization <createOrganization>` |api|
+  :oas-bump-atlas-tag:`createOneOrganization <clusters>` |api|
   endpoint to link an |service| organization to an existing
   :ref:`federated access <oidc-authentication-authorization>`
   configuration.   

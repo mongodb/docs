@@ -3,7 +3,7 @@
 
    .. step:: Send a GET request to the ``returnAllControlPlaneIpAddresses`` endpoint. 
          
-      The :oas-atlas-op:`API endpoint </returnAllControlPlaneIpAddresses>` 
+      The :oas-bump-atlas-op:`API endpoint <returnallcontrolplaneipaddresses>` 
       returns a list of inbound and outbound |service| control plane IP 
       addresses in CIDR categorized by cloud provider and region. To learn 
       more, see the prerequisites for managing  customer keys with  

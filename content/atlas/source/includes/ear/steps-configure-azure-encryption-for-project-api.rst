@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal
 
-   .. step:: Send a ``PATCH`` request to the ``encryptionAtRest`` :oas-atlas-op:`endpoint </updateEncryptionAtRest>`. 
+   .. step:: Send a ``PATCH`` request to the ``encryptionAtRest`` :oas-bump-atlas-op:`endpoint <updateencryptionatrest>`. 
 
       .. example:: 
 
@@ -40,7 +40,7 @@
 
       To verify your request to enable and configure encryption at rest
       using the keys you manage using |akv|, send a ``GET`` request to
-      the ``encryptionAtRest`` :oas-atlas-op:`endpoint </getEncryptionAtRest>`.  
+      the ``encryptionAtRest`` :oas-bump-atlas-op:`endpoint <getencryptionatrest>`.  
       
       .. example:: 
 

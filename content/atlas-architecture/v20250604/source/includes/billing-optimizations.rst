@@ -30,7 +30,7 @@ Underutilized {+Clusters+}
     {+atlas-admin-api+} by setting the ``paused`` field to ``true`` when
     using either of the following methods:
     
-    - :oas-atlas-op:`Modify One Cluster </updateCluster>` endpoint.
+    - :oas-bump-atlas-op:`Modify One Cluster <updatecluster>` endpoint.
     - `Terraform cluster resource <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster#paused-2>`__.
 
   - Set an alert in your 
@@ -41,8 +41,8 @@ Underutilized {+Clusters+}
     set amount of time and sufficient email alerts to the {+cluster+}
     owner. You can terminate a {+cluster+} with the following methods:
 
-    - {+atlas-admin-api+} by using the :oas-atlas-op:`Remove One Cluster
-      </deleteCluster>` endpoint.
+    - {+atlas-admin-api+} by using the :oas-bump-atlas-op:`Remove One Cluster
+      <deletecluster>` endpoint.
     - `Terraform cluster resource
       <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs/resources/cluster#termination_protection_enabled-2>`__
       by setting the ``termination_protection_enabled`` field to ``false``.
