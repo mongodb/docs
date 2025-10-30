@@ -38,7 +38,7 @@
 
            .. code-block:: none
 
-              mongodb://<db_username>:<db_password>@replica-shard-00-00.AA000.example.net:27017,replica-shard-00-01.AA000.example.net:27017,replica-shard-00-02.AA000.example.net:27017/?ssl=true&replicaSet=atlas-example-shard-0&authSource=admin&appName=replica
+              mongodb://<db_username>:<db_password>@replica-shard-00-00.AA000.example.net:27017,replica-shard-00-01.AA000.example.net:27017,replica-shard-00-02.AA000.example.net:27017/?tls=true&replicaSet=atlas-example-shard-0&authSource=admin&appName=replica
 
          - A sharded {+cluster+} :ref:`standard connection string <connections-standard-connection-string-format>`
            for a cluster name ``sharded`` and with a configuration of two shards,
@@ -46,7 +46,7 @@
 
            .. code-block:: none
 
-              mongodb://<db_username>:<db_password>@sharded-config-00-00.AA000.example.net:27016,sharded-config-00-01.AA000.example.net:27016,sharded-config-00-02.AA000.example.net:27016,sharded-shard-00-00.AA000.example.net:27016,sharded-shard-00-01.AA000.example.net:27016,sharded-shard-00-02.AA000.example.net:27016/?ssl=true&authSource=admin&appName=sharded
+              mongodb://<db_username>:<db_password>@sharded-config-00-00.AA000.example.net:27016,sharded-config-00-01.AA000.example.net:27016,sharded-config-00-02.AA000.example.net:27016,sharded-shard-00-00.AA000.example.net:27016,sharded-shard-00-01.AA000.example.net:27016,sharded-shard-00-02.AA000.example.net:27016/?tls=true&authSource=admin&appName=sharded
 
          If the source {+cluster+} uses ``TLS/SSL`` and isn't using a public
          Certificate Authority (CA), you will need the source {+cluster+}
