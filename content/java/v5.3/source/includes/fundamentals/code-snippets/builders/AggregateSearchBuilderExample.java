@@ -67,7 +67,7 @@ public class AggregateSearchBuilderExample {
     }
 
     /*
-     * Atlas search aggregation
+     * MongoDB search aggregation
      * Requires Atlas cluster and full text search index
      * See https://www.mongodb.com/docs/atlas/atlas-search/tutorial/ for more info on requirements
      */

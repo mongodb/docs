@@ -1,4 +1,4 @@
-// Runs an Atlas Search query by using the Java driver
+// Runs a MongoDB Search query by using the Java driver
 
 package org.example;
 
