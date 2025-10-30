@@ -52,7 +52,7 @@ export const getAllDocsetsWithVersions = async (dbNameOverride?: string): Promis
       // Project only the fields we need, excluding all ObjectIds and unnecessary fields
       {
         $project: {
-          _id: 0, // Exclude the _id ObjectId
+          _id: { $toString: '$_id' }, // Convert ObjectId to string
           displayName: 1,
           project: 1,
           // Transform branches array to exclude the id field
@@ -80,7 +80,19 @@ export const getAllDocsetsWithVersions = async (dbNameOverride?: string): Promis
           search: 1,
           internalOnly: 1,
           prodDeployable: 1,
-          groups: 1,
+          // Transform groups array to convert id to string
+          groups: {
+            $map: {
+              input: '$groups',
+              as: 'group',
+              in: {
+                id: { $toString: '$$group.id' },
+                groupLabel: '$$group.groupLabel',
+                includedBranches: '$$group.includedBranches',
+                sharedSlugPrefix: '$$group.sharedSlugPrefix',
+              },
+            },
+          },
           prefix: 1,
           url: 1,
           bucket: 1,

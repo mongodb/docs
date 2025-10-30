@@ -8,7 +8,7 @@ const ASSETS_COLLECTION_NAME = 'assets';
 
 export interface AssetDocument {
   _id: string;
-  data: string;
+  data: Buffer;
 }
 
 const getAssetsCollection = async () => {
@@ -18,7 +18,7 @@ const getAssetsCollection = async () => {
 
 const getAssetById = async (id: string) => {
   const collection = await getAssetsCollection();
-  const asset = await collection.findOne({ _id: id });
+  const asset = await collection.findOne({ _id: id }, { projection: { _id: { $toString: '$_id' }, data: 1 } });
   return asset;
 };
 
@@ -29,10 +29,13 @@ const fetchAsset = async (asset: StaticAsset) => {
     log({ level: 'warn', message: `No data found for asset: ${asset.key}` });
   }
 
+  // Convert Buffer to string to avoid serialization issues with Client Components
+  const dataString = assetData?.data ? assetData.data.toString('base64') : '';
+
   return {
     key: asset.key,
     checksum: asset.checksum,
-    data: assetData?.data ?? '',
+    data: dataString,
   };
 };
 
