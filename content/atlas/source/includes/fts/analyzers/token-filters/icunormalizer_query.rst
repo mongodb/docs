@@ -12,7 +12,7 @@
               "query": "1",
               "path": "message"
             }
-          } 
+          }
         },
         {
           "$project": {

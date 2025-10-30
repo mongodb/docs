@@ -12,22 +12,26 @@
 
          {
            "$search": {
-             "index": "default",
-             "text": {
-               "query": "punto",
-               "path": "text.es_MX"
+             "wildcard": {
+                "query": "mee*",
+                "path": "title",
+                "allowAnalyzedField": true
              }
-           } 
+           }
          }
 
       .. output:: 
          :language: js
          :visible: false
 
-          SCORE: 0.13076457381248474  _id:  "4"
-            message: "write down your signature or phone №"
+         SCORE: 1   _id:  "1"
+            message: "try to siGn-In"
             page_updated_by: Object
             text: Object
-              en_US: "<body>This page has been updated with the items on the agenda.</body>"
-              es_MX: "La página ha sido actualizada con los puntos de la agenda."
-              pl_PL: "Strona została zaktualizowana o punkty porządku obrad."
+            title: "The team's weekly meeting"
+
+         SCORE: 1    _id:  "3"
+            message: "try to sign-in"
+            page_updated_by: Object
+            text: Object
+            title: "The regular board meeting"

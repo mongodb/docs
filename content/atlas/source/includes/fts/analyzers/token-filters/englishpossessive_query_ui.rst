@@ -2,7 +2,7 @@
 #. Click :guilabel:`Edit Query` to edit the query.
 #. Click on the query bar and select the database and collection.
 #. Replace the default query with the following and click
-   :guilabel:`Find`:
+   :guilabel:`Search`:
 
 .. io-code-block:: 
    :copyable: true
