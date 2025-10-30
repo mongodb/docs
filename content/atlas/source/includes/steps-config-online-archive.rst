@@ -24,6 +24,12 @@
          </reference/limits/#faq-dev-namespace>` once the online archive is 
          created. 
       
+      #. Create the following indexes in your archive to ensure optimal performance:
+      
+         - An index on the :guilabel:`Date` field of your collection.
+         - A compoiund index on ``[control.closed, control.min.<date_field>]`` 
+           for the underlying ``system.bucket.<collection>. 
+      
       #. Select the cloud provider region where you want to store your
          archived data.
       
