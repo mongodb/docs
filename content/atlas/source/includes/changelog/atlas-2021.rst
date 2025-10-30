@@ -127,7 +127,7 @@
 - Introduces the ability to visualize slow queries in times series 
   collections.
 - Introduces the ability to deploy ``M0`` {+Free-clusters+} using the
-  :oas-bump-atlas-op:`create <createcluster>` endpoint.
+  :oas-bump-atlas-op:`create <creategroupcluster>` endpoint.
 
 .. _atlas_20210824:
 
@@ -173,7 +173,7 @@
 
 - Introduces the ability to set an |service| user account to be granted 
   the :authrole:`Project Owner` role on a specified project 
-  :oas-bump-atlas-op:`via the API <createproject>`.
+  :oas-bump-atlas-op:`via the API <creategroup>`.
 
 - Removes IP Whitelist resources. The 
   :oas-bump-atlas-tag:`IP Access List <project-ip-access-list>` resource 

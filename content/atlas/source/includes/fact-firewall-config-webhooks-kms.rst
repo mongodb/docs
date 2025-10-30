@@ -19,7 +19,7 @@ Fetch |service| Control Plane IP Addresses
 
 Send a GET request to the ``controlPlaneIPAddresses`` endpoint 
 to fetch the current |service| control plane IP addresses. The
-:oas-bump-atlas-op:`API endpoint <returnallcontrolplaneipaddresses>` 
+:oas-bump-atlas-op:`API endpoint <listcontrolplaneipaddresses>` 
 returns a list of inbound and outbound |service| control plane IP
 addresses in |cidr| notation categorized by cloud provider and region,
 similar to the following: 

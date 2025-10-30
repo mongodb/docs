@@ -41,7 +41,7 @@ a. Copy and paste the sample cURL request in your preferred text editor.
         - Human-readable label that identifies the cluster that contains 
           the collection for which you want to create a |fts| index.
 
-          Use the :oas-bump-atlas-op:`API <listclusters>` to get 
+          Use the :oas-bump-atlas-op:`API <listgroupclusters>` to get
           the **CLUSTER_NAME**. For each cluster, |service| returns the 
           **CLUSTER_NAME** in the **name** field.
 

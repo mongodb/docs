@@ -4,5 +4,5 @@
    aren't supported for the Datadog integration. 
    If you integrate with Datadog, continue using |service| labels.
    To define labels, use the ``labels`` parameter in the 
-   :oas-bump-atlas-op:`Modify One Cluster <updatecluster>`
+   :oas-bump-atlas-op:`Modify One Cluster <updategroupcluster>`
    |api| endpoint.

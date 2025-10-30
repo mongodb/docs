@@ -34,7 +34,7 @@ documentation.
 
       To create custom roles through the {+atlas-admin-api+}, 
       see :oas-bump-atlas-op:`Create One Custom Role 
-      <createcustomdatabaserole>`.
+      <creategroupcustomdbrolerole>`.
 
    .. tab:: {+atlas-ui+}
       :tabid: ui

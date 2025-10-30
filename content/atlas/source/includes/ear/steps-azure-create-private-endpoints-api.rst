@@ -32,7 +32,7 @@
    .. step:: Check the status of your request.
 
       To check the status of the private endpoint, send a ``GET``
-      request to the ``encryptionAtRest`` :oas-bump-atlas-op:`endpoint <getencryptionatrestprivateendpointsforcloudprovider>`. 
+      request to the ``encryptionAtRest`` :oas-bump-atlas-op:`endpoint <listgroupencryptionatrestprivateendpoints>`. 
       
       .. example:: 
 

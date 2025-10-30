@@ -3,7 +3,7 @@
 14 December 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Adds the ability to configure some |service| project limits using the :oas-bump-atlas-op:`Projects Administration API resource <updateprojectinvitationbyid>`.
+- Adds the ability to configure some |service| project limits using the :oas-bump-atlas-op:`Projects Administration API resource <updategroupinvites>`.
 - Adds the ability to push live migrations of replica sets using private endpoints.
 - Introduces :ref:`atlas-go-to`.
 

@@ -11,7 +11,7 @@
 - Supports programmatic IP access list for secure |service| communication
   by using customer-managed encryption keys. To learn more, see :ref:`atlas-add-nodes-to-encrypted-cluster`.
 - Rejects :ref:`test failover <test-failover>` if {+cluster+} is not fully healthy.
-- Adds the :oas-bump-atlas-op:`returnAllControlPlaneIpAddresses API endpoint <returnallcontrolplaneipaddresses>`
+- Adds the :oas-bump-atlas-op:`returnAllControlPlaneIpAddresses API endpoint <listcontrolplaneipaddresses>`
   that returns a list of inbound and outbound |service| control plane IP
   addresses in |cidr| categorized by cloud provider and region. To learn more,
   see :ref:`Allow Access From the Atlas Control Plane <atlas-ear-allow-access-via-control-plane>`.
