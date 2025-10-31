@@ -290,12 +290,19 @@ export const tocData: TocItem[] = [
             contentSite: 'rust',
             url: '/docs/drivers/rust/:version/fundamentals/indexes',
             collapsible: true,
-            versions: { excludes: [...outdatedVersions, 'v2.7'] },
+            versions: { excludes: ['v2.7'] },
             items: [
               {
                 label: 'MongoDB Search & Vector Search Indexes',
                 contentSite: 'rust',
                 url: '/docs/drivers/rust/:version/fundamentals/indexes/atlas-search-indexes',
+                versions: { excludes: ['v2.8', 'v3.0'] },
+              },
+              {
+                label: 'MongoDB Search Indexes',
+                contentSite: 'rust',
+                url: '/docs/drivers/rust/:version/fundamentals/indexes/atlas-search-indexes',
+                versions: { includes: ['v2.8', 'v3.0'] },
               },
             ],
           },
@@ -303,7 +310,7 @@ export const tocData: TocItem[] = [
             label: 'Indexes',
             contentSite: 'rust',
             url: '/docs/drivers/rust/:version/fundamentals/indexes',
-            versions: { includes: [...outdatedVersions, 'v2.7'] },
+            versions: { includes: ['v2.7'] },
           },
           {
             label: 'MongoDB Search',
