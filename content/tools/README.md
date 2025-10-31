@@ -23,9 +23,35 @@ npx tsx generate-k8s-cli-commands.ts
 npx tsx generate-cli-commands.ts atlascli/v1.46.2
 ```
 
-**Output**: 
+**Output**:
 - `../../table-of-contents/docset-data/atlas-cli-commands.ts`
 - Copies command files to required documentation directories
+
+### 🔔 Atlas Event Types Generator (`atlas-event-types-generator/`)
+
+**Purpose**: Automatically generates and updates Atlas event types documentation from the MongoDB Atlas Admin API
+
+**Key Features**:
+- Fetches all 1000+ event types from production Atlas API
+- Handles pagination automatically (multiple API calls)
+- Applies terminology corrections (e.g., "Stream Processing Instance" → "Stream Processing Workspace")
+- Generates properly formatted reStructuredText with anchors
+- Alphabetically sorted output for consistency
+
+**Prerequisites**:
+- MongoDB Atlas API key with Organization Member permissions
+- Environment variables: `ATLAS_PUBLIC_KEY` and `ATLAS_PRIVATE_KEY`
+- IP address added to API key access list
+
+**Usage**:
+```bash
+cd atlas-event-types-generator
+npm install
+node event-types-generator.js > ../../atlas/source/includes/event-types.rst
+```
+
+**Output**:
+- `../../atlas/source/includes/event-types.rst` - Complete event types documentation
 
 
 For questions about tool development or maintenance, consult the documentation team or check existing tool implementations for patterns and best practices.
