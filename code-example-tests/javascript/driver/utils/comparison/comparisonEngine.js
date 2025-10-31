@@ -151,7 +151,6 @@ class ComparisonEngine {
     // Build comparison options
     const comparisonOptions = {
       comparisonType: options.arrayComparison || 'unordered',
-      unordered: (options.arrayComparison || 'unordered') === 'unordered',
       ignoreFieldValues: options.ignoreFields || options.ignoreFieldValues || [],
       allowOmittedFieldsWithEllipsis: hasOmittedFields,
     };
@@ -174,7 +173,7 @@ class ComparisonEngine {
       if (
         Array.isArray(normalizedExpected) &&
         Array.isArray(normalizedActual) &&
-        comparisonOptions.unordered
+        comparisonOptions.comparisonType === 'unordered'
       ) {
         return this._analyzeUnorderedArrayFailure(
           normalizedExpected,
@@ -223,7 +222,6 @@ class ComparisonEngine {
     // Build comparison options
     const comparisonOptions = {
       comparisonType: options.arrayComparison || 'unordered',
-      unordered: (options.arrayComparison || 'unordered') === 'unordered',
       ignoreFieldValues: options.ignoreFields || options.ignoreFieldValues || [],
       allowOmittedFieldsWithEllipsis: hasOmittedFields,
     };
@@ -246,7 +244,7 @@ class ComparisonEngine {
       if (
         Array.isArray(normalizedExpected) &&
         Array.isArray(normalizedActual) &&
-        comparisonOptions.unordered
+        comparisonOptions.comparisonType === 'unordered'
       ) {
         return this._analyzeUnorderedArrayFailure(
           normalizedExpected,
@@ -277,7 +275,6 @@ class ComparisonEngine {
     // Build comparison options
     const comparisonOptions = {
       comparisonType: options.arrayComparison || 'unordered',
-      unordered: (options.arrayComparison || 'unordered') === 'unordered',
       ignoreFieldValues: options.ignoreFields || options.ignoreFieldValues || [],
       allowOmittedFieldsWithEllipsis: patterns.hasEllipsis,
     };
@@ -300,7 +297,7 @@ class ComparisonEngine {
       if (
         Array.isArray(normalizedExpected) &&
         Array.isArray(normalizedActual) &&
-        comparisonOptions.unordered
+        comparisonOptions.comparisonType === 'unordered'
       ) {
         return this._analyzeUnorderedArrayFailure(
           normalizedExpected,

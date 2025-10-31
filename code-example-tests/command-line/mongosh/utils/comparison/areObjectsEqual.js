@@ -3,16 +3,16 @@ const {
   compareArraysByBacktracking,
   compareArraysHybrid,
   compareArraysOrdered,
-} = require('./arrayComparison');
+ } = require('./arrayComparison.js');
 const {
   compareObjectKeys,
   compareObjectProperties,
-} = require('./objectComparison');
+ } = require('./objectComparison.js');
 const {
   handlePropertyLevelEllipsis,
   handleArrayLevelEllipsis,
   handleObjectLevelEllipsis,
-} = require('./ellipsisHandlers');
+ } = require('./ellipsisHandlers.js');
 const { matchWithEllipsis } = require('./ellipsis');
 
 /**

@@ -12,15 +12,8 @@ The structure of this project is as follows:
 
 Each test runs a mongosh script (from `examples/`) against a test database
 and compares the output to an expected result file. The test harness uses the
-following utilities:
-
-- `makeTempFileForTesting.js`: Generates a temporary script that connects to
-  the test database and wraps the example code for output capture.
-- `unorderedOutputArrayMatches.js`: Compares actual and expected outputs,
-  handling unordered arrays and MongoDB-specific types.
-- `testExamplesSequentially.js`: Combines the two functions above to test
-  multi-step examples that include loading data, initializing embedded pipelines
-  or other setup tasks, and then executing a query or aggregation pipeline.
+`Expect` API, which provides a fluent interface for comparing actual output
+against expected output files with helpful error messages for technical writers.
 
 ## Overview
 
@@ -102,7 +95,7 @@ such that they cause tests to fail in this test execution syntax.
 To add a test for a new code example:
 
 1. Create a new test case (optionally, in a new test file)
-2. Set up the code to run the example files you've added
+2. Use the `Expect` API to run your example files and verify the output
 3. Run the tests to confirm everything works
 
 ### Create a new test case
@@ -128,21 +121,16 @@ new test file. The naming convention is `YOUR-EXAMPLE-TOPIC.test.js`.
 You can nest these test files as deeply as needed to make them easy to find
 and organize.
 
-At the top of the file, add the required imports to run the test suite, and
-set a timeout value for your tests:
+At the top of the file, import the `Expect` API and set a timeout value for your tests:
 
 ```javascript
-const { exec, execSync } = require("child_process");
-const fs = require("fs");
-const path = require("path");
-const testExamplesSequentially = require("../../../utils/testExamplesSequentially");
+const Expect = require("../../../utils/comparison/Expect");
 
 jest.setTimeout(10000);
 ```
 
-> **Note**: the path to `testExamplesSequentially.js` is relative, so you may
-> need a different number of `../` to get from the test file to the `utils`
-> directory where this utility is located.
+> **Note**: the path to `Expect` is relative, so you may need a different number
+> of `../` to get from the test file to the `utils/comparison` directory.
 
 Inside the test file, create a new `describe` block, similar to:
 
@@ -173,7 +161,7 @@ case.
 After the last `it` block in the file, create a new `it` block similar to:
 
 ```javascript
-it("Should return filtered output with three specified person records", (done) => {
+it("Should return filtered output with three specified person records", async () => {
   // Insert your test code
 });
 ```
@@ -182,63 +170,197 @@ The string following the `it` is the description of your test case; this is
 what shows when a test fails. Make it a descriptive string so it's easier to
 find the test case and fix a failure if it fails.
 
-The `done` is a construct provided by Jest, and it's used to indicate to the
-test suite when the test case has finished.
+Note that the test function is `async` - this is required when using the `Expect` API.
 
-In the test case:
+### Use the Expect API to verify output
 
-1. Specify the file paths for your example files as an array. These file paths
-   should:
+The `Expect` API provides a fluent interface for running mongosh code examples
+and comparing their output to expected result files. It handles all the complexity
+of creating temporary files, executing mongosh, and comparing outputs.
+
+#### Basic usage
+
+In your test case:
+
+1. Specify the file paths for your example files. These file paths should:
    - Be relative to the `examples` directory
    - Omit the `examples` directory
-   - Be added in the order that they need to execute. A `load-data.js` filepath
-     should come before a `run-pipeline.js` filepath.
+   - Be added in the order that they need to execute (e.g., `load-data.js` before `run-pipeline.js`)
 
-   For example, a file path in `mongosh/examples/aggregation/pipelines/filter`
-   might resemble: `"aggregation/pipelines/filter/run-pipeline.js"`.
+2. Specify the expected output file path (relative to `examples` directory)
 
-   ```javascript
-   const exampleFiles = [
-     "aggregation/pipelines/filter/load-data.js",
-     "aggregation/pipelines/filter/run-pipeline.js"
-   ];
-   ```
+3. Use the `Expect` API to run the files and verify the output:
 
-2. Add an output filepath to your test, similar to:
+```javascript
+it("Should return filtered output", async () => {
+  await Expect.outputFromExampleFiles([
+      "aggregation/pipelines/filter/load-data.js",
+      "aggregation/pipelines/filter/run-pipeline.js"
+    ])
+    .withDbName("agg-pipeline")
+    .shouldMatch("aggregation/pipelines/filter/output.sh");
+});
+```
 
-   ```javascript
-   const outputFile = "aggregation/pipelines/filter/output.sh";
-   ```
+The `Expect` API uses method chaining to configure how the test runs and how
+the comparison is performed. Choose the appropriate methods based on your
+output characteristics.
 
-2. Establish variables at the top of the test file for connection string and
-   db name, for use in any `beforeEach` and `afterEach` blocks and also in
-   the validation logic.
 
-   ```javascript
-   const mongoUri = process.env.CONNECTION_STRING;
-   const port = process.env.CONNECTION_PORT;
-   const dbName = "agg-pipeline";
-   ```
+#### Comparison options
 
-3. Call the `testExamplesSequentially` function with the details you've set up:
+The `Expect` API supports several options to control how output is compared:
 
-   ```javascript
-   testExamplesSequentially({
-     mongoUri,
-     dbName,
-     port,
-     files: exampleFiles,
-     expectedOutputFile: outputFile,
-     done,
-     expect
-   });
-   ```
+##### Verify unordered output (default behavior)
 
-   This creates a temporary file that combines your example files commands and
-   runs your code example in `mongosh`. The `done` comes from the test case
-   initialization described above, at the end of the `it` block. The `expect`
-   is a construct provided by Jest that we use in the utility to validate the
-   expected output matches what the code example returns.
+For output that can be in any order (most common case for MongoDB queries):
+
+```javascript
+// Unordered comparison is the default
+await Expect.outputFromExampleFiles(["query.js"])
+  .withDbName("test-db")
+  .shouldMatch("output.sh");
+
+// Or be explicit with withUnorderedSort()
+await Expect.outputFromExampleFiles(["query.js"])
+  .withDbName("test-db")
+  .withUnorderedSort()
+  .shouldMatch("output.sh");
+```
+
+##### Verify ordered output
+
+For output that must be in a specific order (e.g., when using sort operations):
+
+```javascript
+await Expect.outputFromExampleFiles(["sorted-query.js"])
+  .withDbName("test-db")
+  .withOrderedSort()
+  .shouldMatch("sorted-output.sh");
+```
+
+##### Handle variable field values
+
+When your output contains fields that will have different values between test runs
+(such as ObjectIds, timestamps, UUIDs, or other auto-generated values), ignore
+specific fields during comparison:
+
+```javascript
+await Expect.outputFromExampleFiles(["insert.js"])
+  .withDbName("test-db")
+  .withIgnoredFields("_id", "timestamp", "userId")
+  .shouldMatch("insert-output.sh");
+```
+
+This ensures the comparison only validates that the field names are present,
+without checking if the values match exactly. This is particularly useful for:
+
+- **Database IDs**: `_id`, `userId`, `documentId`
+- **Timestamps**: `createdAt`, `updatedAt`, `timestamp`
+- **UUIDs and tokens**: `uuid`, `sessionId`, `apiKey`
+- **Auto-generated values**: Any field with dynamic content
+
+##### Handle flexible content in output files
+
+For output files that truncate the actual output to show only what's relevant
+to our readers, use ellipsis patterns (`...`) in your output files to enable
+flexible content matching. Our tooling automatically detects and handles these
+patterns.
+
+###### Shorten string values
+
+You can use an ellipsis at the end of a string value to shorten it in the
+example output. This will match any number of characters in the actual return
+after the `...`.
+
+In the expected output file, add an ellipsis to the end of a string value:
+
+```txt
+{
+  plot: 'A young man is accidentally sent 30 years into the past...',
+}
+```
+
+This matches the actual output of:
+
+```txt
+{
+  plot: 'A young man is accidentally sent 30 years into the past in a time-traveling DeLorean invented by his close friend, the maverick scientist Doc Brown.',
+}
+```
+
+###### Omit unimportant values for keys
+
+If it's not important to show the value or type for a given key at all,
+replace the value with an ellipsis in the expected output file.
+
+```txt
+{_id: ...}
+```
+
+Matches any value for the key `_id` in the actual output.
+
+###### Omit any number of keys and values entirely
+
+If actual output contains many keys and values that are not necessary to show
+to illustrate an example, add an ellipsis as a standalone line in your
+expected output file:
+
+```txt
+{
+  full_name: 'Carmen Sandiego',
+  ...
+}
+```
+
+Matches actual output that contains any number of additional keys and values
+beyond the `full_name` field.
+
+You can also interject standalone `...` lines between properties, similar to:
+
+```txt
+{
+  full_name: 'Carmen Sandiego',
+  ...
+  address: 'Somewhere in the world...'
+}
+```
+
+##### Complete API reference
+
+The `Expect` API supports these methods:
+
+```javascript
+await Expect.outputFromExampleFiles(["file.js"])  // Required - file(s) to execute
+  // or .outputFromExampleFiles(["file1.js", "file2.js"])  // Multiple files
+  .withDbName("database-name")                    // Required - specify database name
+  .withUnorderedSort()                            // Default - arrays compared without order
+  .withOrderedSort()                              // Arrays compared in strict order
+  .withIgnoredFields("field1", "field2")          // Ignore specified fields during comparison
+  .shouldMatch("expected-output.sh");             // Performs the comparison
+```
+
+You can chain multiple methods together:
+
+```javascript
+await Expect.outputFromExampleFiles(["load-data.js", "run-query.js"])
+  .withDbName("test-db")
+  .withOrderedSort()
+  .withIgnoredFields("_id", "timestamp")
+  .shouldMatch("expected-output.sh");
+```
+
+##### Advanced: Direct comparison mode
+
+For advanced usage when you already have captured output (not executing files):
+
+```javascript
+// Compare already-captured output directly
+Expect.that(actualOutput)
+  .withIgnoredFields("_id")
+  .shouldMatch("expected-output.sh");
+```
+
 
 ## To run the tests locally
 
@@ -264,7 +386,7 @@ npm test
 This invokes the following command from the `package.json` `test` key:
 
 ```
-export $(xargs < .env) && jest --run-in-band --detectOpenHandles
+export $(xargs < .env) && jest --run-in-band --detectOpenHandles --testMatch='**/tests/**/*.test.js'
 ```
 
 In the above command:
@@ -276,6 +398,7 @@ In the above command:
 - `--detectOpenHandles` is a flag that tells Jest to track resource handles or async
   operations that remain open after the tests are complete. These can cause the test suite
   to hang, and this flag tells Jest to report info about these instances.
+- `--testMatch='**/tests/**/*.test.js'` is a flag that specifies the pattern to match only the code example test files.
 
 #### Run Test Suites from the command line
 

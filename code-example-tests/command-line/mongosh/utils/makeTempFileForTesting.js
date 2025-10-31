@@ -1,5 +1,62 @@
 const fs = require("fs");
 const path = require("path");
+const { ErrorMessageBuilder } = require("./comparison/errorReporting");
+
+/**
+ * Validates the generated temp file content for common issues.
+ *
+ * @param {string} content - The temp file content to validate
+ * @param {string} filepath - The original code example filepath
+ * @returns {Object|null} Error object if validation fails, null if valid
+ */
+function validateTempFileContent(content, filepath) {
+  const issues = [];
+
+  // Check for unbalanced parentheses
+  const openParens = (content.match(/\(/g) || []).length;
+  const closeParens = (content.match(/\)/g) || []).length;
+  if (openParens !== closeParens) {
+    issues.push(`Unbalanced parentheses: ${openParens} opening, ${closeParens} closing`);
+  }
+
+  // Check for unbalanced brackets
+  const openBrackets = (content.match(/\[/g) || []).length;
+  const closeBrackets = (content.match(/\]/g) || []).length;
+  if (openBrackets !== closeBrackets) {
+    issues.push(`Unbalanced brackets: ${openBrackets} opening, ${closeBrackets} closing`);
+  }
+
+  // Check for unbalanced braces
+  const openBraces = (content.match(/\{/g) || []).length;
+  const closeBraces = (content.match(/\}/g) || []).length;
+  if (openBraces !== closeBraces) {
+    issues.push(`Unbalanced braces: ${openBraces} opening, ${closeBraces} closing`);
+  }
+
+  // Check for double printjson wrapping (common mistake)
+  if (/printjson\s*\(\s*printjson\s*\(/.test(content)) {
+    issues.push('Double printjson() wrapping detected');
+  }
+
+  // Check for missing connection setup
+  if (!content.includes('db = connect(')) {
+    issues.push('Missing database connection setup (db = connect(...))');
+  }
+
+  // Check for malformed connection string
+  if (content.includes("db = connect('") && !content.includes("');")) {
+    issues.push('Malformed connection string (missing closing quote and parenthesis)');
+  }
+
+  if (issues.length > 0) {
+    return {
+      filepath,
+      issues: issues.join('; ')
+    };
+  }
+
+  return null;
+}
 
 /**
  * Creates a temporary JavaScript file for testing MongoDB shell code examples.
@@ -13,6 +70,7 @@ const path = require("path");
  * @param {string|string[]} details.filepath - The relative path to the example code file, or an array of paths for dependencies.
  * @param {boolean} details.validateOutput - Whether to wrap the code in printjson for output validation.
  * @returns {string} The absolute path to the generated temporary file.
+ * @throws {Error} If temp file formation fails validation
  */
 function makeTempFileForTesting(details) {
   // Handle both single filepath and array of filepaths
@@ -24,8 +82,17 @@ function makeTempFileForTesting(details) {
   for (const filepath of filepaths) {
     const filepathString = "../examples/" + filepath;
     const snippetFilePath = path.resolve(__dirname, filepathString);
-    const fileContent = fs.readFileSync(snippetFilePath, "utf8").trim();
-    codeSnippet += fileContent + '\n';
+
+    try {
+      const fileContent = fs.readFileSync(snippetFilePath, "utf8").trim();
+      codeSnippet += fileContent + '\n';
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        const baseDir = path.resolve(__dirname, "../examples");
+        throw new Error(ErrorMessageBuilder.fileNotFound(filepath, baseDir, 'code example'));
+      }
+      throw error;
+    }
   }
 
   codeSnippet = codeSnippet.trim();
@@ -40,7 +107,17 @@ function makeTempFileForTesting(details) {
       // Concatenate all files, but wrap the last file's aggregation pipeline in printjson
       const allFilesContent = filepaths
         .map((filepath, idx) => {
-          const content = fs.readFileSync(path.resolve(__dirname, "../examples/" + filepath), "utf8").trim();
+          let content;
+          try {
+            content = fs.readFileSync(path.resolve(__dirname, "../examples/" + filepath), "utf8").trim();
+          } catch (error) {
+            if (error.code === 'ENOENT') {
+              const baseDir = path.resolve(__dirname, "../examples");
+              throw new Error(ErrorMessageBuilder.fileNotFound(filepath, baseDir, 'code example'));
+            }
+            throw error;
+          }
+
           // For the last file, wrap aggregation pipeline in printjson
           if (idx === filepaths.length - 1) {
             const trimmed = content.trim();
@@ -76,6 +153,18 @@ function makeTempFileForTesting(details) {
   const buildTempFilepath = `${tempDir}/${mainFilepath}`;
   const tempScriptPath = path.resolve(__dirname, buildTempFilepath);
   const tempScriptDir = path.dirname(tempScriptPath);
+
+  // Validate the generated temp file content before writing
+  const validationError = validateTempFileContent(tempFileContents, mainFilepath);
+  if (validationError) {
+    const errorMessage = ErrorMessageBuilder.tempFileFormationError(
+      validationError.filepath,
+      validationError.issues,
+      tempScriptPath,
+      tempFileContents
+    );
+    throw new Error(errorMessage);
+  }
 
   fs.mkdirSync(tempScriptDir, { recursive: true });
   fs.writeFileSync(tempScriptPath, tempFileContents);

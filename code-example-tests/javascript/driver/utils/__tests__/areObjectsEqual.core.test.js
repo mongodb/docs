@@ -38,17 +38,17 @@ describe('areObjectsEqual - Core Functionality', () => {
         areObjectsEqual(
           [{ a: 1 }, { a: 1 }, { b: 2 }],
           [{ b: 2 }, { a: 1 }, { a: 1 }],
-          { unordered: true }
+          { comparisonType: 'unordered' }
         )
       ).toBe(true);
     });
 
     it('should handle primitive frequency mismatches in unordered arrays', () => {
       // Test frequency mismatch detection
-      expect(areObjectsEqual([1, 1, 2], [1, 2, 2], { unordered: true })).toBe(
+      expect(areObjectsEqual([1, 1, 2], [1, 2, 2], { comparisonType: 'unordered' })).toBe(
         false
       );
-      expect(areObjectsEqual([1, 2, 3], [1, 2], { unordered: true })).toBe(
+      expect(areObjectsEqual([1, 2, 3], [1, 2], { comparisonType: 'unordered' })).toBe(
         false
       );
     });
@@ -86,7 +86,7 @@ describe('areObjectsEqual - Core Functionality', () => {
         areObjectsEqual(
           [{ a: 1 }, 'string', 42, { b: 2 }],
           [42, { b: 2 }, { a: 1 }, 'string'],
-          { unordered: true }
+          { comparisonType: 'unordered' }
         )
       ).toBe(true); // Mixed types should work in unordered arrays
     });
@@ -115,13 +115,13 @@ describe('areObjectsEqual - Core Functionality', () => {
   });
 
   describe('Options and configuration', () => {
-    it('should respect unordered option for arrays', () => {
+    it('should respect comparisonType option for arrays', () => {
       const arr1 = [1, 2, 3];
       const arr2 = [3, 1, 2];
 
-      expect(areObjectsEqual(arr1, arr2, { unordered: false })).toBe(false);
+      expect(areObjectsEqual(arr1, arr2, { comparisonType: 'ordered' })).toBe(false);
       // Primitive arrays with unordered option should work correctly
-      expect(areObjectsEqual(arr1, arr2, { unordered: true })).toBe(true);
+      expect(areObjectsEqual(arr1, arr2, { comparisonType: 'unordered' })).toBe(true);
     });
 
     it('should handle ignoreFieldValues option', () => {
@@ -182,14 +182,14 @@ describe('areObjectsEqual - Core Functionality', () => {
       const expected = [{ a: 1 }, { b: 2 }];
       const actual = [{ b: 2 }, { a: 1 }];
 
-      expect(areObjectsEqual(expected, actual, { unordered: true })).toBe(true);
+      expect(areObjectsEqual(expected, actual, { comparisonType: 'unordered' })).toBe(true);
     });
 
     it('should fail when objects in arrays do not match', () => {
       const expected = [{ a: 1 }];
       const actual = [{ different: 'array' }];
 
-      expect(areObjectsEqual(expected, actual, { unordered: true })).toBe(
+      expect(areObjectsEqual(expected, actual, { comparisonType: 'unordered' })).toBe(
         false
       );
     });
@@ -199,7 +199,7 @@ describe('areObjectsEqual - Core Functionality', () => {
       const actual = [null, 1, 1, 'a']; // reordered but same frequencies
 
       // This should work correctly with proper primitive frequency matching
-      expect(areObjectsEqual(expected, actual, { unordered: true })).toBe(true);
+      expect(areObjectsEqual(expected, actual, { comparisonType: 'unordered' })).toBe(true);
     });
   });
 
@@ -250,14 +250,14 @@ describe('areObjectsEqual - Core Functionality', () => {
       const actual = [2, 1, 1]; // frequency: {2: 1, 1: 2}, reordered
 
       // This should work correctly with proper frequency matching
-      expect(areObjectsEqual(expected, actual, { unordered: true })).toBe(true);
+      expect(areObjectsEqual(expected, actual, { comparisonType: 'unordered' })).toBe(true);
     });
 
     it('should detect frequency mismatch in primitive arrays', () => {
       const expected = [1, 2, 2]; // {1: 1, 2: 2}
       const actual = [1, 1, 2]; // {1: 2, 2: 1} - frequency mismatch
 
-      expect(areObjectsEqual(expected, actual, { unordered: true })).toBe(
+      expect(areObjectsEqual(expected, actual, { comparisonType: 'unordered' })).toBe(
         false
       );
     });
@@ -266,7 +266,7 @@ describe('areObjectsEqual - Core Functionality', () => {
       const expected = [1, 2];
       const actual = [1, 2, 3]; // 3 not in expected
 
-      expect(areObjectsEqual(expected, actual, { unordered: true })).toBe(
+      expect(areObjectsEqual(expected, actual, { comparisonType: 'unordered' })).toBe(
         false
       );
     });
