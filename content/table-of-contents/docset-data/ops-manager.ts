@@ -819,7 +819,7 @@ const tocData: TocItem[] = [
             url: '/docs/ops-manager/:version/tutorial/encrypt-user-credentials',
           },
           {
-            label: 'Secure Ops Manager',
+            label: 'Configure TLS',
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/tutorial/configure-ssl-connection-to-web-interface',
           },
