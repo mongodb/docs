@@ -1,4 +1,5 @@
 .. warning::
 
-   Starting in MongoDB 8.0, use of the ``timeField`` as a shard key in a
-   time series collection is deprecated.
+   Starting in MongoDB 8.0, shard keys containing the ``timeField`` are 
+   deprecated for time series collections.
+
