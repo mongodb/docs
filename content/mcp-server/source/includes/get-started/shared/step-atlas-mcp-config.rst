@@ -13,7 +13,7 @@
       the credentials, see :atlas:`Grant programmatic access to an organization 
       </atlas/configure-api-access/#grant-programmatic-access-to-an-organization>`.
 
-   #. Add the credentials to your MCP server configuration file.
+   #. Add the credentials to your MCP server configuration.
 
       Add your Atlas API client ID and secret as environment variables in the
       ``"env"`` section of your MCP server configuration. Replace the
