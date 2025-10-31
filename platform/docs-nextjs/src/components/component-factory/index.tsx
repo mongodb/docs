@@ -44,6 +44,7 @@ import type {
   DefinitionListItemNode,
   HeadingNode,
   ImageNode,
+  RefRoleNode,
   CollapsibleNode,
   ListTableNode,
   ComposableNode,
@@ -128,6 +129,7 @@ import DefinitionListItem, { type DefinitionListItemProps } from '@/components/d
 import DefinitionList, { type DefinitionListProps } from '@/components/definition-list';
 import Image, { type ImageProps } from '@/components/image';
 import SeeAlso, { type SeeAlsoProps } from '@/components/admonition/see-also';
+import RefRole, { type RefRoleProps } from '@/components/ref-role';
 import Collapsible, { type CollapsibleProps } from '@/components/collapsible';
 import ListTable, { type ListTableProps } from '@/components/list-table';
 import ComposableContent, { type ComposableContentProps } from '@/components/composable-tutorial/composable-content';
@@ -249,7 +251,7 @@ const getComponent = (() => {
         // 'openapi-changelog': OpenAPIChangelog,
         paragraph: Paragraph as React.ComponentType<SupportedComponentProps>,
         procedure: Procedure as React.ComponentType<SupportedComponentProps>,
-        // ref_role: RefRole,
+        ref_role: RefRole as React.ComponentType<SupportedComponentProps>,
         reference: Reference as React.ComponentType<SupportedComponentProps>,
         // release_specification: ReleaseSpecification,
         // root: Root,
@@ -317,12 +319,16 @@ export type ComponentFactoryProps = {
   page?: RootNode;
   slug?: string;
   sectionDepth?: number;
-  skipPTag?: boolean;
+  /** Only used in RefRole */
+  cardRef?: boolean;
+  /** Only used in Link and RefRole */
+  showLinkArrow?: boolean;
   /** Only used in Paragraph */
-  parentNode?: string;
+  skipPTag?: boolean;
   /** Only used in Literal */
-  formatTextOptions?: FormatTextOptions;
+  parentNode?: string;
   /** Only used in Procedure */
+  formatTextOptions?: FormatTextOptions;
 };
 
 type SupportedComponentProps =
@@ -331,6 +337,7 @@ type SupportedComponentProps =
   | ComponentFactoryProps
   | CommunityPillLinkProps
   | CondProps
+  | RefRoleProps
   | FieldProps
   | FieldListProps
   | DefinitionListItemProps
@@ -399,6 +406,7 @@ const renderComponentWithProps = (
 ): React.ReactElement => {
   // Add all props that are needed at unknown depths
   const propsToDrill = {
+    slug: props.slug,
     sectionDepth: props.sectionDepth,
     skipPTag: props.skipPTag,
   };
@@ -631,6 +639,17 @@ const renderComponentWithProps = (
         style={cardGroupNode.options.style}
         type={cardGroupNode.options.type}
         {...propsToDrill}
+      />
+    );
+  } else if (ComponentType === getComponent('ref_role')) {
+    const refRoleNode = nodeData as RefRoleNode;
+    return (
+      <ComponentType
+        nodeChildren={refRoleNode.children}
+        fileid={refRoleNode.fileid}
+        url={refRoleNode.url}
+        cardRef={props.cardRef}
+        showLinkArrow={props.showLinkArrow}
       />
     );
   } else if (ComponentType === getComponent('tabs')) {

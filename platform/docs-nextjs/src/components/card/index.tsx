@@ -210,10 +210,8 @@ const Card = ({
             </Body>
           )}
           {nodeChildren.map((child, i) => (
-            // TODO: DOP-6017 - may need cardRef prop to be passed down to RefRole
-            // The cardRef prop's purpose to distinguish wich RefRoles are coming from the Card component (a workaround while we figure out card-ref support in the parser/)
-            // <ComponentFactory nodeData={child} key={i} cardRef={true} />
-            <ComponentFactory nodeData={child} key={i} />
+            // The cardRef prop's purpose to distinguish wich RefRoles are coming from the Card component (a workaround while we figure out card-ref support in the parser)
+            <ComponentFactory nodeData={child} key={i} cardRef={true} />
           ))}
 
           {cta && (

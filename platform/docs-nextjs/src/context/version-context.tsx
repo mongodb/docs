@@ -108,6 +108,7 @@ const getDefaultActiveVersions = ({ project, branch }: ActiveVersionState) => {
 // <-------------- end helper functions -------------->
 
 type VersionContextType = {
+  siteBasePrefix: string;
   activeVersions: ActiveVersions;
   // active version for each product is marked is {[product name]: active version} pair
   setActiveVersions: Dispatch<Partial<ActiveVersions>>;
@@ -117,6 +118,7 @@ type VersionContextType = {
 };
 
 const VersionContext = createContext<VersionContextType>({
+  siteBasePrefix: '',
   activeVersions: {},
   // active version for each product is marked is {[product name]: active version} pair
   setActiveVersions: () => {},
@@ -146,8 +148,14 @@ export const VersionContextProvider = ({ docsets, slug, env, children }: Version
 
   const { versions, groups } = getBranches(docsets);
   const { project, branch } = useSnootyMetadata();
-  const metadata = useMemo(() => ({ project, branch }), [project, branch]);
-  const repoBranches = useMemo(() => docsets.find((docset) => docset.project === project), [docsets, project]);
+
+  const { metadata, siteBasePrefix } = useMemo(() => {
+    const repoBranches = docsets.find((docset) => docset.project === project);
+    return {
+      metadata: { project, branch },
+      siteBasePrefix: repoBranches?.prefix?.[getRepoBranchesPrefixEnv(env)] ?? '',
+    };
+  }, [project, branch, docsets, env]);
 
   // TODO: Might need to update this once we use this branch on a stitched project (DOP-5243 dependent)
   // TODO check whats going on here for 404 pages
@@ -187,17 +195,17 @@ export const VersionContextProvider = ({ docsets, slug, env, children }: Version
           ? gitBranchName
           : targetBranch?.urlSlug || targetBranch?.urlAliases?.[0] || targetBranch?.gitBranchName;
 
-      const siteBasePrefix = repoBranches?.prefix?.[getRepoBranchesPrefixEnv(env)] ?? '';
       const urlTarget = getUrl(target, metadata.project, siteBasePrefix, slug);
 
       router.push(urlTarget);
     },
-    [versions, metadata, repoBranches, slug],
+    [versions, metadata, siteBasePrefix, slug],
   );
 
   return (
     <VersionContext.Provider
       value={{
+        siteBasePrefix,
         activeVersions,
         setActiveVersions,
         availableVersions: versions,
