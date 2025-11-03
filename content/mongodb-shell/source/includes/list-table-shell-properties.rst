@@ -7,6 +7,13 @@
      - Default
      - Description
 
+   * - ``browser``
+     - string or boolean
+     - System default browser
+     - .. include:: /includes/browser-description.rst
+       
+       Set ``browser`` to ``false`` to disable opening browsers entirely.
+
    * - ``disableLogging``
      - boolean
      - ``false``
@@ -109,6 +116,18 @@
        based on storage size. To prevent log storage from growing too
        large, always specify at least one log retention criterion. See
        :ref:`mongosh-logs-retention`.
+
+   * - ``oidcRedirectUri``
+     - string
+     - ``http://localhost:27097/redirect``
+     - .. include:: /includes/oidc-redirect-uri-description.rst
+
+   * - ``oidcTrustedEndpoints``
+     - array of strings
+     - ``[]`` (empty array)
+     - Specifies an array of trusted endpoint hostnames, including possible 
+       wildcards, that are not Atlas or ``localhost``. Access tokens are sent 
+       to these endpoints. Only configure endpoints that you trust.
 
    * - ``redactHistory``
      - string
