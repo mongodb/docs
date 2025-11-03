@@ -1,0 +1,427 @@
+.. _hibernate-crud:
+
+=======================
+Perform CRUD Operations
+=======================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: insert, modify, read, write, code example
+
+Overview
+---------
+
+In this guide, you can learn how to use the {+extension-long+} to run
+create, read, update, and delete (CRUD) operations on your MongoDB
+collections.
+
+Sample Data
+~~~~~~~~~~~
+
+.. include:: /includes/sample-data.rst
+
+.. include:: /includes/persistence-contexts.rst
+
+   .. replacement:: additional-information
+
+      You also must run write operations inside a transaction to modify MongoDB
+      data and maintain data integrity.
+
+.. _hibernate-crud-insert:
+
+Insert Documents
+----------------
+
+To insert a document into a collection, create a new entity instance. Then, you can pass this
+instance as an argument to the following methods to save it to your MongoDB collection as
+a document:
+
+- ``org.hibernate.Session.persist()``: Use the Hibernate API to apply your changes to the database
+- ``jakarta.persistence.EntityManager.persist()``: Use the Jakarta Persistence API to
+  apply your changes to the database
+
+.. tip::
+
+   To learn more about creating entity instances and persisting them
+   to your database, see `Making entities persistent <{+user-guide+}#pc-persist>`__
+   in the {+orm+} user guide.
+
+Example
+~~~~~~~
+
+The following example creates a new ``Movie`` entity instance and uses
+the ``persist()`` method to insert a corresponding document into
+the ``sample_mflix.movies`` collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. literalinclude:: /includes/interact-data/Crud.java
+         :start-after: start-insert-session
+         :end-before: end-insert-session
+         :language: java
+         :dedent:
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. literalinclude:: /includes/interact-data/Crud.java
+         :start-after: start-insert-em
+         :end-before: end-insert-em
+         :language: java
+         :dedent:
+
+.. _hibernate-crud-read:
+
+Read Documents
+--------------
+
+To retrieve documents from your collection, pass your query criteria
+to the ``createQuery()`` method. The following APIs both provide the ``createQuery()``
+method:
+
+- Hibernate's ``Session`` API: Use Hibernate Query Language (HQL) syntax to define your queries
+- Jakarta Persistence's ``EntityManager`` API: Use Jakarta Persistence Query Language (JPQL) syntax, a subset
+  of HQL, to define your queries
+
+.. tip::
+   
+   To learn more about retrieving data by using HQL and JPQL syntax, see
+   `Select statements <{+query-guide+}#select>`__ in the {+orm+} query guide.
+
+.. note:: 
+
+   This section describes how to read documents by using HQL and JPQL, but you can
+   also use the criteria builder or native queries to retrieve data. To learn more,
+   see the following guides:
+
+   - :ref:`hibernate-specify-query`
+   - :ref:`hibernate-native-queries`
+
+Return One Document Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To retrieve only one document that matches your query criteria, chain the 
+``getSingleResult()`` method to the ``createQuery()`` method. The following
+example retrieves one document that has a ``title`` value of ``"Boyhood"``
+from the ``sample_mflix.movies`` collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Crud.java
+            :start-after: start-find-one-session
+            :end-before: end-find-one-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Boyhood, Year: 2014
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Crud.java
+            :start-after: start-find-one-em
+            :end-before: end-find-one-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Boyhood, Year: 2014
+
+.. tip:: Query Syntax
+
+   To learn more about HQL and JPQL syntax, see `A Guide to Hibernate Query Language
+   <{+query-guide+}>`__ in the {+orm+} documentation.
+
+Return Multiple Documents Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example calls the ``createQuery()`` method on a session
+to retrieve documents from the ``sample_mflix.movies`` collection. The code
+uses HQL and JPQL to return documents that have a ``year`` value of ``1920`` and prints
+their ``title`` values:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Crud.java
+            :start-after: start-find-many-session
+            :end-before: end-find-many-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            High and Dizzy
+            One Week
+            The Saphead
+            The Daughter of Dawn
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Crud.java
+            :start-after: start-find-many-em
+            :end-before: end-find-many-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            High and Dizzy
+            One Week
+            The Saphead
+            The Daughter of Dawn
+
+.. _hibernate-crud-modify:
+
+Modify Documents
+----------------
+
+You can perform the following operations to modify documents in a collection:
+
+- :ref:`Update one document <hibernate-crud-modify-one>`: Call your
+  entity's setter methods to change field values of one entity instance, and then use
+  a session or entity manager to persist your changes.
+
+- :ref:`Update multiple documents <hibernate-crud-modify-many>`: Pass an update statement to the
+  ``createQuery()`` or ``createMutationQuery()`` methods on a session or entity manager.
+  Then, call the ``executeUpdate()`` method to apply your changes to the database.
+
+.. tip::
+
+   To learn more about modifying data by using {+orm+}, see the following resources:
+
+   - `Modifying managed/persistent state <{+user-guide+}#pc-managed-state>`__ in the
+     {+orm+} user guide
+   - `Update statements <{+query-guide+}#update>`__ in the {+orm+} query guide
+
+.. _hibernate-crud-modify-one:
+
+Update One Example
+~~~~~~~~~~~~~~~~~~
+
+The following example retrieves a document by its ``ObjectId`` value.
+Then, the example calls the ``Movie`` entity's ``setTitle()``
+method to update the document's ``title`` value to ``"Jurassic Park I"``:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. literalinclude:: /includes/interact-data/Crud.java
+         :start-after: start-update-one-session
+         :end-before: end-update-one-session
+         :language: java
+         :dedent:
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. literalinclude:: /includes/interact-data/Crud.java
+         :start-after: start-update-one-em
+         :end-before: end-update-one-em
+         :language: java
+         :dedent:
+
+.. _hibernate-crud-modify-many:
+
+Update Multiple Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example updates the ``title`` value of matching documents
+from ``"The Three Stooges"`` to ``"The 3 Stooges"``. Then, the example
+calls the ``executeUpdate()`` method to apply the changes
+to the database:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Crud.java
+            :start-after: start-update-many-session
+            :end-before: end-update-many-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Number of movies updated: 2
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Crud.java
+            :start-after: start-update-many-em
+            :end-before: end-update-many-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Number of movies updated: 2
+
+.. _hibernate-crud-delete:
+
+Delete Documents
+----------------
+
+You can perform the following operations to delete documents from a collection:
+
+- :ref:`Delete one document <hibernate-crud-delete-one>`: Call the
+  ``remove()`` method on a session or entity manager, passing
+  the entity instance that you want to delete as an argument.
+
+- :ref:`Delete multiple documents <hibernate-crud-delete-many>`: Pass a delete
+  statement to the ``createQuery()`` or ``createMutationQuery()`` methods
+  on a session or entity manager. Then, call the ``executeUpdate()`` method
+  to apply your changes to the database.
+
+.. tip::
+
+   To learn more about deleting data by using {+orm+}, see the following resources:
+
+   - `Deleting entities <{+user-guide+}#pc-remove>`__ in the
+     {+orm+} user guide
+   - `Delete statements <{+query-guide+}#delete>`__ in the {+orm+} query guide
+
+.. _hibernate-crud-delete-one:
+
+Delete One Example
+~~~~~~~~~~~~~~~~~~
+
+The following example retrieves a document by its ``ObjectId`` value.
+Then, the example calls the ``remove()`` method on a session
+to delete the corresponding document from the ``sample_mflix.movies``
+collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. literalinclude:: /includes/interact-data/Crud.java
+         :start-after: start-delete-one-session
+         :end-before: end-delete-one-session
+         :language: java
+         :dedent:
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. literalinclude:: /includes/interact-data/Crud.java
+         :start-after: start-delete-one-em
+         :end-before: end-delete-one-em
+         :language: java
+         :dedent:
+
+.. _hibernate-crud-delete-many:
+
+Delete Multiple Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example deletes all documents that have a ``year`` value of ``1920``
+from the ``sample_mflix.movies`` collection. The example passes a
+delete statement to the ``createMutationQuery()`` method, and then calls the
+``executeUpdate()`` method to apply the changes to the database:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Crud.java
+            :start-after: start-delete-many-session
+            :end-before: end-delete-many-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Number of movies deleted: 4
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Crud.java
+            :start-after: start-delete-many-em
+            :end-before: end-delete-many-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Number of movies deleted: 4
+
+Additional Information
+----------------------
+
+To learn more about performing CRUD operations by using the {+orm+},
+see the following resources:
+
+- `Persistence Context <{+user-guide+}#pc>`__ in the {+orm+} user guide
+- `Statement types <{+query-guide+}#statement-types>`__ in the {+orm+} query guide
+
+To view more create, read, update, and delete examples, see the following
+sections of the Get Started tutorial:
+
+- :ref:`hibernate-run-sample-query`
+- :ref:`hibernate-write-data`
+
+To learn more about using the {+extension-short+} to run queries, see the following guides:
+
+- :ref:`hibernate-specify-query`
+- :ref:`hibernate-native-queries`

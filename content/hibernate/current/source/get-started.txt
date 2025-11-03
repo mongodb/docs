@@ -1,0 +1,452 @@
+.. _hibernate-get-started:
+
+====================================================
+Get Started with the {+extension-long+}
+====================================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to create a Hibernate app that connects to a MongoDB deployment
+   :keywords: quick start, tutorial, basics
+
+Overview
+--------
+
+{+orm+} enables you to use Java objects to perform database operations, and you can
+use the {+extension-long+} to simplify your application's interactions with MongoDB data.
+This guide shows how to install the {+extension-short+}, set up a MongoDB deployment,
+and create a Java application that defines classes mapped to MongoDB collections.
+
+.. tip:: 
+
+   MongoDB Atlas is a fully managed cloud database service that hosts your MongoDB
+   deployments. You can create your own free (no credit card required) MongoDB Atlas 
+   deployment by following the steps in this guide.
+
+.. _hibernate-download-and-install:
+
+Download and Install
+--------------------
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: setup, composer, installation, code example
+
+.. procedure::
+   :style: connected
+
+   .. step:: Install dependencies
+
+      Before you begin developing, ensure that you have the following
+      dependencies installed on your local machine:
+      
+      - `Java <https://www.oracle.com/java/technologies/downloads/>`__ version 17 or later
+      - Integrated development environment (IDE), such as `IntelliJ IDEA <https://www.jetbrains.com/idea/download/>`__
+        or `Eclipse <https://www.eclipse.org/downloads/packages/>`__
+
+      .. note::
+
+         This tutorial shows how to create an application by using
+         Maven or Gradle in an IDE. If you do not use an IDE, see `Building Maven
+         <https://maven.apache.org/guides/development/guide-building-maven.html>`__
+         or `Creating New Gradle Builds <https://guides.gradle.org/creating-new-gradle-builds/>`__
+         to learn how to set up your project.
+
+   .. step:: Install the extension
+
+      In your IDE, create a new Maven or Gradle project named ``MongoHibernateQuickstart``.
+      For Maven projects, add the following dependency to your ``pom.xml`` file:
+
+      .. code-block:: bash
+
+         <dependencies>
+            <dependency>
+               <groupId>org.mongodb</groupId>
+               <artifactId>mongodb-hibernate</artifactId>
+               <version>{+extension-version+}</version>
+            </dependency> 
+         </dependencies>
+
+      For Gradle projects, add the following dependency to your ``build.gradle`` file:
+
+      .. code-block:: bash
+
+         dependencies {
+            implementation("org.mongodb:mongodb-hibernate:{+extension-version+}")
+         }
+
+      In your IDE, ensure that you reload or sync your project to complete the
+      {+extension-short+} installation.
+
+After you complete these steps, you have the {+extension-short+} installed
+and a new Maven or Gradle project set up in your IDE.
+
+.. _hibernate-create-deployment:
+
+Create a MongoDB Deployment
+---------------------------
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: cloud, host, atlas
+
+You can create a free tier MongoDB deployment on MongoDB Atlas
+to store and manage your data. MongoDB Atlas hosts and manages
+your MongoDB database in the cloud.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a free MongoDB deployment on Atlas
+
+      Complete the MongoDB :ref:`Get Started <unified-get-started>` guide to set
+      up a new Atlas account and load sample data into a new free
+      tier MongoDB deployment. Follow the instructions in the :guilabel:`Cloud Deployment`
+      tabs to create your MongoDB Atlas deployment in the cloud.
+      
+   .. step:: Save your credentials
+
+      After you create your database user, save that user's database
+      username and database password to a safe location for use in an upcoming step.
+  
+After you complete these steps, you have a new free tier MongoDB
+deployment on Atlas, database user credentials, and sample data loaded
+into your database.
+
+.. _hibernate-connection-string:
+
+Create a Connection String
+--------------------------
+
+You can connect to your MongoDB deployment by providing a
+**connection URI**, also called a *connection string*, which
+instructs the driver on how to connect to a MongoDB deployment
+and how to behave while connected.
+
+The connection string includes the hostname or IP address and 
+port of your deployment, the authentication mechanism, user credentials 
+when applicable, and connection options.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Find your MongoDB Atlas connection string
+
+      To retrieve your connection string for the deployment that
+      you created in the :ref:`previous step <hibernate-create-deployment>`,
+      log into your Atlas account and navigate to the
+      :guilabel:`Clusters` section. Click the :guilabel:`Connect` button
+      for your new deployment, as shown in the following screenshot:
+
+      .. figure:: /includes/get-started/atlas_connection_connect_cluster.png
+         :alt: The connect button in the clusters section of the Atlas UI
+
+      Then, proceed to the :guilabel:`Connect your application` section. Select
+      "Java" from the :guilabel:`Driver` selection menu and the version
+      that best matches the version you installed from the :guilabel:`Version`
+      selection menu.
+
+   .. step:: Copy your connection string
+
+      Click the button on the right of the connection string to copy it to
+      your clipboard, as shown in the following screenshot:
+
+      .. figure:: /includes/get-started/atlas_connection_copy_uri_java.png
+         :alt: The connection string copy button in the Atlas UI
+
+   .. step:: Edit your connection string placeholders
+
+      Save your connection string in a safe location for later use. Replace the ``<db_username>`` and
+      ``<db_password>`` connection string placeholders with your database user's username and password.
+
+   .. step:: Add a database to your connection string
+
+      To connect to the ``sample_mflix`` sample database, which your application
+      uses in upcoming steps, add the database name to your connection string.
+
+      Your connection string should resemble the following example:
+
+      .. code-block:: text
+
+         mongodb+srv://<db_username>:<db_password>@<cluster>/sample_mflix?<options>
+
+   .. step:: Encode your connection string for XML
+
+      Before adding your connection string to an XML configuration file in an
+      upcoming step, you must encode the following special characters in your
+      connection string:
+
+      - ``&``: Replace with ``&amp;``
+      - ``'``: Replace with ``&apos;``
+      - ``"``: Replace with ``&quot;``
+      - ``<``: Replace with ``&lt;``
+      - ``>``: Replace with ``&gt;``
+
+      By default, your Atlas connection string includes connection options separated
+      by the ``&`` character. Ensure that you XML-encode this character.
+
+After completing these steps, you have a connection string that
+contains your username, password, and database.
+
+.. _hibernate-configure-application:
+
+Configure your Application
+--------------------------
+
+After installing the {+extension-short+} and creating a MongoDB Atlas cluster,
+you can create a {+language+} application that connects to MongoDB.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Connect your application to MongoDB
+
+      Navigate to your ``MongoHibernateQuickstart`` project's ``src/main/resources`` directory
+      and create a new file named ``hibernate.cfg.xml``, which stores your application's
+      configuration settings.
+
+      Copy the following code into this file:
+
+      .. literalinclude:: /includes/get-started/hibernate.cfg.xml
+         :copyable: true
+         :language: xml
+         :emphasize-lines: 14
+
+      In the ``jakarta.persistence.jdbc.url`` property, replace the ``connection-string``
+      placeholder with the connection string that you created in the :ref:`previous step <hibernate-connection-string>`.
+
+   .. step:: Create a utility class to manage sessions
+
+      .. note:: Default Package Directory
+
+         This tutorial uses Maven and Gradle's default ``org.example`` package
+         and adds application files to the ``src/main/java/org.example`` directory.
+         If you use a different package name, ensure that you create your files in its
+         corresponding directory.
+
+      In your project's ``src/main/java/org.example`` directory, create a new file called ``HibernateUtil.java``.
+      This utility class creates a ``SessionFactory`` based on your ``hibernate.cfg.xml`` configuration file.
+      
+      Copy the following code into this file:
+
+      .. literalinclude:: /includes/get-started/HibernateUtil.java
+         :copyable: true
+         :language: java
+         :dedent:
+
+   .. step:: Define your ``Movie`` entity
+
+      In your project's ``org.example`` directory, create a new file called ``Movie.java``.
+      This file contains your ``Movie`` entity, which represents the ``sample_mflix.movies``
+      sample collection from the :atlas:`Atlas sample datasets </sample-data>`. 
+
+      Copy the following code into this file:
+
+      .. literalinclude:: /includes/get-started/Movie.java
+         :copyable: true
+         :language: java
+         :dedent:
+
+      This file defines a ``Movie`` entity with the following fields:
+
+      - ``id``: The movie's unique identifier, mapped to the MongoDB ``_id`` field.
+      - ``title``: The movie's title.
+      - ``year``: The year the movie was released.
+      - ``cast``: An array of strings representing the movie's cast members.
+
+   .. step:: Define your main application class
+
+      In your project's ``org.example`` directory, create a new file called ``Main.java``.
+      This file contains your main application class, which stores your application's logic.
+
+      Copy the following code into this file:
+
+      .. literalinclude:: /includes/get-started/Main.java
+         :copyable: true
+         :language: java
+         :dedent:
+      
+After completing these steps, you have a {+language+} application configured to
+use the {+extension-short+} and connect to your MongoDB deployment. Your application
+has the following file structure:
+
+.. code-block:: text
+   :copyable: false
+
+   MongoHibernateQuickstart
+   ├── src
+   │   └── main
+   │       ├── java
+   │       │   └── org.example
+   │       │       ├── HibernateUtil.java
+   │       │       ├── Main.java
+   │       │       └── Movie.java
+   │       └── resources
+   │           └── hibernate.cfg.xml
+   ├── .gitignore
+   ├── pom.xml (for Maven projects)
+   └── build.gradle (for Gradle projects)
+
+.. _hibernate-run-sample-query:
+
+Run a Sample Query
+------------------
+
+You can run queries on your ``Movie`` objects, which the extension
+translates into MongoDB queries.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Run a query on the ``title`` field 
+
+      Navigate to your ``Main.java`` file and paste the following code
+      below the ``// Add CRUD operations here`` comment:
+
+      .. code-block:: java
+
+         var searchTitle = "Little Women";
+         var results = session.createQuery("from Movie m where m.title = :t", Movie.class)
+               .setParameter("t", searchTitle)
+               .getResultList();
+         for (var m : results) {
+            System.out.println("Title: " + m.getTitle() + ", Year: " + m.getYear());
+         }
+
+      This code uses {+orm+}'s Hibernate Query Language (HQL) to retrieve
+      ``sample_mflix.movies`` documents that have a ``title`` value of
+      ``"Little Women"``. Then, it prints the ``title`` and ``year`` values
+      of each result.
+
+      .. tip::
+
+         To learn more about HQL, see `Hibernate Query Language <{+user-guide+}#query-language>`__
+         in the {+orm+} user guide.
+
+   .. step:: Run your application
+
+      Run the ``Main.java`` file in your IDE. Your output contains details
+      about the database command and the retrieved documents:
+
+      .. code-block:: none
+         :copyable: false
+
+         Hibernate: {"aggregate": "movies", "pipeline": [{"$match": {"title": {"$eq": {"$undefined": true}}}},
+         {"$project": {"_id": true, "cast": true, "plot": true, "title": true, "year": true}}]}
+
+         Title: Little Women, Year: 1949
+         Title: Little Women, Year: 1994
+      
+.. _hibernate-write-data:
+
+Write Data to MongoDB
+---------------------
+
+You can write data to your MongoDB deployment by creating and modifying
+your ``Movie`` objects.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Insert a document into the ``movies`` collection
+
+      In your ``Main.java`` file, add the following code to create a
+      ``Movie`` entity instance called ``myMovie`` and save it to the database:
+
+      .. code-block:: java
+
+         var title = "A Real Pain";
+         var plot = "Mismatched cousins David and Benji tour Poland to honor their grandmother. " +
+               "Their adventure becomes complicated as old tensions resurface while exploring their family history.";
+         var year = 2024;
+         var cast = new String[]{"Jesse Eisenberg", "Kieran Culkin", "Will Sharpe"};
+
+         var myMovie = new Movie(title, plot, year, cast);
+         session.persist(myMovie);
+         System.out.println("Movie created with ID: " + myMovie.getId());
+
+      This code creates a new ``Movie`` entity instance and uses the ``session.persist()``
+      method to save it to the database.
+
+   .. step:: Update a document
+
+      Add the following code to your ``Main.java`` file to update the ``Movie``
+      instance that you created in the previous step:   
+
+      .. code-block:: java
+
+         var updatedCast = new String[]{"Jesse Eisenberg", "Kieran Culkin", "Will Sharpe", "Jennifer Grey"};
+         myMovie.setCast(updatedCast);
+         System.out.println("Movie updated with new cast member: " + updatedCast[3]);
+
+      This code updates the ``cast`` field of the ``myMovie`` entity instance. The
+      {+extension-short+} applies this change to the corresponding document
+      in the database.
+
+   .. step:: Delete a document
+
+      Add the following code to your ``Main.java`` file to delete the ``myMovie``
+      entity instance:
+
+      .. code-block:: java
+
+         session.remove(myMovie);
+         System.out.println("Movie deleted with ID: " + myMovie.getId());
+
+      This code deletes the ``myMovie`` entity instance and its corresponding document
+      from the database.
+
+   .. step:: Run your application
+
+      Run the ``Main.java`` file in your IDE. Your output contains details
+      about your write operations:
+
+      .. code-block:: none
+         :copyable: false
+
+         Hibernate: {"insert": "movies", "documents": [{"cast": {"$undefined": true}, "plot": {"$undefined": true}, "title": {"$undefined": true}, "year": {"$undefined": true}, "_id": {"$undefined": true}}]}
+         Hibernate: {"delete": "movies", "deletes": [{"q": {"_id": {"$eq": {"$undefined": true}}}, "limit": {"$numberInt": "0"}}]}
+
+         Movie created with ID: <ObjectId>
+         Movie updated with new cast member: Jennifer Grey
+         Movie deleted with ID: <ObjectId>
+
+Next Steps
+----------
+
+Congratulations on completing the tutorial!
+
+.. note::
+
+   If you run into issues in this tutorial, submit feedback by
+   using the :guilabel:`Rate this page` tab on the right
+   side of this page.
+
+   .. sharedinclude:: dbx/help-links.rst
+
+In this tutorial, you created a {+language+} application that
+connects to a MongoDB deployment hosted on MongoDB Atlas
+and uses the {+extension-short+} to interact with your data.
+
+To learn more about the {+extension-short+}, see the following resources:
+
+- :github:`mongo-hibernate <mongodb/mongo-hibernate>` source code
+  on GitHub
+- `{+orm+} <https://hibernate.org/orm/documentation/{+hibernate-version+}>`__ documentation
+
+.. TODO: add link to extension API docs when available

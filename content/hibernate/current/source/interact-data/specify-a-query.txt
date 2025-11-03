@@ -1,0 +1,832 @@
+.. _hibernate-specify-query:
+
+===============
+Specify a Query
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: expressions, operations, read, filter, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+extension-long+} to specify
+a database query.
+
+You can refine the set of documents that a query returns by creating a
+**query filter**. A query filter is an expression that specifies the search
+criteria MongoDB uses to match documents in a read or write operation.
+To create MongoDB query filters, use Hibernate Query Language (HQL) or
+Jakarta Persistence Query Language (JPQL) statements.
+
+.. tip::
+
+   To learn more about HQL and JPQL syntax, see `A Guide to Hibernate Query Language
+   <{+query-guide+}>`__ in the {+orm+} documentation.
+
+.. note:: Query Support
+
+   The {+extension-long+} does not support all MongoDB and Hibernate query features. To learn more,
+   see :ref:`Query Support <hibernate-mongo-query-support>` on the Feature Compatibility
+   page.
+
+Sample Data
+~~~~~~~~~~~
+
+.. include:: /includes/sample-data.rst
+
+.. include:: /includes/persistence-contexts.rst
+   
+   .. replacement:: additional-information
+
+      Use HQL to define session queries, and use JPQL to define entity manager queries.
+
+Run a Query
+-----------
+
+To query your MongoDB data, call the ``createQuery()`` method on a 
+session or an entity manager. Then, specify your matching criteria in a
+Hibernate Query Language (HQL) or Jakarta Persistence Query Language
+(JPQL) statement.
+
+This section describes how to perform the following query operations:
+
+- :ref:`hibernate-query-retrieve-all`
+- :ref:`hibernate-query-retrieve-matching`
+- :ref:`hibernate-query-retrieve-one`
+- :ref:`hibernate-query-criteria-api`
+- :ref:`hibernate-query-native`
+
+.. _hibernate-query-retrieve-all:
+
+Retrieve All Documents
+~~~~~~~~~~~~~~~~~~~~~~
+
+To retrieve all documents from a collection, pass a basic select statement
+to the ``createQuery()`` method. In this statement, specify the entity
+that represents the collection you want to query.
+
+The following example retrieves the ``title`` values of all documents from the ``sample_mflix.movies``
+collection by querying the ``Movie`` entity:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-all-session
+            :end-before: end-retrieve-all-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: A Corner in Wheat
+            Title: Gertie the Dinosaur
+            Title: The Perils of Pauline
+            Title: Civilization
+            Title: Where Are My Children?
+            ...
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-all-em
+            :end-before: end-retrieve-all-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: A Corner in Wheat
+            Title: Gertie the Dinosaur
+            Title: The Perils of Pauline
+            Title: Civilization
+            Title: Where Are My Children?
+            ...
+
+.. _hibernate-query-retrieve-matching:
+
+Retrieve Matching Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To retrieve documents that match specific criteria, pass a select statement
+with a ``where`` clause to the ``createQuery()`` method. In this statement,
+specify the entity that represents the collection you want to query and
+the matching criteria.
+
+The following example retrieves documents that have a ``title`` value
+of ``"Romeo and Juliet"`` from the ``sample_mflix.movies`` collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-matching-session
+            :end-before: end-retrieve-matching-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Romeo and Juliet, Year: 1936
+            Title: Romeo and Juliet, Year: 1968
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-matching-em
+            :end-before: end-retrieve-matching-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Romeo and Juliet, Year: 1936
+            Title: Romeo and Juliet, Year: 1968
+
+.. _hibernate-query-retrieve-one:
+
+Retrieve One Document
+~~~~~~~~~~~~~~~~~~~~~
+
+To retrieve a single document that matches specific criteria, chain the
+``getSingleResult()`` method to the ``createQuery()`` method.
+
+The following example retrieves a single document that has a ``title`` value
+of ``"Best in Show"`` from the ``sample_mflix.movies`` collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-one-session
+            :end-before: end-retrieve-one-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Best in Show, Year: 2000
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-one-em
+            :end-before: end-retrieve-one-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Best in Show, Year: 2000
+
+
+.. important:: NonUniqueResultException Errors
+
+   If your query matches multiple documents, the ``getSingleResult()`` method
+   throws a ``NonUniqueResultException`` error. To avoid this error, ensure that
+   your query matches only one document or :ref:`limit your query results <hibernate-query-limit>` to
+   one document.
+
+.. _hibernate-query-criteria-api:
+
+Run Criteria API Queries
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Instead of using HQL or JPQL statements to create query filters,
+you can use the Jakarta Persistence Criteria API to build type-safe queries
+programmatically.
+
+To create a query by using the Criteria API, perform the following
+actions:
+
+1. Create a ``CriteriaBuilder`` object from a session or an entity manager.
+#. Create a ``CriteriaQuery`` object from the builder and specify the entity to query.
+#. Use query methods provided by the ``CriteriaQuery`` class to specify your query criteria.
+
+.. tip::
+
+   To learn more about the Criteria API, see `Using the Criteria API to Create Queries
+   <https://jakarta.ee/learn/docs/jakartaee-tutorial/current/persist/persistence-criteria/persistence-criteria.html>`__
+   in the Jakarta EE documentation.
+
+The following example uses the Criteria API to retrieve all documents
+that have a ``year`` value of ``1925`` from the ``sample_mflix.movies``
+collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-criteria-api-session
+            :end-before: end-criteria-api-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Lady Windermere's Fan
+            Clash of the Wolves
+            Grass: A Nation's Battle for Life
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-criteria-api-em
+            :end-before: end-criteria-api-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Lady Windermere's Fan
+            Clash of the Wolves
+            Grass: A Nation's Battle for Life
+
+.. _hibernate-query-native:
+
+Run Native Queries
+~~~~~~~~~~~~~~~~~~
+
+To run MongoDB queries that are not currently supported by the {+extension-short+},
+you can pass your query as a MongoDB Query Language (MQL) statement to the
+``createNativeQuery()`` method.
+
+To learn how to run native queries, see the :ref:`Perform Native Queries <hibernate-native-queries>` guide.
+
+.. _hibernate-query-filter:
+
+Customize Your Query Filter
+---------------------------
+
+This section describes how to use operators to create the following
+types of query filters:
+
+- :ref:`Comparison filters <hibernate-query-comparison>`
+- :ref:`Logical filters <hibernate-query-logical>`
+
+.. tip::
+
+   This section does not describe all available query operators.
+   To view a complete list of query operators, see `Operator expressions
+   <{+query-guide+}#_operator_expressions>`__ in the {+orm+} query guide.
+
+.. _hibernate-query-comparison:
+
+Use Comparison Filters
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   The {+extension-short+} does not support all comparison operators, including
+   ``LIKE`` and ``BETWEEN``. To learn more about support limitations, see
+   :ref:`Query Support <hibernate-query-support>` on the Feature Compatibility
+   page.
+
+You can use the following operators in your query statements
+to compare field values to specified query values:
+
+- ``=``: Equality matching
+- ``<>``: Inequality matching
+- ``>``: Greater than comparisons
+- ``>=``: Greater than or equal comparisons
+- ``<``: Less than comparisons
+- ``<=``: Less than or equal comparisons
+
+The following example retrieves documents that have a ``year`` value
+greater than or equal to ``2015`` from the ``sample_mflix.movies``
+collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-comparison-query-session
+            :end-before: end-comparison-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Jurassic World
+            Title: The Stanford Prison Experiment
+            Title: Ex Machina
+            Title: Ant-Man
+            Title: The Danish Girl
+            Title: The Wedding Ringer
+            Title: Good Ol' Boy
+            Title: A Tale of Love and Darkness
+            Title: Aloha
+            ...
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-comparison-query-em
+            :end-before: end-comparison-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Jurassic World
+            Title: The Stanford Prison Experiment
+            Title: Ex Machina
+            Title: Ant-Man
+            Title: The Danish Girl
+            Title: The Wedding Ringer
+            Title: Good Ol' Boy
+            Title: A Tale of Love and Darkness
+            Title: Aloha
+            ...
+
+.. _hibernate-query-logical:
+
+Use Logical Filters
+~~~~~~~~~~~~~~~~~~~
+
+You can use the following operators in your query statements
+to combine multiple query criteria:
+
+- ``and``: Match all criteria
+- ``or``: Match any criteria
+- ``not``: Invert criteria
+
+The following example retrieves a document that has a ``title`` value
+of ``"The Godfather"`` and a ``year`` value of ``1972`` from the
+``sample_mflix.movies`` collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-logical-query-session
+            :end-before: end-logical-query-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: The Godfather
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-logical-query-em
+            :end-before: end-logical-query-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: The Godfather
+
+.. _hibernate-query-modify:
+
+Modify Query Results
+--------------------
+
+This section describes how to modify your query
+results in the following ways:
+
+- :ref:`hibernate-query-sort`
+- :ref:`hibernate-query-skip`
+- :ref:`hibernate-query-limit`
+
+.. _hibernate-query-sort:
+
+Sort Results
+~~~~~~~~~~~~
+
+You can sort query results by the value of a specified field
+by using the ``order by`` clause in your query statement. By default,
+the ``order by`` clause sorts documents in ascending order. To sort
+documents in descending order, append the ``desc`` keyword to the field name.
+
+The following example retrieves matching documents from the ``sample_mflix.movies``
+collection and sorts them by the ``year`` field in descending order:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-sort-session
+            :end-before: end-sort-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Cinderella, Year: 2015
+            Title: Cinderella, Year: 1997
+            Title: Cinderella, Year: 1950
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-sort-em
+            :end-before: end-sort-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Cinderella, Year: 2015
+            Title: Cinderella, Year: 1997
+            Title: Cinderella, Year: 1950
+
+.. _hibernate-query-skip:
+
+Skip Results
+~~~~~~~~~~~~
+
+You can skip a specified number of documents in your query results
+by chaining the ``setFirstResult()`` method to the query. Pass the number
+of initial documents to skip as an argument to this method.
+
+The following example runs the same query as the :ref:`preceding example <hibernate-query-sort>`
+but skips the first matching document in the results:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-skip-session
+            :end-before: end-skip-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Cinderella, Year: 1997
+            Title: Cinderella, Year: 1950
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-skip-em
+            :end-before: end-skip-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Cinderella, Year: 1997
+            Title: Cinderella, Year: 1950
+
+.. _hibernate-query-limit:
+
+Limit Results
+~~~~~~~~~~~~~
+
+You can limit the number of documents that your query returns
+by chaining the ``setMaxResults()`` method to the query. Pass the maximum
+number of documents to return as an argument to this method.
+
+The following example runs the same query as the :ref:`sort example <hibernate-query-sort>`
+but returns up to two matching documents in the results:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-limit-session
+            :end-before: end-limit-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Cinderella, Year: 2015
+            Title: Cinderella, Year: 1997
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-limit-em
+            :end-before: end-limit-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: Cinderella, Year: 2015
+            Title: Cinderella, Year: 1997
+
+Alternatively, you can use a ``limit`` clause in your HQL or JPQL statement
+to restrict the number of documents that your query returns, as shown
+in the following code:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. literalinclude:: /includes/interact-data/Query.java
+         :start-after: start-limit-clause-session
+         :end-before: end-limit-clause-session
+         :language: java
+         :dedent:
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. literalinclude:: /includes/interact-data/Query.java
+         :start-after: start-limit-clause-em
+         :end-before: end-limit-clause-em
+         :language: java
+         :dedent:
+
+.. _hibernate-query-advanced-fields:
+
+Advanced Field Queries
+----------------------
+
+This section describes how to run queries on the
+following fields:
+
+- :ref:`Primary key fields <hibernate-query-primary-key>`
+- :ref:`Embedded fields <hibernate-query-embedded>`
+- :ref:`Array fields <hibernate-query-array>`
+
+.. _hibernate-query-primary-key:
+
+Query a Primary Key Field
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To retrieve a document based on its ``ObjectId`` value, you can
+pass this value as an argument to the ``get()`` method, if you're
+using a session, or the ``find()`` method, if you're using an entity manager.
+
+The following example retrieves a document from the ``sample_mflix.movies``
+collection by its ``ObjectId`` value:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. literalinclude:: /includes/interact-data/Query.java
+         :start-after: start-retrieve-by-id-session
+         :end-before: end-retrieve-by-id-session
+         :language: java
+         :dedent:
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. literalinclude:: /includes/interact-data/Query.java
+         :start-after: start-retrieve-by-id-em
+         :end-before: end-retrieve-by-id-em
+         :language: java
+         :dedent:
+
+.. _hibernate-query-embedded:
+
+Query an Embedded Field
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can represent MongoDB embedded documents by creating
+``@Struct`` aggregate embeddables. You cannot
+create query filters on individual embeddable values, but you can
+use the {+extension-short+} to fetch ``@Struct`` aggregate embeddables
+associated with specific parent entities.
+
+.. tip::
+
+   To learn more about representing embedded documents, see
+   :ref:`Embedded Data <hibernate-entities-embedded-data>` in the Create Entities guide.
+
+.. important:: Query Limitations
+
+   To learn more about the query limitations for embeddables, see :ref:`Hibernate Query Support <hibernate-query-support>`
+   on the Feature Compatibility page.
+
+The following example retrieves documents that have a ``title`` value
+of ``"Hairspray"`` from the ``sample_mflix.movies`` collection. Then,
+the code fetches the ``awards`` field, which stores the ``Awards`` ``@Struct``
+aggregate embeddable, and prints the ``wins`` field of the ``Awards`` embeddable type:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-embedded-session
+            :end-before: end-retrieve-embedded-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Award wins: 0
+            Award wins: 21
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-embedded-em
+            :end-before: end-retrieve-embedded-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Award wins: 0
+            Award wins: 21
+
+.. _hibernate-query-array:
+
+Query an Array Field
+~~~~~~~~~~~~~~~~~~~~
+
+The {+extension-short+} supports the following functions for
+querying array fields:
+
+- ``array_contains()``: Match documents where an array field contains a specified value
+- ``array_contains_nullable()``: Match documents where an array field contains a specified
+  value, including ``null`` values
+- ``array_includes()``: Match documents where an array field includes another array value
+- ``array_includes_nullable()``: Match documents where an array field includes another
+  array value, including ``null`` values
+
+.. tip::
+
+   To learn more about array functions, see `Functions for dealing with arrays <{+user-guide+}#hql-functions-arrays>`__
+   in the {+orm+} user guide.
+
+The following example uses the ``array_contains()`` function to retrieve
+documents that have the value ``"Kathryn Hahn"`` in the ``cast`` array field
+from the ``sample_mflix.movies`` collection:
+
+.. tabs::
+
+   .. tab:: Session
+      :tabid: session
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-array-session
+            :end-before: end-retrieve-array-session
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: How to Lose a Guy in 10 Days
+            Title: The Secret Life of Walter Mitty
+            Title: Bad Words
+            Title: Afternoon Delight
+            Title: The D Train
+
+   .. tab:: EntityManager
+      :tabid: entitymanager
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/interact-data/Query.java
+            :start-after: start-retrieve-array-em
+            :end-before: end-retrieve-array-em
+            :language: java
+            :dedent:
+
+         .. output::
+            :visible: false
+
+            Title: How to Lose a Guy in 10 Days
+            Title: The Secret Life of Walter Mitty
+            Title: Bad Words
+            Title: Afternoon Delight
+            Title: The D Train
+
+Additional Information
+----------------------
+
+To learn more about performing other operations on your MongoDB data,
+see the :ref:`hibernate-crud` guide.
+
+To learn more about using HQL and JPQL to run queries, see `A Guide to Hibernate Query Language
+<{+query-guide+}>`__ in the {+orm+} documentation.

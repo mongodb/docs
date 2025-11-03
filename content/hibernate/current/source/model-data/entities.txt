@@ -1,0 +1,397 @@
+.. _hibernate-entities:
+
+===============
+Create Entities
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: class, field, code example
+
+Overview
+--------
+
+In this guide, you can learn how to create {+orm+} **entities** that
+represent MongoDB collections. Entities are Java classes that define
+the structure of your data. When using the {+extension-short+}, you can
+map each entity to a MongoDB collection and use these entities to interact with the collection's
+documents.
+
+.. tip::
+
+    To learn more about {+orm+} entities, see `POJO Models <{+user-guide+}#entity-pojo>`__
+    in the {+orm+} documentation.
+
+.. _hibernate-entities-mongodb-fields:
+
+MongoDB BSON Fields
+-------------------
+
+MongoDB organizes and stores documents in a binary representation
+called BSON that allows for flexible data processing. This section describes the {+extension-short+}'s support for
+BSON fields, which you can include in your entities.
+
+.. tip::
+
+   To learn more about how MongoDB stores BSON data, see
+   :manual:`BSON Types </reference/bson-types>` in the {+mdb-server+}
+   manual.
+
+The following table describes supported BSON field types and their
+{+extension-short+} equivalents that you can use in your {+orm+} entities:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 40 45
+
+   * - BSON Field Type
+     - Extension Field Type
+     - BSON Description
+
+   * - ``null``
+     - ``null``
+     - | Represents a null value or absence of data.
+
+   * - ``Binary``
+     - ``byte[]``
+     - | Stores binary data with subtype 0.
+
+   * - ``String``
+     - ``char``, ``java.lang.Character``, ``java.lang.String``, or ``char[]``
+     - | Stores UTF-8 encoded string values.
+
+   * - ``Int32``
+     - ``int`` or ``java.lang.Integer``
+     - | Stores 32-bit signed integers.
+
+   * - ``Int64``
+     - ``long`` or ``java.lang.Long``
+     - | Stores 64-bit signed integers.
+
+   * - ``Double``
+     - ``double`` or ``java.lang.Double``
+     - | Stores floating-point values.
+
+   * - ``Boolean``
+     - ``boolean`` or ``java.lang.Boolean``
+     - | Stores ``true`` or ``false`` values.
+
+   * - ``Decimal128``
+     - ``java.math.BigDecimal``
+     - | Stores 28-bit decimal values.
+
+   * - ``ObjectId``
+     - ``org.bson.types.ObjectId``
+     - | Stores unique 12-byte identifiers that MongoDB uses as primary keys.
+
+   * - ``Date``
+     - ``java.time.Instant``
+     - | Stores dates and times as milliseconds since the Unix epoch.
+
+   * - ``Object``
+     - ``@org.hibernate.annotations.Struct`` aggregate embeddable
+     - | Stores embedded documents with field values mapped according to their respective
+         types. ``@Struct`` aggregate embeddables might also contain array or ``Collection``
+         attributes.
+
+   * - ``Array``
+     - ``Array``, ``java.util.Collection`` (or subtype) of supported types
+     - | Stores array values with elements mapped according to their respective types. Character arrays require setting the ``hibernate.type.wrapper_array_handling`` configuration property.
+
+.. _hibernate-entities-define:
+
+Define an Entity
+----------------
+
+To create an entity that represents a MongoDB collection, create a new Java file in your in
+your project's base package directory and add your entity class to the new file. In your entity
+class, specify the fields you want to store and the collection name. The ``name`` element
+of the ``@jakarta.persistence.Table`` annotation represents your MongoDB collection name. Use
+the following syntax to define an entity:
+
+.. code-block:: java
+   :copyable: false
+
+   @Entity
+   @Table(name = "<collection name>")
+   public class <EntityName> {
+       @Id
+       @ObjectIdGenerator
+       private ObjectId id;
+       // Include additional fields here
+       private <field type> <field name>;
+       
+       // Parameterized constructor
+       public <EntityName>(<parameters>) {
+           // Initialize fields here
+       }
+       
+       // Default constructor
+       public <EntityName>() {
+
+       }
+
+       // Getter and setter methods
+       public <field type> get<FieldName>() {
+           return <field name>;
+       }
+       
+       public void set<FieldName>(<field type> <field name>) {
+           this.<field name> = <field name>;
+       }
+   }
+
+To use your entities, you can query them in your application files. To learn more about
+CRUD operations in the {+extension-short+}, see the :ref:`hibernate-crud` guide. 
+
+.. _hibernate-entities-define-ex:
+
+Example
+~~~~~~~
+
+This sample ``Movie.java`` entity class defines a ``Movie`` entity
+that includes the following information:
+
+- ``@Entity`` annotation that marks the class as a {+orm+} entity
+
+- ``@Table`` annotation that maps the entity to the ``movies`` collection 
+  from the :atlas:`Atlas sample datasets </sample-data>`
+
+- ``@Id`` and ``@ObjectIdGenerator`` annotations that designate the ``id`` 
+  field as the primary key and configure automatic ``ObjectId`` generation
+
+- Private fields that represent movie data
+
+- Default and parameterized constructors for entity instantiation
+
+- Getter and setter methods that provide access to the entity's fields
+
+.. literalinclude:: /includes/get-started/Movie.java
+   :language: java
+   :copyable:
+
+.. tip::
+
+   To learn more about the fields used in the entity
+   class definition, see the :ref:`hibernate-entities-mongodb-fields`
+   section of this guide.
+
+.. _hibernate-entities-embedded-data:
+
+Embedded Data
+-------------
+
+The {+extension-short+} supports embedded documents through {+orm+} ``@Embeddable``
+annotations. With embedded documents, you can create One-to-Many, Many-to-One, and One-to-One relationships
+within MongoDB documents. This format is ideal for representing data that is frequently
+accessed together.
+
+To represent embedded documents, use the ``@Struct`` and ``@Embeddable``
+annotations on a class to create a ``@Struct`` aggregate embeddable. Then,
+include the embeddable type in your parent entity as a field.
+The {+extension-short+} supports embedding single objects, 
+arrays, and collections of embeddables. 
+
+.. tip::
+
+   To learn more about ``@Struct`` aggregate embeddables,
+   see `@Struct aggregate embeddable mapping <{+user-guide+}#_struct_aggregate_embeddable_mapping>`__
+   in the {+orm+} documentation.
+
+.. _hibernate-entities-one-to-one:
+
+One-to-One Relationships
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+A One-to-One relationship is when a record in one database is associated with exactly one
+record in another database. In MongoDB, you can create a collection with an
+embedded document field to model a One-to-One relationship. The {+extension-short+} allows
+you to create embedded document fields by using ``@Struct`` aggregate embeddables.
+
+The example defines a field with a ``@Struct`` aggregate embeddable type in an entity similar to the :ref:`Define an Entity example
+<hibernate-entities-define-ex>` in this guide. The sample ``Movie.java`` entity
+class includes the following information:
+
+- ``@Entity`` and ``@Table`` annotations that define the entity and map it to the ``movies`` collection
+
+- ``@Id`` and ``@ObjectIdGenerator`` annotations that designate the ``id`` field as the primary key
+
+- String field that represents the movie's title
+
+- ``@Struct`` aggregate embeddable fields that represent movie awards and studio information
+
+The following example represents a One-to-One relationship because each ``Movie`` entity
+is associated with one ``Awards`` embeddable and one ``Studio`` embeddable:
+
+.. code-block:: java
+   :copyable: false
+
+   @Entity
+   @Table(name = "movies")
+   public class Movie {
+
+       @Id
+       @ObjectIdGenerator
+       private ObjectId id;
+       private String title;
+       private Awards awards;
+       private Studio studio;
+
+       public Movie(String title, Awards awards, Studio studio) {
+           this.title = title;
+           this.awards = awards;
+           this.studio = studio;
+       }
+
+       public Movie() {
+
+       }
+
+       // Getter and setter methods
+
+   }
+
+The following sample code creates an ``Awards`` ``@Struct`` aggregate embeddable:
+
+.. code-block:: java
+   :copyable: false
+
+   @Embeddable
+   @Struct(name = "Awards")
+   public class Awards {
+       private int wins;
+       private int nominations;
+       private String text;
+
+       public Awards(int wins, int nominations, String text) {
+          this.wins = wins;
+          this.nominations = nominations;
+          this.text = text;
+       }
+
+       public Awards() {
+
+       }
+
+       // Getter and setter methods
+
+   }
+
+The following sample code creates a ``Studio`` ``@Struct`` aggregate embeddable:
+
+.. code-block:: java
+   :copyable: false
+
+   @Embeddable
+   @Struct(name = "Studio")
+   public class Studio {
+       private String name;
+       private String location;
+       private int foundedYear;
+
+       public Studio(String name, String location, int foundedYear) {
+           this.name = name;
+           this.location = location;
+           this.foundedYear = foundedYear;
+       }
+
+       public Studio() {
+
+       }
+
+       // Getter and setter methods
+
+   }
+
+.. _hibernate-entities-one-to-many:
+
+One-to-Many Relationships
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A One-to-Many relationship is when a record in one database is associated with many records
+in another database. In MongoDB, you can define a collection field that stores a list of embedded documents
+to model a One-to-Many relationship. The {+extension-short+} allows you to create
+embedded document fields by using a list of ``@Struct`` aggregate embeddables.
+
+The example defines a field that stores a list of ``@Struct`` aggregate embeddables in an entity similar to the :ref:`Define an Entity Example
+<hibernate-entities-define-ex>` in this guide. The sample ``Movie.java`` entity
+class includes the following information:
+
+- ``@Entity`` and ``@Table`` annotations that define the entity and map it to the ``movies`` collection
+
+- ``@Id`` and ``@ObjectIdGenerator`` annotations that designate the ``id`` field as the primary key
+
+- String field that represents the movie's title
+
+- List field that stores multiple ``Writer`` ``@Struct`` aggregate embeddables, which represents writer information
+
+The following example represents a One-to-Many relationship because each
+``Movie`` entity is associated with multiple ``Writer`` embeddables:
+
+.. code-block:: java
+   :copyable: false
+
+   @Entity
+   @Table(name = "movies")
+   public class Movie {
+       @Id
+       @ObjectIdGenerator
+       @Column(name = "_id")
+       private ObjectId id;
+       private String title;
+       private List<Writer> writers;
+
+       public Movie(String title, List<Writer> writers) {
+           this.title = title;
+           this.writers = writers;
+       }
+
+       public Movie() {
+
+       }
+
+       // Getter and setter methods
+
+   }
+
+The following sample code creates a ``Writer`` ``@Struct`` aggregate embeddable:
+
+.. code-block:: java
+   :copyable: false
+
+   @Embeddable
+   @Struct(name = "Writer")
+   public class Writer {
+       private String name;
+
+       public Writer() {
+       }
+
+       public Writer(String name) {
+           this.name = name;
+       }
+
+       // Getter and setter methods
+
+   }
+
+Additional Information
+----------------------
+
+To learn how to use your entities to run database operations,
+see the following guides in the Interact with Data section:
+
+- :ref:`hibernate-crud`
+- :ref:`hibernate-specify-query`
+
+To learn more about {+orm+} fields, see the `Mapping types <{+user-guide+}#mapping-types>`__ section
+in the {+extension-short+} documentation.
