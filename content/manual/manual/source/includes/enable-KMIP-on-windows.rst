@@ -6,5 +6,5 @@
    To enable encryption at rest with KMIP on Windows, you must:
 
    - Import the client certificate into the Windows Certificate Store.
-   - Use the |kmip-client-cert-selector| option.
+   - Use the |kmip-client-cert-selector| configuration option.
 
