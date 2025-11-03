@@ -21,6 +21,7 @@ const DocSitesTesting = [
   'drivers',
   'entity-framework',
   'golang',
+  'hibernate',
   'java',
   'java-rs',
   'docs-k8s-operator',

@@ -1,0 +1,293 @@
+.. _hibernate-native-queries:
+
+===============================
+Perform Native Database Queries
+===============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: number, amount, estimation, code example
+
+Overview
+---------
+
+In this guide, you can learn how to use the {+extension-long+} to run
+native queries on your MongoDB database. Instead of Hibernate Query Language (HQL)
+or Jakarta Persistence Query Language (JPQL), native queries allow you to
+use MongoDB Query Language (MQL) to specify your query. MQL is a query syntax
+designed for interacting with MongoDB's document-based model.
+
+.. tip:: MongoDB Query Language
+
+   To learn more about MQL's syntax and functionality, see :ref:`mql-reference`
+   in the {+mdb-server+} manual.
+
+{+orm+}'s ``createQuery()`` method does not support some MongoDB query features.
+The ``createNativeQuery()`` method allows you to specify database queries in MQL
+and bypass some operational limitations of the {+extension-short+}.
+
+You can also run queries directly on your ``MongoClient`` object for expanded
+query functionality.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``Movie`` entity, which represents
+the ``sample_mflix.movies`` collection from the :atlas:`Atlas sample datasets </sample-data>`.
+The ``Movie`` entity has the following definition:
+
+.. literalinclude:: /includes/interact-data/ExpandedMovie.java
+   :copyable: true
+   :language: java
+   :dedent:
+
+To learn how to create a {+language+} application that uses the {+extension-long+}
+to interact with this MongoDB sample collection, see the :ref:`Get Started <hibernate-get-started>`
+tutorial.
+
+.. note:: Persistence Contexts
+
+   To enable {+orm+} to interact with the database, you must run
+   operations inside a persistence context by using a Hibernate
+   ``Session`` or a Jakarta Persistence ``EntityManager``. The examples
+   in this guide use a ``Session``. To learn more about persistence
+   contexts, see the :ref:`hibernate-transactions` guide.
+      
+.. _hibernate-native-queries-run:
+
+Run Native Queries
+------------------
+
+To run a native MongoDB query, specify a MongoDB Query Language (MQL) statement
+that includes the collection to query and your query criteria in an aggregation
+pipeline. 
+
+.. tip:: Aggregation Pipeline
+
+   To learn more about constructing aggregation pipelines and running aggregation
+   operations, see the :ref:`Aggregation Pipeline <aggregation-pipeline>` reference in the
+   {+mdb-server+} manual.
+
+MQL statements have the following format:
+
+.. code-block:: java
+   :copyable: false
+
+   String mqlSyntax = """
+   {
+      aggregate: "<collection to query>",
+      pipeline: [
+         <aggregation pipeline stages>
+      ]
+   }
+   """;
+
+.. important:: $project Stage Requirements
+
+   The aggregation pipeline in your MQL statement must include a :pipeline:`$project` stage.
+   To return the query documents as entity instances, you must specify each entity
+   field other than the primary key field in the ``$project`` stage.
+
+Then, pass the MQL statement to the ``createNativeQuery()`` method.
+You cannot run native queries that use parameter values. Instead, specify
+your search terms within the MQL statement.
+
+You can use native queries to perform the following operations:
+
+- :ref:`hibernate-native-filter-sort`
+- :ref:`hibernate-native-arithmetic`
+- :ref:`hibernate-native-search`
+
+.. _hibernate-native-filter-sort:
+
+Filter and Sort Document Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example runs a native query on the ``sample_mflix.movies`` collection
+by passing an MQL statement to the ``createNativeQuery()`` method. The code
+specifies the following aggregation pipeline stages:
+
+- ``$match``: Filters for documents that have a title field value of ``"The Parent Trap"``
+- ``$sort``: Sorts the matching documents by their ``year`` fields in descending order
+- ``$project``: Returns each document field defined in the ``Movie`` entity
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/NativeQuery.java
+      :start-after: start-filter-sort
+      :end-before: end-filter-sort
+      :language: java
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      Title: The Parent Trap, Year: 1998
+      Title: The Parent Trap, Year: 1961
+
+.. _hibernate-native-arithmetic:
+
+Use Arithmetic Operators
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+extension-short+} does not currently support HQL or JPQL statements
+that use arithmetic operators. However, you can perform arithmetic operations
+on your data by using MongoDB's arithmetic operators in an MQL statement.
+
+.. tip:: Arithmetic Operators
+
+   To learn more about Hibernate and MongoDB arithmetic operators, see
+   the following resources:
+
+   - `Numeric arithmetic <{+query-guide+}#numeric-arithmetic>`__ in the {+orm+}
+     query guide
+   - :ref:`agg-quick-ref-operator-arithmetic` in the {+mdb-server+} manual
+
+The following example runs a native query on the ``sample_mflix.movies`` collection
+that performs the following actions:
+
+- Specifies a ``$match`` stage to match documents that have a ``year`` value greater than ``2000``
+  and a ``runtime`` field that exists
+- Specifies an ``$addFields`` stage to add a new field called ``runtimeHours``
+- Uses the ``$divide`` arithmetic operator to convert the ``runtime`` value from minutes to hours
+  for the new ``runtimeHours`` field
+- Specifies a ``$project`` stage to return each document field defined in the ``Movie`` entity,
+  other than the primary key field
+- Prints the ``title`` value of each updated document
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/NativeQuery.java
+      :start-after: start-arithmetic
+      :end-before: end-arithmetic
+      :language: java
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      Added field to movie: Kate & Leopold
+      Added field to movie: Crime and Punishment
+      Added field to movie: Glitter
+      Added field to movie: The Manson Family
+      Added field to movie: The Dancer Upstairs
+      Added field to movie: Fantastic Four
+      ...
+
+.. _hibernate-native-search:
+
+Run a MongoDB Search Query
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can run native queries to perform MongoDB Search queries on your database,
+which are fine-grained text searches on your data. These queries provide advanced
+search functionality, such as matching text phrases, scoring results for relevance,
+and highlighting matches.
+
+.. important::
+
+   You cannot run a MongoDB Search query inside a transaction.
+
+To specify a Search query, create a Search index that covers the fields you want to query.
+Then, pass an aggregation pipeline to your ``createNativeQuery()`` method that includes a
+``$search`` or ``$searchMeta`` stage.
+
+.. tip:: MongoDB Search
+
+   To learn more about MongoDB Search queries and indexes, see :ref:`atlas-search` in the
+   {+mdb-server+} manual.
+
+This example runs a Search query by passing the ``$search`` pipeline
+stage to the ``createNativeQuery()`` method. The code performs the following
+actions:
+
+- Specifies the Search index that covers the ``plot`` field. Ensure that
+  you replace the ``<indexName>`` placeholder with your Search index name.
+- Queries for documents whose ``plot`` values contain the string
+  ``"whirlwind romance"`` with no more than ``3`` words between them
+- Specifies a ``$project`` stage to return each document field defined in the ``Movie`` entity,
+  other than the primary key field
+- Prints the ``title`` and ``plot`` values of the matching documents
+  
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/NativeQuery.java
+      :start-after: start-atlas-search
+      :end-before: end-atlas-search
+      :language: java
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      Title: Tokyo Fiancèe, Plot: A young Japanophile Belgian woman in Tokyo falls into a whirlwind romance with a Francophile Japanese student.
+      Title: Designing Woman, Plot: A sportswriter and a fashion-designer marry after a whirlwind romance, and discover they have little in common.
+      Title: Vivacious Lady, Plot: On a quick trip to the city, young university professor Peter Morgan falls in love with nightclub performer Francey Brent and marries her after a whirlwind romance. But when he goes back ...
+      Title: Ek Hasina Thi, Plot: A woman falls for a charming and mysterious businessman. The whirlwind romance turns sour when she is framed for his underworld crimes. Now, finally out of prison she is ready for sweet revenge.
+      Title: Kick, Plot: An adrenaline junkie walks away from a whirlwind romance and embraces a new life as a thief, though he soon finds himself pursued by veteran police officer and engaged in a turf war with a local gangster.
+      Title: A Tale of Winter, Plot: Felicie and Charles have a serious if whirlwind holiday romance. Due to a mix-up on addresses they lose contact, and five years later at Christmas-time Felicie is living with her mother in ...
+
+.. _hibernate-native-mongoclient:
+
+Run MongoClient Operations
+--------------------------
+
+If you want to run database operations that neither the ``createQuery()`` method
+nor the ``createNativeQuery()`` method supports, you can operate on a
+``MongoClient`` object directly in your {+language+} application. When working
+with the ``MongoClient``, you can access the MongoDB Java Sync Driver's functionality.
+
+.. tip:: Feature Support
+
+   To learn more about unsupported MongoDB features that you must use a
+   ``MongoClient`` object to access, see the :ref:`hibernate-feature-compat`
+   page.
+
+To learn how to use the {+driver-short+} to interact with MongoDB, see the
+:driver:`MongoDB Java Driver documentation </java/sync/current/>`.
+
+Create Indexes with the MongoClient
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot use the {+extension-short+} to create indexes on a collection, but you can
+instantiate a ``MongoClient`` and use the {+driver-short+}'s ``createIndex()`` method. The
+following code creates a ``title`` field index on the ``sample_mflix.movies`` collection:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/interact-data/NativeQuery.java
+      :start-after: start-mongoclient
+      :end-before: end-mongoclient
+      :language: java
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      Index created: title_1
+
+To learn more about how to use the {+driver-short+} to create indexes, see
+the :ref:`java-fundamentals-indexes` guide in the {+driver-short+} documentation.
+
+
+Additional Information
+----------------------
+
+To learn more about the query languages discussed in this guide, see
+the following resources:
+
+- `A Guide to Hibernate Query Language <{+query-guide+}>`__ in the {+orm+} documentation
+- :ref:`MongoDB Query Language Reference <mql-reference>` in the {+mdb-server+} manual

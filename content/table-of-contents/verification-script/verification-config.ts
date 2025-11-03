@@ -63,6 +63,7 @@ export const config: Map<string, string[]> = new Map([
   ],
   ['java', ['upcoming', 'current', 'v5.4', 'v5.3', 'v5.2', 'v5.1', 'v5.0']],
   ['java-rs', ['upcoming', 'current', 'v5.4', 'v5.3', 'v5.2', 'v5.1', 'v5.0']],
+  ['hibernate', ['upcoming', 'current']],
   [
     'docs-k8s-operator',
     ['upcoming', 'current', 'v2.8', 'v2.7', 'v2.6', 'v2.5', 'v2.4', 'v1.9'],

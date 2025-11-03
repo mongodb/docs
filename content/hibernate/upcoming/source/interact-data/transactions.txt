@@ -1,0 +1,263 @@
+.. _hibernate-transactions:
+
+=========================
+Transactions and Sessions
+=========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, ACID compliance, multi-document
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+extension-long+} to perform
+**transactions**. Transactions allow you to run a series of operations
+that change data only if the entire transaction is committed.
+
+In MongoDB, transactions run within logical sessions. A
+session is a grouping of related read or write operations that you
+want to run sequentially. Sessions enable causal consistency for a group
+of operations and allow you to run operations in an **ACID-compliant**
+transaction, which is a transaction that meets an expectation of
+atomicity, consistency, isolation, and durability. 
+
+The {+extension-short+} supports the following APIs for managing sessions
+and transactions:
+
+- Hibernate ``Session``: Allows you to use the ``org.hibernate.Transaction``
+  API to group your database operations. To learn more, see `Hibernate Transaction
+  API <{+user-guide+}#transactions-api>`__ in the {+orm+} user guide.
+
+- Jakarta Persistence ``EntityManager``: Instructs the {+orm+} to manage a 
+  ``Session`` internally and allows you to use the ``jakarta.persistence.EntityTransaction``
+  API to group your database operations. To learn more, see the `jakarta.persistence package
+  <https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/jakarta/persistence/package-summary>`__
+  in the Jakarta EE documentation.
+
+Sample Data
+~~~~~~~~~~~
+
+.. include:: /includes/sample-data.rst
+
+.. _hibernate-create-session:
+
+Create a Session
+----------------
+
+To interact with MongoDB data, you must run all database operations in a session.
+This section shows how to manage a database session in the following
+ways:
+
+- :ref:`hibernate-create-session-native`: Use Hibernate's native API to create a
+  ``Session`` from a ``SessionFactory``
+- :ref:`hibernate-create-session-jpa`: Use the Jakarta Persistence API to create
+  an ``EntityManager`` from an ``EntityManagerFactory``
+
+.. _hibernate-create-session-native:
+
+Use a Hibernate Session
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tip::
+
+   Before using a ``Session``, you must create a ``HibernateUtil.java`` file that
+   configures a ``SessionFactory``. To learn more, see the :ref:`hibernate-configure-application`
+   step of the Get Started tutorial.
+
+To start a Hibernate ``Session``, perform the following steps:
+
+1. Retrieve a ``SessionFactory`` from your ``HibernateUtil`` utility class
+   by using the ``getSessionFactory()`` method. The ``SessionFactory`` stores
+   your MongoDB connection configuration and can open new database sessions.
+#. Create a ``Session`` by calling the ``openSession()`` method on your ``SessionFactory`` instance.
+#. After running database operations, close your ``SessionFactory`` and ``Session``
+   by using the ``close()`` method on both instances.
+
+The following example runs a database query in a session and retrieves a document
+that has a ``title`` value of ``"Erin Brockovich"`` from the ``sample_mflix.movies``
+collection:
+
+.. io-code-block::
+    :copyable: true
+
+    .. input:: /includes/interact-data/Transaction.java
+        :start-after: start-hibernate-session
+        :end-before: end-hibernate-session
+        :language: java
+        :dedent:
+
+    .. output::
+        :language: none
+        :visible: false
+
+        Title: Erin Brockovich, Year: 2000
+
+.. _hibernate-create-session-try-resources:
+
+You can also use {+language+}'s `try-with-resources statement <https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html>`__
+to simplify the session management logic and automatically close the session, as shown
+in the following code:
+
+.. literalinclude:: /includes/interact-data/Transaction.java
+   :start-after: start-hibernate-try-with-resources
+   :end-before: end-hibernate-try-with-resources
+   :language: java
+   :dedent:
+
+.. _hibernate-create-session-jpa:
+
+Use a JPA EntityManager
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tip::
+
+   Before using an ``EntityManager``, you must create a ``persistence.xml`` file that declares a persistence
+   unit. To learn more, see the `Tutorial using JPA-standard APIs <https://docs.hibernate.org/orm/6.6/quickstart/html_single/#tutorial_jpa>`__
+   in the {+orm+} documentation.
+
+To start a Jakarta Persistence API (JPA) ``EntityManager``, perform the
+following steps:
+
+1. Create an ``EntityManagerFactory`` from your ``persistence.xml`` file by calling the
+   ``createEntityManagerFactory()`` method, which creates a  ``SessionFactory`` internally.
+#. Create an ``EntityManager`` by calling the ``createEntityManager()`` method on your
+   ``EntityManagerFactory`` instance, which creates a ``Session`` internally.
+#. After running database operations, close your ``EntityManagerFactory`` and ``EntityManager``
+   by calling the ``close()`` method on both instances.
+
+The following example runs a database query in an entity manager and retrieves documents
+that have a ``year`` value of ``1929`` from the ``sample_mflix.movies``
+collection:
+
+.. io-code-block::
+    :copyable: true
+
+    .. input:: /includes/interact-data/Transaction.java
+        :start-after: start-jpa-em
+        :end-before: end-jpa-em
+        :language: java
+        :dedent:
+
+    .. output::
+        :language: none
+        :visible: false
+
+        The Broadway Melody
+        Queen Kelly
+        Asphalt
+        Hallelujah
+        Disraeli
+        Applause
+        Lambchops
+
+In Jakarta Persistence v3.1 or later, you can use {+language+}'s
+`try-with-resources statement <https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html>`__
+to automatically close the ``EntityManager``, as shown in the :ref:`Hibernate Session <hibernate-create-session-try-resources>` section.
+
+Run a Transaction
+-----------------
+
+To modify MongoDB data, you must run all write operations in a transaction.
+This section shows how to manage a transaction in the following ways:
+
+- :ref:`hibernate-create-transaction-native`: Use Hibernate's native ``org.hibernate.Transaction`` API to start a
+  transaction from a ``Session``
+- :ref:`hibernate-create-transaction-jpa`: Use the ``jakarta.persistence.EntityTransaction`` API to start
+  a transaction from an ``EntityManager``
+
+.. _hibernate-create-transaction-native:
+
+Use a Hibernate Transaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To start a Hibernate ``Transaction``, call the ``beginTransaction()`` method 
+on a ``Session`` instance. After you run operations and use the ``persist()`` method to
+register your changes with the session, commit the transaction by calling the
+``commit()`` method.
+
+The following example uses a transaction to create a new ``Movie`` entity
+and insert it as a document into the ``sample_mflix.movies`` collection.
+The highlighted lines begin and commit the transaction.
+
+.. literalinclude:: /includes/interact-data/Transaction.java
+   :start-after: start-hibernate-transaction
+   :end-before: end-hibernate-transaction
+   :language: java
+   :emphasize-lines: 3, 9
+   :dedent:
+
+.. _hibernate-create-transaction-jpa:
+
+Use a JPA EntityTransaction 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a JPA ``EntityTransaction``, call the ``getTransaction()`` method
+on your ``EntityManager``. This method retrieves a ``EntityTransaction``,
+which wraps the underlying Hibernate ``Transaction``. Then, call the ``begin()``
+method to start the transaction. After you run operations and use the ``persist()`` method to
+register your changes with the entity manager, commit the transaction by calling
+the ``commit()`` method.
+
+The following example uses an ``EntityTransaction`` to delete
+a document from the ``sample_mflix.movies`` collection. The highlighted
+lines begin and commit the transaction.
+
+.. literalinclude:: /includes/interact-data/Transaction.java
+   :start-after: start-jpa-transaction
+   :end-before: end-jpa-transaction
+   :language: java
+   :emphasize-lines: 4, 10
+   :dedent:
+
+Transaction Error Handling
+--------------------------
+
+To discard all data changes from a transaction, call the ``rollback()``
+method on a Hibernate ``Transaction`` or a JPA ``EntityTransaction``.
+After calling this method, the {+orm+} reverts the uncommitted changes
+and clears the persistence context.
+
+The following example rolls back the transaction if the code throws
+an error. Select the :guilabel:`Hibernate Transaction` or :guilabel:`JPA EntityTransaction`
+tab to see the corresponding code:
+
+.. tabs::
+
+   .. tab:: Hibernate Transaction
+      :tabid: hibernate
+
+      .. literalinclude:: /includes/interact-data/Transaction.java
+         :start-after: start-rollback-transaction-session
+         :end-before: end-rollback-transaction-session
+         :language: java
+         :emphasize-lines: 14
+         :dedent:
+
+   .. tab:: JPA EntityTransaction
+      :tabid: jpa
+
+      .. literalinclude:: /includes/interact-data/Transaction.java
+         :start-after: start-rollback-transaction-em
+         :end-before: end-rollback-transaction-em
+         :language: java
+         :emphasize-lines: 14
+         :dedent:
+
+Additional Information
+----------------------
+
+To learn more about sessions and entity managers, see `Persistence Context <{+user-guide+}#pc>`__
+in the {+orm+} documentation.
+
+To learn more about transactions, see `Transactions <{+user-guide+}#transactions>`__
+in the {+orm+} documentation.
