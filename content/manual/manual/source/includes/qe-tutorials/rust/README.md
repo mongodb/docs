@@ -14,7 +14,7 @@ dependencies:
 
 - MongoDB Server version 7.0 or later
 - Automatic Encryption Shared Library version 7.0 or later
-- [libmongocrypt](https://www.mongodb.com/docs/manual/core/queryable-encryption/reference/libmongocrypt/)
+- [libmongocrypt](https://www.mongodb.com/docs/manual/core/queryable-encryption/install/)
 - Rust v1.17.1 or later
 - Cargo
 

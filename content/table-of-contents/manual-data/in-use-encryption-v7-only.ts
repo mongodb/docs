@@ -118,15 +118,10 @@ const tocData: TocItem[] = [
             url: '/docs/:version/core/queryable-encryption/reference/shared-library/',
           },
           {
-            label: 'Install libmongocrypt',
-            contentSite: 'docs',
-            url: '/docs/:version/core/queryable-encryption/reference/libmongocrypt/',
-          },
-          {
-            label: 'Use mongocryptd',
-            contentSite: 'docs',
-            url: '/docs/:version/core/queryable-encryption/reference/mongocryptd/',
-          },
+            label: "Use mongocryptd",
+            contentSite: "docs",
+            url: "/docs/:version/core/queryable-encryption/reference/mongocryptd/",
+          }
         ],
       },
     ],

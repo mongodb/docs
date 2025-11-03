@@ -8,9 +8,14 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
-        label: 'Queryable Encryption Limitations',
-        contentSite: 'docs',
-        url: '/docs/:version/core/queryable-encryption/reference/limitations',
+        label: "Compatibility",
+        contentSite: "docs",
+        url: "/docs/:version/core/queryable-encryption/reference/compatibility",
+      },
+      {
+        label: "Queryable Encryption Limitations",
+        contentSite: "docs",
+        url: "/docs/:version/core/queryable-encryption/reference/limitations",
       },
       {
         label: 'CSFLE Limitations',
@@ -109,14 +114,10 @@ const tocData: TocItem[] = [
                 url: '/docs/:version/core/queryable-encryption/install',
               },
               {
-                label: 'Install libmongocrypt',
-                contentSite: 'docs',
-                url: '/docs/:version/core/queryable-encryption/reference/libmongocrypt',
-              },
-              {
-                label: 'Install and Configure a Query Analysis Component',
-                contentSite: 'docs',
-                url: '/docs/:version/core/queryable-encryption/install-library',
+                label:
+                  "Install and Configure a Query Analysis Component",
+                contentSite: "docs",
+                url: "/docs/:version/core/queryable-encryption/install-library",
               },
               {
                 label: 'Create a Customer Master Key',
@@ -276,14 +277,9 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-            label: 'CSFLE Compatibility',
-            contentSite: 'docs',
-            url: 'https://www.mongodb.com/docs/:version/core/queryable-encryption/reference/compatibility',
-          },
-          {
-            label: 'CSFLE Limitations',
-            contentSite: 'docs',
-            url: '/docs/:version/core/csfle/reference/limitations',
+            label: "CSFLE Limitations",
+            contentSite: "docs",
+            url: "/docs/:version/core/csfle/reference/limitations",
           },
           {
             label: 'CSFLE Encryption Schemas',
