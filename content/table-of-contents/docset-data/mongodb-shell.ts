@@ -14,6 +14,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: 'Upgrade',
+            contentSite: 'mongodb-shell',
+            url: '/docs/mongodb-shell/install/upgrade'
+          },
+          {
             label: 'Verify Package Integrity',
             contentSite: 'mongodb-shell',
             url: '/docs/mongodb-shell/install/verify-signatures',
