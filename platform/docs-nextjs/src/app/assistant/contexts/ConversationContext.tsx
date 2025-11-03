@@ -13,10 +13,12 @@ interface ConversationContextType {
   activeConversation: Conversation | null;
   createNewChat: boolean;
   changedConversation: string | null;
+  firstSubmitted: boolean;
   setConversations: (conversations: Conversation[]) => void;
   setActiveConversation: (conversation: Conversation | null) => void;
   setCreateNewChat: (create: boolean) => void;
   setChangedConversation: (changed: string | null) => void;
+  setFirstSubmitted: (submitted: boolean) => void;
 }
 
 const ConversationContext = createContext<ConversationContextType | undefined>(undefined);
@@ -35,6 +37,7 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(conversations[0]);
   const [changedConversation, setChangedConversation] = useState<string | null>(null);
   const [createNewChat, setCreateNewChat] = useState(false);
+  const [firstSubmitted, setFirstSubmitted] = useState(false);
 
   const value: ConversationContextType = {
     conversations,
@@ -45,6 +48,8 @@ export const ConversationProvider: React.FC<ConversationProviderProps> = ({ chil
     setCreateNewChat,
     changedConversation,
     setChangedConversation,
+    firstSubmitted,
+    setFirstSubmitted,
   };
 
   return <ConversationContext.Provider value={value}>{children}</ConversationContext.Provider>;

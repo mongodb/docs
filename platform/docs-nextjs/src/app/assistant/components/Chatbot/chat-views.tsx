@@ -1,8 +1,11 @@
-import { css } from '@leafygreen-ui/emotion';
-import { Disclaimer, Link } from '@leafygreen-ui/typography';
-import { PoweredByAtlasVectorSearch, useChatbotContext, MongoDbLegalDisclosure } from 'mongodb-chatbot-ui';
+'use client';
+
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { css } from '@leafygreen-ui/emotion';
+import { theme } from '@/styles/theme';
+import { PoweredByAtlasVectorSearch, useChatbotContext, MongoDbLegalDisclosure } from 'mongodb-chatbot-ui';
+import { useConversationContext } from '../../contexts/ConversationContext';
 
 const InputBarTrigger = dynamic(() => import('mongodb-chatbot-ui').then((m) => m.InputBarTrigger), { ssr: false });
 const ChatWindow = dynamic(() => import('mongodb-chatbot-ui').then((m) => m.ChatWindow), { ssr: false });
@@ -40,30 +43,61 @@ const INITIAL_MESSAGE_REFERENCES = [
   },
 ];
 
-const disclaimerStyle = css`
-  max-width: 650px;
-  width: 100%;
+const firstLoadContainerStyle = css`
+  padding: 10px 32px;
+  max-width: 830px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
   text-align: center;
+
+  @media ${theme.screenSize.upToSmall} {
+    padding-left: 80px;
+  }
 `;
 
-const linkStyle = css`
-  color: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  font-family: inherit;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
+const chatWindowStyle = css`
+  [class*='chat-message-feed'] {
+    height: calc(100vh - 127px - 95px - 56px) !important;
+  }
+
+  [class*='chat-message-feed'] > div {
+    overflow-y: auto !important;
+  }
+
+  textarea {
+    overflow-y: auto !important;
+    max-height: 100px !important;
+  }
+
+  @media ${theme.screenSize.upToSmall} {
+    padding-left: 40px;
+  }
+
+  @media ${theme.screenSize.largeAndUp} {
+    padding-left: 15%;
+    padding-right: 15%;
+  }
+`;
+
+const inputBarTriggerStyle = css`
+  form > div {
+    padding: 5px;
+  }
+
+  textarea {
+    overflow-y: auto !important;
+    max-height: 100px !important;
+  }
 `;
 
 function ChatViews() {
   const { awaitingReply } = useChatbotContext();
-
-  const [firstSubmitted, setFirstSubmitted] = useState(false);
+  const { firstSubmitted, setFirstSubmitted } = useConversationContext();
 
   useEffect(() => {
     if (!firstSubmitted && awaitingReply) setFirstSubmitted(true);
-  }, [firstSubmitted, awaitingReply]);
+  }, [firstSubmitted, awaitingReply, setFirstSubmitted]);
 
   const viewProps = {
     initialMessageText: INITIAL_MESSAGE_TEXT,
@@ -82,38 +116,13 @@ function ChatViews() {
     ),
   };
   return !firstSubmitted ? (
-    <div>
-      <InputBarTrigger suggestedPrompts={SUGGESTED_PROMPTS}></InputBarTrigger>
-      <Disclaimer className={disclaimerStyle}>
-        This is a generative AI chatbot. By interacting with it, you agree to MongoDB&apos;s{' '}
-        <Link
-          href="https://www.mongodb.com/legal/terms-of-use?tck=mongodb_ai_chatbot"
-          className={linkStyle}
-          hideExternalIcon={true}
-        >
-          Terms of Use
-        </Link>{' '}
-        and{' '}
-        <Link
-          href="https://www.mongodb.com/legal/acceptable-use-policy?tck=mongodb_ai_chatbot"
-          className={linkStyle}
-          hideExternalIcon={true}
-        >
-          Acceptable Use Policy
-        </Link>
-        . To learn more about how we use your data, please see our{' '}
-        <Link
-          href="https://www.mongodb.com/docs/ai-chatbot-data-usage/?tck=mongodb_ai_chatbot"
-          className={linkStyle}
-          hideExternalIcon={true}
-        >
-          Data Usage Policy
-        </Link>
-        .
-      </Disclaimer>
+    <div className={firstLoadContainerStyle}>
+      <InputBarTrigger suggestedPrompts={SUGGESTED_PROMPTS} className={inputBarTriggerStyle}></InputBarTrigger>
     </div>
   ) : (
-    <ChatWindow {...viewProps} />
+    <div className={chatWindowStyle}>
+      <ChatWindow {...viewProps} />
+    </div>
   );
 }
 

@@ -65,10 +65,10 @@ const conversationWrapperStyle = css`
 const sideNavContainerStyle = css`
   position: relative;
   z-index: 2;
+  height: inherit;
 
   @media ${theme.screenSize.upToSmall} {
     position: absolute;
-    height: 80vh;
     background: white;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   }

@@ -1,6 +1,6 @@
 import { useChatbotContext } from 'mongodb-chatbot-ui';
 import { useEffect, useState } from 'react';
-import { useConversationContext } from './contexts/ConversationContext';
+import { useConversationContext } from '../../contexts/ConversationContext';
 
 function ConversationCacheInfo() {
   const [firstLoad, setFirstLoad] = useState(true);

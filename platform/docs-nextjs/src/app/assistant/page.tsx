@@ -1,26 +1,31 @@
 'use client';
 
-import { H1, Body } from '@leafygreen-ui/typography';
+import { H2, Body } from '@leafygreen-ui/typography';
 import { css } from '@leafygreen-ui/emotion';
 import { palette } from '@leafygreen-ui/palette';
-import AssistantSideNav from './components/SideNav';
 import { theme } from '@/styles/theme';
 import { ConversationProvider, useConversationContext } from './contexts/ConversationContext';
 import DarkModeDropdown from '@/components/action-bar/dark-mode-dropdown';
 import dynamic from 'next/dynamic';
-const ChatbotComponent = dynamic(() => import('./chatbot').then((m) => m), {
+import AssistantDisclaimer from './components/ChatbotDisclaimer';
+import AssistantSideNav from './components/SideNav';
+const ChatbotComponent = dynamic(() => import('./components/Chatbot/chatbot').then((m) => m), {
   ssr: false,
 });
 
 const assistantLayoutStyle = css`
   display: grid;
   grid-template-columns: auto 1fr;
-  min-height: 80vh;
-  grid-column: 1 / -1; /* Span across all columns of parent grid */
+  height: calc(100vh - 95px);
+  grid-column: 1 / -1;
+
+  @media ${theme.screenSize.upToLarge} {
+    height: calc(100vh - 56px);
+  }
 
   @media ${theme.screenSize.upToSmall} {
     display: grid;
-    grid-template-columns: 1fr; /* One column */
+    grid-template-columns: 1fr;
     grid-template-rows: 1fr;
   }
 `;
@@ -45,35 +50,64 @@ const dropdownPositionStyle = css`
 
 const mainContentAreaStyle = css`
   z-index: 1;
+  justify-content: space-between;
+  display: flex;
+  flex-direction: column;
+  height: inherit;
 
   @media ${theme.screenSize.upToSmall} {
     position: absolute;
-    max-height: 80vh;
-    overflow-y: scroll;
-    padding: 0px;
+    // max-height: 95vh;
   }
 `;
 
-const assistantContentStyle = css`
+const openingTextStyle = css`
   display: flex;
   flex-direction: column;
   justify-content: center;
   text-align: center;
   align-items: center;
   gap: 16px;
-  padding: 64px 32px;
+  padding-top: 20vh;
+  padding-left: 32px;
+  padding-right: 32px;
+
+  @media ${theme.screenSize.upToSmall} {
+    padding-left: 80px;
+  }
+
+  h2 {
+    color: ${palette.black};
+    .dark-theme & {
+      color: ${palette.gray.light2};
+    }
+  }
+
+  p {
+    color: ${palette.gray.dark1};
+    .dark-theme & {
+      color: ${palette.gray.light1};
+    }
+  }
 `;
 
-const chatbotContainerStyle = css`
-  padding: 10px 50px;
+const scrollContainerStyle = (firstSubmitted: boolean) => css`
+  overflow-y: auto;
+  height: inherit;
+  ${!firstSubmitted &&
+  css`
+    justify-content: space-between;
+    display: flex;
+    flex-direction: column;
+  `}
 
-  div > {
-    max-height: 90vh;
+  @media ${theme.screenSize.upToSmall} {
+    // max-height: 95vh;
   }
 `;
 
 function MongoDBAssistantPageContent() {
-  const { activeConversation } = useConversationContext();
+  const { activeConversation, firstSubmitted } = useConversationContext();
 
   return (
     <div className={assistantLayoutStyle}>
@@ -85,11 +119,17 @@ function MongoDBAssistantPageContent() {
             <DarkModeDropdown />
           </div>
         </header>
-        <div className={assistantContentStyle}>
-          <H1>Ask MongoDB Assistant a Question</H1>
-        </div>
-        <div className={chatbotContainerStyle}>
-          <ChatbotComponent />
+        <div className={scrollContainerStyle(firstSubmitted)}>
+          {!firstSubmitted && (
+            <div className={openingTextStyle}>
+              <H2>Hello! How can I help you?</H2>
+              <Body>I&apos;m here to give expert guidance and recommendations for all things MongoDB.</Body>
+            </div>
+          )}
+          <div>
+            <ChatbotComponent />
+          </div>
+          {!firstSubmitted && <AssistantDisclaimer />}
         </div>
       </div>
     </div>
