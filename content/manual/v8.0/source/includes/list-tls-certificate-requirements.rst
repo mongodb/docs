@@ -9,9 +9,10 @@
   Name (CN) instead. However, this usage of CN is deprecated per `RFC2818 <https://datatracker.ietf.org/doc/html/rfc2818>`_
 
 - If the certificate used as the ``certificateKeyFile`` includes 
-  ``extendedKeyUsage``, the value must include both
-  ``clientAuth`` ("TLS Web Client Authentication") and ``serverAuth``
-  ("TLS Web Server Authentication").
+  ``extendedKeyUsage``, and ``clusterFile`` is not configured on the server,
+  the value must include both ``clientAuth`` ("TLS Web Client Authentication")
+  and ``serverAuth`` ("TLS Web Server Authentication"). If ``clusterFile`` is 
+  configured on the server, only ``serverAuth`` is required.
 
   .. code-block:: none
 
