@@ -72,9 +72,21 @@ const tocData: TocItem[] = [
         url: '/docs/drivers/compatibility/?language=java&java-driver-framework=hibernate',
       },
       {
-        label: 'Hibernate ORM Documentation',
-        isExternal: true,
-        url: 'https://hibernate.org/orm/documentation/6.6/',
+        label: 'API Documentation',
+        contentSite: 'hibernate',
+        collapsible: true,
+        items: [
+          {
+            label: 'MongoDB Extension for Hibernate',
+            isExternal: true,
+            url: 'https://javadoc.io/doc/org.mongodb/mongodb-hibernate/latest/index.html',
+          },
+          {
+            label: 'Hibernate ORM',
+            isExternal: true,
+            url: 'https://hibernate.org/orm/documentation/6.6/',
+          },
+        ],
       },
     ],
   },
