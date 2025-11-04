@@ -4,7 +4,6 @@ const tocData: TocItem[] = [
   {
     label: 'Ops Manager',
     contentSite: 'ops-manager',
-    url: '/docs/ops-manager/:version/',
     group: true,
     versionDropdown: true,
     items: [
@@ -34,7 +33,6 @@ const tocData: TocItem[] = [
       {
         label: 'Install',
         contentSite: 'ops-manager',
-        url: '/docs/ops-manager/:version/installation',
         collapsible: true,
         items: [
           {
@@ -55,7 +53,6 @@ const tocData: TocItem[] = [
           {
             label: 'Installation Methods',
             contentSite: 'ops-manager',
-            url: '/docs/ops-manager/:version/tutorial/nav/install-application',
             collapsible: true,
             items: [
               {
@@ -663,13 +660,11 @@ const tocData: TocItem[] = [
       {
         label: 'Backup & Restore',
         contentSite: 'ops-manager',
-        url: '/docs/ops-manager/:version/tutorial/nav/backup-use',
         collapsible: true,
         items: [
           {
             label: 'Back Up',
             contentSite: 'ops-manager',
-            url: '/docs/ops-manager/:version/tutorial/nav/backup-deployments',
             collapsible: true,
             items: [
               {
@@ -692,7 +687,6 @@ const tocData: TocItem[] = [
           {
             label: 'Manage Backups',
             contentSite: 'ops-manager',
-            url: '/docs/ops-manager/:version/tutorial/nav/backup-use-operations',
             collapsible: true,
             items: [
               {
@@ -960,7 +954,6 @@ const tocData: TocItem[] = [
       {
         label: 'MongoDB Agent',
         contentSite: 'ops-manager',
-        url: '/docs/ops-manager/:version/tutorial/nav/mongodb-agent',
         collapsible: true,
         items: [
           {
@@ -989,7 +982,6 @@ const tocData: TocItem[] = [
           {
             label: 'Update',
             contentSite: 'ops-manager',
-            url: '/docs/ops-manager/:version/tutorial/nav/update-mongodb-agent',
             collapsible: true,
             items: [
               {
@@ -1148,7 +1140,6 @@ const tocData: TocItem[] = [
       {
         label: 'Account Management',
         contentSite: 'ops-manager',
-        url: '/docs/ops-manager/:version/tutorial/nav/account-management',
         collapsible: true,
         items: [
           {
@@ -3279,7 +3270,6 @@ const tocData: TocItem[] = [
       {
         label: 'FAQ',
         contentSite: 'ops-manager',
-        url: '/docs/ops-manager/:version/faq',
         collapsible: true,
         items: [
           {
