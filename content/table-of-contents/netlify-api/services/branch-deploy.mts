@@ -1,4 +1,4 @@
-import { NetlifyAPI } from "@netlify/api";
+import type { NetlifyAPI } from "@netlify/api";
 
 export const triggerBranchDeploy = async ({
   siteId,

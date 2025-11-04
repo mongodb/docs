@@ -4,7 +4,7 @@ import CsharpDriverData from '../docset-data/csharp-driver';
 import DjangoDriverData from '../docset-data/django';
 import EntityDriverData from '../docset-data/entity-framework';
 import GoDriverData from '../docset-data/golang-drivers';
-import HibernateExtData from "../docset-data/hibernate";
+import HibernateExtData from '../docset-data/hibernate';
 import JavaDriverData from '../docset-data/java-driver';
 import JavarsDriverData from '../docset-data/java-rs';
 import KotlinDriverData from '../docset-data/kotlin-coroutine';
@@ -88,6 +88,13 @@ const tocData: TocItem[] = [
             url: '/docs/languages/java/reactive-streams-driver/current/',
             showSubNav: true,
             items: JavarsDriverData,
+          },
+          {
+            label: 'MongoDB Extension for Hibernate',
+            contentSite: 'hibernate',
+            url: '/docs/languages/java/mongodb-hibernate/current/',
+            showSubNav: true,
+            items: HibernateExtData,
           },
         ]
       },

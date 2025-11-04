@@ -1,4 +1,4 @@
-import { NetlifyAPI } from "@netlify/api";
+import type { NetlifyAPI } from "@netlify/api";
 import { PROD_PREPROD_BRANCH_NAMES } from "../configs.js";
 
 export const triggerAllSitesDeploys = async ({
