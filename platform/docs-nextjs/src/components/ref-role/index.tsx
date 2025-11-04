@@ -62,7 +62,6 @@ const RefRole = ({ nodeChildren, fileid, url, cardRef = false, showLinkArrow = f
       // :doc: link
       link = filename;
     } else {
-      console.log('in else ');
       link = `${filename}/#${html_id}`;
     }
   }

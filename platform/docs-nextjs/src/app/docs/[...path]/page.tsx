@@ -7,7 +7,9 @@ import { getPageMetadata, getLocaleLinks } from '@/utils/seo';
 import { type DBMetadataDocument } from '@/services/db/snooty-metadata';
 import { fetchAllAssets } from '@/services/db/assets';
 import { CustomTemplate } from './custom-template';
+import { cookies } from 'next/headers';
 import envConfig from '@/utils/env-config';
+import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
 
 interface PageProps {
   params: {
@@ -16,6 +18,15 @@ interface PageProps {
 }
 
 export default async function Page({ params: { path } }: PageProps) {
+  const cookieStore: ReadonlyRequestCookies = await cookies();
+  const cookieArray = await cookieStore.getAll();
+
+  // Convert array of cookie objects to key-value pairs object
+  const cookieValues = cookieArray.reduce((acc, cookie) => {
+    acc[cookie.name] = cookie.value;
+    return acc;
+  }, {} as Record<string, string>);
+
   const [pageDoc, docsets] = await Promise.all([getPageDocFromParams({ path }), getAllDocsetsWithVersionsCached()]);
   const [metadata, assetMap] = await Promise.all([
     getSnootyMetadata(pageDoc?.buildId ?? ''),
@@ -31,7 +42,14 @@ export default async function Page({ params: { path } }: PageProps) {
     return (
       <>
         {localeLinks}
-        <CustomTemplate pageDoc={pageDoc} metadata={metadata} assets={assetMap} docsets={docsets} env={env} />
+        <CustomTemplate
+          cookies={cookieValues}
+          pageDoc={pageDoc}
+          metadata={metadata}
+          assets={assetMap}
+          docsets={docsets}
+          env={env}
+        />
       </>
     );
   }

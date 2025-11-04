@@ -5,9 +5,7 @@ import { cx, css } from '@leafygreen-ui/emotion';
 import useStickyTopValues from '@/hooks/use-sticky-top-values';
 import { displayNone } from '@/utils/display-none';
 import { theme } from '@/styles/theme';
-// import { DISMISSIBLE_SKILLS_CARD_CLASSNAME } from './DismissibleSkillsCard';
-// TODO DOP-5973: Add dismissible skills card
-const DISMISSIBLE_SKILLS_CARD_CLASSNAME = 'dismissible-skills-card';
+import { DISMISSIBLE_SKILLS_CARD_CLASSNAME } from '@/components/dismissable-skills-card';
 
 const RightColumn = ({
   hasDismissibleSkillsCard,

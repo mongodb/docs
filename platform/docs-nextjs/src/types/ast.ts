@@ -41,6 +41,7 @@ type ComponentType =
   | 'deprecated'
   | 'deprecated-version-selector'
   | 'describe'
+  | 'dismissible-skills-card'
   | 'extract'
   | 'field'
   | 'field_list'

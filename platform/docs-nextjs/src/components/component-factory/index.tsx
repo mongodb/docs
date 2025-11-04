@@ -70,7 +70,6 @@ import Rubric, { type RubricProps } from '@/components/rubric';
 import Footnote, { type FootnoteNodeProps } from '@/components/footnote';
 import FootnoteReference, { type FootnoteReferenceProps } from '@/components/footnote/footnote-reference';
 import Target, { type TargetProps } from '@/components/target';
-import type {} from '@/components/literal';
 import Literal, { type LiteralProps, type FormatTextOptions } from '@/components/literal';
 import Button, { type ButtonProps } from '@/components/button';
 import Procedure, { type ProcedureProps } from '@/components/procedure';

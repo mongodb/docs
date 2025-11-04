@@ -38,6 +38,7 @@ function getTemplate(templateOption: string): { Template: TemplateComponent; ren
 }
 
 interface CustomTemplateProps {
+  cookies: Record<string, string>;
   pageDoc: ASTDocument;
   docsets: Docset[];
   metadata?: RemoteMetadata;
@@ -45,12 +46,20 @@ interface CustomTemplateProps {
   env: Environments;
 }
 
-export const CustomTemplate = ({ pageDoc, metadata, assets, docsets, env }: CustomTemplateProps) => {
+export const CustomTemplate = ({ cookies, pageDoc, metadata, assets, docsets, env }: CustomTemplateProps) => {
   const template = pageDoc.ast.options?.template || 'document';
   const { Template, renderSidenav } = getTemplate(pageDoc.ast.options?.template || 'document');
 
   return (
-    <RootProvider page={pageDoc} metadata={metadata} assets={assets} docsets={docsets} env={env} template={template}>
+    <RootProvider
+      cookies={cookies}
+      page={pageDoc}
+      metadata={metadata}
+      assets={assets}
+      docsets={docsets}
+      env={env}
+      template={template}
+    >
       {renderSidenav && (
         // TODO: return a sidenav here
         <div

@@ -19,6 +19,7 @@ import type { PageTemplateType } from '@/types/ast';
 import { InstruqtProvider } from '@/context/instruqt-context';
 import { ImageContextProvider, type ImageContextType } from '@/context/image-context';
 import type { Environments } from '@/utils/env-config';
+import { CookiesProvider } from '@/context/cookies-context';
 
 const getPageSlug = (fileName: ASTDocument['filename']) => {
   return fileName === 'index' ? '/' : fileName.replace('.txt', '');
@@ -26,6 +27,7 @@ const getPageSlug = (fileName: ASTDocument['filename']) => {
 
 interface RootProviderProps {
   children: React.ReactNode;
+  cookies: Record<string, string>;
   metadata?: RemoteMetadata;
   page: ASTDocument;
   docsets: Docset[];
@@ -34,33 +36,35 @@ interface RootProviderProps {
   template: PageTemplateType;
 }
 
-const RootProvider = ({ children, metadata, page, assets, docsets, env, template }: RootProviderProps) => {
+const RootProvider = ({ cookies, children, metadata, page, assets, docsets, env, template }: RootProviderProps) => {
   const pageNodes = page.ast.children || [];
   const headingNodes = page.ast.options?.headings || [];
 
   return (
     <MetadataProvider value={metadata}>
-      <VersionContextProvider docsets={docsets} slug={getPageSlug(page.filename)} env={env}>
-        <PageContext.Provider
-          value={{
-            page: page.ast,
-            slug: getPageSlug(page.filename),
-            template,
-            tabsMainColumn: page.ast.options?.['tabs-selector-position'] === 'main',
-            options: page.ast.options,
-          }}
-        >
-          <FootnoteProvider pageNodes={pageNodes}>
-            <ContentsProvider headingNodes={headingNodes}>
-              <TabProvider selectors={page.ast.options?.selectors} defaultTabs={page.ast.options?.default_tabs}>
-                <InstruqtProvider hasLabDrawer={!!page.ast.options?.instruqt}>
-                  <ImageContextProvider value={assets}>{children}</ImageContextProvider>
-                </InstruqtProvider>
-              </TabProvider>
-            </ContentsProvider>
-          </FootnoteProvider>
-        </PageContext.Provider>
-      </VersionContextProvider>
+      <CookiesProvider cookies={cookies}>
+        <VersionContextProvider docsets={docsets} slug={getPageSlug(page.filename)} env={env}>
+          <PageContext.Provider
+            value={{
+              page: page.ast,
+              slug: getPageSlug(page.filename),
+              template,
+              tabsMainColumn: page.ast.options?.['tabs-selector-position'] === 'main',
+              options: page.ast.options,
+            }}
+          >
+            <FootnoteProvider pageNodes={pageNodes}>
+              <ContentsProvider headingNodes={headingNodes}>
+                <TabProvider selectors={page.ast.options?.selectors} defaultTabs={page.ast.options?.default_tabs}>
+                  <InstruqtProvider hasLabDrawer={!!page.ast.options?.instruqt}>
+                    <ImageContextProvider value={assets}>{children}</ImageContextProvider>
+                  </InstruqtProvider>
+                </TabProvider>
+              </ContentsProvider>
+            </FootnoteProvider>
+          </PageContext.Provider>
+        </VersionContextProvider>
+      </CookiesProvider>
     </MetadataProvider>
   );
 };

@@ -9,6 +9,7 @@ import documentStyling from './document.module.scss';
 import Contents from '@/components/contents';
 import { usePageContext } from '@/context/page-context';
 import TabSelectors from '@/components/tabs/tab-selectors';
+import DismissibleSkillsCard from '@/components/dismissable-skills-card';
 import type { BaseTemplateProps } from '.';
 import { cx } from '@leafygreen-ui/emotion';
 
@@ -26,6 +27,8 @@ export default function DocumentTemplate({ children, slug, pageOptions }: BaseTe
 
   const showPrevNext = !(pageOptions?.noprevnext === '' || pageOptions?.template === 'guide');
 
+  const dismissibleSkillsCard = pageOptions?.dismissible_skills_card;
+
   return (
     <div className={cx(documentStyling.document, 'document-template')}>
       <MainColumn className={documentStyling['main-column']}>
@@ -39,7 +42,10 @@ export default function DocumentTemplate({ children, slug, pageOptions }: BaseTe
           )}
         </div>
       </MainColumn>
-      <RightColumn hasDismissibleSkillsCard={false} className={documentStyling['right-column']}>
+      <RightColumn hasDismissibleSkillsCard={!!dismissibleSkillsCard} className={documentStyling['right-column']}>
+        {!!dismissibleSkillsCard && (
+          <DismissibleSkillsCard skill={dismissibleSkillsCard.skill} url={dismissibleSkillsCard.url} slug={slug} />
+        )}
         {!hasMethodSelector && !tabsMainColumn && <TabSelectors rightColumn={true} />}
         <Contents />
       </RightColumn>
