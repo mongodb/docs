@@ -199,6 +199,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-fleet-management',
           },
           {
+            label: 'Agentic Fleet Management',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/agentic-fleet-management'
+          },
+          {
             label: 'Agentic Voice Assistant for Airport Operations',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/agentic-airport-operations',
