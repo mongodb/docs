@@ -90,7 +90,7 @@ const tocData: TocItem[] = [
             items: JavarsDriverData,
           },
           {
-            label: 'MongoDB Extension for Hibernate',
+            label: 'MongoDB Extension for Hibernate ORM',
             contentSite: 'hibernate',
             url: '/docs/languages/java/mongodb-hibernate/current/',
             showSubNav: true,

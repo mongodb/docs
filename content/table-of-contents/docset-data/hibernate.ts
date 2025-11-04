@@ -2,7 +2,7 @@ import type { TocItem } from '../types';
 
 const tocData: TocItem[] = [
   {
-    label: 'MongoDB Extension for Hibernate',
+    label: 'MongoDB Extension for Hibernate ORM',
     contentSite: 'hibernate',
     group: true,
     versionDropdown: true,
@@ -77,7 +77,7 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-            label: 'MongoDB Extension for Hibernate',
+            label: 'MongoDB Extension for Hibernate ORM',
             isExternal: true,
             url: 'https://javadoc.io/doc/org.mongodb/mongodb-hibernate/latest/index.html',
           },
