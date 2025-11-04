@@ -54,6 +54,14 @@ object DatabasesCollections {
     }
 
     {
+      // start-delete-db
+      var database = mongoClient.getDatabase("test_database")
+      val deleteObservable = database.drop()
+      Await.result(deleteObservable.toFuture(), Duration(10, TimeUnit.SECONDS))
+      // end-delete-db
+    }
+
+    {
 
       // start-database-read-prefs
       val databaseWithReadPrefs =
