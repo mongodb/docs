@@ -307,9 +307,9 @@ const tocData: TocItem[] = [
             versions: { excludes: ['v1.9', 'v2.0', 'v2.1', 'v2.2'] },
           },
           {
-            label: 'AtlasStreamInstance',
+            label: 'AtlasStreamWorkspace',
             contentSite: 'atlas-operator',
-            url: '/docs/atlas/operator/:version/atlasstreaminstance-custom-resource',
+            url: '/docs/atlas/operator/:version/atlasstreamworkspace-custom-resource',
             versions: { excludes: ['v1.9', 'v2.0', 'v2.1', 'v2.2'] },
           },
           {
