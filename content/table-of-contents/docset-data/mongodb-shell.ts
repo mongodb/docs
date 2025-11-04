@@ -16,7 +16,7 @@ const tocData: TocItem[] = [
           {
             label: 'Upgrade',
             contentSite: 'mongodb-shell',
-            url: '/docs/mongodb-shell/install/upgrade'
+            url: '/docs/mongodb-shell/install/upgrade',
           },
           {
             label: 'Verify Package Integrity',

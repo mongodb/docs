@@ -53,7 +53,7 @@ const tocData: TocItem[] = [
             label: 'Transactions',
             contentSite: 'hibernate',
             url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/transactions',
-          }
+          },
         ],
       },
       {

@@ -8,14 +8,14 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
-        label: "Compatibility",
-        contentSite: "docs",
-        url: "/docs/:version/core/queryable-encryption/reference/compatibility",
+        label: 'Compatibility',
+        contentSite: 'docs',
+        url: '/docs/:version/core/queryable-encryption/reference/compatibility',
       },
       {
-        label: "Queryable Encryption Limitations",
-        contentSite: "docs",
-        url: "/docs/:version/core/queryable-encryption/reference/limitations",
+        label: 'Queryable Encryption Limitations',
+        contentSite: 'docs',
+        url: '/docs/:version/core/queryable-encryption/reference/limitations',
       },
       {
         label: 'CSFLE Limitations',
@@ -114,10 +114,9 @@ const tocData: TocItem[] = [
                 url: '/docs/:version/core/queryable-encryption/install',
               },
               {
-                label:
-                  "Install and Configure a Query Analysis Component",
-                contentSite: "docs",
-                url: "/docs/:version/core/queryable-encryption/install-library",
+                label: 'Install and Configure a Query Analysis Component',
+                contentSite: 'docs',
+                url: '/docs/:version/core/queryable-encryption/install-library',
               },
               {
                 label: 'Create a Customer Master Key',
@@ -277,9 +276,9 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-            label: "CSFLE Limitations",
-            contentSite: "docs",
-            url: "/docs/:version/core/csfle/reference/limitations",
+            label: 'CSFLE Limitations',
+            contentSite: 'docs',
+            url: '/docs/:version/core/csfle/reference/limitations',
           },
           {
             label: 'CSFLE Encryption Schemas',

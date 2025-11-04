@@ -96,7 +96,7 @@ const tocData: TocItem[] = [
             showSubNav: true,
             items: HibernateExtData,
           },
-        ]
+        ],
       },
       {
         label: 'Kotlin',

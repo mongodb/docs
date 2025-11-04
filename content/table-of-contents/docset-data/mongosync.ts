@@ -205,14 +205,14 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: "Restart Mongosync",
-            contentSite: "mongosync",
-            url: "/docs/mongosync/:version/reference/restart-mongosync",
+            label: 'Restart Mongosync',
+            contentSite: 'mongosync',
+            url: '/docs/mongosync/:version/reference/restart-mongosync',
           },
           {
-            label: "Reverse Sync Direction",
-            contentSite: "mongosync",
-            url: "/docs/mongosync/:version/reverse-sync",
+            label: 'Reverse Sync Direction',
+            contentSite: 'mongosync',
+            url: '/docs/mongosync/:version/reverse-sync',
           },
           {
             label: 'Limitations',
