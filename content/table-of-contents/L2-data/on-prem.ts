@@ -651,7 +651,6 @@ const tocData: TocItem[] = [
       {
         label: 'Sharding',
         contentSite: 'docs',
-        url: '/docs/:version/sharding',
         collapsible: true,
         items: [
           {
