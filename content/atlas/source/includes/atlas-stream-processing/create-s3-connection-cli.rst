@@ -1,4 +1,3 @@
-
 Add an S3 Connection through {+atlas-cli+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

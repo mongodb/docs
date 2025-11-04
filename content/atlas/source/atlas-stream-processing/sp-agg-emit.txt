@@ -309,6 +309,112 @@ The ``$emit`` stage takes a document with the following fields:
    The maximum size for documents within a time series collection is 4 MB. 
    To learn more, see :ref:`manual-timeseries-collection-limitations`.
 
+.. _sp-emit-kinesis:
+
+{+aws+} Kinesis
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To write processed data to {+aws+} Kinesis, use the ``$emit``
+pipeline stage with the following prototype form:
+
+.. code-block:: json
+
+   {
+     "$emit": {
+       "connectionName": "<registered-connection>",
+       "stream": "<stream-name>",
+       "region": "<aws-region>",
+       "partitionKey": "<key>" | <field> | <expression>
+       "config": {
+         "outputFormat": "<json-format>",
+         "dateFormat": "default" | "ISO8601",
+       }
+     }
+   }
+
+The ``$emit`` stage takes a document with the following fields:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 25 10 12 40
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``connectionName`` 
+     - string
+     - Required 
+     - Name, as it appears in the 
+       :ref:`Connection Registry <atlas-sp-manage-connections>`, of the
+       connection to ingest data from.
+
+   * - ``stream``
+     - string
+     - Required 
+     - Name of the Kinesis data stream to which to connect.
+
+   * - ``region``
+     - string 
+     - Optional
+     - Region in which the Kinesis Data Stream operates. {+aws+}
+       supports multiple streams with the same name, each in a
+       distinct region. This parameter allows {+atlas-sp+} to
+       distinguish between such streams.
+
+   * - ``config``
+     - document 
+     - Optional
+     - Document containing fields that override various default 
+       values.
+
+   * - ``config.outputFormat``
+     - string
+     - Optional 
+     - JSON format to use when emitting messages to Kinesis. Must be one of the
+       following values:
+
+       - ``"relaxedJson"``
+       - ``"canonicalJson"``
+       - ```"basicJson"``
+
+       Defaults to ``"relaxedJson"``.
+
+   * - ``config.dateFormat``
+     - string
+     - Optional
+     - Date format for the date value. Valid values are:
+
+       - ``default`` - to use the default of the ``outputFormat``.
+       - ``ISO8601`` - to convert dates to strings in the ``ISO8601``
+         format, which includes millisecond precision
+         (``YYYY-MM-DDTHH:mm:ss.sssZ``).
+
+       For example:
+
+       Consider the following input.
+
+       .. code-block:: json
+
+          { "flightTime" :  ISODate('2025-01-10T20:17:38.387Z') }
+
+       If ``$emit.config.dateFormat`` is set to ``default``,
+       output looks similar to the following:
+
+       .. code-block:: shell 
+          :copyable: false
+
+          { "flightTime" :  {$date :"2025-01-10T20:17:38.387Z"}}
+
+       If ``$emit.config.dateFormat`` is set to ``ISO8601``,
+       output looks similar to the following:
+
+       .. code-block:: shell
+          :copyable: false
+
+          { "flightTime" :  "2025-01-10T20:17:38.387Z" }
+
 .. _sp-emit-s3:
 
 {+aws+} S3

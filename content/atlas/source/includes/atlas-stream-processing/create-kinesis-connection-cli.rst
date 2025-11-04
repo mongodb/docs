@@ -1,8 +1,8 @@
-Add a S3 Connection through the {+atlas-admin-api+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Add a Kinesis Connection through {+atlas-cli+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To add an |s3| connection to your {+spw+} through the
-{+atlas-admin-api+}, follow these steps:
+To add a kinesis connection to your {+spw+} through
+{+atlas-cli+}, follow these steps:
 
 .. procedure::
    :style: normal
@@ -25,19 +25,11 @@ To add an |s3| connection to your {+spw+} through the
 
       .. include:: /includes/atlas-stream-processing/create-aws-api-key.rst
 
-   .. step:: Create the S3 Connection.
+   .. step:: Create the Kinesis connection.
 
-      The {+atlas-admin-api+} provides an endpoint to
-      :oas-bump-atlas-op:`Create One Connection
-      <creategroupstreamconnection>`. You must send this
-      request using digest authorization.
+      .. include:: /includes/extracts/atlas-streams-connections-create.rst
 
-      In your HTTP request interface, enable digest authorization. For
-      the ``username``, provide the public key you generated
-      previously. For the ``password``, provide the private key you
-      generated previously.
-
-      For an {+aws+} |s3| connection, set the following key-value pairs:
+      In your configuration file, set the following key-value pairs:
 
       .. list-table::
          :widths: 35 65
@@ -47,7 +39,7 @@ To add an |s3| connection to your {+spw+} through the
            - Value
 
          * - ``type``
-           - ``"S3"``
+           - ``"AWSKinesisDataStreams"``
 
          * - ``aws.roleArn``
            - Value of the ARN noted in an earlier step.
