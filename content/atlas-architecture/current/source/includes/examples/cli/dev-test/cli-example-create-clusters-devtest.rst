@@ -12,7 +12,7 @@
      --tag bu=ConsumerProducts \
      --tag teamName=TeamA \
      --tag appName=ProductManagementApp \
-     --tag env=Production \
+     --tag env=dev \
      --tag version=8.0 \
-     --tag email=marissa@acme.com \
+     --tag email=marissa@example.com \
      --watch
