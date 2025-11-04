@@ -28,13 +28,11 @@
       
          - An index on the :guilabel:`Date` field of your collection.
          - A compoiund index on ``[control.closed, control.min.<date_field>]`` 
-           for the underlying ``system.bucket.<collection>. 
+           for the underlying ``system.bucket.<collection>``. 
       
       #. Select the cloud provider region where you want to store your
          archived data.
-      
-          
-      
+                   
          :gold:`IMPORTANT:` We recommend that you select the same region as 
          your {+cluster+} if possible because you might incur higher data 
          transfer cost if you choose a different region.
