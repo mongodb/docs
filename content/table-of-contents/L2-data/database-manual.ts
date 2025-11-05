@@ -284,6 +284,18 @@ const tocData: TocItem[] = [
               },
             ],
           },
+          {
+            label: 'Community-Maintained',
+            contentSite: 'cloud-docs',
+            collapsible: true,
+            items: [
+              {
+                label: 'Mastra',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/ai-integrations/mastra',
+              },
+            ],
+          },
         ],
       },
       {
