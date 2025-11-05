@@ -138,7 +138,7 @@
 26 May 2020 Release
 ~~~~~~~~~~~~~~~~~~~
 
-- Adds support for :atlas:`Atlas Clusters </cluster-configuration>` as a
+- Adds support for :atlas:`Atlas Clusters </scale-cluster>` as a
   data source.
 - Improves performance for the :ref:`adf-lookup-stage` aggregation pipeline stage.
 - Adds support for evaluating string :manual:`$convert
@@ -170,7 +170,7 @@
 - Updates support for `Apache Parquet <https://parquet.apache.org/>`__
   `LIST <https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#lists>`__
   element.
-- Upgrades :manual:`wire protocol <l/reference/mongodb-wire-protocol>`
+- Upgrades :manual:`wire protocol </reference/mongodb-wire-protocol>`
   support to 4.2 from 3.6.
 - Adds support for verbosity in the explain plan.
 

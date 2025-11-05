@@ -266,7 +266,7 @@
 30 March 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
-- Supports using :realm:`{+MongoDB-Realm+} </>` in multi-cloud clusters.
+- Supports using Realm in multi-cloud clusters.
 
 .. _atlas_20210309:
 
