@@ -1,7 +1,15 @@
+.. _atlas-sp-20251029:
+
+29 October 2025 Release
+------------------------
+
+- Replaces the previous instance model with {+atlas-sp+} Workspaces. To learn 
+  more, see :ref:`Stream Processing Tiers <atlas-sp-architecture-tiers>`.
+
 .. _atlas-sp-20250901:
 
 1 September 2025 Release
--------------------------------------
+------------------------
 
 - Adds support for the {+aws+} |s3| private link connection type.
 
