@@ -45,6 +45,11 @@ foreach ($client->test_database->listCollections() as $collectionInfo) {
 $client->test_database->dropCollection('test_collection');
 // end-drop-collection
 
+// Deletes the "test_database" database
+// start-drop-database
+$client->dropDatabase('test_database');
+// end-drop-database
+
 // Sets read and write settings for the "test_database" database
 // start-database-settings
 $readPreference = new ReadPreference(ReadPreference::RP_SECONDARY);
