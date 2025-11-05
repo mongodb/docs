@@ -375,6 +375,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: 'Advanced Search with Enterprise Server',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/search-enterprise-server',
+          },
+          {
             label: 'Automating Product Descriptions',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/retail-asset-product-description',
