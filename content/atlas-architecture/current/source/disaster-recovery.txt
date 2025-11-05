@@ -54,16 +54,21 @@ It is imperative that you test the plans in this section regularly (ideally quar
 
 Some disaster recovery testing might require actions that cannot be performed by EDM users. In these cases, open a support case for the purpose of performing artificial outages at least a week in advance of when you plan on running a test exercise.
 
-The following diagram provides an overview of the available disaster recovery 
-configuration options, including the relative gains in RTO and RPO and the 
-relative cost and complexity of deploying each option and remediating various 
-disaster scenarios.
+The following diagram compares different disaster recovery scenarios and deployment 
+configurations. The table shows the relative Recovery Time Objective (RTO) and 
+Recovery Point Objective (RPO) benefits versus the deployment complexity and cost 
+for each configuration. Note that replica set elections (automatic failover) do not 
+result in data loss, while recovery from backups might involve some data loss depending 
+on the backup frequency. "Control plane fault" refers to issues with the {+service+} 
+management infrastructure rather than your data nodes.
 
 .. figure:: /includes/images/rto-rpo-table.png
   :figwidth: 1929px
-  :alt: An image showing relative complexity and RTO/RPO trade-offs.   
+  :alt: An image showing relative complexity and RTO/RPO trade-offs for different disaster recovery configurations.   
   :align: center
   :lightbox:
+
+  Figure 1. Disaster recovery configuration complexity and RTO/RPO trade-offs. 
 
 .. collapsible::
    :heading: Single-Region Deployment Recommendations
@@ -83,7 +88,14 @@ disaster scenarios.
    :sub_heading: Recommendations that apply only to deployments across multiple regions or multiple cloud providers
    :expanded: true
 
-   If you run a multi-region or multi-cloud MongoDB {+cluster+}, ensure you configure your backup strategy to account for your specific needs for mitigating data corruption risks. Address how quickly you can identify a potential data corruption issue within your system. Once you establish this detection timeframe, configure your backup retention accordingly, and ensure that snapshots are available to restore from before the corruption occurred. To account for any delays or uncertainties in detecting the issue, we advise you to include an additional buffer, typically around 10-15%, in your backup retention schedule. This padding helps ensure you can reliably recover clean data without losing critical information, which enhances the overall resilience and reliability of your deployment.
+   Multi-region and multi-cloud deployments provide enhanced disaster recovery capabilities 
+   by distributing your {+cluster+} nodes across different geographic locations or cloud 
+   providers. This distribution helps ensure that if one region or cloud provider experiences 
+   an outage, your application can continue operating using nodes in unaffected locations. 
+   
+   When configuring multi-region or multi-cloud deployments, ensure your backup strategy 
+   accounts for the distributed nature of your deployment, including setting appropriate 
+   backup retention periods based on your specific recovery requirements.
 
 All Deployment Paradigm Recommendations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -171,11 +183,11 @@ Cloud Provider Outage
 
 With multi-cloud {+clusters+}, you can select electable nodes across cloud providers 
 to maintain high availability. Should the provider in which your primary node is 
-deployed become unavailable, electable nodes can be converted to primary nodes 
-to ensure continuous operation. For example, you can create electable nodes on 
-{+aws+}, {+gcp+}, and {+azure+} to ensure that if one cloud provider experiences 
-an outage, an electable node on a separate provider can take over as your 
-{+cluster+}'s primary node. To learn more, see :ref:`<arch-center-paradigms-multi-cloud>`.
+deployed become unavailable, |service| automatically elects new primary nodes 
+to ensure continuous operation. For example, you can create electable 
+nodes on {+aws+}, {+gcp+}, and {+azure+} to ensure that if one cloud provider 
+experiences an outage, an electable node on a separate provider can automatically 
+take over as your {+cluster+}'s primary node. To learn more, see :ref:`<arch-center-paradigms-multi-cloud>`.
 
 Most multi-region {+service+} {+clusters+} will recover automatically from a single region outage. 
 To learn more, see the High Availability section and Multi-region Deployment page. 
@@ -333,20 +345,25 @@ If a driver fails, follow these steps:
 
       You can work with the technical support team during this step.
 
-      If you determine that reverting to an earlier driver version will
-      fix the issue, continue to the next step.
+      Determine whether the issue is related to an outdated driver version 
+      or a recently updated driver version.
 
-   .. step:: Determine when the issue was introduced and the latest working driver version
+   .. step:: Identify the appropriate driver version to resolve the issue
 
-   .. step:: Evaluate if any other changes are required to move to an earlier driver version
+      - If you are using an outdated driver, check if upgrading to a newer 
+        version resolves the issue. Most driver problems are fixed in newer releases.
+      - If you recently upgraded your driver and suspect the new version 
+        introduced the issue, consider reverting to the previous working version.
+
+   .. step:: Evaluate if any other changes are required to move to the target driver version
       
       This might include application code or query changes. For example,
-      there might be a breaking change if you are moving between
-      major and minor versions.
+      there might be breaking changes if you are moving between
+      major versions, or new features available if upgrading.
 
    .. step:: Test the changes in a non-production environment
 
-   .. step:: If you don't encounter issues while testing, downgrade to the new driver version
+   .. step:: If you don't encounter issues while testing, deploy the new driver version
       
       Ensure that any other changes from the previous step are
       reflected in the production environment.
