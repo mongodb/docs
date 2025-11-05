@@ -216,11 +216,6 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/atlas-ui/triggers/scheduled-triggers',
       },
       {
-        label: 'Authentication Triggers',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/atlas-ui/triggers/authentication-triggers',
-      },
-      {
         label: 'Disable a Trigger',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/atlas-ui/triggers/disable',
