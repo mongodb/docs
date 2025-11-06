@@ -411,11 +411,6 @@ const tocData: TocItem[] = [
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/retail-as-you-type-suggestions',
           },
-          {
-            label: 'Dynamic Pricing',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/retail-dynamic-pricing',
-          },
         ],
       },
     ],
