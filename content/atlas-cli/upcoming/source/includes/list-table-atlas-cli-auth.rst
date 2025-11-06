@@ -2,14 +2,18 @@
    :header-rows: 1
    :widths: 20 40 20
    
-   * - Command
+   * - Option
      - Authentication Method
      - Use Case
 
-   * - ``atlas auth login``
+   * - ``UserAccount``
      - |service| login credentials and an authentication token
      - Best for non-programmatic use
 
-   * - ``atlas config init``
+   * - ``ServiceAccount``
+     - Service Account 
+     - Best for programmatic use with a Service Account
+
+   * - ``APIKeys``
      - |api| keys
-     - Best for programmatic use
+     - Best for programmatic use with an API Key
