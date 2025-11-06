@@ -154,6 +154,11 @@ const tocData: TocItem[] = [
             url: '/docs/mongodb-shell/write-scripts/require-load-differences',
           },
           {
+            label: 'Environment Variables',
+            contentSite: 'mongodb-shell',
+            url: '/docs/mongodb-shell/write-scripts/env-variables',
+          },
+          {
             label: 'Code Scoping',
             contentSite: 'mongodb-shell',
             url: '/docs/mongodb-shell/write-scripts/scoping',
