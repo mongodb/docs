@@ -16,8 +16,8 @@ import type { Environments } from '@/utils/env-config';
 import type { BranchData, Docset, Group } from '@/types/data';
 import { getUrl } from '@/utils/url-utils';
 
-export type ActiveVersions = Record<string, string>;
-export type AvailableVersions = Record<string, BranchData[]>;
+type ActiveVersions = Record<string, string>;
+type AvailableVersions = Record<string, BranchData[]>;
 type AvailableGroups = Record<string, Group[]>;
 
 // <-------------- begin helper functions -------------->
