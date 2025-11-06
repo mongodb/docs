@@ -1,31 +1,52 @@
 import type { InstruqtProps } from '@/components/instruqt';
+import type { OpenAPIProps } from '@/components/openapi';
+import type { OpenAPINode } from '@/types/ast';
+import type { InstruqtNode } from '@/types/ast';
+import type { ComponentFactoryProps } from '@/components/component-factory';
 import dynamic from 'next/dynamic';
+import type { ComponentType } from 'react';
 
-// Passing an object with nodeData as a property
-type Data = {
-  nodeData: InstruqtProps;
+type LazyComponentMapType = {
+  instruqt: ComponentType<ComponentFactoryProps>;
+  openapi: ComponentType<ComponentFactoryProps>;
 };
 
-type LazyComponentMap = {
-  instruqt: React.ComponentType<Data>;
-};
-
-export const ComponentMap = {
-  // TODO: uncomment this out as they get ported over
-  // openapi: dynamic(() => import('./OpenAPI')),
-  // video: dynamic(() => import('./Video')),
+export const LazyComponentMap = {
   instruqt: dynamic(() => import('@/components/instruqt')),
+  openapi: dynamic(() => import('@/components/openapi')),
+  // TODO: uncomment this out as they get ported over
+  // video: dynamic(() => import('./Video')),
 } as const;
 
 /**
  * Creates a map of lazy-loaded components by wrapping each component in a wrapper function.
  * i.e openapi, video, and instruqt
  */
-export const LAZY_COMPONENTS: LazyComponentMap = (
-  Object.keys(ComponentMap) as Array<keyof typeof ComponentMap>
-).reduce<LazyComponentMap>((res, key) => {
-  // Offline work will be done in the offline epic
-  const LazyComponent = ComponentMap[key];
-  res[key] = (props) => <LazyComponent {...props.nodeData} />;
+export const LAZY_COMPONENTS: LazyComponentMapType = (
+  Object.keys(LazyComponentMap) as Array<keyof typeof LazyComponentMap>
+).reduce<LazyComponentMapType>((res, key) => {
+  if (key === 'openapi') {
+    const LazyComponent = LazyComponentMap.openapi as ComponentType<OpenAPIProps>;
+    res.openapi = (props: ComponentFactoryProps) => {
+      const node = props.nodeData as OpenAPINode;
+      const openAPIProps: OpenAPIProps = {
+        nodeChildren: node.children,
+        argument: node.argument,
+        options: node.options,
+      };
+      return <LazyComponent {...openAPIProps} />;
+    };
+  } else if (key === 'instruqt') {
+    const LazyComponent = LazyComponentMap.instruqt as ComponentType<InstruqtProps>;
+    res.instruqt = (props: ComponentFactoryProps) => {
+      const node = props.nodeData as InstruqtNode;
+      const instruqtProps: InstruqtProps = {
+        argument: node.argument,
+        options: node.options,
+      };
+      return <LazyComponent {...instruqtProps} />;
+    };
+  }
+
   return res;
-}, {} as LazyComponentMap);
+}, {} as LazyComponentMapType);

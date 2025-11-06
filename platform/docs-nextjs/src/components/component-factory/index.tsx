@@ -50,7 +50,7 @@ import type {
   ComposableNode,
   ComposableTutorialNode,
 } from '@/types/ast';
-import type { ComponentMap } from '@/components/component-factory/lazy';
+import type { LazyComponentMap } from '@/components/component-factory/lazy';
 import { LAZY_COMPONENTS } from '@/components/component-factory/lazy';
 import { isParentNode, isRoleName } from '@/types/ast-utils';
 import Admonition, { type AdmonitionProps } from '@/components/admonition';
@@ -302,8 +302,8 @@ function getComponentType(
     }
   }
 
-  if (lookup && LAZY_COMPONENTS[lookup as keyof typeof ComponentMap]) {
-    return LAZY_COMPONENTS[lookup as keyof typeof ComponentMap] as
+  if (lookup && LAZY_COMPONENTS[lookup as keyof typeof LazyComponentMap]) {
+    return LAZY_COMPONENTS[lookup as keyof typeof LazyComponentMap] as
       | React.ComponentType<SupportedComponentProps>
       | React.ComponentType<RoleComponentProps>
       | undefined;

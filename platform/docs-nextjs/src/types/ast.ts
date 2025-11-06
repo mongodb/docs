@@ -113,6 +113,7 @@ type DirectiveName =
   | 'list-table'
   | 'literalinclude'
   | 'meta'
+  | 'openapi'
   | 'openapi-changelog'
   | 'output'
   | 'procedure'
@@ -241,6 +242,7 @@ type HeadingOption = {
 };
 
 type PageOptions = {
+  title?: string;
   template: PageTemplateType;
   default_tabs?: ActiveTabs;
   dismissible_skills_card?: DismissibleSkillsCardOptions;
@@ -518,6 +520,17 @@ interface MethodNode extends ParentNode {
   type: 'target';
   name: 'method';
   domain: 'mongodb';
+}
+
+type OpenAPIOptions = {
+  'uses-realm': boolean;
+  'uses-rst': boolean;
+  preview: boolean;
+  'api-version': string;
+};
+
+interface OpenAPINode extends Directive<OpenAPIOptions> {
+  name: 'openapi';
 }
 
 interface DirectiveArgumentNode extends ParentNode {
@@ -1051,6 +1064,7 @@ export type {
   Node,
   NodeName,
   NodeType,
+  OpenAPINode,
   PageOptions,
   PageOptionsKey,
   ParagraphNode,
