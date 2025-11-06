@@ -8,8 +8,8 @@
       from the :guilabel:`Projects` menu in the navigation bar.
 
    #. In the sidebar, click :guilabel:`Database & Network Access` under 
-   the :guilabel:`Security` heading.
-
+      the :guilabel:`Security` heading.
+  
    #. In the sidebar, click :guilabel:`Advanced`.
 
       The `Advanced <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fsecurity%2Fadvanced>`__ 
