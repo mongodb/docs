@@ -96,3 +96,10 @@
       domains you've mapped to your |idp|. To verify your domain, click the
       target domain's :guilabel:`Verify` button. |mms| shows whether
       the verification succeeded in a banner at the top of the screen. 
+
+   .. step:: Delete the provided record file.
+
+     .. important::
+        
+        To avoid a potential security vulnerability, delete the provided record file after verification completes.
+        
