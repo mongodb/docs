@@ -63,9 +63,12 @@ Improvements
 
 - Prevents the clean-up of the database path after restore operations, 
   improving backup and restore reliability.
-- Enables MongoDB Server 8.2 for production use. This minor release
-  provides early access to new features and improvements before the
-  next Long-Term Support (LTS) version.
+- Enables MongoDB Server 8.2 for production use for MongoDB deployments
+  managed by Ops Manager 8.0. MongoDB 8.2 is not supported for Ops
+  Manager 8.0 backing databases, including AppDB.
+
+  This minor release provides early access to new features and
+  improvements before the next Long-Term Support (LTS) version.
   
   - Minor releases like 8.2 are not LTS and follow a 6-month release
     cadence. To receive ongoing bug and security fixes, you must stay on the
