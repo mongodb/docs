@@ -6,5 +6,5 @@
     also uses the ``movies`` collection in the ``sample_mflix`` database
     included in the :atlas:`Atlas sample datasets </sample-data>`. You
     can load them into your database on the free tier of MongoDB Atlas
-    by following the :atlas:`Get Started with Atlas Guide
-    </getting-started/#atlas-getting-started>`.
+    by following the :ref:`MongoDB Get Started
+    <unified-get-started>`.

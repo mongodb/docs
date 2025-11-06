@@ -3,7 +3,7 @@ Set up a Free Tier Cluster in Atlas
 
 After setting up your Java project dependencies, create a MongoDB cluster
 where you can store and manage your data. Complete the
-:atlas:`Get Started with Atlas </getting-started?jmp=docs_driver_java>` guide
+:ref:`MongoDB Get Started <unified-get-started>` guide
 to set up a new Atlas account, create and launch a free tier MongoDB cluster,
 load datasets, and interact with the data.
 
