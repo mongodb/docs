@@ -41,6 +41,8 @@
                          "command" : <document>,
                          "queryFramework" : <string>,
                          "planSummary": <string>,
+                         "inUseTrackedMemBytes": <Long()>,  // Starting in 8.3
+                         "peakTrackedMemBytes": <Long()>,   // Starting in 8.3
                          "cursor" : {                              // only for getMore operations
                             "cursorId" : <Long()>,
                             "createdDate" : <ISODate()>,
@@ -173,6 +175,8 @@
                         "originatingCommand" : <document>,
                         "queryFramework" : <string>,
                         "planSummary": <string>,
+                        "inUseTrackedMemBytes": <Long()>,  // Starting in 8.3
+                        "peakTrackedMemBytes": <Long()>,   // Starting in 8.3
                         "prepareReadConflicts" : <Long()>,
                         "writeConflicts" : <Long()>,
                         "cursor" : {                              // only for getMore operations
@@ -334,6 +338,8 @@
                          "topologyTime" : <Timestamp>,           // Starting in 5.0
                          "queryFramework" : <string>,            // Starting in 6.2       
                          "planSummary": <string>,
+                         "inUseTrackedMemBytes": <Long()>,  // Starting in 8.3
+                         "peakTrackedMemBytes": <Long()>,   // Starting in 8.3
                          "prepareReadConflicts" : <Long()>,
                          "writeConflicts" : <Long()>,
                          "cursor" : {                              // only for getMore operations
