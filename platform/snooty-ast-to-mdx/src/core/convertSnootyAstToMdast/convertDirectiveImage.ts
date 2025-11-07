@@ -3,6 +3,7 @@ import { posix as path } from 'node:path';
 import type { ConversionContext, SnootyNode, MdastNode } from './types';
 import { getImporterContext } from './getImporterContext';
 import { parseSnootyArgument } from './parseSnootyArgument';
+import { renameIncludesToUnderscore } from './renameIncludesToUnderscore';
 
 interface ConvertDirectiveImageArgs {
   node: SnootyNode;
@@ -15,7 +16,8 @@ export const convertDirectiveImage = ({ node, ctx }: ConvertDirectiveImageArgs):
   const rawPath = extractPathFromNodes(node.children) || String(argText || '');
 
   // Normalise to POSIX form and strip leading "./" or "/"
-  const assetPosix = path.normalize(rawPath.replace(/^[./\\]+/, '')).replace(/^\/+/, '');
+  const pathWithoutLeadingSlash = path.normalize(rawPath.replace(/^[./\\]+/, '')).replace(/^\/+/, '');
+  const assetPosix = renameIncludesToUnderscore(pathWithoutLeadingSlash);
 
   if (!assetPosix) {
     return { type: 'html', value: '<!-- figure missing src -->' } as MdastNode;
@@ -26,8 +28,6 @@ export const convertDirectiveImage = ({ node, ctx }: ConvertDirectiveImageArgs):
 
   let importPath = path.relative(importerDir, targetPosix);
   if (!importPath.startsWith('.')) importPath = `./${importPath}`;
-  // ensure the path points up one level
-  if (importPath.startsWith('./')) importPath = importPath.replace(/^\.\/?/, '../');
 
   const baseName = targetPosix.split('/').pop() || 'image';
   const withoutExt = baseName.replace(/\.[^.]+$/, '') || 'image';
@@ -104,7 +104,10 @@ interface GetImportPathArgs {
 }
 
 const getImportPath = ({ importerPosix, assetPosix }: GetImportPathArgs) => {
-  const topLevelPath = importerPosix.split('/')[0] || '';
+  // For top-level files (no directory), topLevelPath should be empty
+  // For nested files, take the first directory segment
+  const pathSegments = importerPosix.split('/');
+  const topLevelPath = pathSegments.length > 1 ? pathSegments[0] : '';
 
   if (assetPosix.startsWith('images/')) {
     // already rooted in images/

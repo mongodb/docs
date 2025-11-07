@@ -4,6 +4,7 @@ import unzipper from 'unzipper';
 import { BSON } from 'bson';
 import { convertJsonAstToMdxFiles } from './convertJsonAstToMdxFiles/convertJsonAstToMdxFiles';
 import type { SnootyNode } from './convertSnootyAstToMdast/types';
+import { type RouteCollision, detectRouteCollisions, resolveRouteCollisions } from './detectRouteCollision';
 
 /** some BSON files are not AST JSON, but rather raw text or RST */
 const IGNORED_FILE_SUFFIXES = ['.txt.bson', '.rst.bson'] as const;
@@ -18,6 +19,7 @@ type ConvertZipFileToMdx = (args: ConvertZipFileToMdxOptions) => Promise<{
   outputDirectory: string;
   fileCount: number;
   assetChecksumToKey: Map<string, string>;
+  routeCollisions: Array<RouteCollision>;
 }>;
 
 /** Convert a zip file to a folder of MDX files, preserving the zip's directory structure */
@@ -37,6 +39,7 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
     if (
       file.type !== 'File' ||
       !file.path.endsWith('.bson') ||
+      file.path === 'site.bson' ||
       IGNORED_FILE_SUFFIXES.some((suffix) => file.path.endsWith(suffix))
     ) {
       continue;
@@ -79,7 +82,8 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
       }
     }
     const relativePath = file.path.replace('.bson', '.mdx');
-    const outputPath = path.join(zipBaseName, relativePath);
+    // remove the nesting of the "documents" directory from the output path
+    const outputPath = path.join(zipBaseName, relativePath).replace('documents/', '');
 
     const { fileCount } = await convertJsonAstToMdxFiles({ ast: astRoot, outputPath, outputRootDir: zipBaseName });
 
@@ -87,5 +91,23 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
     onFileWrite?.(totalCount);
   }
 
-  return { outputDirectory: zipBaseName, fileCount: totalCount, assetChecksumToKey };
+  // EDIT: this is commented out for now, since we are trying JSON instead of TS, but haven't fully committed to it yet.
+  // cleanup the _references.json file (only used for faster rebuilds during conversion)
+  // try {
+  //   await fs.rm(path.join(zipBaseName, '_references.json'));
+  // } catch (error) {
+  //   console.warn(`Skipping '_references.json' cleanup due to error: ${(error as Error).message}`);
+  // }
+
+  // Post-processing: detect and resolve route collisions
+  // example: a file called `about.mdx` would collide with `about/index.mdx` in Next.js
+  const routeCollisions: Array<RouteCollision> = [];
+
+  const collisions = await detectRouteCollisions(zipBaseName);
+  for (const [route, files] of collisions.entries()) {
+    routeCollisions.push({ route, files });
+  }
+  await resolveRouteCollisions({ outputDirectory: zipBaseName, collisions });
+
+  return { outputDirectory: zipBaseName, fileCount: totalCount, assetChecksumToKey, routeCollisions };
 };

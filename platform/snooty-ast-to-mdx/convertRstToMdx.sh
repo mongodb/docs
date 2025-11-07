@@ -51,7 +51,7 @@ SNOOTY_BIN="$REPO_ROOT/platform/snooty-ast-to-mdx/snooty/snooty"
 CONTENT_DIR="$REPO_ROOT/content"
 CONVERTER_DIR="$REPO_ROOT/platform/snooty-ast-to-mdx"
 TMP_ZIPS_DIR="$CONVERTER_DIR/.tmp_zips"
-OUTPUT_DIR="$REPO_ROOT/platform/docs-nextjs/src/pages"
+OUTPUT_DIR="$REPO_ROOT/content-mdx"
 
 # ---------------------------------------------------------------------------
 # Determine which content paths to process
@@ -93,7 +93,9 @@ trap cleanup EXIT INT TERM
 # Snooty parser version | default can be adjusted below or set in the environment:
 # `SNOOTY_VERSION=v0.20.7 ./convertRstToMdx.sh atlas`.
 # Check for latest version at: https://github.com/mongodb/snooty-parser/releases
-SNOOTY_VERSION="${SNOOTY_VERSION:-v0.20.9}"
+SNOOTY_VERSION="${SNOOTY_VERSION:-v0.20.14}"
+# Whether to show verbose output from the Snooty parser when building the AST
+SNOOTY_VERBOSE="${SNOOTY_VERBOSE:-false}"
 
 # Choose architecture via `SNOOTY_ARCH=<alias>` or adjust the default below
 # Aliases:
@@ -247,13 +249,16 @@ for rel_path in "${TARGET_REL_PATHS[@]}"; do
   mkdir -p "$(dirname "$zip_path")"
 
   log_step "1/3" "${CYAN}Building Snooty AST zip from: ${YELLOW}$abs_input${RESET}\n"
+  # Conditionally hide snooty build logs
+  redirect_output="> /dev/null 2>&1"
+  [[ "$SNOOTY_VERBOSE" == "true" ]] && redirect_output=""
   # Run Snooty build, but gracefully handle exit code 0 (often indicates validation errors we can ignore)
-  if ! "$SNOOTY_BIN" build "$abs_input" --output "$zip_path"; then
+  if ! eval "$SNOOTY_BIN build '$abs_input' --output '$zip_path' $redirect_output"; then
     exit_code=$?
     if [[ $exit_code -eq 0 ]]; then
-      log_warning "Snooty build exited with code ${YELLOW}0${RESET}. Continuing..."
+      log_warning "Snooty build exited with code ${YELLOW}0${RESET}. Continuing...\n"
     else
-      log_error "Snooty build failed with exit code ${YELLOW}$exit_code${RESET}. Aborting."
+      log_error "Snooty build failed with exit code ${YELLOW}$exit_code${RESET}. Aborting.\n"
       exit "$exit_code"
     fi
   fi
@@ -268,10 +273,9 @@ for rel_path in "${TARGET_REL_PATHS[@]}"; do
   fi
   mkdir -p "$per_project_output_dir"
 
-  printf "\n"
-  log_step "2/3" "${CYAN}Converting AST zip to MDX into: ${YELLOW}$per_project_output_dir${RESET} (${GRAY}$rel_path${RESET})"
+  log_step "2/3" "${CYAN}Converting AST zip to MDX into: ${YELLOW}$per_project_output_dir${RESET} (${GRAY}$rel_path${RESET})\n"
   pushd "$CONVERTER_DIR" >/dev/null
-  pnpm start "$zip_path" "$per_project_output_dir"
+  pnpm run --silent start "$zip_path" "$per_project_output_dir"
   popd >/dev/null
 
   log_step "3/3" "${CYAN}Cleaning up temporary zip: ${YELLOW}$zip_path${RESET}\n"

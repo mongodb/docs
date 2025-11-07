@@ -80,7 +80,7 @@ interface CreateReferencesFilesArgs {
   additionalRefs: ReferencesArtifact;
 }
 
-/** If references were collected, emit or update a references.ts file at the output root directory */
+/** If references were collected, emit or update a _references.ts file at the output root directory */
 const createReferencesFiles = async ({ rootDir, refsArtifact, additionalRefs }: CreateReferencesFilesArgs) => {
   if (refsArtifact || Object.keys(additionalRefs.substitutions).length || Object.keys(additionalRefs.refs).length) {
     if (refsArtifact) {
@@ -88,7 +88,7 @@ const createReferencesFiles = async ({ rootDir, refsArtifact, additionalRefs }: 
       Object.assign(additionalRefs.refs, refsArtifact.refs || {});
     }
 
-    const refsPath = path.join(rootDir, 'references.ts');
+    const refsPath = path.join(rootDir, '_references.ts');
     await fs.mkdir(path.dirname(refsPath), { recursive: true });
 
     const existing = await readExistingReferences(refsPath);

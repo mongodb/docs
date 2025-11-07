@@ -48,7 +48,7 @@ const main = async () => {
   } else {
     console.log(chalk.magenta(`Converting ${chalk.yellow(input)} to MDX...`), '\n');
 
-    const { outputDirectory, fileCount, assetChecksumToKey } = await convertZipFileToMdx({
+    const { outputDirectory, fileCount, assetChecksumToKey, routeCollisions } = await convertZipFileToMdx({
       zipPath: input,
       outputPrefix,
       onFileWrite: (count) => process.stdout.write(`\r${chalk.green(`✓ Wrote ${chalk.yellow(count)} MDX files`)}`),
@@ -65,6 +65,14 @@ const main = async () => {
         )} total files\n`,
       ),
     );
+
+    if (routeCollisions.length > 0) {
+      console.log(chalk.yellow(`\n${chalk.red(routeCollisions.length)} route collision(s) detected:`));
+
+      routeCollisions.forEach((collision) => {
+        console.log(chalk.yellow(`  - ${chalk.red(collision.route)} (${collision.files.length} files)`));
+      });
+    }
   }
 };
 

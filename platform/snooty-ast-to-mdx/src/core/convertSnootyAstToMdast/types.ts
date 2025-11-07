@@ -16,9 +16,9 @@ export interface EmitMdxFileArgs {
 export interface ConversionContext {
   registerImport?: (args: RegisterImportArgs) => void;
   emitMdxFile?: (args: EmitMdxFileArgs) => void;
-  /** Relative path (POSIX) of the file currently being generated, e.g. 'includes/foo.mdx' */
+  /** Relative path (POSIX) of the file currently being generated, e.g. '_includes/foo.mdx' */
   currentOutfilePath?: string;
-  /** Collected references to emit into a references.ts artifact */
+  /** Collected references to emit into a _references.ts artifact */
   collectedSubstitutions: Map<string, string>;
   collectedRefs: Map<string, { title: string; url: string }>;
 }

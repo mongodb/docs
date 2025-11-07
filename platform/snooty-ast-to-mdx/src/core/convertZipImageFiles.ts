@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import { posix as path } from 'node:path';
 import unzipper from 'unzipper';
+import { renameIncludesToUnderscore } from './convertSnootyAstToMdast/renameIncludesToUnderscore';
 
 interface ConvertZipImageFilesArgs {
   outputDirectory: string;
@@ -27,7 +28,8 @@ export const convertZipImageFiles = async ({
 
     // Read the "static asset" file as a buffer
     const buf = await file.buffer();
-    const assetPath = semanticKey.replace(/^\/+/, '').replace(/\\+/g, '/');
+    const pathWithoutLeadingSlash = semanticKey.replace(/^\/+/, '').replace(/\\+/g, '/');
+    const assetPath = renameIncludesToUnderscore(pathWithoutLeadingSlash);
     const outPath = path.join(outputDirectory, assetPath);
     await fs.mkdir(path.dirname(outPath), { recursive: true });
     await fs.writeFile(outPath, buf);

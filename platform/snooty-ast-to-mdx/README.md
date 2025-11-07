@@ -53,6 +53,11 @@ SNOOTY_ARCH=intel ./convertRstToMdx.sh # same as above
 SNOOTY_ARCH=linux ./convertRstToMdx.sh
 ```
 
+For debugging purposes, you can set the `SNOOTY_VERBOSE` environment variable to `true` to show output from the Snooty parser when building the AST:
+```bash
+SNOOTY_VERBOSE=true ./convertRstToMdx.sh
+```
+
 ## Developer Quickstart
 
 **NOTE:** The full set of rST source files can be found in the top-level `content/` folder. If you want to parse a docs site into a zip (and optionally extract JSON files), follow the [Developer Quickstart instructions here](https://github.com/mongodb/snooty?tab=readme-ov-file#developer-quickstart).

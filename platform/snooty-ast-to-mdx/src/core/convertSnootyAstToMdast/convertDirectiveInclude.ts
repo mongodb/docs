@@ -4,6 +4,7 @@ import { parseSnootyArgument } from './parseSnootyArgument';
 import { convertSnootyAstToMdast } from './convertSnootyAstToMdast';
 import type { ConversionContext, SnootyNode, MdastNode } from './types';
 import { getImporterContext } from './getImporterContext';
+import { renameIncludesToUnderscore } from './renameIncludesToUnderscore';
 
 interface ConvertDirectiveIncludeArgs {
   node: SnootyNode;
@@ -15,7 +16,8 @@ export const convertDirectiveInclude = ({ node, ctx }: ConvertDirectiveIncludeAr
   const pathText = parseSnootyArgument(node);
 
   const emittedPath = toMdxIncludePath(pathText);
-  const emittedPathNormalized = emittedPath.replace(/^\/+/, '');
+  const pathWithoutLeadingSlash = emittedPath.replace(/^\/+/, '');
+  const emittedPathNormalized = renameIncludesToUnderscore(pathWithoutLeadingSlash);
 
   const originalChildren: SnootyNode[] = Array.isArray(node.children) ? node.children : [];
   let contentChildren: SnootyNode[] = originalChildren;

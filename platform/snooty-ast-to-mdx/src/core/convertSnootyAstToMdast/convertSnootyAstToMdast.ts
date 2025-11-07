@@ -608,10 +608,8 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
     if (wantRefs || wantSubs) {
       const importerPosix = path.normalize(options?.currentOutfilePath || 'index.mdx');
       const importerDir = path.dirname(importerPosix);
-      let importPath = path.relative(importerDir, 'references.ts');
+      let importPath = path.relative(importerDir, '_references.json');
       if (!importPath.startsWith('.')) importPath = `./${importPath}`;
-      // remove the .ts extension
-      importPath = importPath.replace(/\.ts$/, '');
       const named: string[] = [];
       if (wantRefs) named.push('refs');
       if (wantSubs) named.push('substitutions');
@@ -627,7 +625,7 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
 
   const rootNode = { type: 'root', children } as MdastRoot;
 
-  // Attach collected references so the caller can emit a references.ts artifact
+  // Attach collected references so the caller can emit a _references.ts artifact
   if (collectedSubstitutions.size > 0 || collectedRefs.size > 0) {
     const substitutions: Record<string, string> = {};
     for (const [k, v] of collectedSubstitutions.entries()) substitutions[k] = v;
