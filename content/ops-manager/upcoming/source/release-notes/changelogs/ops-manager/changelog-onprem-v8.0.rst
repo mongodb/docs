@@ -358,6 +358,11 @@ Improvements
 - Introduces |aws| SDK v2 as default |aws| SDK version. |aws| SDK v1 is
   still available, but must be set manually in the |onprem|
   configuration.
+
+  .. note ::
+
+    .. include:: /includes/backup/aws-sdkv2-s3-compatibility-note.rst
+
 - Ubuntu 24.04 Agent binaries are now included in Ops Manager 8.0.
 - Improves indication and reporting when Feature Compatibility Version 
   (FCV) is undergoing a transition.
