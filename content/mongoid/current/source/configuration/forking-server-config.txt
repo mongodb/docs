@@ -53,39 +53,75 @@ servers.
 Puma
 ----
 
-Use the ``on_worker_boot`` hook to reconnect clients in the workers. Use
-the ``before_fork`` and ``on_refork`` hooks to close clients in the
-parent process. To learn more about these hooks, see `Clustered mode
-hooks <https://puma.io/puma/#clustered-mode-hooks>`__ in the Puma
-API documentation.
+Select the tab that corresponds to your version of Puma:
 
-The following code uses the ``on_worker_boot``, ``before_fork``, and
-``on_refork`` hooks in a sample Puma configuration file:
+.. tabs:: 
 
-.. code-block:: ruby
-   :caption: config/puma.rb
+   .. tab:: Puma 6.x
+      :tabid: puma-6
 
-   # Runs in the Puma master process before it forks a child worker.
-   before_fork do
-     Mongoid.disconnect_clients
-   end
- 
-   # Required when using Puma's fork_worker option. Runs in the
-   # child worker 0 process before it forks grandchild workers.
-   on_refork do
-     Mongoid.disconnect_clients
-   end
- 
-   # Runs in each Puma child process after it forks from its parent.
-   on_worker_boot do
-     Mongoid.reconnect_clients
-   end
+      Use the ``on_worker_boot`` hook to reconnect clients in the worker processes. Use
+      the ``before_fork`` and ``on_refork`` hooks to close clients in the
+      parent process.
+
+      The following code uses the ``on_worker_boot``, ``before_fork``, and
+      ``on_refork`` hooks in a sample Puma configuration file:
+
+      .. code-block:: ruby
+         :caption: config/puma.rb
+
+         # Runs in the Puma master process before it forks a child worker.
+         before_fork do
+           Mongoid.disconnect_clients
+         end
+
+         # Required when using Puma's fork_worker option. Runs in the
+         # child worker 0 process before it forks grandchild worker processes.
+         on_refork do
+           Mongoid.disconnect_clients
+         end
+
+         # Runs in each Puma child process after it forks from its parent.
+         on_worker_boot do
+           Mongoid.reconnect_clients
+         end
+
+   .. tab:: Puma 7.x
+      :tabid: puma-7
+
+      Use the ``before_worker_boot`` hook to reconnect clients in the worker processes. Use
+      the ``before_fork`` and ``before_refork`` hooks to close clients in the
+      parent process. To learn more about these hooks, see `Cluster mode
+      hooks <https://puma.io/puma/#cluster-mode-hooks>`__ in the Puma
+      API documentation.
+
+      The following code uses the ``before_worker_boot``, ``before_fork``, and
+      ``before_refork`` hooks in a sample Puma configuration file:
+
+      .. code-block:: ruby
+         :caption: config/puma.rb
+      
+         # Runs in the Puma master process before it forks a child worker.
+         before_fork do
+           Mongoid.disconnect_clients
+         end
+      
+         # Required when using Puma's fork_worker option. Runs in the
+         # child worker 0 process before it forks grandchild worker processes.
+         before_refork do
+           Mongoid.disconnect_clients
+         end
+      
+         # Runs in each Puma child process after it forks from its parent.
+         before_worker_boot do
+           Mongoid.reconnect_clients
+         end
 
 Unicorn
 -------
 
 Use the ``before_fork`` hook to close clients in the parent process. Use
-the ``after_fork`` hook to reconnect clients in the workers. To
+the ``after_fork`` hook to reconnect clients in the worker processes. To
 learn more about these hooks, see `Configurator
 <https://yhbt.net/unicorn/Unicorn/Configurator.html>`__ in the Unicorn
 API documentation.
@@ -108,14 +144,14 @@ Passenger
 ---------
 
 Use the ``starting_worker_process`` hook to reconnect clients in the
-workers. To learn more about this hook, see `Smart spawning hooks
+worker processes. To learn more about this hook, see `Smart spawning hooks
 <https://www.phusionpassenger.com/library/indepth/ruby/spawn_methods/#smart-spawning-hooks>`__
 in the Passenger documentation.
 
 .. note::
 
    Passenger does have a hook that is invoked in the
-   parent process before the workers are forked.
+   parent process before the worker processes are forked.
 
 The following code uses the ``starting_worker_process`` hook to
 reconnect clients:
