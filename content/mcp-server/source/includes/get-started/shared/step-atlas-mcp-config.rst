@@ -11,7 +11,7 @@
       These credentials are different than your Atlas API key.
       To learn how to create a new service account and get 
       the credentials, see :atlas:`Grant programmatic access to an organization 
-      </atlas/configure-api-access/#grant-programmatic-access-to-an-organization>`.
+      </configure-api-access/#grant-programmatic-access-to-an-organization>`.
 
    #. Add the credentials to your MCP server configuration.
 
