@@ -1,0 +1,219 @@
+.. _node-extended-json:
+
+============================
+Work with Extended JSON Data
+============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code examples, bson, relaxed, canonical, legacy
+
+Overview
+--------
+
+JSON is a data format that represents the values of objects, arrays, numbers,
+strings, booleans, and nulls. The **Extended JSON** format defines a reserved
+set of keys prefixed with "``$``" to represent field type information that
+directly corresponds to each type in BSON, the format that MongoDB uses to
+store data.
+
+Extended JSON Formats
+---------------------
+
+MongoDB Extended JSON features different string formats to represent BSON data.
+Each of the different formats conform to the JSON RFC
+and meet specific use cases. The **Extended** format, also known as the
+**Canonical** format, features specific representations for every BSON type
+for bidirectional conversion without loss of information. The **Relaxed Mode**
+format is more concise and closer to ordinary JSON, but does not represent
+all the type information such as the specific bit width of numeric fields.
+
+See the following table to see a description of each format:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 40
+
+   * - Name
+     - Description
+
+   * - **Extended**
+     - | Also known as the *Canonical* format, this JSON representation avoids loss of
+         BSON type information.
+       | This format prioritizes type preservation at the loss of human-readability and
+         interoperability with older formats.
+
+   * - **Relaxed Mode**
+     - | JSON representation that describes BSON documents with some type information loss.
+       | This format prioritizes human-readability and interoperability at the loss of
+         certain type information.
+
+To learn more about JSON, BSON, and Extended JSON, see
+`our article about JSON and BSON <https://www.mongodb.com/resources/basics/json-and-bson>`__
+and :manual:`Extended JSON </reference/mongodb-extended-json/>` in the {+mdb-server+} manual.
+
+.. _extended_json_example_section:
+
+Extended JSON Examples
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following examples show a document containing an ObjectId, date, and long
+number field represented in the Extended JSON format. Click the tab that
+corresponds to the format of the example you want to see:
+
+.. tabs::
+
+   .. tab:: Extended
+      :tabid: extended-format
+
+      .. code-block:: json
+
+         {
+           "_id": { "$oid": "573a1391f29313caabcd9637" },
+           "createdAt": { "$date": { "$numberLong": "1601499609" }},
+           "numViews": { "$numberLong": "36520312" }
+         }
+
+   .. tab:: Relaxed Mode
+      :tabid: relaxed-mode-format
+
+      .. code-block:: json
+
+         {
+           "_id": { "$oid": "573a1391f29313caabcd9637" },
+           "createdAt": { "$date": "2020-09-30T18:22:51.648Z" },
+           "numViews": 36520312
+         }
+
+Write Extended JSON
+-------------------
+
+You can write an Extended JSON string from a BSON document object by using the
+``EJSON.stringify()`` method.
+
+The following example outputs an Extended JSON string in the Relaxed format:
+
+.. io-code-block::
+
+   .. input::
+      :language: js
+
+      import { Code, BSON } from 'mongodb';
+      const EJSON = BSON.EJSON;
+
+      const doc = {
+         foo: [1, 2],
+         bar: { hello: "world" },
+         code: new Code("function x() { return 1; }", {}),
+         date: new Date(2024, 6, 20, 10, 30, 0),
+      };
+
+      const ejsonStr = EJSON.stringify(doc);
+      console.log(ejsonStr);
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"foo":[1,2],"bar":{"hello":"world"},"code":{"$code":"function x() { return 1; }","$scope":{}},"date":{"$date":"2024-07-20T14:30:00Z"}}
+
+By default, the ``stringify()`` method returns the Extended JSON string in the 
+Relaxed format. To specify the Canonical format, set the ``relaxed`` 
+option to ``false``.
+
+The following example shows how to output Extended JSON in the Canonical format:
+
+.. io-code-block::
+
+   .. input::
+      :language: js
+
+      import { Code, BSON } from 'mongodb';
+      const EJSON = BSON.EJSON;
+
+      const doc = {
+         foo: [1, 2],
+         bar: { hello: "world" },
+         code: new Code("function x() { return 1; }", {}),
+         date: new Date(2024, 6, 20, 10, 30, 0),
+      };
+
+      const ejsonStr = EJSON.stringify(doc, { relaxed: false });
+      print(ejsonStr)
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"foo":[{"$numberInt":"1"},{"$numberInt":"2"}],"bar":{"hello":"world"},"code":{"$code":"function x() { return 1; }","$scope":{}},"date":{"$date":{"$numberLong":"1721485800000"}}}  
+
+Read Extended JSON
+------------------
+
+You can read an Extended JSON string into the JavaScript value or object described 
+by the string by using the ``EJSON.parse()`` method. 
+
+The following example shows how you can read an Extended JSON string into a
+JavaScript value or object by using the ``parse()`` method:
+
+.. The back ticks on ejsonStr in the below code example causes the orange 
+.. highlighting in this file, but the page still renders correctly.
+
+.. io-code-block::
+
+   .. input::
+      :language: javascript
+
+      import { BSON } from 'mongodb';
+      const EJSON = BSON.EJSON;
+
+      const ejsonStr = `{
+         "foo": [
+            { "$numberInt": "1" },
+            { "$numberInt": "2" }
+         ],
+         "bar": { "hello": "world" },
+         "code": {
+            "$code": "function x() { return 1; }",
+            "$scope": {}
+         },
+         "bin": { "$binary": { "base64": "AQIDBA==", "subType": "00" } }
+      }`;
+
+      const doc = EJSON.parse(ejsonStr);
+      console.log(doc);
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {
+        foo: [ 1, 2 ],
+        bar: { hello: 'world' },
+        code: new Code('function x() { return 1; }', {}),
+        bin: Binary.createFromBase64('AQIDBA==', 0)
+      }
+
+.. note::
+
+   The driver parses the ``$uuid`` Extended JSON type from a string to a
+   ``BsonBinary`` object of binary subtype 4. For more information about ``$uuid`` field
+   parsing, see the
+   :spec:`Special Rules for Parsing $uuid Fields </extended-json/extended-json.md#special-rules-for-parsing-uuid-fields>`
+   section in the extended JSON specification.
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the `EJSON <https://github.com/mongodb/js-bson#ejson>`__ API documentation.

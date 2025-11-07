@@ -1,0 +1,169 @@
+.. _node-replace:
+
+=================
+Replace Documents
+=================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+   
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :keywords: code example, node.js, write, add data, change
+
+Overview
+--------
+
+In this guide, you can learn how to use {+driver-short+} to perform a replace
+operation on a document in a MongoDB collection. A replace operation performs
+differently than an update operation. An update operation
+modifies only the specified fields in a target document. A replace operation removes *all* fields
+in the target document and replaces them with new ones.
+
+.. _node-fundamentals-replaceone:
+.. _replacementDocument:
+
+Replace a Document
+------------------
+
+To perform a replacement operation, create a **replacement document** that
+consists of the fields and values that you want to use in your
+**replace** operation. Replacement documents use the following format:
+
+.. code-block:: javascript
+
+   {
+      <field>: {
+         <value>
+      },
+      <field>: {
+         ...
+      }
+   }
+
+Replacement documents are the documents that you want to take the place of
+existing documents that match the query filters.
+
+You can specify more options, such as ``upsert``, using the
+optional ``options`` parameter. If you set the ``upsert`` option field to
+``true`` the method inserts a new document if no document matches the query.
+
+The ``replaceOne()`` method throws an exception if an error occurs
+during execution. For example, if you specify a value that violates a
+unique index rule, ``replaceOne()`` throws a ``duplicate key error``.
+
+.. note::
+
+  If your application requires the document after updating,
+  use the `collection.findOneAndReplace() <{+api+}/classes/Collection.html#findOneAndReplace>`__
+  method which has a similar interface to ``replaceOne()``.
+  You can configure ``findOneAndReplace()`` to return either the
+  original matched document or the replacement document.
+
+Example
+~~~~~~~
+
+Consider a document in the ``myDB.items`` collection with fields
+describing an item for sale, its price, and the quantity available:
+
+.. code-block:: javascript
+
+   {
+      _id: 501,
+      item: "3-wick beeswax candle",
+      price: 18.99,
+      quantity: 10,
+   }
+
+Suppose you wanted to replace this document with one that contains a
+description for an entirely different item. Your replacement operation might
+resemble the following:
+
+.. code-block:: javascript
+
+   const myDB = client.db("myDB");
+   const myColl = myDB.collection("items");
+
+   const filter = { _id: 501 };
+
+   // replace the matched document with the replacement document
+   const replacementDocument = {
+      item: "Vintage silver flatware set",
+      price: 79.15,
+      quantity: 1,
+   };
+   const result = await myColl.replaceOne(filter, replacementDocument);
+
+The replaced document contains the contents of the replacement document
+and the immutable ``_id`` field as follows:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      _id: 501,
+      item: "Vintage silver flatware set",
+      price: 79.15,
+      quantity: 1,
+   }
+
+If a replace operation fails to match any documents in a collection, it
+does not make any changes. Replace operations can be configured to perform
+an :ref:`upsert <node-upsert>` which
+attempts to perform the replacement, but if no documents are matched, it
+inserts a new document with the specified fields and values.
+
+You cannot modify the ``_id`` field of a document nor change a field to
+a value that violates a unique index constraint. See the {+mdb-server+} manual
+for more information on :manual:`unique indexes </core/index-unique/>`.
+
+.. _node-usage-replaceone:
+
+replaceOne() Example: Full File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/crud/example-intro.rst
+
+The following code is a complete, standalone file that performs a replace one
+operation:
+
+.. tabs::
+
+  .. tab:: JavaScript
+     :tabid: javascript
+
+     .. literalinclude:: /code-snippets/usage-examples/replaceOne.js
+        :language: javascript
+        :linenos:
+
+  .. tab:: TypeScript
+     :tabid: typescript
+
+     .. literalinclude:: /code-snippets/usage-examples/replaceOne.ts
+        :language: typescript
+        :linenos:
+
+Running the preceding example results in the following output:
+
+.. code-block:: none
+   :copyable: false
+
+   Modified 1 document(s)
+
+API Documentation
+-----------------
+
+To learn more about any of the types or methods discussed in this guide, see the
+following API documentation:
+
+- `MongoClient <{+api+}/classes/MongoClient.html>`__
+- `Db <{+api+}/classes/Db.html>`__
+- `Collection <{+api+}/classes/Collection.html>`__
+- `replaceOne() <{+api+}/classes/Collection.html#replaceOne>`__
+- `findOneAndReplace() <{+api+}/classes/Collection.html#findOneAndReplace>`__

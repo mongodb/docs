@@ -1,0 +1,155 @@
+.. _node-prisma-integration:
+
+===============================
+Tutorial: Integrate with Prisma
+===============================
+
+.. facet::
+   :name: genre
+   :values: tutorial 
+
+.. meta:: 
+   :description: Learn how to connect a Node.js application using Prisma to a MongoDB database.
+   :keywords: integrations, prisma, type safety
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Prisma is an open source Object Relational Mapper (ORM) for Node.js. It supports both {+language+}
+and TypeScript, but it is primarily used with TypeScript to help you write readable and type-safe
+code.
+
+Schemas
+~~~~~~~
+
+Schemas help developers avoid data inconsistency issues over time by defining the structure of
+your collection's documents. While you can define a schema at the database level within MongoDB,
+Prisma lets you define a schema at the application level. Because the Prisma Client is aware
+of the schema, developers using the Prisma Client have access to auto-completing queries.
+
+Data Modeling
+~~~~~~~~~~~~~
+
+Generally, data that is accessed together should be stored together in a MongoDB collection.
+Prisma supports using embedded documents to keep data together. In use
+cases where you must store related data in separate MongoDB collections,
+you must include one document's ``_id`` field in another document. Prisma streamlines this
+process and assists you in organizing this related data, while also maintaining referential integrity
+of the data.
+
+To learn more about efficient data modeling in MongoDB, see :manual:`Reduce $lookup Operations </data-modeling/design-antipatterns/reduce-lookup-operations>`
+in the {+mdb-server+} manual.
+
+Tutorial
+--------
+
+This tutorial shows how to perform the following actions:
+
+- Download an example Prisma application
+- Configure your Prisma schema
+- Create and populate a MongoDB database with sample data
+- Make the example application compatible with MongoDB
+- Run the application
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites
+
+      Before you begin this tutorial, ensure you have the following components prepared:
+
+      - A MongoDB Atlas account with a configured cluster. To view
+        instructions, see the `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=nodejs>`__
+        guide.
+      - `Node.js <https://nodejs.org/en/download>`__ {+min-node-version+} or later.
+
+   .. step:: Download the example application
+
+      Clone or download the :github:`example application </prisma/prisma-examples/tree/accelerate-nextjs-starter/typescript/rest-nextjs-api-routes>` from the
+      :github:`Prisma examples repository </prisma/prisma-examples/tree/latest>`.
+
+      This example is a simple blog content management platform that uses a SQLite database.
+      The following steps modify the application to use MongoDB instead of SQLite.
+   
+   .. step:: Configure your Prisma schema
+
+      Navigate to the ``prisma/schema.prisma`` file in the example application
+      directory. In the ``datasource db`` object of this file, set the ``provider`` field to ``"mongodb"`` and
+      the ``url`` field to your Atlas connection URI.
+
+      In the ``User`` model in the same file, change the ``id`` field type from ``Int`` to
+      ``String`` and set the default value to ``auto()``. The ``id`` property must map
+      to the MongoDB ``_id`` field. You must also instruct Prisma to set the data type for this
+      property to ``ObjectId``.
+
+      In the ``Post`` model, perform the same changes to the ``id`` field as you did in the ``User``
+      model. You must also change the ``authorId`` field type from ``Int`` to ``String`` and set the
+      data type to ``ObjectId``.
+
+      Your ``schema.prisma`` file should resemble the following:
+
+      .. literalinclude:: /includes/integrations/example-schema.prisma
+         :language: typescript
+
+      This schema defines separate ``User`` and ``Post`` collections in your MongoDB
+      database, where each ``Post`` contains a reference to a ``User``.
+
+      Once you have made these changes, navigate to the project directory in your
+      terminal and run the following commands to install the necessary dependencies and
+      generate the schema:
+
+      .. code-block:: shell
+
+         npm install
+         npx prisma generate
+      
+      .. note::
+
+         If you make any further changes to the schema, you must re-run the
+         ``npx prisma generate`` command for the changes to take effect.
+
+   .. step:: Create and populate the MongoDB database
+
+      To populate the database with sample data, run the ``prisma/seed.ts`` file in the example
+      project by running the following command:
+
+      .. code-block:: shell
+
+         npx prisma db seed
+      
+      This creates the ``User`` and ``Post`` collections as defined by the ``schema.prisma``
+      file and populates them with sample data.
+   
+   .. step:: Make the example application compatible with MongoDB
+
+      Navigate to the ``src`` directory of the example project. In the ``pages/api/post/[id].ts``
+      and ``pages/api/publish/[id].ts`` files, replace all instances of ``Number(postId)`` with
+      ``postId``. This is necessary because the ``id`` fields in the schema are now of type
+      ``String`` instead of ``Int``.
+   
+   .. step:: Run the application
+
+      To start the application, run the following command from the project directory:
+
+      .. code-block:: shell
+
+         npm run dev
+      
+      Navigate to ``http://localhost:3000`` in your web browser to view and run
+      the application. You can use the application to create, draft, publish, and delete blog posts.
+      You can reference the API route definitions in the ``pages/api`` folder of the example project.
+
+Additional Resources
+--------------------
+
+To learn more about Prisma, see the `Prisma documentation <https://www.prisma.io/docs/>`__.
+
+To view and download a full version of the application in this tutorial, see the
+:github:`prisma-mongodb-nextjs-example </mongodb-developer/prisma-mongodb-nextjs-example>`
+GitHub repository.
