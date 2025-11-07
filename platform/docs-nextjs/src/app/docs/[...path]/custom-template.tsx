@@ -8,6 +8,7 @@ import type { BaseTemplateProps } from '@/components/templates';
 import { DocumentTemplate, OpenAPITemplate } from '@/components/templates';
 import ActionBar from '@/components/action-bar';
 import layoutStyles from '@/app/layout.module.scss';
+import ProductLandingTemplate from '@/components/templates/product-landing';
 import ChangelogTemplate from '@/components/templates/changelog';
 
 type TemplateComponent = React.ComponentType<BaseTemplateProps>;
@@ -20,6 +21,10 @@ function getTemplate(templateOption: string): { Template: TemplateComponent; ren
     case 'document':
       renderSidenav = true;
       Template = DocumentTemplate;
+      break;
+    case 'product-landing':
+      renderSidenav = true;
+      Template = ProductLandingTemplate;
       break;
     case 'openapi':
       Template = OpenAPITemplate;

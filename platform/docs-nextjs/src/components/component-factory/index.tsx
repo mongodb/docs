@@ -132,6 +132,7 @@ import SeeAlso, { type SeeAlsoProps } from '@/components/admonition/see-also';
 import RefRole, { type RefRoleProps } from '@/components/ref-role';
 import Collapsible, { type CollapsibleProps } from '@/components/collapsible';
 import ListTable, { type ListTableProps } from '@/components/list-table';
+import Root, { type RootProps } from '@/components/root';
 import Figure, { type FigureProps } from '@/components/figure';
 import ComposableContent, { type ComposableContentProps } from '@/components/composable-tutorial/composable-content';
 import ComposableTutorial, { type ComposableTutorialProps } from '@/components/composable-tutorial';
@@ -255,7 +256,7 @@ const getComponent = (() => {
         ref_role: RefRole as React.ComponentType<SupportedComponentProps>,
         reference: Reference as React.ComponentType<SupportedComponentProps>,
         // release_specification: ReleaseSpecification,
-        // root: Root,
+        root: Root as React.ComponentType<SupportedComponentProps>,
         rubric: Rubric as React.ComponentType<SupportedComponentProps>,
         // 'search-results': SearchResults,
         section: Section as React.ComponentType<SupportedComponentProps>,
@@ -371,6 +372,7 @@ type SupportedComponentProps =
   | SeeAlsoProps
   | VersionModifiedProps
   | HorizontalListProps
+  | RootProps
   | SubstitutionReferenceProps
   | TabsProps
   | TabSelectorsProps
@@ -681,6 +683,9 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('list-table')) {
     const listTableNode = nodeData as ListTableNode;
     return <ListTable nodeChildren={listTableNode.children} options={listTableNode.options} />;
+  } else if (ComponentType === getComponent('root')) {
+    const rootNode = nodeData as RootNode;
+    return <Root nodeChildren={rootNode.children} {...propsToDrill} />;
   } else if (ComponentType === getComponent('composable-tutorial')) {
     const composableTutorialNode = nodeData as ComposableTutorialNode;
     return (

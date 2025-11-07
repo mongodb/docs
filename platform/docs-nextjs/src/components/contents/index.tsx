@@ -10,9 +10,9 @@ import type { HeadingNodeSelectorIds } from '@/types/ast';
 import ContentsList from './contents-list';
 import ContentsListItem from './contents-list-item';
 // TODO: DOP-5978 feedback rating component
+// import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 // import { usePageContext } from '@/context/page-context';
 // import FeedbackRating from '@/components/feedback-rating';
-// import { DEPRECATED_PROJECTS } from '@/constants/projects';
 // import { theme } from '@/styles/theme';
 
 const formatTextOptions = {
@@ -46,6 +46,8 @@ const styledContentList = css`
   height: 80%;
 `;
 
+export const DEPRECATED_PROJECTS = ['atlas-app-services', 'datalake', 'realm'];
+
 const isHeadingVisible = (
   headingSelectorIds: HeadingNodeSelectorIds,
   activeSelectorIds: ActiveSelectorIds,
@@ -72,7 +74,6 @@ const isHeadingVisible = (
 
 const Contents = ({ className }: { className?: string; slug?: string }) => {
   const { activeHeadingId, headingNodes, showContentsComponent, activeSelectorIds } = useContext(ContentsContext);
-  // TODO: DOP-6242: replacement for useSnootyMetadata
   // const metadata = useSnootyMetadata();
   const searchDict: URLSearchParams = useSearchParams() ?? new URLSearchParams();
   // const { options } = usePageContext();
@@ -87,11 +88,13 @@ const Contents = ({ className }: { className?: string; slug?: string }) => {
   }
 
   const label = 'On this page';
+  // TODO: Uncomment when necessary
   // const shouldProjShowFW = !DEPRECATED_PROJECTS.includes(metadata.project);
   // const hideFWOnMobile = options?.hidefeedback === 'header';
 
   return (
     <>
+      {/* TODO: Uncomment Feedback */}
       {/* {!isTabletOrMobile && shouldProjShowFW && (
         <FeedbackRating slug={slug} className={formStyle} classNameContainer={formContainer} />
       )} */}
@@ -108,6 +111,7 @@ const Contents = ({ className }: { className?: string; slug?: string }) => {
           })}
         </ContentsList>
       </div>
+      {/* TODO: Uncomment Feedback */}
       {/* {isTabletOrMobile && shouldProjShowFW && !hideFWOnMobile && (
         <FeedbackRating slug={slug} className={formStyle} classNameContainer={formContainer} />
       )} */}
