@@ -5,7 +5,7 @@ import { css, cx } from '@leafygreen-ui/emotion';
 import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
-import type { ImageNodeOptions, TextNode } from '@/types/ast';
+import type { ImageNode, ImageNodeOptions } from '@/types/ast';
 import { useImageContext } from '@/context/image-context';
 import { makeBase64String } from './makeBase64String';
 
@@ -97,7 +97,7 @@ function getImageProps({
 }
 
 export type ImageProps = {
-  argument: [TextNode];
+  argument: ImageNode['argument'];
   options: ImageNodeOptions;
   className?: string;
 };

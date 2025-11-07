@@ -217,7 +217,7 @@ type DirectiveOptions = {
 
 interface Node {
   type: NodeType;
-  position: {
+  position?: {
     start: {
       line: number | { $numberInt: string };
     };
@@ -620,7 +620,7 @@ interface FacetNode extends Directive<FacetOptions> {
 }
 
 type ImageNodeOptions = {
-  alt: string;
+  alt?: string;
   lightbox?: boolean;
   align?: string;
   checksum?: string;
@@ -635,13 +635,13 @@ type ImageNodeOptions = {
 
 interface FigureNode extends Directive<ImageNodeOptions> {
   name: 'figure';
-  argument: [TextNode];
+  argument: TextNode[];
   options: ImageNodeOptions;
 }
 
 interface ImageNode extends Directive<ImageNodeOptions> {
   name: 'image';
-  argument: [TextNode];
+  argument: TextNode[];
   options: ImageNodeOptions;
 }
 

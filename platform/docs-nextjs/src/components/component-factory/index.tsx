@@ -47,6 +47,7 @@ import type {
   RefRoleNode,
   CollapsibleNode,
   ListTableNode,
+  FigureNode,
   ComposableNode,
   ComposableTutorialNode,
 } from '@/types/ast';
@@ -131,6 +132,7 @@ import SeeAlso, { type SeeAlsoProps } from '@/components/admonition/see-also';
 import RefRole, { type RefRoleProps } from '@/components/ref-role';
 import Collapsible, { type CollapsibleProps } from '@/components/collapsible';
 import ListTable, { type ListTableProps } from '@/components/list-table';
+import Figure, { type FigureProps } from '@/components/figure';
 import ComposableContent, { type ComposableContentProps } from '@/components/composable-tutorial/composable-content';
 import ComposableTutorial, { type ComposableTutorialProps } from '@/components/composable-tutorial';
 
@@ -226,7 +228,7 @@ const getComponent = (() => {
         extract: Extract as React.ComponentType<SupportedComponentProps>,
         field: Field as React.ComponentType<SupportedComponentProps>,
         field_list: FieldList as React.ComponentType<SupportedComponentProps>,
-        // figure: Figure,
+        figure: Figure as React.ComponentType<SupportedComponentProps>,
         footnote: Footnote as React.ComponentType<SupportedComponentProps>,
         footnote_reference: FootnoteReference as React.ComponentType<SupportedComponentProps>,
         glossary: Glossary as React.ComponentType<SupportedComponentProps>,
@@ -356,6 +358,7 @@ type SupportedComponentProps =
   | ListItemProps
   | ListProps
   | CodeNode
+  | FigureProps
   | FootnoteNodeProps
   | FootnoteReferenceProps
   | IncludeProps
@@ -525,6 +528,17 @@ const renderComponentWithProps = (
   } else if (ComponentType === roleMap.superscript) {
     const superscriptNode = nodeData as SuperscriptNode;
     return <ComponentType nodeChildren={superscriptNode.children} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('figure')) {
+    const figureNode = nodeData as FigureNode;
+    return (
+      <ComponentType
+        nodeChildren={figureNode.children}
+        argument={figureNode.argument}
+        options={figureNode.options}
+        name={figureNode.name}
+        {...propsToDrill}
+      />
+    );
   } else if (ComponentType === getComponent('list')) {
     const { children, position, enumtype, startat } = nodeData as ListNode;
     return (
