@@ -308,6 +308,11 @@ const tocData: TocItem[] = [
             url: '/docs/mongoid/:version/reference/release-notes',
           },
           {
+            label: 'Version 7.x Docs',
+            isExternal: true,
+            url: 'https://github.com/mongodb/mongoid/tree/7.5-stable/docs',
+          },
+          {
             label: 'View the Source',
             isExternal: true,
             url: 'https://github.com/mongodb/mongoid',
