@@ -6,6 +6,10 @@ metadata:
 spec:
   # no need to specify source.mongodbResourceRef if MongoDBSearch CR has the same name as MongoDB CR
   # the operator infer it automatically
+  security:
+    tls:
+      certificateKeySecretRef:
+        name: ${MDB_SEARCH_TLS_SECRET_NAME}
   resourceRequirements:
     limits:
       cpu: "3"

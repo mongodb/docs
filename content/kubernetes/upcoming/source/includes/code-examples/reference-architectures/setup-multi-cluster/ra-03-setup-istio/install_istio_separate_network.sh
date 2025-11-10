@@ -94,6 +94,7 @@ spec:
       network: network1
 EOF
 bin/istioctl install --context="${CTX_CLUSTER1}" -f cluster1.yaml -y
+
 samples/multicluster/gen-eastwest-gateway.sh \
     --mesh mesh1 --cluster cluster1 --network network1 | \
     bin/istioctl --context="${CTX_CLUSTER1}" install -y -f -

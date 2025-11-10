@@ -9,8 +9,8 @@ spec:
     app: mdbs-search-svc
   ports:
     - name: mongot
-      port: 27027
-      targetPort: 27027
+      port: 27028
+      targetPort: 27028
 YAML
 
 echo "Waiting for external IP to be assigned to service ${MDB_SEARCH_SERVICE_NAME}..."

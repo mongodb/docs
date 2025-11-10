@@ -2,7 +2,7 @@ export K8S_CTX="<your kubernetes context here>"
 
 export MDB_NS="mongodb"
 
-export MDB_VERSION="8.0.10"
+export MDB_VERSION="8.2.0"
 
 export MDB_ADMIN_USER_PASSWORD="admin-user-password-CHANGE-ME"
 export MDB_USER_PASSWORD="mdb-user-password-CHANGE-ME"
