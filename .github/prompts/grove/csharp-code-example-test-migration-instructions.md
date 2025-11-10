@@ -363,15 +363,13 @@ public class QuickStartTests
         var example = new Examples.QuickStart.QuickStart();
         var result = example.RunQuickStartExample();
 
-        // Use OutputValidator for flexible comparison
         var solutionRoot = DotNetEnv.Env.GetString("SOLUTION_ROOT",
             "Env variable not found. Verify you have a .env file with a valid SOLUTION_ROOT.");
         var outputLocation = "Examples/QuickStart/QuickStartOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
-        var validationResult = OutputValidator.Expect(result)
-            .ToMatchFile(fullPath);
-        validationResult.ThrowIfFailed();
+        Expect.That(result)
+            .ShouldMatch(fullPath);
     }
 
     [TearDown]
@@ -428,10 +426,9 @@ public class CustomExampleTests
         var outputLocation = "Examples/CustomExample/CustomExampleOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
-        var validationResult = OutputValidator.Expect(result)
+        Expect.That(result)
             .WithUnorderedArrays()
-            .ToMatchFile(fullPath);
-        validationResult.ThrowIfFailed();
+            .ShouldMatch(fullPath);
     }
 
     [TearDown]
@@ -570,9 +567,8 @@ When you want flexible matching and can show `"..."` in documentation:
 
 ```csharp
 // test file - No IgnoredFields needed!
-var validationResult = OutputValidator.Expect(result)
-    .ToMatchFile(fullPath);
-validationResult.ThrowIfFailed();
+Expect.That(result)
+    .ShouldMatch(fullPath);
 ```
 
 **Use IgnoredFields (Only when necessary):**
@@ -589,10 +585,9 @@ When documentation must show realistic values but they vary between test runs:
 
 ```csharp
 // test file - Must use IgnoredFields for fields with real values
-var validationResult = OutputValidator.Expect(result)
+Expect.That(result)
     .WithIgnoredFields("_id", "createdAt") // Only for fields with real values
-    .ToMatchFile(fullPath);
-validationResult.ThrowIfFailed();
+    .ShouldMatch(fullPath);
 ```
 
 **Common Mistake to Avoid:**
@@ -1353,12 +1348,10 @@ public class Movie
     public List<string> Genres { get; set; }
 }
 
-// Use OutputValidator with POCOs
-var validationResult = OutputValidator.Expect(movieList)
+Expect.That(movieList)
     .WithUnorderedArrays()
     .WithIgnoredFields("Id") // Only for fields with variable values
-    .ToMatchFile(fullPath);
-validationResult.ThrowIfFailed();
+    .ShouldMatch(fullPath);
 ```
 
 ## 🎪 Critical Reminders

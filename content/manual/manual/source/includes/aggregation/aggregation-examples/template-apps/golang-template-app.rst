@@ -23,7 +23,7 @@ app template for the aggregation tutorials.
    If you attempt to run the code without making any changes, you will
    encounter a connection error.
 
-.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/template-app.go
+.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/template_app.go
    :language: go
    :copyable: true
    :category: usage example

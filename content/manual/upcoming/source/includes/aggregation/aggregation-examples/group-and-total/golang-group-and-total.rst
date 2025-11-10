@@ -24,7 +24,7 @@ collection:
 To create the ``orders`` collection and insert the sample data, add the
 following code to your application:
 
-.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/load-data.snippet.example.go
+.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/load_data.snippet.example.go
    :language: go
    :copyable: true
    :category: usage example
@@ -41,7 +41,7 @@ following code to your application:
       First, add a :pipeline:`$match` stage that matches
       orders placed in 2020:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run-pipeline.snippet.match.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run_pipeline.snippet.match.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -52,7 +52,7 @@ following code to your application:
       ascending sort on the ``orderdate`` field to retrieve the earliest
       2020 purchase for each customer in the next stage:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run-pipeline.snippet.sort-orderdate.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run_pipeline.snippet.sort-orderdate.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -70,7 +70,7 @@ following code to your application:
       - ``orders``: the list of all the customer's purchases,
         including the date and value of each purchase
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run-pipeline.snippet.group.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run_pipeline.snippet.group.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -80,7 +80,7 @@ following code to your application:
       Next, add another :pipeline:`$sort` stage to set an
       ascending sort on the ``first_purchase_date`` field:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run-pipeline.snippet.sort-first-purchase-date.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run_pipeline.snippet.sort-first-purchase-date.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -91,7 +91,7 @@ following code to your application:
       ``customer_id`` field from the values in the ``_id`` field
       that were set during the ``$group`` stage:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run-pipeline.snippet.set.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run_pipeline.snippet.set.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -102,7 +102,7 @@ following code to your application:
       ``$unset`` stage removes the ``_id`` field from the result
       documents:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run-pipeline.snippet.unset.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run_pipeline.snippet.unset.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -112,7 +112,7 @@ following code to your application:
       Add the following code to the end of your application to perform
       the aggregation on the ``orders`` collection:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run-pipeline.snippet.run-agg.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/group/run_pipeline.snippet.run-agg.go
          :language: go
          :copyable: true
          :category: syntax example

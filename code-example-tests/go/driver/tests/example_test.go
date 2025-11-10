@@ -78,7 +78,7 @@ func testYourExampleName(t *testing.T) {
 	actualResults := examples.YourExampleName()
 
 	// Specify the path to the expected output file
-	expectedOutputFilepath := "examples/example-stub-output.txt"
+	expectedOutputFilepath := "examples/example_stub_output.txt"
 
 	// Compare the actual results with expected output using the comparison utility
 	compare.ExpectThat(t, actualResults).

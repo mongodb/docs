@@ -87,7 +87,7 @@ private string GetTestDataPath(string fileName) =>
 Example usage:
 
 ```csharp
-var result = OutputValidator.ToMatchFile(GetTestDataPath("integration-complex.txt"), actualOutput);
+var result = Expect.That(actualOutput).ShouldMatch("integration-complex.txt");
 ```
 
 ## Maintenance Notes

@@ -3,7 +3,7 @@ import { exec, execSync, spawnSync } from 'child_process';
 import path from 'path';
 
 // ------ CONFIGURATION: Set these values for your language/project ----------
-const IGNORE_PATTERNS = new Set(["example-stub.go", "example-stub-output.txt"]);
+const IGNORE_PATTERNS = new Set(["example_stub.go", "example_stub_output.txt"]);
 
 const START_DIRECTORY = "code-example-tests/go/driver/examples";
 const OUTPUT_DIRECTORY = "content/code-examples/tested/go/driver";

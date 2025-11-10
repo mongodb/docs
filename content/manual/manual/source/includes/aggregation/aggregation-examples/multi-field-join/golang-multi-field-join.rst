@@ -31,7 +31,7 @@ collections:
 To create the ``products`` and ``orders`` collections and insert the
 sample data, add the following code to your application:
 
-.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/load-data.snippet.example.go
+.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/load_data.snippet.example.go
    :language: go
    :copyable: true
    :category: usage example
@@ -55,7 +55,7 @@ sample data, add the following code to your application:
       code uses aliases for the ``name`` and ``variation`` fields
       set when :ref:`creating the $lookup stage <golang-multi-field-agg-lookup-stage>`:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run-pipeline.snippet.embedded-pl-match-product-info.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run_pipeline.snippet.embedded-pl-match-product-info.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -63,7 +63,7 @@ sample data, add the following code to your application:
       Within the embedded pipeline, add another :pipeline:`$match` stage to match
       orders placed in 2020:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run-pipeline.snippet.embedded-pl-match-order-date.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run_pipeline.snippet.embedded-pl-match-order-date.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -71,7 +71,7 @@ sample data, add the following code to your application:
       Within the embedded pipeline, add an :pipeline:`$unset` stage to remove
       unneeded fields from the ``orders`` collection side of the join:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run-pipeline.snippet.embedded-pl-unset.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run_pipeline.snippet.embedded-pl-unset.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -83,7 +83,7 @@ sample data, add the following code to your application:
       Configure this stage to store the processed lookup fields in
       an array field called ``orders``:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run-pipeline.snippet.lookup.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run_pipeline.snippet.lookup.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -94,7 +94,7 @@ sample data, add the following code to your application:
       products for which there is at least one order in 2020,
       based on the ``orders`` array calculated in the previous step:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run-pipeline.snippet.match.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run_pipeline.snippet.match.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -105,7 +105,7 @@ sample data, add the following code to your application:
       ``$unset`` stage removes the ``_id`` and ``description``
       fields from the result documents:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run-pipeline.snippet.unset.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run_pipeline.snippet.unset.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -115,7 +115,7 @@ sample data, add the following code to your application:
       Add the following code to the end of your application to perform
       the aggregation on the ``products`` collection:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run-pipeline.snippet.run-agg.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_multi_field/run_pipeline.snippet.run-agg.go
          :language: go
          :copyable: true
          :category: syntax example

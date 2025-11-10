@@ -24,7 +24,7 @@ collection:
 To create the ``persons`` collection and insert the sample data, add the
 following code to your application:
 
-.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/load-data.snippet.example.go
+.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/load_data.snippet.example.go
    :language: go
    :copyable: true
    :category: usage example
@@ -41,7 +41,7 @@ following code to your application:
       First, add a :pipeline:`$match` stage that finds documents in which
       the value of the ``vocation`` field is ``"ENGINEER"``:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/run-pipeline.snippet.match.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/run_pipeline.snippet.match.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -52,7 +52,7 @@ following code to your application:
       documents in descending order by the ``dateofbirth`` field to
       list the youngest people first:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/run-pipeline.snippet.sort.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/run_pipeline.snippet.sort.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -63,7 +63,7 @@ following code to your application:
       stage to the pipeline to output only the first three documents in
       the results.
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/run-pipeline.snippet.limit.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/run_pipeline.snippet.limit.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -73,7 +73,7 @@ following code to your application:
       Finally, add an :pipeline:`$unset` stage. The
       ``$unset`` stage removes unnecessary fields from the result documents:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/run-pipeline.snippet.unset.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/run_pipeline.snippet.unset.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -89,7 +89,7 @@ following code to your application:
       Add the following code to the end of your application to perform
       the aggregation on the ``persons`` collection:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/run-pipeline.snippet.run-agg.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/filter/run_pipeline.snippet.run-agg.go
          :language: go
          :copyable: true
          :category: syntax example

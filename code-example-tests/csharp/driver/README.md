@@ -177,7 +177,7 @@ for details.
 For an example you can copy/paste to stub out your own test case, refer to
 `Tests/ExampleStubTest.cs`.
 
-In most cases, you should verify the output by using the **Expect** APIs to 
+In most cases, you should verify the output by using the **Expect** APIs to
 verify the output against the output we show in the documentation.
 
 ### Using the Expect API
@@ -204,15 +204,19 @@ var results = _example.PerformAggregation();
 var outputLocation = "Examples/Aggregation/Pipelines/Filter/TutorialOutput.txt";
 
 Expect.That(outputLocation)
-    .WithOption(ComparisonOptions.IgnoreFields("_id", "timestamp"))
     .ShouldMatch(results);
 
+// Alternative: Use options to specify comparison behaviors
+Expect.That(results)
+    .WithUnorderedArrays()  // For results that can come back in any order
+    .WithIgnoredFields("_id", "timestamp")  // Ignore dynamic fields
+    .ShouldMatch(outputLocation)
 ```
 
 ## Using the Expect Fluent APIs
 
 The test suite includes a comprehensive fluent API
-designed specifically for validating MongoDB C# Driver output against expected results. 
+designed specifically for validating MongoDB C# Driver output against expected results.
 In most cases, you call ``Expect.That(actualResults).ShouldMatch(expectedResults)``.
 
 **Key Features**
@@ -244,20 +248,19 @@ The order matters -- be sure you always specify the actual results first in ``Ex
 
 ### Advanced Options
 
-There are 3 options available to configure the comparison behavior:
-
-- ``WithOrderedSort()`` requires the elements to be in the same order in both the actual and expected results. Use this when your aggregation pipeline or CRUD operation includes a sort operator, so only correctly sorted results will match.
-- ``WithUnorderedSort()`` accepts elements in any order as long as all the elements exist. This is the default behavior. Use when your aggregation pipeline or CRUD operation does not include a sort operator, to match MongoDB's default unsorted behavior.
-- ``WithIgnoredFields(params string[] fieldNames)`` ignores the values of these fields during comparison. Use for dynamic values that may change between test runs, such as timestamps or object IDs.
-
-Here is an example that uses both ordered sort and ignored fields:
-
 ```csharp
+// With comparison options
+Expect.That(results)
+    .WithUnorderedArrays()                    // Arrays can be in any order
+    .WithIgnoredFields("_id", "createdAt")   // Ignore dynamic fields
+    .ShouldMatch("ExpectedOutput.txt")
+    .IsSuccess.Should().BeTrue();
 
- Expect.That(actualArray)
-    .WithOrderedSort()
-    .WithIgnoredFields("_id", "name")
-    .ShouldMatch(expectedArray);
+// Ordered arrays (for aggregation pipelines, sorted results)
+Expect.That(results)
+    .WithOrderedArrays()
+    .ShouldMatch("ExpectedOutput.txt")
+    .IsSuccess.Should().BeTrue();
 ```
 
 Note that you do not need to set ``WithUnorderedSort()`` because it is the default behavior. It is provided only if you want to be explicit about your intentions.
@@ -302,6 +305,19 @@ Use `...` to match dynamic or variable content:
 **Array elements:**
 ```json
 ["first", "second", ...]  // Matches arrays starting with these elements
+```
+
+### Error Handling
+
+When validation fails, the library provides detailed error messages:
+
+```csharp
+var validation = Expect.That(results).ShouldMatch("Expected.txt");
+if (!validation.IsSuccess)
+{
+    Console.WriteLine($"Validation failed: {validation.ErrorMessage}");
+    // Example output: "Mismatch at path 'users[0].email': expected 'alice@example.com', got 'alice@test.com'"
+}
 ```
 
 ## Working with Sample Data
@@ -452,7 +468,7 @@ dotnet test
 
 ### Run Only Code Example Tests (Recommended for Writers)
 
-To run only the tests that validate code example functionality (excluding utility tests), 
+To run only the tests that validate code example functionality (excluding utility tests),
 from the `/drivers` directory, run:
 
 ```

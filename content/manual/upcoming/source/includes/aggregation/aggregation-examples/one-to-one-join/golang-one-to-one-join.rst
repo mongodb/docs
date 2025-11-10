@@ -29,7 +29,7 @@ collections:
 To create the ``orders`` and ``products`` collections and insert the
 sample data, add the following code to your application:
 
-.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_one_to_one/load-data.snippet.example.go
+.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_one_to_one/load_data.snippet.example.go
    :language: go
    :copyable: true
    :category: usage example
@@ -46,7 +46,7 @@ sample data, add the following code to your application:
       Add a :pipeline:`$match` stage that matches
       orders placed in 2020:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_one_to_one/run-pipeline.snippet.match.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_one_to_one/run_pipeline.snippet.match.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -57,7 +57,7 @@ sample data, add the following code to your application:
       ``$lookup`` stage joins the ``product_id`` field in the ``orders``
       collection to the ``id`` field in the ``products`` collection:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_one_to_one/run-pipeline.snippet.lookup.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_one_to_one/run_pipeline.snippet.lookup.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -75,7 +75,7 @@ sample data, add the following code to your application:
       and ``product_category``, from the values in the
       ``product_mapping`` object field:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_one_to_one/run-pipeline.snippet.set.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_one_to_one/run_pipeline.snippet.set.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -92,7 +92,7 @@ sample data, add the following code to your application:
       Finally, add an :pipeline:`$unset` stage. The
       ``$unset`` stage removes unnecessary fields from the document:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_one_to_one/run-pipeline.snippet.unset.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_one_to_one/run_pipeline.snippet.unset.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -102,7 +102,7 @@ sample data, add the following code to your application:
       Add the following code to the end of your application to perform
       the aggregation on the ``orders`` collection:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_one_to_one/run-pipeline.snippet.run-agg.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/join_one_to_one/run_pipeline.snippet.run-agg.go
          :language: go
          :copyable: true
          :category: syntax example

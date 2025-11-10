@@ -24,7 +24,7 @@ collection:
 To create the ``orders`` collection and insert the sample data, add the
 following code to your application:
 
-.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/unwind/load-data.snippet.example.go
+.. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/unwind/load_data.snippet.example.go
    :language: go
    :copyable: true
    :category: usage example
@@ -41,7 +41,7 @@ following code to your application:
       First, add an :pipeline:`$unwind` stage to separate the
       entries in the ``products`` array into individual documents:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/unwind/run-pipeline.snippet.unwind.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/unwind/run_pipeline.snippet.unwind.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -51,7 +51,7 @@ following code to your application:
       Next, add a :pipeline:`$match` stage that matches
       products with a ``products.price`` value greater than ``15``:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/unwind/run-pipeline.snippet.match.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/unwind/run_pipeline.snippet.match.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -67,7 +67,7 @@ following code to your application:
       - ``total_value``: the total value of all the sales of the product
       - ``quantity``: the number of orders for the product
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/unwind/run-pipeline.snippet.group.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/unwind/run_pipeline.snippet.group.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -78,7 +78,7 @@ following code to your application:
       ``product_id`` field from the values in the ``_id`` field
       that were set during the ``$group`` stage:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/unwind/run-pipeline.snippet.set.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/unwind/run_pipeline.snippet.set.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -89,7 +89,7 @@ following code to your application:
       ``$unset`` stage removes the ``_id`` field from the result
       documents:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/unwind/run-pipeline.snippet.unset.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/unwind/run_pipeline.snippet.unset.go
          :language: go
          :copyable: true
          :category: syntax example
@@ -99,7 +99,7 @@ following code to your application:
       Add the following code to the end of your application to perform
       the aggregation on the ``orders`` collection:
 
-      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/unwind/run-pipeline.snippet.run-agg.go
+      .. literalinclude:: /code-examples/tested/go/driver/aggregation/pipelines/unwind/run_pipeline.snippet.run-agg.go
          :language: go
          :copyable: true
          :category: syntax example
