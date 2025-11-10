@@ -500,11 +500,6 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/backup/cloud-backup/restore-from-continuous',
           },
           {
-            label: 'Restore from Another Project',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/backup/cloud-backup/aws-cross-project',
-          },
-          {
             label: 'Restore from Local Download',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/backup/cloud-backup/restore-from-local-file',

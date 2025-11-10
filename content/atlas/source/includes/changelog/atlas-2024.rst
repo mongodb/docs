@@ -151,9 +151,9 @@
 - Allows you to :ref:`export your cloud backup snapshots
   <cloud-provider-snapshot-export>` to an {+az-bs+} Container.
 
-- Provides efficient :ref:`cross-project restores <aws-cross-project>`
-  for {+database-deployments+} that have {+gcp+} and {+azure+} nodes
-  created after March 27, 2024.
+- Provides efficient :ref:`cross-project restores
+  <restore-time-optimizations>` for clusters that have {+aws+} nodes
+  created before March 27, 2024.
 
 - Allows you to enable faster restores for {+aws+}.
 
