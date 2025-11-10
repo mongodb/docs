@@ -4,7 +4,16 @@
 Unique Indexes
 ==============
 
-.. default-domain:: mongodb
+.. facet::
+   :name: programming_language
+   :values: shell 
+
+.. facet::
+   :name: genre 
+   :values: reference
+
+.. meta:: 
+   :description: Use a unique index to ensure indexed fields do not store duplicate values.
 
 .. contents:: On this page
    :local:
@@ -16,19 +25,16 @@ Unique Indexes
    :skill: Indexing Design Fundamentals
    :url: https://learn.mongodb.com/skills?openTab=indexes
 
-A unique index ensures that the indexed fields do not store duplicate
-values; i.e. enforces uniqueness for the indexed fields. By default,
-MongoDB creates a unique index on the :ref:`_id <document-id-field>`
-field during the creation of a collection.
+Unique indexes ensure that values for the indexed fields are unique.
 
-.. note:: New Internal Format
+- A unique single-field index ensures that a value appears at most once
+  for a given field.
+  
+- A unique compound index ensures that any given *combination* of
+  the index key values only appears at most once.
 
-
-   Starting in MongoDB 4.2, for :ref:`featureCompatibilityVersion
-   <view-fcv>` (fCV) of 4.2 (or greater), MongoDB uses a new internal
-   format for unique indexes that is incompatible with earlier MongoDB
-   versions. The new format applies to both existing unique indexes as
-   well as newly created/rebuilt unique indexes.
+By default, MongoDB creates a unique index on the :ref:`_id
+<document-id-field>` field when you create a new collection.
 
 .. |page-topic| replace:: :atlas:`create and manage unique indexes in the UI </atlas-ui/indexes>`
 
@@ -38,96 +44,61 @@ field during the creation of a collection.
    
    .. include:: /includes/fact-atlas-compatible.rst
 
-.. _index-unique-create:
-
-Create a Unique Index
----------------------
-
-To create a unique index, use the :method:`db.collection.createIndex()`
-method with the ``unique`` option set to ``true``. 
+To create a unique index in the MongoDB Shell, use the
+:method:`db.collection.createIndex()` method with the ``unique`` option
+set to ``true``. 
 
 .. code-block:: javascript
 
-   db.collection.createIndex( <key and index type specification>, { unique: true } )
+   db.collection.createIndex(
+      { <field>: <sortOrder> },
+      { unique: true }
+    )
 
+Get Started
+-----------
 
-.. _index-unique-index:
+To create a unique index, see:
 
-Unique Index on a Single Field
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- :ref:`index-unique-index`
+- :ref:`index-unique-compound-index`
 
-For example, to create a unique index on the ``user_id`` field of the
-``members`` collection, use the following operation in
-:binary:`~bin.mongosh`:
+Details
+-------
 
-.. code-block:: javascript
+.. _unique-index-prepare-overview:
 
-   db.members.createIndex( { "user_id": 1 }, { unique: true } )
+prepareUnique Option
+~~~~~~~~~~~~~~~~~~~~
 
-.. _index-unique-compound-index:
+MongoDB cannot directly create a unique index if the collection already
+contains data that would violate the unique constraint. To create a
+unique index on a collection that contains duplicate values, you can use
+the ``prepareUnique`` option.
 
-Unique Compound Index
-~~~~~~~~~~~~~~~~~~~~~
+To use ``prepareUnique`` on a collection that contains duplicate values,
+follow these steps:
 
-You can also enforce a unique constraint on :ref:`compound indexes
-<index-type-compound>`. If you use the unique constraint on a
-:ref:`compound index <index-type-compound>`, then MongoDB will enforce
-uniqueness on the *combination* of the index key values.
+1. Create a non-unique index on the field or fields that you want to
+   enforce uniqueness.
 
-For example, to create a unique index on ``groupNumber``, ``lastname``,
-and ``firstname`` fields of the ``members`` collection, use the
-following operation in :binary:`~bin.mongosh`:
+#. Use the :dbcommand:`collMod` command to set ``prepareUnique`` to
+   ``true`` for the index.
 
-.. code-block:: javascript
+   When you set ``prepareUnique`` to ``true``, the unique constraint is
+   enforced for all new writes to the indexed field. Existing duplicate
+   values are not removed.
 
-   db.members.createIndex( { groupNumber: 1, lastname: 1, firstname: 1 }, { unique: true } )
+#. Resolve any existing duplicate values in the indexed field.
 
-The created index enforces uniqueness for the *combination* of
-``groupNumber``, ``lastname``, and ``firstname`` values.
+#. Use the ``collMod`` command to make the index unique.
 
-For another example, consider a collection with the following document:
+The ``prepareUnique`` feature is useful if you already have a dataset
+with duplicate values that you want to de-duplicate, and need to ensure
+that new duplicate values are not added during the cleanup process.
 
-.. code-block:: javascript
-
-   { _id: 1, a: [ { loc: "A", qty: 5 }, { qty: 10 } ] }
-
-Create a unique compound :ref:`multikey <index-type-multikey>` index
-on ``a.loc`` and ``a.qty``:
-
-.. code-block:: javascript
-
-   db.collection.createIndex( { "a.loc": 1, "a.qty": 1 }, { unique: true } )
-
-The unique index permits the insertion of the following documents into
-the collection since the index enforces uniqueness for the
-*combination* of ``a.loc`` and ``a.qty`` values:
-
-.. code-block:: javascript
-
-   db.collection.insertMany( [
-      { _id: 2, a: [ { loc: "A" }, { qty: 5 } ] },
-      { _id: 3, a: [ { loc: "A", qty: 10 } ] }
-   ] )
-
-.. seealso::
-
-   - :ref:`unique-separate-documents`
-   - :ref:`unique-index-and-missing-field`
-
-Behavior
---------
-
-.. _unique-index-restrictions:
-
-Restrictions
-~~~~~~~~~~~~~
-
-MongoDB cannot create a :ref:`unique index <index-type-unique>` on the
-specified index field(s) if the collection already contains data that
-would violate the unique constraint for the index.
-
-You may not specify a unique constraint on a :ref:`hashed
-index <index-type-hashed>`.
+For a complete example that uses ``prepareUnique``, see
+:ref:`index-convert-to-unique`.
 
 Building Unique Index on Replica Sets and Sharded Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -147,8 +118,8 @@ on the collection by:
  
 .. _unique-separate-documents:
 
-Unique Constraint Across Separate Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Unique Constraint on Array Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The unique constraint applies to separate documents in the collection.
 That is, the unique index prevents *separate* documents from having the
@@ -324,9 +295,9 @@ Unique Partial Indexes
 
 Partial indexes only index the documents in a collection that meet a
 specified filter expression. If you specify both the
-``partialFilterExpression`` and a :ref:`unique constraint
-<index-type-unique>`, the unique constraint only applies to the
-documents that meet the filter expression.
+``partialFilterExpression`` and a unique constraint, the unique
+constraint only applies to the documents that meet the filter
+expression.
 
 A partial index with a unique constraint does not prevent the insertion
 of documents that do not meet the unique constraint if the documents do
@@ -334,6 +305,7 @@ not meet the filter criteria. For an example, see
 :ref:`partial-index-with-unique-constraints`.
 
 .. _sharded-clusters-unique-indexes:
+.. _unique-index-restrictions:
 
 Sharded Clusters and Unique Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -344,14 +316,14 @@ You cannot specify a unique constraint on a :ref:`hashed index
 For a ranged sharded collection, only the following indexes can be
 :ref:`unique <index-type-unique>`:
 
-- the index on the shard key
+- The index on the shard key.
 
-- a :term:`compound index` where the shard key is a :ref:`prefix
-  <compound-index-prefix>`
+- A :term:`compound index` where the shard key is a :ref:`prefix
+  <compound-index-prefix>`.
 
-- The default ``_id`` index; however, the ``_id`` index only
-  enforces the uniqueness constraint **per shard** if the ``_id`` field
-  is not the shard key. 
+- The default ``_id`` index. However, the ``_id`` index only enforces
+  the uniqueness constraint **per shard** if the ``_id`` field is not
+  the shard key.
 
 .. include:: /includes/sharding/shard-collection-uniqueness-enforcement-note.rst
 
@@ -368,8 +340,8 @@ Sparse and Non-Sparse Unique Indexes
 Basic and Unique Indexes With Duplicate Key Patterns
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 5.0, basic and unique indexes can exist with the
-same :ref:`key pattern <key_patterns>`. 
+Basic and unique indexes can exist with the same :ref:`key pattern
+<key_patterns>`.
 
 This duplication in key patterns allows for adding a unique index to 
 already indexed fields.
@@ -402,5 +374,7 @@ the unique index.
 .. toctree::
    :titlesonly: 
 
+   Create Single-Field </core/index-unique/create>
+   Create Compound </core/index-unique/create-compound>
    Convert to Unique </core/index-unique/convert-to-unique>
    Shard Collection </tutorial/shard-collection-with-unique-index>
