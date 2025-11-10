@@ -308,6 +308,16 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: 'Single-Field Unique',
+            contentSite: 'docs',
+            url: '/docs/:version/core/index-unique/create',
+          },
+          {
+            label: 'Compound Unique',
+            contentSite: 'docs',
+            url: '/docs/:version/core/index-unique/create-compound',
+          },
+          {
             label: 'Convert to Unique',
             contentSite: 'docs',
             url: '/docs/:version/core/index-unique/convert-to-unique',
