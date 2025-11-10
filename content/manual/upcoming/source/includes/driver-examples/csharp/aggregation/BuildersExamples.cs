@@ -67,7 +67,7 @@ public static class AggregationBuilders
             .ChangeStream();
         // end changeStream
     }
-    
+
     public static void ChangeStreamOptionsStage()
     {
         // start changeStreamOptions
@@ -76,7 +76,7 @@ public static class AggregationBuilders
             FullDocument = ChangeStreamFullDocumentOption.Default,
             StartAtOperationTime = new BsonTimestamp(300),
         };
-        
+
         var pipeline = new EmptyPipelineDefinition<Movie>()
             .ChangeStream(changeStreamOptions);
         // end changeStreamOptions
@@ -117,7 +117,7 @@ public static class AggregationBuilders
                 partitionByFields: [w => w.Position.Coordinates]);
         // end densify
     }
-    
+
     public static void DocumentsStage()
     {
         // start documents
@@ -127,12 +127,12 @@ public static class AggregationBuilders
             new BsonDocument {{ "title", "Back to the Future" }},
             new BsonDocument {{ "title", "Jurassic Park" }},
         };
-        
+
         var pipeline = new EmptyPipelineDefinition<NoPipelineInput>()
             .Documents(documentArray);
         // end documents
     }
-    
+
     public static void FacetStage()
     {
         // start facet
@@ -149,12 +149,12 @@ public static class AggregationBuilders
             .Limit(5);
         var countFacet = AggregateFacet.Create(
             "Ratings", countLimitPipeline);
-        
+
         var pipeline = new EmptyPipelineDefinition<Movie>()
             .Facet(bucketFacet, countFacet);
         // end facet
     }
-  
+
     public static void GeoNearStage()
     {
         // start geoNear
@@ -163,23 +163,23 @@ public static class AggregationBuilders
                 GeoJson.Point(GeoJson.Geographic(-74.1, 40.95)),
                 new GeoNearOptions<Theater, Theater>
                 {
-                  DistanceField = "distance",
-                  MaxDistance = 8000,
-                  Key = "location.geo",
-                  Query = Builders<Theater>.Filter.Eq(t => t.Location.Address.State, "NJ"),
+                    DistanceField = "distance",
+                    MaxDistance = 8000,
+                    Key = "location.geo",
+                    Query = Builders<Theater>.Filter.Eq(t => t.Location.Address.State, "NJ"),
                 });
         // end geoNear
-    
+
         // start geoNear min
         var pipeline = new EmptyPipelineDefinition<Theater>()
             .GeoNear(
                 GeoJson.Point(GeoJson.Geographic(-74.1, 40.95)),
                 new GeoNearOptions<Theater, Theater>
                 {
-                  DistanceField = "distance",
-                  MinDistance = 8000,
-                  Key = "location.geo",
-                  Query = Builders<Theater>.Filter.Eq(t => t.Location.Address.State, "NJ"),
+                    DistanceField = "distance",
+                    MinDistance = 8000,
+                    Key = "location.geo",
+                    Query = Builders<Theater>.Filter.Eq(t => t.Location.Address.State, "NJ"),
                 })
             .Limit(4);
         // end geoNear min
@@ -196,7 +196,7 @@ public static class AggregationBuilders
                 @as: e => e.ReportingHierarchy);
         // end graphLookupBasic
     }
- 
+
     public static void GraphLookupMatchStage()
     {
         var client = new MongoClient("mongodb://localhost:27017");
@@ -212,7 +212,7 @@ public static class AggregationBuilders
                 new AggregateGraphLookupOptions<Employee, Employee, Employee>
                 {
                     MaxDepth = 1,
-                    RestrictSearchWithMatch = Builders<Employee>.Filter.AnyEq(e => e.Hobbies, "golf") 
+                    RestrictSearchWithMatch = Builders<Employee>.Filter.AnyEq(e => e.Hobbies, "golf")
                 });
         // end graphLookupMatch
     }
@@ -222,7 +222,7 @@ public static class AggregationBuilders
         var client = new MongoClient("mongodb://localhost:27017");
         // start graphLookupDepth
         var employeeCollection = client.GetDatabase("aggregation_examples").GetCollection<Employee>("employees");
-        
+
         var pipeline = new EmptyPipelineDefinition<Employee>()
             .GraphLookup<Employee, Employee, Employee, Employee, string, Employee, List<Employee>, Employee>(
                 from: employeeCollection,
@@ -236,7 +236,7 @@ public static class AggregationBuilders
                 });
         // end graphLookupDepth
     }
-    
+
     public static void GroupStage()
     {
         // start group
@@ -251,7 +251,7 @@ public static class AggregationBuilders
             );
         // end group
     }
-    
+
     public static void LimitStage()
     {
         // start limit
@@ -259,7 +259,7 @@ public static class AggregationBuilders
             .Limit(10);
         // end limit
     }
-    
+
     public static void LookupStage()
     {
         var client = new MongoClient("mongodb://localhost:27017");
@@ -267,7 +267,7 @@ public static class AggregationBuilders
         var commentCollection = client
             .GetDatabase("aggregation_examples")
             .GetCollection<Comment>("comments");
-        
+
         var pipeline = new EmptyPipelineDefinition<Movie>()
             .Lookup<Movie, Movie, Comment, Movie>(
                 foreignCollection: commentCollection,
@@ -276,7 +276,7 @@ public static class AggregationBuilders
                 @as: m => m.Comments);
         // end lookup
     }
-    
+
     public static void MatchStage()
     {
         // start match
@@ -284,7 +284,7 @@ public static class AggregationBuilders
             .Match(m => m.Title == "The Shawshank Redemption");
         // end match
     }
-    
+
     public static void MergeStage()
     {
         var client = new MongoClient("mongodb://localhost:27017");
@@ -292,18 +292,18 @@ public static class AggregationBuilders
         var movieCollection = client
             .GetDatabase("sample_mflix")
             .GetCollection<Movie>("movies");
-        
+
         var pipeline = new EmptyPipelineDefinition<Movie>()
             .Merge(movieCollection,
                 new MergeStageOptions<Movie>(
                 {
-                    OnFieldNames = new List<string>() {"id", "title"},
+                    OnFieldNames = new List<string>() { "id", "title" },
                     WhenMatched = MergeStageWhenMatched.Replace,
                     WhenNotMatched = MergeStageWhenNotMatched.Insert,
                 });
         // end merge
     }
-    
+
     public static void OutStage()
     {
         var client = new MongoClient("mongodb://localhost:27017");
@@ -311,12 +311,12 @@ public static class AggregationBuilders
         var movieCollection = client
             .GetDatabase("sample_mflix")
             .GetCollection<Movie>("movies");
-        
+
         var pipeline = new EmptyPipelineDefinition<Movie>()
             .Out(movieCollection);
         // end out
     }
-    
+
     public static void ProjectStage()
     {
         // start project
@@ -328,7 +328,7 @@ public static class AggregationBuilders
     public static void ProjectComputedStage()
     {
         // start projectComputed
-        var pipeline = new EmptyPipelineDefinition<Movie> ()
+        var pipeline = new EmptyPipelineDefinition<Movie>()
             .Project(
                 Builders<Movie>
                     .Projection
@@ -336,7 +336,7 @@ public static class AggregationBuilders
             );
         // end projectComputed
     }
-    
+
     public static void ReplaceRootStage()
     {
         // start replaceRoot
@@ -344,7 +344,7 @@ public static class AggregationBuilders
             .ReplaceRoot(m => m.ImdbData);
         // end replaceRoot
     }
-    
+
     public static void ReplaceWithStage()
     {
         // start replaceWith
@@ -367,7 +367,7 @@ public static class AggregationBuilders
         var pipeline = new EmptyPipelineDefinition<Movie>()
             .Search(
                 Builders<Movie>.Search.Text(
-                    Builders<Movie>.SearchPath.Single(m => m.Title), "Future"));  
+                    Builders<Movie>.SearchPath.Single(m => m.Title), "Future"));
         // end search
     }
 
@@ -389,7 +389,7 @@ public static class AggregationBuilders
             .Set(Builders<Movie>.SetFields.Set(m => m.LastUpdated, DateTime.Now));
         // end set
     }
-    
+
     public static void SetWindowFieldsStage()
     {
         // start setWindowFields
@@ -414,14 +414,14 @@ public static class AggregationBuilders
             );
         // end setWindowFields
     }
-   
+
     public static void SkipStage()
     {
-         // start skip
-         var pipeline = new EmptyPipelineDefinition<Movie>()
-             .Skip(5);
-         // end skip
-     }
+        // start skip
+        var pipeline = new EmptyPipelineDefinition<Movie>()
+            .Skip(5);
+        // end skip
+    }
 
     public static void SortStage()
     {
@@ -452,11 +452,11 @@ public static class AggregationBuilders
             .UnionWith(
                 withCollection: secondMovieCollection,
                 withPipeline: new EmptyPipelineDefinition<Movie>());
-        
-        var allMovieDocuments = firstMovieCollection.Aggregate(pipeline); 
+
+        var allMovieDocuments = firstMovieCollection.Aggregate(pipeline);
         // end unionWith
     }
-    
+
     public static void UnwindStage()
     {
         // start unwind
@@ -464,7 +464,7 @@ public static class AggregationBuilders
             .Unwind(m => m.Genres);
         // end unwind
     }
-    
+
     public static void UnwindPreserveStage()
     {
         // start unwindPreserve
@@ -472,10 +472,58 @@ public static class AggregationBuilders
             .Unwind(m => m.Genres,
                 new AggregateUnwindOptions<Movie>()
                 {
-                   PreserveNullAndEmptyArrays = true,
-                   IncludeArrayIndex = new ExpressionFieldDefinition<Movie, int>(
-                       m => m.Index) 
+                    PreserveNullAndEmptyArrays = true,
+                    IncludeArrayIndex = new ExpressionFieldDefinition<Movie, int>(
+                       m => m.Index)
                 });
         // end unwindPreserve
+    }
+
+    public static void RankFusionIndex()
+    {
+        // start rankFusionIndex
+        var collection = client.GetDatabase("sample_mflix").GetCollection<Movie>("movies");
+
+        var index = new BsonDocument
+        {
+            { "mappings", new BsonDocument
+                {
+                    { "dynamic", true }
+                }
+            }
+        };
+
+        collection.SearchIndexes.CreateOne(index, "default");
+        // end rankFusionIndex
+    }
+
+    public static void RankFusionStage()
+    {
+        // start rankFusion
+        var searchPipelines = new Dictionary<string, PipelineDefinition<Movie, Movie>>
+        {
+            {
+                "searchPlot",
+                new EmptyPipelineDefinition<Movie>()
+                    .Search(
+                        Builders<Movie>.Search.Text(Builders<Movie>.SearchPath.Single(m => m.Plot), "space"))
+            },
+            {
+                "searchGenre",
+                new EmptyPipelineDefinition<Movie>()
+                    .Search(
+                        Builders<Movie>.Search.Text(Builders<Movie>.SearchPath.Single(m => m.Genres), "adventure"))
+            }
+        };
+
+        var weights = new Dictionary<string, double>
+        {
+            { "searchPlot", 0.4 },
+            { "searchGenre", 0.6 }
+        };
+
+        var pipeline = new EmptyPipelineDefinition<Movie>()
+            .RankFusion(searchPipelines, weights, new RankFusionOptions<Movie> { ScoreDetails = true });
+        // end rankFusion
     }
 }
