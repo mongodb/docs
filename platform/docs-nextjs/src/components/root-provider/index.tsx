@@ -19,6 +19,7 @@ import type { PageTemplateType } from '@/types/ast';
 import { InstruqtProvider } from '@/context/instruqt-context';
 import { ImageContextProvider, type ImageContextType } from '@/context/image-context';
 import type { Environments } from '@/utils/env-config';
+import { UnifiedTocProvider } from '@/context/unified-toc-context';
 import { CookiesProvider } from '@/context/cookies-context';
 
 const getPageSlug = (fileName: ASTDocument['filename']) => {
@@ -44,25 +45,27 @@ const RootProvider = ({ cookies, children, metadata, page, assets, docsets, env,
     <MetadataProvider value={metadata}>
       <CookiesProvider cookies={cookies}>
         <VersionContextProvider docsets={docsets} slug={getPageSlug(page.filename)} env={env}>
-          <PageContext.Provider
-            value={{
-              page: page.ast,
-              slug: getPageSlug(page.filename),
-              template,
-              tabsMainColumn: page.ast.options?.['tabs-selector-position'] === 'main',
-              options: page.ast.options,
-            }}
-          >
-            <FootnoteProvider pageNodes={pageNodes}>
-              <ContentsProvider headingNodes={headingNodes}>
-                <TabProvider selectors={page.ast.options?.selectors} defaultTabs={page.ast.options?.default_tabs}>
-                  <InstruqtProvider hasLabDrawer={!!page.ast.options?.instruqt}>
-                    <ImageContextProvider value={assets}>{children}</ImageContextProvider>
-                  </InstruqtProvider>
-                </TabProvider>
-              </ContentsProvider>
-            </FootnoteProvider>
-          </PageContext.Provider>
+          <UnifiedTocProvider>
+            <PageContext.Provider
+              value={{
+                page: page.ast,
+                slug: getPageSlug(page.filename),
+                template,
+                tabsMainColumn: page.ast.options?.['tabs-selector-position'] === 'main',
+                options: page.ast.options,
+              }}
+            >
+              <FootnoteProvider pageNodes={pageNodes}>
+                <ContentsProvider headingNodes={headingNodes}>
+                  <TabProvider selectors={page.ast.options?.selectors} defaultTabs={page.ast.options?.default_tabs}>
+                    <InstruqtProvider hasLabDrawer={!!page.ast.options?.instruqt}>
+                      <ImageContextProvider value={assets}>{children}</ImageContextProvider>
+                    </InstruqtProvider>
+                  </TabProvider>
+                </ContentsProvider>
+              </FootnoteProvider>
+            </PageContext.Provider>
+          </UnifiedTocProvider>
         </VersionContextProvider>
       </CookiesProvider>
     </MetadataProvider>
