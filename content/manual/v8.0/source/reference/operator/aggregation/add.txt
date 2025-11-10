@@ -46,7 +46,10 @@ Behavior
 
 .. include:: /includes/agg-expression-order-of-return-behavior.rst
 
-.. include:: /includes/agg-expression-mixed-input-types-with-date.rst
+When mixing :ref:`document-bson-type-date` and non-integer operands, the ``$add`` 
+operator evaluates the array of expressions from left to right and rounds 
+numeric values before adding them to the ``Date`` value. For more information, see
+:ref:`add-operation-left-associative`.
 
 Examples
 --------
@@ -107,3 +110,39 @@ The operation returns the following results:
    { "_id" : 1, "item" : "abc", "billing_date" : ISODate("2014-03-04T08:00:00Z") }
    { "_id" : 2, "item" : "jkl", "billing_date" : ISODate("2014-03-04T09:00:00Z") }
    { "_id" : 3, "item" : "xyz", "billing_date" : ISODate("2014-03-18T09:00:00Z") }
+
+.. _add-operation-left-associative:
+
+Add Non-Integer Values to a Date
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation uses the ``$add`` expression to compute the ``result`` 
+field by adding numeric values to the ``date`` field:
+
+.. io-code-block::
+      
+   .. input::
+      :language: javascript
+      
+      db.sales.aggregate(
+         [
+            { $project: { item: 1, result: { $add: [ 1.5, 1.6, "$date", 1.5, 1.5 ] } } }
+         ]
+      )
+   
+   .. output::
+      :visible: true
+
+      { "_id" : 1, "item" : 'abc', "result" : ISODate("2014-03-01T08:00:00.007Z") }
+      { "_id" : 2, "item" : 'jkl', "result" : ISODate("2014-03-01T09:00:00.007Z") }
+      { "_id" : 3, "item" : 'xyz', "result" : ISODate("2014-03-15T09:00:00.007Z") }
+
+Note that, although the sum of non-date expressions is ``6.1`` milliseconds,
+the aggregation results in the initial ``$date`` field plus ``7`` milliseconds due 
+to the ``$add`` operation's left associativity.
+
+When ``$add`` evaluates the array of expressions from left to right, it first adds
+the two numeric values ``1.5`` and ``1.6``. The resulting ``3.1`` is rounded to ``3`` 
+before being added to the ``$date`` field. Next, it is added to the rounded 
+value of ``1.5`` (which is ``2``), and then to the rounded value of the final ``1.5`` 
+(which is also ``2``).
