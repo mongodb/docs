@@ -1,7 +1,9 @@
 import type { InstruqtProps } from '@/components/instruqt';
 import type { OpenAPIProps } from '@/components/openapi';
+import type { VideoProps } from '@/components/video';
 import type { OpenAPINode } from '@/types/ast';
 import type { InstruqtNode } from '@/types/ast';
+import type { VideoNode } from '@/types/ast';
 import type { ComponentFactoryProps } from '@/components/component-factory';
 import dynamic from 'next/dynamic';
 import type { ComponentType } from 'react';
@@ -9,13 +11,13 @@ import type { ComponentType } from 'react';
 type LazyComponentMapType = {
   instruqt: ComponentType<ComponentFactoryProps>;
   openapi: ComponentType<ComponentFactoryProps>;
+  video: ComponentType<ComponentFactoryProps>;
 };
 
 export const LazyComponentMap = {
   instruqt: dynamic(() => import('@/components/instruqt')),
   openapi: dynamic(() => import('@/components/openapi')),
-  // TODO: uncomment this out as they get ported over
-  // video: dynamic(() => import('./Video')),
+  video: dynamic(() => import('@/components/video'), { ssr: false }),
 } as const;
 
 /**
@@ -45,6 +47,16 @@ export const LAZY_COMPONENTS: LazyComponentMapType = (
         options: node.options,
       };
       return <LazyComponent {...instruqtProps} />;
+    };
+  } else if (key === 'video') {
+    const LazyComponent = LazyComponentMap.video as ComponentType<VideoProps>;
+    res.video = (props: ComponentFactoryProps) => {
+      const node = props.nodeData as VideoNode;
+      const videoProps: VideoProps = {
+        argument: node.argument,
+        options: node.options,
+      };
+      return <LazyComponent {...videoProps} />;
     };
   }
 

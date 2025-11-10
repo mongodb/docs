@@ -6,7 +6,6 @@ import { css, cx } from '@leafygreen-ui/emotion';
 import { palette } from '@leafygreen-ui/palette';
 import LinkComponent from '@/components/link';
 import ComponentFactory from '@/components/component-factory';
-import { normalizePath } from '@/utils/normalize-path';
 import { isRelativeUrl } from '@/utils/is-relative-url';
 import { useVersionContext } from '@/context/version-context';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
