@@ -17,7 +17,7 @@
 
     - string
 
-    - The issuer URI of the IdP that the server should accept tokens from. This 
+    - The issuer URI of the |idp-abbr| that the server should accept tokens from. This 
       must match the ``iss`` field in any JWT used for authentication.
 
       .. include:: /includes/fact-oidc-multiple-config-for-same-issuer.rst
@@ -55,24 +55,24 @@
 
     - string
 
-    - Regex pattern used to determine which IdP should be used. ``matchPattern`` 
+    - Regex pattern used to determine which |idp| should be used. ``matchPattern`` 
       matches against usernames. Array order determines the priority and the 
-      first IdP is always selected. 
+      first |idp| is always selected. 
 
       ``matchPattern`` is required in some configurations, depending on 
       how the user sets ``supportsHumanFlows``:
 
-      - When only one IdP has ``supportsHumanFlows`` set to ``true``
+      - When only one |idp| has ``supportsHumanFlows`` set to ``true``
         (the default), ``matchPatterns`` is optional.
 
-      - When multiple IdP's have ``supportsHumanFlows`` set to ``true``
+      - When multiple |idp-poss| have ``supportsHumanFlows`` set to ``true``
         (the default), each of these requires ``matchPatterns``.
 
-      - ``matchPatterns`` is optional for any IdP where ``supportsHumanFlows``
+      - ``matchPatterns`` is optional for any |idp| where ``supportsHumanFlows``
         is set to ``false``.
 
       This is not a security mechanism. ``matchPattern`` serves only as an advisory 
-      to clients. MongoDB accepts tokens issued by the IdP whose principal 
+      to clients. MongoDB accepts tokens issued by the |idp| whose principal 
       names do not match this pattern.
 
 
@@ -82,7 +82,7 @@
      
     - string 
 
-    - ID provided by the IdP to identify the client that receives the access tokens.
+    - ID provided by the |idp| to identify the client that receives the access tokens.
 
       Required when ``supportsHumanFlows`` is set to ``true`` (the default).
     
@@ -97,7 +97,7 @@
     
       .. include:: /includes/fact-7-0-oidc-audience.rst
 
-      When more than one IdP is defined, this must be a unique value for 
+      When more than one |idp| is defined, this must be a unique value for 
       each configuration that shares an ``issuer``. 
 
   * - ``requestScopes``
@@ -106,12 +106,12 @@
      
     - array[ string ] 
 
-    - Permissions and access levels that MongoDB requests from the IdP.
+    - Permissions and access levels that MongoDB requests from the |idp|.
 
       :gold:`IMPORTANT:` By default, clients such as :compass:`Compass </>` and 
       :binary:`~bin.mongosh` request the ``oidc`` and ``offline_access`` scopes 
-      from the IdP. If the IdP supports neither ``oidc`` nor ``offline_access``, 
-      the client doesn't request them. If the IdP supports ``oidc`` but not 
+      from the |idp|. If the |idp| supports neither ``oidc`` nor ``offline_access``, 
+      the client doesn't request them. If the |idp| supports ``oidc`` but not 
       ``offline_access``, you must re-authenticate frequently.
 
   * - ``principalName``
@@ -136,7 +136,7 @@
       ``true``.
     
       If the ``useAuthorizationClaim`` field is set to ``true``, the server requires 
-      an ``authorizationClaim`` for the identity provider's config. This is the 
+      an ``authorizationClaim`` for the |idp-poss| config. This is the 
       default behavior.
       
       If the ``useAuthorizationClaim`` field is set to ``false``, the 
@@ -193,10 +193,10 @@
 
     - integer
 
-    - Frequency, in seconds, to request an updated JSON Web Key Set (JWKS) from the IdP. 
+    - Frequency, in seconds, to request an updated JSON Web Key Set (JWKS) from the |idp|. 
       A setting of 0 disables polling.
 
-      When more than one IdP is defined, this must be the same value for 
+      When more than one |idp| is defined, this must be the same value for 
       each configuration that shares an ``issuer``.  
     
 
@@ -210,7 +210,7 @@
       affects the ``clientId`` and ``matchPattern`` fields.
 
       You may find it useful to set this field to ``false`` with machine workload
-      IdP's to allow them to omit the ``clientId`` when it's unneeded.
+      |idps| to allow them to omit the ``clientId`` when it's unneeded.
 
       Default: ``true``.
 

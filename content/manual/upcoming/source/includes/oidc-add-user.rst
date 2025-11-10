@@ -9,7 +9,7 @@
          .. step:: Create MongoDB roles
       
             In the ``admin`` database, use the :method:`db.createRole()` method to create 
-            roles that map the identity provider group roles to MongoDB roles.
+            roles that map the |idp| group roles to MongoDB roles.
       
             Use the following format to create roles: 
       
