@@ -18,7 +18,6 @@ const CHATBOT_SERVER_BASE_URL = ['dotcomprd', 'production'].includes(env)
   : 'https://knowledge-dev.mongodb.com/api/v1';
 
 function ChatbotComponent() {
-  const shouldStream = false;
   const { contextDarkMode: darkMode = false } = useDarkModeContext();
 
   return (
@@ -26,7 +25,6 @@ function ChatbotComponent() {
       <Chatbot
         name="MongoDB Assistant"
         serverBaseUrl={CHATBOT_SERVER_BASE_URL}
-        shouldStream={shouldStream}
         darkMode={darkMode}
         fetchOptions={() => ({
           credentials: 'include',
