@@ -60,13 +60,13 @@
       
           Open the :setting:`mmsConfigBackup` file in your preferred text editor and find the ``autoPwd`` value.
    
-  - In {+mongosh+}, use the :method:`db.createUser()` method to add the 
+  - In {+mongosh+}, use the :method:`db.createUser()` method to add the
     |mms| project's {+mdbagent+} user to the MongoDB process.
-    For example, if the |mms| project uses :doc:`Username/Password 
-    </tutorial/enable-mongodbcr-authentication-for-group>` authentication, 
+    For example, if the |mms| project uses :doc:`Username/Password
+    </tutorial/enable-mongodbcr-authentication-for-group>` authentication,
     run the following command to add the ``mms-automation`` user to
     the ``admin`` database in the MongoDB deployment to import:
-    
+
     .. code-block:: javascript
 
        db.getSiblingDB("admin").createUser(
@@ -79,11 +79,14 @@
              'readWriteAnyDatabase',
              'userAdminAnyDatabase',
              'restore',
-             'backup'
+             'backup',
+             'directShardOperations'  // Required for sharded clusters
            ]
          }
        )
 
+    .. include:: /includes/note-directShardOperations-role.rst
+     
 - When you add a cluster under |mms|, |mms| automatically enables log
   :manual:`rotation </tutorial/rotate-log-files/>`, which could collide
   with your existing ``logRotate`` configuration for ``mongod`` or
