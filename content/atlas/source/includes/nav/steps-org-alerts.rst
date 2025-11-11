@@ -3,7 +3,7 @@
    a. If it's not already displayed, select your desired organization
       from the |ui-org-menu| menu in the navigation bar.
 
-   #. Click the :guilabel:`Activity Feed & Alerts` icon in the 
+   #. Click the :guilabel:`Alerts` icon in the 
       navigation bar.
 
    #. Click :guilabel:`Alerts` under the 
