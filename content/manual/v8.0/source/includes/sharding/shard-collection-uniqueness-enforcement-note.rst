@@ -3,7 +3,7 @@
    Sharded clusters do not enforce the uniqueness constraint on ``_id`` fields 
    across the cluster when the ``_id`` field is not the shard key.
 
-   If the ``_id`` field is the not the shard key the uniqueness constraint only 
+   If the ``_id`` field is not the shard key, the uniqueness constraint only 
    applies to the shard that stores the document. This means that two or more
    documents can have the same ``_id`` value, provided they occur on different
    shards.
@@ -15,4 +15,5 @@
    ``_id`` value ``1`` in shard B.
 
    In cases where the ``_id`` field is not the shard key, MongoDB expects
-   applications to enforce the uniqueness of ``_id`` values across the shards.
+   applications to ensure the uniqueness of ``_id`` values across the shards,
+   for example, by using a unique identifier to populate the ``_id`` field.
