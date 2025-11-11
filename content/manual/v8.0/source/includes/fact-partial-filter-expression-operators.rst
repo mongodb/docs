@@ -1,14 +1,18 @@
 - equality expressions (i.e. ``field: value`` or using the :query:`$eq`
-  operator),
+  operator)
 
-- :query:`$exists: true <$exists>` expression,
+- :query:`$exists: true <$exists>` expression
 
-- :query:`$gt`, :query:`$gte`, :query:`$lt`, :query:`$lte` expressions,
+- :query:`$gt`, :query:`$gte`, :query:`$lt`, :query:`$lte` expressions
 
-- :query:`$type` expressions,
+- :query:`$type` expressions
 
-- :query:`$and` operator,
+- :query:`$and` operator
 
-- :query:`$or` operator, 
+- :query:`$or` operator
 
-- :query:`$in` operator 
+- :query:`$in` operator
+
+- :query:`$geoWithin` operator
+
+- :query:`$geoIntersects` operator
