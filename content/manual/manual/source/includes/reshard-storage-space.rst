@@ -1,24 +1,21 @@
-Ensure that the available storage space on each shard the
-collection will be distributed across is at least twice the size
-of the collection that you want to reshard and its total index
-size, divided by the number of shards. 
+Ensure that the available storage space on each recipient shard is at least
+twice the storage size of the collection that you want to reshard plus its
+total index size, divided by the number of shards:
 
 .. code-block:: none
   :copyable: false
 
-  storage_req = ( ( collection_storage_size + index_size ) * 2 ) / shard_count
+  ( ( collection_storage_size + index_size ) * 2 ) / shard_count = storage_req
 
-For example, consider a collection that contains 2 TB of
-data and has a 400 GB index distributed across four shards.
-To perform a resharding operation on this collection, each
-shard would require 1.2 TB of available storage.
+For example, consider a collection with a storage size of 2 TB data and a 400
+GB index. To distribute it across four shards you'd need:
 
 .. code-block:: none
   :copyable: false
 
-  1.2 TB storage = ( ( 2 TB collection + 0.4 TB index ) * 2 ) / 4 shards
+  ( ( 2 TB collection + 0.4 TB index ) * 2 ) / 4 shards = 1.2 TB storage
 
-To meet storage requirements, you may need to upgrade to
-the next tier of storage during the resharding operation.
-You can scale down once the operation completes.
+To reshard this collection, each shard requires 1.2 TB of available storage. 
 
+On MongoDB Atlas, you may need to upgrade to the next tier of storage for 
+the resharding operation. You can downgrade once the operation completes.
