@@ -371,14 +371,6 @@ const tocData: TocItem[] = [
           },
         ],
       },
-    ],
-  },
-  {
-    label: 'Data Model Reference',
-    contentSite: 'docs',
-    url: '/docs/:version/reference/data-models',
-    collapsible: true,
-    items: [
       {
         label: 'Database References',
         contentSite: 'docs',
