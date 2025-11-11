@@ -2,10 +2,11 @@
 import { css, cx } from '@leafygreen-ui/emotion';
 import { H2 } from '@leafygreen-ui/typography';
 import { Body } from '@leafygreen-ui/typography';
-// import Button from '@leafygreen-ui/button';
+import Button, { type ButtonProps, Size } from '@leafygreen-ui/button';
 import { palette } from '@leafygreen-ui/palette';
 import HeaderBackground from './HeaderBackground';
 import { theme } from '@/styles/theme';
+import useScreenSize from '@/hooks/use-screen-size';
 
 const headerStyle = css`
   display: flex;
@@ -13,16 +14,19 @@ const headerStyle = css`
   justify-content: center;
   align-items: center;
   margin-bottom: 20px;
-  height: 283px;
+  padding-top: 27px;
+  padding-bottom: 27px;
   width: 100%;
   position: relative;
 
   @media ${theme.screenSize.mediumAndUp} {
-    height: 230px;
+    padding-top: 50px;
+    padding-bottom: 50px;
   }
 
   @media ${theme.screenSize.largeAndUp} {
-    height: 384px;
+    padding-top: 64px;
+    padding-bottom: 64px;
   }
 `;
 
@@ -42,6 +46,10 @@ const titleStyle = css`
   margin-bottom: 8px;
   max-width: 326px;
   text-align: center;
+
+  @media ${theme.screenSize.mediumAndUp} {
+    max-width: 520px;
+  }
 
   @media ${theme.screenSize.largeAndUp} {
     font-size: 64px;
@@ -69,24 +77,17 @@ const bodyStyle = css`
   }
 `;
 
-// const buttonStyle = css`
-//     font-size: 13px;
-//     line-height: 20px;
-//     padding: 4px 12px;
-
-//     @media ${theme.screenSize.mediumAndUp} {
-//         padding: 8px 12px;
-//     }
-
-//     @media ${theme.screenSize.largeAndUp} {
-//         font-size: 18px;
-//         line-height: 24px;
-//         padding: 12px 16px;
-//         height: 48px;
-//     }
-// `;
-
 const Header = () => {
+  const size = useScreenSize();
+
+  let buttonSize: ButtonProps['size'] = Size.Large;
+  if (size.isTablet) {
+    buttonSize = Size.Default;
+  }
+  if (size.isMobile) {
+    buttonSize = Size.Small;
+  }
+
   return (
     <div className={cx(headerStyle)}>
       <HeaderBackground />
@@ -96,7 +97,15 @@ const Header = () => {
           Check out the latest updates in MongoDB – including improvements to the developer experience, expanded
           workload support, app modernization tools, and more.
         </Body>
-        {/* <Button variant="baseGreen" className={cx(buttonStyle)}>Subscribe via RSS Feed</Button> */}
+        <Button
+          variant="baseGreen"
+          size={buttonSize}
+          href="/products/updates/rss"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Subscribe to all updates via RSS Feed
+        </Button>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import { Body, Link } from '@leafygreen-ui/typography';
 import { css, cx } from '@leafygreen-ui/emotion';
 import { palette } from '@leafygreen-ui/palette';
 import type { ProductUpdateEntry } from '../services/contentstack';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import useScreenSize from '@/hooks/use-screen-size';
 import { SearchInput } from '@leafygreen-ui/search-input';
@@ -14,10 +14,7 @@ import Checkbox from '@leafygreen-ui/checkbox';
 import Icon from '@leafygreen-ui/icon';
 import { Pagination } from './Pagination';
 import { getPagination } from '../utils/get-pagination';
-
-interface UpdatesProps {
-  updates: ProductUpdateEntry[];
-}
+import Button from '@leafygreen-ui/button';
 
 const containerStyle = css`
   max-width: 1550px;
@@ -133,7 +130,7 @@ const filtersContainerStyle = css`
   display: flex;
   flex-direction: column;
   width: 100%;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   gap: 16px;
 
   @media ${theme.screenSize.mediumAndUp} {
@@ -186,29 +183,101 @@ const filterToggleContainerStyle = css`
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  color: ${palette.blue.base};
+  color: ${palette.black};
+`;
 
-  /* Hide toggles on desktop */
+const filterToggleTextStyle = css`
+  color: ${palette.black};
+  font-size: 16px;
+  line-height: 28px;
+`;
+
+const desktopButtonStyle = css`
+  display: none;
+
+  @media ${theme.screenSize.xLargeAndUp} {
+    display: block;
+  }
+`;
+
+const tabletButtonStyle = css`
+  display: block;
+  margin-bottom: 32px;
+
   @media ${theme.screenSize.xLargeAndUp} {
     display: none;
   }
 `;
 
-const filterToggleTextStyle = css`
-  color: ${palette.blue.base};
-  font-size: 16px;
-  line-height: 28px;
-`;
+interface SubscribeButtonProps {
+  className: string;
+  selectedFilters: Record<FilterCategory, string[]>;
+}
+
+const SubscribeButton = ({ className, selectedFilters }: SubscribeButtonProps) => {
+  const handleOpenRSSFeed = () => {
+    const params = new URLSearchParams();
+
+    // Add category filters
+    if (selectedFilters.category.length > 0) {
+      params.append('category', selectedFilters.category.join(','));
+    }
+
+    // Add offering filters (RSS route accepts both 'offering' and 'offerings')
+    if (selectedFilters.offering.length > 0) {
+      params.append('offering', selectedFilters.offering.join(','));
+    }
+
+    // Add product filters
+    if (selectedFilters.product.length > 0) {
+      params.append('product', selectedFilters.product.join(','));
+    }
+
+    const queryString = params.toString();
+    const url = queryString ? `/products/updates/rss?${queryString}` : '/products/updates/rss';
+
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+  return (
+    <div className={cx(className)}>
+      <Button onClick={handleOpenRSSFeed}>Subscribe to selected filters</Button>
+    </div>
+  );
+};
+
+interface UpdatesProps {
+  updates: ProductUpdateEntry[];
+}
 
 const Updates = ({ updates }: UpdatesProps) => {
-  const { isDesktop, isTablet } = useScreenSize();
+  const size = useScreenSize();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFilters, setSelectedFilters] = useState<Record<FilterCategory, string[]>>({
-    offering: [],
-    category: [],
-    product: [],
-  });
+
+  // Initialize filters from URL params
+  const getInitialFilters = (): Record<FilterCategory, string[]> => {
+    if (!searchParams) {
+      return {
+        category: [],
+        offering: [],
+        product: [],
+      };
+    }
+
+    const categoryParam = searchParams.get('category');
+    const offeringsParam = searchParams.get('offerings') || searchParams.get('offering');
+    const productParam = searchParams.get('product');
+
+    return {
+      category: categoryParam ? categoryParam.split(',').filter(Boolean) : [],
+      offering: offeringsParam ? offeringsParam.split(',').filter(Boolean) : [],
+      product: productParam ? productParam.split(',').filter(Boolean) : [],
+    };
+  };
+
+  const [selectedFilters, setSelectedFilters] = useState<Record<FilterCategory, string[]>>(getInitialFilters());
   const [expandedCategories, setExpandedCategories] = useState<Record<FilterCategory, boolean>>({
     offering: false,
     category: false,
@@ -267,7 +336,9 @@ const Updates = ({ updates }: UpdatesProps) => {
       const hasActiveFilters = Object.values(selectedFilters).some((filters) => filters.length > 0);
 
       if (hasActiveFilters) {
-        // Check if update matches any of the selected filters using the new tag fields
+        // Check if update matches selected filters
+        // Within each category: OR logic (match ANY selected filter)
+        // Across categories: AND logic (must satisfy ALL categories with selections)
         return Object.entries(selectedFilters).every(([category, selectedValues]) => {
           if (selectedValues.length === 0) return true; // No filters selected for this category
 
@@ -288,7 +359,7 @@ const Updates = ({ updates }: UpdatesProps) => {
               updateTags = [];
           }
 
-          // Check if any of the selected values match the update tags
+          // Check that ANY selected value matches at least one tag (OR logic within category)
           return selectedValues.some((value) => updateTags.some((tag) => tag.toLowerCase() === value.toLowerCase()));
         });
       }
@@ -300,6 +371,33 @@ const Updates = ({ updates }: UpdatesProps) => {
 
     getFilteredUpdates(pagination);
   }, [searchTerm, selectedFilters, updates]);
+
+  // Update URL params when filters change
+  useEffect(() => {
+    if (!pathname) return;
+
+    const params = new URLSearchParams();
+
+    if (selectedFilters.category.length > 0) {
+      params.set('category', selectedFilters.category.join(','));
+    }
+
+    if (selectedFilters.offering.length > 0) {
+      params.set('offering', selectedFilters.offering.join(','));
+    }
+
+    if (selectedFilters.product.length > 0) {
+      params.set('product', selectedFilters.product.join(','));
+    }
+
+    const queryString = params.toString();
+    const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+
+    // Only update if the URL has changed
+    if (newUrl !== window.location.pathname + window.location.search) {
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [selectedFilters, pathname, router]);
 
   const isFilterClearBtnDisabled = Object.keys(selectedFilters).every((category) => {
     return selectedFilters[category as keyof typeof selectedFilters].length === 0;
@@ -314,6 +412,11 @@ const Updates = ({ updates }: UpdatesProps) => {
       category: [],
       product: [],
     });
+
+    // Clear URL params as well
+    if (pathname) {
+      router.replace(pathname, { scroll: false });
+    }
   };
 
   // Toggle filter selection
@@ -347,7 +450,7 @@ const Updates = ({ updates }: UpdatesProps) => {
   // Check if category should show toggle
   const shouldShowToggle = (filters: readonly string[]) => {
     // Only show toggle on desktop, mobile, and tablet, not on large desktop
-    return isDesktop && filters.length > 10;
+    return filters.length > 5;
   };
 
   // Get limited filters based on screen size and expansion state
@@ -355,18 +458,7 @@ const Updates = ({ updates }: UpdatesProps) => {
     const isExpanded = expandedCategories[category];
     if (isExpanded) return filters;
 
-    // On mobile/tablet, return limited filters for toggle functionality
-    if (isTablet) {
-      return filters.slice(0, 5);
-    }
-
-    // Desktop return limited filters for toggle functionality
-    if (isDesktop) {
-      return filters.slice(0, 10);
-    }
-
-    // On large desktops, always return all filters
-    return filters;
+    return filters.slice(0, 5);
   };
 
   const filteredUpdatesIndex = currentPage - 1;
@@ -446,13 +538,15 @@ const Updates = ({ updates }: UpdatesProps) => {
                             category === 'category' ? 'categories' : category === 'product' ? 'products' : 'offerings'
                           }`}
                     </Body>
-                    <Icon glyph={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={16} />
+                    <Icon color={palette.gray.dark1} glyph={isExpanded ? 'ChevronUp' : 'ChevronDown'} size={16} />
                   </div>
                 )}
               </div>
             );
           })}
+          <SubscribeButton className={cx(desktopButtonStyle)} selectedFilters={selectedFilters} />
         </div>
+        <SubscribeButton className={cx(tabletButtonStyle)} selectedFilters={selectedFilters} />
         <div className={cx(newsSectionStyle)}>
           <div className={cx(newsContainerStyle)}>
             <div className={cx(searchContainerStyle)}>

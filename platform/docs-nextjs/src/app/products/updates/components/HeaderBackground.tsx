@@ -20,13 +20,15 @@ const headerBackgroundStyle = css`
 
   /* Tablet breakpoint: between small and medium */
   @media ${theme.screenSize.mediumAndUp} {
-    height: 230px;
+    padding-top: 0;
+    padding-bottom: 0;
     border-radius: 0 0 80px 80px;
   }
 
   /* Desktop breakpoint: larger than medium */
   @media ${theme.screenSize.largeAndUp} {
-    height: 384px;
+    padding-top: 0;
+    padding-bottom: 0;
     border-radius: 0 0 80px 80px;
   }
 `;
@@ -38,7 +40,7 @@ const leftImageStyle = css`
   z-index: 1;
 
   @media ${theme.screenSize.mediumAndUp} {
-    top: 10px;
+    top: 0;
   }
 
   @media ${theme.screenSize['2XLargeAndUp']} {

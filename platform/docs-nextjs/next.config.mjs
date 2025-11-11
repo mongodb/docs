@@ -11,6 +11,14 @@ const nextConfig = {
     optimizePackageImports: ['@leafygreen-ui/emotion'],
   },
   assetPrefix: '/docs/docs_static_nextjs',
+  async rewrites() {
+    return [
+      {
+        source: '/products/updates/rss',
+        destination: '/api/products/updates/rss',
+      },
+    ];
+  },
 };
 
 const withMDX = createMDX({
