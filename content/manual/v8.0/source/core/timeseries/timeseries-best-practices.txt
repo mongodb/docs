@@ -1,3 +1,5 @@
+.. _timeseries-best-practices:
+
 ==========================================
 Best Practices for Time Series Collections
 ==========================================
@@ -78,6 +80,77 @@ Round Numeric Data to Few Decimal Places
 Round numeric data to the precision that your application requires.
 Rounding numeric data to fewer decimal places improves the compression
 ratio.
+
+.. _tsc-best-practice-embedded-fields:
+
+Use Standard Embedded Fields Best Practices
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If an :ref:`embedded data model <data-modeling-embedding>` supports your
+application's needs, use nested fields. The behavior of nested fields does not
+differ between regular collections and time series collections. 
+
+For example, consider a time series collection that contains
+weather documents similar to the following example: 
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      timestamp: ISODate("2024-06-17T10:00:00Z"),
+      stationId: "ALPHA123",
+      atmosphere: {
+         temperature: 21.5,
+         humidity: 68,
+         pressure: 1013.25
+      },
+      wind: {
+         speed: 7.2,
+         direction: "NW"
+      },
+      precipitation: 0.5,
+      visibility: 10
+   }
+
+MongoDB uses column compression on each nested field individually, which
+provides the same compression quality as flattening the fields to the top level.
+The resulting compression is identical to the compression that would result from
+flattening all of the nested fields to top level fields.
+
+.. important::
+
+   Column compression requires a consistent nested field order. However, if you
+   use a driver to interact with your data, there may be additional ordering
+   considerations. For example, see `BSON Types
+   <https://www.mongodb.com/docs/drivers/go/current/data-formats/bson/>`__ for
+   ordered representation considerations for the Go driver. Refer to `driver
+   documentation <https://www.mongodb.com/docs/drivers/>`__ for more
+   information.
+
+If your workload has high cardinality, flattening nested objects may improve
+performance. For example, the following document contains the same data as the
+previous document but in a flattened format:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      timestamp: ISODate("2024-06-17T10:00:00Z"),
+      stationId: "ALPHA123",
+      atmosphere_temperature: 21.5,
+      atmosphere_humidity: 68,
+      atmosphere_pressure: 1013.25
+      wind_speed: 7.2,
+      wind_direction: "NW"
+      precipitation: 0.5,
+      visibility: 10
+   }
+
+.. note::
+
+   Use a data model that is most natural for your application. MongoDB only
+   recommends flattening documents if a nested structure causes significant
+   performance issues. 
 
 .. _tsc-best-practice-optimize-inserts:
 
@@ -164,11 +237,17 @@ improve performance:
 Use Consistent Field Order in Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using a consistent field order in your documents improves insert
+Using a consistent field order in your documents improves insert and compression
 performance. 
 
+.. note::
+
+   Compression requires consistent nested field order. For more information on
+   compression with nested fields, see :ref:`Nested Fields Best Practices
+   <tsc-best-practice-embedded-fields>`. 
+
 For example, inserting the following documents, all of which have the
-same field order, results in optimal insert performance.
+same field order, results in optimal performance.
 
 .. code-block:: javascript
 
@@ -185,7 +264,7 @@ same field order, results in optimal insert performance.
       range: 5
    } 
 
-In contrast, the following documents *do not* achieve optimal insert
+In contrast, the following documents *do not* achieve optimal
 performance, because their field orders differ:
 
 .. code-block:: javascript
