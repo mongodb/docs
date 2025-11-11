@@ -17,7 +17,19 @@ The following table shows compatibility between the Node.js driver and Node.js:
      - Node.js v6.x.x
      - Node.js v4.x.x
 
-   * - 6.11 to 6.21 [#latest-note]_
+   * - 7.0 [#latest-note]_
+     - ✓
+     - ✓
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+
+   * - 6.11 to 6.21 [#6.x-note]_
      - ✓
      - ✓
      - ✓
@@ -29,7 +41,7 @@ The following table shows compatibility between the Node.js driver and Node.js:
      -
      -
    
-   * - 6.0 to 6.10 [#latest-note]_
+   * - 6.0 to 6.10 [#6.x-note]_
      -
      - ✓
      - ✓
@@ -89,5 +101,7 @@ The following table shows compatibility between the Node.js driver and Node.js:
      - ✓
      - ✓
 
-.. [#latest-note] Versions 6.0 and later of the Node.js driver require Node.js v16.20.1 or later.
+.. [#latest-note] Version 7.x of the Node.js driver requires Node.js v20.19.0 or later.
+
+.. [#6.x-note] Version 6.x of the Node.js driver requires Node.js v16.20.1 or later.
 

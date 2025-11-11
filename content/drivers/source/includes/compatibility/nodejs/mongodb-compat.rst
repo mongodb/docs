@@ -13,7 +13,7 @@ The following table shows compatibility between the Node.js driver and {+mdb-ser
      - MongoDB 4.4
      - MongoDB 4.2
 
-   * - 6.9 to 6.21
+   * - 6.9 to 7.0
      - ✓
      - ✓
      - ✓

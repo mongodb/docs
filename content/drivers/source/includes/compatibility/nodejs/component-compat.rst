@@ -6,44 +6,64 @@ unstable.
    :header-rows: 1
    :stub-columns: 1
    :class: compatibility-large
-   :widths: 14 10 15 15 18 13 15
+   :widths: 12 9 13 10 13 13 10 10 10
 
    * - Node.js Driver Version
      - bson
      - bson-ext
-     - kerberos
+     - @mongodb-js/kerberos
      - mongodb-client-encryption
-     - mongodb-legacy
      - @mongodb-js/zstd
+     - @aws-sdk/credential-providers
+     - gcp-metadata
+     - socks
+
+   * - 7.x
+     - ^7.0.0
+     -
+     - ^2.0.1
+     - ^6.0.0
+     - ^2.0.0
+     - ^3.806.0
+     - ^7.0.1
+     - ^2.8.6
 
    * - 6.x
      - ^6.0.0
      -
      - ^2.0.1
      - ^6.0.0
-     - ^6.0.0
      - ^1.1.0
+     -
+     -
+     -
      
    * - 5.x
      - ^5.0.0
      -
      - ^1.0.0 or ^2.0.0
      - ^2.3.0
-     - ^5.0.0
      - ^1.0.0
+     -
+     -
+     -
 
    * - 4.x
      - ^4.0.0
      - ^4.0.0
      - ^1.0.0 or ^2.0.0
      - ^1.0.0 or ^2.0.0
-     - ^4.0.0
      - ^1.0.0
+     -
+     -
+     -
   
    * - 3.x
      - ^1.0.0
      - ^1.0.0 or ^2.0.0
      - ^1.0.0
      - ^1.0.0
+     -
+     -
      -
      -
