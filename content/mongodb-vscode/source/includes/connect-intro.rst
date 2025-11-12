@@ -5,7 +5,7 @@ or sharded cluster host.
 .. note:: MongoDB Atlas
 
    If you need to create a MongoDB host, consider using 
-   `MongoDB Atlas <https://www.mongodb.com/cloud/atlas?tck=docs_vsce>`__.
+   `MongoDB Atlas <https://www.mongodb.com/cloud/atlas>`__.
    |service| is a cloud-hosted database-as-a-service which requires no 
    installation, offers a free tier to get started, and provides a 
    copyable URI to easily connect |vsce| to your deployment.

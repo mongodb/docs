@@ -18,7 +18,7 @@ Install MongoDB Community Edition on Debian
 Overview
 --------
 
-.. _`MongoDB Download Center`: https://www.mongodb.com/try/download/community?tck=docs_server
+.. _`MongoDB Download Center`: https://www.mongodb.com/try/download/community
 
 Use this tutorial to install MongoDB {+version+} |edition| Edition using
 the |package-manager| package manager.

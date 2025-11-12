@@ -9,7 +9,7 @@
    .. step:: Open the MongoDB Shell download page
 
       Open the `MongoDB Download Center
-      <https://www.mongodb.com/try/download/shell?jmp=docs>`__.
+      <https://www.mongodb.com/try/download/shell>`__.
 
    .. step:: Select your platform and package
       

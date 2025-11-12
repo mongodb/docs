@@ -30,7 +30,7 @@
 
      - External authentication using AWS IAM credentials for use in
        connecting to a
-       `MongoDB Atlas <https://www.mongodb.com/atlas/database?tck=docs_server>`_
+       `MongoDB Atlas <https://www.mongodb.com/atlas/database>`_
        cluster. See :ref:`example-connect-mongo-using-aws-iam`.
 
        .. versionadded:: 4.4
@@ -39,7 +39,7 @@
 
      - External authentication using Kerberos. This mechanism is
        available only in `MongoDB Enterprise
-       <http://www.mongodb.com/products/mongodb-enterprise-advanced?tck=docs_server>`_.
+       <http://www.mongodb.com/products/mongodb-enterprise-advanced>`_.
 
    * - :ref:`PLAIN <security-auth-ldap>` (LDAP SASL)
 
@@ -47,4 +47,4 @@
        for authenticating in-database users. ``PLAIN`` transmits
        passwords in plain text. This mechanism is available only in
        `MongoDB Enterprise
-       <http://www.mongodb.com/products/mongodb-enterprise-advanced?tck=docs_server>`_.
+       <http://www.mongodb.com/products/mongodb-enterprise-advanced>`_.

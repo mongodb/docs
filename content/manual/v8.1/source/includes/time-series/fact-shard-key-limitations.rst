@@ -32,4 +32,4 @@ When you specify the shard key:
 
    - :ref:`sharding-shard-key-requirements`
    - `MongoDB Blog: On Selecting a Shard Key for MongoDB
-     <https://www.mongodb.com/blog/post/on-selecting-a-shard-key-for-mongodb?tck=docs_server>`__.
+     <https://www.mongodb.com/blog/post/on-selecting-a-shard-key-for-mongodb>`__.

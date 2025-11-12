@@ -8,11 +8,11 @@
    You do **not** have to disable the balancer when using coordinated backup
    and restore processes:
 
-   - `MongoDB Atlas <https://www.mongodb.com/atlas/database?tck=docs_server>`_
+   - `MongoDB Atlas <https://www.mongodb.com/atlas/database>`_
 
    - `MongoDB Cloud Manager
-     <https://www.mongodb.com/cloud/cloud-manager?tck=docs_server>`_
+     <https://www.mongodb.com/cloud/cloud-manager>`_
    
    - `MongoDB Ops Manager
-     <https://www.mongodb.com/products/ops-manager?tck=docs_server>`_
+     <https://www.mongodb.com/products/ops-manager>`_
  

@@ -11,7 +11,7 @@ Install MongoDB Community Edition on Windows
 .. |edition| replace:: Community
 .. |distro-name| replace:: Windows
 .. |executable-name| replace:: ``mongod.exe``
-.. |mdb-download-link| replace:: `MongoDB Download Center <https://www.mongodb.com/try/download/community?tck=docs_server>`__
+.. |mdb-download-link| replace:: `MongoDB Download Center <https://www.mongodb.com/try/download/community>`__
 
 .. include:: /includes/minor-release.rst
 

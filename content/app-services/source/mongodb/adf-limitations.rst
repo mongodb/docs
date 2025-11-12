@@ -1,5 +1,5 @@
 You can link a `{+adf-instance+}
-<https://www.mongodb.com/atlas/data-federation?tck=docs_realm>`__ to your app
+<https://www.mongodb.com/atlas/data-federation>`__ to your app
 as a MongoDB data source. However, there are some caveats to keep in
 mind when working with {+adf+}:
 

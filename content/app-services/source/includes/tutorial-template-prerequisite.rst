@@ -1,5 +1,5 @@
 - This tutorial starts with a Template App. You need an `Atlas Account 
-  <https://cloud.mongodb.com/user/register?tck=docs_realm>`_, an API key, and 
+  <https://cloud.mongodb.com/user/register>`_, an API key, and 
   {+cli+} to create a Template App.
 
   - You can learn more about creating an Atlas account in the 

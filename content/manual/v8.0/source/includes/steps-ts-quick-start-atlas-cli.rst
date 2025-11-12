@@ -29,7 +29,7 @@
 .. step:: Set up your local |service| {+deployment+}.
 
    a. If you don't have an existing |service| account, run ``atlas setup`` in your terminal
-      or `create a new account <https://account.mongodb.com/account/register?tck=docs_atlas>`__.
+      or `create a new account <https://account.mongodb.com/account/register>`__.
 
    #. Run ``atlas deployments setup`` and follow the prompts to create a
       local deployment. When prompted to connect to the deployment,

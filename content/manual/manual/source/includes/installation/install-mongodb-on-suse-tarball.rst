@@ -8,7 +8,7 @@ Install MongoDB Community on SUSE using .tgz Tarball
 .. |distro-name| replace:: SUSE
 .. |package-manager| replace:: ``zypper``
 .. |executable-name| replace:: ``mongod``
-.. |mdb-download-link| replace:: `MongoDB Download Center <https://www.mongodb.com/try/download/community?tck=docs_server>`__
+.. |mdb-download-link| replace:: `MongoDB Download Center <https://www.mongodb.com/try/download/community>`__
 
 Overview
 --------

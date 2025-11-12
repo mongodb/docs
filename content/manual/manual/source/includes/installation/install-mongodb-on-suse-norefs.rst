@@ -12,7 +12,7 @@ Install MongoDB Community Edition on SUSE
 Overview
 --------
 
-.. _`MongoDB Download Center`: https://www.mongodb.com/try/download/community?tck=docs_server
+.. _`MongoDB Download Center`: https://www.mongodb.com/try/download/community
 
 Use this tutorial to install MongoDB {+version+} |edition|
 Edition on SUSE Linux Enterprise Server (SLES) using the

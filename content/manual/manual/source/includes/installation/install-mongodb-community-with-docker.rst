@@ -4,7 +4,7 @@
 Install MongoDB Community with Docker
 ======================================
 
-.. _`MongoDB Download Center`: https://www.mongodb.com/try/download/community?tck=docs_server
+.. _`MongoDB Download Center`: https://www.mongodb.com/try/download/community
 
 .. include:: /includes/minor-release.rst
 

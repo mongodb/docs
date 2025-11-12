@@ -2,7 +2,7 @@
 
 .. step:: Set up your |service| {+cluster+}.
 
-   a. `Create a free Atlas account or sign in to an existing account <https://account.mongodb.com/account/register?tck=docs_atlas>`__.
+   a. `Create a free Atlas account or sign in to an existing account <https://account.mongodb.com/account/register>`__.
 
    #. If you don't yet have an |service| cluster, `create a free M0 cluster <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23clusters%2Fedit%3Ffrom%3DctaClusterHeader>`__.
       To learn more about creating an |service| cluster, see :ref:`Create a Cluster <create-new-cluster>`.

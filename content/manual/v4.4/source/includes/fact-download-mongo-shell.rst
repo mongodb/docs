@@ -10,10 +10,10 @@ a standalone package by following these steps:
 1. Access the Download Center for your Edition of MongoDB:
 
    - `MongoDB Community Download Center 
-     <https://www.mongodb.com/try/download/community?tck=docs_server>`__
+     <https://www.mongodb.com/try/download/community>`__
 
    - `MongoDB Enterprise Download Center 
-     <https://www.mongodb.com/try/download/enterprise?tck=docs_server>`__
+     <https://www.mongodb.com/try/download/enterprise>`__
    
 2. Select your preferred :guilabel:`Version` and :guilabel:`Platform`
    from the dropdowns.
