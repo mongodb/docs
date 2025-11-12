@@ -2662,6 +2662,45 @@ const tocData: TocItem[] = [
                 ],
               },
               {
+                label: 'Import Deployments',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/reference/api/import-deployments',
+                collapsible: true,
+                versions: { excludes: ['v6.0', 'v7.0'] },
+                items: [
+                  {
+                    label: 'Create Import Deployment Request',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/import-deployments/create',
+                    versions: { excludes: ['v6.0', 'v7.0'] },
+                  },
+                  {
+                    label: 'Get Import Deployment Requests',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/import-deployments/get-all',
+                    versions: { excludes: ['v6.0', 'v7.0'] },
+                  },
+                  {
+                    label: 'Get Import Deployment Request Status',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/import-deployments/get-status',
+                    versions: { excludes: ['v6.0', 'v7.0'] },
+                  },
+                  {
+                    label: 'Cancel Import Deployment Request',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/import-deployments/cancel',
+                    versions: { excludes: ['v6.0', 'v7.0'] },
+                  },
+                  {
+                    label: 'Delete Import Deployment Request',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/import-deployments/delete',
+                    versions: { excludes: ['v6.0', 'v7.0'] },
+                  },
+                ],
+              },
+              {
                 label: 'Version Manifest',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/reference/api/version-manifest',

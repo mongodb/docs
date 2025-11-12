@@ -1,0 +1,172 @@
+.. _om-get-import-deployment-requests:
+
+==============================
+Get Import Deployment Requests
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-groups-projects-synonyms.rst
+
+Retrieve all import deployment requests for a project. This endpoint returns
+a list of all import deployment requests that have been created for the
+specified project, including their current status and history.
+
+.. important::
+
+   This feature is available starting in |mms| 8.0.13.
+
+Required Roles
+--------------
+
+This endpoint requires the :authrole:`Project Automation Admin` role.
+
+Endpoint
+--------
+
+.. include:: /includes/api/base-api-uri.rst
+
+.. code-block:: http
+
+   GET /automation/importDeployment/{PROJECT-ID}
+
+Request
+-------
+
+Path Parameters
+~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - PROJECT-ID
+     - string
+     - Required
+     - Unique identifier of the :opsmgr:`project </reference/glossary/#std-term-project>`.
+
+Query Parameters
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-single-parameters.rst
+
+Body Parameters
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-body-parameters.rst
+
+Response
+--------
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - results
+     - array
+     - Always
+     - Array of import deployment request objects.
+
+   * - results[n].id
+     - string
+     - Always
+     - Unique identifier of the import deployment request.
+
+   * - results[n].groupId
+     - string
+     - Always
+     - Project identifier.
+
+   * - results[n].userId
+     - string
+     - Always
+     - User who created the import request.
+
+   * - results[n].state
+     - string
+     - Always
+     - Current state of the import. Possible values:
+       ``PENDING``, ``AWAIT_SEED_HOST_CONNECTED``, ``AWAIT_HOSTS_DISCOVERED``,
+       ``AWAIT_AUTOMATION_IMPORTED``, ``AWAIT_GOAL_STATE``, ``SUCCESS``,
+       ``FAILED``, ``CANCELLED``.
+
+   * - results[n].transitionsHistory
+     - array
+     - Always
+     - History of state transitions for this import request.
+
+   * - results[n].transitionsHistory[n].state
+     - string
+     - Always
+     - The state that was transitioned to.
+
+   * - results[n].transitionsHistory[n].transitionedAt
+     - string
+     - Always
+     - ISO 8601 timestamp when the transition occurred.
+
+Example Request
+---------------
+
+.. code-block:: sh
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --request GET "https://{+opsmgr-url+}/api/public/v1.0/automation/importDeployment/{PROJECT-ID}?pretty=true"
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   {
+     "results": [
+       {
+         "id": "507f1f77bcf86cd799439011",
+         "groupId": "507f1f77bcf86cd799439012", 
+         "userId": "507f1f77bcf86cd799439013",
+         "state": "SUCCESS",
+         "transitionsHistory": [
+           {
+             "state": "PENDING",
+             "transitionedAt": "2025-10-20T10:00:00.000Z"
+           },
+           {
+             "state": "AWAIT_SEED_HOST_CONNECTED",
+             "transitionedAt": "2025-10-20T10:02:00.000Z"
+           },
+           {
+             "state": "SUCCESS", 
+             "transitionedAt": "2025-10-20T10:15:00.000Z"
+           }
+         ]
+       }
+     ]
+   }

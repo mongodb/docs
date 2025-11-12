@@ -1,0 +1,251 @@
+.. _om-create-import-deployment-request:
+
+===================================
+Create Import Deployment Request
+===================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-groups-projects-synonyms.rst
+
+Create a new import deployment request to add existing MongoDB processes to
+|mms| automation. This endpoint initiates the process of importing
+multiple MongoDB processes into both monitoring and automation management.
+
+.. important::
+
+   This feature is available starting in |mms| 8.0.13.
+
+The imported deployments are added to the project's automation
+configuration. The {+mdbagent+} will begin monitoring the processes
+and manage them according to the automation configuration.
+
+Required Roles
+--------------
+
+This endpoint requires the :authrole:`Project Automation Admin` role.
+
+Endpoint
+--------
+
+.. include:: /includes/api/base-api-uri.rst
+
+.. code-block:: http
+
+   POST /automation/importDeployment/{PROJECT-ID}
+
+Request
+-------
+
+Path Parameters
+~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - PROJECT-ID
+     - string
+     - Required
+     - Unique identifier of the :opsmgr:`project </reference/glossary/#std-term-project>` that will own the imported
+       deployments.
+
+Query Parameters
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-single-parameters.rst
+
+Body Parameters
+~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - seedHostport
+     - string
+     - Required
+     - Hostname and port of the seed MongoDB process to connect to for
+       discovery (e.g., ``mongodb1.example.com:27017``).
+
+   * - requiredProcesses
+     - array
+     - Required
+     - Array of hostname:port strings representing MongoDB processes that
+       must be discovered before the import can proceed.
+
+   * - timeouts
+     - object
+     - Optional
+     - Timeout settings for various import phases.
+
+   * - timeouts.seedHostConnectionSec
+     - number
+     - Optional
+     - Timeout in seconds for connecting to the seed host.
+       Range: 60-86400 seconds. Default uses system settings.
+
+   * - timeouts.processesDiscoverySec
+     - number
+     - Optional
+     - Timeout in seconds for discovering all required processes.
+       Range: 60-86400 seconds. Default uses system settings.
+
+   * - timeouts.automationImported
+     - number
+     - Optional
+     - Timeout in seconds for completing the automation import.
+       Range: 60-86400 seconds. Default uses system settings.
+
+   * - timeouts.goalStateSec
+     - number
+     - Optional
+     - Timeout in seconds for reaching automation goal state.
+       Range: 60-86400 seconds. Default uses system settings.
+
+   * - authMechanism
+     - string
+     - Optional
+     - Authentication mechanism for connecting to the MongoDB processes.
+       Possible values are:
+
+       .. include:: /includes/api/lists/authMechanismName-values.rst
+
+   * - username
+     - string
+     - Conditional
+     - Username for authenticating to the MongoDB processes. Required if
+       ``authMechanism`` is specified.
+
+   * - password
+     - string
+     - Conditional
+     - Password for authenticating to the MongoDB processes. Required if
+       ``authMechanism`` is ``MONGODB_CR``.
+
+       |mms| doesn't include this parameter in response documents.
+
+   * - adminDb
+     - string
+     - Optional
+     - Database to authenticate against. Default: ``admin``.
+
+   * - pemKeyFilePath
+     - string
+     - Optional
+     - Path to the PEM key file for TLS client authentication.
+
+   * - pemKeyFilePassword
+     - string
+     - Optional
+     - Password for the PEM key file.
+
+       |mms| doesn't include this parameter in response documents.
+
+   * - adminKerberosKeytab
+     - string
+     - Optional
+     - Path to the Kerberos keytab file for GSSAPI authentication.
+
+   * - adminLdapGroupDn
+     - string
+     - Optional
+     - LDAP group distinguished name for PLAIN authentication.
+
+   * - saslServiceName
+     - string
+     - Optional
+     - SASL service name for GSSAPI authentication.
+
+   * - caFilePath
+     - string
+     - Optional
+     - Path to the Certificate Authority file for TLS connections.
+
+   * - clusterCaFilePath
+     - string
+     - Optional
+     - Path to the cluster Certificate Authority file for TLS connections.
+
+   * - clientCertificateMode
+     - string
+     - Optional
+     - Client certificate mode for TLS connections.
+
+Response
+--------
+
+Returns an empty success response with HTTP status 200 if the import 
+request is successfully submitted.
+
+.. note::
+
+   This endpoint does not return the ID of the created import request.
+   To track the status of your import request, use the 
+   :ref:`Get Import Deployment Requests <om-get-import-deployment-requests>`
+   endpoint to list all requests for the project and identify your request
+   by creation time or other properties.
+
+Example Request
+---------------
+
+.. code-block:: sh
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --include \
+        --request POST "https://{+opsmgr-url+}/api/public/v1.0/automation/importDeployment/{PROJECT-ID}?pretty=true" \
+        --data '{
+          "seedHostport": "mongodb1.example.com:27017",
+          "requiredProcesses": [
+            "mongodb1.example.com:27017",
+            "mongodb2.example.com:27017",
+            "mongodb3.example.com:27018"
+          ],
+          "timeouts": {
+            "seedHostConnectionSec": 300,
+            "processesDiscoverySec": 600,
+            "automationImported": 600,
+            "goalStateSec": 1200
+          },
+          "authMechanism": "MONGODB_CR",
+          "username": "admin",
+          "password": "password123",
+          "adminDb": "admin"
+        }'
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   {}

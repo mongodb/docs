@@ -138,6 +138,9 @@ Bug Fixes
 Improvements
 ~~~~~~~~~~~~
 
+- Adds support for API import of existing deployments into automation 
+  management by |mms|. For more information, see 
+  :doc:`Import Deployments </reference/api/import-deployments>`.
 - Adds MongoDB 8.2 deployment support as a preview, not for production use.
   Full support will be available in |onprem| 8.0.14
 - Updates the {+mdbagent+} to :ref:`108.0.13.8870-1 <mongodb-108.0.13.8870-1>`

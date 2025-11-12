@@ -160,20 +160,20 @@ const tocData: TocItem[] = [
             label: 'Compliance',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/compliance',
-            versions: { includes: ['v20250604', 'v20250317','v20250228'] },
+            versions: { includes: ['v20250604', 'v20250317', 'v20250228'] },
           },
           {
             label: 'Compliance ',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/compliance',
             collapsible: true,
-            versions: { excludes: ['v20250604', 'v20250317','v20250228'] },
+            versions: { excludes: ['v20250604', 'v20250317', 'v20250228'] },
             items: [
               {
                 label: 'DORA',
                 contentSite: 'atlas-architecture',
                 url: '/docs/atlas/architecture/:version/compliance/dora',
-                versions: { excludes: ['v20250604', 'v20250317','v20250228'] },
+                versions: { excludes: ['v20250604', 'v20250317', 'v20250228'] },
               },
             ],
           },
