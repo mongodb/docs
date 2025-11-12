@@ -79,7 +79,7 @@ Windows from the `Windows command prompt/interpreter
 <https://docs.microsoft.com/en-us/windows-server/administration/windows-
 commands/cmd>`__ (``cmd.exe``) using ``msiexec.exe``.
 
-.. include:: /includes/steps/install-mongodb-on-windows-unattended.rst
+.. include:: /includes/deploy/community-windows-msiexec.rst
 
 Start MongoDB Community Edition from the Command Interpreter
 ------------------------------------------------------------
