@@ -1,0 +1,727 @@
+.. _c2c-api-start:
+
+=========
+``start``
+=========
+
+.. meta::
+   :keywords: cluster to cluster sync, cluster-to-cluster sync
+
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Description
+-----------
+
+Starts the synchronization between a source and destination cluster.
+
+Requirements
+------------
+
+State
+~~~~~
+
+To use the ``start`` endpoint, ``mongosync`` must be in the ``IDLE``
+state.
+
+Permissions
+~~~~~~~~~~~
+
+The user specified in the ``mongosync`` connection string must have the
+required permissions on the source and destination clusters. Refer to
+:ref:`c2c-permissions-and-roles` to ensure that the user has the correct
+permissions to start the synchronization.
+
+Multiple ``mongosync`` Instances
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ensure that you use the configured ``mongosync`` user in the connection 
+strings for the :setting:`cluster0` or :setting:`cluster1` settings when
+you start ``mongosync``. 
+
+.. note::
+
+   .. include:: /includes/api/facts/multiple-mongosync-endpoints
+
+   For more information, see :ref:`Start Multiple Mongosyncs
+   <c2c-sharded-start>`. 
+
+Request
+-------
+
+.. literalinclude:: /code-examples/reference/api/start/1.txt
+   :language: http
+   :copyable: false
+
+.. _c2c-api-start-params:
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 13 13 54
+
+   * - Parameter
+     - Type
+     - Necessity
+     - Description
+
+   * - ``source``
+     - string
+     - Required
+     - Name of the source cluster.
+    
+   * - ``destination``
+     - string
+     - Required
+     - Name of the destination cluster.
+
+   * - ``buildIndexes``
+     - string
+     - Optional
+     - .. _mongosync-build-indexes:
+       
+       Configures index builds during sync.
+
+       Supported Options:
+
+       - ``afterDataCopy`` (the default in source clusters running MongoDB
+         6.0 or later) causes ``mongosync`` to build indexes 
+         on the destination cluster after :ref:`collection copy 
+         <c2c-collection-copy>`. This includes indexes that exist on the 
+         source cluster at the point of initialization and indexes that are 
+         created during migration. This results
+         in a faster migration for indexed databases.
+
+         .. |build-index-param| replace:: ``afterDataCopy``
+         .. include:: /includes/fact-build-indexes-after-copy.rst
+         .. include:: /includes/fact-parameter-supported-6.0.rst
+         
+       - ``beforeDataCopy`` (the default in source clusters running pre-6.0)
+         causes ``mongosync`` to build indexes
+         on the destination cluster during initialization. This includes indexes
+         that exist on the source cluster at the point of initialization and 
+         indexes that are created during migration.
+         
+       - ``excludeHashed`` causes ``mongosync`` to skip building hashed indexes
+         during sync. This can `improve performance <https://www.mongodb.com/docs/manual/tutorial/drop-a-hashed-shard-key-index/>`__
+         for large collections.
+
+       - ``excludeHashedAfterCopy`` causes ``mongosync`` to build non-hashed indexes 
+         on the destination cluster after :ref:`collection copy <c2c-collection-copy>`.
+         ``excludeHashedAfterCopy`` also skips building hashed indexes.
+         This results in a faster migration for indexed databases, due to both
+         building indexes after initial data copy and skipping building hashed indexes.
+
+         .. |build-index-param| replace:: ``excludeHashedAfterCopy``
+         .. include:: /includes/fact-build-indexes-after-copy.rst
+         .. include:: /includes/fact-parameter-supported-6.0.rst
+
+       - ``never`` causes ``mongosync`` to skip building unnecessary indexes
+         during sync. This can improve migration performance, especially with
+         index heavy workloads.
+
+         .. include:: /includes/fact-verifier-buildIndexes
+
+         :red:`WARNING:` Do **not** manually build indexes on the destination cluster
+         while ``mongosync`` is performing a migration.  Wait until the migration is fully
+         committed.
+
+         For more information on the indexes it does build, see 
+         :ref:`c2c-required-indexes`.
+
+       ``/start`` returns an error when ``buildIndexes`` is set to ``never``
+       and ``reversible`` is set to ``true``.
+
+       If you call ``/start`` without specifying the ``buildIndexes`` option,
+       ``mongosync`` builds indexes on the destination cluster.
+
+       .. versionadded:: 1.3.0
+
+   * - ``enableUserWriteBlocking``
+     - string or boolean
+     - Optional
+     - .. include:: /includes/fact-parameter-supported-6.0.rst
+       
+       Supported options:
+       
+       - ``"sourceAndDestination"``: blocks writes on the destination 
+         cluster while the migration is in progress, and unblocks writes right
+         before the :ref:`/progress <c2c-api-progress>` endpoint reports 
+         that ``canWrite`` is ``true``.  Blocks writes on the source
+         cluster after ``mongosync`` calls the :ref:`/commit <c2c-api-commit>`
+         endpoint.
+
+         You can also use ``true`` for backward compatibility.
+
+       - ``"none"``: no write blocking occurs. You can also use ``false``
+         for backward compatibility.
+
+       - ``"destinationOnly"``: blocks writes on the destination
+         cluster while migration is in progress, and unblocks writes right
+         before ``canWrite`` is ``true``.
+
+       To reverse sync, the ``enableUserWriteBlocking`` field must be set
+       to ``"sourceAndDestination"``. To allow the source cluster 
+       to accept writes again, for example after running migration tests, 
+       run the following command: 
+
+       .. literalinclude:: /code-examples/reference/api/start/2.sh
+          :language: shell
+
+       Default value is ``"destinationOnly"``.
+
+   * - ``includeNamespaces``
+     - array
+     - Optional
+     - Filters the databases or collections to include in sync. 
+
+       .. include:: /includes/api/facts/namespace-explanation.rst
+
+       .. versionadded:: 1.1
+
+   * - ``excludeNamespaces``
+     - array
+     - Optional
+     - Filters the databases or collections to exclude from sync.
+
+       .. include:: /includes/api/facts/namespace-explanation.rst
+
+       .. versionadded:: 1.6
+
+   * - ``copyInNaturalOrder``
+     - array of documents
+     - Optional
+     - .. _c2c-copy-natural-order:
+
+       Copies a list of databases and collections in their natural order to the destination cluster.
+       The natural order is the order in which you previously inserted the documents into the database.
+       You must pass in an array of documents that each represent a database and its collections. 
+       For a syntax example, see :ref:`Natural Scan Capability <c2c-natural-scan-capability>`.
+
+       :gold:`IMPORTANT:` Only use the ``copyInNaturalOrder`` option for collections that explicitly set a 
+       random ``_id`` field. Using this option for collections of size 30GB or greater significantly reduces 
+       the time that the :ref:`collection copy <c2c-collection-copy>` phase takes.
+
+       :red:`WARNING:` If you ``/resume`` a ``mongosync`` migration after a ``/pause`` or interruption that 
+       has the ``copyInNaturalOrder`` option enabled for collections greather that 500GB in size, 
+       the migration can take multiple hours to complete.
+
+   * - ``preExistingDestinationData``
+     - boolean
+     - Optional
+     - .. _c2c-pre-existing-dest-data:
+     
+       :gold:`IMPORTANT:` This feature is currently in Public Preview. Please
+       review the behavior and limitations in this section in order to use this
+       feature in production environments.
+     
+       Default value is ``false``.
+
+       If set to ``true``:
+
+       - ``mongosync`` allows pre-existing namespaces on the destination cluster.
+
+       - You must specify a namespace filter by using one or both of the ``includeNamespaces``
+         and ``excludeNamespaces`` parameters in your request.
+         
+       - If :ref:`embedded verification <c2c-embedded-verifier>` 
+         is enabled, the namespace filter must filter
+         out any pre-existing collections or indexes on the destination cluster,
+         even if they don't exist on the source cluster. Otherwise, embedded
+         verification fails.
+
+       - Ensure that you follow all directions in the :ref:`cutover process
+         <c2c-cutover-process>` to ensure that no unsafe writes occur on the
+         source or destination cluster. ``mongosync`` does not enable write-blocking
+         when you enable this feature, so you must manually ensure that these
+         writes don't occur.
+       
+       - ``mongosync`` does not ensure that sufficient resources, such as disk space,
+         compute, and oplog, exist on the destination cluster to accommodate 
+         the additional load of the migration. Monitor your destination cluster to
+         ensure that it has sufficient resources.
+      
+       - ``mongosync`` does not migrate views when you use this feature. 
+         It ignores views on the source cluster during
+         migration. You must migrate views separately after cutover.
+
+       - The default :ref:`load level <mongosync-load-level>` is changed from 3 to 2.
+
+       - You can leave the balancer enabled for a sharded destination
+         cluster during migration.
+
+       - The default :ref:`write-blocking mode <c2c-write-blocking>` 
+         is changed from ``"destinationOnly"`` to ``"none"``. You cannot
+         set write-blocking on individual collections on either the source or
+         destination cluster, because write-blocking is only available at
+         the cluster level. Additionally, namespace filtering is not compatible with
+         dual write-blocking.
+         
+       - ``mongosync`` does not allow reverse migration.
+
+       - ``mongosync`` outputs the following log message in the beginning of
+         migration:
+ 
+         .. code-block:: shell
+            
+            ATTENTION! Data migration to a non-empty cluster is allowed 
+            with the preExistingDestinationData set to true in the 
+            request to start migration. This feature is currently in 
+            preview. Please see https://www.mongodb.com/docs/cluster-to-cluster-sync/current/reference/api/start/ 
+            for important requirements and limitations.
+
+       See :ref:`Filtered Sync Limitations <c2c-filtering-limitations>`.
+
+   * - ``reversible``
+     - boolean
+     - Optional
+     - If set to ``true``, enables the sync operation to be
+       reversed.
+
+       To reverse sync, the ``enableUserWriteBlocking`` field must be set
+       to ``sourceAndDestination``.
+
+       This option is not supported for the following configurations:
+
+       * Sync from a replica set to a sharded cluster
+
+       * Sync sharded clusters that have different numbers of shards
+
+       * Reversible sync when ``buildIndexes`` is set to ``never``.
+
+       :gold:`IMPORTANT:` Setting reversible to ``true`` is only supported 
+       for source clusters running MongoDB 6.0 or later.
+
+       For more information, see the :ref:`reverse <c2c-api-reverse>` endpoint.
+       
+       Default value is ``false``.
+
+   * - ``sharding``
+     - document
+     - Optional
+     - Configures sync between a replica set and sharded cluster.
+       Sync from a replica set to a sharded cluster requires this
+       option.
+
+       For more information, see :ref:`c2c-api-start-sharding`. 
+
+       .. versionadded:: 1.1
+
+   * - ``verification``
+     - Document 
+     - Optional
+     - Configures the embedded verifier.
+
+       For more information, see :ref:`c2c-start-verifier`.
+
+       .. versionadded:: 1.9
+
+   * - ``verification.enabled``
+     - Bool
+     - Optional
+     - Enables the embedded verifier. The verifier performs a
+       series of verification checks on supported collections on
+       the destination cluster to confirm that the migration was
+       successful.
+
+       If the verifier finds no errors, ``mongosync``
+       transitions to the ``COMMITTED`` state. If it does
+       encounter errors, it fails the migration.
+
+       The verifier is enabled by default.
+
+       :red:`WARNING`: The verifier does not check all
+       collections or data. For details, see
+       :ref:`c2c-verify-embedded-limitations`.
+
+       .. versionadded:: 1.9
+
+
+.. _c2c-api-start-sharding:
+
+Sharding Parameters
+~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.1
+
+To sync from a replica set to a sharded cluster, set the 
+``sharding`` option to shard collections on the destination cluster.
+
+``mongosync`` throws an error if the ``sharding`` option is not set when
+syncing from a replica set to a sharded cluster. ``mongosync`` also
+throws an error if the ``sharding`` option is set with any other
+configuration.
+
+The ``sharding`` option has the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 15 15 70
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``createSupportingIndexes``
+     - boolean
+     - .. _mongosync-create-supporting-indexes-param:
+
+       Optional. Sets whether sync creates a supporting index
+       for the shard key, if none exists. The default is ``false``.
+       
+       .. |build-index-param| replace:: ``"afterDataCopy"`` or ``"excludeHashedAfterCopy"``
+       .. include:: /includes/fact-build-indexes-after-copy.rst
+
+       If you set this parameter to ``true`` and set ``buildIndexes`` 
+       to ``"excludeHashed"`` or ``"excludeHashedAfterCopy"``, 
+       then ``mongosync`` does not create supporting hashed indexes 
+       for hashed shard keys on the destination
+       cluster. ``mongosync`` still builds non-hashed supporting
+       indexes for non-hashed shard keys.
+
+       For more information and limitations, see 
+       :ref:`c2c-supporting-index-behavior`.
+
+   * - ``shardingEntries``
+     - array of documents
+     - Required. Sets the namespace and key of collections to shard
+       during sync.
+
+       Collections not included in this array sync to unsharded 
+       collections on the destination cluster. If set with an empty
+       array, no collections are sharded.
+
+   * - | ``shardingEntries``
+       | ``.collection``
+     - string
+     - Sets the collection to shard. 
+
+   * - | ``shardingEntries``
+       | ``.database``
+     - string
+     - Sets the database of the collection to shard.
+ 
+   * - | ``shardingEntries``
+       | ``.shardCollection``
+     - document 
+     - Sets the shard key to generate on the destination cluster.
+
+   * - | ``shardingEntries``
+       | ``.shardCollection``
+       | ``.key``
+     - array 
+     - Sets the fields to use for the shard key.
+
+       For more information, see :ref:`shard-key`.
+
+Response
+--------
+
+.. include:: /includes/api/tables/basic-response.rst
+
+Examples
+--------
+
+Start a Sync Job
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/intro-start-api-example-intro.rst
+
+Request:
+
+.. literalinclude:: /includes/api/requests/start.sh
+   :language: shell
+
+Response:
+
+.. literalinclude:: /includes/api/responses/success.json
+   :language: json
+   :copyable: false
+
+Start a Reversible Sync Job
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/intro-start-api-example-intro.rst
+
+The ``reversible`` and ``enableUserWriteBlocking`` fields allow the sync
+to be reversed. To reverse the sync direction, see: :ref:`reverse
+<c2c-api-reverse>`.
+
+Request:
+
+.. literalinclude:: /includes/api/requests/start-reversible.sh
+   :language: shell
+
+Response:
+
+.. literalinclude:: /includes/api/responses/success.json
+   :language: json
+   :copyable: false
+
+
+Start a Filtered Sync Job
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/example-filter-collection.rst
+
+The ``includeNamespaces`` option creates a filter. To filter the sync,
+see: :ref:`c2c-filtered-sync`
+
+Request:
+
+.. literalinclude:: /includes/api/requests/start-filtered.sh
+   :language: shell
+
+Response:
+
+.. literalinclude:: /includes/api/responses/success.json
+   :language: json
+   :copyable: false
+
+Start Sync from Replica Set to Sharded Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example starts a sync job between the source replica set ``cluster0`` and the
+destination sharded cluster ``cluster1``. The ``key`` array in this example defines the shard key
+``{"location": 1, "region": 1 }``.
+
+Request:
+
+.. literalinclude:: /includes/api/requests/start-rs-shard.sh
+
+Response:
+
+.. literalinclude:: /includes/api/responses/success.json
+   :language: json
+   :copyable: false
+
+
+.. _c2c-disabled-verifier:
+
+Start with the Verifier Disabled
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in 1.9, the embedded verifier runs by default when you
+start a migration. If you need to disable it, set
+``verification.enabled`` to ``false``.
+
+Request:
+
+.. literalinclude:: /includes/api/requests/start-no-verifier.sh
+
+Response:
+
+.. literalinclude:: /includes/api/responses/success.json
+   :language: json
+   :copyable: false
+
+You should verify that a migration was successful before
+transferring your application load to the destination cluster.
+If you need to disable the verifier for any reason, use an
+alternative :ref:`method <c2c-verification>` to verify sync.
+
+Behavior
+--------
+
+.. _c2c-start-verifier:
+
+Embedded Verifier
+~~~~~~~~~~~~~~~~~
+
+Starting in 1.9, ``mongosync`` provides an embedded verifier to
+determine whether data transfer from the source cluster to the
+destination was successful.
+
+When enabled, the verifier performs a series of verification
+checks on the destination cluster. If any of these checks return
+an error, the verifier fails the migration. If all checks
+succeed, ``mongosync`` transitions to the ``COMMITTED`` state.
+
+To disable the verifier, see :ref:`c2c-disabled-verifier`.
+
+The ``/start`` endpoint returns an error if you enable
+verification checks that are not supported by the source or
+destination cluster or if there is insufficient memory. 
+
+State
+~~~~~
+
+If the ``start`` request is successful, ``mongosync`` enters the
+``RUNNING`` state.
+
+.. _c2c-shard-replica-sets:
+
+Shard Replica Sets 
+~~~~~~~~~~~~~~~~~~
+
+Sync from a replica set to a sharded cluster requires the 
+``sharding`` option. This option configures how ``mongosync`` shards
+collections.
+
+The ``sharding.shardingEntries`` array specifies the collections to shard.
+Collections that are not listed in this array replicate as unsharded.
+
+For more information, see :ref:`Sharded Cluster Behavior
+<c2c-sharded-cluster-behavior>`. 
+
+.. _c2c-supporting-index-behavior:
+
+Supporting Indexes
+~~~~~~~~~~~~~~~~~~
+
+``mongosync`` syncs indexes from the source cluster to the destination
+cluster. When syncing from a replica set to a sharded cluster,
+``mongosync`` may require an additional index to support the shard key,
+which may not exist on the source cluster.
+
+``mongosync`` can create supporting indexes for sharded collections during sync.
+This is done by setting the ``sharding.createSupportingIndexes`` option.
+
+When ``sharding.createSupportingIndexes`` is ``false`` (the default): 
+
+* Each shard key you provide for the ``sharding.shardingEntries`` option
+  must have an existing index on the source cluster.
+
+* One of the indexes used for the shard key must have simple collation if the 
+  collection uses any other collation.
+
+* To use a unique index in the shard key, you must specify its uniqueness when
+  you create the index on the source cluster. 
+
+* Unique indexes on the source cluster that are incompatible with the requested
+  shard key on the destination cluster, such as a unique index on the source
+  that does not contain the requested shard key as a prefix on the destination,
+  can cause ``mongosync`` to fail.
+
+* .. |build-index-param| replace:: ``"afterDataCopy"`` or ``"excludeHashedAfterCopy"``
+  .. include:: /includes/fact-build-indexes-after-copy.rst
+
+When ``sharding.createSupportingIndexes`` is ``true``: 
+
+* If the supporting indexes exist on the source cluster, ``mongosync`` 
+  syncs the indexes to the destination cluster and uses them 
+  as shard keys. 
+
+* If the supporting indexes don't exist, ``mongosync`` creates them on the
+  destination cluster.
+
+The ``sharding.createSupportingIndexes`` option affects all sharded
+collections.
+
+.. _rename-during-sync:
+
+Rename During Sync
+~~~~~~~~~~~~~~~~~~
+
+Collections listed in the ``sharding.shardingEntries`` array 
+when synced from a replica set to a sharded cluster 
+become sharded collections on the destination cluster.
+
+Renaming a collection (such as with the :dbcommand:`renameCollection` command)
+on the source cluster after calling ``start`` but before ``mongosync`` begins 
+to copy the collection can block the collection from sharding on the destination.
+
+.. note:: 
+
+   Renaming collections to use a different database while syncing from a
+   replica set to a sharded cluster is not supported.
+    
+
+To check whether it is safe to rename collections, call the 
+:ref:`c2c-api-progress` endpoint and check the value of the 
+``collectionCopy.estimatedCopiedBytes`` field in the return document. 
+
+* A value of 0 indicates that ``mongosync`` has not started to copy the
+  collection.
+
+  Renaming a collection at this point may result in an unsharded collection 
+  on the destination cluster, as the transition to copying can happen before
+  the rename takes effect on the source.
+
+* A value greater than 0 indicates that ``mongosync`` has started the copy.
+  Renaming the collection from this point on does not block
+  its sharding on the destination cluster, even in the event  of a crash.
+
+.. _c2c-required-indexes:
+
+Required Indexes
+~~~~~~~~~~~~~~~~
+
+When you call ``/start`` with the ``buildIndexes`` option set to ``never``,
+``mongosync`` skips building unnecessary indexes.
+
+Indexes that are always built include:
+
+* ``mongosync`` builds an index on the ``_id`` field of every
+  collection it copies.
+
+* ``mongosync`` builds dummy indexes for each sharded collection that 
+  does not have an index to support the shard key on the destination 
+  cluster. When ``buildIndexes`` is set to ``never``, ``mongosync`` 
+  retains this index after commit.
+
+Endpoint Protection
+~~~~~~~~~~~~~~~~~~~
+
+.. |endpoint| replace:: ``start``
+.. include:: /includes/fact-api-endpoint
+
+
+.. _c2c-natural-scan-capability:
+
+Natural Scan Capability
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When you call ``/start`` with the ``copyInNaturalOrder`` option, you must specify the databases and collections by using documents, such as in the following example.
+
+Request:
+
+.. literalinclude:: /code-examples/includes/api/requests/start-natural-order-multiple.sh
+   :language: shell
+
+Response:
+
+.. literalinclude:: /code-examples/includes/api/responses/success.json
+   :language: json
+   :copyable: false
+
+:red:`WARNING:` If you enable the migration for collections with non-random ``_id`` 
+fields, the :ref:`collection copy <c2c-collection-copy>` phase can take 
+longer to complete when you specify ``copyInNaturalOrder``.
+
+You can use ``copyInNaturalOrder`` to copy all collections in multiple databases in their natural order,
+such as in the following example.
+
+Request:
+
+.. literalinclude:: /code-examples/includes/api/requests/start-natural-order-all-collections.sh
+   :language: shell
+
+Response:
+
+.. literalinclude:: /code-examples/includes/api/responses/success.json
+   :language: json
+   :copyable: false
+
+You can use ``copyInNaturalOrder`` to copy **all** databases and their collections in their natural order.  
+
+Request:
+
+.. literalinclude:: /code-examples/includes/api/requests/start-natural-order-all-databases.sh
+   :language: shell
+
+Response:
+
+.. literalinclude:: /code-examples/includes/api/responses/success.json
+   :language: json
+   :copyable: false

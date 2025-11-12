@@ -1,0 +1,108 @@
+.. _c2c-release-notes-1.17:
+
+================================
+Release Notes for mongosync 1.17
+================================
+
+.. meta::
+   :keywords: cluster to cluster sync, cluster-to-cluster sync
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes changes and new features introduced in  
+{+c2c-full-product-name+} 1.17.
+
+.. _1.17.0-c2c-release-notes:
+
+1.17.0 Release
+--------------
+
+**October 1, 2025**
+
+New Features 
+~~~~~~~~~~~~
+
+Metrics Information
+````````````````````
+
+Starting in version 1.17, ``mongosync`` logs metrics that contain information
+about the host's CPU and memory usage as percentages of the total available
+CPU and memory. It also logs this information at the debug level.
+
+``/progress`` Network Information
+`````````````````````````````````
+
+``mongosync`` 1.17 adds the ``source.pingLatencyMs`` and ``destination.pingLatencyMs``
+fields to the :ref:`/progress <c2c-api-progress>` endpoint response.
+
+.. _mongosync-balancer-disabling:
+
+Automatic Balancer Disabling
+````````````````````````````
+
+.. include:: /includes/fact-mongosync-auto-balancer-disabling.rst
+
+Performance Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Build Indexes After Collection Copy
+```````````````````````````````````
+
+``mongosync`` 1.17 builds indexes after collection copy by default, which results
+in a faster migration for indexed databases. For more information, see the 
+:ref:`/start <c2c-api-start-params>` endpoint request parameters.
+
+Fixed Issues
+~~~~~~~~~~~~
+
+- ``mongosync`` creates 90 chunks per destination shard by default instead of 
+  2 chunks.
+
+- Fixes a bug where the embedded verifier might incorrectly compute internal IDs
+  for sharded collections with shard keys that include multiple periods (``.``).
+
+- Removes the embedded verifier's 6-hour timeout for initial hashing. This reduces
+  timeout errors for large collections or slow clusters.
+
+- Fixes a rare bug where the verifier did not correctly process a collection
+  rename event if using namespace filtering, leading to repeated failures that
+  prevented the commit process from completing.
+
+Other Changes
+~~~~~~~~~~~~~
+
+- ``mongosync`` now compresses log files when it :ref:`rotates <mongosync-rotate-log>`
+  them. Starting in version 1.17, all files besides the current log file are compressed using
+  ``gzip``.
+
+- ``mongosync`` fails if there is a :ref:`balancing window <sharded-cluster-config-balancing-window>`
+  configured on the source or destination cluster.
+
+- Release artifacts, such as tarballs and zipfiles, now include a file with a
+  `SARIF <https://sarifweb.azurewebsites.net/>`__ report in JSON format. This
+  report contains the results of the static analysis tool that ``mongosync``
+  runs to look for security issues.
+
+- ``mongosync`` checks for incorrect writes to the source cluster during commit.
+  If any writes to the source cluster are detected, the migration fails.
+
+- The embedded verifier enables network compression by default.
+
+- The :ref:`/progress <c2c-api-progress>` endpoint now reports ``canCommit: false``
+  until the verifier is in an appropriate state for commit. 
+
+Live Upgrades
+~~~~~~~~~~~~~
+
+:ref:`Live upgrades <c2c-live-upgrade>` to 1.17 are not supported.
+
+Minimum Supported Version
+-------------------------
+
+.. include:: /includes/fact-version-compatibility.rst
+
+.. include:: /includes/migration-upgrade-recommendation.rst

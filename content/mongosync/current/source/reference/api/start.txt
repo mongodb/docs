@@ -146,6 +146,30 @@ Request Body Parameters
 
        .. versionadded:: 1.3.0
 
+   * - ``detectRandomId``
+     - boolean
+     - Optional
+     - .. _mongosync-detect-random-id:
+
+       When ``true``, ``mongosync`` checks for random ``_id`` values in
+       collections that are not :ref:`clustered <clustered-collections>`
+       or :ref:`capped <manual-capped-collection>`, and are larger than
+       20 :abbr:`GiB (gibibytes)`. If ``mongosync`` determines that the collection
+       uses random ``_id`` values, it copies the collection in natural order
+       instead of the default ``_id`` order. This reduces the time ``mongosync``
+       takes to complete the :ref:`collection copy <c2c-collection-copy>` phase.
+       
+       To explicitly specify collections
+       that ``mongosync`` copies in natural order, see the :ref:`copyInNaturalOrder 
+       <c2c-copy-natural-order>` option.
+
+       By default, ``detectRandomId`` is ``true``.
+
+       :red:`WARNING:` For collections that ``mongosync`` selects for natural 
+       scan, if migrations are interrupted, these copy operations must be
+       redone entirely upon ``mongosync`` restart or resume. This can increase
+       the time ``mongosync`` takes to complete the collection copy phase.
+
    * - ``enableUserWriteBlocking``
      - string or boolean
      - Optional
@@ -208,12 +232,19 @@ Request Body Parameters
        For a syntax example, see :ref:`Natural Scan Capability <c2c-natural-scan-capability>`.
 
        :gold:`IMPORTANT:` Only use the ``copyInNaturalOrder`` option for collections that explicitly set a 
-       random ``_id`` field. Using this option for collections of size 30GB or greater significantly reduces 
+       random ``_id`` field and are larger than 30 :abbr:`GiB (gibibytes)`. 
+       Using this option for collections of size 30 :abbr:`GiB (gibibyte)` or greater significantly reduces 
        the time that the :ref:`collection copy <c2c-collection-copy>` phase takes.
 
        :red:`WARNING:` If you ``/resume`` a ``mongosync`` migration after a ``/pause`` or interruption that 
-       has the ``copyInNaturalOrder`` option enabled for collections greather that 500GB in size, 
+       has the ``copyInNaturalOrder`` option enabled for collections greater than 500GB in size, 
        the migration can take multiple hours to complete.
+
+       The :ref:`detectRandomId <mongosync-detect-random-id>` option uses a lower collection
+       size threshold of 20 GiB because it rigorously checks that collections have
+       a low degree of correlation between the ``_id`` vales and their insertion order.
+       ``copyInNaturalOrder`` has a higher threshold of 30 GiB because
+       users might be more relaxed in their selection of collections to copy in natural order.
 
    * - ``preExistingDestinationData``
      - boolean
