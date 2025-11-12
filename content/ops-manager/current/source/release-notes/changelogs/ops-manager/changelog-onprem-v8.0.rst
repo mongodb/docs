@@ -1,3 +1,36 @@
+.. _opsmgr-server-8.0.16:
+
+|onprem| Server 8.0.16
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-11-06*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`108.0.16.8895-1 <mongodb-108.0.16.8895-1>`.
+- Adds support for :ref:`MongoDB Connector for BI 2.14.25 <bi-2-14-25>`.
+- Updates JDK to `jdk-21.0.9+10 <https://adoptium.net/temurin/release-notes/?version=jdk-21.0.9+10>`__.
+- Upgrades the Jetty library to 11.0.26.
+- Introduces an app setting to bypass on-demand snapshots triggered by FCV change detection.
+- Updates the power build process to use rhel8 and removes rhel7 support in Ops Manager versions 8.0 and later.
+- Updates ``golangci-lint`` to 2.5.0.
+- Ensures correct collection of CPU metrics when using host mapping aliases in deployments.
+- Implements a general-purpose admin settings API that supports programmatic authentication setup.
+- Adds ``restartRequired`` flags for appropriate admin settings exposed through the public API.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes intermittent failures in ``GetProcessConfigJobSuite.TestGetProcessConfigJob``.
+- Fixes the time range filter functionality in the Ops Manager :guilabel:`Activity Feed` tab.
+- Fixes a race condition that occurred during clustershot startup and shutdown.
+- Fixes failures in unsupported MongoDB version checks caused by missing or invalid host versions.
+- Suppresses alerts and exceptions for invalid host versions in unsupported checks.
+- Makes server-side admin settings validation identical to UI validation, enforcing comprehensive validation and pre-flight checks.
+- Removes app setting validation for ``mms.mongoDbUsage.defaultUsageType`` to prevent breaking existing customer setups.
+- Addresses `CVE-2025-5115 <https://www.cve.org/CVERecord?id=CVE-2025-5115>`__ by updating Jetty to 11.0.26.
+
 .. _opsmgr-server-8.0.15:
 
 |onprem| Server 8.0.15
