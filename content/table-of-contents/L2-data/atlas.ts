@@ -1201,12 +1201,50 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: 'Visualize Your Data Model',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/atlas-ui/data-modeling',
+        collapsible: true,
+        items: [
+          {
+            label: 'Generate Diagram',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/atlas-ui/data-modeling/generate-diagram'
+          }, 
+          {
+            label: 'Modify Collections',
+            contentSite: 'cloud-docs', 
+            url: '/docs/atlas/atlas-ui/data-modeling/modify-collections'
+          }, 
+          {
+            label: 'Modify Fields',
+            contentSite: 'cloud-docs', 
+            url: '/docs/atlas/atlas-ui/data-modeling/modify-fields'
+          }, 
+          {
+            label: 'Manage Relationships',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/atlas-ui/data-modeling/relationships'
+          },
+          {
+            label: 'Export Diagram',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/atlas-ui/data-modeling/export-diagram'
+          },
+          {
+            label: 'Import Diagram',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/atlas-ui/data-modeling/import-diagram'
+          }
+        ]
+      },
+      {
         label: 'Data Schema',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/atlas-ui/schema',
       },
       {
-        label: 'Peformance Insights',
+        label: 'Performance Insights',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/atlas-ui/performance-insights',
       },
