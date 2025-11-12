@@ -36,7 +36,7 @@ const tocData: TocItem[] = [
           {
             label: 'X.509 Authentication',
             contentSite: 'cloud-docs',
-            url: '/docs/atlas/data-federation/tutorial/security-self-managed-x509',
+            url: '/docs/atlas/data-federation/tutorial/advanced-security-options/x509-authentication',
           },
           {
             label: 'AWS IAM',
