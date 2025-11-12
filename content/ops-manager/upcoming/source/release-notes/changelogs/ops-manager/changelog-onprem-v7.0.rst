@@ -1,3 +1,58 @@
+.. _opsmgr-server-7.0.19:
+
+|onprem| Server 7.0.19
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-11-06*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`107.0.19.8805-1 <mongodb-107.0.19.8805-1>`.
+- Adds support for |bic-full| 2.14.25.
+- Updates JDK to `jdk-17.0.17+10 <https://adoptium.net/temurin/release-notes/?version=jdk-17.0.17+10>`__.
+- Upgrades ``golangci-lint`` to version 2.5.0.
+- Upgrades deprecated dependencies, including Puppeteer and Sinon packages.
+- Tests and releases BI Connector 2.14.25 in MongoDB Agent.
+- Improves accuracy when the database path is not cleaned up after a restore operation.
+- Improves the |onprem| UI:
+
+  - Adds an ellipsis dropdown menu for logs retrieval on ``mongos`` instances in sharded clusters.
+  - Ensures the shutdown dialog for replica sets shows all impacted servers.
+  - Specifies the button type for table paginator buttons to prevent unintended form submissions during navigation.
+  - Shows restore job IDs in the ``CONCURRENT_RESTORES_JOB_IDS`` error code for improved error clarity.
+  - Displays a warning on the :guilabel:`Deployment` page regarding unsupported hosts.
+  - Improves messaging for slow query threshold updates by removing hardcoded values.
+  - Removes the |oidc| ``Preview`` tag as |oidc| support is now generally available (GA).
+
+- Includes the source error in log messages when unable to retrieve the |fcv| from MongoDB.
+- Collects process CPU metrics when using a Host Mappings alias.
+- Admin Settings API now includes LDAP validation for API use cases.
+- Introduces the following features for managing deprecated deployments:
+
+  - Adds a REST API for retrieving information about deprecated deployments.
+  - Adds an admin page for managing deprecated deployments.
+  - Adds system alerts for deprecated hosts.
+
+- Introduces a feature flag for unsupported host monitoring.
+- Public API now supports updating project settings.
+
+Bug Fixes
+~~~~~~~~~
+
+- Performs |service-short| maintenance actions sequentially to prevent downtime resulting from replication issues.
+- Adds info-level logging for different ``RollingRestartArgs`` to assist in troubleshooting.
+- Fixes the time range filter's functionality in the |onprem| :guilabel:`Activity Feed` tab.
+- Allows new backups to start for unmanaged clusters.
+- Fixes a race condition when starting or finishing a clustershot in sharded clusters.
+- Corrects the misalignment of the Prometheus integration :guilabel:`Copy` button in the |onprem| UI.
+- Fixes an issue where the ``UnsupportedMongoDbVersionCheck`` fails due to missing host version.
+- Addresses cases where invalid metric types prevent the global alert configuration from rendering.
+- Treats missing migrations as pending to prevent |onprem| from becoming stuck in upgrade mode during updates.
+- Fixes the following |cve|:
+
+  - `CVE-2025-59343 (tar-fs) <https://nvd.nist.gov/vuln/detail/CVE-2025-59343>`__.
+
 .. _opsmgr-server-7.0.18:
 
 |onprem| Server 7.0.18
