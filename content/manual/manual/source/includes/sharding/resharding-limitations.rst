@@ -22,18 +22,12 @@
   - :dbcommand:`renameCollection`
   - :method:`~db.collection.renameCollection()`
 
-- The following commands and methods are not supported on the cluster
-  while the resharding operation is in progress:
+- If you run one of the following operations, the operation waits until
+  resharding completes before executing:
 
   - :dbcommand:`addShard`
   - :dbcommand:`removeShard`
-  - :method:`db.createCollection()`
-  - :dbcommand:`dropDatabase`
-
-  .. warning::
-
-     Using any of the preceding commands during a resharding
-     operation causes the resharding operation to fail.
+  - :dbcommand:`dropDatabase` on the database hosting the collection undergoing resharding
 
 - If the collection you're resharding uses :atlas:`{+fts+}
   </atlas-search>`, the search index becomes unavailable when the
