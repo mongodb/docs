@@ -76,6 +76,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/credit-card-application-with-generative-ai',
           },
           {
+            label: 'Document Intelligence with Agentic AI',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/document-intelligence',
+          },
+          {
             label: 'Optimize RAG Applications with Fireworks AI',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/fin-services-fireworks-rag',
