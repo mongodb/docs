@@ -1,5 +1,7 @@
 package mongodb.comparison;
 
+import java.nio.file.Path;
+
 /**
  * Builder for configuring and executing comparisons in the Expect API.
  * Provides a fluent interface that automatically handles content-aware
@@ -98,6 +100,11 @@ public class ExpectBuilder {
      * and content of the expected and actual values.
      */
     private ComparisonResult compare(Object expected, Object actual, ComparisonOptions options) {
+        // Handle Path objects by converting to string
+        if (expected instanceof Path pathExpected) {
+            return ComparisonEngine.compareWithFile(actual, pathExpected.toString(), options);
+        }
+
         // Handle file path detection using the enhanced ContentAnalyzer
         if (expected instanceof String expectedStr && ContentAnalyzer.isFilePath(expectedStr)) {
             return ComparisonEngine.compareWithFile(actual, expectedStr, options);

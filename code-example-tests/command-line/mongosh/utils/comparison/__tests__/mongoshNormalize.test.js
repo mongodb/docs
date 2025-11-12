@@ -5,7 +5,15 @@ const {
   normalizeForComparison,
   ensureComparableFormat,
 } = require('../mongoshNormalize');
-const { ObjectId, Decimal128, Long, Int32, Double } = require('mongodb');
+const {
+  ObjectId,
+  Decimal128,
+  Long,
+  Int32,
+  Double,
+  Timestamp,
+  Binary
+} = require('mongodb');
 
 describe('mongoshNormalize', () => {
   describe('normalizeMongoTypes', () => {
@@ -19,9 +27,19 @@ describe('mongoshNormalize', () => {
       expect(normalizeMongoTypes(decimal)).toBe('123.45');
     });
 
-    test('should normalize Long to string', () => {
+    test('should normalize Long to string for large values', () => {
       const long = Long.fromString('9223372036854775807');
       expect(normalizeMongoTypes(long)).toBe('9223372036854775807');
+    });
+
+    test('should normalize Long to number for safe integer values', () => {
+      const long = Long.fromString('1000000');
+      expect(normalizeMongoTypes(long)).toBe(1000000);
+    });
+
+    test('should normalize Long to number for zero', () => {
+      const long = Long.fromString('0');
+      expect(normalizeMongoTypes(long)).toBe(0);
     });
 
     test('should normalize Int32 to string', () => {
@@ -32,6 +50,16 @@ describe('mongoshNormalize', () => {
     test('should normalize Double to string', () => {
       const double = new Double(3.14159);
       expect(normalizeMongoTypes(double)).toBe('3.14159');
+    });
+
+    test('should normalize Timestamp to string', () => {
+      const timestamp = new Timestamp({ t: 1762890906, i: 5 });
+      expect(normalizeMongoTypes(timestamp)).toBe('Timestamp({ t: 1762890906, i: 5 })');
+    });
+
+    test('should normalize Binary to string', () => {
+      const binary = Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0);
+      expect(normalizeMongoTypes(binary)).toMatch(/^Binary\.createFromBase64\(/);
     });
 
     test('should return non-MongoDB types unchanged', () => {
@@ -140,17 +168,23 @@ describe('mongoshNormalize', () => {
       const result = normalizeForComparison([{
         objectId: new ObjectId('507f1f77bcf86cd799439011'),
         decimal: new Decimal128('123.45'),
-        long: Long.fromString('9223372036854775807'),
+        longLarge: Long.fromString('9223372036854775807'),
+        longSmall: Long.fromString('1000000'),
         int32: new Int32(42),
         double: new Double(3.14159),
+        timestamp: new Timestamp({ t: 1762890906, i: 5 }),
+        binary: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
         date: new Date('2023-01-01T00:00:00.000Z')
       }]);
 
       expect(result[0].objectId).toBe('507f1f77bcf86cd799439011');
       expect(result[0].decimal).toBe('123.45');
-      expect(result[0].long).toBe('9223372036854775807');
+      expect(result[0].longLarge).toBe('9223372036854775807'); // Large Long becomes string
+      expect(result[0].longSmall).toBe(1000000); // Small Long becomes number
       expect(result[0].int32).toBe('42');
       expect(result[0].double).toBe('3.14159');
+      expect(result[0].timestamp).toBe('Timestamp({ t: 1762890906, i: 5 })');
+      expect(result[0].binary).toMatch(/^Binary\.createFromBase64\(/);
       expect(result[0].date).toBe('2023-01-01T00:00:00.000Z');
     });
   });
@@ -222,7 +256,7 @@ describe('mongoshNormalize', () => {
       expect(result[0].quantity).toBe('100');
       expect(result[0].rating).toBe('4.5');
       expect(result[0].created).toBe('2023-01-01T00:00:00.000Z');
-      expect(result[0].views).toBe('1000000');
+      expect(result[0].views).toBe(1000000);
       expect(result[0].metadata.tags).toEqual(['electronics', 'gadgets']);
       expect(result[0].metadata['...']).toBe('...');
     });

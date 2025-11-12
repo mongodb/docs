@@ -4,8 +4,7 @@
 //	    "_stocks": "stocks"
 //	  }
 //	}
-
-using DotNetEnv;
+using System.Threading.Tasks.Dataflow;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -18,7 +17,7 @@ public class Tutorial
 
     public void LoadSampleData()
     {
-        var uri = Env.GetString("CONNECTION_STRING",
+        var uri = DotNetEnv.Env.GetString("CONNECTION_STRING",
             "Env variable not found. Verify you have a .env file with a valid connection string.");
         var client = new MongoClient(uri);
         _db = client.GetDatabase("timeseries_db");
@@ -31,7 +30,8 @@ public class Tutorial
         var timeSeriesOptions = new TimeSeriesOptions(
             timeField: "date",
             metaField: "ticker",
-            TimeSeriesGranularity.Seconds
+            bucketMaxSpanSeconds: 3600,
+            bucketRoundingSeconds: 3600
         );
 
         var options = new CreateCollectionOptions
@@ -40,6 +40,9 @@ public class Tutorial
         };
         // :snippet-end:
         // :snippet-start: create-collection
+        // :uncomment-start:
+        //_db = client.GetDatabase("timeseries_db");
+        // :uncomment-end:
         _db.CreateCollection("stocks", options);
         // :snippet-end:
         _stocks = _db.GetCollection<Stocks>("stocks");

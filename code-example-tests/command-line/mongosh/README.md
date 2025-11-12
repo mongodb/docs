@@ -373,7 +373,12 @@ local deployment is running:
 ```
 CONNECTION_STRING="mongodb://localhost:63201"
 CONNECTION_PORT="63201"
+TZ=UTC
 ```
+
+The `TZ` variable sets the Node.js environment to use the UTC time zone. This
+is required to enforce time zone consistency between dates across different
+local environments and CI when running the test suite.
 
 ### Run All Tests from the command line
 

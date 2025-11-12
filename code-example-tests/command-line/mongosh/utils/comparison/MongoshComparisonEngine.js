@@ -197,9 +197,13 @@ class MongoshComparisonEngine {
       ensureComparableFormat(expected, actual);
 
     // Build comparison options
+    const defaultIgnoreFields = ['$clusterTime', 'operationTime'];
+    const userIgnoreFields = options.ignoreFields || [];
+    const allIgnoreFields = [...defaultIgnoreFields, ...userIgnoreFields];
+
     const comparisonOptions = {
       comparisonType: options.arrayComparison || 'unordered',
-      ignoreFieldValues: options.ignoreFields || [],
+      ignoreFieldValues: allIgnoreFields,
       allowOmittedFieldsWithEllipsis: hasOmittedFields,
     };
 

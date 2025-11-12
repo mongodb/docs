@@ -120,18 +120,6 @@ to store the output alongside the example. For example:
 - `aggregation/pipelines/tutorial.py`
 - `aggregation/pipelines/tutorial-output.sh`
 
-### Check formatting with Black
-
-This project uses [Black](https://github.com/psf/black) for Python code formatting.
-
-For consistency, code example formatting is enforced automatically by a workflow that
-runs Black on every change in the `/examples` directory. You can also fix formatting
-locally by running Pylint from the command line.
-
-```
-black ./examples/
-```
-
 ## To add a test for a new code example
 
 To add a test for a new code example:

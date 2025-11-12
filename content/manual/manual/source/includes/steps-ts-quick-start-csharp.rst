@@ -22,14 +22,14 @@
 
    Create a C# class to model the data in the ``stocks`` collection:
 
-   .. literalinclude:: /code-examples/tested/csharp/driver/TimeSeries/QuickStart/Stocks.snippet.model.cs
+   .. literalinclude:: /code-examples/tested/csharp/driver/TimeSeries/Stocks.snippet.model.cs
       :language: csharp
       :copyable: true
       :category: usage example
 
 .. step:: Access the database.
 
-   .. literalinclude:: /code-examples/tested/csharp/driver/TimeSeries/QuickStart/Tutorial.snippet.access-db.cs
+   .. literalinclude:: /code-examples/tested/csharp/driver/TimeSeries/Tutorial.snippet.access-db.cs
       :language: csharp
       :copyable: true
       :category: syntax example
@@ -38,16 +38,17 @@
 
 .. step:: Create an empty time series collection.
 
-   a. Set the ``timeField``, ``metaField``, and ``granularity``:
+   a. Set the ``timeField`` and ``metaField``. You can optionally set the
+      ``granularity`` field.
 
-      .. literalinclude:: /code-examples/tested/csharp/driver/TimeSeries/QuickStart/Tutorial.snippet.collection-options.cs
+      .. literalinclude:: /code-examples/tested/csharp/driver/TimeSeries/Tutorial.snippet.collection-options.cs
          :language: csharp
          :copyable: true
          :category: syntax example
 
    #. Create the collection using the ``db.createCollection()`` method:
 
-      .. literalinclude:: /code-examples/tested/csharp/driver/TimeSeries/QuickStart/Tutorial.snippet.create-collection.cs
+      .. literalinclude:: /code-examples/tested/csharp/driver/TimeSeries/Tutorial.snippet.create-collection.cs
          :language: csharp
          :copyable: true
          :category: syntax example
@@ -56,10 +57,10 @@
 
 .. step:: Add sample documents.
 
-   Use the ``db.collection.insertMany()`` method to add the
+   Use the ``InsertMany()`` method to add the
    following sample documents to the collection:
 
-   .. literalinclude:: /code-examples/tested/csharp/driver/TimeSeries/QuickStart/Tutorial.snippet.load-sample-data.cs
+   .. literalinclude:: /code-examples/tested/csharp/driver/TimeSeries/Tutorial.snippet.load-sample-data.cs
       :language: csharp
       :copyable: true
       :category: usage example
@@ -82,7 +83,7 @@
    .. io-code-block::
       :copyable: true
 
-      .. input:: /code-examples/tested/csharp/driver/TimeSeries/QuickStart/Tutorial.snippet.metafield-query.cs
+      .. input:: /code-examples/tested/csharp/driver/TimeSeries/Tutorial.snippet.metafield-query.cs
          :language: csharp
          :category: syntax example
 
@@ -94,7 +95,7 @@
    .. io-code-block::
       :copyable: true
 
-      .. input:: /code-examples/tested/csharp/driver/TimeSeries/QuickStart/Tutorial.snippet.timefield-query.cs
+      .. input:: /code-examples/tested/csharp/driver/TimeSeries/Tutorial.snippet.timefield-query.cs
          :language: csharp
          :category: syntax example
 

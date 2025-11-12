@@ -27,11 +27,15 @@ function compareObjectKeys(objA, objB, options = {}) {
   const allowOmittedFields = hasGlobalOmission || allPropsEllipsis;
 
   if (!allowOmittedFields) {
-    // Strict comparison: keys must match exactly
-    if (keysA.length !== keysB.length) return { canProceed: false };
+    // Filter out ignored fields before strict comparison
+    const filteredKeysA = keysA.filter(key => !shouldIgnoreKey(key, options));
+    const filteredKeysB = keysB.filter(key => !shouldIgnoreKey(key, options));
 
-    const keySetA = new Set(keysA);
-    const keySetB = new Set(keysB);
+    // Strict comparison: keys must match exactly (after filtering ignored fields)
+    if (filteredKeysA.length !== filteredKeysB.length) return { canProceed: false };
+
+    const keySetA = new Set(filteredKeysA);
+    const keySetB = new Set(filteredKeysB);
 
     for (const key of keySetA) {
       if (!keySetB.has(key)) return { canProceed: false };

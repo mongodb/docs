@@ -1,4 +1,12 @@
-const { Decimal128, ObjectId, Long, Int32, Double } = require('mongodb');
+const {
+  Decimal128,
+  ObjectId,
+  Long,
+  Int32,
+  Double,
+  Timestamp,
+  Binary
+} = require('mongodb');
 
 /**
  * mongoshNormalize extends the base normalize functionality to handle
@@ -23,8 +31,25 @@ function normalizeMongoTypes(value) {
     return value.toString();
   }
 
+  // Handle Timestamp (check before Long since Timestamp also has toNumber method)
+  if (value instanceof Timestamp || (value && value.constructor && value.constructor.name === 'Timestamp')) {
+    return `Timestamp({ t: ${value.high}, i: ${value.low} })`;
+  }
+
+  // Handle Binary (check before Long since Binary might also have similar methods)
+  if (value instanceof Binary || (value && value.constructor && value.constructor.name === 'Binary')) {
+    const base64 = value.buffer.toString('base64');
+    return `Binary.createFromBase64("${base64}", ${value.sub_type})`;
+  }
+
   // Handle Long (64-bit integer)
   if (value instanceof Long || (value && typeof value.toString === 'function' && value.constructor.name === 'Long')) {
+    // Convert to number if it fits within JavaScript's safe integer range
+    const longValue = value.toNumber();
+    if (Number.isSafeInteger(longValue)) {
+      return longValue;
+    }
+    // Fall back to string for very large numbers
     return value.toString();
   }
 

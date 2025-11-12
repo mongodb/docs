@@ -460,7 +460,7 @@ SOLUTION_ROOT="/Users/your-username/workspace/docs-mongodb-internal/code-example
 
 ### Run All Tests from the command line
 
-From the `/drivers` directory, run:
+From the `/driver` directory, run:
 
 ```
 dotnet test
@@ -469,7 +469,7 @@ dotnet test
 ### Run Only Code Example Tests (Recommended for Writers)
 
 To run only the tests that validate code example functionality (excluding utility tests),
-from the `/drivers` directory, run:
+from the `/driver` directory, run:
 
 ```
 dotnet test Tests/Tests.csproj

@@ -183,7 +183,14 @@ function normalizeObject(obj) {
  * // Returns: ['{a: 1}', '{b: 2}']
  */
 function splitIntoDocumentBlocks(contents) {
-  const lines = contents.trim().split('\n');
+  const trimmed = contents.trim();
+
+  // If content starts with [ and ends with ], treat as single array block
+  if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    return [trimmed];
+  }
+
+  const lines = trimmed.split('\n');
   const docBlocks = [];
   let currentBlock = [];
   let braceCount = 0;

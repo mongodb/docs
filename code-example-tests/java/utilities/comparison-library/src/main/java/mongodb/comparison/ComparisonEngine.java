@@ -36,6 +36,23 @@ class ComparisonEngine {
             Object normalizedExpected = circularNormalizedExpected;
             Object normalizedActual = circularNormalizedActual;
 
+            // Handle common case: single object expected vs single-element list actual
+            // This happens when a file contains a single JSON object but the test method returns List<Document>
+            if (normalizedExpected != null && normalizedActual instanceof List<?> actualList) {
+                if (actualList.size() == 1 && !(normalizedExpected instanceof List)) {
+                    // Extract the single element from the actual list for comparison
+                    normalizedActual = actualList.get(0);
+                }
+            }
+
+            // Handle reverse case: single-element list expected vs single object actual
+            if (normalizedExpected instanceof List<?> expectedList && normalizedActual != null) {
+                if (expectedList.size() == 1 && !(normalizedActual instanceof List)) {
+                    // Extract the single element from the expected list for comparison
+                    normalizedExpected = expectedList.get(0);
+                }
+            }
+
             // Use the ComparisonStrategy system for comparison handling
             ComparisonResult result = ComparisonStrategy.compare(
                 normalizedExpected, normalizedActual, options);

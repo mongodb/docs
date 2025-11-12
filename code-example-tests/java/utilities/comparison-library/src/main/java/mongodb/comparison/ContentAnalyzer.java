@@ -1,5 +1,6 @@
 package mongodb.comparison;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +33,11 @@ public class ContentAnalyzer {
     public static ContentType detectType(Object value) {
         if (value == null) {
             return ContentType.PRIMITIVE;
+        }
+
+        // Handle Path objects as file paths
+        if (value instanceof Path) {
+            return ContentType.FILE;
         }
 
         if (value instanceof String str) {

@@ -1,5 +1,18 @@
 const vm = require('vm');
-const { Decimal128, ObjectId, Long, Int32, Double } = require('mongodb');
+const {
+  Decimal128,
+  ObjectId,
+  Long,
+  Int32,
+  Double,
+  Timestamp,
+  Binary,
+  BSONRegExp,
+  Code,
+  DBRef,
+  MaxKey,
+  MinKey
+} = require('mongodb');
 
 /**
  * MongoshOutputParser handles parsing of mongosh shell output strings.
@@ -54,6 +67,49 @@ class MongoshOutputParser {
     }
     DoubleConstructor.prototype = Double.prototype;
 
+    function TimestampConstructor(value) {
+      // Handle both object format {t: number, i: number} and direct construction
+      if (typeof value === 'object' && value !== null && 't' in value && 'i' in value) {
+        return new Timestamp({ t: value.t, i: value.i });
+      }
+      return new Timestamp(value);
+    }
+    TimestampConstructor.prototype = Timestamp.prototype;
+
+    function BinaryConstructor(value, subtype) {
+      return new Binary(value, subtype);
+    }
+    BinaryConstructor.prototype = Binary.prototype;
+    // Add static methods that mongosh uses
+    BinaryConstructor.createFromBase64 = function(base64String, subtype) {
+      return Binary.createFromBase64(base64String, subtype);
+    };
+
+    function BSONRegExpConstructor(pattern, options) {
+      return new BSONRegExp(pattern, options);
+    }
+    BSONRegExpConstructor.prototype = BSONRegExp.prototype;
+
+    function CodeConstructor(code, scope) {
+      return new Code(code, scope);
+    }
+    CodeConstructor.prototype = Code.prototype;
+
+    function DBRefConstructor(collection, oid, db) {
+      return new DBRef(collection, oid, db);
+    }
+    DBRefConstructor.prototype = DBRef.prototype;
+
+    function MaxKeyConstructor() {
+      return new MaxKey();
+    }
+    MaxKeyConstructor.prototype = MaxKey.prototype;
+
+    function MinKeyConstructor() {
+      return new MinKey();
+    }
+    MinKeyConstructor.prototype = MinKey.prototype;
+
     return {
       Decimal128: Decimal128Constructor,
       NumberDecimal: Decimal128Constructor, // Legacy name
@@ -65,6 +121,13 @@ class MongoshOutputParser {
       Int32: Int32Constructor,
       NumberInt: Int32Constructor, // Legacy name
       Double: DoubleConstructor,
+      Timestamp: TimestampConstructor,
+      Binary: BinaryConstructor,
+      BSONRegExp: BSONRegExpConstructor,
+      Code: CodeConstructor,
+      DBRef: DBRefConstructor,
+      MaxKey: MaxKeyConstructor,
+      MinKey: MinKeyConstructor,
     };
   }
 
