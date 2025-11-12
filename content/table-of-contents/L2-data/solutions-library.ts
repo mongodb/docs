@@ -219,7 +219,7 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/rag-technical-documents',
           },
           {
-            label: 'Framework for Rapid AI Agent Deployment',
+            label: 'Rapid AI Agent Deployment',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-agentic-ai-framework',
           },
