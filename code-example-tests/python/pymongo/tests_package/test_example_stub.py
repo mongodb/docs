@@ -29,14 +29,11 @@ class TestExampleStub(unittest.TestCase):
         TestExampleStub.client.drop_database("db_name")
 
     def test_stub(self):
-        print("----------Test Stub: should ... ----------")
-
+        """Test Stub: should ..."""
         expected_return = "query results"
         actual_return = example_stub.example(TestExampleStub.CONNECTION_STRING)
         self.assertEqual(expected_return, actual_return)
         # For more details on how to validate an example, see the README
-
-        print("----------Test complete----------")
 
     @classmethod
     def tearDownClass(cls):

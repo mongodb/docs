@@ -24,7 +24,7 @@ class TestTimeseriesCreateAndQuery(unittest.TestCase):
                 "CONNECTION_STRING invalid - make sure your connection string in your .env file matches the one for your MongoDB deployment.")
 
     def test_connect_with_expire_after_seconds(self):
-        print("----------Create collection test: should create timeseries collection with specified settings----------")
+        """Create collection test: should create timeseries collection with specified settings."""
         ts_create_and_query.create_collection(TestTimeseriesCreateAndQuery.CONNECTION_STRING)
         self.assertTrue("weather" in TestTimeseriesCreateAndQuery.client["timeseries"].list_collection_names())
         settings = TestTimeseriesCreateAndQuery.client["timeseries"]["weather"].options()
@@ -32,10 +32,9 @@ class TestTimeseriesCreateAndQuery(unittest.TestCase):
         self.assertEqual(settings["timeseries"]["metaField"], "sensor")
         self.assertEqual(settings["timeseries"]["granularity"], "hours")
         self.assertEqual(settings["expireAfterSeconds"], 86400)
-        print("----------Test complete----------")
 
     def test_connect_with_bucket_settings(self):
-        print("----------Create collection test: should create timeseries collection with bucket settings----------")
+        """Create collection test: should create timeseries collection with bucket settings."""
         ts_create_and_query.create_collection_with_bucket(TestTimeseriesCreateAndQuery.CONNECTION_STRING)
         self.assertTrue("weather" in TestTimeseriesCreateAndQuery.client["timeseries"].list_collection_names())
         settings = TestTimeseriesCreateAndQuery.client["timeseries"]["weather"].options()
@@ -44,25 +43,22 @@ class TestTimeseriesCreateAndQuery(unittest.TestCase):
         self.assertEqual(settings["timeseries"]["bucketMaxSpanSeconds"], 3600)
         self.assertEqual(settings["timeseries"]["bucketRoundingSeconds"], 3600)
         self.assertEqual(settings["expireAfterSeconds"], 86400)
-        print("----------Test complete----------")
 
     def test_ts_query(self):
-        print("----------Query test: should query timeseries collection and match----------")
+        """Query test: should query timeseries collection and return one matching document."""
         ts_create_and_query.create_collection(TestTimeseriesCreateAndQuery.CONNECTION_STRING)
         ts_create_and_query.load_sample_data(TestTimeseriesCreateAndQuery.CONNECTION_STRING)
         result = ts_create_and_query.query_collection(TestTimeseriesCreateAndQuery.CONNECTION_STRING)
         output_filepath = "examples/timeseries/ts-create-and-query-output.txt"
         Expect.that(result).should_match(output_filepath)
-        print("----------Test complete----------")
 
     def test_ts_aggregate(self):
-        print("----------Aggregate test: should run agg pipeline on timeseries collection and match----------")
+        """Aggregate test: should run agg pipeline on timeseries collection and return 2 docs with avg temp by date."""
         ts_create_and_query.create_collection(TestTimeseriesCreateAndQuery.CONNECTION_STRING)
         ts_create_and_query.load_sample_data(TestTimeseriesCreateAndQuery.CONNECTION_STRING)
         result = ts_create_and_query.run_aggregation(TestTimeseriesCreateAndQuery.CONNECTION_STRING)
         output_filepath = "examples/timeseries/ts-create-and-query-aggregation-output.txt"
         Expect.that(result).should_match(output_filepath)
-        print("----------Test complete----------")
 
     def tearDown(self):
         TestTimeseriesCreateAndQuery.client.drop_database("timeseries")

@@ -38,10 +38,7 @@ class TestTutorialApp(unittest.TestCase):
         TestTutorialApp.client.drop_database("agg_tutorials_db")
 
     def test_app_functionality(self):
-        print(
-            "----------Test should connect to db and perform delete, insert, and aggregate operations successfully----------"
-        )
-
+        """Sample App: Should connect to db and perform delete, insert, and aggregate operations successfully."""
         # results is a list of documents found by the aggregation
         results = tutorial_app.example(TestTutorialApp.CONNECTION_STRING)
         self.assertEqual(1, len(results), "there should only be one document filtered")
@@ -49,13 +46,8 @@ class TestTutorialApp(unittest.TestCase):
         output_data = [{"_id": "filterItem", "name": "filterItem"}]
         Expect.that(results).should_match(output_data)
 
-        print("----------Test complete----------")
-
     def test_filter_tutorial(self):
-        print(
-            "----------Test should insert sample data and filter successfully----------"
-        )
-
+        """Filter tutorial: should insert sample data and return 3 specified documents by filter."""
         with redirect_stdout(io.StringIO()) as stdout:
             filter_tutorial.example(TestTutorialApp.CONNECTION_STRING)
         actual_output = stdout.getvalue()
@@ -65,13 +57,8 @@ class TestTutorialApp(unittest.TestCase):
         )
         Expect.that(actual_output).should_match(output_filepath)
 
-        print("----------Test complete----------")
-
     def test_group_tutorial(self):
-        print(
-            "----------Test should insert sample data and group successfully----------"
-        )
-
+        """Group tutorial: should insert sample data and return 3 docs grouped by 'first_purchase_date'."""
         with redirect_stdout(io.StringIO()) as stdout:
             group_tutorial.example(TestTutorialApp.CONNECTION_STRING)
         actual_output = stdout.getvalue()
@@ -81,13 +68,8 @@ class TestTutorialApp(unittest.TestCase):
         )
         Expect.that(actual_output).should_match(output_filepath)
 
-        print("----------Test complete----------")
-
     def test_unwind_tutorial(self):
-        print(
-            "----------Test should insert sample data and unwind successfully----------"
-        )
-
+        """Unwind tutorial: should insert sample data and unwind product data to return 4 documents grouped by ID."""
         with redirect_stdout(io.StringIO()) as stdout:
             unwind_tutorial.example(TestTutorialApp.CONNECTION_STRING)
         actual_output = stdout.getvalue()
@@ -97,13 +79,8 @@ class TestTutorialApp(unittest.TestCase):
         )
         Expect.that(actual_output).should_match(output_filepath)
 
-        print("----------Test complete----------")
-
     def test_one_to_one_tutorial(self):
-        print(
-            "----------Test should insert sample data and one to one join successfully----------"
-        )
-
+        """One-to-one join tutorial: should insert sample data and return 3 docs w/product and order data joined."""
         with redirect_stdout(io.StringIO()) as stdout:
             one_to_one_tutorial.example(TestTutorialApp.CONNECTION_STRING)
         actual_output = stdout.getvalue()
@@ -113,13 +90,8 @@ class TestTutorialApp(unittest.TestCase):
         )
         Expect.that(actual_output).should_match(output_filepath)
 
-        print("----------Test complete----------")
-
     def test_multi_field_tutorial(self):
-        print(
-            "----------Test should insert sample data and multi field join successfully----------"
-        )
-
+        """Multi-field join tutorial: should insert sample data and return 2 docs w/product and order data joined by multiple fields."""
         with redirect_stdout(io.StringIO()) as stdout:
             multi_field_tutorial.example(TestTutorialApp.CONNECTION_STRING)
         actual_output = stdout.getvalue()
@@ -128,8 +100,6 @@ class TestTutorialApp(unittest.TestCase):
             "examples/aggregation/pipelines/join/multi-field-tutorial-output.txt"
         )
         Expect.that(actual_output).should_match(output_filepath)
-
-        print("----------Test complete----------")
 
     @classmethod
     def tearDownClass(cls):

@@ -32,17 +32,12 @@ class TestTimeseries(unittest.TestCase):
         TestTimeseries.client.drop_database("timeseries")
 
     def test_sample_app(self):
-        print(
-            "----------Sample app test: should connect to client without errors----------"
-        )
+        """Sample app test: should connect to client without errors."""
         result = sample_app.example(TestTimeseries.CONNECTION_STRING)
         self.assertEqual("Connected successfully", result)
-        print("----------Test complete----------")
 
     def test_quickstart_metafield(self):
-        print(
-            "----------Time Series quick start test: should metafield query and match----------"
-        )
+        """Time Series quick start test: should return 5 docs from metafield query."""
         ts_quick_start.load_sample_data(TestTimeseries.CONNECTION_STRING)
         metafield_query_output = ts_quick_start.metafield_query(
             TestTimeseries.CONNECTION_STRING
@@ -51,12 +46,9 @@ class TestTimeseries(unittest.TestCase):
             "examples/timeseries/ts-quick-start-metafield-output.txt"
         )
         Expect.that(metafield_query_output).should_match(expected_metafield_output_filepath)
-        print("----------Test complete----------")
 
     def test_quickstart_timefield(self):
-        print(
-            "----------Time Series quick start test: should timefield query and match----------"
-        )
+        """Time Series quick start test: should return 2 docs from timefield query."""
         ts_quick_start.load_sample_data(TestTimeseries.CONNECTION_STRING)
         timefield_query_output = ts_quick_start.timefield_query(
             TestTimeseries.CONNECTION_STRING
@@ -65,7 +57,6 @@ class TestTimeseries(unittest.TestCase):
             "examples/timeseries/ts-quick-start-timefield-output.txt"
         )
         Expect.that(timefield_query_output).should_match(expected_timefield_output_filepath)
-        print("----------Test complete----------")
 
     @classmethod
     def tearDownClass(cls):

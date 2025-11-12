@@ -62,6 +62,34 @@
          the tests to ensure you haven't introduced any state that causes other
          tests to fail.
 
+      **Run tests with verbose output**
+
+      Run the following command to run all tests with verbose output:
+
+      .. code-block:: bash
+
+         python3 -m unittest discover tests_package -v
+
+      The ``-v`` flag prints the test function name and the docstring for each
+      test. You can use this to validate that a given test was discovered and
+      ran successfully. You can use the docstring to understand the intent of
+      the test if you need to debug a test failure.
+
+      The output resembles:
+
+      .. code-block:: bash
+
+         test_filter_tutorial (aggregation.pipelines.test_tutorials.TestTutorialApp.test_filter_tutorial)
+         Filter tutorial: should insert sample data and return 3 specified documents by filter. ... ok
+         test_group_tutorial (aggregation.pipelines.test_tutorials.TestTutorialApp.test_group_tutorial)
+         Group tutorial: should insert sample data and return 3 docs grouped by 'first_purchase_date'. ... ok
+         test_multi_field_tutorial (aggregation.pipelines.test_tutorials.TestTutorialApp.test_multi_field_tutorial)
+         Multi-field join tutorial: should insert sample data and return 2 docs w/product and order data joined by multiple fields. ... ok
+         test_one_to_one_tutorial (aggregation.pipelines.test_tutorials.TestTutorialApp.test_one_to_one_tutorial)
+         One-to-one join tutorial: should insert sample data and return 3 docs w/product and order data joined. ... ok
+         test_unwind_tutorial (aggregation.pipelines.test_tutorials.TestTutorialApp.test_unwind_tutorial)
+         Unwind tutorial: should insert sample data and unwind product data to return 4 documents grouped by ID. ... ok
+
 Troubleshoot Failing Tests
 --------------------------
 
