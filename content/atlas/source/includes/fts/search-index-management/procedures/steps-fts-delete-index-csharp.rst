@@ -25,11 +25,9 @@ To run the sample application, create a new .NET console project named
 
    dotnet run csharp-delete-index.csproj
 
-.. note:: 
+.. |method| replace:: ``DropOne()``
 
-   The ``DropOne()`` method doesn't return an output. 
-   You can use the {+atlas-ui+} to view the 
-   :ref:`index status <node-status-ref>`.
+.. include:: /includes/fact-view-index-status.rst
 
 .. tip:: API Documentation
 

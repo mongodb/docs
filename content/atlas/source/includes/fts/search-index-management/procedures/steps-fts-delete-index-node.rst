@@ -23,8 +23,6 @@ To run the sample application, use the following command.
 
    node drop-index.js
 
-.. note:: 
+.. |method| replace:: ``dropSearchIndex()``
 
-   The ``dropSearchIndex`` method doesn't return an output. 
-   You can use the {+atlas-ui+} to view the 
-   :ref:`index status <node-status-ref>`.
+.. include:: /includes/fact-view-index-status.rst

@@ -28,6 +28,7 @@
        days.  
        
        To migrate successfully, review error message for the index in
-       the :ref:`node-status-ref` :guilabel:`Message` column or in the
-       :guilabel:`Status Details` page for the index and address issues
-       that are causing the index build to fail on the Search Nodes.
+       the :guilabel:`Message` column of the :guilabel:`Status Details
+       by Node` section in the :guilabel:`Status Details` page and
+       address issues that are causing the index build to fail on the
+       Search Nodes.

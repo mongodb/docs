@@ -29,11 +29,9 @@ To run the sample application, create a new .NET console project named
    
    dotnet run csharp-update-index.csproj
 
-.. note:: 
+.. |method| replace:: ``Update()``
 
-   The ``Update()`` method doesn't return an output.
-   You can use the {+atlas-ui+} to view the 
-   :ref:`index status <node-status-ref>`.
+.. include:: /includes/fact-view-index-status.rst
 
 .. tip:: API Documentation
 

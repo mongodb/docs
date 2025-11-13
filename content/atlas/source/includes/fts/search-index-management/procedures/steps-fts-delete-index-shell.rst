@@ -20,9 +20,6 @@ index named ``default`` from the ``movies`` collection:
 
    db.movies.dropSearchIndex("default")
 
-.. note:: 
+.. |method| replace:: ``db.collection.dropSearchIndex()``
 
-   The ``db.collection.dropSearchIndex()`` command doesn't 
-   return an output. You can use the {+atlas-ui+} to
-   view the :ref:`index status <node-status-ref>`.
-   
+.. include:: /includes/fact-view-index-status.rst

@@ -29,7 +29,7 @@
 
          * - :guilabel:`Status`
            - Status of the index. To learn more, see
-             :ref:`search-index-statuses`. 
+             :ref:`search-index-status`. 
 
          * - :guilabel:`Actions`
            - Actions you can perform on the index when you hover over

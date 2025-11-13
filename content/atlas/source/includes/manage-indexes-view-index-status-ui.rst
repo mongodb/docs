@@ -1,59 +1,19 @@
-The :guilabel:`{+fts+}` page in the {+atlas-ui+} displays all the
-{+fts+} indexes for a cluster. You can view the following details about
-each index on this page: 
+The :guilabel:`{+fts+}` page in the {+atlas-ui+} displays a table of the
+{+fts+} indexes for a cluster. The :guilabel:`Status` column displays
+the status of the {+fts+} index on the primary node in the cluster.
 
-The {+fts+} page contains a table that describes each of the
-existing {+fts+} indexes in your project in the following columns:
-
-.. include:: /includes/fts/list-tables/search-indexes.rst
-
-By default, |service| sorts the indexes by first the database name and
-then the collection name. To sort by multiple columns, press
-:kbd:`Shift` and click the column names in the order in which you want
-to multi-sort the list of indexes.
-
-From this table, you can open the following pages for more details
-about each index: 
-
-Index Overview 
-~~~~~~~~~~~~~~
-
-To open the :guilabel:`Index Overview` page from the table on the
-:guilabel:`{+fts+}` page, click the :guilabel:`Index Name` of the index
-that you want to view.
-
-For each index, the :guilabel:`Index Overview` page shows the
-:manual:`namespace </reference/limits/#std-label-faq-dev-namespace>` for
-the index and the following configurations specified in the index
-definition:
-
-.. include:: /includes/fts/list-tables/index-overview.rst
-
-Status Details
-~~~~~~~~~~~~~~
-
-To view index statuses from the table on the :guilabel:`{+fts+}` page,
-you can check the table's :guilabel:`Status` column for the current
-status of the index on the primary node of the cluster, or you can view
-more index statuses by opening the :guilabel:`Status Details` page in
-one of two ways: 
-
-- Click the :guilabel:`View status details` link in the
-  :guilabel:`Status` column.
-- Click the name in the :guilabel:`Index Name` column then select
-  :guilabel:`Status Details` from the menu on the left of the
-  :guilabel:`Index Overview`.
-
-The following table describes the possible index statuses:  
+Possible index statuses include:
 
 .. include:: /includes/fts/list-tables/index-statuses.rst
 
+To view index statuses for more nodes in your cluster, you can open the
+:guilabel:`Status Details` page by clicking :guilabel:`View status
+details` in the :guilabel:`Status` column. 
+
 The :guilabel:`Status Details` page contains the following sections:
 
-.. _queryable-index:
-
 Index Serving Queries
-`````````````````````
+~~~~~~~~~~~~~~~~~~~~~
 
 This section displays the index that is being used to serve queries.
 
@@ -75,10 +35,8 @@ If you attempt to update the index with an invalid index definition, the
 index build will fail and |service| displays only the previous valid
 index definition. 
 
-.. _node-status-ref:
-
 Status Details by Node
-``````````````````````
+~~~~~~~~~~~~~~~~~~~~~~
 
 This section displays the status of the index on each node of the
 {+cluster+}. You can see the following details about the index on each
@@ -89,7 +47,7 @@ node:
 .. _search-node-migration-status:
 
 Migration to Search Nodes
-`````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This section displays the status of the in-progress migration of your
 {+fts+} and {+avs+} indexes to search nodes, if applicable. This section displays
@@ -105,7 +63,8 @@ The {+atlas-ui+} displays the following columns for each index on the
 
 .. include:: /includes/fts/list-tables/node-migration-progress.rst 
 
-The status column displays one of the following statuses of the index on the Search Nodes: 
+The status column displays one of the following migration statuses of
+the index on the Search Nodes: 
 
 .. include:: /includes/fts/list-tables/search-node-migration-status.rst
 

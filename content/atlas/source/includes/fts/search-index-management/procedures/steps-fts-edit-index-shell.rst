@@ -39,8 +39,6 @@ to use :ref:`static mappings <static-dynamic-mappings>`:
        }
    )   
 
-.. note:: 
-   
-   The ``db.collection.updateSearchIndex()`` command doesn't 
-   return an output. You can use the {+atlas-ui+} to view the 
-   :ref:`index status <node-status-ref>`.
+.. |method| replace:: ``db.collection.updateSearchIndex()``
+
+.. include:: /includes/fact-view-index-status.rst

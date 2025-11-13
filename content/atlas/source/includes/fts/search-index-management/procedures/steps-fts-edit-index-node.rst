@@ -27,8 +27,6 @@ To run the sample application, use the following command:
 
    node update-index.js
 
-.. note:: 
+.. |method| replace:: ``updateSearchIndex()``
 
-   The ``updateSearchIndex`` method doesn't return an output.
-   You can use the {+atlas-ui+} to view the 
-   :ref:`index status <node-status-ref>`.
+.. include:: /includes/fact-view-index-status.rst

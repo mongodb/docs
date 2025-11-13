@@ -47,7 +47,7 @@ Indexes change to the ``STALE`` status in the following scenarios:
   definition so that it doesn't fail anymore.
 
 You can view index statuses in the {+atlas-ui+} on the 
-:ref:`index status details <queryable-index>` page.
+:ref:`index status details <fts-index-statuses>` page.
 
 Error: ``$search`` is only valid as the first stage in a pipeline
 -----------------------------------------------------------------
