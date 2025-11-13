@@ -98,7 +98,8 @@
 
    .. step:: Delete the provided record file.
 
-     .. important::
+      .. important::
         
-        To avoid a potential security vulnerability, delete the provided record file after verification completes.
+         To avoid a potential security vulnerability, delete the 
+         provided record file after verification completes.
         
