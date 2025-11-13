@@ -9,6 +9,11 @@ To use GSSAPI authentication in your application, follow the steps below.
    `kerberos <http://pypi.python.org/pypi/kerberos>`__ or
    `pykerberos <https://pypi.python.org/pypi/pykerberos>`__ module.
 
+   .. warning:: Kerberos Limitation
+
+      The ``kerberos`` module does not support free-threaded
+      Python.
+
 #. Run the ``kinit`` command to obtain and cache
    an initial ticket-granting ticket. The following example uses the
    ``kinit`` command to obtain a ticket-granting ticket for the principal
