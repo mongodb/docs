@@ -74,6 +74,143 @@ planned upgrade version. For example, if you are upgrading the driver
 from v3.x to v5.x, address all breaking changes listed under v4.0 and
 v5.0.
 
+.. _node-breaking-changes-v7.x:
+.. _node-breaking-changes-v7.0:
+
+Version 7.0 Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates the following driver dependencies and peer dependencies to v7.0.0:
+
+  - ``bson@7.0.0``
+  
+  - ``mongodb-connection-string-url@7.0.0``
+
+  - ``mongodb-client-encryption@7.0.0``
+
+  - ``@mongodb-js/kerberos@7.0.0``
+
+  - ``@mongodb-js/zstd@7.0.0``
+
+  - Adds the following breaking changes for AWS authentication:
+
+    - Requires the ``@aws-sdk/credential-providers`` package for ``MONGODB-AWS``
+      authentication.
+
+    - When you provide a custom AWS credential provider to the ``AWS_CREDENTIAL_PROVIDER`` authentication
+      property, it takes highest precedence over any other AWS authentication method.
+    
+    - Credential fetching is fully handled by the now required AWS SDK. All client URIs
+      for AWS authentication must now be specified in the following format:
+
+      .. code-block:: javascript
+
+        import { MongoClient } from 'mongodb';
+
+        const client = new MongoClient('mongodb<+srv>://<host>:<port>/?authMechanism=MONGODB-AWS');
+
+      The previous method of providing URI-encoded credentials directly to the connection string
+      based on the ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY`` properties no longer works.
+
+    To learn more about ``MONGODB-AWS`` authentication, see the 
+    :ref:`node-authentication-aws` guide.
+
+- Allows you to pass any ``$changeStream`` stage options to ``collection.watch()``. 
+  If an option is invalid for the ``$changeStream`` stage of the pipeline, the server 
+  returns an error.
+
+- Removes cursor default ``batchSize`` of ``1000``. You must now enable a 
+  ``batchSize`` explicitly on the cursor. 
+
+- Updates the peer dependency matrix for the following packages to the following allowed
+  ranges:
+
+  - ``@aws-sdk/credential-providers``:	^3.806.0
+  - ``@mongodb-js/zstd``:	^2.0.0
+  - ``gcp-metadata``:	^7.0.1
+  - ``socks``:	^2.8.6
+
+  For the full dependency compatibility table, see the Node.js
+  `Component Compatibility <https://www.mongodb.com/docs/drivers/compatibility/?driver-language=javascript&javascript-driver-framework=nodejs#component-compatibility>`__
+  table on the Driver Compatibility Tables page.
+
+- Removes support for ``transform`` functions on cursors and change streams. Instead, you can use 
+  a ``ReadableStream.map()``:
+    
+  .. code-block:: javascript
+
+    // before
+    const stream = cursor.stream({ transform: JSON.stringify });
+
+    // after
+    const stream = cursor.stream().map(JSON.stringify);
+
+- Removes support for the ``noResponse`` option used by ``endSessions`` while 
+  executing ``MongoClient.close()``. Uses an unacknowledged write instead to 
+  avoid waiting for the server's response.
+
+- Removes the unsupported ``MONGODB-CR`` authentication mechanism.
+
+- Removes the following internal ``ClientMetadata`` properties from the public API:
+
+  .. code-block:: javascript
+    :copyable: false
+      
+    MongoClient.options.additionalDriverInfo;
+    MongoClient.options.metadata;
+    MongoClient.options.extendedMetadata;
+    MongoOptions.additionalDriverInfo;
+    MongoOptions.metadata;
+    MongoOptions.extendedMetadata;
+    ConnectionOptions.metadata;
+    ConnectionOptions.extendedMetadata;
+
+- Removes the ``beta`` namespace and moves all explicit resource management configuration 
+  onto each disposable resource, such as a ``MongoClient`` or ``ClientSession``.
+
+- The server, rather than the driver, throws an error for an aggregation 
+  with ``writeConcern`` and ``explain`` options set. 
+
+- Ensures all errors thrown during encryption are subclasses of ``MongoError``,
+  as part of the new ``mongodb-client-encryption`` v7 update.
+
+- For a crypto connection error, throws a ``MongoRuntimeError`` instead of a 
+  ``MissingDependencyError``.
+
+- For TypeScript, improves typing for filepaths in ``AutoEncryptionOptions`` by 
+  throwing an error if the specified filename doesn't match the default name of 
+  the file.
+
+- Renames the ``PoolRequstedRetry`` error label to ``PoolRequestedRetry`` to fix the typo.
+
+- Drops support for Node16 and Node18.
+
+- Removes the following deprecated types, classes, and options:
+
+  .. code-block:: javascript
+    :copyable: false
+
+    GridFSFile.contentType;
+    GridFSFile.aliases;
+    GridFSBucketWriteStreamOptions.contentType;
+    GridFSBucketWriteStreamOptions.aliases;
+    CloseOptions;
+    ResumeOptions;
+    MongoClientOptions.useNewUrlParser;
+    MongoClientOptions.useUnifiedTopology;
+    CreateCollectionOptions.autoIndexId;
+    FindOptions<TSchema>; // now no generic type
+    ClientMetadataOptions;
+    FindOneOptions.batchSize;
+    FindOneOptions.limit;
+    FindOneOptions.noCursorTimeout;
+    ReadPreference.minWireVersion;
+    ServerCapabilities;
+    CommandOperationOptions.retryWrites; // is a global option on the MongoClient
+    ClientSession.transaction;
+    Transaction;
+    CancellationToken;
+
 .. _node-breaking-changes-v6.x:
 .. _node-breaking-changes-v6.0:
 

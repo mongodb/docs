@@ -1,0 +1,480 @@
+.. _node-multiple-connections-odm:
+.. original URL: https://www.mongodb.com/developer/products/atlas/multiple-mongodb-connections-in-a-single-application/
+
+============================================
+Multiple Connections in a Single Application
+============================================
+
+.. facet::
+   :name: genre
+   :values: tutorial 
+
+.. meta:: 
+   :description: Learn how to use multiple MongoDB connections in a single Node.js application by using Mongoose.
+   :keywords: integrations, mongoose, atlas, multi-tenant application
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Most applications use a single MongoDB connection. However, some applications 
+benefit from multiple connections for data separation, performance 
+optimization, or architectural requirements.
+
+In this tutorial, you will learn how to establish multiple MongoDB connections
+within a single {+environment+} application.
+
+Use Cases for Multiple MongoDB Connections
+-------------------------------------------
+
+Multiple MongoDB connections are useful in applications that require data 
+separation, improved performance, or architectural flexibility.
+
+Common use cases for multiple MongoDB connections include the following:
+
+- **Multi-tenant applications**: Each tenant uses a separate database with 
+  its own connection for data isolation and security
+- **Microservices architecture**: Each service maintains its own dedicated 
+  database connection
+- **Load distribution**: Distribute read and write operations across 
+  multiple database instances
+- **Data processing**: Retrieve data from multiple MongoDB servers 
+  simultaneously for analytics or reporting
+
+Multi-Tenant Applications
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider a multi-tenant application where different tenants or customers share
+the same web application but require separate, isolated databases. In this
+scenario, each tenant can have their own dedicated MongoDB connection. This
+ensures data separation, security, and customization for each tenant while all
+operating within the same application. This approach simplifies management and
+provides a way to scale as new tenants join the platform without affecting
+existing ones.
+
+Consider the following MongoDB concepts as you explore how to implement
+multiple connections in your application:
+
+- :manual:`Load balancing </core/read-preference/>`
+- :manual:`Sharding </sharding/>`
+- :manual:`Read replicas </core/read-preference-use-cases/>`
+- :manual:`Fault tolerance </replication/>`
+
+These concepts play a role in scenarios where multiple MongoDB
+connections are required for efficient data management and performance
+optimization.
+
+Tutorial
+--------
+
+In this tutorial, you will perform the following actions:
+
+- Set up your environment and install the required dependencies
+- Connect to MongoDB
+- Set up the primary MongoDB connection
+- Set up secondary MongoDB connections
+- Use an existing schema
+- Set schema flexibility
+- Switch databases within the same connection
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before you begin this tutorial, you must have a MongoDB Atlas cluster. To 
+learn how to create a free MongoDB Atlas cluster, see the `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=nodejs>`__ 
+tutorial.
+
+.. note::
+
+   This tutorial uses {+mdb-server+} 8.0.12 and {+environment+} version 20.15.1.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a New Project
+
+      Create a new directory for your project and initialize a new {+environment+} 
+      project:
+
+      .. code-block:: bash
+
+         mkdir mongodb-multiple-connections
+         cd mongodb-multiple-connections
+         npm init -y
+
+   .. step:: Install Dependencies
+
+      Install the required dependencies for this tutorial:
+
+      .. code-block:: bash
+
+         npm install express mongoose
+
+      This tutorial uses Express.js for the web framework and Mongoose for 
+      MongoDB object modeling.
+
+      .. note::
+
+         This tutorial uses Mongoose, a popular Object Data Modeling (ODM)
+         library for MongoDB. For more information on getting started with
+         Mongoose, see the :ref:`Get Started with Mongoose
+         <node-mongoose-get-started>` tutorial.
+
+   .. step:: Set Up Environment Variables
+
+      Create a ``.env`` file in your project root directory to store your MongoDB 
+      connection strings:
+
+      .. code-block:: bash
+
+         touch .env
+
+      Add the following environment variables to your ``.env`` file:
+
+      .. literalinclude:: /includes/connect/multiple-connections-env-vars.txt
+         :language: javascript
+         :dedent:
+
+      Replace the placeholder values with your actual MongoDB Atlas connection 
+      strings. To learn how to find your MongoDB Atlas connection string, see 
+      the :atlas:`Connect to Your Cluster </tutorial/connect-to-your-cluster/>` 
+      tutorial.
+
+      Install the ``dotenv`` package to load your environment variables:
+
+      .. code-block:: bash
+
+         npm install dotenv
+
+You now have a project that is ready to set up multiple MongoDB connections in
+your application.
+
+Project Structure
+~~~~~~~~~~~~~~~~~
+
+When you complete this tutorial, your project directory for this application
+will have the following structure:
+
+.. code-block:: text
+
+   mongodb-multiple-connections/
+   ├── .env                          # Environment variables
+   ├── package.json                  # Project dependencies
+   ├── package-lock.json             # Dependency lock file
+   ├── node_modules/                 # Installed packages
+   ├── index.js                      # Main application file
+   ├── db.primary.js                 # Primary connection configuration
+   ├── db.secondary.js               # Secondary connection configuration
+   └── product.schema.js             # Product schema definition
+
+The key files you'll create in this tutorial serve the following purposes:
+
+- **index.js**: Your main application file that imports and uses both 
+  connections
+- **db.primary.js**: Configures the primary MongoDB connection using 
+  ``mongoose.connect()``
+- **db.secondary.js**: Configures secondary MongoDB connections using 
+  ``mongoose.createConnection()``
+- **product.schema.js**: Defines the reusable product schema for both 
+  connections
+- **.env**: Stores your MongoDB connection strings securely
+
+Set Up the Primary MongoDB Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In this section, learn how to set up the primary MongoDB connection in
+your application by using Mongoose. Use the `mongoose.connect()
+<https://mongoosejs.com/docs/connections.html>`__ method to establish the
+primary MongoDB database connection for your application. This method manages
+a single connection pool for the entire application.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create the Primary Connection File
+
+      In a new file named ``db.primary.js``, define a connection method to
+      use in your main application file, ``index.js``. This method configures
+      the MongoDB connection and handles events. Copy and paste the following
+      code into the ``db.primary.js`` file:
+
+      .. literalinclude:: /includes/connect/multiple-connections-setup.js
+         :language: javascript
+         :dedent:
+
+   .. step:: Create the Product Schema
+
+      Create schemas for performing operations in your application. Write the
+      schema in a separate file named ``product.schema.js`` and export it, as
+      shown in the following code:
+
+      .. literalinclude:: /includes/connect/multiple-connections-product-schema.js
+         :language: javascript
+         :dedent:
+
+   .. step:: Use the Primary Connection
+
+      Import the ``db.primary.js`` file in your main ``index.js`` file and use
+      the method defined there to establish the primary MongoDB connection. You
+      can also pass an optional connection options object if needed.
+
+      Then, import the ``product.schema.js`` file to access the product schema.
+      This lets you create a model and perform operations related to products
+      in your application. Copy and paste the following code into your
+      ``index.js`` file to set up the primary connection and perform
+      operations on sample product data:
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/connect/multiple-connections-primary-usage.js
+            :language: javascript
+            :dedent:
+
+         .. output::
+            :language: console
+            :visible: false
+
+            Primary database connected, executing operations...
+            MongoDB primary connection initiated
+            Existing products in primary DB: 3
+            Product found in primary DB: {
+            _id: new ObjectId('...'),
+            name: 'Laptop Pro',
+            __v: 0
+            }
+            Total products in primary DB: 3
+
+where your application requires multiple MongoDB connections.
+
+Set Up Secondary MongoDB Connections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure secondary MongoDB connections for various use cases. In this
+section, learn how to set up and use the secondary connection.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create the Secondary Connection File
+
+      Create a connection code in a ``db.secondary.js`` file by using the 
+      `mongoose.createConnection() 
+      <https://mongoosejs.com/docs/connections.html#multiple_connections>`__ 
+      method. This method allows you to establish separate connection pools each 
+      tailored to a specific use case or data access pattern, unlike the 
+      ``mongoose.connect()`` method that you used previously for the primary 
+      MongoDB connection:
+
+      .. literalinclude:: /includes/connect/multiple-connections-secondary-setup.js
+         :language: javascript
+         :dedent:
+
+   .. step:: Use the Secondary Connection
+
+      Import the ``db.secondary.js`` file in your main ``index.js`` file, 
+      create the connection object with a variable named ``db``, and use the 
+      method defined there to establish the secondary MongoDB connection. You 
+      can also pass an optional connection options object if needed. Add the
+      following code to the end of the ``index.js`` file:
+
+      .. io-code-block::
+         :copyable:
+
+         .. input:: /includes/connect/multiple-connections-secondary-usage.js
+            :language: javascript
+            :dedent:
+
+         .. output::
+            :language: console
+            :visible: false
+
+            Primary database connected, executing operations...
+            MongoDB primary connection initiated
+            MongoDB secondary connection succeeded!
+            MongoDB secondary connection opened!
+            Secondary database connected, executing operations...
+            Existing products in primary DB: 3
+            Existing products in secondary DB: 6
+            Product found in primary DB: {
+            _id: new ObjectId('...'),
+            name: 'Laptop Pro',
+            __v: 0
+            }
+            Product found in secondary DB: {
+            _id: new ObjectId('...'),
+            name: 'Smart Watch',
+            __v: 0
+            }
+            Total products in primary DB: 3
+            Total products in secondary DB: 3     
+
+Now that you've set up the connection, you can use the new ``db`` 
+object to create a model. The following sections explore different 
+scenarios and examples to help you choose the setup that best aligns with 
+your specific data access and management needs.
+
+Use an Existing Schema
+~~~~~~~~~~~~~~~~~~~~~~
+
+If both connections operate on the same data model, use the
+same ``product.schema.js`` file that was employed in the primary
+connection.
+
+Import the ``product.schema.js`` file to access the product schema. This 
+enables you to create a model by using the ``db`` object and perform operations 
+related to products in your application:
+
+.. literalinclude:: /includes/connect/multiple-connections-existing-schema.js
+   :language: javascript
+   :dedent:
+
+To see a practical code example and available resources for using the 
+existing schema of a primary database connection into a secondary MongoDB 
+connection in your project, visit the `Using the Existing Schema GitHub repository 
+<https://github.com/turivishal/multiple-mongodb-server-connections/tree/main/1.%20Using%20the%20Existing%20Schema>`__.
+
+Set Schema Flexibility
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When working with multiple MongoDB connections, it's essential to have the 
+flexibility to adapt your schema based on specific use cases. Although the 
+primary connection might demand a strict schema with validation to ensure 
+data integrity, there are scenarios where a secondary connection serves a 
+different purpose. For instance, a secondary connection might store data 
+for analytics on an archive server, with varying schema requirements driven 
+by past use cases. In this section, you'll explore how to configure schema 
+flexibility for your secondary connection, allowing you to meet the 
+distinct needs of your application.
+
+If you prefer to have schema flexibility in Mongoose, pass the 
+``strict: false`` property in the schema options when configuring your schema for 
+the secondary connection. This allows you to work with data that doesn't 
+adhere strictly to the schema.
+
+Import the ``product.schema.js`` file to access the product schema. This 
+enables you to create a model by using the ``db`` object and perform operations 
+related to products in your application:
+
+.. literalinclude:: /includes/connect/multiple-connections-flexible-schema.js
+   :language: javascript
+   :dedent:
+
+To view a practical code example and available resources for setting schema 
+flexibility in a secondary MongoDB connection in your project, see the 
+`Setting Schema Flexibility GitHub repository 
+<https://github.com/turivishal/multiple-mongodb-server-connections/tree/main/2.%20Setting%20Schema%20Flexibility>`__.
+
+Switch Databases Within the Same Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Within your application's database setup, you can switch between 
+different databases by using the `db.useDb() 
+<https://mongoosejs.com/docs/api/connection.html#Connection.prototype.useDb()>`__ 
+method. This method lets you to create a new connection object 
+associated with a specific database while sharing the same connection pool.
+
+This approach allows you to manage multiple databases within your application,
+by using a single connection while maintaining distinct data contexts for each
+database.
+
+Import the ``product.schema.js`` file to access the product schema. This 
+lets you to create a model by using the ``db`` object and perform operations 
+related to products in your application.
+
+Example: Store with Separate Database
+`````````````````````````````````````
+
+Consider an e-commerce platform where multiple stores operate independently, 
+with each store maintaining its own database for product management. Use the 
+``db.useDb()`` method to switch between different store databases while 
+maintaining a shared connection pool, as shown in the following example:
+
+.. literalinclude:: /includes/connect/multiple-connections-store-switching.js
+   :language: javascript
+   :dedent:
+
+The preceding example establishes separate database connections for 
+``Store A`` and ``Store B``, with each store containing its own product data. 
+This approach provides data separation while utilizing a single shared 
+connection pool for efficient resource management.
+
+The preceding static approach creates explicit connections for each store 
+with predefined names (``StoreA``, ``StoreB``). 
+
+For dynamic store management, create a function that accepts a store 
+identifier as a parameter and returns a connection object. This function 
+enables store switching by identifier and reuses existing connections for 
+improved efficiency.
+
+.. literalinclude:: /includes/connect/multiple-connections-dynamic-store.js
+   :language: javascript
+   :dedent:
+
+In the dynamic approach, connection instances are created and cached as 
+needed, eliminating the need for manually managing separate connections for 
+each store. This approach enhances flexibility and resource efficiency in 
+scenarios where you need to work with multiple stores in your application.
+
+To see a practical code example and available resources for switching 
+databases within the same connection into a secondary MongoDB connection in 
+your project, visit the `GitHub repository 
+<https://github.com/turivishal/multiple-mongodb-server-connections/tree/main/3.%20Switching%20Databases%20within%20the%20Same%20Connection>`__.
+
+Next Steps
+----------
+
+This tutorial demonstrates how to implement multiple MongoDB connections in a 
+Node.js application by using Mongoose. You learned to establish primary and 
+secondary connections, implement schema flexibility, and manage multiple 
+databases within a single connection pool.
+
+These techniques enable data separation, improved performance, and 
+architectural flexibility for applications requiring multiple data contexts. 
+You can now implement connection strategies that meet your specific 
+application requirements. Consider the following best practices and additional
+resources as you continue to work with multiple MongoDB connections.
+
+Best Practices
+~~~~~~~~~~~~~~
+
+When implementing multiple MongoDB connections in your Node.js application,
+follow these best practices:
+
+- **Connection pooling**: Use connection pooling to manage MongoDB connections
+  efficiently. Connection pooling enables connection reuse and reduces overhead.
+  To learn more, see :manual:`Connection Pooling
+  </administration/connection-pool-overview/>` in the Server manual and
+  :ref:`node-connection-pools` in the {+driver-long+} documentation.
+
+- **Error handling**: Implement proper error handling, logging, and recovery
+  mechanisms to ensure connection reliability.
+
+- **Security**: Implement authentication, authorization, and secure
+  communication practices when handling sensitive data. For more information,
+  see :ref:`node-security`.
+
+- **Scalability**: Design your connection strategy to support both horizontal
+  and vertical scaling requirements.
+
+- **Testing**: Test your multiple connection setup under various conditions,
+  including failover scenarios, high load, and resource constraints.
+
+Additional Resources
+~~~~~~~~~~~~~~~~~~~~
+
+To learn more about getting started with Mongoose, see the :ref:`Get Started
+with Mongoose <node-mongoose-get-started>` tutorial in the Third-Party
+Integrations section.
+
+To learn more about using Mongoose with MongoDB, see the `Mongoose documentation
+<https://mongoosejs.com/docs/connections.html>`__.
+
+To learn more about the complete implementation of multiple MongoDB connections
+in a Node.js application, see the `GitHub repository
+<https://github.com/turivishal/multiple-mongodb-server-connections>`__.

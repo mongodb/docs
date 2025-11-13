@@ -1,0 +1,209 @@
+.. _node-fundamentals-distinct:
+.. _node-distinct:
+
+========================
+Retrieve Distinct Values
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Use the ``distinct()`` method to retrieve all distinct values for a specified field
+across a collection.
+
+Sample Documents
+~~~~~~~~~~~~~~~~
+
+To follow the examples in this guide, use the following code snippet to insert documents
+that describe restaurants into the ``myDB.restaurants`` collection:
+
+.. code-block:: javascript
+
+   const myDB = client.db("myDB");
+   const myColl = myDB.collection("restaurants");
+
+   await myColl.insertMany([
+     { "_id": 1, "restaurant": "White Bear", "borough": "Queens", "cuisine": "Chinese" },
+     { "_id": 2, "restaurant": "Via Carota", "borough": "Manhattan", "cuisine": "Italian" },
+     { "_id": 3, "restaurant": "Borgatti's", "borough": "Bronx", "cuisine": "Italian" },
+     { "_id": 4, "restaurant": "Tanoreen", "borough": "Brooklyn", "cuisine": "Middle Eastern" },
+     { "_id": 5, "restaurant": "Äpfel", "borough": "Queens", "cuisine": "German" },
+     { "_id": 6, "restaurant": "Samba Kitchen", "borough": "Manhattan", "cuisine": "Brazilian" },
+   ]);
+
+.. include:: /includes/access-cursor-note.rst
+
+
+Distinct
+--------
+
+The ``distinct()`` method requires a document field as a parameter. You can specify the
+following optional parameters to adjust the method output:
+
+- A ``query`` parameter to refine your results
+- An ``options`` parameter to set collation rules
+
+Document Field Parameter
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pass the name of the document field to return a list of the field's unique values.
+
+Example
+~~~~~~~
+
+The ``"Queens"`` and ``"Manhattan"`` borough values each appear more than
+once in the sample documents. However, the following example retrieves the
+unique values of the ``borough`` field:
+
+.. code-block:: javascript
+
+   // specify "borough" as the field to return values for
+   const cursor = myColl.distinct("borough");
+   for await (const doc of cursor) {
+     console.dir(doc);
+   }
+
+This code outputs the following ``borough`` values:
+
+.. code-block:: json
+   :copyable: false
+
+   [ "Bronx", "Brooklyn", "Manhattan", "Queens" ]
+
+Query Parameter
+~~~~~~~~~~~~~~~
+
+You can specify a query parameter to return unique values for documents that match
+your query.
+
+Visit :ref:`node-fundamentals-query-document` for more information on constructing a
+query filter.
+
+Example
+```````
+
+The following example outputs the distinct values of the ``cuisine`` field but
+excludes restaurants in ``"Brooklyn"``:
+
+.. code-block:: javascript
+
+   // exclude Brooklyn restaurants from the output
+   const query = { borough: { $ne: "Brooklyn" }};
+
+   // find the filtered distinct values of "cuisine"
+   const cursor = myColl.distinct("cuisine", query);
+   for await (const doc of cursor) {
+     console.dir(doc);
+   }
+
+In this case, the query filter matches every borough value except for ``"Brooklyn"``. This
+prevents ``distinct()`` from outputting one ``cuisine`` value, ``"Middle Eastern"``.
+The code outputs the following values:
+
+.. code-block:: json
+   :copyable: false
+
+   [ "Brazilian", "Chinese", "German", "Italian" ]
+
+Options Parameter
+~~~~~~~~~~~~~~~~~
+
+You can specify the collation to the ``distinct()`` method by defining a
+``collation`` field as an ``options`` parameter. This field allows you to set
+regional rules for string ordering and comparisons.
+
+See the :ref:`node-collations` section of the :ref:`node-configure` guide for
+instructions on applying collations.
+
+.. note::
+
+   When using the ``options`` parameter, you must also specify a ``query`` parameter. If
+   you don't want to use a query filter, define the query as ``{}``.
+
+Example
+```````
+
+The following example uses a ``collation`` field to specify German language ordering
+conventions when outputting the distinct ``restaurant`` values:
+
+.. code-block:: javascript
+
+   // define an empty query document
+   const query = {};
+   // specify German string ordering conventions
+   const options = { collation: { locale: "de" }};
+
+   const cursor = myColl.distinct("restaurant", query, options);
+   for await (const doc of cursor) {
+     console.dir(doc);
+   }
+
+In this case, German string ordering conventions place words beginning with "Ä" before
+those beginning with "B". The code outputs the following:
+
+.. code-block:: json
+   :copyable: false
+
+   [ "Äpfel", "Borgatti's", "Samba Kitchen", "Tanoreen", "Via Carota", "White Bear" ]
+
+If you do not specify the ``collation`` field, the output order follows default
+binary collation rules. These rules place words beginning with "Ä" after the those
+with unaccented first letters:
+
+.. code-block:: json
+   :copyable: false
+
+   [ "Borgatti's", "Samba Kitchen", "Tanoreen", "Via Carota", "White Bear", "Äpfel" ]
+
+.. _node-usage-distinct:
+
+distinct() Example: Full File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/crud/example-intro.rst
+
+The following snippet retrieves a list of distinct values for the ``year``
+document field from the ``movies`` collection. It uses a query document to
+match movies that include ``"Barbara Streisand"`` in the ``director`` array.
+
+.. tabs::
+
+  .. tab:: JavaScript
+     :tabid: javascript
+
+     .. literalinclude:: /code-snippets/usage-examples/distinct.js
+        :language: javascript
+        :linenos:
+
+  .. tab:: TypeScript
+     :tabid: typescript
+
+     .. literalinclude:: /code-snippets/usage-examples/distinct.ts
+        :language: typescript
+        :linenos:
+
+Running the preceding example, results in the following output:
+
+.. code-block:: json
+   :copyable: false
+
+   [ 1983, 1991, 1996 ]
+
+API Documentation
+-----------------
+
+To learn more about any of the types or methods discussed in this guide, see the
+following API documentation:
+
+- `MongoClient <{+api+}/classes/MongoClient.html>`__
+- `Db <{+api+}/classes/Db.html>`__
+- `Collection <{+api+}/classes/Collection.html>`__
+- `distinct() <{+api+}/classes/Collection.html#distinct>`__.
