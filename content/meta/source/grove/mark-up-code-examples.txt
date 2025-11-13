@@ -15,584 +15,2048 @@ Mark Up Examples and Output Files
 
 .. _grove-mark-up-example-files:
 
-Mark Up Example Files
----------------------
+.. composable-tutorial::
+   :options: interface, language
+   :defaults: driver, nodejs
 
-Grove uses `Bluehawk <https://github.com/mongodb-university/Bluehawk>`__ to
-mark up example files. Bluehawk uses comment tags to mark up code files. You
-can use these tags to replace content that we do not want to show verbatim to
-users, remove test functionality from the outputted code examples, or rename
-awkward variables.
+   Mark Up Example Files
+   ---------------------
 
-Create a Snippet
-~~~~~~~~~~~~~~~~
+   Grove uses `Bluehawk <https://github.com/mongodb-university/Bluehawk>`__ to
+   mark up example files. Bluehawk uses comment tags to mark up code files. You
+   can use these tags to replace content that we do not want to show verbatim to
+   users, remove test functionality from the outputted code examples, or rename
+   awkward variables.
 
-If you want to show only part of an example file in the documentation, or you
-want to create multiple examples from one file, you can create a snippet. A
-snippet is a section of a code file that you want to extract and show in the
-documentation.
+   Create a Snippet
+   ~~~~~~~~~~~~~~~~
 
-Use the ``:snippet-start:`` tag to mark the beginning of a snippet. The text after
-the tag is used as the name of the snippet. The name must be unique within the
-file.
+   If you want to show only part of an example file in the documentation, or you
+   want to create multiple examples from one file, you can create a snippet. A
+   snippet is a section of a code file that you want to extract and show in the
+   documentation.
 
-Use the ``:snippet-end:`` tag to mark the end of the snippet.
+   Use the ``:snippet-start:`` tag to mark the beginning of a snippet. The text after
+   the tag is used as the name of the snippet. The name must be unique within the
+   file.
 
-For example:
+   Use the ``:snippet-end:`` tag to mark the end of the snippet.
 
-.. io-code-block::
+   .. selected-content::
+      :selections: driver, csharp
 
-   .. input::
-      :language: javascript
+      For example:
 
-      // Some setup code here
-      // :snippet-start: example
-      // Your example code here
-      // :snippet-end:
+      .. io-code-block::
 
-   .. output::
-      :language: javascript
+         .. input::
+            :language: csharp
 
-      // Your example code here
+            // Some setup code here
+            // :snippet-start: example
+            // Your example code here
+            // :snippet-end:
 
-Multiple Examples in One File
-`````````````````````````````
-
-A single file can contain multiple snippets. For example:
-
-.. code-block:: javascript
-   :caption: tutorial.js
-
-   try {
-     const aggDB = client.db('agg_tutorials_db');
-     const persons = aggDB.collection('persons');
-
-     // Some setup code here
-
-     const pipeline = [];
-     // :snippet-start: match
-     pipeline.push({
-       $match: {
-         vocation: 'ENGINEER',
-       },
-     });
-     // :snippet-end:
-
-     // :snippet-start: sort
-     pipeline.push({
-       $sort: {
-         dateofbirth: -1,
-       },
-     });
-     // :snippet-end:
-     // More code here
-   }
-
-Becomes two files each containing their respective code:
-
-.. code-block:: javascript
-   :caption: tutorial.snippet.match.js
-
-   pipeline.push({
-     $match: {
-       vocation: 'ENGINEER',
-     },
-   });
-
-.. code-block:: javascript
-   :caption: tutorial.snippet.sort.js
-
-   pipeline.push({
-     $sort: {
-       dateofbirth: -1,
-     },
-   });
-
-The snip script automatically dedents code to the correct level. You do not
-need to manually use the reStructuredText ``:dedent:`` option to dedent code.
-
-Nested Snippets
-```````````````
-
-You can nest multiple snippet blocks. For example, if you want a longer example
-to show as a "complete" example, but want to show shorter examples inline with
-explanations in the page text, you can nest a shorter snippet within the longer
-one. For example in this file, the "connection-string-example" snippet is
-nested within the "complete-example" snippet:
-
-.. code-block:: javascript
-   :emphasize-lines: 3, 5
-
-   // :snippet-start: complete-example
-   // Some import and setup code here
-   // :snippet-start: connection-string-example
-   const uri = process.env.CONNECTION_STRING;
-   // :snippet-end:
-   // Main example code here
-   // :snippet-end:
-
-This creates two files:
-
-.. code-block:: javascript
-   :caption: complete-example.js
-
-   // Some import and setup code here
-   const uri = "<connection-string>";
-   // Main example code here
-
-.. code-block:: javascript
-   :caption: connection-string-example.js
-
-   const uri = "<connection-string>";
-
-Snippet Filenames
-`````````````````
-
-When you use the snip script to create snippets from example files, the
-output filename is based on the name of the example file and the snippet
-identifier you use in the ``:snippet-start:`` tag. The filename format is:
-
-``<example-filename>.snippet.<snippet-identifier>.<language-extension>``
-
-For example, if your example file is ``aggregation/pipelines/unwind/tutorial.js``
-and you have a snippet with the identifier ``example``, the output filename
-is ``aggregation/pipelines/unwind/tutorial.snippet.example.js``.
-
-.. important:: Do Not Modify Generated Snippet Files
-
-   Do not manually modify files with ``.snippet.`` in the filename! These files
-   are automatically generated by the snip script. The next time the snip script
-   runs, it overwrites any manual changes you make to these files.
-
-   Instead, make the changes in the source example file and re-run the snip
-   script to update the output files.
-
-Replace Content
-~~~~~~~~~~~~~~~
-
-You can use the replace tag to replace content in your example file. This
-is useful for replacing environment handling calls to get the values of
-connection strings, API keys, and other sensitive information that you don't
-want to show verbatim to users.
-
-For example, when reading a connection string from the environment, you might
-want to use a replacement similar to this:
-
-.. io-code-block::
-
-   .. input::
-      :language: javascript
-
-      // :replace-start: {
-      //    "terms": {
-      //       "process.env.CONNECTION_STRING": "\"<connection-string>\""
-      //    }
-      // }
-      const uri = process.env.CONNECTION_STRING;
-      // :replace-end:
-
-   .. output::
-      :language: javascript
-
-      const uri = "<connection-string>";
-
-You can use multiple replace terms in a single file. For example:
-
-.. io-code-block::
-
-   .. input::
-      :language: javascript
-
-      // :replace-start: {
-      //    "terms": {
-      //       "process.env.CONNECTION_STRING": "\"<connection-string>\"",
-      //       "process.env.OPENAI_API_KEY": "\"<openai-api-key>\""
-      //    }
-      // }
-      const uri = process.env.CONNECTION_STRING;
-      const apiKey = process.env.OPENAI_API_KEY;
-      // :replace-end:
-
-   .. output::
-      :language: javascript
-
-      const uri = "<connection-string>";
-      const apiKey = "<openai-api-key>";
-
-Common Replace Patterns
-```````````````````````
-
-Sensitive Information
-+++++++++++++++++++++
-
-Connection strings, API keys, and other sensitive information that you don't
-want to show verbatim to users - refer to the examples above.
-
-Example Function Names
-++++++++++++++++++++++
-
-For languages where we show code examples running as ``main()`` for single-file
-examples, you can use the ``replace`` tag to rename the function to ``main()``:
-
-.. io-code-block::
-
-   .. input::
-      :language: javascript
-
-      // :replace-start: {
-      //    "terms": {
-      //       "runUnwindTutorial": "main"
-      //    }
-      // }
-      async function runUnwindTutorial() {
-         // Your code here
-      }
-      // :replace-end:
-
-   .. output::
-      :language: javascript
-
-      async function main() {
-         // Your code here
-      }
-
-Rename Awkward Variables
-++++++++++++++++++++++++
-
-In programming languages where we have to use an awkward variable name for
-namespacing issues or other considerations, you can replace it with a more
-meaningful variable name in the generated output. For example:
-
-.. io-code-block::
-
-   .. input::
-      :language: csharp
-
-      // :replace-start: {
-      //    "terms": {
-      //       "com_mongodb_examples_unwindArrayValues": "values"
-      //    }
-      // }
-      List<String> com_mongodb_examples_unwindArrayValues = getValues();
-      // :replace-end:
-
-   .. output::
-      :language: csharp
-
-      List<String> values = getValues();
-
-Remove Content
-~~~~~~~~~~~~~~~
-
-You can use the ``remove`` tag to remove content from your example file. This
-is useful for removing test functionality from the outputted code examples.
-
-.. io-code-block::
-
-   .. input::
-      :language: javascript
-
-      // Your code here
-      // :remove-start:
-      // Test setup code
-      // :remove-end:
-
-   .. output::
-      :language: javascript
-
-      // Your code here
-
-Remove is available as a block or inline tag. The block tag above removes all
-lines between ``:remove-start:`` and ``:remove-end:``. The inline version
-removes a single line:
-
-.. code-block:: javascript
-
-   // Your code here
-   return someValueToValidate; // :remove:
-
-Uncomment Content
-~~~~~~~~~~~~~~~~~
-
-You can use the ``uncomment`` tag to uncomment content in your example file.
-This is useful for uncommenting code that is necessary for the example to run
-in a developer's environment, but executing it in the test environment would
-cause the example to fail.
-
-For example, the Grove Node.js Driver project requires ESM syntax for imports,
-but the public documentation shows the examples as runnable in a CommonJS
-environment. We can use the ``uncomment`` tag to omit the CommonJS syntax when
-running the example locally, but include it in the outputted code example:
-
-.. io-code-block::
-
-   .. input::
-      :language: javascript
-
-      import { MongoClient } from 'mongodb';
-
-      // :snippet-start: example
-      // :uncomment-start:
-      //const { MongoClient } = require("mongodb");
-      // :uncomment-end:
-
-   .. output::
-      :language: javascript
-
-      const { MongoClient } = require("mongodb");
-
-Common Uncomment Patterns
-`````````````````````````
-
-Different Import Syntax
-+++++++++++++++++++++++
-
-In cases where the test project requires a different import syntax than we
-want to show in the documentation, comment out the syntax we don't want to
-execute in the test environment, and uncomment it in the outputted code
-example.
-
-Refer to the example above for an example of this pattern.
-
-Execute the File as a Standalone Script
-+++++++++++++++++++++++++++++++++++++++
-
-In cases where we want developers to be able to copy and paste the example
-file as a standalone script, you can comment out the lines necessary to run the
-script as a standalone, and uncomment them in the outputted code example.
-
-For example, for the Node.js Driver, we often show examples that can be run as
-standalone scripts. However, the test project requires that we run the
-example code as a function executed by the test runner. We can comment out the
-lines necessary to run the script as a standalone, and uncomment them in the
-outputted code example:
-
-.. io-code-block::
-
-   .. input::
-      :language: javascript
-
-      // Your example code here
-      // :uncomment-start:
-      //run().catch(console.error);
-      // :uncomment-end:
-
-   .. output::
-      :language: javascript
-
-      run().catch(console.error);
-
-Complete Example
-~~~~~~~~~~~~~~~~
-
-The following example shows how you might use many of these markup tags together
-in a single example file, and what the output would look like:
-
-.. io-code-block::
-
-   .. input::
-      :language: javascript
-
-      //	:replace-start: {
-      //	  "terms": {
-      //	    "process.env.CONNECTION_STRING": "\"<connection-string>\""
-      //	  }
-      //	}
-      import { MongoClient } from 'mongodb';
-
-      // :snippet-start: example
-      // :uncomment-start:
-      //const { MongoClient } = require("mongodb");
-      // :uncomment-end:
-      // Replace the placeholder with your connection string.
-      const uri = process.env.CONNECTION_STRING;
-      const client = new MongoClient(uri);
-      export async function run() {
-        try {
-            const aggDB = client.db('agg_tutorials_db');
+         .. output::
+            :language: csharp
 
             // Your example code here
-            const aggregationResult = someColl.aggregate(pipeline);
-            // :remove-start:
-            const documents = [];
-            for await (const document of aggregationResult) {
-                 documents.push(document);
+
+   .. selected-content::
+      :selections: driver, go
+
+      For example:
+
+      .. io-code-block::
+
+         .. input::
+            :language: go
+
+            // Some setup code here
+            // :snippet-start: example
+            // Your example code here
+            // :snippet-end:
+
+         .. output::
+            :language: go
+
+            // Your example code here
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      For example:
+
+      .. io-code-block::
+
+         .. input::
+            :language: java
+
+            // Some setup code here
+            // :snippet-start: example
+            // Your example code here
+            // :snippet-end:
+
+         .. output::
+            :language: java
+
+            // Your example code here
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      For example:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            // Some setup code here
+            // :snippet-start: example
+            // Your example code here
+            // :snippet-end:
+
+         .. output::
+            :language: javascript
+
+            // Your example code here
+
+   .. selected-content::
+      :selections: driver, python
+
+      For example:
+
+      .. io-code-block::
+
+         .. input::
+            :language: python
+
+            # Some setup code here
+            # :snippet-start: example
+            # Your example code here
+            # :snippet-end:
+
+         .. output::
+            :language: python
+
+            # Your example code here
+
+   Multiple Examples in One File
+   `````````````````````````````
+
+   A single file can contain multiple snippets. For example:
+
+   .. selected-content::
+      :selections: driver, csharp
+
+      .. code-block:: csharp
+         :caption: Tutorial.cs
+
+         public List<BsonDocument> PerformAggregation()
+         {
+            // Some setup code here
+
+            // :snippet-start: match
+            var results = _persons.Aggregate()
+                  .Match(p => p.Vocation == "ENGINEER")
+                  // :snippet-end:
+                  // :snippet-start: sort
+                  .Sort(Builders<Person>.Sort.Descending(p => p.DateOfBirth))
+                  // :snippet-end:
+            // More code here
+         }
+
+      Becomes two files each containing their respective code:
+
+      .. code-block:: csharp
+         :caption: Tutorial.snippet.match.cs
+
+         var results = _persons.Aggregate()
+               .Match(p => p.Vocation == "ENGINEER")
+
+      .. code-block:: csharp
+         :caption: Tutorial.snippet.sort.cs
+
+         .Sort(Builders<Person>.Sort.Descending(p => p.DateOfBirth))
+
+   .. selected-content::
+      :selections: driver, go
+
+      .. code-block:: go
+         :caption: tutorial.go
+
+         func RunPipeline() []bson.D {
+            // Some setup code here
+
+            aggDB := client.Database("agg_tutorials_db")
+            persons := aggDB.Collection("persons")
+
+            // :snippet-start: match
+            matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "vocation", Value: "ENGINEER"}}}}
+            // :snippet-end:
+            // :snippet-start: sort
+            sortStage := bson.D{{Key: "$sort", Value: bson.D{{Key: "dateofbirth", Value: -1}}}}
+            // :snippet-end
+
+            // More code here
+         }
+
+      Becomes two files each containing their respective code:
+
+      .. code-block:: go
+         :caption: tutorial.snippet.match.go
+
+         matchStage := bson.D{{Key: "$match", Value: bson.D{{Key: "vocation", Value: "ENGINEER"}}}}
+
+      .. code-block:: go
+         :caption: tutorial.snippet.sort.go
+
+         sortStage := bson.D{{Key: "$sort", Value: bson.D{{Key: "dateofbirth", Value: -1}}}}
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      .. code-block:: java
+         :caption: Tutorial.java
+
+         public List<Document> runTutorial() {
+            List<Bson> pipeline = new ArrayList<>();
+            // :snippet-start: match
+            pipeline.add(Aggregates.match(Filters.eq("vocation", "ENGINEER")));
+            // :snippet-end:
+            // :snippet-start: sort
+            pipeline.add(Aggregates.sort(Sorts.descending("dateofbirth")));
+            // :snippet-end:
+
+            // More code here
+         }
+
+      Becomes two files each containing their respective code:
+
+      .. code-block:: java
+         :caption: Tutorial.snippet.match.java
+
+         pipeline.add(Aggregates.match(Filters.eq("vocation", "ENGINEER")));
+
+      .. code-block:: java
+         :caption: Tutorial.snippet.sort.java
+
+         pipeline.add(Aggregates.sort(Sorts.descending("dateofbirth")));
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      .. code-block:: javascript
+         :caption: tutorial.js
+
+         try {
+         const aggDB = client.db('agg_tutorials_db');
+         const persons = aggDB.collection('persons');
+
+         // Some setup code here
+
+         const pipeline = [];
+         // :snippet-start: match
+         pipeline.push({
+            $match: {
+               vocation: 'ENGINEER',
+            },
+         });
+         // :snippet-end:
+
+         // :snippet-start: sort
+         pipeline.push({
+            $sort: {
+               dateofbirth: -1,
+            },
+         });
+         // :snippet-end:
+         // More code here
+         }
+
+      Becomes two files each containing their respective code:
+
+      .. code-block:: javascript
+         :caption: tutorial.snippet.match.js
+
+         pipeline.push({
+            $match: {
+               vocation: 'ENGINEER',
+            },
+         });
+
+      .. code-block:: javascript
+         :caption: tutorial.snippet.sort.js
+
+         pipeline.push({
+            $sort: {
+               dateofbirth: -1,
+            },
+         });
+
+   .. selected-content::
+      :selections: driver, python
+
+      .. code-block:: python
+         :caption: tutorial.py
+
+         # Some setup code here
+
+         pipeline = []
+
+         # :snippet-start: match
+         pipeline.append({"$match": {"vocation": "ENGINEER"}})
+         # :snippet-end:
+
+         # :snippet-start: sort
+         pipeline.append({"$sort": {"dateofbirth": -1}})
+         # :snippet-end:
+
+         # More code here
+
+      Becomes two files each containing their respective code:
+
+      .. code-block:: python
+         :caption: tutorial.snippet.match.py
+
+         pipeline.append({"$match": {"vocation": "ENGINEER"}})
+
+      .. code-block:: python
+         :caption: tutorial.snippet.sort.py
+
+         pipeline.append({"$sort": {"dateofbirth": -1}})
+
+   The snip script automatically dedents code to the correct level. You do not
+   need to manually use the reStructuredText ``:dedent:`` option to dedent code.
+
+   Nested Snippets
+   ```````````````
+
+   You can nest multiple snippet blocks. For example, if you want a longer example
+   to show as a "complete" example, but want to show shorter examples inline with
+   explanations in the page text, you can nest a shorter snippet within the longer
+   one. For example in this file, the "connection-string-example" snippet is
+   nested within the "complete-example" snippet:
+
+   .. selected-content::
+      :selections: driver, csharp
+
+      .. code-block:: csharp
+         :caption: Tutorial.cs
+
+         // :snippet-start: complete-example
+         // Some import and setup code here
+         // :snippet-start: connection-string-example
+         var uri = Env.GetString("CONNECTION_STRING");
+         // :snippet-end:
+         // Main example code here
+         // :snippet-end:
+
+      This creates two files:
+
+      .. code-block:: csharp
+         :caption: Tutorial.snippet.complete-example.cs
+
+         // Some import and setup code here
+         var uri = Env.GetString("CONNECTION_STRING");
+         // Main example code here
+
+      .. code-block:: csharp
+         :caption: Tutorial.snippet.connection-string-example.cs
+
+         var uri = Env.GetString("CONNECTION_STRING");
+
+   .. selected-content::
+      :selections: driver, go
+
+      .. code-block:: go
+         :caption: tutorial.go
+
+         // :snippet-start: complete-example
+         // Some import and setup code here
+         // :snippet-start: connection-string-example
+         uri := os.Getenv("CONNECTION_STRING")
+         // :snippet-end:
+         // Main example code here
+         // :snippet-end:
+
+      This creates two files:
+
+      .. code-block:: go
+         :caption: tutorial.snippet.complete-example.go
+
+         // Some import and setup code here
+         uri := os.Getenv("CONNECTION_STRING")
+         // Main example code here
+
+      .. code-block:: go
+         :caption: tutorial.snippet.connection-string-example.go
+
+         uri := os.Getenv("CONNECTION_STRING")
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      .. code-block:: java
+         :caption: Tutorial.java
+
+         // :snippet-start: complete-example
+         // Some import and setup code here
+         // :snippet-start: connection-string-example
+         String uri = System.getenv("CONNECTION_STRING");
+         // :snippet-end:
+         // Main example code here
+         // :snippet-end:
+
+      This creates two files:
+
+      .. code-block:: java
+         :caption: Tutorial.snippet.complete-example.java
+
+         // Some import and setup code here
+         String uri = System.getenv("CONNECTION_STRING");
+         // Main example code here
+
+      .. code-block:: java
+         :caption: Tutorial.snippet.connection-string-example.java
+
+         String uri = System.getenv("CONNECTION_STRING");
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      .. code-block:: javascript
+         :emphasize-lines: 3, 5
+         :caption: tutorial.js
+
+         // :snippet-start: complete-example
+         // Some import and setup code here
+         // :snippet-start: connection-string-example
+         const uri = process.env.CONNECTION_STRING;
+         // :snippet-end:
+         // Main example code here
+         // :snippet-end:
+
+      This creates two files:
+
+      .. code-block:: javascript
+         :caption: tutorial.snippet.complete-example.js
+
+         // Some import and setup code here
+         const uri = process.env.CONNECTION_STRING;
+         // Main example code here
+
+      .. code-block:: javascript
+         :caption: tutorial.snippet.connection-string-example.js
+
+         const uri = process.env.CONNECTION_STRING;
+
+   .. selected-content::
+      :selections: driver, python
+
+      .. code-block:: python
+         :caption: tutorial.py
+
+         # :snippet-start: complete-example
+         # Some import and setup code here
+         # :snippet-start: connection-string-example
+         uri = os.getenv("CONNECTION_STRING")
+         # :snippet-end:
+         # Main example code here
+         # :snippet-end:
+
+      This creates two files:
+
+      .. code-block:: python
+         :caption: tutorial.snippet.complete-example.py
+
+         # Some import and setup code here
+         uri = os.getenv("CONNECTION_STRING")
+         # Main example code here
+
+      .. code-block:: python
+         :caption: tutorial.snippet.connection-string-example.py
+
+         uri = os.getenv("CONNECTION_STRING")
+
+   Snippet Filenames
+   `````````````````
+
+   When you use the snip script to create snippets from example files, the
+   output filename is based on the name of the example file and the snippet
+   identifier you use in the ``:snippet-start:`` tag. The filename format is:
+
+   ``<example-filename>.snippet.<snippet-identifier>.<language-extension>``
+
+   .. selected-content::
+      :selections: driver, csharp
+
+      For example, if your example file is ``Aggregation/Pipelines/Unwind/Tutorial.cs``
+      and you have a snippet with the identifier ``example``, the output filename
+      is ``Aggregation/Pipelines/Unwind/Tutorial.snippet.example.cs``.
+
+   .. selected-content::
+      :selections: driver, go
+
+      For example, if your example file is ``aggregation/pipelines/unwind/tutorial.go``
+      and you have a snippet with the identifier ``example``, the output filename
+      is ``aggregation/pipelines/unwind/tutorial.snippet.example.go``.
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      For example, if your example file is ``aggregation/pipelines/unwind/Tutorial.java``
+      and you have a snippet with the identifier ``example``, the output filename
+      is ``aggregation/pipelines/unwind/Tutorial.snippet.example.java``.
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      For example, if your example file is ``aggregation/pipelines/unwind/tutorial.js``
+      and you have a snippet with the identifier ``example``, the output filename
+      is ``aggregation/pipelines/unwind/tutorial.snippet.example.js``.
+
+   .. selected-content::
+      :selections: driver, python
+
+      For example, if your example file is ``aggregation/pipelines/unwind/tutorial.py``
+      and you have a snippet with the identifier ``example``, the output filename
+      is ``aggregation/pipelines/unwind/tutorial.snippet.example.py``.
+
+   .. important:: Do Not Modify Generated Snippet Files
+
+      Do not manually modify files with ``.snippet.`` in the filename! These files
+      are automatically generated by the snip script. The next time the snip script
+      runs, it overwrites any manual changes you make to these files.
+
+      Instead, make the changes in the source example file and re-run the snip
+      script to update the output files.
+
+   Replace Content
+   ~~~~~~~~~~~~~~~
+
+   You can use the replace tag to replace content in your example file. This
+   is useful for replacing environment handling calls to get the values of
+   connection strings, API keys, and other sensitive information that you don't
+   want to show verbatim to users.
+
+   For example, when reading a connection string from the environment, you might
+   want to use a replacement similar to this:
+
+   .. selected-content::
+      :selections: driver, csharp
+
+      .. io-code-block::
+
+         .. input::
+            :language: csharp
+
+            // :replace-start: {
+            //    "terms": {
+            //       "Env.GetString(\"CONNECTION_STRING\")": "\"<connection-string>\""
+            //    }
+            // }
+            var uri = Env.GetString("CONNECTION_STRING");
+            // :replace-end:
+
+         .. output::
+            :language: csharp
+
+            var uri = "<connection-string>";
+
+      You can use multiple replace terms in a single file. For example:
+
+      .. io-code-block::
+
+         .. input::
+            :language: csharp
+
+            // :replace-start: {
+            //    "terms": {
+            //       "Env.GetString(\"CONNECTION_STRING\")": "\"<connection-string>\"",
+            //       "Env.GetString(\"OPENAI_API_KEY\")": "\"<openai-api-key>\""
+            //    }
+            // }
+            var uri = Env.GetString("CONNECTION_STRING");
+            var apiKey = Env.GetString("OPENAI_API_KEY");
+            // :replace-end:
+
+         .. output::
+            :language: csharp
+
+            var uri = "<connection-string>";
+            var apiKey = "<openai-api-key>";
+
+   .. selected-content::
+      :selections: driver, go
+
+      .. io-code-block::
+
+         .. input::
+            :language: go
+
+            // :replace-start: {
+            //    "terms": {
+            //       "os.Getenv(\"CONNECTION_STRING\")": "\"<connection-string>\""
+            //    }
+            // }
+            uri := os.Getenv("CONNECTION_STRING");
+            // :replace-end:
+
+         .. output::
+            :language: go
+
+            uri := "<connection-string>";
+
+      You can use multiple replace terms in a single file. For example:
+
+      .. io-code-block::
+
+         .. input::
+            :language: go
+
+            // :replace-start: {
+            //    "terms": {
+            //       "os.Getenv(\"CONNECTION_STRING\")": "\"<connection-string>\"",
+            //       "os.Getenv(\"OPENAI_API_KEY\")": "\"<openai-api-key>\""
+            //    }
+            // }
+            uri := os.Getenv("CONNECTION_STRING");
+            apiKey := os.Getenv("OPENAI_API_KEY");
+            // :replace-end:
+
+         .. output::
+            :language: go
+
+            uri := "<connection-string>";
+            apiKey := "<openai-api-key>";
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      .. io-code-block::
+
+         .. input::
+            :language: java
+
+            // :replace-start: {
+            //    "terms": {
+            //       "System.getenv(\"CONNECTION_STRING\")": "\"<connection-string>\""
+            //    }
+            // }
+            String uri = System.getenv("CONNECTION_STRING");
+            // :replace-end:
+
+         .. output::
+            :language: java
+
+            String uri = "<connection-string>";
+
+      You can use multiple replace terms in a single file. For example:
+
+      .. io-code-block::
+
+         .. input::
+            :language: java
+
+            // :replace-start: {
+            //    "terms": {
+            //       "System.getenv(\"CONNECTION_STRING\")": "\"<connection-string>\"",
+            //       "System.getenv(\"OPENAI_API_KEY\")": "\"<openai-api-key>\""
+            //    }
+            // }
+            String uri = System.getenv("CONNECTION_STRING");
+            String apiKey = System.getenv("OPENAI_API_KEY");
+            // :replace-end:
+
+         .. output::
+            :language: java
+
+            String uri = "<connection-string>";
+            String apiKey = "<openai-api-key>";
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            // :replace-start: {
+            //    "terms": {
+            //       "process.env.CONNECTION_STRING": "\"<connection-string>\""
+            //    }
+            // }
+            const uri = process.env.CONNECTION_STRING;
+            // :replace-end:
+
+         .. output::
+            :language: javascript
+
+            const uri = "<connection-string>";
+
+      You can use multiple replace terms in a single file. For example:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            // :replace-start: {
+            //    "terms": {
+            //       "process.env.CONNECTION_STRING": "\"<connection-string>\"",
+            //       "process.env.OPENAI_API_KEY": "\"<openai-api-key>\""
+            //    }
+            // }
+            const uri = process.env.CONNECTION_STRING;
+            const apiKey = process.env.OPENAI_API_KEY;
+            // :replace-end:
+
+         .. output::
+            :language: javascript
+
+            const uri = "<connection-string>";
+            const apiKey = "<openai-api-key>";
+
+   .. selected-content::
+      :selections: driver, python
+
+      .. io-code-block::
+
+         .. input::
+            :language: python
+
+            # :replace-start: {
+            #    "terms": {
+            #       "os.getenv(\"CONNECTION_STRING\")": "\"<connection-string>\""
+            #    }
+            # }
+            uri = os.getenv("CONNECTION_STRING")
+            # :replace-end:
+
+         .. output::
+            :language: python
+
+            uri = "<connection-string>"
+
+      You can use multiple replace terms in a single file. For example:
+
+      .. io-code-block::
+
+         .. input::
+            :language: python
+
+            # :replace-start: {
+            #    "terms": {
+            #       "os.getenv(\"CONNECTION_STRING\")": "\"<connection-string>\"",
+            #       "os.getenv(\"OPENAI_API_KEY\")": "\"<openai-api-key>\""
+            #    }
+            # }
+            uri = os.getenv("CONNECTION_STRING")
+            apiKey = os.getenv("OPENAI_API_KEY")
+            # :replace-end:
+
+         .. output::
+            :language: python
+
+            uri = "<connection-string>"
+            apiKey = "<openai-api-key>"
+
+   Common Replace Patterns
+   ```````````````````````
+
+   Sensitive Information
+   +++++++++++++++++++++
+
+   Connection strings, API keys, and other sensitive information that you don't
+   want to show verbatim to users - refer to the examples above.
+
+   Example Function Names
+   ++++++++++++++++++++++
+
+   .. selected-content::
+      :selections: driver, csharp
+
+      For languages where we show code examples running as ``Main()`` for single-file
+      examples, you can use the ``replace`` tag to rename the function to ``Main()``:
+
+      .. io-code-block::
+
+         .. input::
+            :language: csharp
+
+            // :replace-start: {
+            //    "terms": {
+            //       "RunUnwindTutorial()": "Main(string[] args)"
+            //    }
+            // }
+            public static void RunUnwindTutorial() {
+               // Your code here
             }
-            return documents;
+            // :replace-end:
+
+         .. output::
+            :language: csharp
+
+            public static void Main(string[] args) {
+               // Your code here
+            }
+
+   .. selected-content::
+      :selections: driver, go
+
+      For languages where we show code examples running as ``main()`` for single-file
+      examples, you can use the ``replace`` tag to rename the function to ``main()``:
+
+      .. io-code-block::
+
+         .. input::
+            :language: go
+
+            // :replace-start: {
+            //    "terms": {
+            //       "RunUnwindTutorial()": "main()"
+            //    }
+            // }
+            func RunUnwindTutorial() {
+               // Your code here
+            }
+            // :replace-end:
+
+         .. output::
+            :language: go
+
+            func main() {
+               // Your code here
+            }
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      For languages where we show code examples running as ``main()`` for single-file
+      examples, you can use the ``replace`` tag to rename the function to ``main()``:
+
+      .. io-code-block::
+
+         .. input::
+            :language: java
+
+            // :replace-start: {
+            //    "terms": {
+            //       "runUnwindTutorial()": "main(String[] args)"
+            //    }
+            // }
+            public static void runUnwindTutorial() {
+               // Your code here
+            }
+            // :replace-end:
+
+         .. output::
+            :language: java
+
+            public static void main(String[] args) {
+               // Your code here
+            }
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      For languages where we show code examples running as ``main()`` for single-file
+      examples, you can use the ``replace`` tag to rename the function to ``main()``:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            // :replace-start: {
+            //    "terms": {
+            //       "runUnwindTutorial": "main"
+            //    }
+            // }
+            async function runUnwindTutorial() {
+               // Your code here
+            }
+            // :replace-end:
+
+         .. output::
+            :language: javascript
+
+            async function main() {
+               // Your code here
+            }
+
+   .. selected-content::
+      :selections: driver, python
+
+      For languages where we show code examples running as ``main()`` for single-file
+      examples, you can use the ``replace`` tag to rename the function to ``main()``:
+
+      .. io-code-block::
+
+         .. input::
+            :language: python
+
+            # :replace-start: {
+            #    "terms": {
+            #       "run_unwind_tutorial()": "main()"
+            #    }
+            # }
+            def run_unwind_tutorial():
+               # Your code here
+            # :replace-end:
+
+         .. output::
+            :language: python
+
+            def main():
+               # Your code here
+
+   Rename Awkward Variables
+   ++++++++++++++++++++++++
+
+   In programming languages where we have to use an awkward variable name for
+   namespacing issues or other considerations, you can replace it with a more
+   meaningful variable name in the generated output. For example:
+
+   .. selected-content::
+      :selections: driver, csharp
+
+      .. io-code-block::
+
+         .. input::
+            :language: csharp
+
+            // :replace-start: {
+            //    "terms": {
+            //       "com_mongodb_examples_unwindArrayValues": "values"
+            //    }
+            // }
+            List<String> com_mongodb_examples_unwindArrayValues = getValues();
+            // :replace-end:
+
+         .. output::
+            :language: csharp
+
+            List<String> values = getValues();
+
+   .. selected-content::
+      :selections: driver, go
+
+      .. io-code-block::
+
+         .. input::
+            :language: go
+
+            // :replace-start: {
+            //    "terms": {
+            //       "unwindArrayValues": "values"
+            //    }
+            // }
+            unwindArrayValues := getValues()
+            // :replace-end:
+
+         .. output::
+            :language: go
+
+            values := getValues()
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      .. io-code-block::
+
+         .. input::
+            :language: java
+
+            // :replace-start: {
+            //    "terms": {
+            //       "unwindArrayValues": "values"
+            //    }
+            // }
+            List<String> unwindArrayValues = getValues();
+            // :replace-end:
+
+         .. output::
+            :language: java
+
+            List<String> values = getValues();
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            // :replace-start: {
+            //    "terms": {
+            //       "unwindArrayValues": "values"
+            //    }
+            // }
+            const unwindArrayValues = getValues();
+            // :replace-end:
+
+         .. output::
+            :language: javascript
+
+            const values = getValues();
+
+   .. selected-content::
+      :selections: driver, python
+
+      .. io-code-block::
+
+         .. input::
+            :language: python
+
+            # :replace-start: {
+            #    "terms": {
+            #       "unwind_array_values": "values"
+            #    }
+            # }
+            unwind_array_values = get_values()
+            # :replace-end:
+
+         .. output::
+            :language: python
+
+            values = get_values()
+
+   Remove Content
+   ~~~~~~~~~~~~~~~
+
+   You can use the ``remove`` tag to remove content from your example file. This
+   is useful for removing test functionality from the outputted code examples.
+
+   .. selected-content::
+      :selections: driver, csharp
+
+      .. io-code-block::
+
+         .. input::
+            :language: csharp
+
+            // Your code here
+            // :remove-start:
+            // Test setup code
             // :remove-end:
-        } finally {
-            await client.close();
-        }
-      }
 
-      // :uncomment-start:
-      //run().catch(console.dir);
-      // :uncomment-end:
-      // :snippet-end:
-      // :replace-end:
+         .. output::
+            :language: csharp
 
-   .. output::
-      :language: javascript
+            // Your code here
 
-      const { MongoClient } = require("mongodb");
-      const uri = "<connection-string>";
-      const client = new MongoClient(uri);
-      async function run() {
-        try {
-            const aggDB = client.db('agg_tutorials_db');
+   .. selected-content::
+      :selections: driver, go
+
+      .. io-code-block::
+
+         .. input::
+            :language: go
+
+            // Your code here
+            // :remove-start:
+            // Test setup code
+            // :remove-end:
+
+         .. output::
+            :language: go
+
+            // Your code here
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      .. io-code-block::
+
+         .. input::
+            :language: java
+
+            // Your code here
+            // :remove-start:
+            // Test setup code
+            // :remove-end:
+
+         .. output::
+            :language: java
+
+            // Your code here
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            // Your code here
+            // :remove-start:
+            // Test setup code
+            // :remove-end:
+
+         .. output::
+            :language: javascript
+
+            // Your code here
+
+   .. selected-content::
+      :selections: driver, python
+
+      .. io-code-block::
+
+         .. input::
+            :language: python
+
+            # Your code here
+            # :remove-start:
+            # Test setup code
+            # :remove-end:
+
+         .. output::
+            :language: python
+
+            # Your code here
+
+   Remove is available as a block or inline tag. The block tag above removes all
+   lines between ``:remove-start:`` and ``:remove-end:``. The inline version
+   removes a single line:
+
+   .. selected-content::
+      :selections: driver, csharp
+
+      .. code-block:: csharp
+
+         // Your code here
+         return someValueToValidate; // :remove:
+
+   .. selected-content::
+      :selections: driver, go
+
+      .. code-block:: go
+
+         // Your code here
+         return someValueToValidate // :remove:
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      .. code-block:: java
+
+         // Your code here
+         return someValueToValidate; // :remove:
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      .. code-block:: javascript
+
+         // Your code here
+         return someValueToValidate; // :remove:
+
+   .. selected-content::
+      :selections: driver, python
+
+      .. code-block:: python
+
+         # Your code here
+         return some_value_to_validate # :remove:
+
+   Uncomment Content
+   ~~~~~~~~~~~~~~~~~
+
+   You can use the ``uncomment`` tag to uncomment content in your example file.
+   This is useful for uncommenting code that is necessary for the example to run
+   in a developer's environment, but executing it in the test environment would
+   cause the example to fail.
+
+   .. selected-content::
+      :selections: driver, csharp
+
+      For example, you might have a C# class that contains multiple methods
+      to load sample data and separately run an aggregation. You may have a
+      private database and collection variable you use in the code, but want
+      to show the variables being set in each method:
+
+      .. io-code-block::
+
+         .. input::
+            :language: csharp
+
+            private IMongoDatabase? _aggDB;
+            private IMongoCollection<Person>? _persons;
+
+            public void LoadSampleData() {
+               // :snippet-start: load-sample-data
+               // :uncomment-start:
+               //var aggDB = client.GetDatabase("agg_tutorials_db");
+               //var persons = aggDB.GetCollection<Person>("persons");
+               // :uncomment-end:
+               // More code here
+               // :snippet-end:
+            }
+
+         .. output::
+            :language: csharp
+
+            var aggDB = client.GetDatabase("agg_tutorials_db");
+            var persons = aggDB.GetCollection<Person>("persons");
+            // More code here
+
+   .. selected-content::
+      :selections: driver, go
+
+      For example, you might have a Go function that contains multiple steps
+      to load sample data and separately run an aggregation. You may have a
+      private database and collection variable you use in the code, but want
+      to show the variables being set in each method:
+
+      .. io-code-block::
+
+         .. input::
+            :language: go
+
+            var aggDB *mongo.Database
+            var persons *mongo.Collection
+
+            func LoadSampleData() {
+               // :snippet-start: load-sample-data
+               // :uncomment-start:
+               //aggDB = client.Database("agg_tutorials_db")
+               //persons = aggDB.Collection("persons")
+               // :uncomment-end:
+               // More code here
+               // :snippet-end:
+            }
+
+         .. output::
+            :language: go
+
+            aggDB = client.Database("agg_tutorials_db")
+            persons = aggDB.Collection("persons")
+            // More code here
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      For example, you might have a Java method that contains multiple steps
+      to load sample data and separately run an aggregation. You may have a
+      private database and collection variable you use in the code, but want
+      to show the variables being set in each method:
+
+      .. io-code-block::
+
+         .. input::
+            :language: java
+
+            private MongoDatabase aggDB;
+            private MongoCollection<Person> persons;
+
+            public void loadSampleData() {
+               // :snippet-start: load-sample-data
+               // :uncomment-start:
+               //MongoDatabase aggDB = client.getDatabase("agg_tutorials_db");
+               //MongoCollection<Document> persons = aggDB.getCollection("persons");
+               // :uncomment-end:
+               // More code here
+               // :snippet-end:
+            }
+
+         .. output::
+            :language: java
+
+            MongoDatabase aggDB = client.getDatabase("agg_tutorials_db");
+            MongoCollection<Document> persons = aggDB.getCollection("persons");
+            // More code here
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      For example, the Grove Node.js Driver project requires ESM syntax for imports,
+      but the public documentation shows the examples as runnable in a CommonJS
+      environment. We can use the ``uncomment`` tag to omit the CommonJS syntax when
+      running the example locally, but include it in the outputted code example:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            import { MongoClient } from 'mongodb';
+
+            // :snippet-start: example
+            // :uncomment-start:
+            //const { MongoClient } = require("mongodb");
+            // :uncomment-end:
+
+         .. output::
+            :language: javascript
+
+            const { MongoClient } = require("mongodb");
+
+   .. selected-content::
+      :selections: driver, python
+
+      For example, you might have a Python method that contains multiple steps
+      to load sample data and separately run an aggregation. You may have a
+      private database and collection variable you use in the code, but want
+      to show the variables being set in each method:
+
+      .. io-code-block::
+
+         .. input::
+            :language: python
+
+            aggDB = None
+            persons = None
+
+            def load_sample_data():
+               # :snippet-start: load-sample-data
+               # :uncomment-start:
+               #aggDB = client["agg_tutorials_db"]
+               #persons = aggDB["persons"]
+               # :uncomment-end:
+               # More code here
+               # :snippet-end:
+
+         .. output::
+            :language: python
+
+            aggDB = client["agg_tutorials_db"]
+            persons = aggDB["persons"]
+            # More code here
+
+   Common Uncomment Patterns
+   `````````````````````````
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      Different Import Syntax
+      +++++++++++++++++++++++
+
+      In cases where the test project requires a different import syntax than we
+      want to show in the documentation, comment out the syntax we don't want to
+      execute in the test environment, and uncomment it in the outputted code
+      example.
+
+      Refer to the example above for an example of this pattern.
+
+   Execute the File as a Standalone Script
+   +++++++++++++++++++++++++++++++++++++++
+
+   In cases where we want developers to be able to copy and paste the example
+   file as a standalone script, you can comment out the lines necessary to run the
+   script as a standalone, and uncomment them in the outputted code example.
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      For example, for the Node.js Driver, we often show examples that can be run as
+      standalone scripts. However, the test project requires that we run the
+      example code as a function executed by the test runner. We can comment out the
+      lines necessary to run the script as a standalone, and uncomment them in the
+      outputted code example:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
 
             // Your example code here
-            const aggregationResult = someColl.aggregate(pipeline);
-        } finally {
-            await client.close();
-        }
+            // :uncomment-start:
+            //run().catch(console.error);
+            // :uncomment-end:
+
+         .. output::
+            :language: javascript
+
+            run().catch(console.error);
+
+   .. selected-content::
+      :selections: driver, python
+
+      For example, for the Python Driver, we often show examples that can be run as
+      standalone scripts. However, the test project requires that we run the
+      example code as a function executed by the test runner. We can comment out the
+      lines necessary to run the script as a standalone, and uncomment them in the
+      outputted code example:
+
+      .. io-code-block::
+
+         .. input::
+            :language: python
+
+            # Your example code here
+            # :uncomment-start:
+            #if __name__ == "__main__":
+            #    main()
+            # :uncomment-end:
+
+         .. output::
+            :language: python
+
+            if __name__ == "__main__":
+               main()
+
+   Complete Example
+   ~~~~~~~~~~~~~~~~
+
+   The following example shows how you might use many of these markup tags together
+   in a single example file, and what the output would look like:
+
+   .. selected-content::
+      :selections: driver, csharp
+
+      .. io-code-block::
+
+         .. input::
+            :language: csharp
+
+            // :replace-start: {
+            //    "terms": {
+            //       "Env.GetString(\"CONNECTION_STRING\")": "\"<connection-string>\"",
+            //       "_persons": "persons"
+            //    }
+            // }
+            using DotNetEnv;
+            using MongoDB.Bson;
+            using MongoDB.Driver;
+
+            namespace Examples.Aggregation.Pipelines.Filter;
+
+            public class Tutorial
+            {
+               private IMongoDatabase? _aggDB;
+               private IMongoCollection<Person>? _persons;
+
+               public List<BsonDocument> RunPipeline()
+               {
+                  // :snippet-start: run-pipeline
+                  String uri = Env.GetString("CONNECTION_STRING");
+                  var client = new MongoClient(uri);
+                  // :remove-start:
+                  _aggDB = client.GetDatabase("agg_tutorials_db");
+                  _persons = _aggDB.GetCollection<Person>("persons");
+                  // :remove-end:
+
+                  // :uncomment-start:
+                  //var aggDB = client.GetDatabase("agg_tutorials_db");
+                  //var persons = aggDB.GetCollection<Person>("persons");
+                  // :uncomment-end:
+
+                  // Your example code here
+                  return results; // :remove:
+                  // :snippet-end:
+               }
+            }
+
+         .. output::
+            :language: csharp
+
+            String uri = "<connection-string>";
+            var client = new MongoClient(uri);
+
+            var aggDB = client.GetDatabase("agg_tutorials_db");
+            var persons = aggDB.GetCollection<Person>("persons");
+
+            // Your example code here
+
+   .. selected-content::
+      :selections: driver, go
+
+      .. io-code-block::
+
+         .. input::
+            :language: go
+
+            // :replace-start: {
+            //    "terms": {
+            //       "utils.GetConnectionString()": "\"<connection-string>\"",
+            //       "RunPipeline": "main",
+            //       "[]bson.d ": ""
+            //    }
+            // }
+            package filter
+
+            // :snippet-start: run-pipeline
+            import (
+               "context"
+               "driver-examples/utils" // :remove:
+               "go.mongodb.org/mongo-driver/v2/bson"
+               "go.mongodb.org/mongo-driver/v2/mongo"
+               "go.mongodb.org/mongo-driver/v2/mongo/options"
+            )
+
+            // :remove-start:
+            var aggDB *mongo.Database
+            var persons *mongo.Collection
+            // :remove-end:
+            func RunPipeline() []bson.D {
+               ctx := context.Background()
+               // Get the connection string from environment
+               uri := utils.GetConnectionString()
+               if uri == "" {
+                  log.Fatal("set your 'CONNECTION_STRING' environment variable.")
+               }
+
+               clientOptions := options.Client().ApplyURI(uri)
+               client, err := mongo.Connect(clientOptions)
+               if err != nil {
+                  log.Fatalf("failed to connect to the server: %v", err)
+               }
+               defer func() { _ = client.Disconnect(ctx) }()
+
+               // :uncomment-start:
+               //aggDB = client.Database("agg_tutorials_db")
+               //persons = aggDB.Collection("persons")
+               // :uncomment-end:
+
+               // Your example code here
+               return results // :remove:
+            }
+            // :snippet-end:
+
+         .. output::
+            :language: go
+
+            import (
+               "context"
+               "go.mongodb.org/mongo-driver/v2/bson"
+               "go.mongodb.org/mongo-driver/v2/mongo"
+               "go.mongodb.org/mongo-driver/v2/mongo/options"
+            )
+
+            func main() {
+               ctx := context.Background()
+               const uri = "<connection-string>"
+               if uri == "" {
+                  log.Fatal("set your 'CONNECTION_STRING' environment variable.")
+               }
+
+               clientOptions := options.Client().ApplyURI(uri)
+               client, err := mongo.Connect(clientOptions)
+               if err != nil {
+                  log.Fatalf("failed to connect to the server: %v", err)
+               }
+               defer func() { _ = client.Disconnect(ctx) }()
+
+               aggDB := client.Database("agg_tutorials_db")
+               persons := aggDB.Collection("persons")
+
+               // Your example code here
+            }
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      .. io-code-block::
+
+         .. input::
+            :language: java
+
+            // :replace-start: {
+            //    "terms": {
+            //       "runUnwindTutorial()": "run()",
+            //       "System.getenv("CONNECTION_STRING"): "\"<connection-string>\""
+            //    }
+            // }
+            package aggregation.pipelines.unwind;
+
+            // :snippet-start: run-tutorial
+            import com.mongodb.client.*;
+            import com.mongodb.client.model.Accumulators;
+            import com.mongodb.client.model.Aggregates;
+            import com.mongodb.client.model.Field;
+            import com.mongodb.client.model.Filters;
+            import com.mongodb.client.model.Sorts;
+
+            import org.bson.Document;
+            import org.bson.conversions.Bson;
+
+            import java.time.LocalDateTime;
+            import java.util.ArrayList;
+            import java.util.Arrays;
+            import java.util.Collections;
+            import java.util.List;
+
+            public class Tutorial {
+               private final String uri = System.getenv("CONNECTION_STRING");
+               // :remove-start:
+               private MongoClient mongoClient;
+               private MongoCollection<Document> orders;
+               // :remove-end:
+               public static void runUnwindTutorial() {
+                  MongoClient mongoClient = MongoClients.create(uri);
+                  MongoDatabase aggDB = mongoClient.getDatabase("agg_tutorials_db");
+                  orders = aggDB.getCollection("orders"); // :remove:
+                  // :uncomment-start:
+                  // MongoCollection<Document> orders = aggDB.getCollection("orders");
+                  // :uncomment-end:
+
+                  // Your example code here
+               }
+            }
+            // :snippet-end:
+            // :replace-end:
+
+         .. output::
+            :language: java
+
+            import com.mongodb.client.*;
+            import com.mongodb.client.model.Accumulators;
+            import com.mongodb.client.model.Aggregates;
+            import com.mongodb.client.model.Field;
+            import com.mongodb.client.model.Filters;
+            import com.mongodb.client.model.Sorts;
+
+            import org.bson.Document;
+            import org.bson.conversions.Bson;
+
+            import java.time.LocalDateTime;
+            import java.util.ArrayList;
+            import java.util.Arrays;
+            import java.util.Collections;
+            import java.util.List;
+
+            public class Tutorial {
+               private final String uri = "<connection-string>";
+               public static void run() {
+                  MongoClient mongoClient = MongoClients.create(uri);
+                  MongoDatabase aggDB = mongoClient.getDatabase("agg_tutorials_db");
+                  MongoCollection<Document> orders = aggDB.getCollection("orders");
+
+                  // Your example code here
+               }
+            }
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            //	:replace-start: {
+            //	  "terms": {
+            //	    "process.env.CONNECTION_STRING": "\"<connection-string>\""
+            //	  }
+            //	}
+            import { MongoClient } from 'mongodb';
+
+            // :snippet-start: example
+            // :uncomment-start:
+            //const { MongoClient } = require("mongodb");
+            // :uncomment-end:
+            // Replace the placeholder with your connection string.
+            const uri = process.env.CONNECTION_STRING;
+            const client = new MongoClient(uri);
+            export async function run() {
+               try {
+                  const aggDB = client.db('agg_tutorials_db');
+
+                  // Your example code here
+                  const aggregationResult = someColl.aggregate(pipeline);
+                  // :remove-start:
+                  const documents = [];
+                  for await (const document of aggregationResult) {
+                     documents.push(document);
+                  }
+                  return documents;
+                  // :remove-end:
+               } finally {
+                  await client.close();
+               }
+            }
+
+            // :uncomment-start:
+            //run().catch(console.dir);
+            // :uncomment-end:
+            // :snippet-end:
+            // :replace-end:
+
+         .. output::
+            :language: javascript
+
+            const { MongoClient } = require("mongodb");
+            const uri = "<connection-string>";
+            const client = new MongoClient(uri);
+            async function run() {
+               try {
+                  const aggDB = client.db('agg_tutorials_db');
+
+                  // Your example code here
+                  const aggregationResult = someColl.aggregate(pipeline);
+               } finally {
+                  await client.close();
+               }
+            }
+
+            run().catch(console.dir);
+
+   .. selected-content::
+      :selections: driver, python
+
+      .. io-code-block::
+
+         .. input::
+            :language: python
+
+            # :replace-start: {
+            #    "terms": {
+            #       "os.getenv('CONNECTION_STRING')": "\"<connection-string>\"",
+            #       "example()": "main()"
+            #    }
+            # }
+            # :snippet-start: example
+            import os # :remove:
+            from pymongo import MongoClient
+
+            def example():
+               client = MongoClient(os.getenv('CONNECTION_STRING'))
+               agg_db = client['agg_tutorials_db']
+
+               # Your example code here
+
+            # :uncomment-start:
+            #if __name__ == "__main__":
+            #    main()
+            # :uncomment-end:
+            # :snippet-end:
+            # :replace-end:
+
+         .. output::
+            :language: python
+
+            from pymongo import MongoClient
+
+            def main():
+               client = MongoClient("<connection-string>")
+               agg_db = client['agg_tutorials_db']
+
+               # Your example code here
+
+            if __name__ == "__main__":
+               main()
+
+   Markup Tag Order
+   ~~~~~~~~~~~~~~~~
+
+   Bluehawk processes markup tags in the order it encounters them. If you have
+   multiple tags that apply to the same section of code, you can use nested tags
+   to apply them in the correct order. For example:
+
+   .. selected-content::
+      :selections: driver, csharp
+
+      .. code-block:: csharp
+
+         // :replace-start: {
+         //    "terms": {
+         //       "Env.GetString(\"CONNECTION_STRING\")": "\"<connection-string>\"",
+         //    }
+         // }
+
+         // More code here
+
+         // :uncomment-start:
+         //var aggDB = client.GetDatabase("agg_tutorials_db");
+         //var persons = aggDB.GetCollection<Person>("persons");
+         // :uncomment-end:
+
+         // More code here
+         // :replace-end:
+
+   .. selected-content::
+      :selections: driver, go
+
+      .. code-block:: go
+
+         // :replace-start: {
+         //    "terms": {
+         //       "utils.GetConnectionString()": "\"<connection-string>\""
+         //    }
+         // }
+
+         // More code here
+
+         // :uncomment-start:
+         //aggDB := client.Database("agg_tutorials_db")
+         //persons := aggDB.Collection("persons")
+         // :uncomment-end:
+
+         // More code here
+         // :replace-end:
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      .. code-block:: java
+
+         // :replace-start: {
+         //    "terms": {
+         //       "System.getenv("CONNECTION_STRING")": "\"<connection-string>\""
+         //    }
+         // }
+
+         // More code here
+
+         // :uncomment-start:
+         //MongoClient mongoClient = MongoClients.create(uri);
+         // :uncomment-end:
+
+         // More code here
+         // :replace-end:
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      .. code-block:: javascript
+
+         // :replace-start: {
+         //    "terms": {
+         //       "process.env.CONNECTION_STRING": "\"<connection-string>\""
+         //    }
+         // }
+         // :uncomment-start:
+         //const { MongoClient } = require("mongodb");
+         // :uncomment-end:
+         // :replace-end:
+
+   .. selected-content::
+      :selections: driver, python
+
+      .. code-block:: python
+
+         # :replace-start: {
+         #    "terms": {
+         #       "os.getenv('CONNECTION_STRING')": "\"<connection-string>\""
+         #    }
+         # }
+
+         # Your code here
+
+         # :uncomment-start:
+         #if __name__ == "__main__":
+         #    main()
+         # :uncomment-end:
+         # :replace-end:
+
+   In this example, the ``:replace-start:`` tag is processed first. Then the
+   ``:uncomment-start:`` and ``:uncomment-end:`` tags are processed, uncommenting
+   the import statement. Finally, the ``:replace-end:`` tag is processed, ending
+   the replace block.
+
+   Bluehawk attempts to pair open block tags. If you have a ``:replace-start:``
+   tag, you must have a corresponding ``:replace-end:`` tag. If you open another
+   block tag within the ``:replace-start:`` and ``:replace-end:`` tags, you must
+   close it before the ``:replace-end:`` tag. If you close tags out of order,
+   Bluehawk throws an error. For example, the following code fails because
+   the ``:uncomment-end:`` tag is closed before the ``:replace-end:`` tag:
+
+   .. selected-content::
+      :selections: driver, csharp
+
+      .. code-block:: csharp
+         :emphasize-lines: 12, 13
+         :caption: This code fails when processed by the snip script.
+
+         // :replace-start: {
+         //    "terms": {
+         //       "Env.GetString(\"CONNECTION_STRING\")": "\"<connection-string>\"",
+         //    }
+         // }
+
+         // More code here
+
+         // :uncomment-start:
+         //var aggDB = client.GetDatabase("agg_tutorials_db");
+         //var persons = aggDB.GetCollection<Person>("persons");
+         // :replace-end:
+         // :uncomment-end:
+
+   .. selected-content::
+      :selections: driver, go
+
+      .. code-block:: go
+         :emphasize-lines: 12, 13
+         :caption: This code fails when processed by the snip script.
+
+         // :replace-start: {
+         //    "terms": {
+         //       "utils.GetConnectionString()": "\"<connection-string>\""
+         //    }
+         // }
+
+         // More code here
+
+         // :uncomment-start:
+         //aggDB := client.Database("agg_tutorials_db")
+         //persons := aggDB.Collection("persons")
+         // :replace-end:
+         // :uncomment-end:
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      .. code-block:: java
+         :emphasize-lines: 11, 12
+         :caption: This code fails when processed by the snip script.
+
+         // :replace-start: {
+         //    "terms": {
+         //       "System.getenv("CONNECTION_STRING")": "\"<connection-string>\""
+         //    }
+         // }
+
+         // More code here
+
+         // :uncomment-start:
+         //MongoClient mongoClient = MongoClients.create(uri);
+         // :replace-end:
+         // :uncomment-end:
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      .. code-block:: javascript
+         :emphasize-lines: 8,9
+         :caption: This code fails when processed by the snip script.
+
+         // :replace-start: {
+         //    "terms": {
+         //       "process.env.CONNECTION_STRING": "\"<connection-string>\""
+         //    }
+         // }
+         // :uncomment-start:
+         //const { MongoClient } = require("mongodb");
+         // :replace-end:
+         // :uncomment-end:
+
+   .. selected-content::
+      :selections: driver, python
+
+      .. code-block:: python
+         :emphasize-lines: 12, 13
+         :caption: This code fails when processed by the snip script.
+
+         # :replace-start: {
+         #    "terms": {
+         #       "os.getenv('CONNECTION_STRING')": "\"<connection-string>\""
+         #    }
+         # }
+
+         # Your code here
+
+         # :uncomment-start:
+         #if __name__ == "__main__":
+         #    main()
+         # :replace-end:
+         # :uncomment-end:
+
+   As a best practice, open a ``:replace-start:`` tag at the start of your file
+   and close it at the end, after all other block tags. Define one replace block
+   for the entire file.
+
+   .. _grove-output-file-handling:
+
+   Handle Verbosity and Variable Values in Output Files
+   ----------------------------------------------------
+
+   The Grove comparison library can recognize ellipsis patterns in output files to
+   match truncated output. You can use ellipsis to omit unimportant values for keys,
+   omit any number of keys and values entirely, and shorten long string values.
+
+   This lets you show developers the important output needed to illustrate an
+   example, and omit unimportant details that might change (like ObjectIds or
+   timestamps) or are too verbose to be useful.
+
+   Alternately, if you want to show the entire output of an example, you can do so
+   by copying the entirety of the actual output into the expected output file. If
+   the output contains any dynamic content (like ObjectIds or timestamps), you must
+   use the comparison library's ignore field values option to omit them from the
+   comparison.
+
+   .. _grove-truncate-long-strings:
+
+   Truncate Long Strings
+   ~~~~~~~~~~~~~~~~~~~~~
+
+   You can use an ellipsis at the end of a string value to shorten it in the
+   example output. This matches any number of characters in the actual return
+   after the ``...``.
+
+   For example, given the expected output:
+
+   .. code-block:: javascript
+
+      {
+         plot: 'A young man is accidentally sent 30 years into the past...',
       }
 
-      run().catch(console.dir);
+   This matches the actual output of:
 
-Markup Tag Order
-~~~~~~~~~~~~~~~~
+   .. code-block:: javascript
 
-Bluehawk processes markup tags in the order it encounters them. If you have
-multiple tags that apply to the same section of code, you can use nested tags
-to apply them in the correct order. For example:
+      {
+         plot: 'A young man is accidentally sent 30 years into the past in a
+         time-traveling DeLorean invented by his close friend, the maverick
+         scientist Doc Brown.',
+      }
 
-.. code-block:: javascript
+   Omit Field Values
+   ~~~~~~~~~~~~~~~~~
 
-   // :replace-start: {
-   //    "terms": {
-   //       "process.env.CONNECTION_STRING": "\"<connection-string>\""
-   //    }
-   // }
-   // :uncomment-start:
-   //const { MongoClient } = require("mongodb");
-   // :uncomment-end:
-   // :replace-end:
+   You can use an ellipsis in the value position of an object field to omit it
+   from the output. This matches any value in the actual output for that field.
 
-In this example, the ``:replace-start:`` tag is processed first. Then the
-``:uncomment-start:`` and ``:uncomment-end:`` tags are processed, uncommenting
-the import statement. Finally, the ``:replace-end:`` tag is processed, ending
-the replace block.
+   For example, given the expected output:
 
-Bluehawk attempts to pair open block tags. If you have a ``:replace-start:``
-tag, you must have a corresponding ``:replace-end:`` tag. If you open another
-block tag within the ``:replace-start:`` and ``:replace-end:`` tags, you must
-close it before the ``:replace-end:`` tag. If you close tags out of order,
-Bluehawk throws an error. For example, the following code fails because
-the ``:uncomment-end:`` tag is closed before the ``:replace-end:`` tag:
+   .. code-block:: javascript
 
-.. code-block:: javascript
-   :emphasize-lines: 8,9
-   :caption: This code fails when processed by the snip script.
+      {
+         _id: '...',
+         name: 'Alice',
+      }
 
-   // :replace-start: {
-   //    "terms": {
-   //       "process.env.CONNECTION_STRING": "\"<connection-string>\""
-   //    }
-   // }
-   // :uncomment-start:
-   //const { MongoClient } = require("mongodb");
-   // :replace-end:
-   // :uncomment-end:
+   This matches the actual output of:
 
-As a best practice, open a ``:replace-start:`` tag at the start of your file
-and close it at the end, after all other block tags. Define one replace block
-for the entire file.
+   .. code-block:: javascript
 
-.. _grove-output-file-handling:
+      {
+         _id: '64b8e8c366e2666666666666',
+         name: 'Alice',
+      }
 
-Handle Verbosity and Variable Values in Output Files
-----------------------------------------------------
+   Omit Any Number of Keys and Values
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Grove comparison library can recognize ellipsis patterns in output files to
-match truncated output. You can use ellipsis to omit unimportant values for keys,
-omit any number of keys and values entirely, and shorten long string values.
+   If actual output contains many keys and values that are not necessary to show
+   to illustrate an example, add an ellipsis as a standalone line in your
+   expected output file. This matches any number of keys and values in the
+   actual output.
 
-This lets you show developers the important output needed to illustrate an
-example, and omit unimportant details that might change (like ObjectIds or
-timestamps) or are too verbose to be useful.
+   For example, given the expected output:
 
-Alternately, if you want to show the entire output of an example, you can do so
-by copying the entirety of the actual output into the expected output file. If
-the output contains any dynamic content (like ObjectIds or timestamps), you must
-use the comparison library's ignore field values option to omit them from the
-comparison.
+   .. code-block:: javascript
 
-.. _grove-truncate-long-strings:
+      {
+         full_name: 'Carmen Sandiego',
+         ...
+      }
 
-Truncate Long Strings
-~~~~~~~~~~~~~~~~~~~~~
+   This matches the actual output of:
 
-You can use an ellipsis at the end of a string value to shorten it in the
-example output. This matches any number of characters in the actual return
-after the ``...``.
+   .. code-block:: javascript
 
-For example, given the expected output:
-
-.. code-block:: javascript
-
-   {
-     plot: 'A young man is accidentally sent 30 years into the past...',
-   }
-
-This matches the actual output of:
-
-.. code-block:: javascript
-
-   {
-     plot: 'A young man is accidentally sent 30 years into the past in a
-     time-traveling DeLorean invented by his close friend, the maverick
-     scientist Doc Brown.',
-   }
-
-Omit Field Values
-~~~~~~~~~~~~~~~~~
-
-You can use an ellipsis in the value position of an object field to omit it
-from the output. This matches any value in the actual output for that field.
-
-For example, given the expected output:
-
-.. code-block:: javascript
-
-   {
-     _id: '...',
-     name: 'Alice',
-   }
-
-This matches the actual output of:
-
-.. code-block:: javascript
-
-   {
-     _id: '64b8e8c366e2666666666666',
-     name: 'Alice',
-   }
-
-Omit Any Number of Keys and Values
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If actual output contains many keys and values that are not necessary to show
-to illustrate an example, add an ellipsis as a standalone line in your
-expected output file. This matches any number of keys and values in the
-actual output.
-
-For example, given the expected output:
-
-.. code-block:: javascript
-
-   {
-     full_name: 'Carmen Sandiego',
-     ...
-   }
-
-This matches the actual output of:
-
-.. code-block:: javascript
-
-   {
-     full_name: 'Carmen Sandiego',
-     email: 'carmen@example.com',
-     address: '123 Main St',
-     phone: '555-555-5555',
-   }
+      {
+         full_name: 'Carmen Sandiego',
+         email: 'carmen@example.com',
+         address: '123 Main St',
+         phone: '555-555-5555',
+      }
