@@ -1,0 +1,1 @@
+db.settings.find({ _id: "balancer" }).pretty()

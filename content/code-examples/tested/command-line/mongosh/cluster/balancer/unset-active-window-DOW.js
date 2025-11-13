@@ -1,0 +1,1 @@
+db.settings.updateOne( { _id : "balancer" }, { $unset : { activeWindowDOW : true } } )
