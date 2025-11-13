@@ -28,6 +28,7 @@ public class DateNormalizationTests
     ///     and actual (MongoDB driver output) datetime strings to ensure reliable validation.
     /// </summary>
     [Test]
+    [Description("Tests that functionally equivalent datetime formats are treated as equal during comparison")]
     public void DateNormalization_EquivalentFormats_ShouldMatch()
     {
         // Test the specific failing scenarios from our real-world tests
@@ -66,6 +67,7 @@ public class DateNormalizationTests
     }
 
     [Test]
+    [Description("Tests that deeply nested JSON structures match correctly regardless of formatting")]
     public void Compare_DeeplyNestedJson_TimeSeriesMetadata_ShouldMatch()
     {
         var expectedJson = TestDataConstants.RealWorldExamples.TimeSeriesMetadata;
@@ -82,6 +84,7 @@ public class DateNormalizationTests
     }
 
     [Test]
+    [Description("Tests that deeply nested JSON with different values should not match")]
     public void Compare_DeeplyNestedJson_WithDifferentNestedValue_ShouldNotMatch()
     {
         var expectedJson = TestDataConstants.RealWorldExamples.TimeSeriesMetadata;
@@ -110,6 +113,7 @@ public class DateNormalizationTests
     }
 
     [Test]
+    [Description("Tests that deeply nested JSON with missing properties should not match")]
     public void Compare_DeeplyNestedJson_WithMissingNestedProperty_ShouldNotMatch()
     {
         var expectedJson = TestDataConstants.RealWorldExamples.TimeSeriesMetadata;
@@ -137,6 +141,7 @@ public class DateNormalizationTests
     }
 
     [Test]
+    [Description("Tests that deeply nested JSON with extra properties should not match")]
     public void Compare_DeeplyNestedJson_WithExtraNestedProperty_ShouldNotMatch()
     {
         var expectedJson = TestDataConstants.RealWorldExamples.TimeSeriesMetadata;
@@ -166,6 +171,7 @@ public class DateNormalizationTests
     }
 
     [Test]
+    [Description("Tests that mixed date formats in arrays are handled gracefully")]
     public void Compare_MixedDateFormats_ShouldHandleGracefully()
     {
         var expectedJson = """
@@ -191,6 +197,7 @@ public class DateNormalizationTests
     }
 
     [Test]
+    [Description("Tests that very large numbers are handled correctly during comparison")]
     public void Compare_VeryLargeNumbers_ShouldHandleCorrectly()
     {
         var expected = """

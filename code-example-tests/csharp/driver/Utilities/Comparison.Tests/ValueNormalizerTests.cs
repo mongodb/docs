@@ -27,6 +27,7 @@ namespace Utilities.Comparison.Tests;
 public class ValueNormalizerTests
 {
     [Test]
+    [Description("Tests that ObjectId values are normalized to their string representation")]
     public void Normalize_ObjectId_ReturnsStringRepresentation()
     {
         var objectId = new ObjectId("507f1f77bcf86cd799439011");
@@ -38,6 +39,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that BsonObjectId values are normalized to their string representation")]
     public void Normalize_BsonObjectId_ReturnsStringRepresentation()
     {
         var bsonObjectId = new BsonObjectId(new ObjectId("507f1f77bcf86cd799439011"));
@@ -49,6 +51,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that Decimal128 values are normalized to their string representation")]
     public void Normalize_Decimal128_ReturnsStringRepresentation()
     {
         var decimal128 = new Decimal128(123.456m);
@@ -60,6 +63,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that BsonDecimal128 values are normalized to their string representation")]
     public void Normalize_BsonDecimal128_ReturnsStringRepresentation()
     {
         var bsonDecimal128 = new BsonDecimal128(new Decimal128(123.456m));
@@ -71,6 +75,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that DateTime values are normalized to ISO string format")]
     public void Normalize_DateTime_ReturnsIsoString()
     {
         var dateTime = new DateTime(2023, 12, 25, 10, 30, 45, DateTimeKind.Utc);
@@ -81,6 +86,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that BsonDateTime values are normalized to ISO string format")]
     public void Normalize_BsonDateTime_ReturnsIsoString()
     {
         var bsonDateTime = new BsonDateTime(new DateTime(2023, 12, 25, 10, 30, 45, DateTimeKind.Utc));
@@ -91,6 +97,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that DateTimeOffset values are normalized to ISO string format")]
     public void Normalize_DateTimeOffset_ReturnsIsoString()
     {
         var dateTimeOffset = new DateTimeOffset(2023, 12, 25, 10, 30, 45, TimeSpan.Zero);
@@ -101,6 +108,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that arrays are normalized recursively with all elements normalized")]
     public void Normalize_Array_ReturnsNormalizedArray()
     {
         var array = new object[] { 1, "test", new ObjectId("507f1f77bcf86cd799439011") };
@@ -115,6 +123,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that dictionaries are normalized recursively with all values normalized")]
     public void Normalize_Dictionary_ReturnsNormalizedDictionary()
     {
         var dict = new Dictionary<string, object>
@@ -135,6 +144,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that BsonDocument values are normalized to dictionaries with normalized values")]
     public void Normalize_BsonDocument_ReturnsNormalizedDictionary()
     {
         var bsonDoc = new BsonDocument
@@ -155,6 +165,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that JsonElement string values are normalized to string values")]
     public void Normalize_JsonElement_String_ReturnsString()
     {
         var json = JsonDocument.Parse("\"test string\"");
@@ -164,6 +175,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that JsonElement number values are normalized to numeric values")]
     public void Normalize_JsonElement_Number_ReturnsNumber()
     {
         var json = JsonDocument.Parse("42");
@@ -173,6 +185,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that JsonElement object values are normalized to dictionaries")]
     public void Normalize_JsonElement_Object_ReturnsDictionary()
     {
         var json = JsonDocument.Parse("{\"name\": \"test\", \"value\": 42}");
@@ -186,6 +199,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that JsonElement array values are normalized to object arrays")]
     public void Normalize_JsonElement_Array_ReturnsArray()
     {
         var json = JsonDocument.Parse("[1, \"test\", true]");
@@ -201,6 +215,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that null values are normalized to null")]
     public void Normalize_Null_ReturnsNull()
     {
         var result = ValueNormalizer.Normalize(null);
@@ -210,6 +225,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that primitive types are returned unchanged during normalization")]
     public void Normalize_PrimitiveTypes_ReturnUnchanged()
     {
         Assert.That(ValueNormalizer.Normalize(42), Is.EqualTo(42));
@@ -230,6 +246,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that nested structures are normalized recursively at all levels")]
     public void Normalize_NestedStructure_NormalizesRecursively()
     {
         var nested = new Dictionary<string, object>
@@ -264,6 +281,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that JsonElement null values are normalized to null")]
     public void Normalize_JsonElementUndefined_ReturnsStringRepresentation()
     {
         var json = JsonDocument.Parse("null");
@@ -274,6 +292,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that JsonElement with large numbers are handled correctly")]
     public void Normalize_JsonElementWithLargeNumber_HandlesCorrectly()
     {
         var json = JsonDocument.Parse("9007199254740992");
@@ -283,6 +302,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that invalid date strings are returned unchanged during normalization")]
     public void NormalizeIfDate_InvalidDateString_ReturnsOriginalString()
     {
         var invalidDate = "not-a-date";
@@ -294,6 +314,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that date strings without T separator are returned unchanged")]
     public void NormalizeIfDate_StringWithoutTSeparator_ReturnsOriginalString()
     {
         var dateWithoutT = "2023-12-25 10:30:45";
@@ -305,6 +326,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that BsonValue edge cases are handled correctly during normalization")]
     public void Normalize_BsonValueEdgeCases_HandlesCorrectly()
     {
         Assert.That(ValueNormalizer.Normalize(BsonNull.Value), Is.Null);
@@ -314,6 +336,7 @@ public class ValueNormalizerTests
     }
 
     [Test]
+    [Description("Tests that deeply nested structures handle recursion without stack overflow")]
     public void Normalize_DeepNestedStructure_HandlesRecursion()
     {
         var deepNested = new Dictionary<string, object>();
@@ -384,6 +407,7 @@ public struct Location
 public class CustomTypeNormalizationTests
 {
     [Test]
+    [Description("Tests that class with BSON attributes maps fields correctly during normalization")]
     public void Normalize_ClassWithBsonAttributes_MapsFieldsCorrectly()
     {
         var user = new User
@@ -406,6 +430,7 @@ public class CustomTypeNormalizationTests
     }
 
     [Test]
+    [Description("Tests that record with BSON elements normalizes correctly")]
     public void Normalize_RecordWithBsonElements_NormalizesCorrectly()
     {
         var product = new Product
@@ -426,6 +451,7 @@ public class CustomTypeNormalizationTests
     }
 
     [Test]
+    [Description("Tests that struct with BSON elements normalizes correctly")]
     public void Normalize_StructWithBsonElements_NormalizesCorrectly()
     {
         var location = new Location
@@ -446,6 +472,7 @@ public class CustomTypeNormalizationTests
     }
 
     [Test]
+    [Description("Tests that class with null properties skips null values during normalization")]
     public void Normalize_ClassWithNullProperties_SkipsNullValues()
     {
         var location = new Location
@@ -465,6 +492,7 @@ public class CustomTypeNormalizationTests
     }
 
     [Test]
+    [Description("Tests that nested custom types normalize recursively")]
     public void Normalize_NestedCustomTypes_NormalizesRecursively()
     {
         var nested = new
@@ -497,6 +525,7 @@ public class CustomTypeNormalizationTests
     }
 
     [Test]
+    [Description("Tests that primitive types skip custom type normalization")]
     public void Normalize_PrimitiveTypes_SkipsCustomTypeNormalization()
     {
         Assert.That(ValueNormalizer.Normalize(42), Is.EqualTo(42));
@@ -505,6 +534,7 @@ public class CustomTypeNormalizationTests
     }
 
     [Test]
+    [Description("Tests that collections skip custom type normalization")]
     public void Normalize_Collections_SkipsCustomTypeNormalization()
     {
         var list = new List<string> { "a", "b", "c" };
@@ -523,6 +553,7 @@ public class CustomTypeNormalizationTests
     }
 
     [Test]
+    [Description("Tests that BSON types skip custom type normalization")]
     public void Normalize_BsonTypes_SkipsCustomTypeNormalization()
     {
         var bsonDoc = new BsonDocument { ["test"] = "value" };
@@ -537,6 +568,7 @@ public class CustomTypeNormalizationTests
     // Tests for critical MongoDB type normalization scenarios that ensure proper comparison behavior
 
     [Test]
+    [Description("Tests that Decimal128 always returns string representation for consistent comparison")]
     public void Normalize_Decimal128_AlwaysReturnsString()
     {
         // Critical: Decimal128 must normalize to string for consistent comparison with expected output
@@ -548,6 +580,7 @@ public class CustomTypeNormalizationTests
     }
 
     [Test]
+    [Description("Tests that null values remain as actual null during normalization")]
     public void Normalize_Null_RemainsActualNull()
     {
         // Critical: null values must remain as actual null for proper comparison logic
@@ -557,6 +590,7 @@ public class CustomTypeNormalizationTests
     }
 
     [Test]
+    [Description("Tests that BsonNull becomes actual null during normalization")]
     public void Normalize_BsonNull_BecomesActualNull()
     {
         var result = ValueNormalizer.Normalize(BsonNull.Value);
@@ -565,6 +599,7 @@ public class CustomTypeNormalizationTests
     }
 
     [Test]
+    [Description("Tests that primitive array types preserve exact type during normalization")]
     public void Normalize_PrimitiveArrayTypes_PreserveExactType()
     {
         // Critical: Primitive arrays must preserve their exact type for comparison
@@ -579,6 +614,7 @@ public class CustomTypeNormalizationTests
     }
 
     [Test]
+    [Description("Tests that MongoDB Extended JSON patterns are handled correctly during normalization")]
     public void Normalize_MongoDBExtendedJsonPatterns_HandledCorrectly()
     {
         // Critical: MongoDB Extended JSON patterns must normalize correctly for comparison
@@ -599,6 +635,7 @@ public class CustomTypeNormalizationTests
     }
 
     [Test]
+    [Description("Tests that date formats produce consistent output during normalization")]
     public void Normalize_DateFormats_ConsistentOutput()
     {
         var utcDate = new DateTime(2023, 12, 25, 10, 30, 45, DateTimeKind.Utc);
@@ -616,6 +653,7 @@ public class CustomTypeNormalizationTests
     }
 
     [Test]
+    [Description("Tests that all BSON value types produce correct types during normalization")]
     public void Normalize_AllBsonValueTypes_ProduceCorrectTypes()
     {
         Assert.That(ValueNormalizer.Normalize(new BsonString("test")), Is.EqualTo("test"));
@@ -635,6 +673,7 @@ public class CustomTypeNormalizationTests
 public class MongoDBTypeEdgeCaseTests
 {
     [Test]
+    [Description("Tests that Extended JSON types are handled correctly during normalization")]
     public void Normalize_ExtendedJsonTypes_HandledCorrectly()
     {
         var extendedJsonDoc = BsonDocument.Parse("""
@@ -656,6 +695,7 @@ public class MongoDBTypeEdgeCaseTests
     }
 
     [Test]
+    [Description("Tests that invalid ObjectId is handled gracefully during normalization")]
     public void Normalize_InvalidObjectId_HandlesGracefully()
     {
         var invalidObjectIdString = "invalid-object-id";
@@ -665,6 +705,7 @@ public class MongoDBTypeEdgeCaseTests
     }
 
     [Test]
+    [Description("Tests that invalid date formats are handled gracefully during normalization")]
     public void Normalize_InvalidDateFormats_HandlesGracefully()
     {
         var invalidDates = new[] { "invalid-date", "2023-13-01", "not-a-date-at-all" };
@@ -677,6 +718,7 @@ public class MongoDBTypeEdgeCaseTests
     }
 
     [Test]
+    [Description("Tests that number types with invalid values are handled correctly during normalization")]
     public void Normalize_NumberTypesWithInvalidValues_HandlesCorrectly()
     {
         Assert.That(ValueNormalizer.Normalize(double.NaN), Is.EqualTo(double.NaN));
@@ -685,6 +727,7 @@ public class MongoDBTypeEdgeCaseTests
     }
 
     [Test]
+    [Description("Tests that BSON values with null internal values are handled correctly during normalization")]
     public void Normalize_BsonValuesWithNullInternalValues_HandlesCorrectly()
     {
         var bsonArray = new BsonArray { BsonNull.Value, new BsonString("test"), BsonNull.Value };
@@ -703,6 +746,7 @@ public class MongoDBTypeEdgeCaseTests
     }
 
     [Test]
+    [Description("Tests that deeply nested BSON documents are handled correctly during normalization")]
     public void Normalize_DeeplyNestedBsonDocuments_HandlesCorrectly()
     {
         var deepDoc = new BsonDocument();
@@ -735,6 +779,7 @@ public class MongoDBTypeEdgeCaseTests
     }
 
     [Test]
+    [Description("Tests that mixed BSON and regular types produce consistent results during normalization")]
     public void Normalize_MixedBsonAndRegularTypes_ProducesConsistentResults()
     {
         var mixed = new Dictionary<string, object>
@@ -762,6 +807,7 @@ public class MongoDBTypeEdgeCaseTests
     }
 
     [Test]
+    [Description("Tests that BSON arrays with mixed types preserve order during normalization")]
     public void Normalize_BsonArraysWithMixedTypes_PreservesOrder()
     {
         var bsonArray = new BsonArray
@@ -788,6 +834,7 @@ public class MongoDBTypeEdgeCaseTests
     }
 
     [Test]
+    [Description("Tests that BSON documents with special field names are handled correctly during normalization")]
     public void Normalize_BsonDocumentsWithSpecialFieldNames_HandlesCorrectly()
     {
         var specialDoc = new BsonDocument
@@ -813,6 +860,7 @@ public class MongoDBTypeEdgeCaseTests
     }
 
     [Test]
+    [Description("Tests that GridFS metadata with Extended JSON format should match")]
     public void Compare_GridFSMetadata_WithExtendedJson_ShouldMatch()
     {
         var gridFSDoc = TestDataConstants.RealWorldExamples.GridFSMetadata;
@@ -831,6 +879,7 @@ public class MongoDBTypeEdgeCaseTests
     }
 
     [Test]
+    [Description("Tests that GridFS metadata with different ObjectId should not match")]
     public void Compare_GridFSMetadata_WithDifferentObjectId_ShouldNotMatch()
     {
         var gridFSDoc = TestDataConstants.RealWorldExamples.GridFSMetadata;
@@ -849,6 +898,7 @@ public class MongoDBTypeEdgeCaseTests
     }
 
     [Test]
+    [Description("Tests that GridFS metadata with different date format should match")]
     public void Compare_GridFSMetadata_WithDifferentDateFormat_ShouldMatch()
     {
         var gridFsDoc = TestDataConstants.RealWorldExamples.GridFSMetadata;

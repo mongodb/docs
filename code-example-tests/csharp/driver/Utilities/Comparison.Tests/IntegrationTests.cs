@@ -48,6 +48,7 @@ public class IntegrationTests
     ///     examples typically demonstrate.
     /// </summary>
     [Test]
+    [Description("Tests end-to-end validation of complex documents with all MongoDB data types and features")]
     public void EndToEnd_ComplexDocumentWithAllFeatures_ValidatesCorrectly()
     {
         var actualOutput = new Dictionary<string, object>
@@ -126,6 +127,7 @@ public class IntegrationTests
     }
 
     [Test]
+    [Description("Tests end-to-end unordered array comparison validates correctly with different element order")]
     public void EndToEnd_UnorderedArrayComparison_ValidatesCorrectly()
     {
         var actualOutput = new Dictionary<string, object>
@@ -202,6 +204,7 @@ public class IntegrationTests
     }
 
     [Test]
+    [Description("Tests that ordered array comparison fails when elements are in wrong order")]
     public void EndToEnd_OrderedArrayComparison_FailsWithWrongOrder()
     {
         var actualOutput = new Dictionary<string, object>
@@ -255,6 +258,7 @@ public class IntegrationTests
     }
 
     [Test]
+    [Description("Tests that ignored fields are properly excluded from comparison validation")]
     public void EndToEnd_WithIgnoredFields_IgnoresCorrectFields()
     {
         var actualOutput = new Dictionary<string, object>
@@ -331,6 +335,7 @@ public class IntegrationTests
     }
 
     [Test]
+    [Description("Tests that truncated strings with ellipsis patterns validate correctly")]
     public void EndToEnd_TruncatedStrings_ValidatesCorrectly()
     {
         var expectedContent = """
@@ -373,6 +378,7 @@ public class IntegrationTests
     }
 
     [Test]
+    [Description("Tests that ellipsis array wildcard validates correctly with any array content")]
     public void EndToEnd_EllipsisArrayWildcard_ValidatesCorrectly()
     {
         var expectedContent = """
@@ -417,6 +423,7 @@ public class IntegrationTests
     }
 
     [Test]
+    [Description("Tests that object wildcard validates correctly with any object content")]
     public void EndToEnd_ObjectWildcard_ValidatesCorrectly()
     {
         var expectedContent = """{ '...': '...' }""";
@@ -450,6 +457,7 @@ public class IntegrationTests
     }
 
     [Test]
+    [Description("Tests that complex nesting with mixed ellipsis patterns validates correctly")]
     public void EndToEnd_ComplexNestingWithMixedPatterns_ValidatesCorrectly()
     {
         var expectedContent = """
@@ -545,6 +553,7 @@ public class IntegrationTests
 
 
     [Test]
+    [Description("Tests that error reporting provides detailed error messages for comparison failures")]
     public void EndToEnd_ErrorReporting_ProvidesDetailedErrors()
     {
         var actualOutput = new Dictionary<string, object>
@@ -610,6 +619,7 @@ public class IntegrationTests
     }
 
     [Test]
+    [Description("Tests that large dataset comparison completes within performance limits")]
     public void EndToEnd_LargeDataset_PerformanceWithinLimits()
     {
         var users = new List<object>();
@@ -668,6 +678,7 @@ public class IntegrationTests
     }
 
     [Test]
+    [Description("Tests that timeout scenario is handled gracefully without errors")]
     public void EndToEnd_TimeoutScenario_HandlesGracefully()
     {
         var complexData = new Dictionary<string, object>();
@@ -728,6 +739,7 @@ public record OrderItem
 public class CSharpClassIntegrationTests
 {
     [Test]
+    [Description("Tests that C# class with BSON attributes normalizes correctly to dictionary")]
     public void Normalize_CSharpClassWithBsonAttributes_WorksCorrectly()
     {
         var order = new Order
@@ -781,6 +793,7 @@ public class CSharpClassIntegrationTests
     }
 
     [Test]
+    [Description("Tests that ComparisonEngine compares normalized C# classes correctly")]
     public void ComparisonEngine_ComparesNormalizedCSharpClassesCorrectly()
     {
         var order1 = new Order
@@ -825,6 +838,7 @@ public class CSharpClassIntegrationTests
     }
 
     [Test]
+    [Description("Tests that ComparisonEngine detects differences in C# classes correctly")]
     public void ComparisonEngine_DetectsDifferencesInCSharpClasses()
     {
         var order1 = new Order

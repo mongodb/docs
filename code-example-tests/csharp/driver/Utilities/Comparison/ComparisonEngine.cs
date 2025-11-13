@@ -45,7 +45,7 @@ public static class ComparisonEngine
     }
 
     /// <summary>
-    ///     Core comparison algorithm that handles the multi-step comparison process.
+    ///     Core comparison algorithm that handles the multistep comparison process.
     ///     Order is critical: ellipsis → null → normalize → primitives → arrays → objects.
     /// </summary>
     private static async Task<ComparisonResult> CompareInternal(
@@ -105,7 +105,7 @@ public static class ComparisonEngine
     {
         // Check for type mismatch before string conversion
         if (expected?.GetType() != actual?.GetType())
-            // Allow flexible numeric type conversions (e.g., int vs double with same value)
+            // Allow flexible numeric type conversions (e.g., int vs. double with the same value)
             // This is essential for MongoDB comparisons where numbers may come back as different types
             if (!AreTypesCompatible(expected, actual))
                 return new ComparisonError(path, SafeToString(expected), SafeToString(actual),
@@ -154,7 +154,7 @@ public static class ComparisonEngine
         if (IsNumeric(expected) && IsNumeric(actual))
             return true;
 
-        // Same type is always compatible
+        // The same type is always compatible
         return expected.GetType() == actual.GetType();
     }
 
@@ -253,7 +253,7 @@ public static class ComparisonEngine
     {
         // Handle array ellipsis patterns
         if (EllipsisPatternMatcher.ArrayContainsEllipsis(expected))
-            return await CompareArrayWithEllipsisAsync(expected, actual, options, path, cancellationToken);
+            return await CompareArrayWithEllipsisAsync(expected, actual, path);
 
         // Length check for non-ellipsis arrays
         if (expected.Length != actual.Length)
@@ -318,11 +318,11 @@ public static class ComparisonEngine
         string path,
         CancellationToken cancellationToken)
     {
-        // Separate primitives and objects in expected array
+        // Separate primitives and objects in the expected array
         var expectedPrimitives = expected.Where(IsPrimitive).ToArray();
         var expectedObjects = expected.Where(item => !IsPrimitive(item)).ToArray();
 
-        // Separate primitives and objects in actual array
+        // Separate primitives and objects in the actual array
         var actualPrimitives = actual.Where(IsPrimitive).ToArray();
         var actualObjects = actual.Where(item => !IsPrimitive(item)).ToArray();
 
@@ -383,9 +383,9 @@ public static class ComparisonEngine
 
             if (!foundMatch)
             {
-                // If we have a closest match, return its specific error for better reporting
+                // If we have the closest match, return its specific error for better reporting
                 if (closestMatchResult != null && closestMatchIndex >= 0)
-                    // Re-run comparison with correct path for error reporting
+                    // Re-run comparison with the correct path for error reporting
                     return await CompareInternal(expectedItem, actual[closestMatchIndex],
                         options.InheritedGlobalEllipsis ? options : options,
                         $"{path}[{closestMatchIndex}]", cancellationToken);
@@ -418,7 +418,7 @@ public static class ComparisonEngine
                 continue;
 
             // Handle property-level ellipsis
-            if (expectedValue is string str && str == "...")
+            if (expectedValue is string and "...")
                 continue;
 
             if (!actual.TryGetValue(key, out var actualValue))
@@ -457,12 +457,10 @@ public static class ComparisonEngine
     private static Task<ComparisonResult> CompareArrayWithEllipsisAsync(
         object[] expected,
         object[] actual,
-        ComparisonOptions options,
-        string path,
-        CancellationToken cancellationToken)
+        string path)
     {
         // Simplified ellipsis array matching - can be enhanced based on specific needs
-        var nonEllipsisCount = expected.Count(item => !(item is string str && str == "..."));
+        var nonEllipsisCount = expected.Count(item => item is not (string and "..."));
 
         if (actual.Length < nonEllipsisCount)
             return Task.FromResult<ComparisonResult>(new ComparisonError(
@@ -471,7 +469,7 @@ public static class ComparisonEngine
                 $"{actual.Length} elements",
                 "Actual array has fewer elements than required by ellipsis pattern"));
 
-        // For now, just verify that non-ellipsis elements exist somewhere in the actual array
+        // For now, only verify that non-ellipsis elements exist somewhere in the actual array
         // This can be made more sophisticated based on specific requirements
         return Task.FromResult<ComparisonResult>(new ComparisonSuccess());
     }
@@ -504,6 +502,6 @@ public static class ComparisonEngine
     /// </summary>
     private static string SafeGetTypeName(object? value)
     {
-        return value?.GetType()?.Name ?? "null";
+        return value?.GetType().Name ?? "null";
     }
 }

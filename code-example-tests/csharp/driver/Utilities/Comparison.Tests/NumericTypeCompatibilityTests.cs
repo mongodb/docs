@@ -20,6 +20,7 @@ public class NumericTypeCompatibilityTests
     ///     Test that negative numbers work correctly across different numeric types.
     /// </summary>
     [Test]
+    [Description("Tests that negative numbers work correctly across different numeric types")]
     public void Compare_NegativeNumbers_CrossTypeCompatibility()
     {
         Expect.That(-42).ShouldMatch(-42.0);
@@ -33,6 +34,7 @@ public class NumericTypeCompatibilityTests
     ///     Test that same numeric values but different types are properly handled.
     /// </summary>
     [Test]
+    [Description("Tests that same numeric values with different types are properly handled and return success")]
     public void Compare_SameValueDifferentNumericTypes_ReturnsSuccess()
     {
         var testCases = new (object, object)[]
@@ -54,6 +56,7 @@ public class NumericTypeCompatibilityTests
     ///     Test edge cases with large numbers that won't cause overflow exceptions.
     /// </summary>
     [Test]
+    [Description("Tests edge cases with very large numbers without causing overflow exceptions")]
     public void Compare_VeryLargeNumbers_HandlesCorrectly()
     {
         // Test edge cases with large numbers that won't cause overflow exceptions
@@ -70,6 +73,7 @@ public class NumericTypeCompatibilityTests
     ///     Test zero values across different numeric types (important edge case).
     /// </summary>
     [Test]
+    [Description("Tests zero values across different numeric types for cross-type compatibility")]
     public void Compare_ZeroValues_CrossTypeCompatibility()
     {
         // Test zero values across different numeric types (important edge case)
@@ -88,6 +92,7 @@ public class NumericTypeCompatibilityTests
     ///     Test floating point precision edge cases.
     /// </summary>
     [Test]
+    [Description("Tests floating point precision edge cases are handled correctly")]
     public void Compare_FloatingPointPrecisionEdgeCases_HandledCorrectly()
     {
         // Test floating point precision edge cases that won't cause overflow

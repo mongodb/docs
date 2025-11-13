@@ -29,6 +29,7 @@ public class OutputValidatorTests
     }
 
     [Test]
+    [Description("Tests that ToMatchFile static method returns success when output matches file content")]
     public void ToMatchFile_StaticMethod_MatchingOutput_ReturnsSuccess()
     {
         var actualOutput = new Dictionary<string, object>
@@ -45,6 +46,7 @@ public class OutputValidatorTests
     }
 
     [Test]
+    [Description("Tests that ToMatchFile static method returns failure when output does not match file content")]
     public void ToMatchFile_StaticMethod_NonMatchingOutput_ReturnsFailure()
     {
         var actualOutput = new Dictionary<string, object>
@@ -59,6 +61,7 @@ public class OutputValidatorTests
     }
 
     [Test]
+    [Description("Tests that ToMatchFile fluent API returns success when output matches file content")]
     public void ToMatchFile_FluentAPI_MatchingOutput_ReturnsSuccess()
     {
         var actualOutput = new Dictionary<string, object>
@@ -73,6 +76,7 @@ public class OutputValidatorTests
     }
 
     [Test]
+    [Description("Tests that ToMatchFile with custom options applies ordered sort correctly")]
     public void ToMatchFile_WithCustomOptions_ReturnsSuccess()
     {
         var actualOutput = new Dictionary<string, object>
@@ -89,6 +93,7 @@ public class OutputValidatorTests
     }
 
     [Test]
+    [Description("Tests that WithIgnoredFields fluent API ignores specified fields during comparison")]
     public void IgnoringFields_FluentAPI_IgnoresSpecifiedFields()
     {
         var actualOutput = new Dictionary<string, object>
@@ -112,6 +117,7 @@ public class OutputValidatorTests
     }
 
     [Test]
+    [Description("Tests that WithOrderedArrays fluent API compares arrays in strict order")]
     public void WithOrderedArrays_FluentAPI_ComparesArraysInOrder()
     {
         var actualOutput = new object[]
@@ -128,6 +134,7 @@ public class OutputValidatorTests
     }
 
     [Test]
+    [Description("Tests that WithOrderedArrays returns failure when elements are in wrong order")]
     public void WithOrderedArrays_WrongOrder_ReturnsFailure()
     {
         var actualOutput = new object[]
@@ -144,6 +151,7 @@ public class OutputValidatorTests
     }
 
     [Test]
+    [Description("Tests that multiple WithIgnoredFields calls combine ignored fields correctly")]
     public void IgnoringFields_AndIgnoringFields_CombinesIgnoredFields()
     {
         var actualOutput = new Dictionary<string, object>
@@ -175,6 +183,7 @@ public class OutputValidatorTests
     }
 
     [Test]
+    [Description("Tests that ComparisonResult ThrowIfFailed does not throw on success")]
     public void ComparisonResult_ThrowIfFailed_Success_DoesNotThrow()
     {
         var actualOutput = new Dictionary<string, object> { { "name", "Alice" }, { "age", 25 }, { "active", true } };
@@ -185,6 +194,7 @@ public class OutputValidatorTests
     }
 
     [Test]
+    [Description("Tests that ComparisonResult ThrowIfFailed throws ValidationException on failure")]
     public void ComparisonResult_ThrowIfFailed_Failure_ThrowsValidationException()
     {
         var actualOutput = new Dictionary<string, object> { { "name", "Bob" } }; // Wrong name
@@ -195,6 +205,7 @@ public class OutputValidatorTests
     }
 
     [Test]
+    [Description("Tests that ToMatchFile returns failure when file does not exist")]
     public void ToMatchFile_NonExistentFile_ReturnsFailure()
     {
         var actualOutput = new { name = "Alice" };
@@ -205,6 +216,7 @@ public class OutputValidatorTests
     }
 
     [Test]
+    [Description("Tests that ToMatchFile returns failure when file contains parse errors")]
     public void ToMatchFile_ParseError_ReturnsFailure()
     {
         var actualOutput = new { name = "Alice" };
@@ -215,6 +227,7 @@ public class OutputValidatorTests
     }
 
     [Test]
+    [Description("Tests that ToMatchFile works correctly with absolute file paths")]
     public void ToMatchFile_AbsolutePath_WorksCorrectly()
     {
         var actualOutput = new Dictionary<string, object> { { "name", "Alice" }, { "age", 25 }, { "active", true } };
@@ -225,6 +238,7 @@ public class OutputValidatorTests
     }
 
     [Test]
+    [Description("Tests that ToMatchFile handles single object vs array format correctly")]
     public void ToMatchFile_SingleObjectVsArrayFormat_HandlesCorrectly()
     {
         var actualOutput = new Dictionary<string, object>
@@ -239,6 +253,7 @@ public class OutputValidatorTests
     }
 
     [Test]
+    [Description("Tests that ToMatchFile handles array actual vs array expected correctly")]
     public void ToMatchFile_ArrayActualVsArrayExpected_HandlesCorrectly()
     {
         var actualOutput = new object[]
@@ -261,6 +276,7 @@ public class OutputValidatorTests
         }
 
         [Test]
+        [Description("Tests that WithOrderedArrays maintains both ordered and ignored fields settings when chained")]
         public void WithOrderedArrays_AfterIgnoringFields_MaintainsBothSettings()
         {
             var actualOutput = new object[]
@@ -291,6 +307,7 @@ public class OutputValidatorTests
         }
 
         [Test]
+        [Description("Tests that multiple WithIgnoredFields calls add to the existing ignored fields list")]
         public void AndIgnoringFields_AddsToExistingIgnoredFields()
         {
             var actualOutput = new Dictionary<string, object>
@@ -320,6 +337,7 @@ public class OutputValidatorTests
         }
 
         [Test]
+        [Description("Tests that chained fluent methods apply all options correctly in combination")]
         public void ChainedFluentMethods_AllOptionsAppliedCorrectly()
         {
             var actualOutput = new object[]
@@ -369,6 +387,7 @@ public class OutputValidatorTests
     public class ComparisonResultTests
     {
         [Test]
+        [Description("Tests that ComparisonSuccess has correct properties for successful validation")]
         public void ValidationSuccess_Properties_AreCorrect()
         {
             var success = new ComparisonSuccess();
@@ -378,6 +397,7 @@ public class OutputValidatorTests
         }
 
         [Test]
+        [Description("Tests that ComparisonError has correct properties for failed validation")]
         public void ValidationFailure_Properties_AreCorrect()
         {
             var errorMessage = "Test error message";
@@ -389,6 +409,7 @@ public class OutputValidatorTests
         }
 
         [Test]
+        [Description("Tests that ToMatchFile returns failure with parse error when file is not found")]
         public void ToMatchFile_FileNotFound_ReturnsFailureWithParseError()
         {
             var nonExistentFile = "definitely-does-not-exist.txt";
@@ -399,6 +420,7 @@ public class OutputValidatorTests
         }
 
         [Test]
+        [Description("Tests that ToMatchFile uses absolute path as-is without modification")]
         public void ToMatchFile_AbsolutePath_UsesPathAsIs()
         {
             var tempFile = Path.GetTempFileName();
@@ -421,6 +443,7 @@ public class OutputValidatorTests
         }
 
         [Test]
+        [Description("Tests that ValidationBuilder ToMatchFile returns failure with error message when exception occurs during validation")]
         public void ValidationBuilder_ToMatchFile_ExceptionDuringValidation_ReturnsFailureWithErrorMessage()
         {
             var actualOutput = new { test = "value" };
@@ -428,6 +451,7 @@ public class OutputValidatorTests
         }
 
         [Test]
+        [Description("Tests that ToMatchFile returns parse failure when expected file contains malformed content")]
         public void ToMatchFile_MalformedExpectedFile_ReturnsParseFailure()
         {
             var tempFile = Path.GetTempFileName();
@@ -449,6 +473,7 @@ public class OutputValidatorTests
         // Tests for ordered vs unordered array comparison scenarios that caused real-world test failures
 
         [Test]
+        [Description("Tests that ToMatchText with unordered comparison succeeds for TimeSeries data in different order")]
         public void ToMatchText_TimeSeriesData_UnorderedComparison_Succeeds()
         {
             // Important: TimeSeries data often comes back in unpredictable order but should still match
@@ -484,6 +509,7 @@ public class OutputValidatorTests
         }
 
         [Test]
+        [Description("Tests that ToMatchText with ordered comparison requires exact order for aggregation pipeline results")]
         public void ToMatchText_AggregationData_OrderedComparison_RequiresExactOrder()
         {
             // Important: Aggregation pipelines return ordered results that must match exactly
@@ -527,6 +553,7 @@ public class OutputValidatorTests
         public class ErrorHandlingTests
         {
             [Test]
+            [Description("Tests that ToMatchFile provides helpful error message when file does not exist")]
             public void ToMatchFile_WithNonExistentFile_ProvidesHelpfulError()
             {
                 var nonExistentFile = "/path/that/does/not/exist.txt";

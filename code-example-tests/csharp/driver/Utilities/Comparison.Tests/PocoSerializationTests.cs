@@ -18,6 +18,7 @@ public class PocoSerializationTests
     }
 
     [Test]
+    [Description("Tests that a simple POCO class serialization matches the expected BSON document format")]
     public void ValidateOutput_SimplePocoClass_MatchesExpectedBsonDocument()
     {
         var expectedOutputPath = GetTestOutputPath("simple_poco_expected.txt");
@@ -51,6 +52,7 @@ public class PocoSerializationTests
 
 
     [Test]
+    [Description("Tests that POCO classes with BSON attributes handle proper field mapping during serialization")]
     public void ValidateOutput_PocoWithBsonAttributes_HandlesFieldMapping()
     {
         var expectedOutputPath = GetTestOutputPath("bson_attributes_expected.txt");
@@ -85,6 +87,7 @@ public class PocoSerializationTests
     }
 
     [Test]
+    [Description("Tests that nested POCO objects handle deep nesting with complex object hierarchies")]
     public void ValidateOutput_NestedPocoObjects_HandlesDeepNesting()
     {
         var expectedOutputPath = GetTestOutputPath("nested_poco_expected.txt");
@@ -140,6 +143,7 @@ public class PocoSerializationTests
     }
 
     [Test]
+    [Description("Tests that C# record types are handled correctly during serialization and comparison")]
     public void ValidateOutput_RecordType_HandlesRecordsCorrectly()
     {
         var expectedOutputPath = GetTestOutputPath("record_poco_expected.txt");
@@ -171,6 +175,7 @@ public class PocoSerializationTests
     }
 
     [Test]
+    [Description("Tests that struct value types are properly handled during serialization and comparison")]
     public void ValidateOutput_StructType_HandlesValueTypes()
     {
         var expectedOutputPath = GetTestOutputPath("struct_poco_expected.txt");
@@ -201,6 +206,7 @@ public class PocoSerializationTests
     }
 
     [Test]
+    [Description("Tests that arrays and collections of POCO objects are handled correctly")]
     public void ValidateOutput_PocoArray_HandlesCollections()
     {
         var expectedOutputPath = GetTestOutputPath("poco_array_expected.txt");
@@ -251,6 +257,7 @@ public class PocoSerializationTests
     }
 
     [Test]
+    [Description("Tests that POCO objects with ignored fields exclude the ignored properties during comparison")]
     public void ValidateOutput_PocoWithIgnoredFields_ExcludesIgnoredProperties()
     {
         var expectedOutputPath = GetTestOutputPath("ignored_fields_expected.txt");
@@ -284,6 +291,7 @@ public class PocoSerializationTests
     }
 
     [Test]
+    [Description("Tests that invalid POCO data properly fails validation when compared to expected output")]
     public void ValidateOutput_InvalidPocoData_FailsValidation()
     {
         var expectedOutputPath = GetTestOutputPath("validation_failure_expected.txt");

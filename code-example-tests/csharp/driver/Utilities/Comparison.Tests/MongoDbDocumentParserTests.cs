@@ -12,6 +12,7 @@ public class FileContentsParserTests
 {
 
     [Test]
+    [Description("Tests that MongoDB Extended JSON dates are parsed correctly for TimeSeries operations")]
     public void ParseText_MongoExtendedJsonDates_ParsedCorrectly()
     {
         // Critical: MongoDB Extended JSON date parsing must work correctly for TimeSeries operations
@@ -41,6 +42,7 @@ public class FileContentsParserTests
 
 
     [Test]
+    [Description("Tests that JSONL format is properly detected and parsed correctly")]
     public void ParseText_JsonlFormat_DetectedAndParsedCorrectly()
     {
         // Critical: JSONL format (multiple JSON objects per line) must be properly detected and parsed
@@ -68,6 +70,7 @@ public class FileContentsParserTests
     }
 
     [Test]
+    [Description("Tests JSONL detection with various input formats to ensure proper format recognition")]
     public void ParseText_JsonlDetection_VariousFormats()
     {
         // Test different input formats to ensure proper JSONL detection
@@ -120,6 +123,7 @@ public class FileContentsParserTests
     }
 
     [Test]
+    [Description("Tests that file parsing edge cases with empty lines and whitespace are handled correctly")]
     public void ParseText_FileEdgeCases_HandledCorrectly()
     {
         // Test empty lines and whitespace
@@ -147,6 +151,7 @@ public class FileContentsParserTests
     }
 
     [Test]
+    [Description("Tests complex MongoDB Extended JSON with multiple patterns are parsed correctly")]
     public void ParseText_ComplexMongoExtendedJson_MultiplePatterns()
     {
         // Test complex documents with multiple MongoDB Extended JSON patterns
@@ -199,6 +204,7 @@ public class FileContentsParserTests
     public class ParseErrorHandlingTests
     {
         [Test]
+        [Description("Tests that malformed JSON throws helpful exception with descriptive error message")]
         public void ParseText_WithMalformedJSON_ThrowsHelpfulException()
         {
             var malformedJson = "{ 'name': 'Alice', 'age': }"; // Missing value

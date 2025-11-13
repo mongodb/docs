@@ -13,6 +13,7 @@ namespace Utilities.Comparison.Tests;
 public class MongoDBSyntaxParsingTests
 {
     [Test]
+    [Description("Tests that ObjectId constructor syntax is parsed correctly into ObjectId instances")]
     public void ParseContent_ObjectIdConstructor_ParsesCorrectly()
     {
         var content = """
@@ -36,6 +37,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that Decimal128 constructor syntax is parsed correctly into Decimal128 instances")]
     public void ParseContent_Decimal128Constructor_ParsesCorrectly()
     {
         var content = """
@@ -59,6 +61,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that Date constructor syntax is parsed correctly into DateTime instances")]
     public void ParseContent_DateConstructor_ParsesCorrectly()
     {
         var content = """
@@ -88,6 +91,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that all MongoDB constructors used together are parsed correctly")]
     public void ParseContent_AllMongoConstructorsTogether_ParsesCorrectly()
     {
         var content = """
@@ -120,6 +124,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that nested objects with MongoDB constructors are parsed correctly")]
     public void ParseContent_NestedObjectsWithMongoConstructors_ParsesCorrectly()
     {
         var content = """
@@ -154,6 +159,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that arrays containing MongoDB constructors are parsed correctly")]
     public void ParseContent_ArrayWithMongoConstructors_ParsesCorrectly()
     {
         var content = """
@@ -187,6 +193,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that single-quoted strings with escape characters are parsed correctly")]
     public void ParseContent_SingleQuotedStrings_ParsesCorrectly()
     {
         var content = """
@@ -209,6 +216,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that unquoted keys with various naming patterns are parsed correctly")]
     public void ParseContent_UnquotedKeys_ParsesCorrectly()
     {
         var content = """
@@ -236,6 +244,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that ellipsis patterns in MongoDB constructors are handled correctly")]
     public void ParseContent_EllipsisInConstructors_HandlesCorrectly()
     {
         var content = """
@@ -262,6 +271,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that complex real-world examples with all MongoDB syntax patterns are parsed correctly")]
     public void ParseContent_ComplexRealWorldExample_ParsesCorrectly()
     {
         var content = """
@@ -338,6 +348,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that invalid ObjectId format returns appropriate parse error")]
     public void ParseContent_InvalidObjectIdFormat_ReturnsParseError()
     {
         var content = """
@@ -355,6 +366,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that invalid Decimal128 format returns appropriate parse error")]
     public void ParseContent_InvalidDecimal128Format_ReturnsParseError()
     {
         var content = """
@@ -372,6 +384,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that invalid Date format returns appropriate parse error")]
     public void ParseContent_InvalidDateFormat_ReturnsParseError()
     {
         var content = """
@@ -389,6 +402,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that comments in document are ignored during parsing")]
     public void ParseContent_CommentsInDocument_IgnoresComments()
     {
         var content = """
@@ -420,6 +434,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that edge case ObjectIds are handled correctly")]
     public void ParseContent_EdgeCaseObjectIds_HandlesCorrectly()
     {
         var content = """
@@ -447,6 +462,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that edge case Decimal128 values are handled correctly")]
     public void ParseContent_EdgeCaseDecimals_HandlesCorrectly()
     {
         var content = """
@@ -475,6 +491,7 @@ public class MongoDBSyntaxParsingTests
     }
 
     [Test]
+    [Description("Tests that edge case Date values are handled correctly")]
     public void ParseContent_EdgeCaseDates_HandlesCorrectly()
     {
         var content = """

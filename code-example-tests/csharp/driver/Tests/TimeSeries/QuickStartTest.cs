@@ -11,6 +11,7 @@ public class QuickStartTest
     private IMongoClient _client;
 
     [SetUp]
+    [Description("Initializes the MongoDB client before each test")]
     public void Setup()
     {
         var connectionString = Env.GetString("CONNECTION_STRING",
@@ -19,6 +20,7 @@ public class QuickStartTest
     }
 
     [Test]
+    [Description("Tests that 'meta' field output matches the expected documentation examples")]
     public void TestMetaFieldQueryOutputMatchesDocs()
     {
         var example = new Tutorial();
@@ -34,6 +36,7 @@ public class QuickStartTest
     }
 
     [Test]
+    [Description("Tests that 'time' field query output matches the expected documentation examples")]
     public void TestTimeFieldQueryOutputMatchesDocs()
     {
         var example = new Tutorial();
@@ -50,6 +53,7 @@ public class QuickStartTest
     }
 
     [TearDown]
+    [Description("Cleans up the test database and disposes the MongoDB client after each test")]
     public void TearDown()
     {
         // Drop the database after the test completes

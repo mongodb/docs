@@ -11,6 +11,7 @@ public class TutorialTests
     private IMongoClient _client;
 
     [SetUp]
+    [Description("Initializes the MongoDB client before each test")]
     public void Setup()
     {
         var connectionString = Env.GetString("CONNECTION_STRING",
@@ -19,6 +20,7 @@ public class TutorialTests
     }
 
     [Test]
+    [Description("Tests that Aggregation Filter pipeline output matches the expected documentation examples with ordered sorting")]
     public void TestFilterOutputMatchesDocs()
     {
         var example = new Tutorial();
@@ -36,6 +38,7 @@ public class TutorialTests
     }
 
     [Test]
+    [Description("Tests that Aggregation Group pipeline output matches the expected documentation examples with ordered sorting")]
     public void TestGroupOutputMatchesDocs()
     {
         var example = new Examples.Aggregation.Pipelines.Group.Tutorial();
@@ -54,6 +57,7 @@ public class TutorialTests
     }
 
     [Test]
+    [Description("Tests that Aggregation Unwind pipeline output matches the expected documentation examples")]
     public void TestUnwindOutputMatchesDocs()
     {
         var example = new Examples.Aggregation.Pipelines.Unwind.Tutorial();
@@ -69,6 +73,7 @@ public class TutorialTests
     }
 
     [Test]
+    [Description("Tests that Aggregation Join one-to-one pipeline output matches the expected documentation examples with ordered sorting")]
     public void TestJoinOneToOneOutputMatchesDocs()
     {
         var example = new Examples.Aggregation.Pipelines.JoinOneToOne.Tutorial();
@@ -86,6 +91,7 @@ public class TutorialTests
     }
 
     [Test]
+    [Description("Tests that Aggregation Join multi-field pipeline output matches the expected documentation examples with ordered sorting")]
     public void TestJoinMultiFieldOutputMatchesDocs()
     {
         var example = new Examples.Aggregation.Pipelines.JoinMultiField.Tutorial();
@@ -103,6 +109,7 @@ public class TutorialTests
     }
 
     [TearDown]
+    [Description("Cleans up the test database and disposes the MongoDB client after each test")]
     public void TearDown()
     {
         // Drop the database after the test completes

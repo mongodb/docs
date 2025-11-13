@@ -26,6 +26,7 @@ namespace Utilities.Comparison.Tests;
 public class EllipsisPatternSystemTests
 {
     [Test]
+    [Description("Tests that the ellipsis pattern matcher has all expected patterns registered")]
     public void EllipsisPatternMatcher_ShouldHaveAllExpectedPatterns()
     {
         var patternsField = typeof(EllipsisPatternMatcher)
@@ -39,6 +40,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that ellipsis patterns are ordered by priority for correct pattern matching")]
     public void EllipsisPatternMatcher_ShouldOrderPatternsByPriority()
     {
         var patternsField = typeof(EllipsisPatternMatcher)
@@ -54,6 +56,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that exact ellipsis pattern has highest priority and matches anything")]
     public void EllipsisPatternMatcher_ExactEllipsisShouldHaveHighestPriority()
     {
         var expected = "...";
@@ -70,6 +73,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that pattern selection works correctly for different input types")]
     public void EllipsisPatternMatcher_PatternSelectionShouldWorkCorrectly()
     {
         // Should use TruncatedStringPattern for non-JSON strings with ellipsis
@@ -84,6 +88,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that the pattern matcher prefers more specific patterns over general ones")]
     public void EllipsisPatternMatcher_ShouldPreferMoreSpecificPatterns()
     {
         var expected = "..."; // Could match ExactEllipsisPattern
@@ -97,6 +102,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that exact ellipsis pattern matches any value type")]
     public void EllipsisPatternMatcher_ExactEllipsisPattern_ShouldMatchAnything()
     {
         Expect.That("any value").ShouldMatch("...");
@@ -106,6 +112,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that truncated string pattern handles non-JSON strings correctly")]
     public void EllipsisPatternMatcher_TruncatedStringShouldHandleNonJsonStrings()
     {
         var expected = "This is a test...";
@@ -118,6 +125,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that JSON ellipsis pattern handles JSON strings with ellipsis correctly")]
     public void EllipsisPatternMatcher_JsonEllipsisShouldHandleJsonStrings()
     {
         var expected = """
@@ -141,6 +149,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that array wildcard pattern works correctly")]
     public void EllipsisPatternMatcher_ArrayWildcard_ShouldWork()
     {
         var expectedArray = new object[] { "..." };
@@ -151,6 +160,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that object wildcard pattern works correctly")]
     public void EllipsisPatternMatcher_ObjectWildcard_ShouldWork()
     {
         var expectedDict = new Dictionary<string, object> { { "...", "..." } };
@@ -160,6 +170,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that pattern matcher returns false when no patterns match")]
     public void EllipsisPatternMatcher_NoMatch_ShouldReturnFalse()
     {
         Assert.That(EllipsisPatternMatcher.TryMatch("regular string", "another string") == false);
@@ -167,6 +178,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that pattern matcher handles null values gracefully")]
     public void EllipsisPatternMatcher_NullValues_ShouldHandleGracefully()
     {
         Assert.That(EllipsisPatternMatcher.TryMatch("...", null));
@@ -175,6 +187,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that complex nested JSON patterns with ellipsis match correctly")]
     public void EllipsisPatternMatcher_ComplexNestedJsonPattern_ShouldMatch()
     {
         var expected = """
@@ -202,6 +215,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that ArrayContainsEllipsis returns true when array contains ellipsis elements")]
     public void ArrayContainsEllipsis_WithEllipsisElement_ReturnsTrue()
     {
         var array1 = new object[] { "item1", "...", "item3" };
@@ -215,6 +229,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that ArrayContainsEllipsis returns false when array does not contain ellipsis elements")]
     public void ArrayContainsEllipsis_WithoutEllipsisElement_ReturnsFalse()
     {
         var array1 = new object[] { "item1", "item2", "item3" };
@@ -228,6 +243,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that HasGlobalEllipsis returns true when dictionary contains ellipsis marker")]
     public void HasGlobalEllipsis_WithEllipsisMarker_ReturnsTrue()
     {
         var dict = new Dictionary<string, object>
@@ -241,6 +257,7 @@ public class EllipsisPatternSystemTests
     }
 
     [Test]
+    [Description("Tests that HasGlobalEllipsis returns false when dictionary does not contain ellipsis marker")]
     public void HasGlobalEllipsis_WithoutEllipsisMarker_ReturnsFalse()
     {
         var dict1 = new Dictionary<string, object> { { "name", "Alice" } };

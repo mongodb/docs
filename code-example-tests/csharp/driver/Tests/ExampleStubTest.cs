@@ -140,7 +140,7 @@ public class ExampleStubTest
 
     // The TearDown func runs after every test in this file
     [TearDown]
-    [Description("Cleans up the test database and disposes of the MongoDB client after each test")]
+    [Description("Cleans up the test database and disposes the MongoDB client after each test")]
     public void TearDown()
     {
         // You might use this func to drop the DB after the test completes to avoid cross-contaminating test data

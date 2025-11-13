@@ -63,6 +63,7 @@ public class ComparisonEngineTests
     public class MongoTypeComparisonTests
     {
         [Test]
+        [Description("Tests that ObjectId values are compared correctly against their string representations")]
         public void Compare_ObjectIdToString()
         {
             var objectId = new ObjectId("507f1f77bcf86cd799439011");
@@ -72,6 +73,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that Decimal128 values are compared correctly against their string representations")]
         public void Compare_Decimal128ToString()
         {
             var decimal128 = Decimal128.Parse("123.45");
@@ -81,6 +83,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that DateTime values are compared correctly against their ISO string representations")]
         public void Compare_DateTimeToString()
         {
             var dateTime = new DateTime(2024, 1, 1, 12, 0, 0, DateTimeKind.Utc);
@@ -90,6 +93,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that BsonObjectId values are compared correctly against their string representations")]
         public void Compare_BsonTypes()
         {
             var bsonObjectId = new BsonObjectId(new ObjectId("507f1f77bcf86cd799439011"));
@@ -103,6 +107,7 @@ public class ComparisonEngineTests
     public class ArrayComparisonTests
     {
         [Test]
+        [Description("Tests that identical arrays with ordered comparison match correctly")]
         public void Compare_IdenticalArraysOrdered()
         {
             var actualArray = new object[] { "a", "b", "c" };
@@ -115,6 +120,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that arrays with different order fail ordered comparison")]
         public void Compare_DifferentOrderArraysOrdered()
         {
             var actualArray = new object[] { "a", "b", "c" };
@@ -124,6 +130,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that arrays with different order pass unordered comparison")]
         public void Compare_DifferentOrderArraysUnordered()
         {
             var actualArray = new object[] { "a", "b", "c" };
@@ -133,6 +140,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that arrays with different lengths fail comparison")]
         public void Compare_ArraysWithDifferentLengths()
         {
             var actualArray = new object[] { "a", "b" };
@@ -142,6 +150,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that complex object arrays are compared correctly in unordered mode")]
         public void Compare_ComplexObjectArraysUnordered()
         {
             var actualArray = new object[]
@@ -160,6 +169,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that unordered arrays with different values fail comparison")]
         public void Compare_UnorderedArrayNoMatch()
         {
             var actualArray = new object[] { "a", "b", "c" };
@@ -169,6 +179,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that array wildcard pattern matches arrays with any content")]
         public void Compare_ArrayWildcard()
         {
             var expectedArray = new object[] { "..." };
@@ -182,6 +193,7 @@ public class ComparisonEngineTests
     public class ObjectComparisonTests
     {
         [Test]
+        [Description("Tests that identical objects with matching properties and values compare successfully")]
         public void Compare_IdenticalObjects()
         {
             var expected = new Dictionary<string, object>
@@ -201,6 +213,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that objects with different property values fail comparison")]
         public void Compare_DifferentPropertyValues()
         {
             var expected = new Dictionary<string, object> { { "name", "Alice" } };
@@ -211,6 +224,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that objects with missing properties fail comparison")]
         public void Compare_MissingProperty()
         {
             var expected = new Dictionary<string, object> { { "name", "Alice" }, { "age", 25 } };
@@ -220,6 +234,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that objects with extra properties fail comparison when no ellipsis is present")]
         public void Compare_ExtraPropertyWithoutEllipsis()
         {
             var expected = new Dictionary<string, object> { { "name", "Alice" } };
@@ -229,6 +244,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that objects with extra properties pass comparison when global ellipsis marker is present")]
         public void Compare_ExtraPropertyWithGlobalEllipsis()
         {
             var expected = new Dictionary<string, object>
@@ -247,6 +263,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that property-level ellipsis patterns match any value for specific properties")]
         public void Compare_PropertyLevelEllipsis()
         {
             var expected = new Dictionary<string, object>
@@ -266,6 +283,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that object wildcard pattern matches any object with any properties")]
         public void Compare_ObjectWildcard()
         {
             var expected = new Dictionary<string, object> { { "...", "..." } };
@@ -280,6 +298,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that nested objects are compared correctly with deep property matching")]
         public void Compare_NestedObjects()
         {
             var expected = new Dictionary<string, object>
@@ -327,6 +346,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that nested object mismatch returns failure with correct path information")]
         public void Compare_NestedObjectMismatch_ReturnsFailureWithCorrectPath()
         {
             var expected = new Dictionary<string, object>
@@ -365,6 +385,7 @@ public class ComparisonEngineTests
     public class IgnoreFieldsTests
     {
         [Test]
+        [Description("Tests that WithIgnoredFields correctly ignores specified fields during comparison")]
         public void Compare_WithIgnoredFields_IgnoresSpecifiedFields()
         {
             var expected = new Dictionary<string, object>
@@ -384,6 +405,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that WithIgnoredFields still validates non-ignored fields correctly")]
         public void Compare_WithIgnoredFields_StillValidatesNonIgnoredFields()
         {
             var expected = new Dictionary<string, object>
@@ -402,6 +424,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that ignored fields in nested objects are correctly ignored during comparison")]
         public void Compare_IgnoredFieldsInNestedObjects_IgnoresCorrectly()
         {
             var expected = new Dictionary<string, object>
@@ -454,6 +477,7 @@ public class ComparisonEngineTests
     public class TypeMismatchTests
     {
         [Test]
+        [Description("Tests that comparing an array against an object returns failure")]
         public void Compare_ArrayVsObject()
         {
             var array = new object[] { "item1", "item2" };
@@ -463,6 +487,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that comparing an object against an array returns failure")]
         public void Compare_ObjectVsArray()
         {
             var obj = new Dictionary<string, object> { { "key", "value" } };
@@ -472,6 +497,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that comparing a string against a number returns failure")]
         public void Compare_StringVsNumber()
         {
             var result = Expect.That("123").ShouldNotMatch(123);
@@ -482,6 +508,7 @@ public class ComparisonEngineTests
     public class AsyncTests
     {
         [Test]
+        [Description("Tests that CompareAsync performs basic comparison correctly and returns expected result")]
         public async Task CompareAsync_BasicComparison_ReturnsCorrectResult()
         {
             var expected = new Dictionary<string, object> { { "name", "Alice" } };
@@ -491,6 +518,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that CompareAsync completes within reasonable timeout period")]
         public async Task CompareAsync_WithTimeout_CompletesWithinTimeout()
         {
             var expected = new Dictionary<string, object> { { "name", "Alice" } };
@@ -504,6 +532,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that CompareAsync throws OperationCanceledException when cancellation token is cancelled")]
         public void CompareAsync_WithCancellation_ThrowsOperationCanceledException()
         {
             var expected = new Dictionary<string, object> { { "name", "Alice" } };
@@ -523,6 +552,7 @@ public class ComparisonEngineTests
     public class HybridArrayStrategyTests
     {
         [Test]
+        [Description("Tests that mixed arrays with matching primitives and objects compare successfully using hybrid strategy")]
         public void Compare_MixedArrayWithMatchingPrimitivesAndObjects()
         {
             var expected = new object[]
@@ -543,6 +573,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that mixed arrays with different primitive frequency fail comparison")]
         public void Compare_MixedArrayWithDifferentPrimitiveFrequency()
         {
             var expected = new object[]
@@ -561,6 +592,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that mixed arrays with matching objects but different primitives fail comparison")]
         public void Compare_MixedArrayWithMatchingObjectsDifferentPrimitives()
         {
             var expected = new object[]
@@ -579,6 +611,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that purely primitive arrays use frequency-based comparison strategy")]
         public void Compare_PurelyPrimitiveArray_UsesFrequencyStrategy()
         {
             var actual = new object[] { 1, 2, 3, 1, "hello", "world", "hello" };
@@ -588,6 +621,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that purely object arrays use backtracking comparison strategy")]
         public void Compare_PurelyObjectArray_UsesBacktrackingStrategy()
         {
             var expected = new object[]
@@ -606,6 +640,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that mixed arrays with null values handle nulls correctly during comparison")]
         public void Compare_MixedArrayWithNullValues_HandlesNullsCorrectly()
         {
             var expected = new object[]
@@ -624,6 +659,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that empty arrays compare successfully")]
         public void Compare_EmptyArrays()
         {
             var expected = new object[0];
@@ -633,6 +669,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that mixed arrays with duplicate primitives handle frequency counting correctly")]
         public void Compare_MixedArrayWithDuplicatePrimitives_HandlesFrequencyCorrectly()
         {
             var expected = new object[]
@@ -651,6 +688,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that real-world mixed arrays demonstrate hybrid comparison strategy correctly")]
         public void Compare_RealWorldMixedArray_DemonstratesHybridStrategy()
         {
             var expected = new object[]
@@ -685,6 +723,7 @@ public class ComparisonEngineTests
     public class ComparisonEngineErrorTests
     {
         [Test]
+        [Description("Tests that comparison throws OperationCanceledException when cancellation token is already cancelled")]
         public void Compare_CancellationTokenAlreadyCancelled_ThrowsOperationCanceledException()
         {
             using var cts = new CancellationTokenSource();
@@ -705,6 +744,7 @@ public class ComparisonEngineTests
     public class PerformanceTests
     {
         [Test]
+        [Description("Tests that very deep nesting does not cause stack overflow")]
         public void Compare_VeryDeepNesting_DoesNotStackOverflow()
         {
             var depth = 500; // Deep enough to potentially cause issues
@@ -717,6 +757,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that very large arrays complete comparison within reasonable time")]
         public void Compare_VeryLargeArrays_CompletesWithinReasonableTime()
         {
             var size = 10000;
@@ -732,6 +773,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that many small objects are handled memory efficiently during comparison")]
         public void Compare_ManySmallObjects_HandlesMemoryEfficiently()
         {
             var objects1 = Enumerable.Range(0, 1000)
@@ -759,6 +801,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that documents with circular reference patterns are handled gracefully")]
         public void Compare_DocumentsWithCircularReferences_HandlesGracefully()
         {
             // Note: This test verifies that we don't create circular references during normalization
@@ -792,6 +835,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that extremely long strings are handled correctly without performance issues")]
         public void Compare_ExtremelyLongStrings_HandlesCorrectly()
         {
             var longString1 = new string('A', 100000); // 100K characters
@@ -805,6 +849,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that empty collections are handled correctly during comparison")]
         public void Compare_EmptyCollections_HandlesCorrectly()
         {
             var emptyActualArray = new object[0];
@@ -822,6 +867,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that Unicode and special characters are handled correctly during comparison")]
         public void Compare_UnicodeAndSpecialCharacters_HandlesCorrectly()
         {
             var unicodeData1 = new Dictionary<string, object>
@@ -848,6 +894,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that ComparisonEngine is thread-safe during concurrent usage")]
         public void ComparisonEngine_ConcurrentUsage_IsThreadSafe()
         {
             var testData = Enumerable.Range(0, 100)
@@ -870,6 +917,7 @@ public class ComparisonEngineTests
         }
 
         [Test]
+        [Description("Tests that ComparisonEngine completes async concurrent usage successfully")]
         public async Task ComparisonEngine_AsyncConcurrentUsage_CompletesSuccessfully()
         {
             var tasks = Enumerable.Range(0, 50)
@@ -900,6 +948,7 @@ public class ComparisonEngineTests
     }
 
     [Test]
+    [Description("Tests that multi-line string list comparison matches borough list with alternate format")]
     public void Compare_MultiLineStringList_BoroughList_ShouldMatch()
     {
         var expected = TestDataConstants.RealWorldExamples.BoroughList;
@@ -912,16 +961,17 @@ public class ComparisonEngineTests
     }
 
     [Test]
+    [Description("Tests that multi-line string list with extra whitespace matches expected list")]
     public void Compare_MultiLineStringList_WithExtraWhitespace_ShouldMatch()
     {
         var expected = TestDataConstants.RealWorldExamples.BoroughList;
         var actualWithWhitespace = """
-                                   Bronx  
+                                   Bronx
                                    Brooklyn
-                                   Manhattan   
+                                   Manhattan
                                    Missing
                                    Queens
-                                   Staten Island   
+                                   Staten Island
                                    """;
 
         var result = Expect.That(expected).ShouldMatch(actualWithWhitespace);
@@ -930,6 +980,7 @@ public class ComparisonEngineTests
     }
 
     [Test]
+    [Description("Tests that multi-line string list with different order does not match")]
     public void Compare_MultiLineStringList_WithDifferentOrder_ShouldNotMatch()
     {
         var expected = TestDataConstants.RealWorldExamples.BoroughList;
@@ -946,6 +997,7 @@ public class ComparisonEngineTests
     }
 
     [Test]
+    [Description("Tests that multi-line string list with missing items does not match")]
     public void Compare_MultiLineStringList_WithMissingItems_ShouldNotMatch()
     {
         var expected = TestDataConstants.RealWorldExamples.BoroughList;
@@ -961,6 +1013,7 @@ public class ComparisonEngineTests
     }
 
     [Test]
+    [Description("Tests that string with JSON content should not parse nested JSON")]
     public void Compare_StringWithJsonContent_ShouldNotParseNestedJson()
     {
         var expected = """
@@ -976,6 +1029,7 @@ public class ComparisonEngineTests
     }
 
     [Test]
+    [Description("Tests that Unicode and special characters match correctly")]
     public void Compare_UnicodeAndSpecialCharacters_ShouldMatch()
     {
         var expected = """
@@ -989,6 +1043,7 @@ public class ComparisonEngineTests
     }
 
     [Test]
+    [Description("Tests that large dataset comparison completes in reasonable time")]
     public void Compare_LargeDataset_ShouldCompleteInReasonableTime()
     {
         var largeBoroughList = string.Join("\n",
@@ -1005,6 +1060,7 @@ public class ComparisonEngineTests
     }
 
     [Test]
+    [Description("Tests that deep nesting comparison completes in reasonable time")]
     public void Compare_DeepNesting_ShouldCompleteInReasonableTime()
     {
         var deeplyNested = new StringBuilder();
@@ -1026,6 +1082,7 @@ public class ComparisonEngineTests
     }
 
     [Test]
+    [Description("Tests that comparison with null input is handled gracefully")]
     public void Compare_WithNullInput_ShouldHandleGracefully()
     {
         var result1 = Expect.That(null)
@@ -1040,6 +1097,7 @@ public class ComparisonEngineTests
     }
 
     [Test]
+    [Description("Tests that comparison with empty input is handled gracefully")]
     public void Compare_WithEmptyInput_ShouldHandleGracefully()
     {
         var result1 = Expect.That("").ShouldNotMatch(TestDataConstants.RealWorldExamples.BoroughList);
@@ -1052,6 +1110,7 @@ public class ComparisonEngineTests
     }
 
     [Test]
+    [Description("Tests that comparison with malformed JSON is handled gracefully")]
     public void Compare_WithMalformedJson_ShouldHandleGracefully()
     {
         var expected = TestDataConstants.RealWorldExamples.TimeSeriesMetadata;

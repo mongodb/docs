@@ -10,6 +10,7 @@ public class TemplateAppTest
     private TemplateApp _example;
 
     [SetUp]
+    [Description("Initializes the MongoDB client and template app instance before each test")]
     public void Setup()
     {
         var connectionString = Env.GetString("CONNECTION_STRING",
@@ -20,6 +21,7 @@ public class TemplateAppTest
     }
 
     [Test]
+    [Description("Tests that the Aggregation template app produces the expected filtered output with correct count and values")]
     public void TestAppProducesExpectedOutput()
     {
         var results = _example.RunApp();
@@ -32,6 +34,7 @@ public class TemplateAppTest
     }
 
     [TearDown]
+    [Description("Cleans up the test database and disposes the MongoDB client after each test")]
     public void TearDown()
     {
         // Drop the database after the test completes  

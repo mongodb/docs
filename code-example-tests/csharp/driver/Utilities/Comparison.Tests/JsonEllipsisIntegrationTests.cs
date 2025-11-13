@@ -11,6 +11,7 @@ namespace Utilities.Comparison.Tests;
 public class JsonEllipsisIntegrationTests
 {
     [Test]
+    [Description("Tests that JSON objects with ellipsis patterns match correctly with additional properties")]
     public void JsonEllipsisPattern_ObjectWithEllipsis_ShouldMatch()
     {
         var expected = """
@@ -24,6 +25,7 @@ public class JsonEllipsisIntegrationTests
     }
 
     [Test]
+    [Description("Tests that JSON arrays with ellipsis patterns match correctly with additional elements")]
     public void JsonEllipsisPattern_ArrayWithEllipsis_ShouldMatch()
     {
         var expected = """
@@ -45,6 +47,7 @@ public class JsonEllipsisIntegrationTests
     }
 
     [Test]
+    [Description("Tests that empty arrays with ellipsis patterns match correctly")]
     public void JsonEllipsisPattern_EmptyArrayWithEllipsis_ShouldMatch()
     {
         var expected = "[...]";
@@ -54,6 +57,7 @@ public class JsonEllipsisIntegrationTests
     }
 
     [Test]
+    [Description("Tests that empty objects with ellipsis patterns match correctly")]
     public void JsonEllipsisPattern_EmptyObjectWithEllipsis_ShouldMatch()
     {
         var expected = "{ ... }";
@@ -63,6 +67,7 @@ public class JsonEllipsisIntegrationTests
     }
 
     [Test]
+    [Description("Tests that restaurant document style JSON with ellipsis patterns matches correctly")]
     public void JsonEllipsisPattern_RestaurantDocumentStyle_ShouldMatch()
     {
         var expected = """
@@ -84,6 +89,7 @@ public class JsonEllipsisIntegrationTests
     }
 
     [Test]
+    [Description("Tests that user management scenario JSON with nested ellipsis patterns matches correctly")]
     public void JsonEllipsisPattern_UserManagementScenario_ShouldMatch()
     {
         var expected = """
@@ -111,6 +117,7 @@ public class JsonEllipsisIntegrationTests
     }
 
     [Test]
+    [Description("Tests that nested arrays with ellipsis patterns match correctly")]
     public void JsonEllipsisPattern_NestedArrayWithEllipsis_ShouldMatch()
     {
         var expected = """
@@ -132,6 +139,7 @@ public class JsonEllipsisIntegrationTests
     }
 
     [Test]
+    [Description("Tests that deeply nested JSON structures with ellipsis patterns match correctly")]
     public void JsonEllipsisPattern_DeepNestedStructures_ShouldMatch()
     {
         var expected = """
@@ -183,6 +191,7 @@ public class JsonEllipsisIntegrationTests
     }
 
     [Test]
+    [Description("Tests that restaurant documents with additional data match correctly against ellipsis patterns")]
     public void JsonEllipsisPattern_RestaurantDocuments_WithAdditionalData_ShouldMatch()
     {
         var expected = TestDataConstants.RealWorldExamples.RestaurantDocuments;
@@ -198,6 +207,7 @@ public class JsonEllipsisIntegrationTests
     }
 
     [Test]
+    [Description("Tests that restaurant documents with missing required data should not match")]
     public void JsonEllipsisPattern_RestaurantDocuments_WithMissingRequiredData_ShouldNotMatch()
     {
         var expected = TestDataConstants.RealWorldExamples.RestaurantDocuments;
@@ -212,6 +222,7 @@ public class JsonEllipsisIntegrationTests
     }
 
     [Test]
+    [Description("Tests that complex arrays with nested ellipsis patterns match correctly")]
     public void JsonEllipsisPattern_ComplexArrayWithNestedEllipsis_ShouldMatch()
     {
         var expected = """
@@ -233,6 +244,7 @@ public class JsonEllipsisIntegrationTests
     }
 
     [Test]
+    [Description("Tests that non-JSON strings should not apply JSON ellipsis patterns")]
     public void JsonEllipsisPattern_NonJsonString_ShouldNotApply()
     {
         var expected = "This is a regular string with ellipsis ...";
@@ -242,6 +254,7 @@ public class JsonEllipsisIntegrationTests
     }
 
     [Test]
+    [Description("Tests that validation fails when required values are missing from JSON patterns")]
     public void JsonEllipsisPattern_ValidationFailure_WithMissingRequiredValues()
     {
         var expected = """
@@ -261,6 +274,7 @@ public class JsonEllipsisIntegrationTests
     }
 
     [Test]
+    [Description("Tests that successful matches occur when all required fields are present with ellipsis patterns")]
     public void JsonEllipsisPattern_SuccessfulMatch_WithAllRequiredFields()
     {
         var expected = """
