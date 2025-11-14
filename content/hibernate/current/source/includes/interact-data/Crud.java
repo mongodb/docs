@@ -17,7 +17,7 @@ public class Crud {
         var myMovie = new Movie();
         myMovie.setTitle("Knives Out");
         myMovie.setYear(2019);
-        myMovie.setCast(new String[]{"Ana de Armas", "Daniel Craig", "Chris Evans"});
+        myMovie.setCast(List.of("Ana de Armas", "Daniel Craig", "Chris Evans"));
         myMovie.setPlot("Detective Benoit Blanc investigates the mysterious death of crime novelist Harlan Thrombey, " +
                 "unraveling lies as every Thrombey family member becomes a suspect.");
         session.persist(myMovie);
@@ -28,7 +28,7 @@ public class Crud {
         var myMovie = new Movie();
         myMovie.setTitle("Knives Out");
         myMovie.setYear(2019);
-        myMovie.setCast(new String[]{"Ana de Armas", "Daniel Craig", "Chris Evans"});
+        myMovie.setCast(List.of("Ana de Armas", "Daniel Craig", "Chris Evans"));
         myMovie.setPlot("Detective Benoit Blanc investigates the mysterious death of crime novelist Harlan Thrombey, " +
                 "unraveling lies as every Thrombey family member becomes a suspect.");
         entityManager.persist(myMovie);

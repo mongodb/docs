@@ -49,8 +49,16 @@ public class Transaction {
 
         var newMovie = new Movie();
         newMovie.setTitle("Lady Bird");
+        newMovie.setYear(2017);
         session.persist(newMovie);
 
+        var movie = session.createQuery("from Movie where title = :t", Movie.class)
+                .setParameter("t", "Black Swan")
+                .getSingleResult();
+        var currentCast = new ArrayList<>(movie.getCast());
+        currentCast.add("Winona Ryder");
+        movie.setCast(currentCast);
+        
         tx.commit();
         session.close();
         sf.close();
@@ -65,6 +73,11 @@ public class Transaction {
         // Your ObjectId value might differ
         Movie movieToDelete = entityManager.find(Movie.class, new ObjectId("573a1399f29313caabcedc5d"));
         entityManager.remove(movieToDelete);
+
+        var addMovie = new Movie();
+        addMovie.setTitle("The Favourite");
+        addMovie.setYear(2018);
+        entityManager.persist(addMovie);
 
         entityManager.getTransaction().commit();
         entityManager.close();

@@ -2,6 +2,7 @@ package org.example;
 
 import com.mongodb.hibernate.annotations.ObjectIdGenerator;
 import org.bson.types.ObjectId;
+import java.util.List;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -16,10 +17,10 @@ public class Movie {
 	private String title;
 	private String plot;
 	private int year;
-	private String[] cast;
+	private List<String> cast;
 
 
-	public Movie(String title, String plot, int year, String[] cast) {
+	public Movie(String title, String plot, int year, List<String> cast) {
  		this.title = title;
 		this.plot = plot;
 		this.year = year;
@@ -58,11 +59,11 @@ public class Movie {
 		this.year = year;
 	}
 
-	public String[] getCast() {
+	public List<String> getCast() {
 		return cast;
 	}
 	
-	public void setCast(String[] cast) {
+	public void setCast(List<String> cast) {
 		this.cast = cast;
 	}
 }

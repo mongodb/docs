@@ -6,6 +6,7 @@ The ``Movie`` entity has the following definition:
 
    import com.mongodb.hibernate.annotations.ObjectIdGenerator;
    import org.bson.types.ObjectId;
+   import java.util.List;
 
    import jakarta.persistence.Entity;
    import jakarta.persistence.Id;
@@ -20,10 +21,10 @@ The ``Movie`` entity has the following definition:
       private String title;
       private String plot;
       private int year;
-      private String[] cast;
+      private List<String> cast;
 
 
-      public Movie(String title, String plot, int year, String[] cast) {
+      public Movie(String title, String plot, int year, List<String> cast) {
          this.title = title;
          this.plot = plot;
          this.year = year;
@@ -62,11 +63,11 @@ The ``Movie`` entity has the following definition:
          this.year = year;
       }
 
-      public String[] getCast() {
+      public List<String> getCast() {
          return cast;
       }
-      
-      public void setCast(String[] cast) {
+
+      public void setCast(List<String> cast) {
          this.cast = cast;
       }
    }

@@ -52,7 +52,8 @@ public class NativeQuery {
                     plot: 1,
                     year: 1,
                     runtime: 1,
-                    cast: 1
+                    cast: 1,
+                    runtimeHours: 1
                 }}
             ]
         }
