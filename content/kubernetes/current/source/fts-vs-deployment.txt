@@ -14,7 +14,7 @@ Deploy MongoDB Search and Vector Search
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 You can deploy |text-search| and |vector-search| in your |k8s| cluster
@@ -105,13 +105,55 @@ Pre-Requisites
 In order to leverage |text-search| and |vector-search| in your MongoDB
 Enterprise deployment, you must have the following:
 
-- Fully functional MongoDB 8.0.10+ replica set deployed in one of the
+- Fully functional MongoDB 8.0.14+ replica set deployed in one of the
   following ways:  
 
   - Inside a |k8s| cluster using the |k8s-op-short|
   - Outside a |k8s| cluster
 
 - |com| Instance
+
+Before you begin, consider the following:
+
+.. collapsible::
+   :heading: Considerations
+   :sub_heading: Describes storage, network, resource, Kubernetes version and compatibility, namespace and RBAC, and cluster DNS requirements.
+   :expanded: false
+
+   - You must have a working ``StorageClass`` for the creation of
+     persistent volumes in the|k8s| cluster. Without this, your
+     ``PersistentVolumeClaims`` might remain pending and MongoDB might
+     not have durable storage. 
+
+   - You must have a correctly configured cluster networking. Services
+     such as ClusterIP, NodePort, or LoadBalancer must be able to route
+     traffic. If external clients need access, set up an ingress or
+     load balancer.
+
+   - Your database and search nodes must have enough CPU, memory, and
+     disk space allocated because MongoDB database, and |text-search|
+     and |vector-search| workloads are resource-intensive. We recommend
+     using requests and limits in your Pod specs to avoid eviction or
+     throttling. 
+
+   - Your |k8s| version must be supported by the MongoDB operator or
+     Helm chart you want to use. Some CRDs or APIs differ across
+     versions. To learn more, see :ref:`k8s-compatibility`.
+
+   - You must create any required :abbr:`RBAC (Role-Based Access
+     Control)` roles and role bindings so that the |k8s-op-short| and
+     processes running within the Pods can manage resources.
+
+.. collapsible::
+   :heading: Limitations
+   :sub_heading: Describes limitations when deploying MongoDB Search and Vector Search.
+   :expanded: false
+
+   You can't deploy |text-search| and |vector-search| on the following
+   architectures: 
+
+   - IBM Power (ppc64le)
+   - IBM Z (s390x)
 
 Configuration Tasks  
 ~~~~~~~~~~~~~~~~~~~
@@ -335,7 +377,7 @@ replica set.
    |k8s| Configuration 
    ```````````````````
 
-   2. Configure and apply the ``MongoDBSearch`` :abbr:`CR (Custom
+   1. Configure and apply the ``MongoDBSearch`` :abbr:`CR (Custom
       Resource)` with ``spec.source.external`` pointing to your external
       MongoDB hosts.  
    #. Create a |k8s| secret for the search synchronization user's password.

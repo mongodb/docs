@@ -479,14 +479,26 @@ const tocData: TocItem[] = [
         versions: { excludes: ['v1.1', 'v1.2', 'v1.3'] },
         items: [
           {
-            label: 'Install and Use with MongoDB Enterprise Edition',
-            contentSite: 'mck',
-            url: '/docs/kubernetes/:version/tutorial/install-fts-vs-with-enterprise',
+            label: "Install and Use with MongoDB Community Edition",
+            contentSite: "mck",
+            url: "/docs/kubernetes/:version/tutorial/install-fts-vs-with-community",
+            versions: { excludes: ["v1.1", "v1.2", "v1.3", "v1.4", "v1.5"] },
+          },
+          {
+            label: "Install and Use with MongoDB Enterprise Edition",
+            contentSite: "mck",
+            url: "/docs/kubernetes/:version/tutorial/install-fts-vs-with-enterprise",
           },
           {
             label: 'Install and Use with External MongoDB Enterprise Edition',
             contentSite: 'mck',
             url: '/docs/kubernetes/:version/tutorial/install-fts-vs-with-external-enterprise',
+          },
+          {
+            label: 'Migrate External MongoDB Enterprise to Use gRPC',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/tutorial/migrate-fts-vs-with-external-mongod-to-grpc',
+            versions: { excludes: ["v1.1", "v1.2", "v1.3", "v1.4", "v1.5"] },
           },
           {
             label: 'Use Search & Vector Search',

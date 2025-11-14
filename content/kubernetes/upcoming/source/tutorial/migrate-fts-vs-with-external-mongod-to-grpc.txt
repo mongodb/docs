@@ -1,0 +1,83 @@
+:noprevnext:
+
+.. _k8s-fts-vs-migrate-external-enterprise:
+
+=======================================================================================================
+Migrate |text-search| and |vector-search| Configuration for External MongoDB Enterprise Edition to gRPC 
+=======================================================================================================
+
+.. meta::
+   :description: Migrate MongoDB Search and Vector Search configuration for external MongoDB server to gRPC.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Starting in |k8s-op| v1.6, |text-search| and |vector-search| uses the
+gRPC protocol for search index queries and index management commands
+issued by ``mongod``. The |k8s-op-short| automatically migrates MongoDB
+instances it manages directly on |k8s|. However, if you deployed the
+MongoDB Server outside of the |k8s| cluster, you must update the
+manually applied ``setParameter`` startup options to use the new
+endpoints and protocol options for gRPC.
+
+Before You Begin 
+----------------
+
+You must upgrade your external MongoDB Enterprise Edition to v8.2 or
+later before upgrading your |k8s-op| to v1.6.
+
+Migrate Your External MongoDB Enterprise Edition Server Configuration
+---------------------------------------------------------------------
+
+Once you upgrade |k8s-op| to v1.6, the new version of |k8s-op-short|:
+
+- Reconciles existing MongoDBSearch resources.
+- Toggles the new gRPC protocol option. 
+
+When the MongoDBSearch resource is in the ``Running`` state, you can 
+perform the following actions to migrate your external MongoDB
+Enterprise Edition server configuration: 
+
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Update the ports in the |k8s| Service.
+
+      In the ``LoadBalancer`` service that you created in :ref:`step 4
+      <k8s-deploy-search-for-external-mdb>` to enable external access to
+      MongoDBSearch service, update the ``port`` and ``targetPort``
+      mapping from ``27027`` to ``27028``.  
+
+   .. step:: Remove the keyfile reference.
+
+      In the MongoDBSearch resource that you created in :ref:`step 3
+      <k8s-deploy-search-for-external-mdb>`, remove the 
+      ``spec.source.external.keyfileSecretRef`` field. You can also
+      delete the |k8s| secret that was referenced in this field. 
+
+   .. step:: Update parameters in |com| instance.
+
+      In your |com| deployment :ref:`configuration
+      <k8s-search-set-parameters>`, make the following changes 
+      to the ``setParameter`` startup options and deploy the changes:
+
+      a. Modify ``mongotHost`` and ``searchIndexManagementHostAndPort``
+         options to use port number ``27028``. 
+
+      #. Add a new option named ``useGrpcForSearch`` and set it to
+         ``true``. 
+
+      After deploying the changes, wait for the rolling restart of the
+      replica set to complete.
+      
+   .. step:: Verify |text-search| and |vector-search|. 
+
+      Ensure |text-search| and |vector-search| are working correctly by
+      running the :pipeline:`$listSearchIndexes` aggregation. Verify
+      that the output contains the search indexes you had created before
+      migrating. 
