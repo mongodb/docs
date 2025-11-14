@@ -121,7 +121,7 @@ stream processor named ``solarDemo``:
          :pipeline:`$group` stage to derive the maximum temperature and
          the maximum, minimum, and average wattages of each solar device
          over 10-second intervals, then writes the results to a
-         collection named ``solarColl`` in the ``solarDb`` database of
+         collection named ``solarColl`` in the ``Cluster0`` database of
          your connected {+service+} cluster.
          
          This means, for example, that when the ``$group`` stage
@@ -171,54 +171,11 @@ stream processor named ``solarDemo``:
                   "$merge": {
                     "into": {
                       "connectionName": "mongodb1",
-                      "db": "solarDb",
+                      "db": "Cluster0",
                       "coll": "solarColl"
-                    }
+                    },
+                    "parallelism":16,
                   }
                 }
               ]
             }
-
-            [
-              {
-                "$source": {
-                  "connectionName": "sample_stream_solar"
-                }
-              },
-              {
-                "$tumblingWindow": {
-                  "interval": {
-                    "size": 10,
-                    "unit": "second"
-                  },
-                  "pipeline": [
-                    {
-                      "$group": {
-                        "_id": "$group_id",
-                        "avg_watts": {
-                          "$avg": "$obs.watts"
-                        },
-                        "max_temp": {
-                          "$avg": "$obs.temp"
-                        },
-                        "max_watts": {
-                          "$max": "$obs.watts"
-                        },
-                        "min_watts": {
-                          "$min": "$obs.watts"
-                        }
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "$merge": {
-                  "into": {
-                    "coll": "solarColl",
-                    "connectionName": "mongodb1",
-                    "db": "solarDb"
-                  }
-                }
-              }
-            ]
