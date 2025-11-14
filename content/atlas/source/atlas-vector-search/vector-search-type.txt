@@ -24,597 +24,138 @@ How to Index Fields for Vector Search
    :depth: 2
    :class: singlecol
 
-You can use the ``vectorSearch`` type to index fields for running 
-:pipeline:`$vectorSearch` queries. You can define the index for the
-vector embeddings that you want to query and any additional fields
-that you want to use to :ref:`pre-filter <avs-types-filter>` your data. 
-Filtering your data is useful to narrow the scope of your semantic search 
-and ensure that certain vector embeddings are not considered for comparison, 
-such as in a multi-tenant environment.
+.. composable-tutorial::
+   :options: interface-avs, language-avs
+   :defaults: atlas-ui, python   
 
-You can use the {+atlas-ui+}, {+atlas-admin-api+}, 
-{+atlas-cli+}, {+mongosh+}, or a supported :driver:`MongoDB Driver </>`
-to :ref:`create <avs-create-index>` your {+avs+} index. 
+   .. selected-content::
+      :selections: None, None   
 
-.. note:: 
+   .. include:: /includes/avs/avs-vector-search-type-considerations.rst
 
-   You can't use the deprecated :ref:`knnBeta <knn-beta-ref>` operator to query
-   fields indexed using the ``vectorSearch`` type index definition. 
+   .. _avs-create-index:
+   .. _atlas-ui-create-vector-search:    
 
-.. _avs-types-vector-search-considerations:
+   Create a {+avs+} Index
+   --------------------------------------
 
-Considerations 
---------------
+   You can create a {+avs+} index for all collections that contain vector
+   embeddings less than or equal to 8192 dimensions in length for any kind
+   of data along with other data on your {+cluster+} through the
+   {+atlas-ui+}, {+atlas-admin-api+}, {+atlas-cli+}, {+mongosh+},
+   or a supported :driver:`MongoDB Driver </>`.
 
-In a ``vectorSearch`` type index definition, you can index arrays with
-only a single element. You can't index embedding fields inside arrays of documents
-or embedding fields inside arrays of objects. You can index embedding fields inside
-documents using the dot notation. The same embedding field can't be indexed 
-multiple times in the same index defintion.
+   .. _avs-create-index-prerequisites:
 
-Before indexing your embeddings, we recommend converting your embeddings
-to |bson| :manual:`BinData </reference/method/BinData/>` vectors with
-subtype ``float32``, ``int1``, or ``int8`` for efficient storage
-in your {+cluster+}.  To learn more, see :ref:`how to convert
-your embeddings to BSON vectors <avs-bindata-vector-subtype>`. 
+   Prerequisites
+   ~~~~~~~~~~~~~
 
-.. |search-type| replace:: {+avs+}
+   To create a {+avs+} index, you must have a cluster with
+   the following prerequisites: 
 
-.. include:: /includes/search-shared/fact-fts-avs-index-resource-consumption.rst
+   - MongoDB version ``6.0.11``, ``7.0.2``, or higher
+   - A collection for which to create the {+avs+} index 
 
-To learn more about sizing considerations for your indexes, 
-see :ref:`avs-index-memory-requirements`.
+   .. |command-type| replace:: create
+   .. |compatibility-table| replace:: :ref:`avs-index-supported-drivers`
+   .. |search-type| replace:: {+avs+}
 
-If you make changes to the collection for which you defined {+avs+} 
-index, the latest data might not be available immediately for queries.
-However, ``mongot`` monitors the change streams and updates stored
-copies of data, making {+avs+} indexes eventually consistent. You can
-view the number of indexed :guilabel:`Documents` in the {+atlas-ui+} 
-to verify that changes to the collection are reflected in the index.
+   .. include:: /includes/search-shared/fact-search-commands-cluster-tier.rst
 
-Alternatively, you can create a new index after adding new documents to
-your collection and wait for the index to become queryable. You can also
-implement a polling logic similar to the following to ensure that the
-index is ready for querying before attempting to use it.
+   .. _avs-create-index-access:
 
-.. example:: 
+   Required Access
+   ~~~~~~~~~~~~~~~
 
-   .. code-block:: 
+   You need the :authrole:`Project Data Access Admin` or higher role to create
+   and manage {+avs+} indexes.
 
-      console.log("Polling to check if the index is ready. This may take up to a minute.")
-      let isQueryable = false;
-      while (!isQueryable) {
-        const cursor = collection.listSearchIndexes();
-        for await (const index of cursor) {
-          if (index.name === result) {
-            if (index.queryable) {
-              console.log(`${result} is ready for querying.`);
-              isQueryable = true;
-            } else {
-              await new Promise(resolve => setTimeout(resolve, 5000));
-            }
-          }
-        }
-      }
+   Index Limitations
+   ~~~~~~~~~~~~~~~~~
 
-.. _avs-index-supported-drivers:
-.. _avs-create-index-supported-clients:
+   .. include:: /includes/search-shared/fact-fts-shared-tier-limitations.rst
 
-Supported Clients 
------------------
+   We recommend that you create no more than 2,500 search indexes on a 
+   single ``M10+`` cluster.
 
-You can create and manage {+avs+} indexes through the {+atlas-ui+},
-{+mongosh+}, {+atlas-cli+}, {+atlas-admin-api+}, and the following 
-:driver:`MongoDB Drivers </>`:
+   .. _avs-types-vector-search-egs:
+   .. _avs-create-index-procedure:
 
-.. include:: /includes/avs/list-table-index-supported-drivers-avs.rst
+   Procedure 
+   ~~~~~~~~~
 
-.. _avs-index-definition:
+   .. include:: /includes/avs/note-create-avs-index-procedure.rst
 
-Syntax 
-------
-
-The following syntax defines the ``vectorSearch`` index type:
-
-.. code-block:: json
-   :copyable: true 
-   :linenos:
-
-   {
-     "fields":[ 
-       {
-         "type": "vector",
-         "path": "<field-to-index>",
-         "numDimensions": <number-of-dimensions>,
-         "similarity": "euclidean | cosine | dotProduct",
-         "quantization": "none | scalar | binary",
-         "hnswOptions": {
-           "maxEdges": <number-of-connected-neighbors>,
-           "numEdgeCandidates": <number-of-nearest-neighbors>
-         }
-       },
-       {
-         "type": "filter",
-         "path": "<field-to-index>"
-       },
-       ...
-     ]
-   }
-
-.. _avs-types-vector-search-options:
-
-{+avs+} Index Fields
-----------------------------------
-
-The {+avs+} index definition takes the following fields:
-
-.. list-table::
-   :widths: 25 15 15 45
-   :header-rows: 1
-
-   * - Option
-     - Type 
-     - Necessity
-     - Purpose
-
-   * - ``fields``
-     - Array of field definition documents 
-     - Required 
-     - Definitions for the vector and filter fields to index, one definition per document.
-       Each field definition document specifies the ``type``, ``path``, and other configuration options for the field to index. 
-       
-       The ``fields`` array must contain at least one ``vector``-type field definition. You can add additional
-       ``filter``-type field definitions to your array to pre-filter your data. 
-       
-   * - | ``fields.``
-       | ``type``
-     - String 
-     - Required 
-     - Field type to use to index fields for :pipeline:`$vectorSearch`.
-       You can specify one of the following values:  
-       
-       - ``vector`` - for fields that contain vector embeddings.
-       - ``filter`` - for additional fields to filter on. You
-         can filter on {+avs-filter-types+}.
-
-       To learn more, see :ref:`avs-types-vector` and :ref:`avs-types-filter`.
-
-   * - | ``fields.``
-       | ``path``
-     - String 
-     - Required 
-     - Name of the field to index. For nested fields, use dot notation
-       to specify path to embedded fields.
-
-   * - | ``fields.``
-       | ``numDimensions``
-     - Int
-     - Required
-     - Number of vector dimensions that {+avs+} enforces at index-time and
-       query-time. You can set this field only for ``vector``-type fields.
-       You must specify a value less than or equal to ``8192``.
-       
-       For indexing quantized vectors or :manual:`BinData </reference/method/BinData/>`,
-       you can specify one of the following values:
-
-       - ``1`` to ``8192`` for ``int8`` vectors for ingestion.
-       - Multiple of ``8`` for ``int1`` vectors for ingestion.
-       - ``1`` to ``8192`` for ``binData(float32)`` and
-         ``array(float32)`` vectors for automatic scalar quantization.
-       - Multiple of ``8`` for ``binData(float32)`` and
-         ``array(float32)`` vectors for automatic binary quantization.
-       
-       The embedding model you choose determines the number of dimensions
-       in your vector embeddings, with some models having multiple options 
-       for how many dimensions are output. To learn more, see :ref:`choose-embedding-method`. 
-
-   * - | ``fields.``
-       | ``similarity``
-     - String
-     - Required
-     - .. _fields-similarity:
-      
-       Vector similarity function to use to search for top K-nearest 
-       neighbors. You can set this field only for ``vector``-type fields.
-       
-       You can specify one of the following values:
-
-       - ``euclidean`` - measures the distance between ends of vectors. 
-       - ``cosine`` - measures similarity based on the angle between 
-         vectors. 
-       - ``dotProduct`` - measures similarity like ``cosine``, but takes 
-         into account the magnitude of the vector.  
-         
-       To learn more, see :ref:`avs-similarity-functions`.
-
-   * - | ``fields.``
-       | ``quantization``
-     - String
-     - Optional
-     - .. _fields-quantization:
-
-       Type of automatic vector quantization for your vectors. Use
-       this setting only if your embeddings are ``float`` or ``double``
-       vectors. 
-       
-       You can specify one of the following values:  
-
-       - ``none`` - Indicates no automatic quantization for the vector
-         embeddings. Use this setting if you have pre-quantized vectors
-         for ingestion. If omitted, this is the default value. 
-       - ``scalar`` - Indicates scalar quantization, which transforms
-         values to 1 byte integers.    
-       - ``binary`` - Indicates binary quantization, which transforms
-         values to a single bit. To use this value,
-         ``numDimensions`` must be a multiple of 8. 
-         
-         If precision is critical, select ``none`` or ``scalar`` instead
-         of ``binary``. 
-
-       To learn more, see :ref:`avs-quantization`.
-
-   * - | ``fields.``
-       | ``hnswOptions`` 
-     - Object 
-     - Optional 
-     - Parameters to use for |hnsw| graph construction. If omitted, uses
-       the default values for the ``maxEdges`` and ``numEdgeCandidates``
-       parameters. 
-
-       :gold:`IMPORTANT:` This is available as a Preview feature. Modifying 
-       the default values might negatively impact your {+avs+} index and queries.
-
-   * - | ``fields.`` 
-       | ``hnswOptions.`` 
-       | ``maxEdges``
-     - Int
-     - Optional 
-     - Maximum number of edges (or connections) that a node can have in
-       the |hnsw| graph. Value can be between ``16`` and ``64``, both 
-       inclusive. If omitted, defaults to ``16``. For example, for a
-       value of ``16``, each node can have a maximum of sixteen outgoing
-       edges at each layer of the |hnsw| graph.
-
-       A higher number improves :term:`recall` (accuracy of search
-       results) because the graph is better connected. However, this
-       slows down query speed because of the number of neighbors to
-       evaluate per graph node, increases the memory for the |hnsw| graph because each
-       node stores more connections, and slows down indexing because
-       {+avs+} evaluates more neighbors and adjusts for every new node
-       added to the graph. 
-
-   * - | ``fields.``
-       | ``hnswOptions.``
-       | ``numEdgeCandidates``
-     - Int
-     - Optional
-     - Analogous to ``numCandidates`` at query-time, this parameter
-       controls the maximum number of nodes to evaluate to find the
-       closest neighbors to connect to a new node. Value can be between
-       ``100`` and ``3200``, both inclusive. If omitted, defaults to
-       ``100``. 
-
-       A higher number provides a graph with high-quality connections,
-       which can improve search quality (recall), but it can also
-       negatively affect query latency. 
-
-.. _avs-types-vector:
-
-About the ``vector`` Type 
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Your index definition's ``vector`` field must contain an array of numbers of 
-*one* of the following types: 
-
-- |bson| ``double`` 
-- |bson| :manual:`BinData </reference/method/BinData/>` ``vector``
-  subtype ``float32``  
-- |bson| :manual:`BinData </reference/method/BinData/>` ``vector``
-  subtype ``int1`` 
-- |bson| :manual:`BinData </reference/method/BinData/>` ``vector``
-  subtype ``int8`` 
-
-.. note:: 
-
-   To learn more about generating |bson| :manual:`BinData
-   </reference/method/BinData/>` vectors with subtype ``float32``
-   ``int1`` or ``int8`` for your data, see 
-   :ref:`avs-bindata-vector-subtype`.
-
-You must index the vector field as the ``vector`` type inside the
-``fields`` array.
-
-The following syntax defines the ``vector`` field type: 
-
-.. code-block:: json
-   :copyable: true 
-   :linenos:
-   :emphasize-lines: 4-12
-
-   {
-     "fields":[ 
-       {
-         "type": "vector",
-         "path": <field-to-index>,
-         "numDimensions": <number-of-dimensions>,
-         "similarity": "euclidean | cosine | dotProduct",
-         "quantization": "none | scalar | binary",
-         "hnswOptions": {
-           "maxEdges": <number-of-connected-neighbors>,
-           "numEdgeCandidates": <number-of-nearest-neighbors>
-         }
-       },
-       ...
-     ]
-   }
-
-.. _avs-similarity-functions:
-
-About the Similarity Functions 
-``````````````````````````````
-
-{+avs+} supports the following similarity functions: 
-
-- ``euclidean`` - measures the distance between ends of vectors. This
-  value allows you to measure similarity based on varying dimensions. To
-  learn more, see :wikipedia:`Euclidean <Euclidean_distance>`.  
-- ``cosine`` - measures similarity based on the angle between  vectors.
-  This value allows you to measure similarity that isn't scaled by
-  magnitude. You can't use zero magnitude vectors with ``cosine``. To
-  measure cosine similarity, we recommend that you normalize your
-  vectors and use ``dotProduct`` instead.  
-- ``dotProduct`` - measures similarity like ``cosine``, but takes into
-  account the magnitude of the vector. If you normalize the magnitude,
-  ``cosine`` and ``dotProduct`` are almost identical in measuring
-  similarity.   
-         
-  To use ``dotProduct``, you must normalize the vector to unit length at
-  index-time and query-time.  
-
-The following table shows the similarity functions for the various types:
-
-.. list-table:: 
-   :widths: 25 25 25 25 
-   :header-rows: 1 
-
-   * - Vector Embeddings Type
-     - ``euclidean``
-     - ``cosine``  
-     - ``dotProduct``
-
-   * - ``binData(int1)`` :icon-fa5:`star`
-     - √
-     - 
-     - 
-
-   * - ``binData(int8)`` :icon-fa5:`star`
-     - √
-     - √
-     - √
-
-   * - ``binData(float32)`` :icon-fa5:`asterisk`
-     - √
-     - √
-     - √
-
-   * - ``array(float32)`` :icon-fa5:`asterisk`
-     - √
-     - √
-     - √
-
-:icon-fa5:`star` For vector ingestion.
-
-:icon-fa5:`asterisk` For automatic scalar or binary quantization.
-
-For best performance, check your embedding model to determine which
-similarity function aligns with your embedding model's training
-process. If you don't have any guidance, start with ``dotProduct``.
-Setting ``fields.similarity`` to the ``dotProduct`` value allows you
-to efficiently measure similarity based on both angle and magnitude.
-``dotProduct`` consumes less computational resources than ``cosine``
-and is efficient when vectors are of unit length. However, if your
-vectors aren't normalized, evaluate the similarity scores in the
-results of a sample query for ``euclidean`` distance and ``cosine``
-similarity to determine which corresponds to reasonable results. 
-
-.. _avs-types-filter:
-
-About the ``filter`` Type 
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can optionally index additional fields to pre-filter your data. 
-You can filter on {+avs-filter-types+}. Filtering your data is useful to
-narrow the scope of your semantic search and ensure that not all vectors
-are considered for comparison. It reduces the number of documents
-against which to run similarity comparisons, which can decrease query
-latency and increase the accuracy of search results. 
-
-You must index the fields that you want to filter by using the
-``filter`` type inside the ``fields`` array. 
-
-The following syntax defines the ``filter`` field type: 
-
-.. code-block:: json
-   :copyable: true 
-   :linenos:
-   :emphasize-lines: 8-9
-
-   {
-     "fields":[ 
-       {
-         "type": "vector",
-         ...
-       },
-       {
-         "type": "filter",
-         "path": "<field-to-index>"
-       },
-       ...
-     ]
-   }
-
-.. include:: /includes/avs/facts/fact-avs-pre-filtering-score-impact.rst
-
-.. tabs-selector:: drivers
-   :default-tabid: python
-
-.. _avs-create-index:
-.. _atlas-ui-create-vector-search:
-
-Create a {+avs+} Index
---------------------------------------
-
-You can create a {+avs+} index for all collections that contain vector
-embeddings less than or equal to 8192 dimensions in length for any kind
-of data along with other data on your {+cluster+} through the
-{+atlas-ui+}, {+atlas-admin-api+}, {+atlas-cli+}, {+mongosh+},
-or a supported :driver:`MongoDB Driver </>`.
-
-.. _avs-create-index-prerequisites:
-
-Prerequisites
-~~~~~~~~~~~~~
-
-To create a {+avs+} index, you must have a cluster with
-the following prerequisites: 
-
-- MongoDB version ``6.0.11``, ``7.0.2``, or higher
-- A collection for which to create the {+avs+} index 
-
-.. |command-type| replace:: create
-.. |compatibility-table| replace:: :ref:`avs-index-supported-drivers`
-.. |search-type| replace:: {+avs+}
-
-.. include:: /includes/search-shared/fact-search-commands-cluster-tier.rst
-
-.. _avs-create-index-access:
-
-Required Access
-~~~~~~~~~~~~~~~
-
-You need the :authrole:`Project Data Access Admin` or higher role to create
-and manage {+avs+} indexes.
-
-Index Limitations
-~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/search-shared/fact-fts-shared-tier-limitations.rst
-
-We recommend that you create no more than 2,500 search indexes on a 
-single ``M10+`` cluster.
-
-.. _avs-types-vector-search-egs:
-.. _avs-create-index-procedure:
-
-Procedure 
-~~~~~~~~~
-
-----------
-
-.. |arrow| unicode:: U+27A4
-
-|arrow| Use the **Select your language** drop-down menu to select the
-client you want to use to create your index.
-
-----------
-
-.. note::
-
-   The procedure includes index definition examples for the 
-   ``embedded_movies`` collection in the ``sample_mflix`` database. If
-   you load the :ref:`sample data <mflix-embedded_movies>` on your
-   {+cluster+} and create the example {+avs+} indexes for this collection,
-   you can run the sample :pipeline:`$vectorSearch` queries against this
-   collection. To learn more about the sample queries that you can run,
-   see :ref:`$vectorSearch Examples <vectorSearch-agg-pipeline-egs>`. 
-
-.. |search-type| replace:: :guilabel:`Vector Search`
-.. |index-name| replace:: ``vector_index`` is the default index name. 
-            Index names must be unique within the namespace, regardless of the index type. 
-            If you already have an index named ``vector_index`` on
-            this collection, enter a different name.
-      
-.. |database-name| replace:: Select the database for which to create the index. For example, ``sample_mflix``.
-.. |collection-name| replace:: Select the collection for which to create the index. For example, ``embedded_movies``.
-.. |avs-namespace| replace:: ``sample_mflix.embedded_movies``
-.. |embedding-field-name| replace:: ``plot_embedding_voyage_3_large``
-   
-.. |similarity-method| replace:: :guilabel:`Dot Product`
-.. |quantization-method| replace:: :guilabel:`Scalar`
-.. |filter-fields| replace:: ``genres`` and  ``year`` fields
-
-.. tabs-drivers:: 
-
-   .. tab::  
-      :tabid: atlas-ui 
+   .. selected-content::
+      :selections: atlas-ui, None
 
       .. include:: /includes/avs/index-examples/steps-avs-create-index-atlas-ui.rst
 
-   .. tab::  
-      :tabid: atlas-api 
+   .. selected-content::
+      :selections: atlas-admin-api, None
 
       To create a {+avs+} index for a collection using the
       {+atlas-admin-api+}, send a ``POST`` request to the |fts|
       ``indexes`` endpoint with the required parameters. 
-      
+          
       .. literalinclude:: /includes/avs/index-management/create-index/create-index-api.sh 
          :language: shell
          :copyable:
          :linenos:
-      
+          
       To learn more about the syntax and parameters for the endpoint, see
       :oas-bump-atlas-op:`Create One {+fts+} Index <creategroupclustersearchindex>`.  
-      
+          
       .. example:: 
 
-         .. include:: /includes/avs/tutorial/avs-voyageai-index-description.rst
+        .. include:: /includes/avs/tutorial/avs-voyageai-index-description.rst
 
-         .. tabs:: 
+        .. tabs:: 
 
-            .. tab:: Basic Example
-               :tabid: basic
+           .. tab:: Basic Example
+             :tabid: basic
 
-               The following index definition indexes only the vector
-               embeddings field for performing vector search.
-                  
-               .. literalinclude:: /includes/avs/index-management/create-index/basic-example-api.sh 
-                  :language: shell
-                  :copyable:
-                  :linenos:
+             The following index definition indexes only the vector
+             embeddings field for performing vector search.
+                      
+             .. literalinclude:: /includes/avs/index-management/create-index/basic-example-api.sh 
+                :language: shell
+                :copyable:
+                :linenos:
 
-            .. tab:: Filter Example 
-               :tabid: advanced
+           .. tab:: Filter Example 
+             :tabid: advanced
 
-               This index definition indexes the following fields: 
-         
-               - A string field (``genres``) and a numeric field (``year``)
-                 for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding_voyage_3_large``) for
-                 performing vector search against pre-filtered data.
+             This index definition indexes the following fields: 
+            
+             - A string field (``genres``) and a numeric field (``year``)
+               for pre-filtering the data. 
+             - The vector embeddings field (``plot_embedding_voyage_3_large``) for
+               performing vector search against pre-filtered data.
 
-               .. literalinclude:: /includes/avs/index-management/create-index/filter-example-api.sh 
-                  :language: shell
-                  :copyable:
-                  :linenos:
+             .. literalinclude:: /includes/avs/index-management/create-index/filter-example-api.sh 
+                :language: shell
+                :copyable:
+                :linenos:
 
-   .. tab::  
-      :tabid: atlas-cli 
+   .. selected-content::
+      :selections: atlas-cli, None
 
       To create a {+avs+} index for a collection using the
       {+atlas-cli+} v1.14.3 or later, perform the following steps: 
 
       .. include:: /includes/avs/index-examples/steps-avs-create-index-acli.rst 
 
-   .. tab::
-      :tabid: shell
+   .. selected-content::
+      :selections: mongosh, None
 
       To create a {+avs+} index for a collection using {+mongosh+}
       v2.1.2 or later, perform the following steps:
 
       .. include:: /includes/avs/index-examples/steps-avs-create-index-mongosh.rst
 
-   .. tab::
-      :tabid: csharp
+   .. selected-content::
+      :selections: driver, csharp
 
       To create a {+avs+} index for a collection using the
       :driver:`C# </csharp/current/fundamentals/indexes/#atlas-search-indexes>`
@@ -622,8 +163,8 @@ client you want to use to create your index.
 
       .. include:: /includes/avs/index-examples/steps-avs-create-index-csharp.rst
 
-   .. tab::
-      :tabid: go
+   .. selected-content::
+      :selections: driver, go
 
       To create a {+avs+} index for a collection using the
       :driver:`MongoDB Go driver </go/current/fundamentals/indexes/>` 
@@ -631,8 +172,8 @@ client you want to use to create your index.
 
       .. include:: /includes/avs/index-examples/steps-avs-create-index-go.rst
 
-   .. tab::
-      :tabid: java-sync
+   .. selected-content::
+      :selections: driver, java-sync
 
       To create a {+avs+} index for a collection using the
       :driver:`MongoDB Java driver </java/sync/current/fundamentals/indexes/>`
@@ -640,8 +181,8 @@ client you want to use to create your index.
 
       .. include:: /includes/avs/index-examples/steps-avs-create-index-java.rst
 
-   .. tab::
-      :tabid: nodejs
+   .. selected-content::
+      :selections: driver, nodejs
 
       To create a {+avs+} index for a collection using the
       :driver:`MongoDB Node driver </node/current/fundamentals/indexes/>`
@@ -649,14 +190,14 @@ client you want to use to create your index.
 
       .. include:: /includes/avs/index-examples/steps-avs-create-index-nodejs.rst
 
-   .. tab::
-      :tabid: python
+   .. selected-content::
+      :selections: driver, python
 
       .. cta-banner::
-         :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes.ipynb
-         :icon: Code
+        :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes.ipynb
+        :icon: Code
 
-         Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes.ipynb>`.
+        Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes.ipynb>`.
 
       To create {+avs+} indexes for a collection using
       `PyMongo <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__
@@ -664,108 +205,97 @@ client you want to use to create your index.
 
       .. include:: /includes/avs/index-examples/steps-avs-create-index-pymongo.rst
 
-.. _avs-view-index:
+   .. _avs-view-index:
 
-View a {+avs+} Index
-------------------------------------
+   View a {+avs+} Index
+   ------------------------------------
 
-You can view {+avs+} indexes for all collections from the
-{+atlas-ui+}, {+atlas-admin-api+}, {+atlas-cli+}, {+mongosh+},
-or a supported :driver:`MongoDB Driver </>`.
+   You can view {+avs+} indexes for all collections from the
+   {+atlas-ui+}, {+atlas-admin-api+}, {+atlas-cli+}, {+mongosh+},
+   or a supported :driver:`MongoDB Driver </>`.
 
-.. _avs-view-index-access:
+   .. _avs-view-index-access:
 
-Required Access
-~~~~~~~~~~~~~~~
+   Required Access
+   ~~~~~~~~~~~~~~~
 
-You need the :authrole:`Project Search Index Editor` or higher role to view
-{+avs+} indexes. 
+   You need the :authrole:`Project Search Index Editor` or higher role to view
+   {+avs+} indexes. 
 
-.. |command-type| replace:: retrieve
-.. |search-type| replace:: {+avs+}
+   .. |command-type| replace:: retrieve
+   .. |search-type| replace:: {+avs+}
 
-.. include:: /includes/search-shared/fact-search-commands-cluster-tier.rst
+   .. include:: /includes/search-shared/fact-search-commands-cluster-tier.rst
 
-.. _avs-view-index-procedure:
+   .. _avs-view-index-procedure:
 
-Procedure
-~~~~~~~~~
+   Procedure
+   ~~~~~~~~~
 
-----------
-
-.. |arrow| unicode:: U+27A4
-
-|arrow| Use the **Select your language** drop-down menu to set the 
-language of the example in this section.
-
-----------
-
-.. tabs-drivers::
-
-   .. tab::
-      :tabid: atlas-ui 
+   .. selected-content::
+      :selections: atlas-ui, None
 
       .. include:: /includes/avs/index-examples/steps-avs-view-index-atlas-ui.rst
 
       The page displays the following details for the indexes on the page: 
 
       .. list-table:: 
-         :stub-columns: 1 
-         :widths: 20 80
+        :stub-columns: 1 
+        :widths: 20 80
 
-         * - Name 
-           - Label that identifies the index. 
+        * - Name 
+          - Label that identifies the index. 
 
-         * - Index Type
-           - Label that indicates a |fts| or {+avs+} index. Values
-             include:  
-     
-             - ``search`` for |fts| indexes.
-             - ``vectorSearch`` for {+avs+} indexes.
+        * - Index Type
+          - Label that indicates a |fts| or {+avs+} index. Values
+            include:  
+        
+            - ``search`` for |fts| indexes.
+            - ``vectorSearch`` for {+avs+} indexes.
 
-         * - Index Fields
-           - List that contains the fields that this index indexes.
+        * - Index Fields
+          - List that contains the fields that this index indexes.
 
-         * - Status
-           - Current state of the index on the primary node of the
-             {+cluster+}. For valid values, see
-             :ref:`avs-node-status-ref`. 
+        * - Status
+          - Current state of the index on the primary node of the
+            {+cluster+}. For valid values, see
+            :ref:`avs-node-status-ref`. 
 
-         * - Size
-           - Size of the index on the primary node.
+        * - Size
+          - Size of the index on the primary node.
 
-         * - Documents 
-           - Number of indexed documents out of the total number of
-             documents in the collection.
+        * - Documents 
+          - Number of indexed documents out of the total number of
+            documents in the collection.
 
-         * - Required Memory
-           - Approximate amount of memory required to run 
-             vector search queries.
+        * - Required Memory
+          - Approximate amount of memory required to run 
+            vector search queries.
 
-         * - Actions 
-           - Actions that you can take on the index. You can:
-     
-             - :ref:`avs-edit-index`
-             - :ref:`avs-delete-index`
+        * - Actions 
+          - Actions that you can take on the index. You can:
+        
+            - :ref:`avs-edit-index`
+            - :ref:`avs-delete-index`
 
-             You can't run queries in the :guilabel:`Search Tester` UI
-             against indexes of the ``vectorSearch`` type. If you click the
-             :guilabel:`Query` button, {+avs+} displays a sample
-             :pipeline:`$vectorSearch` that you can copy, modify, and run
-             in {+atlas-ui+} and using other
-             :ref:`supported clients <vectorSearch-agg-pipeline-clients>`. 
+            You can't run queries in the :guilabel:`Search Tester` UI
+            against indexes of the ``vectorSearch`` type. If you click the
+            :guilabel:`Query` button, {+avs+} displays a sample
+            :pipeline:`$vectorSearch` that you can copy, modify, and run
+            in {+atlas-ui+} and using other
+            :ref:`supported clients <vectorSearch-agg-pipeline-clients>`. 
 
-   .. tab:: 
-      :tabid: atlas-api 
+   .. selected-content::
+      :selections: atlas-admin-api, None
 
       To retrieve all the {+avs+} indexes for a collection using the
       {+atlas-admin-api+}, send a ``GET`` request to the |fts|
       ``indexes`` endpoint with the name of the database and collection. 
 
       .. literalinclude:: /includes/avs/index-management/return-index/get-indexes-api.sh
-         :language: shell
-         :copyable:
-         :linenos:
+        :language: shell
+        :copyable:
+        :linenos:
 
       To learn more about the syntax and parameters for the endpoint,
       see :oas-bump-atlas-op:`Return All {+fts+} Indexes for One
@@ -775,34 +305,34 @@ language of the example in this section.
       {+atlas-admin-api+}, send a ``GET`` request to the |fts|
       ``indexes`` endpoint with either the unique ID or name of the
       index (line 4) to retrieve. 
-      
+          
       .. literalinclude:: /includes/avs/index-management/return-index/get-index-api.sh
-         :language: shell
-         :copyable:
-         :linenos:
+        :language: shell
+        :copyable:
+        :linenos:
 
       To learn more about the syntax and parameters for the endpoint, 
       :oas-bump-atlas-op:`Get One By Name <getgroupclustersearchindexbyname>` and
       :oas-bump-atlas-op:`Get One By ID <getgroupclustersearchindex>`.
 
-   .. tab:: 
-      :tabid: atlas-cli 
+   .. selected-content::
+      :selections: atlas-cli, None
 
       To return {+avs+} indexes for a collection using {+atlas-cli+},
       perform the following steps: 
 
       .. include:: /includes/avs/index-examples/steps-avs-view-index-acli.rst
 
-   .. tab::
-      :tabid: shell
+   .. selected-content::
+      :selections: mongosh, None
 
       To view a {+avs+} index for a collection using {+mongosh+},
       perform the following steps:
 
       .. include:: /includes/avs/index-examples/steps-avs-view-index-mongosh.rst
 
-   .. tab::
-      :tabid: csharp
+   .. selected-content::
+      :selections: driver, csharp
 
       To view {+avs+} indexes for a collection using
       :driver:`C# </csharp/current/fundamentals/indexes/#list-search-indexes>`
@@ -810,8 +340,8 @@ language of the example in this section.
 
       .. include:: /includes/avs/index-examples/steps-avs-view-index-csharp.rst
 
-   .. tab::
-      :tabid: go
+   .. selected-content::
+      :selections: driver, go
 
       To view a {+avs+} index for a collection using 
       :driver:`MongoDB Go driver </go/current/fundamentals/indexes/>` 
@@ -819,8 +349,8 @@ language of the example in this section.
 
       .. include:: /includes/avs/index-examples/steps-avs-view-index-go.rst
 
-   .. tab::
-      :tabid: java-sync
+   .. selected-content::
+      :selections: driver, java-sync  
 
       To view a {+avs+} index for a collection using the
       :driver:`MongoDB Java driver </java/sync/current/fundamentals/indexes/>`
@@ -828,8 +358,8 @@ language of the example in this section.
 
       .. include:: /includes/avs/index-examples/steps-avs-view-index-java.rst
 
-   .. tab::
-      :tabid: nodejs
+   .. selected-content::
+      :selections: driver, nodejs
 
       To view a {+avs+} index for a collection using 
       :driver:`MongoDB Node driver </node/current/fundamentals/indexes/>` 
@@ -837,14 +367,14 @@ language of the example in this section.
 
       .. include:: /includes/avs/index-examples/steps-avs-view-index-nodejs.rst
 
-   .. tab::
-      :tabid: python
+   .. selected-content::
+      :selections: driver, python
 
       .. cta-banner::
-         :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/view-indexes.ipynb
-         :icon: Code
+        :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/view-indexes.ipynb
+        :icon: Code
 
-         Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/view-indexes.ipynb>`.
+        Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/view-indexes.ipynb>`.
 
       To view {+avs+} indexes for a collection using
       `PyMongo <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__
@@ -852,60 +382,49 @@ language of the example in this section.
 
       .. include:: /includes/avs/index-examples/steps-avs-view-index-pymongo.rst
 
-.. _avs-edit-index:
+   .. _avs-edit-index:
 
-Edit a {+avs+} Index
------------------------------------
+   Edit a {+avs+} Index
+   -----------------------------------
 
-You can change the :ref:`index definition <avs-types-vector-search>`
-of an existing {+avs+} index from the {+atlas-ui+}, {+atlas-admin-api+}, 
-{+atlas-cli+}, {+mongosh+}, or a supported :driver:`MongoDB Driver </>`. 
-You can't rename an index or change the index type. If you need to
-change an index name or type, you must create a new index and delete the old one.
+   You can change the :ref:`index definition <avs-types-vector-search>`
+   of an existing {+avs+} index from the {+atlas-ui+}, {+atlas-admin-api+}, 
+   {+atlas-cli+}, {+mongosh+}, or a supported :driver:`MongoDB Driver </>`. 
+   You can't rename an index or change the index type. If you need to
+   change an index name or type, you must create a new index and delete the old one.
 
-.. important::
+   .. important::
 
-   After you edit an index, {+avs+} rebuilds it. 
-   While the index rebuilds, you can continue to run vector 
-   search queries by using the old index definition. 
-   When the index finishes rebuilding, the old index is automatically 
-   replaced. This process is similar to |fts| indexes. To learn more,
-   see :ref:`index-create-and-update`. 
+     After you edit an index, {+avs+} rebuilds it. 
+     While the index rebuilds, you can continue to run vector 
+     search queries by using the old index definition. 
+     When the index finishes rebuilding, the old index is automatically 
+     replaced. This process is similar to |fts| indexes. To learn more,
+     see :ref:`index-create-and-update`. 
 
-Required Access 
-~~~~~~~~~~~~~~~
+   Required Access 
+   ~~~~~~~~~~~~~~~
 
-You must have the :authrole:`Project Search Index Editor` or higher role to
-edit a {+avs+} index.
+   You must have the :authrole:`Project Search Index Editor` or higher role to
+   edit a {+avs+} index.
 
-.. |command-type| replace:: edit
-.. |search-type| replace:: {+avs+}
+   .. |command-type| replace:: edit
+   .. |search-type| replace:: {+avs+}
 
-.. include:: /includes/search-shared/fact-search-commands-cluster-tier.rst
+   .. include:: /includes/search-shared/fact-search-commands-cluster-tier.rst
 
-.. _avs-edit-index-procedure:
+   .. _avs-edit-index-procedure:
 
-Procedure
-~~~~~~~~~
+   Procedure
+   ~~~~~~~~~
 
-----------
-
-.. |arrow| unicode:: U+27A4
-
-|arrow| Use the **Select your language** drop-down menu to select the
-client you want to use to edit your index.
-
-----------
-
-.. tabs-drivers::
-
-   .. tab::
-      :tabid: atlas-ui 
+   .. selected-content::
+      :selections: atlas-ui, None
 
       .. include:: /includes/avs/index-examples/steps-avs-edit-index-atlas-ui.rst
 
-   .. tab:: Atlas Administration API 
-      :tabid: atlas-api 
+   .. selected-content::
+      :selections: atlas-admin-api, None
 
       To edit a {+avs+} index for a collection using the
       {+atlas-admin-api+}, send a ``PATCH`` request to the |fts|
@@ -913,32 +432,32 @@ client you want to use to edit your index.
       index (line 4) to edit. 
 
       .. literalinclude:: /includes/avs/index-management/update-index/edit-index-api.sh 
-         :language: shell
-         :copyable:
-         :linenos:
-      
+        :language: shell
+        :copyable:
+        :linenos:
+          
       To learn more about the syntax and parameters for the endpoints, see
       :oas-bump-atlas-op:`Update One By Name <updategroupclustersearchindexbyname>` and
       :oas-bump-atlas-op:`Update One By ID <updategroupclustersearchindex>`.
 
-   .. tab:: Atlas CLI 
-      :tabid: atlas-cli 
+   .. selected-content::
+      :selections: atlas-cli, None
 
       To edit a {+avs+} index for a collection using {+atlas-cli+},
       perform the following steps:
 
       .. include:: /includes/avs/index-examples/steps-avs-edit-index-acli.rst 
 
-   .. tab::  
-      :tabid: shell 
+   .. selected-content::
+      :selections: mongosh, None
 
       To edit a {+avs+} index for a collection using {+mongosh+},
       perform the following steps: 
 
       .. include:: /includes/avs/index-examples/steps-avs-edit-index-mongosh.rst 
 
-   .. tab::
-      :tabid: csharp
+   .. selected-content::
+      :selections: driver, csharp
 
       To update a {+avs+} index for a collection using the
       :driver:`C# </csharp/current/fundamentals/indexes/#update-a-search-index>`
@@ -946,8 +465,8 @@ client you want to use to edit your index.
 
       .. include:: /includes/avs/index-examples/steps-avs-edit-index-csharp.rst
 
-   .. tab::
-      :tabid: go
+   .. selected-content::
+      :selections: driver, go
 
       To update a {+avs+} index for a collection using the
       :driver:`MongoDB Go driver </go/current/fundamentals/indexes/>`
@@ -955,8 +474,8 @@ client you want to use to edit your index.
 
       .. include:: /includes/avs/index-examples/steps-avs-edit-index-go.rst
 
-   .. tab::
-      :tabid: java-sync
+   .. selected-content::
+      :selections: driver, java-sync
 
       To edit a {+avs+} index for a collection using the
       :driver:`MongoDB Java driver </java/sync/current/fundamentals/indexes/>`
@@ -964,8 +483,8 @@ client you want to use to edit your index.
 
       .. include:: /includes/avs/index-examples/steps-avs-edit-index-java.rst
 
-   .. tab::
-      :tabid: nodejs
+   .. selected-content::
+      :selections: driver, nodejs
 
       To update a {+avs+} index for a collection using the
       :driver:`MongoDB Node driver </node/current/fundamentals/indexes/>` 
@@ -973,14 +492,14 @@ client you want to use to edit your index.
 
       .. include:: /includes/avs/index-examples/steps-avs-edit-index-nodejs.rst
 
-   .. tab::
-      :tabid: python
+   .. selected-content::
+      :selections: driver, python
 
       .. cta-banner::
-         :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/edit-indexes.ipynb
-         :icon: Code
+        :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/edit-indexes.ipynb
+        :icon: Code
 
-         Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/edit-indexes.ipynb>`.
+        Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/edit-indexes.ipynb>`.
 
       To update a {+avs+} index for a collection using the
       `PyMongo <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__
@@ -988,82 +507,71 @@ client you want to use to edit your index.
 
       .. include:: /includes/avs/index-examples/steps-avs-edit-index-pymongo.rst
 
-.. _avs-delete-index:
+   .. _avs-delete-index:
 
-Delete a {+avs+} Index
---------------------------------------
+   Delete a {+avs+} Index
+   --------------------------------------
 
-You can delete a {+avs+} index at any time from the 
-{+atlas-ui+}, {+atlas-admin-api+}, {+atlas-cli+}, {+mongosh+},
-or a supported :driver:`MongoDB Driver </>`.
+   You can delete a {+avs+} index at any time from the 
+   {+atlas-ui+}, {+atlas-admin-api+}, {+atlas-cli+}, {+mongosh+},
+   or a supported :driver:`MongoDB Driver </>`.
 
-Required Access
-~~~~~~~~~~~~~~~
+   Required Access
+   ~~~~~~~~~~~~~~~
 
-You must have the :authrole:`Project Search Index Editor` or higher role to 
-delete a {+avs+} index.
+   You must have the :authrole:`Project Search Index Editor` or higher role to 
+   delete a {+avs+} index.
 
-.. |command-type| replace:: delete
-.. |search-type| replace:: {+avs+}
+   .. |command-type| replace:: delete
+   .. |search-type| replace:: {+avs+}
 
-.. include:: /includes/search-shared/fact-search-commands-cluster-tier.rst
+   .. include:: /includes/search-shared/fact-search-commands-cluster-tier.rst
 
-.. _avs-delete-index-procedure:
+   .. _avs-delete-index-procedure:
 
-Procedure
-~~~~~~~~~
+   Procedure
+   ~~~~~~~~~
 
-----------
-
-.. |arrow| unicode:: U+27A4
-
-|arrow| Use the **Select your language** drop-down menu to select the
-client you want to use to delete your index.
-
-----------
-
-.. tabs-drivers::
-
-   .. tab:: 
-      :tabid: atlas-ui 
+   .. selected-content::
+      :selections: atlas-ui, None
 
       .. include:: /includes/avs/index-examples/steps-avs-delete-index-atlas-ui.rst
 
-   .. tab::  
-      :tabid: atlas-api 
+   .. selected-content::
+      :selections: atlas-admin-api, None
 
       To delete a {+avs+} index for a collection using the
       {+atlas-admin-api+}, send a ``DELETE`` request to the |fts|
       ``indexes`` endpoint with either the unique ID or the name of the 
       index to delete. 
-      
+          
       .. literalinclude:: /includes/avs/index-management/delete-index/delete-index-api.sh
-         :language: shell
-         :copyable:
-         :linenos:
+        :language: shell
+        :copyable:
+        :linenos:
 
       To learn more about the syntax and parameters for the endpoint, see 
       :oas-bump-atlas-op:`Remove One Search Index By Name <deletegroupclustersearchindexbyname>`
       and :oas-bump-atlas-op:`Remove One Search Index By ID <deletegroupclustersearchindex>`.
 
-   .. tab::  
-      :tabid: atlas-cli 
+   .. selected-content::
+      :selections: atlas-cli, None
 
       To delete a {+avs+} index for a collection using {+atlas-cli+},
       perform the following steps: 
 
       .. include:: /includes/avs/index-examples/steps-avs-delete-index-acli.rst
 
-   .. tab::
-      :tabid: shell
+   .. selected-content::
+      :selections: mongosh, None
 
       To delete a {+avs+} index for a collection using {+mongosh+},
       perform the following steps:
 
       .. include:: /includes/avs/index-examples/steps-avs-delete-index-mongosh.rst
 
-   .. tab::
-      :tabid: csharp
+   .. selected-content::
+      :selections: driver, csharp
 
       To delete a {+avs+} index for a collection using 
       :driver:`C# </csharp/current/fundamentals/indexes/#drop-a-search-index>`
@@ -1071,8 +579,8 @@ client you want to use to delete your index.
 
       .. include:: /includes/avs/index-examples/steps-avs-delete-index-csharp.rst
 
-   .. tab::
-      :tabid: go
+   .. selected-content::
+      :selections: driver, go
 
       To delete a {+avs+} index for a collection using 
       :driver:`MongoDB Go driver </go/current/fundamentals/indexes/>` 
@@ -1080,8 +588,8 @@ client you want to use to delete your index.
 
       .. include:: /includes/avs/index-examples/steps-avs-delete-index-go.rst
 
-   .. tab::
-      :tabid: java-sync
+   .. selected-content::
+      :selections: driver, java-sync
 
       To delete a {+avs+} index for a collection using the
       :driver:`MongoDB Java driver </java/sync/current/fundamentals/indexes/>`
@@ -1089,8 +597,8 @@ client you want to use to delete your index.
 
       .. include:: /includes/avs/index-examples/steps-avs-delete-index-java.rst
 
-   .. tab::
-      :tabid: nodejs
+   .. selected-content::
+      :selections: driver, nodejs
 
       To delete a {+avs+} index for a collection using
       :driver:`MongoDB Node driver </node/current/fundamentals/indexes/>`
@@ -1098,77 +606,77 @@ client you want to use to delete your index.
 
       .. include:: /includes/avs/index-examples/steps-avs-delete-index-nodejs.rst
 
-   .. tab::
-      :tabid: python
+   .. selected-content::
+      :selections: driver, python
 
       .. cta-banner::
-         :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/delete-indexes.ipynb
-         :icon: Code
+        :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/delete-indexes.ipynb
+        :icon: Code
 
-         Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/delete-indexes.ipynb>`.
+        Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/delete-indexes.ipynb>`.
 
       To delete a {+avs+} index for a collection using 
       `PyMongo <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__
       driver v4.7 or later, perform the following steps: 
 
-      .. include:: /includes/avs/index-examples/steps-avs-delete-index-pymongo.rst
+      .. include:: /includes/avs/index-examples/steps-avs-delete-index-pymongo.rst        
 
-.. _avs-node-status-ref:
+   .. _avs-node-status-ref:
 
-Index Status
-------------
+   Index Status
+   ------------
 
-When you create the {+avs+} index, the :guilabel:`Status` column shows 
-the current state of the index on the primary node of the cluster. 
-Click the :guilabel:`View status details` link below the status to view 
-the state of the index on all the nodes of the cluster.
+   When you create the {+avs+} index, the :guilabel:`Status` column shows 
+   the current state of the index on the primary node of the cluster. 
+   Click the :guilabel:`View status details` link below the status to view 
+   the state of the index on all the nodes of the cluster.
 
-When the :guilabel:`Status` column reads :guilabel:`Active`, the index
-is ready to use. In other states, queries against the index may return
-incomplete results.
+   When the :guilabel:`Status` column reads :guilabel:`Active`, the index
+   is ready to use. In other states, queries against the index may return
+   incomplete results.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 25 75
+   .. list-table::
+     :header-rows: 1
+     :widths: 25 75
 
-   * - Status
-     - Description
+     * - Status
+       - Description
 
-   * - Not Started 
-     - |service| has not yet started building the index.
+     * - Not Started 
+       - |service| has not yet started building the index.
 
-   * - Initial Sync 
-     - |service| is building the index or re-building the 
-       index after an edit. When the index is in this state:
-       
-       - For a new index, {+avs+} doesn't serve queries until the 
-         index build is complete. 
-       - For an existing index, you can continue to use the old index 
-         for existing and new queries until the index rebuild 
-         is complete.
+     * - Initial Sync 
+       - |service| is building the index or re-building the 
+         index after an edit. When the index is in this state:
+          
+         - For a new index, {+avs+} doesn't serve queries until the 
+           index build is complete. 
+         - For an existing index, you can continue to use the old index 
+           for existing and new queries until the index rebuild 
+           is complete.
 
-   * - Active
-     - Index is ready to use.
+     * - Active
+       - Index is ready to use.
 
-   * - Recovering
-     - Replication encountered an error. This state commonly occurs 
-       when the current replication point is no longer available on the 
-       |mongod| oplog. You can still query the existing index until it 
-       updates and its status changes to :guilabel:`Active`. Use the 
-       error in the :guilabel:`View status details` modal window to 
-       troubleshoot the issue. To learn more, see 
-       :ref:`Fix Issues <atlas-search-alerts>`.
+     * - Recovering
+       - Replication encountered an error. This state commonly occurs 
+         when the current replication point is no longer available on the 
+         |mongod| oplog. You can still query the existing index until it 
+         updates and its status changes to :guilabel:`Active`. Use the 
+         error in the :guilabel:`View status details` modal window to 
+         troubleshoot the issue. To learn more, see 
+         :ref:`Fix Issues <atlas-search-alerts>`.
 
-   * - Failed 
-     - |service| could not build the index. Use the error  
-       in the :guilabel:`View status details` modal window to 
-       troubleshoot the issue. To learn more, see 
-       :ref:`Fix Issues <atlas-search-alerts>`.
+     * - Failed 
+       - |service| could not build the index. Use the error  
+         in the :guilabel:`View status details` modal window to 
+         troubleshoot the issue. To learn more, see 
+         :ref:`Fix Issues <atlas-search-alerts>`.
 
-   * - Delete in Progress
-     - |service| is deleting the index from the cluster nodes.
+     * - Delete in Progress
+       - |service| is deleting the index from the cluster nodes.
 
-While |service| builds the index and after the build completes, the 
-:guilabel:`Documents` column shows the percentage and number of 
-documents indexed. The column also shows the total number of documents 
-in the collection.
+   While |service| builds the index and after the build completes, the 
+   :guilabel:`Documents` column shows the percentage and number of 
+   documents indexed. The column also shows the total number of documents 
+   in the collection.            
