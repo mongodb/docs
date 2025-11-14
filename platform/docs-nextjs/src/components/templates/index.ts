@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import DocumentTemplate from './document';
 // import DriversIndexTemplate from './drivers-index';
 // import InstruqtTemplate from './instruqt';
-// import LandingTemplate from './landing';
+import LandingTemplate from './landing';
 // import NotFoundTemplate from './NotFound';
 // import FeatureNotAvailableTemplate from './FeatureNotAvailable';
 import OpenAPITemplate from './openapi';
@@ -24,7 +24,7 @@ export {
   DocumentTemplate,
   // DriversIndexTemplate,
   // InstruqtTemplate,
-  // LandingTemplate,
+  LandingTemplate,
   // NotFoundTemplate,
   // FeatureNotAvailableTemplate,
   OpenAPITemplate,

@@ -5,17 +5,21 @@ import RootProvider from '@/components/root-provider';
 import type { ImageContextType } from '@/context/image-context';
 import type { Environments } from '@/utils/env-config';
 import type { BaseTemplateProps } from '@/components/templates';
-import { DocumentTemplate, OpenAPITemplate } from '@/components/templates';
+import { DocumentTemplate, LandingTemplate, OpenAPITemplate } from '@/components/templates';
 import ActionBar from '@/components/action-bar';
 import layoutStyles from '@/app/layout.module.scss';
 import ProductLandingTemplate from '@/components/templates/product-landing';
 import ChangelogTemplate from '@/components/templates/changelog';
+import type { PageTemplateType } from '@/types/ast';
 
 type TemplateComponent = React.ComponentType<BaseTemplateProps>;
 
 /** given a snooty template option, returns the appropriate template component and boolean flag for rendering the sidenav */
-function getTemplate(templateOption: string): { Template: TemplateComponent; renderSidenav: boolean } {
-  let Template;
+function getTemplate(templateOption: PageTemplateType): {
+  Template: TemplateComponent;
+  renderSidenav: boolean;
+} {
+  let Template: TemplateComponent;
   let renderSidenav = false;
   switch (templateOption) {
     case 'document':
@@ -31,6 +35,10 @@ function getTemplate(templateOption: string): { Template: TemplateComponent; ren
       break;
     case 'changelog':
       Template = ChangelogTemplate;
+      renderSidenav = true;
+      break;
+    case 'landing':
+      Template = LandingTemplate;
       renderSidenav = true;
       break;
     default:
