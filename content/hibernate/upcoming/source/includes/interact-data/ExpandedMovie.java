@@ -1,5 +1,6 @@
 import com.mongodb.hibernate.annotations.ObjectIdGenerator;
 import org.bson.types.ObjectId;
+import java.util.List;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -15,10 +16,10 @@ public class Movie {
 	private String plot;
 	private int year;
 	private int runtime;
-	private String[] cast;
+	private List<String> cast;
 
 
-	public Movie(String title, String plot, int year, int runtime, String[] cast) {
+	public Movie(String title, String plot, int year, int runtime, List<String> cast) {
  		this.title = title;
 		this.plot = plot;
 		this.year = year;
@@ -66,11 +67,11 @@ public class Movie {
 		this.runtime = runtime;
 	}
 
-	public String[] getCast() {
+	public List<String> getCast() {
 		return cast;
 	}
 	
-	public void setCast(String[] cast) {
+	public void setCast(List<String> cast) {
 		this.cast = cast;
 	}
 }
