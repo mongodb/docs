@@ -9,7 +9,7 @@
       
       #. Click the ellipsis :guilabel:`...` icon in the upper-right.
          
-      #. Click :guilabel:`Delete instance`.
+      #. Click :guilabel:`Delete workspace`.
 
       #. When prompted, type the name of the {+spw+} in the text field.
       

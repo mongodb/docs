@@ -5,18 +5,22 @@
 
    .. step:: Create your {+spw+}.
 
-      a. Click :guilabel:`Create instance` in the upper
+      a. Click :guilabel:`Create workspace` in the upper
          right corner.
 
       #. Configure your new {+spw+}.
 
-         - Select a {+spw+} tier.
+         i. Select a default tier.
 
-         - Select a :guilabel:`Cloud Provider`.      
+         #. Select a :guilabel:`Cloud Provider`.      
 
-         - Select a :guilabel:`Region` from the dropdown menu.
+         #. Select a :guilabel:`Region` from the dropdown menu.
 
-         - Enter a string for the :guilabel:`Instance Name`. Each 
-           {+spw+} name must be unique within a project.            
+         #. Enter a string for the :guilabel:`Workspace Name`. Each 
+            {+spw+} name must be unique within a project. 
+
+         #. (Optional) Set a max tier size.
+
+         To learn more about default tier and max tier sizes, see :ref:`atlas-sp-default-tier-spw`.
 
       #. Click :guilabel:`Create`.
