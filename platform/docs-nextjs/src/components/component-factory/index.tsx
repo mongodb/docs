@@ -32,6 +32,8 @@ import type {
   BlockQuoteNode,
   EmphasisNode,
   SubstitutionReferenceNode,
+  BannerNode,
+  CTABannerNode,
   TabsNode,
   HorizontalListNode,
   AdmonitionNode,
@@ -105,6 +107,9 @@ import type {
   RedProps,
   RoleManualProps,
 } from '@/components/roles';
+
+import Banner, { type BannerProps } from '../banner/banner';
+import CTABanner, { type CTABannerProps } from '../banner/cta-banner';
 import Code from '@/components/code';
 import Include, { type IncludeProps } from '@/components/include';
 import BlockQuote, { type BlockQuoteProps } from '@/components/block-quote';
@@ -205,7 +210,7 @@ const getComponent = (() => {
     if (componentMap === undefined) {
       componentMap = {
         admonition: Admonition as React.ComponentType<SupportedComponentProps>,
-        // banner: Banner,
+        banner: Banner as React.ComponentType<SupportedComponentProps>,
         blockquote: BlockQuote as React.ComponentType<SupportedComponentProps>,
         button: Button as React.ComponentType<SupportedComponentProps>,
         card: Card as React.ComponentType<SupportedComponentProps>,
@@ -219,7 +224,7 @@ const getComponent = (() => {
         // 'io-code-block': CodeIO,
         cond: Cond as React.ComponentType<SupportedComponentProps>,
         // container: Container,
-        // 'cta-banner': CTABanner,
+        'cta-banner': CTABanner as React.ComponentType<SupportedComponentProps>,
         definitionList: DefinitionList as React.ComponentType<SupportedComponentProps>,
         definitionListItem: DefinitionListItem as React.ComponentType<SupportedComponentProps>,
         deprecated: VersionModified as React.ComponentType<SupportedComponentProps>,
@@ -334,11 +339,13 @@ export type ComponentFactoryProps = {
 };
 
 type SupportedComponentProps =
+  | BannerProps
   | HeadingProps
   | BlockQuoteProps
   | ComponentFactoryProps
   | CommunityPillLinkProps
   | CondProps
+  | CTABannerProps
   | RefRoleProps
   | FieldProps
   | FieldListProps
@@ -627,6 +634,12 @@ const renderComponentWithProps = (
         {...propsToDrill}
       />
     );
+  } else if (ComponentType === getComponent('banner')) {
+    const bannerNode = nodeData as BannerNode;
+    return <ComponentType nodeChildren={bannerNode.children} options={bannerNode.options} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('cta-banner')) {
+    const ctaBannerNode = nodeData as CTABannerNode;
+    return <ComponentType nodeChildren={ctaBannerNode.children} options={ctaBannerNode.options} {...propsToDrill} />;
   } else if (ComponentType === getComponent('card')) {
     const cardNode = nodeData as CardNode;
     return (

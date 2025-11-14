@@ -677,6 +677,7 @@ interface TocTreeDirective extends Directive<TocTreeOptions> {
 
 type BannerOptions = {
   variant: 'info' | 'warning' | 'danger';
+  locale?: string;
 };
 
 interface BannerNode extends Directive<BannerOptions> {

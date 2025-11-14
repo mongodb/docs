@@ -14,7 +14,7 @@ import { ContentsProvider } from '@/context/contents-context';
 import { MetadataProvider } from '@/utils/use-snooty-metadata';
 import { PageContext } from '@/context/page-context';
 import { TabProvider } from '@/context/tabs-context';
-import { FootnoteProvider } from '../footnote/footnote-context';
+import { FootnoteProvider } from '@/components/footnote/footnote-context';
 import type { PageTemplateType } from '@/types/ast';
 import { InstruqtProvider } from '@/context/instruqt-context';
 import { ImageContextProvider, type ImageContextType } from '@/context/image-context';
