@@ -1,0 +1,248 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _grove-openapi:
+
+=======================
+OpenAPI Spec Validation
+=======================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can use Grove to validate OpenAPI specifications.
+
+When you run the tests, Grove validates the OpenAPI specification against
+the responses returned when calling the endpoints. If the responses match the
+specification, the tests pass. If the responses don't match the spec, the tests
+fail and provide details about the errors. This helps writers identify
+field, type, or other mismatch errors between the specification and the API
+as implemented.
+
+The OpenAPI validation tests are located in the
+``code-example-tests/openapi`` directory.
+
+Requirements
+------------
+
+To run the OpenAPI tests, you need the following:
+
+- Node.js v20 or newer
+- npm
+
+.. include:: /includes/grove/install-node-and-npm.rst
+
+Install Project Dependencies
+----------------------------
+
+From the root of the ``code-example-tests/openapi`` directory, run the
+following command to install the project dependencies:
+
+.. code-block:: console
+
+   npm install
+
+You only have to do this once.
+
+.. _run-openapi-tests-locally:
+
+Run OpenAPI Tests Locally
+-------------------------
+
+Run any of the following commands from the root of the
+``code-example-tests/openapi`` directory to run the tests.
+
+Run all tests
+~~~~~~~~~~~~~
+
+.. code-block:: console
+
+    npm test
+
+Run tests for a specific OpenAPI spec
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: console
+
+    npm test /path/to/your/testfile.test.js
+
+Run tests for a specific test case within a test file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have the Jest CLI installed, you can run a specific test case
+within a test file. Replace ``name of your test`` with the string from the
+``it`` block for the test you want to run:
+
+.. code-block:: console
+
+    jest -t 'name of your test'
+
+Add New OpenAPI Tests
+---------------------
+
+.. procedure::
+
+   .. step:: Create a new test file.
+
+      Create a new file in the ``code-example-tests/openapi`` directory.
+      Name the file ``<your-openapi-spec>.test.js``. For example,
+      ``relational-migrator.test.js``.
+
+   .. step:: Add your test code.
+
+      In your test file, write code to call the endpoints defined in your
+      OpenAPI specification and validate the responses. Refer to the
+      existing tests in the ``code-example-tests/openapi`` directory for
+      examples.
+
+      At a high level, each test case should:
+
+      1. Load the OpenAPI specification using the ``loadSpec`` function.
+      2. Make a request to the endpoint using axios.
+      3. Assert that the status code is as expected.
+      4. Assert that the response matches the OpenAPI specification using
+         the ``toSatisfyApiSpec`` matcher.
+
+      .. code-block:: javascript
+         :caption: Example test code
+
+         import loadSpec from 'oasprey';
+         import axios from 'axios';
+
+         const baseURL = "https://your-api-url.com";
+
+         // Load the OpenAPI spec from URL and pass as object
+         let spec;
+         beforeAll(async () => {
+             const response = await axios.get("https://your-api-url.com/openapi.json");
+             // Step 1: Load the OpenAPI spec
+             spec = loadSpec(response.data);
+         });
+
+         describe("Your OpenAPI spec tests", () => {
+             it("should match the get summary schema", async () => {
+                 // Step 2: Make a request to the endpoint.
+                 const res = await axios.get(baseURL + 'your-endpoint');
+                 // Step 3: Assert that the status code is as expected.
+                 expect(res.status).toEqual(200);
+                 // Step 4: Assert that the response matches the OpenAPI spec.
+                 expect(res).toSatisfyApiSpec(spec);
+             });
+         });
+
+      If your API request involves a payload, you can add a request body to the
+      axios request. For example:
+
+      .. code-block:: javascript
+         :caption: Example test code with payload
+         :emphasize-lines: 16-19, 21
+
+         import loadSpec from 'oasprey';
+         import axios from 'axios';
+
+         const baseURL = "https://your-api-url.com";
+
+         // Load the OpenAPI spec from URL and pass as object
+         let spec;
+         beforeAll(async () => {
+             const response = await axios.get("https://your-api-url.com/openapi.json");
+             // Step 1: Load the OpenAPI spec
+             spec = loadSpec(response.data);
+         });
+
+         describe("Your OpenAPI spec tests", () => {
+             it("should match the get summary schema", async () => {
+                 // Add your payload here
+                 const payload = {
+                     key: "value"
+                 };
+                 // Step 2: Make a request to the endpoint.
+                 const res = await axios.post(baseURL + 'your-endpoint', payload);
+                 // Step 3: Assert that the status code is as expected.
+                 expect(res.status).toEqual(200);
+                 // Step 4: Assert that the response matches the OpenAPI spec.
+                 expect(res).toSatisfyApiSpec(spec);
+             });
+         });
+
+   .. step:: Run the tests.
+
+      Refer to :ref:`run-openapi-tests-locally` to run the tests.
+
+Work with an API That Requires Authentication
+---------------------------------------------
+
+If your API requires authentication, you can add the authentication headers to
+the axios request.
+
+Create a ``.env`` file that contains a BEARER_TOKEN key with your bearer token as the value.
+and add it to the axios request.
+
+For example:
+
+.. code-block:: javascript
+   :caption: Example test code with authentication headers
+   :emphasize-lines: 3, 5-6, 15, 20-24
+
+   import loadSpec from 'oasprey';
+   import axios from 'axios';
+   import dotenv from dotenv;
+
+   // Load environment variables from .env file
+   dotenv.config();
+
+   const baseURL = "https://your-api-url.com";
+
+   let spec;
+   let token;
+   beforeAll(async () => {
+       const response = await axios.get("https://your-api-url.com/openapi.json");
+       spec = loadSpec(response.data);
+       token = process.env.BEARER_TOKEN;
+   });
+
+   describe("Your OpenAPI spec tests", () => {
+       it("should match the get summary schema", async () => {
+           const res = await axios.get(baseURL + 'your-endpoint', {
+               headers: {
+                   Authorization: `Bearer ${token}`
+               }
+           });
+           expect(res.status).toEqual(200);
+           expect(res).toSatisfyApiSpec(spec);
+       });
+   });
+
+Work with Local API Specifications
+----------------------------------
+
+The tests in the ``code-example-tests/openapi`` directory currently load the
+OpenAPI specification from a remote URL. If you're iterating with a local
+OpenAPI specification, as in the case of a pre-release or private API, you can
+modify the tests to load the specification from a local file.
+
+Remove the ``beforeAll`` block in your test file. Instead, use ``loadSpec`` to
+load the local file. For example:
+
+.. code-block:: javascript
+   :caption: Example test code with local OpenAPI spec
+   :emphasize-lines: 3, 6, 13
+
+   import loadSpec from 'oasprey';
+   import axios from 'axios';
+   import path from 'path';
+
+   // Load the spec from a local file instead of a remote URL
+   loadSpec(path.resolve(process.cwd(), 'relative/path/to/openapi.yml'));
+
+   describe("Your OpenAPI spec tests", () => {
+       it("should match the get summary schema", async () => {
+           const res = await axios.get(baseURL + 'your-endpoint');
+           expect(res.status).toEqual(200);
+           // Remove the 'spec' argument since we are not loading from a remote URL
+           expect(res).toSatisfyApiSpec();
+       });
+   });
