@@ -22,6 +22,11 @@ You can use the |k8s-op-short| to deploy |text-search| and
 MongoDB Enterprise Edition v8.2.0 or higher server. This procedure
 demonstrates how to deploy and configure the ``mongot`` process in your
 |k8s| cluster to use a new or existing external replica set deployment.
+This tutorial demonstrates how to configure a secure deployment with
+|tls| enabled. You must provide provide the |tls| certificates: 
+
+- The server certificate and key for the MongoDBSearch service.
+- The public CA certificate for the external MongoDB database.
 
 Prerequisites
 -------------
@@ -41,6 +46,26 @@ following:
   :ref:`mdb-resources`.
 
 - A running MongoDB |com| for managing MongoDB tasks.
+
+- External DB |tls| 
+ 
+  Your external MongoDB Enterprise deployment must be configured to use
+  and require |tls| connections.
+  
+- External DB CA file
+  
+  You must have the public Certificate Authority (CA) certificate file
+  (for example, ``external-ca.crt``) that was used to sign your external
+  MongoDB deployment's server certificates. You will need this file
+  locally.
+
+- Search Service certificate files
+ 
+  You must have a valid |tls| server certificate and private key (for
+  example, ``search-service.crt``, ``search-service.key``) for the
+  MongoDBSearch service. This certificate must be valid for the hostname
+  you will use to access the service (for example,
+  ``mdbs-search.example.com``). 
 
 Before You Begin
 ----------------
@@ -100,6 +125,9 @@ Log in to the |com| UI and perform the following steps to configure
 
             * - ``searchTLSMode``
               - Your configured TLS mode. For example, ``preferTLS``, if the ``mongot`` process is configured to accept TLS connections.
+
+            * - ``useGrpcForSearch``
+              - ``true``
 
    .. step:: Review and deploy your changes.
 
@@ -278,12 +306,16 @@ a terminal.
 
       To set the environment variables for use in the subsequent steps
       in this procedure, copy the following, set the values for the
-      environment variables, and then load the environment variables:
+      environment variables, and then run the commands in your terminal:
 
       .. literalinclude:: /includes/code-examples/search/04-search-external-mongod/env_variables.sh
          :language: yaml
          :copyable: true
          :linenos:
+
+      Note that these environment variables are only available in
+      the current terminal session and will need to be set again in any
+      new terminal sessions.
 
    .. step:: Conditional. Add the MongoDB |helm| repository.
 
@@ -400,6 +432,17 @@ Install |text-search| and |vector-search|
             * - ``spec.source.passwordSecretRef``
               - Search synchronization user password.
 
+            * - ``spec.source.external.tls.ca.name``
+              - Configures MongoDBSearch pods to trust the external
+                database. It points to the |k8s| secret that contains
+                the public CA certificate for your external MongoDB. 
+
+            * - ``spec.security.tls.certificateKeySecretRef.name``
+              - Secures the MongoDBSearch service. It points to the
+                |k8s| secret containing the |tls| server certificate and
+                private key that the MongoDBSearch pods will present to
+                incoming clients. 
+
             * - ``spec.resourceRequirements``
               - CPU and memory resource requirements for the search container.
 
@@ -430,7 +473,7 @@ Install |text-search| and |vector-search|
       To enable your external MongoDB instances to connect to the search
       service, you must configure external access for |text-search| and
       |vector-search|. You can create a LoadBalancer Service that
-      exposes the search pods outside the |k8s| cluster.
+      exposes the search pods outside the |k8s| cluster. 
 
       This following service exposes the MongoDBSearch service on
       port 27028 with an external IP address or hostname that can be
