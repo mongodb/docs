@@ -10,6 +10,7 @@ import ActionBar from '@/components/action-bar';
 import layoutStyles from '@/app/layout.module.scss';
 import ProductLandingTemplate from '@/components/templates/product-landing';
 import ChangelogTemplate from '@/components/templates/changelog';
+import DriversIndexTemplate from '@/components/templates/drivers-index';
 import type { PageTemplateType } from '@/types/ast';
 
 type TemplateComponent = React.ComponentType<BaseTemplateProps>;
@@ -36,6 +37,10 @@ function getTemplate(templateOption: PageTemplateType): {
     case 'changelog':
       Template = ChangelogTemplate;
       renderSidenav = true;
+      break;
+    case 'drivers-index':
+      renderSidenav = true;
+      Template = DriversIndexTemplate;
       break;
     case 'landing':
       Template = LandingTemplate;
