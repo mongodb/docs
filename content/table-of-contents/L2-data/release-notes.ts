@@ -211,13 +211,11 @@ const tocData: TocItem[] = [
     label: 'Search Release Notes',
     contentSite: 'cloud-docs',
     url: '/docs/atlas/atlas-search/changelog',
-    collapsible: false,
   },
   {
     label: 'Vector Search Release Notes',
     contentSite: 'cloud-docs',
     url: '/docs/atlas/atlas-vector-search/changelog',
-    collapsible: false,
   },
 ];
 

@@ -4,7 +4,6 @@ const tocData: TocItem[] = [
   {
     label: 'mongosh',
     contentSite: 'mongodb-shell',
-    url: '/docs/mongodb-shell/',
     group: true,
     items: [
       {

@@ -4,10 +4,8 @@ const tocData: TocItem[] = [
   {
     label: 'Atlas Kubernetes Operator',
     contentSite: 'atlas-operator',
-    url: '/docs/atlas/operator/:version/',
     group: true,
     versionDropdown: true,
-    showSubNav: true,
     items: [
       {
         label: 'Get Started',

@@ -820,6 +820,7 @@ const tocData: TocItem[] = [
         label: 'Hashed Sharding',
         contentSite: 'docs',
         url: '/docs/:version/core/hashed-sharding',
+        collapsible: true,
         items: [
           {
             label: 'Drop Hashed Shard Key Index',

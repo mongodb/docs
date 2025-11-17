@@ -60,7 +60,7 @@ describe('tocData', () => {
 
   beforeEach(() => {
     // Export the unifiedToc function and call it before each test
-    result = toc;
+    result = toc as TocItem[];
   });
 
   describe('function call', () => {
@@ -135,15 +135,6 @@ describe('tocData', () => {
           }
           if (item.showSubNav) {
             expect(typeof item.showSubNav).toBe('boolean');
-          }
-          if (item.breadcrumbs) {
-            expect(Array.isArray(item.breadcrumbs)).toBe(true);
-            item.breadcrumbs.forEach((crumb: any) => {
-              expect(crumb).toHaveProperty('path');
-              expect(crumb).toHaveProperty('title');
-              expect(typeof crumb.path).toBe('string');
-              expect(typeof crumb.title).toBe('string');
-            });
           }
 
           // Recursively validate nested items

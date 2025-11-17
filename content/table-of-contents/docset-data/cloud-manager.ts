@@ -4,7 +4,6 @@ const tocData: TocItem[] = [
   {
     label: 'Cloud Manager',
     contentSite: 'cloud-manager',
-    url: '/docs/cloud-manager/',
     group: true,
     items: [
       {

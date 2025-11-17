@@ -1209,34 +1209,34 @@ const tocData: TocItem[] = [
           {
             label: 'Generate Diagram',
             contentSite: 'cloud-docs',
-            url: '/docs/atlas/atlas-ui/data-modeling/generate-diagram'
-          }, 
+            url: '/docs/atlas/atlas-ui/data-modeling/generate-diagram',
+          },
           {
             label: 'Modify Collections',
-            contentSite: 'cloud-docs', 
-            url: '/docs/atlas/atlas-ui/data-modeling/modify-collections'
-          }, 
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/atlas-ui/data-modeling/modify-collections',
+          },
           {
             label: 'Modify Fields',
-            contentSite: 'cloud-docs', 
-            url: '/docs/atlas/atlas-ui/data-modeling/modify-fields'
-          }, 
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/atlas-ui/data-modeling/modify-fields',
+          },
           {
             label: 'Manage Relationships',
             contentSite: 'cloud-docs',
-            url: '/docs/atlas/atlas-ui/data-modeling/relationships'
+            url: '/docs/atlas/atlas-ui/data-modeling/relationships',
           },
           {
             label: 'Export Diagram',
             contentSite: 'cloud-docs',
-            url: '/docs/atlas/atlas-ui/data-modeling/export-diagram'
+            url: '/docs/atlas/atlas-ui/data-modeling/export-diagram',
           },
           {
             label: 'Import Diagram',
             contentSite: 'cloud-docs',
-            url: '/docs/atlas/atlas-ui/data-modeling/import-diagram'
-          }
-        ]
+            url: '/docs/atlas/atlas-ui/data-modeling/import-diagram',
+          },
+        ],
       },
       {
         label: 'Data Schema',

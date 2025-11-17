@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 // import { fileURLToPath } from 'node:url';
 import { toc } from '../toc';
-import type { TocItem } from '../types';
+import type { L1TocItem, TocItem } from '../types';
 import type { ComparisonResult, VerificationResult } from './types';
 import { config, remapSite, urlPrefixes } from './verification-config';
 
@@ -11,13 +11,13 @@ import { config, remapSite, urlPrefixes } from './verification-config';
  * @param items The array of items to flatten.
  * @returns An array containing every TocItem used in the toc
  */
-function flattenToc(items: TocItem[]): TocItem[] {
+function flattenToc(items: TocItem[] | L1TocItem[]): TocItem[] {
   const flatList: TocItem[] = [];
 
-  function collect(currentItems: TocItem[]) {
+  function collect(currentItems: TocItem[] | L1TocItem[]) {
     for (const item of currentItems) {
-      // add item to list
-      flatList.push(item);
+      // add item to list (L1TocItem is compatible with TocItem)
+      flatList.push(item as TocItem);
 
       // recurse as needed
       if (item.items) {

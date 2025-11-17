@@ -2,10 +2,8 @@ import type { TocItem } from '../types';
 
 const tocData: TocItem[] = [
   {
-    // test
     label: 'Atlas Charts',
     contentSite: 'charts',
-    url: '/docs/charts/',
     group: true,
     items: [
       {

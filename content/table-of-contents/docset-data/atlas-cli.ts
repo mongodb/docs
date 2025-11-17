@@ -5,7 +5,6 @@ const tocData: TocItem[] = [
   {
     label: 'Atlas CLI',
     contentSite: 'atlas-cli',
-    url: '/docs/atlas/cli/:version/',
     versionDropdown: true,
     group: true,
     items: [

@@ -4,7 +4,6 @@ const tocData: TocItem[] = [
   {
     label: 'Relational Migrator',
     contentSite: 'docs-relational-migrator',
-    url: '/docs/relational-migrator/',
     group: true,
     items: [
       {

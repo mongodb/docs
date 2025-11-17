@@ -5,7 +5,6 @@ const tocData: TocItem[] = [
   {
     label: 'Enterprise Kubernetes Operator',
     contentSite: 'docs-k8s-operator',
-    url: '/docs/kubernetes-operator/:version/',
     group: true,
     versionDropdown: true,
     versions: {

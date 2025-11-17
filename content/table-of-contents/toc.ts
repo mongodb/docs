@@ -3,10 +3,10 @@ import ClientLibData from './L1-data/client-libraries';
 import DevelopmentData from './L1-data/development';
 import ManagementData from './L1-data/management';
 import ToolsData from './L1-data/tools';
-import type { TocItem } from './types';
+import type { L1TocItem } from './types';
 
 // These are the L1's items for the Unified ToC
-export const toc: TocItem[] = [
+export const toc: L1TocItem[] = [
   {
     label: 'Get Started',
     contentSite: 'landing',
