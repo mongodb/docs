@@ -6,7 +6,7 @@
     },
     "description": "OpenAPI specification for MongoDB Relational Migrator tool",
     "title": "MongoDB Relational Migrator REST API",
-    "version": "1.15.0"
+    "version": "1.15.1"
   },
   "servers": [
     {
@@ -535,6 +535,90 @@
         ]
       }
     },
+    "/jobs/{jobId}/logs": {
+      "get": {
+        "operationId": "getJobLogs",
+        "description": "Get the events of a migration job",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "description": "Job ID",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Limit the number of events",
+            "schema": {
+              "type": "integer",
+              "default": 1000,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "the number of events since the most recent event",
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "eventType",
+            "in": "query",
+            "description": "filter by a specific job event type",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/job-event-type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/job-update"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Job"
+        ]
+      }
+    },
     "/project": {
       "get": {
         "operationId": "getProjects",
@@ -934,6 +1018,7 @@
           "status": {
             "type": "string",
             "enum": [
+              "NOT_STARTED",
               "RUNNING",
               "FAILED",
               "CANCELLING",
@@ -1028,6 +1113,66 @@
           "options",
           "projectId",
           "verification"
+        ]
+      },
+      "job-event-type": {
+        "type": "string",
+        "enum": [
+          "ERROR",
+          "WARNING",
+          "INFO"
+        ]
+      },
+      "job-update": {
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "$ref": "#/components/schemas/job-event-type"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "stackTrace": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "locationType": {
+            "type": "string",
+            "enum": [
+              "TABLE",
+              "COLLECTION"
+            ]
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "fieldName": {
+            "type": "string"
+          },
+          "key": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "errorType": {
+            "type": "string",
+            "example": "DuplicateKeyError"
+          }
+        },
+        "required": [
+          "eventType",
+          "message",
+          "timestamp"
         ]
       },
       "project-descriptor-summary": {
