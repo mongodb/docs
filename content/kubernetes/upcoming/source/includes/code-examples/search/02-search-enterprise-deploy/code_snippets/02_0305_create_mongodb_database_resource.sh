@@ -4,7 +4,7 @@ kind: MongoDB
 metadata:
   name: ${MDB_RESOURCE_NAME}
 spec:
-  members: 3
+  members: ${MDB_MEMBERS}
   version: ${MDB_VERSION}
   type: ReplicaSet
   opsManager:

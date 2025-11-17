@@ -6,7 +6,7 @@ metadata:
 spec:
   type: LoadBalancer
   selector:
-    app: mdbs-search-svc
+    app: ${MDB_SEARCH_RESOURCE_NAME:-mdbs}-search-svc
   ports:
     - name: mongot
       port: 27028
