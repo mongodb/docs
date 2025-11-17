@@ -29,36 +29,43 @@
        {+http-digest+} specification. This is to prevent replay 
        attacks, so you can't cache a nonce and use it forever.
 
-   * - |service| :ref:`roles <user-roles>` limit which operations a service account 
-       can perform with its access token. You must grant roles to service accounts 
-       as you would for users to ensure the access token can call |api| endpoints 
-       without errors. 
-     - |service| :ref:`roles <user-roles>` limit which operations |api| keys can perform. 
-       You must grant roles to 
-       |api| keys as you would for users to ensure the |api| keys can call |api| 
-       endpoints without errors.
-     
+   * - |service| :ref:`roles <user-roles>` limit which operations a
+       service account can perform with its access token. You must
+       assign roles to service accounts as you would for users to ensure
+       that the service account generates access tokens with the
+       necessary permissions for the desired |api| calls.
+     - |service| :ref:`roles <user-roles>` limit which operations |api|
+       keys can perform. You must assign roles to |api| keys as you
+       would for users to ensure the |api| keys have the necessary
+       permissions for the desired |api| calls.
+
+   * - Each service account belongs to only one organization, and can
+       grant access to any number of projects in that organization. To
+       give an organization-level service account access to a project,
+       see :ref:`invite-org-app-api-keys`.
+     - Each pair of |api| keys belongs to only one organization, and
+       can grant access to any number of projects in that organization.
+       To give organization-level |api| keys access to a project, see
+       :ref:`invite-org-app-api-keys`.
+
    * - |service| binds many resources to a project. Many |api| resource
        |url|\s follow the format of ``/api/atlas/<version>/groups/<GROUP-ID>/``, 
        where ``<GROUP-ID>`` is your :ref:`project ID <project-id>`.
        For these resources, the service account must be a member of the
        organization that hosts the project. Otherwise, |service|
-       responds with a `401 <https://httpstatuses.com/401>`__ error. To give  
-       the organization-level service account access to a project, see :ref:`invite-org-app-api-keys`.
+       responds with a `401 <https://httpstatuses.com/401>`__ error.
      - |service| binds many resources to a project. Many |api| resource
        |url|\s follow the format of ``/api/atlas/<version>/groups/<GROUP-ID>/``, 
        where ``<GROUP-ID>`` is your :ref:`project ID <project-id>`.
        For these resources, the |api| keys must be a member of the
        organization that hosts the project. Otherwise, |service|
-       responds with a `401 <https://httpstatuses.com/401>`__ error. To give  
-       the organization-level |api| keys access to a project, see :ref:`invite-org-app-api-keys`.
+       responds with a `401 <https://httpstatuses.com/401>`__ error.
 
-   * - Each service account belongs to only one organization, but you can grant 
-       a service account access to any number of projects in that organization.
-     - Each |api| key belongs to only one organization, but you can grant 
-       |api| keys access to any number of projects in that 
-       organization.
-
-   * - You can't use a service account or its access token to log into |service| 
-       through the {+atlas-ui+}.
-     - You can't use |api| keys to log into |service| through the {+atlas-ui+}.
+   * - You can't use a service account or its access token to log into
+       |service| through the {+atlas-ui+}. Service accounts only grant
+       access to the {+atlas-admin-api+}, which does not include UI
+       access or access to cluster data. 
+     - You can't use |api| keys to log into |service| through the
+       {+atlas-ui+}. |api| keys only grant access to the
+       {+atlas-admin-api+}, which does not include UI access or access
+       to cluster data.

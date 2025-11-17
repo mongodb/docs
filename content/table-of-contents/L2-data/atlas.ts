@@ -1511,14 +1511,9 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/api/atlas-admin-api-ref',
           },
           {
-            label: 'API Authentication',
+            label: 'API Authentication Methods',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/api/api-authentication',
-          },
-          {
-            label: 'Service Accounts Overview',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/api/service-accounts-overview',
           },
           {
             label: 'Rotate Service Account Secrets',
