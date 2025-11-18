@@ -2,13 +2,13 @@
 
    Edit the configuration file for your AI client.
    For Gemini CLI users, add the following configuration to 
-   your user configuration ``~/.gemini/settings.json``
-   or the project configuration ``.gemini/settings.json`` file
+   your user configuration ``~/.gemini/mcp.json``
+   or the project configuration ``.gemini/mcp.json`` file
    to set up the MongoDB MCP server.
 
    .. note::
 
-      The Gemini CLI uses the ``mcpServers`` configuration in your ``settings.json`` 
+      The Gemini CLI uses the ``mcpServers`` configuration in your ``mcp.json`` 
       file to locate and connect to MCP servers. For all connection methods and detailed configuration steps, see
       `MCP Server Configuration <https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md>`__.
     
