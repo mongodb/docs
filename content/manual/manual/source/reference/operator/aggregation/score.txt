@@ -38,6 +38,7 @@ The stage has the following syntax:
    { 
      $score: { 
        score: <expression>,
+       scoreDetails: <boolean>,
        normalization: "none|sigmoid|minMaxScaler",
        weight: <expression>
      } 
@@ -59,9 +60,14 @@ Fields
    * - ``score``
      - Expression
      - Computes a new value from the input scores and stores the value
-       in the :expression:`$meta` keyword ``searchScore``. All other scores
-       are stored in the ``$meta`` keyword ``searchScoreDetails``.
+       in the :expression:`$meta` keyword ``score``.
        Returns an error for non-numeric inputs.
+
+   * - ``scoreDetails``
+     - Boolean
+     - Default is ``false``. Specifies if ``$score`` computes and populates the
+       ``$scoreDetails`` metadata field for each output document. See
+       :ref:`score-scoreDetails` for more information on this field.
 
    * - ``normalization``
      - String
@@ -110,62 +116,85 @@ If you specify multiple :pipeline:`$score` stages in the pipeline, the
 last :pipeline:`$score` stage in the pipeline overrides the score
 metadata from previous :pipeline:`$score` stages.
 
-Example 
--------
+.. _score-scoreDetails:
 
-Consider the following documents in a collection named ``articles``: 
+scoreDetails
+~~~~~~~~~~~~
 
-.. code-block:: json 
+If you set ``scoreDetails`` to ``true``, ``$score`` creates a
+``scoreDetails`` metadata field for each document. The ``scoreDetails`` field
+contains information about the final ranking. 
 
-   { "_id" : ObjectId("512bc95fe835e68f199c8686"), "author" : "dave", "score" : 80, "views" : 100 },
-   { "_id" : ObjectId("512bc962e835e68f199c8687"), "author" : "dave", "score" : 85, "views" : 521 }
-   { "_id" : ObjectId("55f5a192d4bede9ac365b257"), "author" : "ahn", "score" : 60, "views" : 1000 }
-   { "_id" : ObjectId("55f5a192d4bede9ac365b258"), "author" : "li", "score" : 55, "views" : 5000 }
-   { "_id" : ObjectId("55f5a1d3d4bede9ac365b259"), "author" : "annT", "score" : 60, "views" : 50 }
-   { "_id" : ObjectId("55f5a1d3d4bede9ac365b25a"), "author" : "li", "score" : 94, "views" : 999 }
-   { "_id" : ObjectId("55f5a1d3d4bede9ac365b25b"), "author" : "ty", "score" : 95, "views" : 1000 }
+.. note::
 
-The following query uses the: 
+   When you set ``scoreDetails`` to ``true``, ``$score`` sets the
+   ``scoreDetails`` metadata field for each document but does not automatically
+   output the ``scoreDetails`` metafield.
 
-- :pipeline:`$match` stage to filter the documents where the
-  ``views`` field value is greater than or equal to ``1000``. 
-- :pipeline:`$score` stage to compute a new score that is normalized
-  using :expression:`$sigmoid` expression and then multiplied by the
-  specified weight, ``1``.
+   To view the ``scoreDetails`` metadata field, you must either:
 
-.. io-code-block::  
-   :copyable: true 
+   - use a :pipeline:`$project` stage after ``$score`` to project the
+     ``scoreDetails`` field
 
-   .. input::
+   - use a :pipeline:`$addFields` stage after ``$score`` to add the
+     ``scoreDetails`` field to your pipeline output
 
-      db.articles.aggregate([  
-         {  
-            $match: {  
-               views: { $gte: 1000 }  
-            }  
-         },  
-         {  
-            $score: {  
-               score: "$score",        
-               normalization: "sigmoid", 
-               weight: 1   
-            }  
-         },
-         {
-            "$project": {
-               "_id": 0,
-               "author": 1,
-               "views": 1,
-               "score": 1,
-               "calculatedScore": { $meta: "score" }
-            }
-         }  
-      ])
+The ``scoreDetails`` field contains the following subfields:
 
-   .. output:: 
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+ 
+   * - Field
+ 
+     - Description
 
-      [
-         { author: 'ahn', score: 60, views: 1000, calculatedScore: 1 },
-         { author: 'li', score: 55, views: 5000, calculatedScore: 1 },
-         { author: 'ty', score: 95, views: 1000, calculatedScore: 1 }
-      ]
+   * - ``value``
+  
+     - The calculated score. 
+
+   * - ``description``
+ 
+     - A description in string format that explains how the ``$score`` operationMetrics
+       calculates the final score. 
+
+   * - ``rawScore``
+  
+     - The unweighted raw (not normalized) score. 
+  
+   * - ``normalization``
+  
+     -  One of the following normalization values: "none", "sigmoid", "minMaxScaler".
+
+   * - ``weight``
+ 
+     - The weight of the input pipeline, which must be in range [0,1].
+
+   * - ``expression``
+
+     - The value of ``$score.score`` in string format. 
+
+   * - ``details``
+ 
+     - An empty array, as ``$score`` cannot take any input pipelines. 
+
+.. include:: /includes/fact-scoreDetails-output-format.rst
+
+For example, the following code blocks shows the ``scoreDetails`` field for a
+``$score`` operation with an ``$add`` expression:
+
+.. code-block:: js
+   :copyable: false
+
+   {
+    _id: ObjectId('55f5a192d4bede9ac365b257'),
+    scoreDetails: {
+      value: 0.5,
+      description: 'the score calculated from multiplying a weight in the range [0,1] with either a normalized or nonnormalized value:',
+      rawScore: 145,
+      normalization: 'sigmoid',
+      weight: 0.5,
+      expression: '{ string: { $add: [ 'field', 'myField' ] } }',
+      details: []
+    }
+  },
