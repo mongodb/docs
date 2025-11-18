@@ -1261,6 +1261,12 @@ const tocData: TocItem[] = [
                     url: '/docs/ops-manager/:version/admin/backup/resource-usage-page',
                   },
                   {
+                    label: 'Snapshots',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/admin/backup/snapshots-page',
+                    versions: { excludes: ['v6.0'] },
+                  },
+                  {
                     label: 'Grooms',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/admin/backup/grooms-page',
