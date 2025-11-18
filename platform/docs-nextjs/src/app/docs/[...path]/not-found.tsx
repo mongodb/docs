@@ -122,8 +122,6 @@ const ErrorBoxContainer = () => {
   );
 };
 
-// TODO: Since changing to use LG emotion rather than @emotion/styled, we would need to make the change in template/blank.tsx, when its ported over.
-// This because it is imported and used in that file.
 export const notFoundContainerStyle = css`
   align-items: flex-start;
   display: flex;
@@ -146,7 +144,7 @@ export const notFoundContainerStyle = css`
     grid-column: 4/-4;
   }
   @media ${theme.screenSize.xLargeAndUp} {
-    grid-column: 4/-3;
+    grid-column: 6/-3;
     justify-content: start;
   }
 `;

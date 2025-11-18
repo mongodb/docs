@@ -1,4 +1,4 @@
-// import BlankTemplate from './blank';
+import BlankTemplate from './blank';
 import type { ReactNode } from 'react';
 import DocumentTemplate from './document';
 import DriversIndexTemplate from './drivers-index';
@@ -19,7 +19,7 @@ export type BaseTemplateProps = {
 };
 
 export {
-  // BlankTemplate,
+  BlankTemplate,
   DocumentTemplate,
   DriversIndexTemplate,
   // InstruqtTemplate,

@@ -5,12 +5,17 @@ import RootProvider from '@/components/root-provider';
 import type { ImageContextType } from '@/context/image-context';
 import type { Environments } from '@/utils/env-config';
 import type { BaseTemplateProps } from '@/components/templates';
-import { DocumentTemplate, LandingTemplate, OpenAPITemplate } from '@/components/templates';
+import {
+  DocumentTemplate,
+  LandingTemplate,
+  OpenAPITemplate,
+  BlankTemplate,
+  DriversIndexTemplate,
+} from '@/components/templates';
 import ActionBar from '@/components/action-bar';
 import layoutStyles from '@/app/layout.module.scss';
 import ProductLandingTemplate from '@/components/templates/product-landing';
 import ChangelogTemplate from '@/components/templates/changelog';
-import DriversIndexTemplate from '@/components/templates/drivers-index';
 import type { PageTemplateType } from '@/types/ast';
 
 type TemplateComponent = React.ComponentType<BaseTemplateProps>;
@@ -45,6 +50,9 @@ function getTemplate(templateOption: PageTemplateType): {
     case 'landing':
       Template = LandingTemplate;
       renderSidenav = true;
+      break;
+    case 'blank':
+      Template = BlankTemplate;
       break;
     default:
       console.warn(`Unknown template option: ${templateOption}. Defaulting to DocumentTemplate.`);
