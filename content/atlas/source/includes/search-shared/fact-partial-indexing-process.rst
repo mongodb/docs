@@ -15,4 +15,5 @@ index on a regular collection. The ``mongot`` process:
 
 When you create an |product-name| index on a View, the View 
 definition is applied during Step 1 and 2, and the transformed 
-documents are stored in the |product-name| index on disk.
+documents are indexed based on the search index definition, then stored 
+on disk.
