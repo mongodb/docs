@@ -55,8 +55,8 @@
       To learn more about the security features available, see 
       :ref:`setup-cluster-security`.
       
-      Once you deploy your cluster, it can take up to 10 minutes for
-      your cluster to provision and become ready to use.
+      Once you deploy your free |service| cluster, it takes less than 15 seconds for
+      it to become ready to use.
       
    .. step:: Create a database user.
       
