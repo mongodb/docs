@@ -152,7 +152,7 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/master/spec/integration/snapshot_query_examples_spec.rb -o ${DRIVERS_PATH}/snapshot_query_examples_spec.rb
 
 # rust
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-rust-driver/main/src/test/documentation_examples.rs -o ${DRIVERS_PATH}/mod.rs
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-rust-driver/main/driver/src/test/documentation_examples.rs -o ${DRIVERS_PATH}/mod.rs
 
 # scala
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-scala-driver/master/driver/src/it/scala/org/mongodb/scala/DocumentationExampleSpec.scala -o ${DRIVERS_PATH}/DocumentationExampleSpec.scala
