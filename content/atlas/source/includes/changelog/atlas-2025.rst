@@ -1,3 +1,27 @@
+.. _atlas_2025_11_19:
+
+19 November 2025 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Reduces the inactivity policy for pausing inactive |service| ``M0`` {+Free-clusters+} 
+  from 60 to 30 days. You'll receive an email notification 7 days before {+service+} 
+  pauses your cluster. To resume a paused cluster, see :ref:`resume-cluster`. If 
+  you don't plan on using your cluster in the next few weeks, we recommend 
+  :ref:`exporting <mongodump>` the data and :ref:`terminating <terminate-cluster>` 
+  the cluster. 
+
+- Adds a configurable expiration duration for regional outage simulations to solve 
+  stuck simulations. 
+  You can select a duration of 1 day, 3 days (default), or 7 days, after which the 
+  simulation automatically ends.
+     
+  {+service+} checks for expired simulations in 24-hour intervals so it may take 
+  up to an additional day after the expiration date for the simulation to fully 
+  resolve.
+
+- Adds a ``Maintenance window completed`` event to the :ref:`Project Activity Feed <activity-feed>` 
+  to confirm when maintenance operations finish.
+
 .. _atlas_2025_10_22:
 
 22 October 2025 Release
