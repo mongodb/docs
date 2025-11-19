@@ -1,0 +1,470 @@
+.. _k8s-fts-vs-settings:
+
+==========================================
+|text-search| and |vector-search| Settings
+==========================================
+
+.. meta::
+   :description: Configure MongoDB search and vector search settings for deployment.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecols
+
+You can deploy |text-search| and |vector-search| alongside MongoDB v8.0
+or higher using |k8s-op-full|.
+
+Example Resource Specification 
+------------------------------
+
+The following example shows the settings inside the ``spec`` object for
+|text-search| and |vector-search| deployment. To learn more about these
+settings, see the :ref:`k8s-fts-vs-required-settings` and
+:ref:`k8s-fts-vs-optional-settings`. 
+
+.. example:: 
+
+   .. literalinclude:: /reference/k8s/example-fts-vs.yaml
+      :language: yaml
+      :copyable: false
+      :linenos:
+
+.. _k8s-fts-vs-required-settings:
+
+Required Settings 
+-----------------
+
+This section describes the settings that are required for deploying 
+the |text-search| and |vector-search| resource. If you define only the
+required settings in the Custom Resource Definition (CRD), the
+|k8s-op-full| uses the defaults for all optional settings to configure ``MongoDBSearch``.  
+
+.. _mdbsearcg-api-version:
+
+``apiVersion``
+  *Type*: string
+
+  Version of the MongoDB |k8s| resource schema. Set the value to
+  ``mongodb.com/v1``. 
+
+.. _mdbsearch-kind-spec:
+
+``kind``
+  *Type*: string
+
+  Kind of MongoDB |k8s| resource to create. Set this to ``MongoDBSearch``.
+
+.. _mdbsearch-metadata-namespace:
+
+``metadata.namespace``
+  *Type*: string
+
+  Namespace where the ``MongoDBSearch`` resource should be created. To
+  leverage automatic configuration of ``MongoDBSearch`` and ``MongoDB``
+  or ``MongoDBCommunity`` resources, the ``MongoDBSearch`` resource
+  should be created in the same namespace as the ``MongoDB`` or
+  ``MongoDBCommunity`` resource. 
+
+.. _mdbsearch-metadata-name:
+
+``metadata.name``
+  *Type*: string
+
+  Unique identifier of the ``MongoDBSearch`` resource. The resource name can
+  be a maximum of 44 characters in length. 
+
+.. _k8s-fts-vs-optional-settings:
+
+Optional Settings 
+-----------------
+
+This section describes the optional settings for the |text-search| and
+|vector-search| resource. If you omit the optional settings and define
+only the required settings in the |crd|, the |k8s-op-full| uses the
+defaults for all optional settings to configure ``MongoDBSearch``.
+
+Settings for Configuring the Data Source 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+.. _mdbsearch-spec-source:
+
+``spec.source``
+  *Type*: object 
+
+  Setting that describes the MongoDB source replica set for ``mongot``.
+  This is required if: 
+
+  - ``MongoDB`` is external
+  - ``MongoDB`` has a different name from ``MongoDBSearch``
+
+  The ``MongoDBSearch`` resource must always be connected to the
+  replica set. If you deployed the replica set using the |k8s-op-short|
+  with ``MongoDB`` or ``MongoDBCommunity`` |crd|, and if ``spec.source``
+  is empty, the |k8s-op-short| uses the following based on the
+  ``metadata.name`` to look for the database in |k8s|: 
+
+  - Find ``MongoDB`` or ``MongoDBCommunity`` resources with the same name
+    as set for ``metadata.name`` in ``MongoDBSearch``, in the same
+    namespace. 
+  - Find the password secret for the ``mongot`` user from the
+    ``<MongoDBSearch.metadata.name>-search-sync-source-password`` secret. 
+
+.. _mdbsearch-spec-source-mongodb-resourceref-name:
+
+``spec.source.mongodbResourceRef.name``
+  *Type*: string 
+
+  Name of the ``MongoDB`` or ``MongoDBCommunity`` resource to associate 
+  with this |text-search| and |vector-search| resource. You can't have
+  more than one ``MongoDBSearch`` resource referencing the same
+  ``MongoDB`` or ``MongoDBCommunity`` resource. If you specify a
+  different name, you must explicitly point to the ``MongoDB`` or 
+  ``MongoDBCommunity`` where you want to enable |text-search| and
+  |vector-search|.   
+
+  Use this field only if your ``MongoDB`` or ``MongoDBCommunity``
+  resource is deployed in the same |k8s| cluster and is in the same
+  namespace as your ``MongoDBSearch`` resource. Setting this field
+  allows the |k8s-op-short| to automatically:
+
+  - Set proper connection strings to the database.
+  - Reconfigure MongoDB database deployments by setting necessary parameters to
+    enable search functionality and configure the addresses of the search
+    pods.
+  
+  If your database is deployed outside of |k8s| or is in a different
+  namespace, use ``spec.external`` to configure connection to the
+  database. This field is mutually exclusive with ``spec.external``.
+
+  If omitted, the |k8s-op-short| will look for ``MongoDB`` or
+  ``MongoDBCommunity`` resource with the same name as this ``MongoDBSearch``
+  resource. 
+
+Setting for Configuring ``mongot`` User 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _mdbsearch-spec-source-username:
+
+``spec.source.username``
+  *Type*: string 
+
+  Username to use to authenticate ``mongot`` with ``mongod``. The
+  specified user must have the :authrole:`searchCoordinator` role. If
+  omitted, the |k8s-op-short| assumes the username is
+  ``search-sync-source``. 
+
+.. _mdbsearch-spec-source-passwordSecretRef-name:
+
+``spec.source.passwordSecretRef.name``
+  *Type*: string 
+
+  Name of the secret that contains the password that ``mongot`` must use
+  to authenticate with ``mongod``. If omitted, defaults to 
+  ``<MongoDBSearch.metadata.name>-search-sync-source-password``. 
+
+.. _mdbsearch-spec-source-passwordSecretRef-key:
+
+``spec.source.passwordSecretRef.key``
+  *Type*: string 
+
+  Key under which the password value is stored in the secret. If
+  omitted, defaults to ``password``.
+
+Settings for Connecting to External MongoDB
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following settings are only required for configuring a connection to
+an external MongoDB replica set.
+
+.. _mdbsearch-spec-source-external:
+
+``spec.source.external``
+  *Type*: object 
+
+  Settings that describe the external data source. This object describes
+  the settings for the |text-search| and |vector-search| resource to
+  connect to an external MongoDB. These settings should be specified
+  only if you want to connect to an external MongoDB that wasn't
+  deployed using the |k8s-op-short|. If specified, these settings
+  override settings for ``spec.source.mongodbResourceRef.name``. If you
+  used the |k8s-op-short| to install MongoDB in the same cluster, these
+  settings are optional.
+
+.. _mdbsearch-spec-source-external-hostAndPorts:
+
+``spec.source.external.hostAndPorts``
+  *Type*: array of strings
+
+  List of hostnames and ports of the external replica set. This is a
+  host seed list to the MongoDB replica set. The ``mongot`` connects
+  to the database in a replica set mode and gets the list of all other
+  nodes using ``db.hello()``.
+
+  .. example:: 
+
+     .. code-block:: shell 
+        :copyable: false 
+
+        hostAndPorts: 
+          - mdbc-rs-0.my-external-domain.example.com:27017
+          - mdbc-rs-1.my-external-domain.example.com:27017
+          - mdbc-rs-2.my-external-domain.example.com:27017
+
+.. _mdbsearch-spec-source-external-keyfileSecretRef:
+
+``spec.source.external.keyfileSecretRef``
+  *Type*: object 
+
+  Reference to the Kubernetes secret that contains the keyfile for
+  internal cluster authentication. 
+
+.. _mdbsearch-spec-source-external-keyfileSecretRef-name:
+
+``spec.source.external.keyfileSecretRef.name``
+  *Type*: string 
+
+  Name of keyfile used to authenticate ``mongod`` to ``mongot``. The
+  specified secret name must contain the same keyfile that is used by
+  the MongoDB replica set members for internal communication. 
+  
+.. _mdbsearch-spec-source-external-keyfileSecretRef-key:
+
+``spec.source.external.keyfileSecretRef.key``
+  *Type*: string 
+  
+  Contents of the keyfile as string. 
+  
+  .. tip::
+  
+     You can find keyfile in the ``auth.key`` field of the automation
+     config for your |com| instance. 
+
+.. _mdbsearch-spec-source-external-tls:
+
+``spec.source.external.tls``
+  *Type*: object 
+
+  TLS Settings that ``mongot`` must use when connecting to the external
+  MongoDB database. 
+
+.. _mdbsearch-spec-source-external-tls-ca:
+
+``spec.source.external.tls.ca.name``
+  *Type*: string 
+
+  Name of the Secret containing the trusted chain of the certificate
+  authorities that issued the TLS certificate used by the ``mongod``
+  nodes. 
+
+  .. example:: 
+
+     .. code-block:: yaml 
+        :copyable: false 
+
+        spec:
+          source:
+            external:
+              tls:
+                ca: 
+                  name: trusted-ca
+  
+  The certificate (or certificates if this is a chain of trusted
+  CA certificates) must be specified under ``ca.crt`` key in this
+  Secret. 
+
+  .. example:: 
+
+     .. code-block:: yaml 
+        :copyable: false 
+
+        name: Secret
+        apiVersion: v1
+        metadata:
+          name: trusted-ca
+        data:
+          ca.crt: |
+            -----BEGIN CERTIFICATE-----
+            MIIDBTCCAe2gAwIBAgIIH3EOUAGAsx0wDQYJKoZIhvcNAQELBQAwFTETMBEGA1UE
+            [...]
+            U/4rN8Ias/FONYFRtGfs9uXHmo2MP04BF+9ED2dlbNDUbat+6XCozLJj98nI4VEi
+            qaV3JrVFHTgN
+            -----END CERTIFICATE-----
+
+Settings for Security 
+~~~~~~~~~~~~~~~~~~~~~
+
+.. _mdbsearch-spec-security:
+
+``spec.security``
+  *Type*: object 
+
+  Security settings for ``mongot`` listen server.
+
+.. _mdbsearch-spec-security-tls:
+
+``spec.security.tls``
+  *Type*: object 
+
+  :abbr:`TLS (Transport Layer Security)` settings for ``mongot``. If
+  omitted, ``mongot`` won't use TLS for incoming connections.
+
+.. _mdbsearch-spec-security-tls.certificateKeySecretRef-name:
+
+``spec.security.tls.certificateKeySecretRef.name``
+  *Type*: string 
+
+  Name of  a TLS secret in the same namespace containing private key
+  (``tls.key``) and the certificate (``tls.crt``). The secret can be of
+  type ``kubernetes.io/tls`` (that is issued by cert-manager) or can be
+  created manually. This is required for enabling |tls| in ``mongot``.
+
+Settings for Provisioning Resources 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _mdbsearch-spec-resource-requirements:
+
+``spec.resourceRequirements``
+  *Type*: `core/v1/ResourceRequirements
+  <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#resourcerequirements-v1-core>`__ 
+
+  CPU and memory that the ``mongodb-search`` container can
+  request and be limited to. We recommend using this field to customize
+  resource allocations instead of overriding it with
+  ``spec.statefulSet``.
+
+  If omitted, the |k8s-op-short| uses the following default
+  values: 
+
+  .. code-block:: yaml 
+     :copyable: false 
+
+     requests: 
+       cpu: 2
+       memory: 2G
+
+.. _mdbsearch-spec-resource-requirements-limits:
+
+``spec.resourceRequirements.limits``
+  *Type*: object 
+
+  Upper cap on the resource, CPU and memory, that the ``mongodb-search``
+  container can consume. By default, there are no limits set. If
+  omitted, the pod isn't restricted and so, might use all the resources
+  on the node. We recommend setting limits based on your workload. 
+
+.. _mdbsearch-spec-resource-requirements-requests:
+
+``spec.resourceRequirements.requests``
+  *Type*: object 
+
+  Amount of CPU and memory requested for the ``mongodb-search``
+  container. If omitted, the |k8s-op-short| uses the following default 
+  values: 
+
+  .. code-block:: yaml 
+     :copyable: false 
+
+     requests: 
+       cpu: 2
+       memory: 2G
+
+.. _mdbsearch-spec-persistence-single:
+
+``spec.persistence.single``
+  *Type*: object 
+
+  Storage configuration for |text-search| and |vector-search|
+  persistence volume where |text-search| and |vector-search| indexes are
+  stored. Each search instance (pod) has its own independent storage to
+  maintain indexes, which isn't shared with the MongoDB database. Only
+  index metadata (definitions) are stored in the database itself.
+
+  .. list-table::
+     :widths: 20 20 60
+     :header-rows: 1
+
+     * - Scalar
+       - Data Type
+       - Description
+
+     * - ``labelSelector``
+       - string
+       - `Tag
+         <https://kubernetes.io/docs/concepts/storage/persistent-volumes/#selector>`__
+         used to bind mounted volumes to directories.
+
+     * - ``storage``
+       - string
+       - Minimum size of |k8s-pv| that should be mounted. This value is
+         expressed as an integer followed by a unit of storage in
+         |jedec| notation.
+
+         Default value is 16Gi.
+
+         For example, if :manual:`replica set
+         </reference/glossary/#std-term-replica-set>` requires 60
+         gigabytes of storage space, set this value to ``60Gi``.
+
+     * - ``storageClass``
+       - string
+       - Type of storage specified in a |k8s-pvc|. You may create
+         this storage type as a |k8s-sc| object before using it in this
+         |k8s-obj| specification.
+
+         .. include:: /includes/admonitions/fact-reclaimpolicy-to-retain.rst
+
+  ``MongoDBSearch`` supports only ``single`` persistence field. If omitted,
+  the |k8s-op-short| sets ``spec.persistence.single.storage`` to ``10GB``.
+
+Settings for Logging 
+~~~~~~~~~~~~~~~~~~~~
+
+.. _mdbsearch-spec-log-level: 
+
+``spec.logLevel``
+  *Type*: string 
+
+  Verbosity of the ``mongot`` logs. Value can be one of the following: 
+
+  - ``TRACE``
+  - ``DEBUG``
+  - ``INFO``
+  - ``WARN``
+  - ``ERROR``
+
+  If omitted, defaults to ``INFO``.
+
+Other Settings 
+~~~~~~~~~~~~~~
+
+.. _mdbsearch-spec-version:
+
+``spec.version``
+  *Type*: string 
+
+  Version of ``mongodb-search`` docker image. If omitted, the
+  |k8s-op-short| automatically chooses the newest version of
+  ``MongoDBSearch``. You can set it explicitly to prevent
+  automatic upgrades when the |k8s-op-short| version is upgraded. 
+
+.. _mdbsearch-spec-statefulset:
+
+``spec.statefulSet``
+  *Type*: `apps/v1/StatefulSet <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#statefulset-v1-apps>`__
+
+  Specification for the `StatefulSet
+  <https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/>`__,
+  created for deploying ``mongot`` pods, that overwrites the settings
+  that the |k8s-op-short| applies. The overrides are always applied
+  last. Supports both the ``spec.statefulSet.spec`` and
+  ``spec.statefulSet.metadata`` fields. 
+
+  .. note:: 
+
+     Don't set resource requirements or persistence settings using
+     ``spec.statefulSet``. Instead, use the ``spec.resourceRequirements``
+     and ``spec.persistence`` fields respectively.

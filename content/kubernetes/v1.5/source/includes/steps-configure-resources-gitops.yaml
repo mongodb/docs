@@ -1,0 +1,121 @@
+---
+stepnum: 1
+ref: create-rbac-resources-gitops
+title: Create and apply RBAC resources to each cluster.
+content: |
+
+  Use :github:`these RBAC resource examples </mongodb/mongodb-kubernetes/tree/{+github-branch+}/public/samples/multi-cluster-cli-gitops/resources/rbac>` to create your own. To learn more about these 
+  RBAC resources, see :ref:`multi-cluster-rbac-manual`.
+  
+  To apply them to your central and member clusters with GitOps, you can use a tool like `Argo CD <https://argoproj.github.io/cd>`__.
+
+---
+stepnum: 2
+ref: create-configmap-gitops
+title: Create and apply the ConfigMap file.
+content: |
+
+  The |k8s-op-short| keeps track of its member clusters using a |k8s-configmap-def| file. Copy, modify, and apply the following example ConfigMap:
+
+  .. code-block:: yaml
+
+     apiVersion: v1
+     kind: ConfigMap
+     data:
+       cluster1: ""
+       cluster2: ""
+     metadata:
+       namespace: <namespace>
+       name: mongodb-kubernetes-operator-member-list
+       labels:
+         multi-cluster: "true"
+
+---
+stepnum: 3
+ref: configure-kubeconfig-gitops
+title: Configure the ``kubeconfig`` secret for the |k8s-op-short|.
+content: |
+
+  The |k8s-op-short|, which runs in the operator cluster, communicates with the Pods in 
+  the member clusters through the Kubernetes API. For this to work, the |k8s-op-short| 
+  needs a :k8sdocs:`kubeconfig </concepts/configuration/organize-cluster-access-kubeconfig/>` 
+  file that contains the service account tokens of the member clusters. Create this 
+  ``kubeconfig`` file by following these steps: 
+
+  1. Obtain a list of |k8s-service-accounts| configured in the |k8s-op-short|'s namespace.  For example, if you chose to use the default ``mongodb`` namespace, then you can obtain the service accounts using the following command:
+
+     .. code-block:: sh
+        
+        kubectl get serviceaccounts -n mongodb
+
+  #. Get the secret for each service account that belongs to a member cluster.
+
+     .. code-block:: sh
+
+        kubectl get secret <service-account-name> -n mongodb -o yaml
+
+  #. In each service account secret, copy the |certauth| certificate and token. For example, copy ``<ca_certificate>`` and ``<token>`` from the secret, as shown in the following example:  
+
+     .. code-block:: yaml
+
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: my-service-account
+          namespace: mongodb
+        data:
+          ca.crt: <ca_certificate>
+          token: <token>
+
+  #. Copy the following ``kubeconfig`` example for the operator cluster and replace 
+     the placeholders with the ``<ca_certificate>`` and ``<token>`` you copied from 
+     the service account secrets by running the commands listed below.
+
+     .. code-block:: yaml
+          
+        apiVersion: v1
+        clusters:
+        - cluster:
+            certificate-authority:
+            server: https://
+          name: kind-e2e-cluster-1
+        - cluster:
+            certificate-authority:
+            server: https://
+          name: kind-e2e-cluster-2
+        contexts:
+        - context:
+            cluster: kind-e2e-cluster-1
+            namespace: mongodb
+            user: kind-e2e-cluster-1
+          name: kind-e2e-cluster-1
+        - context:
+            cluster: kind-e2e-cluster-2
+            namespace: mongodb
+            user: kind-e2e-cluster-2
+          name: kind-e2e-cluster-2
+        kind: Config
+        users:
+        - name: kind-e2e-cluster-1
+          user:
+            token:
+        - name: kind-e2e-cluster-2
+          user:
+            token:
+
+     Populate the following ``kubectl`` commands with the correct values and run 
+     them to update your example ``kubeconfig`` file.
+
+     .. code-block:: sh
+        
+        kubectl config --kubeconfig=kubeconfig set-cluster kind-e2e-cluster-1 --certificate-authority=<cluster-1-ca.crt>
+        kubectl config --kubeconfig=kubeconfig set-cluster kind-e2e-cluster-2 --certificate-authority=<cluster-2-ca.crt>
+
+        kubectl config --kubeconfig=kubeconfig set-credentials kind-e2e-cluster-1 --token=<cluster-1-token>
+        kubectl config --kubeconfig=kubeconfig set-credentials kind-e2e-cluster-2 --token=<cluster-2-token>
+  
+  #. Create a secret in the operator cluster that you mount in the |k8s-op-short| as illustrated in :github:`the reference Helm chart </mongodb/helm-charts/blob/enterprise-operator-1.20.1/charts/enterprise-operator/templates/operator.yaml#L191-L197/>`. For example:
+
+     .. code-block:: sh
+
+        kubectl --context="${CTX_CENTRAL_CLUSTER}" -n <operator-namespace> create secret --from-file=kubeconfig=<path-to-kubeconfig-file> <kubeconfig-secret-name>

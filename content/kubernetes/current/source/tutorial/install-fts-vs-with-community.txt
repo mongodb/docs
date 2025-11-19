@@ -1,8 +1,4 @@
 :noprevnext:
-:orphan:
-
-.. meta::
-   :robots: noindex, nosnippet
 
 .. _k8s-fts-vs-install:
 
@@ -27,7 +23,9 @@ resources to run with MongoDB Community Edition v8.2.0 or higher on a
 |k8s| cluster. The ``mongot`` process supports both |text-search| search
 |vector-search|. The following procedure demonstrates how to deploy and
 configure |text-search| and |vector-search| to run with a new or
-existing replica set in your |k8s| cluster.
+existing replica set in your |k8s| cluster. The deployment uses |tls|
+certificates to ensure secure communication between MongoDB nodes and
+the ``mongot`` search process.
 
 Prerequisites 
 -------------
@@ -39,6 +37,8 @@ following:
 - |k8s| command-line tool, ``kubectl``, configured to communicate with
   your cluster.
 - |helm|, the package manager for |k8s|, to install the |k8s-op-short|.
+- `cert-manager <https://cert-manager.io/>`__ or an alternative certificate
+  management solution for |tls| certificate provisioning.
 - Bash v5.1 or higher for running the commands in this tutorial. 
 
 Procedure 
@@ -49,14 +49,27 @@ Procedure
 
    .. step:: Required. Set the environment variables. 
 
-      To set the environment variables for use in the subsequent steps
-      in this procedure, copy the following, set the values for the
-      environment variables, and then load the environment variables: 
+      Set the environment variables for use in the subsequent steps in
+      this procedure. Copy the following commands, update the values for
+      your environment, and then run them to load the variables: 
 
       .. literalinclude:: /includes/code-examples/search/01-search-community-deploy/env_variables.sh
          :language: yaml 
          :copyable: true 
          :linenos: 
+
+      .. collapsible::
+         :heading: Optional
+         :sub_heading: Validate that the environment variables have been set.
+         :expanded: false
+
+         To verify that all necessary environment variables are set,
+         run the following code in your terminal:
+
+         .. literalinclude:: /includes/code-examples/search/01-search-community-deploy/code_snippets/01_0040_validate_env.sh
+            :language: yaml 
+            :copyable: true 
+            :linenos:
 
    .. step:: Conditional. Add the MongoDB Helm repository. 
 
@@ -82,7 +95,7 @@ Procedure
    .. step:: Conditional. Install the |k8s-op|. 
 
       The |k8s-op-short| watches ``MongoDBCommunity`` and
-      ``MongoDBSearch`` custom resources and manages the lifecycle of
+      MongoDBSearch custom resources and manages the lifecycle of
       your MongoDB deployments. If you already installed the |k8s-op|,
       skip this step. Otherwise, install the |k8s-op| from the Helm
       repository you added in the previous step. 
@@ -101,6 +114,25 @@ Procedure
             :language: shell 
             :linenos:
             :visible: false 
+
+   .. step:: Optional. Wait for the operator deployment.
+
+      Ensure that the |k8s-op-short| is fully operational before
+      proceeding with the |text-search| and |vector-search| deployment.
+      Run the following command to verify that all operator components
+      are running and available. 
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/code-examples/search/01-search-community-deploy/code_snippets/01_0110_wait_for_operator_deployment.sh
+            :language: shell
+            :linenos:
+
+         .. output:: /includes/code-examples/outputs/test_kind_search_community_snippets/01_0110_wait_for_operator_deployment.out
+            :language: shell
+            :linenos:
+            :visible: false
 
    .. step:: Required. Create and load the MongoDB user secrets. 
 
@@ -134,6 +166,49 @@ Procedure
             secret/mdb-admin-user-password created
             secret/mdbc-rs-search-sync-source-password created
             secret/mdb-user-password created
+
+   .. step:: Conditional. Install the ``cert-manager``.
+
+      The ``cert-manager`` is required for managing |tls| certificates.
+      If you already have ``cert-manager`` installed in your cluster,
+      skip this step. Otherwise, install ``cert-manager`` using |helm|.
+
+      To install ``cert-manager`` in the ``cert-manager`` namespace,
+      run the following command in your terminal:
+
+      .. literalinclude:: /includes/code-examples/search/01-search-community-deploy/code_snippets/01_0306_install_cert_manager.sh
+         :language: shell
+         :copyable: true
+         :linenos:
+
+   .. step:: Required. Prepare certificate issuer and CA infrastructure.
+
+      Create the certificate authority infrastructure that will issue |tls|
+      certificates for ``MongoDB`` and ``MongoDBSearch`` resources. The
+      commands perform the following actions: 
+      
+      - Create a self-signed ``ClusterIssuer``.
+      - Generate a CA certificate.
+      - Publish a cluster-wide CA issuer that all namespaces can use. 
+      - Expose the CA bundle through a ``ConfigMap`` so that MongoDB
+        resources can use it. 
+
+      .. literalinclude:: /includes/code-examples/search/01-search-community-deploy/code_snippets/01_0307_prepare_cert_manager_issuer.sh
+         :language: shell
+         :copyable: true
+         :linenos:
+
+   .. step:: Required. Issue TLS certificates.
+
+      Issue |tls| certificates for both the ``MongoDB`` server and the
+      ``MongoDBSearch`` service. The MongoDB server certificate includes
+      all necessary DNS names for the pod and service communication. Both
+      certificates support server and client authentication.
+
+      .. literalinclude:: /includes/code-examples/search/01-search-community-deploy/code_snippets/01_0308_issue_tls_certificates.sh
+         :language: shell
+         :copyable: true
+         :linenos:
 
    .. step:: Conditional. Create and deploy the MongoDB Community resource. 
 
@@ -204,7 +279,7 @@ Procedure
 
                MongoDBCommunity resource
                NAME      PHASE     VERSION
-               mdbc-rs   Running   8.0.10
+               mdbc-rs   Running   8.2
 
                Pods running in cluster minikube
                NAME                                           READY   STATUS    RESTARTS   AGE
@@ -218,7 +293,7 @@ Procedure
       You can deploy one instance of the search node without any load
       balancing. To deploy, complete the following steps: 
 
-      a. Create a ``MongoDBSearch`` custom resource named ``mdbc-rs``.
+      a. Create a MongoDBSearch custom resource named ``mdbc-rs``.
 
          This resource specifies the CPU and memory resource
          requirements for the search nodes. To learn more about the
@@ -229,13 +304,13 @@ Procedure
             :copyable: true 
             :linenos:
 
-      #. Wait for the ``MongoDBSearch`` resource deployment to
+      #. Wait for the MongoDBSearch resource deployment to
          complete.
 
-         When you apply the ``MongoDBSearch`` custom resource, the
+         When you apply the MongoDBSearch custom resource, the
          |k8s| operator begins deploying the search nodes (pods). This
          step pauses the execution until the ``mdbc-rs``
-         ``MongoDBSearch`` resource's status phase is ``Running``, which
+         MongoDBSearch resource's status phase is ``Running``, which
          indicates that the MongoDB Search is operational.
 
          .. literalinclude:: /includes/code-examples/search/01-search-community-deploy/code_snippets/01_0325_wait_for_search_resource.sh
@@ -246,7 +321,7 @@ Procedure
    .. step:: Optional. Verify the MongoDB Community resource status. 
 
       Ensure that the ``MongoDBCommunity`` resource deployment with
-      ``MongoDBSearch`` was successful.
+      MongoDBSearch was successful.
 
       .. literalinclude:: /includes/code-examples/search/01-search-community-deploy/code_snippets/01_0330_wait_for_community_resource.sh
          :language: javascript 

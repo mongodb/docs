@@ -1,0 +1,987 @@
+.. _k8s-troubleshooting:
+
+===============================
+Troubleshoot the |k8s-op-short|
+===============================
+
+.. meta::
+   :description: Troubleshoot Kubernetes Operator deployments, check resource statuses, review logs, and resolve common issues like failed upgrades or invalid configurations.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |multi-cluster-ref| replace:: :ref:`multi-cluster-troubleshooting`
+
+.. include:: /includes/admonitions/note-single-to-multi-cluster.rst
+   
+.. _get-resource-status:
+
+Get Status of a Deployed Resource
+---------------------------------
+
+To find the status of a resource deployed with the |k8s-op-short|,
+invoke one of the following commands:
+
+- For |onprem| resource deployments:
+
+  .. code-block:: sh
+
+     kubectl get <resource-name> -n <metadata.namespace> -o yaml
+
+  - The ``status.applicationDatabase.phase`` field displays the
+    {+appdb+} resource deployment status.
+  - The ``status.backup.phase`` displays the backup daemon resource
+    deployment status.
+  - The ``status.opsManager.phase`` field displays the |onprem| resource
+    deployment status.
+
+  .. note::
+
+     The |com| controller watches the database resources
+     defined in the following settings:
+
+     - :opsmgrkube:`spec.backup.opLogStores`
+     - ``spec.backup.s3Stores``
+     - :opsmgrkube:`spec.backup.blockStores`
+
+- For MongoDB resource deployments:
+
+  .. code-block:: sh
+
+     kubectl get mdb <resource-name> -n <metadata.namespace> -o yaml
+
+  The ``status.phase`` field displays the MongoDB resource deployment
+  status.
+
+The following key-value pairs describe the resource deployment statuses:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Key
+     - Value
+
+   * - ``message``
+     - Message explaining why the resource is in a ``Pending`` or
+       ``Failed`` state.
+   * - ``phase``
+     -
+       .. list-table::
+          :header-rows: 1
+          :widths: 20 80
+
+          * - Status
+            - Meaning
+
+          * - ``Pending``
+            - The |k8s-op-short| is unable to reconcile the resource
+              deployment state. This happens when a reconciliation
+              times out or if the |k8s-op-short| requires you to take
+              action for the resource to enter a running state.
+
+              If a resource is pending because a reconciliation timed
+              out, the |k8s-op-short| attempts to reconcile the
+              resource state in 10 seconds.
+
+          * - ``Pending``
+            - The |k8s-op-short| is reconciling the resource state.
+
+              Resources enter this state after you create or update
+              them or if the |k8s-op-short| is attempting to reconcile
+              a resource previously in a ``Failed`` state.
+
+              The |k8s-op-short| attempts to reconcile the resource
+              state in 10 seconds.
+
+          * - ``Running``
+            - The resource is running properly.
+
+          * - ``Failed``
+            - The resource is not running properly. The ``message``
+              field provides additional details.
+
+              The |k8s-op-short| attempts to reconcile the resource
+              state in 10 seconds.
+
+   * - ``lastTransition``
+     - |iso8601-time| when the last reconciliation happened.
+
+   * - ``link``
+     - Deployment |url| in |mms|.
+
+   * - ``backup.statusName``
+     - If you enabled continuous backups with :setting:`spec.backup.mode`
+       in |k8s| for your MongoDB resource, this field indicates
+       the status of the backup, such as ``backup.statusName:"STARTED"``.
+       Possible values are ``STARTED``, ``STOPPED``, and ``TERMINATED``.
+
+   * - Resource specific fields
+     - For descriptions of these fields, see
+       :doc:`/reference/k8s-operator-specification`.
+
+.. example::
+
+   To see the status of a replica set named ``my-replica-set`` in
+   the ``developer`` namespace, run:
+
+   .. code-block:: sh
+
+      kubectl get mdb my-replica-set -n developer -o yaml
+
+   If ``my-replica-set`` is running, you should see:
+
+   .. code-block:: yaml
+
+      status:
+          lastTransition: "2019-01-30T10:51:40Z"
+          link: http://ec2-3-84-128-187.compute-1.amazonaws.com:9080/v2/5c503a8a1b90141cbdc60a77
+          members: 1
+          phase: Running
+          version: 8.0.0
+
+   If ``my-replica-set`` is not running, you should see:
+
+   .. code-block:: yaml
+
+      status:
+        lastTransition: 2019-02-01T13:00:24Z
+        link: http://ec2-34-204-36-217.compute-1.amazonaws.com:9080/v2/5c51c040d6853d1f50a51678
+        members: 1
+        message: 'Failed to create/update replica set in Ops Manager: Status: 400 (Bad Request),
+          Detail: Something went wrong validating your Automation Config. Sorry!'
+        phase: Failed
+        version: 8.0.0
+
+Review the Logs
+---------------
+
+Keep and review adequate logs to help debug issues and monitor cluster 
+activity. Use the recommended `logging architecture 
+<https://kubernetes.io/docs/concepts/cluster-administration/logging/>`__ 
+to retain |k8s-pod| logs even after a Pod is deleted.
+
+Logging Process
+~~~~~~~~~~~~~~~
+
+The |k8s-op-short| writes to the Pod logs by using 
+a wrapper that converts logs from the {+mdbagent+} and |mongod| 
+components on the database deployment Pod into a 
+structured logging entry in the following |json| format:
+
+.. code-block:: json
+
+   { "logType": "<log-type>", "contents": "<log line from a log file>" }
+
+The |k8s-op-short| supports the following log types:
+
+- ``automation-agent-verbose``
+- ``automation-agent-stderr``
+- ``mongodb``
+- ``mongodb-audit``
+- ``agent-launcher-script``
+- ``automation-agent``
+- ``monitoring-agent``
+- ``backup-agent``
+
+When you read logs from a database container,
+the |k8s-op-short| returns the structured |json| entry 
+that contains logs from different sources.
+
+.. _review-k8s-op-logs:
+
+Review Logs from the |k8s-op-short|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To review the |k8s-op-short| logs, invoke this command:
+
+.. code-block:: sh
+
+   kubectl logs -f deployment/mongodb-kubernetes-operator -n <metadata.namespace>
+
+You could check the :opsmgr:`Ops Manager Logs </tutorial/view-logs>` as
+well to see if any issues were reported to |onprem|.
+
+.. _find-one-k8s-pod:
+
+Find a Specific Pod
+~~~~~~~~~~~~~~~~~~~
+
+To find which pods are available, invoke this command first:
+
+.. code-block:: sh
+
+   kubectl get pods -n <metadata.namespace>
+
+.. seealso::
+   
+   |k8s| documentation on `kubectl get <https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#get>`__.
+
+.. _review-all-k8s-logs:
+.. _review-one-k8s-pod:
+
+Review Logs from a Specific Pod
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to narrow your review to a specific |k8s-pod|, you can
+invoke this command:
+
+.. code-block:: sh
+
+   kubectl logs <podName> -n <metadata.namespace>
+
+.. example::
+
+   If your :manual:`replica set </reference/glossary/#std-term-replica-set>` is labeled ``myrs``, run:
+
+   .. code-block:: sh
+
+      kubectl logs myrs-0 -n <metadata.namespace>
+
+   This returns the :ref:`Automation Agent Log <agent-logs>` for this
+   replica set.
+
+Review a Specific Log
+~~~~~~~~~~~~~~~~~~~~~
+
+You can narrow your review to a specific log type. For example,
+the following command returns audit logs from the |k8s| logs 
+of the specified Pod by specifying the ``mongodb-audit`` log type:
+
+.. code-block:: sh
+
+   kubectl logs -c mongodb-enterprise-database replica-set-0 | jq -r 'select(.logType == "mongodb-audit") | .contents'
+
+The command returns an entry similar to the following output:
+
+.. code-block:: json
+
+   {{{ "atype":"startup","ts":{"$date":"2023-08-30T20:43:54.649+00:00"},"uuid":{"$binary":"oDcPEY69R1yiUtpMupaXOQ==","$type":"04"},"local":{"isSystemUser":true},"remote":{"isSystemUser":true},"users":[],"roles":[],"param":{"options":{"auditLog":{"destination":"file","format":"JSON","path":"/var/log/mongodb-mms-automation/mongodb-audit.log"},"config":"/data/automation-mongod.conf","net":{"bindIp":"0.0.0.0","port":27017,"tls":{"mode":"disabled"}},"processManagement":{"fork":true},"replication":{"replSetName":"replica-set"},"storage":{"dbPath":"/data","engine":"wiredTiger"},"systemLog":{"destination":"file","path":"/var/log/mongodb-mms-automation/mongodb.log"}}},"result":0}
+   {"atype":"startup","ts":{"$date":"2023-08-30T20:44:05.466+00:00"},"uuid":{"$binary":"OUbUWC1DQM6k/Ih4hKZq4g==","$type":"04"},"local":{"isSystemUser":true},"remote":{"isSystemUser":true},"users":[],"roles":[],"param":{"options":{"auditLog":{"destination":"file","format":"JSON","path":"/var/log/mongodb-mms-automation/mongodb-audit.log"},"config":"/data/automation-mongod.conf","net":{"bindIp":"0.0.0.0","port":27017,"tls":{"mode":"disabled"}},"processManagement":{"fork":true},"replication":{"replSetName":"replica-set"},"storage":{"dbPath":"/data","engine":"wiredTiger"},"systemLog":{"destination":"file","path":"/var/log/mongodb-mms-automation/mongodb.log"}}},"result":0}}}
+
+Audit Logs
+~~~~~~~~~~
+
+To include audit logs in the |k8s| Pod's logs,
+add the following ``additionalMongodConfig.auditLog`` configuration 
+to your resource definition. You can update the provided file name as needed. 
+
+.. code-block:: yaml
+
+   spec:
+      additionalMongodConfig:
+         auditLog:
+            destination: file
+               format: JSON
+               path: /var/log/mongodb-mms-automation/mongodb-audit.log
+
+
+.. _k8s-validation-webhook:
+
+Check Messages from the Validation Webhook
+------------------------------------------
+
+The |k8s-op-short| uses a validation |k8s-webhook| to prevent users
+from applying invalid resource definitions. The webhook rejects invalid
+requests.
+
+The |k8s-cr| and |k8s-crb| for the webhook are included in the default
+configuration files that you apply during the installation. To create
+the role and binding, you must have :k8sdocs:`cluster-admin privileges </reference/access-authn-authz/rbac/#user-facing-roles>`.
+
+If you create an invalid resource definition, the webhook returns
+a message similar to the following that describes the error to the shell:
+
+.. code-block:: sh
+   :copyable: false
+ 
+   error when creating "my-ops-manager.yaml":
+   admission webhook "ompolicy.mongodb.com" denied the request:
+   shardPodSpec field is not configurable for application databases as
+   it is for sharded clusters and appdb replica sets
+
+When the |k8s-op-short| reconciles each resource, it also validates that
+resource. The |k8s-op-short| doesn't require the validation webhook to
+create or update resources.
+
+If you omit the validation webhook, or if you remove the webhook's role
+and binding from the default configuration, or have insufficient
+privileges to run the configuration, the |k8s-op-short| issues warnings,
+as these are not critical errors. If the |k8s-op-short| encounters a
+critical error, it marks the resource as ``Failed``.
+
+.. note:: |gke| deployments
+
+   |gke| has a known issue with the webhook when deploying to private
+   clusters. To learn more, see :ref:`k8s-private-cluster-on-gke`.
+
+View All |k8s-mdbrsc| Specifications
+------------------------------------
+
+To view all |k8s-mdbrsc| specifications in the provided
+|k8s-ns|:
+
+.. code-block:: shell
+
+   kubectl get mdb -n <metadata.namespace>
+
+.. example::
+
+   To read details about the ``dublin`` standalone resource, run
+   this command:
+
+   .. code-block:: shell
+
+      kubectl get mdb dublin -n <metadata.namespace> -o yaml
+
+   This returns the following response:
+
+   .. code-block:: yaml
+      :copyable: false
+
+      apiVersion: mongodb.com/v1
+      kind: MongoDB
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/last-applied-configuration: |
+            {"apiVersion":"mongodb.com/v1","kind":"MongoDB","metadata":{"annotations":{},"name":"dublin","namespace":"mongodb"},"spec":{"credentials":"credentials","persistent":false,"podSpec":{"memory":"1Gi"},"project":"my-om-config","type":"Standalone","version":"4.0.0"}}
+        clusterDomain: ""
+        creationTimestamp: 2018-09-12T17:15:32Z
+        generation: 1
+        name: dublin
+        namespace: mongodb
+        resourceVersion: "337269"
+        selfLink: /apis/mongodb.com/v1/namespaces/mongodb/mongodbstandalones/dublin
+        uid: 7442095b-b6af-11e8-87df-0800271b001d
+      spec:
+        credentials: my-credentials
+        type: Standalone
+        persistent: false
+        project: my-om-config
+        version: 8.0.0
+
+.. _k8s-rollback-failure:
+
+Restore StatefulSet that Failed to Deploy
+-----------------------------------------
+
+A StatefulSet |k8s-pod| may hang with a status of ``Pending`` if it
+encounters an error during deployment.
+
+``Pending`` |k8s-pods| do not automatically terminate, even if you
+make *and apply* configuration changes to resolve the error.
+
+To return the StatefulSet to a healthy state, apply the configuration
+changes to the MongoDB resource in the ``Pending`` state, then delete
+those pods.
+
+.. example::
+
+   A host system has a number of running |k8s-pods|:
+
+   .. code-block:: sh
+      :copyable: false
+      :emphasize-lines: 5
+
+      kubectl get pods
+
+      my-replica-set-0     1/1 Running 2 2h
+      my-replica-set-1     1/1 Running 2 2h
+      my-replica-set-2     0/1 Pending 0 2h
+
+   ``my-replica-set-2`` is stuck in the ``Pending`` stage. To gather
+   more data on the error, run:
+
+   .. code-block:: sh
+      :copyable: false
+      :emphasize-lines: 1,5
+
+      kubectl describe pod my-replica-set-2
+
+      <describe output omitted>
+
+      Warning FailedScheduling 15s (x3691 over 3h) default-scheduler
+      0/3 nodes are available: 1 node(s) had taints that the pod
+      didn't tolerate, 2 Insufficient memory.
+
+   The output indicates an error in memory allocation.
+
+   Updating the memory allocations in the MongoDB resource is
+   insufficient, as the pod does not terminate automatically after
+   applying configuration updates.
+
+   To remedy this issue, update the configuration, apply the
+   configuration, then delete the hung pod:
+
+   .. code-block:: sh
+
+      vi <my-replica-set>.yaml
+
+      kubectl apply -f <my-replica-set>.yaml
+
+      kubectl delete pod my-replica-set-2
+
+   Once this hung pod is deleted, the other pods restart with your new
+   configuration as part of rolling upgrade of the Statefulset.
+
+.. note::
+
+   To learn more about this issue, see
+   `Kubernetes Issue 67250 <https://github.com/kubernetes/kubernetes/issues/67250>`__.
+
+.. _replace-config-file:
+
+Replace a ConfigMap to Reflect Changes
+---------------------------------------
+
+If you cannot modify or redeploy an already-deployed resource
+:file:`ConfigMap` file using the *kubectl apply* command, run:
+
+.. code-block:: shell
+
+      kubectl replace -f <my-config-map>.yaml
+
+This deletes and re-creates the :file:`ConfigMap` resource file.
+
+This command is useful in cases where you want to make an immediate
+recursive change, or you need to update resource files that cannot
+be updated once initialized.
+
+Remove |k8s| Components
+-----------------------
+
+.. important::
+
+   .. include:: /includes/facts/remove-component-permissions.rst
+
+.. _remove-k8s-resource:
+
+Remove a |k8s-mdbrsc|
+~~~~~~~~~~~~~~~~~~~~~
+
+To remove any instance that |k8s| deployed, you must use |k8s|.
+
+.. important::
+
+   - You can use only the |k8s-op-short| to remove |k8s|\-deployed
+     instances. If you use |mms| to remove the instance, |mms| throws an
+     error.
+
+   - Deleting a MongoDB resource doesn't remove it from the |onprem| UI. 
+     You must remove the resource from |onprem| manually. To learn more, see 
+     :opsmgr:`Remove a Process from Monitoring
+     </tutorial/remove-process-from-monitoring/>`.
+
+   - Deleting a MongoDB resource for which you enabled backup doesn't
+     delete the resource's snapshots. You must :opsmgr:`delete snapshots 
+     in Ops Manager </tutorial/delete-backup-snapshots/>`.
+
+.. example::
+
+   To remove a single MongoDB instance you created using |k8s|:
+
+   .. code-block:: shell
+
+      kubectl delete mdb <name> -n <metadata.namespace>
+
+   To remove all MongoDB instances you created using |k8s|:
+
+   .. code-block:: shell
+
+      kubectl delete mdb --all -n <metadata.namespace>
+
+.. _remove-k8s-operator:
+
+Remove the |k8s-op-short|
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To remove the |k8s-op-short|:
+
+1. :ref:`Remove all Kubernetes resources <remove-k8s-resource>`:
+
+   .. code-block:: shell
+
+      kubectl delete mdb --all -n <metadata.namespace>
+
+2. Remove the |k8s-op-short|:
+
+   .. code-block:: shell
+
+      kubectl delete deployment mongodb-kubernetes-operator -n <metadata.namespace>
+
+.. _remove-k8s-crds:
+
+Remove the |k8s-crds|
+~~~~~~~~~~~~~~~~~~~~~
+
+To remove the |k8s-crds|:
+
+1. :ref:`Remove all Kubernetes resources <remove-k8s-resource>`:
+
+   .. code-block:: shell
+
+      kubectl delete mdb --all -n <metadata.namespace>
+
+2. Remove the |k8s-crds|:
+
+   .. code-block:: shell
+
+      kubectl delete crd mongodb.mongodb.com
+      kubectl delete crd mongodbusers.mongodb.com
+      kubectl delete crd opsmanagers.mongodb.com
+
+.. _remove-k8s-namespace:
+
+Remove the |k8s-ns|
+~~~~~~~~~~~~~~~~~~~
+
+To remove the |k8s-ns|:
+
+1. :ref:`Remove all Kubernetes resources <remove-k8s-resource>`:
+
+   .. code-block:: shell
+
+      kubectl delete mdb --all -n <metadata.namespace>
+
+2. Remove the |k8s-ns|:
+
+   .. code-block:: shell
+
+      kubectl delete namespace <metadata.namespace>
+
+.. _k8s-create-pvc-after-deleting-pod:
+
+Create a New |k8s-pvc| after Deleting a Pod
+-------------------------------------------
+
+If you accidentally delete the MongoDB replica set Pod and its |k8s-pvc|,
+the |k8s-op-short| fails to reschedule the MongoDB Pod and issues
+the following error message:
+
+.. code-block:: sh
+   :copyable: false
+
+   scheduler error: pvc not found to schedule the pod
+
+To recover from this error, you must :k8sdocs:`manually create a new PVC
+</tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolumeclaim>`
+with the PVC object's name that corresponds to this replica set Pod,
+such as ``data-<replicaset-pod-name>``.
+
+.. _k8s-disable-feature-controls:
+
+Disable |onprem| Feature Controls
+---------------------------------
+
+When you manage an |onprem| project through the |k8s-op-short|, the
+|k8s-op-short| places the ``EXTERNALLY_MANAGED_LOCK``
+:opsmgr:`feature control policy </reference/api/controlled-features/get-all-feature-control-policies/#response>`
+on the project. This policy disables certain features in the |onprem|
+application that might compromise your |k8s-op-short| configuration. If
+you need to use these blocked features, you can remove the policy
+through the :opsmgr:`feature controls API </reference/api/controlled-features/update-controlled-features-for-one-project/>`,
+make changes in the |onprem| application, and then restore the original
+policy through the :opsmgr:`API </reference/api/controlled-features/update-controlled-features-for-one-project/>`.
+
+.. warning::
+
+   The following procedure enables you to use features in the |onprem|
+   application that are otherwise blocked by the |k8s-op-short|.
+
+1. :opsmgr:`Retrieve the feature control policies
+   </reference/api/controlled-features/get-controlled-features-for-one-project/>`
+   for your |onprem| project.
+
+   .. code-block:: sh
+
+      curl --user "{USERNAME}:{APIKEY}" --digest \
+           --header "Accept: application/json" \
+           --header "Content-Type: application/json" \
+           --include \
+           --request GET "https://{OPSMANAGER-HOST}:{PORT}/api/public/v1.0/groups/{PROJECT-ID}/controlledFeature?pretty=true"
+
+   Save the response that the API returns. After you make changes in
+   the |onprem| application, you must add these policies back to
+   the project.
+
+   .. important:: 
+  
+      Note the highlighted fields and values in the following sample
+      response. You must send these same fields and values in later
+      steps when you remove and add feature control policies.
+
+      The ``externalManagementSystem.version`` field corresponds to the 
+      |k8s-op-short| version. You must send the exact same field value
+      in your requests later in this task.
+
+   Your response should be similar to:
+ 
+   .. code-block:: json
+      :emphasize-lines: 3-7
+
+      {
+       "created": "2020-02-25T04:09:42Z",
+       "externalManagementSystem": {
+         "name": "mongodb-kubernetes-operator",
+         "systemId": null,
+         "version": "1.4.2"
+       },
+       "policies": [
+         {
+           "disabledParams": [],
+           "policy": "EXTERNALLY_MANAGED_LOCK"
+         },
+         {
+           "disabledParams": [],
+           "policy": "DISABLE_AUTHENTICATION_MECHANISMS"
+         }
+       ],
+       "updated": "2020-02-25T04:10:12Z"
+      }
+
+#. :opsmgr:`Update </reference/api/controlled-features/update-controlled-features-for-one-project/>`
+   the ``policies`` array with an empty list:
+
+   .. note::
+
+      The values you provide for the ``externalManagementSystem``
+      object, like the ``externalManagementSystem.version`` field, must
+      match values that you received in the response in Step 1.
+
+   .. code-block:: sh
+      :emphasize-lines: 8-12
+
+      curl --user "{USERNAME}:{APIKEY}" --digest \
+           --header "Accept: application/json" \
+           --header "Content-Type: application/json" \
+           --include \
+           --request PUT "https://{OPSMANAGER-HOST}:{PORT}/api/public/v1.0/groups/{PROJECT-ID}/controlledFeature?pretty=true" \
+           --data
+             '{
+               "externalManagementSystem": {
+                 "name": "mongodb-kubernetes-operator",
+                 "systemId": null,
+                 "version": "1.4.2"
+               },
+               "policies": []
+             }'
+
+   The previously blocked features are now available in the
+   |onprem| application.
+
+#. Make your changes in the |onprem| application.
+
+#. :opsmgr:`Update </reference/api/controlled-features/update-controlled-features-for-one-project/>`
+   the ``policies`` array with the original feature control policies:
+
+   .. note::
+
+      The values you provide for the ``externalManagementSystem``
+      object, like the ``externalManagementSystem.version`` field, must
+      match values that you received in the response in Step 1.
+
+   .. code-block:: sh
+      :emphasize-lines: 8-12
+
+      curl --user "{USERNAME}:{APIKEY}" --digest \
+           --header "Accept: application/json" \
+           --header "Content-Type: application/json" \
+           --include \
+           --request PUT "https://{OPSMANAGER-HOST}:{PORT}/api/public/v1.0/groups/{PROJECT-ID}/controlledFeature?pretty=true" \
+           --data
+             '{
+               "externalManagementSystem": {
+                 "name": "mongodb-kubernetes-operator",
+                 "systemId": null,
+                 "version": "1.4.2"
+               },
+               "policies": [
+                 {
+                   "disabledParams": [],
+                   "policy": "EXTERNALLY_MANAGED_LOCK"
+                 },
+                 {
+                   "disabledParams": [],
+                   "policy": "DISABLE_AUTHENTICATION_MECHANISMS"
+                 }
+               ]
+             }'
+
+   The features are now blocked again, preventing you from making
+   further changes through the |onprem| application. However, the
+   |k8s-op-short| retains any changes you made in the |onprem|
+   application while features were available.
+
+.. _k8s-delete-om:
+
+Remove Resources when the |k8s-op-short| Fails
+----------------------------------------------
+
+When you delete a MongoDB custom resource through the |k8s-op-short|, the
+|k8s-op-short| handles the removal of the deployment in |cloud-short| or |onprem|.
+To learn more, see :ref:`remove-k8s-resource`.
+
+However, the removal of resources might :ref:`fail <remove-rsrcs-before-removing-k8s>`
+in |k8s|. For example, if the |k8s-op-short| fails before you delete the MongoDB
+resource, you must manually remove the deployments and delete their projects in
+|cloud-short| or |onprem|.
+
+To remove |onprem| or |cloud-short| resources manually:
+
+1. :ref:`Disable Ops Manager feature controls <k8s-disable-feature-controls>`.
+
+#. Remove a deployment from |onprem| or |cloud-short| in the project by using the UI
+   or the API.
+
+   Remove a deployment in the |onprem| or |cloud-short| UI.
+   In |onprem|, :opsmgr:`remove a deployment from Automation </tutorial/unmanage-deployment/>`
+   and :opsmgr:`remove a deployment from Monitoring </tutorial/remove-process-from-monitoring/>`.
+
+   In |cloud-short|, :cloudmgr:`remove a deployment from Automation </tutorial/unmanage-deployment/>`
+   and :cloudmgr:`remove a deployment from Monitoring </tutorial/remove-process-from-monitoring/>`.
+
+   Alternatively, remove a deployment by using the API for updating the Automation
+   configuration in |onprem| or |cloud-short| with an empty configuration using
+   the :opsmgr:`Ops Manager API </reference/api/automation-config/update-automation-config/>` request,
+   or the :cloudmgr:`Cloud Manager API </reference/api/automation-config/update-automation-config/>` request.
+
+   Run the command similar to the following |onprem| example:
+
+   .. code-block:: sh
+
+      curl --user "{USERNAME}:{APIKEY}" --digest \
+           --header "Content-Type: application/json" \
+           --include \
+           --request PUT "https://{OPSMANAGER-HOST}/api/public/v1.0/groups/{PROJECT-ID}/automationConfig" \
+           --data '{}'
+
+   .. note::
+
+      Deleting a MongoDB resource for which you enabled backup doesn't
+      delete the resource's snapshots. You must :opsmgr:`delete snapshots 
+      in Ops Manager </tutorial/delete-backup-snapshots/>`, or :cloudmgr:`delete snapshots 
+      in Cloud Manager </tutorial/delete-backup-snapshots/>`.
+
+#. Delete a project from |onprem| or |cloud-short| by using the UI or the API.
+   :opsmgr:`Delete a project in Ops Manager </tutorial/manage-project-settings/>`, or
+   :cloudmgr:`delete a project in the Cloud Manager </tutorial/manage-project-settings/>`.
+
+   Alternatively, delete a project by using the :opsmgr:`Ops Manager API </reference/api/groups/delete-one-group>` request,
+   or the :cloudmgr:`Cloud Manager API </reference/api/groups/delete-one-group>` request.
+
+   Run the command similar to the following |onprem| example:
+
+   .. code-block:: sh
+
+      curl --user "{USERNAME}:{APIKEY}" --digest \
+           --request DELETE "{OPSMANAGER-HOST}/api/public/v1.0/groups/${PROJECT-ID}"
+
+.. _k8s-debug-failed container:
+
+Debug a Failing Container
+-------------------------
+
+A container might fail with an error that results in |k8s| restarting
+that container in a loop.
+
+You may need to interact with that container to inspect files or run
+commands. This requires you to prevent the container from restarting.
+
+1. In your preferred text editor, open the MongoDB resource you need to
+   repair.
+
+#. To this resource, add a ``podSpec`` collection that resembles the
+   following.
+
+   .. code-block:: yaml
+
+      podSpec:
+        podTemplate:
+          spec:
+            containers:
+            - name: mongodb-enterprise-database
+              command: ['sh', '-c', 'echo "Hello!" && sleep 3600' ]
+
+   The :wikipedia:`sleep </Sleep_(command)>` command in the
+   :setting:`spec.podSpec.podTemplate.spec` instructs the container to
+   wait for the number of seconds you specify. In this example, the
+   container will wait for 1 hour.
+
+#. Apply this change to the resource.
+
+   .. code-block:: sh
+
+      kubectl apply -f <resource>.yaml
+
+#. Invoke the shell inside the container.
+
+   .. code-block:: sh
+
+      kubectl exec -it <pod-name> bash
+
+Verify Correctness of Domain Names in TLS Certificates
+-------------------------------------------------------
+
+A MongoDB replica set or sharded cluster may fail to reach
+the ``READY`` state if the |tls| certificate is invalid.
+
+When you :ref:`configure TLS
+<secure-tls>` for MongoDB replica sets or sharded clusters, verify
+that you specify a valid certificate.
+
+If you don't specify the correct Domain Name for each |tls| certificate,
+the |k8s-op-short| :ref:`logs <review-k8s-op-logs>` may contain an error
+message similar to the following, where ``foo.svc.local`` is the
+incorrectly-specified Domain Name for the cluster member's Pod:
+
+.. code-block:: sh
+   :copyable: false
+
+   TLS attempt failed : x509: certificate is valid for foo.svc.local,
+   not mongo-0-0.mongo-0.mongodb.svc.cluster.local
+
+.. include:: /includes/prereqs/pem-file-domain-name.rst
+
+To check whether you have correctly configured |tls| certificates:
+
+1. Run:
+
+   .. code-block:: sh
+
+      kubectl logs -f <pod_name>
+
+2. Check for |tls|-related messages in the |k8s-op-short| log files.
+
+To learn more about |tls| certificate requirements, see the
+prerequisites on the :guilabel:`TLS-Encrypted Connections` tab in
+:ref:`deploy-replica-set` or in :ref:`deploy-sharded-cluster`.
+
+Verify the MongoDB Version when Running in Local Mode
+-----------------------------------------------------
+
+MongoDB ``CustomResource`` may fail to reach a ``Running`` state
+if |onprem| is running in :ref:`Local Mode
+<deploy-om-container-local-mode>` and you specify either a version of MongoDB
+that doesn't exist, or a valid version of MongoDB for which
+|onprem| deployed in local mode did not download a corresponding MongoDB archive.
+
+If you specify a MongoDB version that doesn't exist, or a valid MongoDB
+version for which |onprem| could not download a MongoDB archive, then
+even though the Pods can reach the ``READY`` state,
+the |k8s-op-short| :ref:`logs <review-k8s-op-logs>` contain an
+error message similar to the following:
+
+.. code-block:: sh
+   :copyable: false
+
+   Failed to create/update (Ops Manager reconciliation phase):
+   Status: 400 (Bad Request), Detail:
+   Invalid config: MongoDB <version> is not available.
+
+This may mean that the {+mdbagent+} could not successfully download a
+corresponding MongoDB binary to the :file:`/var/lib/mongodb-mms-automation`
+directory. In cases when the {+mdbagent+} can download the MongoDB
+binary for the specified MongoDB version successfully, this directory
+contains a MongoDB binary folder, such as :file:`mongodb-linux-x86_64-8.0.0`.
+
+To check whether a MongoDB binary folder is present:
+
+1. Specify the Pod's name to this command:
+
+   .. code-block:: sh
+
+      kubectl exec --stdin --tty $<pod_name> /bin/sh
+
+2. Check whether a MongoDB binary folder is present in the
+   :file:`/var/lib/mongodb-mms-automation` directory.
+
+3. If you cannot locate a MongoDB binary folder,
+   `copy the MongoDB archive 
+   <https://www.mongodb.com/docs/kubernetes-operator/master/tutorial/deploy-om-container-local-mode/#copy-the-mongodb-archive-to-the-onprem-persistent-volume>`__
+   into the |onprem| Persistent Volume for each deployed |onprem| replica set.
+
+Upgrade Fails Using ``kubectl`` or ``oc``
+-----------------------------------------
+
+.. include:: /includes/facts/upgrade-error.rst
+
+To resolve this error:
+
+a. Remove the old |k8s-op-short| deployment.
+
+   .. include:: /includes/facts/k8s-remove-operator-deployment.rst
+
+   .. include:: /includes/admonitions/remove-op-no-affect-mdb.rst
+
+b. Repeat the ``kubectl apply`` command to upgrade to the new 
+   version of the |k8s-op-short|.
+
+Upgrade Fails Using Helm Charts
+-------------------------------
+
+.. include:: /includes/facts/upgrade-error-helm.rst
+
+To resolve this error:
+
+a. Remove the old |k8s-op-short| deployment.
+
+   .. include:: /includes/facts/k8s-remove-operator-deployment.rst
+
+   .. include:: /includes/admonitions/remove-op-no-affect-mdb.rst
+
+b. Repeat the ``helm`` command to upgrade to the new version of the
+   |k8s-op-short|.
+
+.. _troubleshooting-automatic-recovery:
+
+Recover Resource Due to Broken Automation Configuration 
+-------------------------------------------------------
+
+If a custom resource remains in a ``Pending`` or ``Failed`` state
+for a longer period of time, |k8s-op-short| automatically recovers 
+your ``MongoDB`` resources by pushing the :opsmgr:`automation configuration 
+</reference/cluster-configuration>` to |onprem|. This prevents a deadlock 
+when the {+mdbagent+} can't push an updated automation configuration change 
+because the StatefulSet is stuck in a ``Pending`` state due to a previous 
+push of an invalid automation configuration.
+
+To configure automatic recovery, define the following environmental variables
+in your :github:`mongodb-kubernetes.yaml 
+</mongodb/mongodb-kubernetes/blob/master/public/mongodb-kubernetes.yaml>`
+file:
+
+- :ref:`MDB_AUTOMATIC_RECOVERY_ENABLE <mdb-automatic-recovery-enable>`
+  to enable or disable automatic recovery for ``MongoDB`` resources per Pod. 
+
+- :ref:`MDB_AUTOMATIC_RECOVERY_BACKOFF_TIME_S <mdb-automatic-backoff-time-s>` 
+  to set the number of seconds that a custom resource can remain in a ``Pending`` or 
+  ``Failed`` state before the |k8s-op-short| automatically recovers your 
+  ``MongoDB`` resources.
+
+.. example::
+
+   .. code-block:: yaml
+      :linenos:
+
+      spec:
+        template:
+           spec:
+              serviceAccountName: mongodb-kubernetes-operator
+              containers:
+                - name: mongodb-kubernetes-operator
+                  image: <operatorVersionUrl>
+                  imagePullPolicy: <policyChoice>
+                  env:
+                   - name: MDB_AUTOMATIC_RECOVERY_ENABLE
+                     value: true
+                   - name: MDB_AUTOMATIC_RECOVERY_BACKOFF_TIME_S
+                     value: 1200
+
+To learn how to define environment variables, see 
+:k8sdocs:`Define Environment Variables for a Container 
+</tasks/inject-data-application/define-environment-variable-container>`.

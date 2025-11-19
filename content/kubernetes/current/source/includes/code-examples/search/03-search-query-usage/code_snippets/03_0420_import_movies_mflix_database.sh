@@ -1,8 +1,9 @@
+# Restore sample_mflix database. Provide any TLS parameters directly within MDB_CONNECTION_STRING.
 kubectl exec -n "${MDB_NS}" --context "${K8S_CTX}" \
-  mongodb-tools-pod -- /bin/bash -eu -c "$(cat <<EOF
+  mongodb-tools-pod -- env MDB_CONNECTION_STRING="${MDB_CONNECTION_STRING}" /bin/bash -eu -c "$(cat <<'EOF'
 echo "Downloading sample database archive..."
-curl https://atlas-education.s3.amazonaws.com/sample_mflix.archive \
-  -o /tmp/sample_mflix.archive
+curl -fSL https://atlas-education.s3.amazonaws.com/sample_mflix.archive -o /tmp/sample_mflix.archive
+
 echo "Restoring sample database"
 mongorestore \
   --archive=/tmp/sample_mflix.archive \

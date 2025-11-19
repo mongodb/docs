@@ -19,14 +19,14 @@ Install and Use |text-search| and |vector-search| With External MongoDB Enterpri
 
 You can use the |k8s-op-short| to deploy |text-search| and
 |vector-search| on a |k8s| cluster to run with an external
-MongoDB Enterprise Edition v8.0.10 or higher server. This procedure
+MongoDB Enterprise Edition v8.2.0 or higher server. This procedure
 demonstrates how to deploy and configure the ``mongot`` process in your
 |k8s| cluster to use a new or existing external replica set deployment.
+This tutorial demonstrates how to configure a secure deployment with
+|tls| enabled. You must provide provide the |tls| certificates: 
 
-.. important:: 
-
-   Support for MongoDB versions lower than 8.2 is now deprecated. Upgrade to
-   MongoDB v8.2 or later.
+- The server certificate and key for the MongoDBSearch service.
+- The public CA certificate for the external MongoDB database.
 
 Prerequisites
 -------------
@@ -39,13 +39,33 @@ following:
   your cluster.
 - |helm|, the package manager for |k8s|, to install the |k8s-op-short|.
 - Bash v5.1 or higher for running the commands in this tutorial.
-- A MongoDB Enterprise Edition replica set running version 8.0.10 or
+- A MongoDB Enterprise Edition replica set running version 8.2 or
   higher for storing data.
 
   To learn more about deploying MongoDB Enterprise, see
   :ref:`mdb-resources`.
 
 - A running MongoDB |com| for managing MongoDB tasks.
+
+- External DB |tls| 
+ 
+  Your external MongoDB Enterprise deployment must be configured to use
+  and require |tls| connections.
+  
+- External DB CA file
+  
+  You must have the public Certificate Authority (CA) certificate file
+  (for example, ``external-ca.crt``) that was used to sign your external
+  MongoDB deployment's server certificates. You will need this file
+  locally.
+
+- Search Service certificate files
+ 
+  You must have a valid |tls| server certificate and private key (for
+  example, ``search-service.crt``, ``search-service.key``) for the
+  MongoDBSearch service. This certificate must be valid for the hostname
+  you will use to access the service (for example,
+  ``mdbs-search.example.com``). 
 
 Before You Begin
 ----------------
@@ -106,6 +126,9 @@ Log in to the |com| UI and perform the following steps to configure
             * - ``searchTLSMode``
               - Your configured TLS mode. For example, ``preferTLS``, if the ``mongot`` process is configured to accept TLS connections.
 
+            * - ``useGrpcForSearch``
+              - ``true``
+
    .. step:: Review and deploy your changes.
 
       a. Click the :guilabel:`Review & Deploy` button.
@@ -120,9 +143,9 @@ Configure a |com| User for |text-search| and |vector-search|
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You must create a user with the :authrole:`searchCoordinator` role. In MongoDB
-versions 8.2 and later, the :authrole:`searchCoordinator` is a built-in
-role. You must create a user and assign the role to the user. 
-For MongoDB versions earlier than 8.2 and 8.0.10 or later, you must manually
+versions 8.2 and later, the :authrole:`searchCoordinator` is a built-in role. You must
+create a user and assign the role to the user. For MongoDB versions
+earlier than 8.2 and 8.2 or later, you must manually
 create the role and assign the privileges before creating the user.
 Select the tab that corresponds to the MongoDB version you are running
 to create a user with the :authrole:`searchCoordinator` role.
@@ -133,8 +156,8 @@ to create a user with the :authrole:`searchCoordinator` role.
    :expanded: false
 
    To create the user and assign the user the built-in
-   :authrole:`searchCoordinator` role, complete the following steps
-   by using either the |com| UI or the |mongosh|:
+   ``searchCoordinator`` role, complete the following steps by using either
+   the |com| UI or the |mongosh|:
 
    .. tabs::
 
@@ -205,9 +228,15 @@ to create a user with the :authrole:`searchCoordinator` role.
    :sub_heading: Complete the step in this section if you use MongoDB versions earlier than 8.2.
    :expanded: false
 
+   .. important:: 
+
+      Support for versions lower that 8.2 is now deprecated. Upgrade to
+      MongoDB v8.2 or later.
+
    To create the user and assign the user the built-in
-   ``searchCoordinator`` role, complete the following steps by using the
+   ``searchCoordinator`` role, complete the following steps using
    |mongosh|: 
+
 
    In |mongosh|, run the following commands:
 
@@ -277,12 +306,16 @@ a terminal.
 
       To set the environment variables for use in the subsequent steps
       in this procedure, copy the following, set the values for the
-      environment variables, and then load the environment variables:
+      environment variables, and then run the commands in your terminal:
 
       .. literalinclude:: /includes/code-examples/search/04-search-external-mongod/env_variables.sh
          :language: yaml
          :copyable: true
          :linenos:
+
+      Note that these environment variables are only available in
+      the current terminal session and will need to be set again in any
+      new terminal sessions.
 
    .. step:: Conditional. Add the MongoDB |helm| repository.
 
@@ -309,7 +342,7 @@ a terminal.
    .. step:: Conditional. Install the |k8s-op|.
 
       The |k8s-op-short| watches ``MongoDB``, ``MongoDBOpsManager``, and
-      ``MongoDBSearch`` custom resources and manages the lifecycle of
+      MongoDBSearch custom resources and manages the lifecycle of
       your MongoDB deployments. If you already installed the |k8s-op|,
       skip this step. Otherwise, install the |k8s-op| from the |helm|
       repository you added in the previous step.
@@ -331,7 +364,7 @@ a terminal.
 
       The preceding command installs |k8s-op-short| in the ``mongodb``
       namespace, which it creates if it doesn't already exist. After
-      installation, the |k8s-op-short| watches for ``MongoDBSearch``
+      installation, the |k8s-op-short| watches for MongoDBSearch
       custom resources and manage the lifecycle of your |text-search| and
       |vector-search| deployments.
 
@@ -377,26 +410,12 @@ Install |text-search| and |vector-search|
             secret/mdbc-rs-search-sync-source-password created
             secret/mdb-user-password created
 
-   .. step:: Required. Deploy the keyfile secret to use to connect to the ``mongod``.
-
-      To authenticate connections from your external MongoDB, the ``mongot`` process
-      uses the same keyfile that your external MongoDB replica set members
-      use for internal authentication between replica set members.
-
-      To create a |k8s| secret containing the keyfile content from your
-      external MongoDB, copy, paste, and run the following command:
-
-      .. literalinclude:: /includes/code-examples/search/04-search-external-mongod/code_snippets/04_0318_create_external_keyfile_secret.sh
-         :language: shell
-         :copyable: true
-         :linenos:
-
    .. step:: Required. Create and deploy the resource for |text-search| and |vector-search|.
 
       You can deploy one instance of the search node without any load
       balancing. To deploy, complete the following steps:
 
-      a. Create a ``MongoDBSearch`` custom resource named ``mdbs``.
+      a. Create a MongoDBSearch custom resource named ``mdbs``.
 
          This resource contains the following:
 
@@ -407,14 +426,22 @@ Install |text-search| and |vector-search|
             * - ``spec.source.external.hostAndPorts``
               - List of external MongoDB replica set members.
 
-            * - ``spec.source.external.keyfileSecretRef``
-              - Keyfile secret used by the external replica set members.
-
             * - ``spec.source.username``
               - Search synchronization user username.
 
             * - ``spec.source.passwordSecretRef``
               - Search synchronization user password.
+
+            * - ``spec.source.external.tls.ca.name``
+              - Configures MongoDBSearch pods to trust the external
+                database. It points to the |k8s| secret that contains
+                the public CA certificate for your external MongoDB. 
+
+            * - ``spec.security.tls.certificateKeySecretRef.name``
+              - Secures the MongoDBSearch service. It points to the
+                |k8s| secret containing the |tls| server certificate and
+                private key that the MongoDBSearch pods will present to
+                incoming clients. 
 
             * - ``spec.resourceRequirements``
               - CPU and memory resource requirements for the search container.
@@ -427,10 +454,10 @@ Install |text-search| and |vector-search|
             :copyable: true
             :linenos:
 
-      #. Wait for the ``MongoDBSearch`` resource deployment to
+      #. Wait for the MongoDBSearch resource deployment to
          complete.
 
-         When you apply the ``MongoDBSearch`` custom resource, the
+         When you apply the MongoDBSearch custom resource, the
          |k8s| operator begins deploying the search nodes (pods). This
          step pauses the execution until the ``mdbs`` resource's
          status phase is ``Running``, which indicates that the
@@ -446,10 +473,10 @@ Install |text-search| and |vector-search|
       To enable your external MongoDB instances to connect to the search
       service, you must configure external access for |text-search| and
       |vector-search|. You can create a LoadBalancer Service that
-      exposes the search pods outside the |k8s| cluster.
+      exposes the search pods outside the |k8s| cluster. 
 
-      This following service exposes the ``MongoDBSearch`` service on
-      port 27027 with an external IP address or hostname that can be
+      This following service exposes the MongoDBSearch service on
+      port 27028 with an external IP address or hostname that can be
       accessed from outside the |k8s| cluster.
 
       .. literalinclude:: /includes/code-examples/search/04-search-external-mongod/code_snippets/04_0322_create_search_loadbalancer_service.sh
