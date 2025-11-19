@@ -3,7 +3,7 @@
 
    .. step:: Install the .NET Framework.
 
-      The C# Driver test suite requires .NET version 9.0 or later.
+      The C# Driver test suite requires .NET version 10.0 or later.
 
       To learn how to install .NET, refer to
       `Install .NET on Windows, Linux, and macOS <https://learn.microsoft.com/en-us/dotnet/core/install/>`__
@@ -73,15 +73,15 @@
          CONNECTION_STRING="<your-connection-string>"
          SOLUTION_ROOT="/Users/your-username/workspace/docs-mongodb-internal/code-example-tests/csharp/driver/"
 
-      - ``CONNECTION_STRING``: Replace the ``<your-connection-string>`` placeholder 
-        with the connection string from the Atlas cluster or local deployment you 
+      - ``CONNECTION_STRING``: Replace the ``<your-connection-string>`` placeholder
+        with the connection string from the Atlas cluster or local deployment you
         created in the prior step.
 
-      - ``SOLUTION_ROOT``: Provide the absolute path to the ``driver`` directory on 
+      - ``SOLUTION_ROOT``: Provide the absolute path to the ``driver`` directory on
         your filesystem.
 
 
-      .. important:: Do Not Commit the .env File 
+      .. important:: Do Not Commit the .env File
 
          The ``.env`` file is ignored in the repository's ``.gitignore`` file.
          This is a local file for your machine only. By using the ``.env`` file,

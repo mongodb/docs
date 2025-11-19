@@ -24,7 +24,7 @@ about how to use the tested code examples in your documentation project after yo
 
 ## Set up the environment
 
-This test suite requires you to have `.NET` v9.0 or newer installed. If you
+This test suite requires you to have `.NET` v10.0 or newer installed. If you
 do not yet have .NET installed, refer to
 [the .NET installation page](https://learn.microsoft.com/en-us/dotnet/core/install/)
 for details.
