@@ -7,7 +7,7 @@ the following operations in order:
 
 .. code-block:: javascript
    
-   db.getMongo().bulkWrite( 
+   db.getMongo().bulkWrite(
       [
          {
             namespace: 'db.authors',
@@ -22,7 +22,7 @@ the following operations in order:
          {
             namespace: 'db.books',
             name: 'updateOne',
-            filter: { name: 'it' },
+            filter: { name: 'It' },
             update: { $set: { year: 1986 } }
          }
       ],
