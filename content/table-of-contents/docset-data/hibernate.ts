@@ -84,7 +84,12 @@ const tocData: TocItem[] = [
           {
             label: 'Hibernate ORM',
             isExternal: true,
-            url: 'https://hibernate.org/orm/documentation/6.6/',
+            url: 'https://docs.hibernate.org/orm/6.6/javadocs/',
+          },
+          {
+            label: 'Jakarta Persistence',
+            isExternal: true,
+            url: 'https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/module-summary.html',
           },
         ],
       },
