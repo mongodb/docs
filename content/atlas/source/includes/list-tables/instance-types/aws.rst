@@ -42,7 +42,7 @@
      - 80 GB
      - 16 GB
 
-   * - M40_NVME
+   * - M40_NVME :icon-fa5:`cog`
      - 380 GB 
      - 380 GB
      - 15.25 GB
@@ -57,7 +57,7 @@
      - 160 GB
      - 32 GB
 
-   * - M50_NVME
+   * - M50_NVME :icon-fa5:`cog`
      - 760 GB 
      - 760 GB
      - 30.5 GB
@@ -72,7 +72,7 @@
      - 320 GB
      - 64 GB
 
-   * - M60_NVME
+   * - M60_NVME :icon-fa5:`cog`
      - 1.6 TB
      - 1.6 TB
      - 61 GB
@@ -87,7 +87,7 @@
      - 750 GB
      - 122 GB
 
-   * - M80_NVME
+   * - M80_NVME :icon-fa5:`cog`
      - 1.6 TB 
      - 1.6 TB
      - 122 GB
@@ -107,7 +107,7 @@
      - 1.5 TB
      - 256 GB
 
-   * - M200_NVME
+   * - M200_NVME :icon-fa5:`cog`
      - 3.1 TB
      - 3.1 TB
      - 244 GB
@@ -127,7 +127,7 @@
      - 3 TB
      - 488 GB
 
-   * - M400_NVME
+   * - M400_NVME :icon-fa5:`cog`
      - 4 TB
      - 4 TB
      - 512 GB
@@ -140,3 +140,5 @@
 :icon-fa5:`star` Can use this tier for a multi-cloud cluster.
 
 :icon-fa4:`times-circle` Unavailable in the **AP_SOUTHEAST_2** region.
+
+:icon-fa5:`cog` Unavailable in the **AP_SOUTHEAST_6** and **AP_EAST_2** regions.
