@@ -66,24 +66,20 @@ You can change the following options of your |service| {+cluster+}:
 
      - Select a different provider to change the cloud provider for
        your {+dedicated-clusters+}. 
-       
-       If you created an |service| {+cluster+} on |aws| **or** created
-       an |service| {+cluster+} after November 2, 2020, your connection
-       string doesn't change. You don't experience {+cluster+} downtime.
 
-     - If you created an |service| {+cluster+} 
+     - If you add or move a node to a region without an existing primary
+       or secondary node, {+service+} requires each newly migrated
+       replica set member to perform a :ref:`{+cis+}
+       <cloud-based-initial-sync>`. 
+
+       If you created an |service| {+cluster+} 
        on |gcp| or |azure| before November 2, 2020, when |service| added
        support for multi-cloud clusters, changing to a different
        provider changes the connection string to your new {+cluster+}. Consider scheduling a time to :ref:`update your applications 
        with the new connection string <atlas-faq-migrate-providers>`
        to connect to the {+cluster+} again.
 
-       To learn more, see :ref:`dedicated-to-dedicated`.
-
-       If you add or move a node to a region without a primary node
-       or without an existing secondary node requires each newly 
-       migrated replica set member to perform an
-       :manual:`initial sync </core/replica-set-sync>`.
+       To learn more, see :ref:`dedicated-to-dedicated`
 
        For {+clusters+} on |azure|, if you change a region, some storage
        capabilities might be unavailable in that region. The {+atlas-ui+}
@@ -91,7 +87,6 @@ You can change the following options of your |service| {+cluster+}:
        your application performance. To learn more, see
        :ref:`regions that support extended storage <microsoft-azure-storage-supported-regions>`,
        and :ref:`change-storage-capacity-azure`.
-
 
    * - :ref:`Deploy or Configure a multi-cloud, multi-region {+cluster+} <scale-cluster-region>`
      - Deploy or modify a multi-cloud, multi-region {+cluster+}.
@@ -129,7 +124,7 @@ You can change the following options of your |service| {+cluster+}:
        :ref:`Oplog Size Behavior <oplog-size-behavior>`. |service| enables
        storage auto-scaling by default.
 
-     - None
+     - 
 
    * - :ref:`MongoDB Version <scale-cluster-version>`
 
@@ -179,14 +174,14 @@ You can change the following options of your |service| {+cluster+}:
 
        .. include:: /includes/extracts/cluster-option-bi-cluster-requirements.rst
 
-     - None
+     - 
 
    * - :ref:`Manage your own encryption keys <scale-cluster-enable-encryption>`
 
      - Enable or disable using your own encryption keys with this
        {+cluster+}.
 
-     - None
+     - 
 
 Click :ref:`Apply Changes <scale-cluster-payment>` after you complete any
 of these modifications.
@@ -280,6 +275,45 @@ Required Access
 
 To modify a {+cluster+}, you must have :authrole:`Project Cluster Manager` 
 access or higher to the project.
+
+.. _cloud-based-initial-sync:
+
+Cloud-based Initial Sync
+------------------------
+
+When you add or replace a node in an {+service+} cluster, {+service+}
+performs a {+cis+}, which leverages your cloud provider's native
+capabilities to create a snapshot of the source node's data and restore
+it to the new node. {+service+} prioritizes restoring from a primary
+node over secondary nodes to maximize data freshness.
+
+If your {+service+} cluster has nodes in multiple regions, including at
+least one |aws| region, you can :ref:`enable Faster Cross-Region Initial
+Sync for AWS Clusters <enable_time_based_initial_sync_aws>` in your
+cluster's :guilabel:`Additional Settings` for an additional cost. This
+allows {+service+} to use `AWS time-based snapshot copies
+<https://docs.aws.amazon.com/ebs/latest/userguide/time-based-copies.html>`__
+to speed up cross-region data copy between |aws| nodes during {+cis+}.
+To learn more about this setting, see
+:ref:`enable_time_based_initial_sync_aws`.
+
+Cross-region {+cis+} is available for {+aws+} clusters only. For
+{+azure+} and {+gcp+} clusters, {+cis+} is only available when adding or
+replacing nodes in the same region as the source node. You can add or
+replace nodes in your cluster when you :ref:`edit the cluster
+configuration <edit-cluster-atlas>`.
+
+.. note:: Self-Managed Initial Sync Disambiguation
+
+   For self-managed deployments, initial sync is the process that
+   MongoDB uses to add a new node to a replica set. Starting in MongoDB
+   5.2, the initial sync process can be *logical* or *file copy based*.
+   These processes are different from {+cis+}s available in MongoDB
+   {+service+}, which leverage your cloud provider's native capabilities
+   to create a snapshot of the source node's data and restore it to the
+   new node. To learn more about the self-managed initial sync process,
+   see :manual:`Initial Syncs </core/replica-set-sync/#initial-sync>` in
+   the MongoDB manual.
 
 .. _edit-cluster-atlas:
 
@@ -392,6 +426,8 @@ Modify the :guilabel:`Cloud Provider & Region`
   .. include:: /includes/fts/extracts/fts-migrate-delete-search-nodes.rst 
      
   .. include:: /includes/fts/extracts/fts-migrate-add-search-nodes.rst
+
+  To learn more, see :ref:`fts-add-search-nodes-to-prod`. 
 
 .. seealso::
 
