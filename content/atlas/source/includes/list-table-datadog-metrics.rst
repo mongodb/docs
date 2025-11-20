@@ -447,8 +447,6 @@
        | (mongodb.atlas.system.disk.iops.writes)
        | ``DISK_PARTITION_IOPS_TOTAL`` 
        | (mongodb.atlas.system.disk.iops.total) 
-       | ``DISK_PARTITION_IOPS_PERCENTUTILIZATION``
-       | (mongodb.atlas.system.disk.iops.percentutilization)
      - Disk
      - Measure throughput of |iops| for the disk partition used by
        MongoDB.
