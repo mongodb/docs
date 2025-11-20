@@ -15,10 +15,14 @@ The initial sync process includes the following steps:
 While a search index rebuilds, you can still perform ``$search`` queries 
 on the existing indexed fields. However, |fts| might return an error if you run a
 ``$search`` query against a new field or a node that you've recently created. 
-In :ref:`coupled search <node-architecture>`, queries fail when mongot is rebuilding 
-search indexes on the primary node since search queries run against the primary node 
-by default. Try your query again after the initial syncs complete and ``mongot`` 
-rebuilds the indexes. You can check the status of the ``mongot`` initial 
+
+.. warning:: 
+   
+   Rolling resyncs cause colocated search instances to fall off the oplog, which affects
+   processes dependant on oplog data. We recommend migrating to :ref:`dedicated search nodes
+   <configure-search-nodes>` to avoid this issue.
+
+Check the status of the ``mongot`` initial 
 sync using the following steps:
 
 .. procedure::
