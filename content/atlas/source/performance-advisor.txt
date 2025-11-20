@@ -21,177 +21,148 @@ Monitor and Improve Slow Queries with the Performance Advisor
    :depth: 1
    :class: singlecol
 
-*Only available on M10+ clusters and {+Flex-clusters+}*
+.. composable-tutorial::
+   :options: interface
+   :defaults: atlas-ui
 
-The |pa| monitors queries that MongoDB considers slow and
-suggests new indexes to improve query performance. The threshold for
-slow queries varies based on the average time of operations on your
-cluster to provide recommendations pertinent to your workload.
+   *Only available on M10+ clusters and {+Flex-clusters+}*
 
-Recommended indexes are accompanied by sample queries, grouped by
-:term:`query shape`, that were run against a collection that would
-benefit from the suggested index. The |pa| doesn't negatively affect 
-the performance of your |service| {+clusters+}.
+   The |pa| monitors queries that MongoDB considers slow and
+   suggests new indexes to improve query performance. The threshold for
+   slow queries varies based on the average time of operations on your
+   cluster to provide recommendations pertinent to your workload.
 
-You can also monitor collection-level :manual:`query latency </reference/operator/aggregation/collStats/#latencystats-document>` with 
-:ref:`Namespace Insights <namespace-insights>` and query performance 
-with the :ref:`Query Profiler <query-profiler>`.
+   Recommended indexes are accompanied by sample queries, grouped by
+   :term:`query shape`, that were run against a collection that would
+   benefit from the suggested index. The |pa| doesn't negatively affect
+   the performance of your |service| {+clusters+}.
 
-.. note::
+   You can also monitor collection-level :manual:`query latency </reference/operator/aggregation/collStats/#latencystats-document>` with
+   :ref:`Namespace Insights <namespace-insights>` and query performance
+   with the :ref:`Query Profiler <query-profiler>`.
 
-   If the slow query log contains consecutive :pipeline:`$match` stages 
-   in the aggregation pipeline, the two stages can :manual:`coalesce 
-   </core/aggregation-pipeline-optimization/#-match----match-coalescence>` 
-   into the first :pipeline:`$match` stage and result in a single 
-   :pipeline:`$match` stage. As a result, the query shape in the 
-   |pa| might differ from the actual query you ran.
+   .. note::
 
-Common Reasons for Slow Queries
--------------------------------
+      If the slow query log contains consecutive :pipeline:`$match` stages
+      in the aggregation pipeline, the two stages can :manual:`coalesce
+      </core/aggregation-pipeline-optimization/#-match----match-coalescence>`
+      into the first :pipeline:`$match` stage and result in a single
+      :pipeline:`$match` stage. As a result, the query shape in the
+      |pa| might differ from the actual query you ran.
 
-If a query is slow, common reasons include:
+   Common Reasons for Slow Queries
+   -------------------------------
 
-- The query is unsupported by your current indexes. 
-- Some documents in your collection have large array fields that are 
-  costly to search and index.
-- One query retrieves information from multiple collections with 
-  :manual:`$lookup </reference/operator/aggregation/lookup>`.
+   If a query is slow, common reasons include:
 
-Required Access
----------------
+   - The query is unsupported by your current indexes.
+   - Some documents in your collection have large array fields that are
+     costly to search and index.
+   - One query retrieves information from multiple collections with
+     :manual:`$lookup </reference/operator/aggregation/lookup>`.
 
-To view collections with slow queries and see suggested indexes, you must have 
-:authrole:`Project Read Only` access or higher to the project. 
+   Required Access
+   ---------------
 
-To view field values in a sample query in 
-the |pa|, you must have :authrole:`Project Observability Viewer`, 
-:authrole:`Project Data Access Read Only`,
-:authrole:`Project Data Access Read/Write`, or
-:authrole:`Project Data Access Admin` access to the project.
+   To view collections with slow queries and see suggested indexes, you must have
+   :authrole:`Project Read Only` access or higher to the project.
 
-To enable or disable the |service|-managed slow operation threshold, 
-you must have :authrole:`Project Owner` access to the project. Users 
-with :authrole:`Organization Owner` access must add themselves to the 
-project as a ``Project Owner``.
+   To view field values in a sample query in
+   the |pa|, you must have :authrole:`Project Observability Viewer`,
+   :authrole:`Project Data Access Read Only`,
+   :authrole:`Project Data Access Read/Write`, or
+   :authrole:`Project Data Access Admin` access to the project.
 
-Configure the Slow Query Threshold
-----------------------------------
+   To enable or disable the |service|-managed slow operation threshold,
+   you must have :authrole:`Project Owner` access to the project. Users
+   with :authrole:`Organization Owner` access must add themselves to the
+   project as a ``Project Owner``.
 
-By default, |service| dynamically adjusts your slow query threshold
-based on the execution time of operations across your cluster. However, 
-you can opt out of this feature and instead use a fixed slow query
-threshold of 100 milliseconds. You can disable the |service|-managed
-slow operation threshold with the {+atlas-cli+}, 
-{+atlas-admin-api+}, or {+atlas-ui+}.
-
-.. note::
-
-   |service| {+clusters+} with |fts| enabled don't support
-   the |service|-managed slow query operation threshold.
-
-For ``M0`` {+clusters+} and {+Flex-clusters+},
-|service| disables the |service|-managed slow query operation threshold
-by default and you can't enable it.
-
-Disable the |service|-Managed Slow Operation Threshold
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. important::
+   Configure the Slow Query Threshold
+   ----------------------------------
 
    By default, |service| dynamically adjusts your slow query threshold
-   based on the execution time of operations across your cluster. If 
-   you disable the |service|-managed slow query threshold, it no longer 
-   dynamically adjusts. MongoDB defaults the fixed slow query threshold 
-   to 100 milliseconds. We don't recommend that you set the fixed slow 
-   query threshold lower than 100 milliseconds.
+   based on the execution time of operations across your cluster. However, 
+   you can opt out of this feature and instead use a fixed slow query
+   threshold of 100 milliseconds. We don't recommend that you set the fixed slow query threshold lower than 100 milliseconds.
 
-To disable the |service|-managed slow operation threshold and use a
-fixed threshold of 100 milliseconds:
+   .. note::
 
-.. tabs::
+      |service| {+clusters+} with |fts| enabled don't support
+      the |service|-managed slow query operation threshold.
 
-   .. tab:: {+atlas-cli+}
-      :tabid: atlascli
+   For ``M0`` {+clusters+} and {+Flex-clusters+},
+   |service| disables the |service|-managed slow query operation threshold
+   by default and you can't enable it.
 
-      .. include:: /includes/extracts/atlas-performanceAdvisor-slowOperationThreshold-disable.rst
+   Disable the |service|-Managed Slow Operation Threshold
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. tab:: {+atlas-admin-api+}
-      :tabid: api
+   To disable the |service|-managed slow operation threshold and use a
+   fixed threshold of 100 milliseconds:
 
-      See :oas-bump-atlas-op:`Disable Managed Slow Operation Threshold 
-      <disablemanagedslowoperationthreshold>`.
+   .. selected-content::
+      :selections: atlas-ui
 
-   .. tab:: {+atlas-ui+}
-      :tabid: atlasui
-
-      a. .. include:: /includes/nav/list-project-settings.rst
+      1. .. include:: /includes/nav/list-project-settings.rst
       
       #. In the :ref:`Project Settings <project-settings>` for
          the current project, toggle :guilabel:`Managed Slow Operations` to :guilabel:`Off`.
 
-Enable the |service|-Managed Slow Operation Threshold
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   .. selected-content::
+      :selections: atlas-cli
 
-|service| enables the |service|-managed slow operation threshold by default.
-To re-enable the |service|-managed slow operation threshold that you
-previously disabled:
+      .. include:: /includes/extracts/atlas-performanceAdvisor-slowOperationThreshold-disable.rst
 
-.. tabs::
+   .. selected-content::
+      :selections: atlas-api
 
-   .. tab:: {+atlas-cli+}
-      :tabid: atlascli
+      See :oas-bump-atlas-op:`Disable Managed Slow Operation Threshold 
+      <disablemanagedslowoperationthreshold>`.
 
-      .. include:: /includes/extracts/atlas-performanceAdvisor-slowOperationThreshold-enable.rst
 
-   .. tab:: {+atlas-admin-api+}
-      :tabid: api
+   Enable the |service|-Managed Slow Operation Threshold
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      See :oas-bump-atlas-op:`Enable Managed Slow Operation Threshold 
-      <updategroupperformanceadvisormanagedslow>`. 
+   |service| enables the |service|-managed slow operation threshold by default.
+   To re-enable the |service|-managed slow operation threshold that you
+   previously disabled:
 
-   .. tab:: {+atlas-ui+}
-      :tabid: atlasui
-
+   .. selected-content::
+      :selections: atlas-ui
+      
       In the :ref:`Project Settings <project-settings>` for
       the current project, toggle :guilabel:`Managed Slow Operations` to 
       :guilabel:`On`.
 
-Index Considerations
---------------------
+   .. selected-content::
+      :selections: atlas-cli
 
-Indexes improve read performance, but a large number of indexes can
-negatively impact write performance since indexes must be updated during
-writes. If your collection already has several indexes, consider this 
-tradeoff of read and write performance when deciding whether to create 
-new indexes. Examine whether a query for such a collection can be 
-modified to take advantage of existing indexes, as well as whether a 
-query occurs often enough to justify the cost of a new index.
+      .. include:: /includes/extracts/atlas-performanceAdvisor-slowOperationThreshold-enable.rst
 
-Access |pa|
---------------------------
+   .. selected-content::
+      :selections: atlas-api
 
-.. tabs::
+      See :oas-bump-atlas-op:`Enable Managed Slow Operation Threshold 
+      <updategroupperformanceadvisormanagedslow>`. 
 
-   .. tab:: {+atlas-cli+}
-      :tabid: atlascli
 
-      View Collections with Slow Queries
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   Index Considerations
+   --------------------
 
-      .. include:: /includes/extracts/atlas-performanceAdvisor-namespaces-list.rst
+   Indexes improve read performance, but a large number of indexes can
+   negatively impact write performance since indexes must be updated during
+   writes. If your collection already has several indexes, consider this 
+   tradeoff of read and write performance when deciding whether to create 
+   new indexes. Examine whether a query for such a collection can be 
+   modified to take advantage of existing indexes, as well as whether a 
+   query occurs often enough to justify the cost of a new index.
 
-      View Slow Query Logs
-      ~~~~~~~~~~~~~~~~~~~~
+   Access |pa|
+   --------------------------
 
-      .. include:: /includes/extracts/atlas-performanceAdvisor-slowQueryLogs-list.rst
-
-      View Suggested Indexes
-      ~~~~~~~~~~~~~~~~~~~~~~
-
-      .. include:: /includes/extracts/atlas-performanceAdvisor-suggestedIndexes-list.rst
-
-   .. tab:: {+atlas-ui+}
-      :tabid: ui
+   .. selected-content::
+      :selections: atlas-ui
 
       To access the :guilabel:`Performance Advisor` using the
       {+atlas-ui+}:
@@ -208,200 +179,219 @@ Access |pa|
 
             .. include:: /includes/steps-performance-advisor-view-sl.rst
 
-   .. tab:: MongoDB MCP Server
-      :tabid: mcp-server
+   .. selected-content::
+      :selections: atlas-cli 
 
-      You can access the Performance Advisor with
-      the :ref:`MongoDB MCP Server <what-is-mcp-server>`.
-      This tool enables you to interact with your Atlas clusters in 
-      natural language from AI clients like Claude, Cursor, and 
-      Github Copilot.
+      View Collections with Slow Queries
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      To learn how to use the MongoDB MCP Server to get Performance Advisor 
-      recommendations, see :ref:`performance-advisor-mcp`.
+      .. include:: /includes/extracts/atlas-performanceAdvisor-namespaces-list.rst
 
-.. _query-inefficiency-score:
+      View Slow Query Logs
+      ~~~~~~~~~~~~~~~~~~~~
 
-Index Suggestions
------------------
+      .. include:: /includes/extracts/atlas-performanceAdvisor-slowQueryLogs-list.rst
 
-The :guilabel:`Performance Advisor` ranks the indexes according to 
-their :guilabel:`Impact`, which is based on the total wasted bytes read 
-by the associated operations. To learn more about how the |pa| ranks 
-indexes, see :ref:`pa-index-ranking`.
+      View Suggested Indexes
+      ~~~~~~~~~~~~~~~~~~~~~~
 
-To learn how to create indexes that the |pa| suggests, see 
-:ref:`pa-create-suggested-indexes`.
+      .. include:: /includes/extracts/atlas-performanceAdvisor-suggestedIndexes-list.rst
 
-Index Metrics
-~~~~~~~~~~~~~
 
-Each index that the |pa| suggests contains the following
-metrics. These metrics apply specifically to queries which would be
-improved by the index:
+   Access Performance Advisor with the MCP server
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. list-table::
-   :header-rows: 1
-   :widths: 20 40
+   You can access the Performance Advisor with
+   the :ref:`MongoDB MCP Server <what-is-mcp-server>`.
+   This tool enables you to interact with your Atlas clusters in 
+   natural language from AI clients like Claude, Cursor, and 
+   Github Copilot.
 
-   * - Metric
-     - Description
+   To learn how to use the MongoDB MCP Server to get Performance Advisor 
+   recommendations, see :ref:`performance-advisor-mcp`.
 
-   * - :guilabel:`Execution Count`
-     - Number of queries executed per hour which would be
-       improved.
+   .. _query-inefficiency-score:
 
-   * - :guilabel:`Average Execution Time`
-     - Current average execution time in milliseconds for affected
-       queries.
+   Index Suggestions
+   -----------------
 
-   * - :guilabel:`Average Query Targeting`
-     - Average number of documents read per document returned by
-       affected queries. A higher query
-       targeting score indicates a greater degree of inefficiency. For
-       more information on query targeting, see :ref:`query-targeting`.
+   The :guilabel:`Performance Advisor` ranks the indexes according to 
+   their :guilabel:`Impact`, which is based on the total wasted bytes read 
+   by the associated operations. To learn more about how the |pa| ranks 
+   indexes, see :ref:`pa-index-ranking`.
 
-   * - :guilabel:`In Memory Sort`
-     - Current number of affected queries per hour that needed to be
-       sorted in memory.
+   To learn how to create indexes that the |pa| suggests, see 
+   :ref:`Create Suggested Indexes <pa-create-suggested-indexes>`.
 
-   * - :guilabel:`Average Docs Scanned`
-     - Average number of documents scanned.
+   Index Metrics
+   ~~~~~~~~~~~~~
+
+   Each index that the |pa| suggests contains the following
+   metrics. These metrics apply specifically to queries which would be
+   improved by the index:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
+
+      * - Metric
+        - Description
+
+      * - :guilabel:`Execution Count`
+        - Number of queries executed per hour which would be
+          improved.
+
+      * - :guilabel:`Average Execution Time`
+        - Current average execution time in milliseconds for affected
+          queries.
+
+      * - :guilabel:`Average Query Targeting`
+        - Average number of documents read per document returned by
+          affected queries. A higher query
+          targeting score indicates a greater degree of inefficiency. For
+          more information on query targeting, see :ref:`query-targeting`.
+
+      * - :guilabel:`In Memory Sort`
+        - Current number of affected queries per hour that needed to be
+          sorted in memory.
+
+      * - :guilabel:`Average Docs Scanned`
+        - Average number of documents scanned.
    
-   * - :guilabel:`Average Docs Returned`
-     - Average number of documents returned.
+      * - :guilabel:`Average Docs Returned`
+        - Average number of documents returned.
 
-   * - :guilabel:`Average Object Size`
-     - Average object size.
+      * - :guilabel:`Average Object Size`
+        - Average object size.
 
-Sample Queries
-~~~~~~~~~~~~~~
+   Sample Queries
+   ~~~~~~~~~~~~~~
 
-For each suggested index, the |pa| shows the most commonly executed 
-query shapes that the index would improve. For each query shape, the 
-|pa| displays the following metrics:
+   For each suggested index, the |pa| shows the most commonly executed 
+   query shapes that the index would improve. For each query shape, the 
+   |pa| displays the following metrics:
 
-.. list-table::
-   :header-rows: 1
-   :widths: 20 40
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40
 
-   * - Metric
-     - Description
+      * - Metric
+        - Description
 
-   * - :guilabel:`Execution Count`
-     - Number of queries executed per hour which match the query
-       shape.
+      * - :guilabel:`Execution Count`
+        - Number of queries executed per hour which match the query
+          shape.
 
-   * - :guilabel:`Average Execution Time`
-     - Average execution time in milliseconds for queries
-       which match the query shape.
+      * - :guilabel:`Average Execution Time`
+        - Average execution time in milliseconds for queries
+          which match the query shape.
 
-   * - :guilabel:`Average Query Targeting`
-     - Average number of documents read for
-       every document returned by matching queries. A higher query
-       targeting score indicates a greater degree of inefficiency. For
-       more information on query targeting, see :ref:`query-targeting`.
+      * - :guilabel:`Average Query Targeting`
+        - Average number of documents read for
+          every document returned by matching queries. A higher query
+          targeting score indicates a greater degree of inefficiency. For
+          more information on query targeting, see :ref:`query-targeting`.
 
-   * - :guilabel:`Average Docs Scanned`
-     - Average number of documents scanned.
+      * - :guilabel:`Average Docs Scanned`
+        - Average number of documents scanned.
 
-   * - :guilabel:`Average Docs Returned`
-     - Average number of documents returned. 
+      * - :guilabel:`Average Docs Returned`
+        - Average number of documents returned. 
 
-The |pa| also shows each executed sample query that matches the 
-query shape, with specific metrics for that query.
+   The |pa| also shows each executed sample query that matches the 
+   query shape, with specific metrics for that query.
 
-.. _query-targeting:
+   .. _query-targeting:
 
-Query Targeting
-~~~~~~~~~~~~~~~
+   Query Targeting
+   ~~~~~~~~~~~~~~~
 
-Each index suggestion includes an :guilabel:`Average Query Targeting`
-score indicating how many documents were read for every document
-returned for the index's corresponding query shapes. A score of 1
-represents very efficient query shapes because every document read
-matched the query and was returned with the query results. All suggested
-indexes represent an opportunity to improve query performance.
+   Each index suggestion includes an :guilabel:`Average Query Targeting`
+   score indicating how many documents were read for every document
+   returned for the index's corresponding query shapes. A score of 1
+   represents very efficient query shapes because every document read
+   matched the query and was returned with the query results. All suggested
+   indexes represent an opportunity to improve query performance.
 
-Filter Index Suggestions
-~~~~~~~~~~~~~~~~~~~~~~~~
+   Filter Index Suggestions
+   ~~~~~~~~~~~~~~~~~~~~~~~~
 
-By default, the |pa| suggests indexes for all clusters
-in the deployment. To only show suggested indexes from a specific
-collection, use the :guilabel:`Collection` dropdown at the top of
-the |pa|.
+   By default, the |pa| suggests indexes for all clusters
+   in the deployment. To only show suggested indexes from a specific
+   collection, use the :guilabel:`Collection` dropdown at the top of
+   the |pa|.
 
-You can also adjust the time range the |pa| takes into
-account when suggesting indexes by using the :guilabel:`Time Range`
-dropdown at the top of the |pa|.
+   You can also adjust the time range the |pa| takes into
+   account when suggesting indexes by using the :guilabel:`Time Range`
+   dropdown at the top of the |pa|.
 
-Limitations of Index Suggestions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   Limitations of Index Suggestions
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Timestamp Format
-````````````````
+   Timestamp Format
+   ````````````````
 
-The |pa| can't suggest indexes for MongoDB databases
-configured to use the ``ctime`` timestamp format. As a workaround, set
-the timestamp format for such databases to either ``iso8601-utc`` or
-``iso8601-local``. To learn more about timestamp formats, see
-:manual:`mongod --timeStampFormat </reference/program/mongod/#std-option-mongod.--timeStampFormat>`.
+   The |pa| can't suggest indexes for MongoDB databases
+   configured to use the ``ctime`` timestamp format. As a workaround, set
+   the timestamp format for such databases to either ``iso8601-utc`` or
+   ``iso8601-local``. To learn more about timestamp formats, see
+   :manual:`mongod --timeStampFormat </reference/program/mongod/#std-option-mongod.--timeStampFormat>`.
 
-Log Quantity
-````````````
+   Log Quantity
+   ````````````
 
-.. include:: /includes/log-rate-limiting.rst
+   .. include:: /includes/log-rate-limiting.rst
 
-Time Series Collections
-```````````````````````
+   Time Series Collections
+   ```````````````````````
 
-The |pa| doesn't provide performance suggestions for
-time series collections.
+   The |pa| doesn't provide performance suggestions for
+   time series collections.
 
-User Feedback
-`````````````
+   User Feedback
+   `````````````
 
-The |pa| includes a user feedback button for Index 
-Suggestions on {+dedicated-clusters+}.
+   The |pa| includes a user feedback button for Index 
+   Suggestions on {+dedicated-clusters+}.
 
-.. _pa-create-suggested-indexes:
+   .. _pa-create-suggested-indexes:
 
-Create Suggested Indexes
-------------------------
+   Create Suggested Indexes
+   ------------------------
 
-You can create :manual:`indexes </core/indexes>` suggested by the
-|pa| directly within the |pa| itself.
-When you create indexes, keep the ratio of reads to writes on the
-target collection in mind. Indexes come with a performance cost, but
-are more than worth the cost for frequent queries on large data sets.
-To learn more about indexing strategies, see
-:manual:`Indexing Strategies </applications/indexes/>`.
+   You can create :manual:`indexes </core/indexes>` suggested by the
+   |pa| directly within the |pa| itself.
+   When you create indexes, keep the ratio of reads to writes on the
+   target collection in mind. Indexes come with a performance cost, but
+   are more than worth the cost for frequent queries on large data sets.
+   To learn more about indexing strategies, see
+   :manual:`Indexing Strategies </applications/indexes/>`.
 
-Behavior and Limitations
-~~~~~~~~~~~~~~~~~~~~~~~~
+   Behavior and Limitations
+   ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- You can't create indexes through the |pa| if :ref:`Data Explorer 
-  <atlas-ui>` is disabled for your project. You can still view 
-  the |pa| recommendations, but you must create those indexes from 
-  {+mongosh+}.
+   - You can't create indexes through the |pa| if :ref:`Data Explorer 
+     <atlas-ui>` is disabled for your project. You can still view 
+     the |pa| recommendations, but you must create those indexes from 
+     {+mongosh+}.
 
-- You can only create one index at a time through the Performance
-  Advisor. If you want to create more simultaneously, you can do so
-  using the :ref:`{+atlas-ui+} <atlas-ui-indexes>`, a
-  :doc:`driver </driver-connection>`, or the
-  :ref:`shell <connect-mongo-shell>`
+   - You can only create one index at a time through the Performance
+     Advisor. If you want to create more simultaneously, you can do so
+     using the :ref:`{+atlas-ui+} <atlas-ui-indexes>`, a
+     :doc:`driver </driver-connection>`, or the
+     :ref:`shell <connect-mongo-shell>`
 
-- |service| always creates indexes for entire {+database-deployments+}.
-  If you create an index while viewing the |pa| for a single shard in a 
-  sharded {+cluster+}, |service| creates that index for the entire 
-  sharded {+cluster+}.
+   - |service| always creates indexes for entire {+database-deployments+}.
+     If you create an index while viewing the |pa| for a single shard in a 
+     sharded {+cluster+}, |service| creates that index for the entire 
+     sharded {+cluster+}.
 
-Procedure
-~~~~~~~~~
+   Procedure
+   ~~~~~~~~~
 
-To create a suggested index:
+   To create a suggested index:
 
-.. include:: /includes/steps/pa-create-index.rst
+   .. include:: /includes/steps/pa-create-index.rst
 
 .. toctree::
    :hidden:

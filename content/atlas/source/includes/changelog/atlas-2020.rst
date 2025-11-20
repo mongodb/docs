@@ -296,7 +296,7 @@ Introduces easier authorization management for S3 access:
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Supports "Click-to-Create"
-  :ref:`Index Suggestions in Performance Advisor <pa-create-suggested-indexes>`.
+  :ref:`Create Suggested Indexes <pa-create-suggested-indexes>`.
 - Supports MongoDB 4.2 on |aws| using {+Cloud-Backup+}s with
   {+PIT-Restore+} restores.
 - Transitions customers with Old Backups automatically to {+Cloud-Backup+}s when upgrading from 4.0 to 4.2.
