@@ -7,7 +7,7 @@ use mongodb::{
 #[tokio::main]
 async fn main() -> mongodb::error::Result<()> {
     // Replace the placeholder with your Atlas connection string
-    let uri = "<connection string>";
+    let uri = "<connection string URI>";
 
     // Create a new client and connect to the server
     let client = Client::with_uri_str(uri).await?;

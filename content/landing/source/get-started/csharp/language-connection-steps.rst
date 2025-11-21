@@ -27,7 +27,7 @@
 
    .. step:: Add your connection string
 
-      .. include:: /get-started/includes/connection-string-note.rst
+      .. include:: /get-started/includes/env-string-note.rst
 
    .. step:: Run your application
 

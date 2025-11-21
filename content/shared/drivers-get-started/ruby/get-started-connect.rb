@@ -8,7 +8,7 @@ end
 # end-bundler
 
 # start-query
-uri = '<connection string>'
+uri = '<connection string URI>'
 
 begin
   client = Mongo::Client.new(uri)

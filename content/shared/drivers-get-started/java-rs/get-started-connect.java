@@ -13,7 +13,7 @@ import static com.mongodb.client.model.Filters.eq;
 public class QueryDatabase {
     public static void main(String[] args) {
         // Replace the placeholder with your Atlas connection string
-        String uri = "<connection string>";
+        String uri = "<connection string URI>";
 
         // Construct a ServerApi instance using the ServerApi.builder() method
         ServerApi serverApi = ServerApi.builder()
