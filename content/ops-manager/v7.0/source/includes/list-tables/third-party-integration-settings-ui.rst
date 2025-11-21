@@ -134,11 +134,27 @@
 
    * - Webhook Settings
 
-     - :guilabel:`Webhook URL` endpoint to which |mms| can send alerts
-       for programmatic processing. |mms| sends an alert as an |http|
-       POST request in which the request body contains a |json|
-       document that uses the same format as the |mms| |api|
-       :doc:`Alerts resource </reference/api/alerts>`. 
+     - Configure webhook notifications for alert processing. You can set:
+
+       - :guilabel:`Webhook URL`: Endpoint to which |mms| sends alerts
+         for programmatic processing. |mms| sends an alert as an |http|
+         POST request in which the request body contains a |json|
+         document that uses the same format as the |mms| |api|
+         :doc:`Alerts resource </reference/api/alerts>`.
+
+       - :guilabel:`Webhook Secret`: Optional secret key for webhook
+         authentication and security.
+
+       - :guilabel:`Webhook Headers Template`: Optional FreeMarker template
+         for customizing HTTP headers sent with webhook requests. You can
+         use variables like ``{{eventTypeName}}`` and ``{{groupName}}`` to
+         include alert-specific information.
+
+       - :guilabel:`Webhook Body Template`: Optional FreeMarker template
+         for customizing the request body content. You can use variables
+         like ``{{eventTypeName}}`` and ``{{groupName}}`` to include
+         alert-specific information. This allows you to adapt the payload
+         structure to match your target system's requirements.
 
        .. include:: /includes/facts/alert-webhook-mms-event-header.rst
 
@@ -149,8 +165,14 @@
        to the :authrole:`Project Owner` and eventually removes the
        Webhook settings.
 
-       If your webhook requires HTTPS, you must 
+       You can test your webhook configuration using the :guilabel:`Test Alert`
+       button in the alert configuration interface.
+
+       If your webhook requires HTTPS, you must
        :ref:`import your CA certificate into the Ops Manager trust store <add-ca-cert-to-om>`.
+
+       For more information about webhook templating, see
+       :ref:`om-webhook-templating`.
 
    * - CA Flowdock Settings
    

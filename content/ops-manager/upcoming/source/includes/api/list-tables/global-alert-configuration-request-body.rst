@@ -210,6 +210,22 @@
        :ref:`Admin Console <mms-manage-global-alerts>`.
 
    * - | ``notifications``
+       | ``.webhookHeadersTemplate``
+     - string
+     - Optional
+     - Template for custom headers to include in webhook notifications.
+       You can use variables in the template that are replaced with
+       alert-specific values when the notification is sent.
+
+   * - | ``notifications``
+       | ``.webhookBodyTemplate``
+     - string
+     - Optional
+     - Template for the body content of webhook notifications.
+       You can use variables in the template that are replaced with
+       alert-specific values when the notification is sent.
+
+   * - | ``notifications``
        | ``.microsoftTeamsWebhookUrl``
      - string
      - Conditional

@@ -527,6 +527,11 @@ const tocData: TocItem[] = [
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/core/system-alerts',
                   },
+                  {
+                    label: 'Webhook Templating',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/tutorial/webhook-templating',
+                  },
                 ],
               },
               {
@@ -1682,6 +1687,11 @@ const tocData: TocItem[] = [
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/reference/api/alert-configurations-get-open-alerts',
                       },
+                      {
+                        label: 'Test Project Alert Configuration',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/alert-configurations-test-config',
+                      },
                     ],
                   },
                   {
@@ -1775,6 +1785,11 @@ const tocData: TocItem[] = [
                         label: 'Delete',
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/reference/api/global-alert-configurations-delete-one',
+                      },
+                      {
+                        label: 'Test Global Alert Configuration',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/global-alert-configurations-test-one',
                       },
                     ],
                   },

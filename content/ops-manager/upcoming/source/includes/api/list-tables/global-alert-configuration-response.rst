@@ -182,10 +182,31 @@
 
        - You set ``notification.[n].webhookURL`` to a non-empty string
 
-       - You set a default ``webhookUrl`` on the 
+       - You set a default ``webhookUrl`` on the
          :ref:`Admin Console <mms-manage-global-alerts>` page.
 
        .. include:: /includes/fact-webhook-redacted.rst
+
+   * - | notifications.[n]
+       | .webhookHeadersTemplate
+     - string
+     - Template for custom headers to include in webhook notifications.
+       |mms| returns this value if you set
+       ``notifications.[n].typeName`` to ``WEBHOOK`` and provide a
+       custom headers template.
+
+   * - | notifications.[n]
+       | .webhookBodyTemplate
+     - string
+     - Template for the body content of webhook notifications.
+       |mms| returns this value if you set
+       ``notifications.[n].typeName`` to ``WEBHOOK`` and provide a
+       custom body template.
+
+   * - | notifications.[n]
+       | .id
+     - string
+     - Unique identifier of the notification configuration.
 
    * - ``notifications.microsoftTeamsWebhookUrl``
      - string
