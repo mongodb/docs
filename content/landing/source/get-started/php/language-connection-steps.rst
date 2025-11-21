@@ -49,6 +49,10 @@
       .. literalinclude:: /shared/drivers-get-started/php/get-started-connect.php
          :language: php
 
+   .. step:: Add your connection string
+
+      .. include:: /get-started/includes/connection-string-note.rst
+
    .. step:: Run your application
 
       In your project directory, run the following command to start

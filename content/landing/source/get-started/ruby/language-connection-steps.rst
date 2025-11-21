@@ -58,6 +58,8 @@
          :start-after: start-query
          :end-before: end-query
       
+   .. step:: Add your connection string
+
       .. include:: /get-started/includes/connection-string-note.rst
 
    .. step:: Run your application

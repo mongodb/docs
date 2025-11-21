@@ -80,6 +80,8 @@
       .. literalinclude:: /shared/drivers-get-started/cpp/get-started-connect.cpp
          :language: cpp
 
+   .. step:: Add your connection string
+
       .. include:: /get-started/includes/connection-string-note.rst
 
    .. step:: Run your application

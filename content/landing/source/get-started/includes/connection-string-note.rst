@@ -1,18 +1,37 @@
-.. important:: 
+In your application file, replace the ``<connection string URI>``
+placeholder with the :manual:`connection string </reference/connection-string/>`
+that you saved when you created your deployment. Your connection string
+has the following format:
 
-   Replace the ``<connection string URI>`` placeholder with
-   the :manual:`connection string
-   </reference/connection-string/>` for your cluster. For
-   example, to connect to a deployment running on the default
-   localhost port 27017, use the following connection string:
+.. tabs::
 
-   .. code-block:: none
+   .. tab:: Local Deployment
+      :tabId: local
 
-      "mongodb://127.0.0.1:27017/myTestDb"
+      .. code-block:: shell
 
-   You can find your connection string in the MongoDB CLI by
-   running the following command in your shell:
+         mongodb://localhost:<port number>/?directConnection=true
 
-   .. code-block:: bash
+      Replace the ``<port number>`` placeholder with the port number
+      of your local deployment. Your port number can be found in Docker
+      Desktop.
 
-      atlas clusters connectionStrings describe myTestDb
+   .. tab:: Cloud Deployment
+      :tabId: cloud
+
+      .. code-block:: shell
+
+         mongodb+srv://<database user>:<database password>@<cluster address>
+
+      Replace the following placeholder values:
+
+      - ``<database user>``: The database username you
+        specified when creating your deployment.
+      - ``<database password>``: The password for the database
+        user.
+      - ``<cluster address>``: The SRV address for your
+        cluster. You can view your cluster address in the
+        connection string you saved after creating your deployment, or by running
+        ``atlas clusters connectionStrings describe myDeployment`` in
+        your terminal and copying the text after the ``mongodb+srv://``
+        prefix.

@@ -5,15 +5,15 @@ You can run the following commands to load sample data into your deployment:
    .. tab:: Local Deployment
       :tabid: local
 
-      Run the following commands to install the MongoDB Database
-      Tools:
+      Run the following commands from your terminal to install the
+      MongoDB Database Tools:
       
       .. code-block:: bash
 
          brew tap mongodb/brew
          brew install mongodb-database-tools
 
-      Then run the following commands to load the sample data:
+      Then, run the following commands to load the sample data:
       
       .. code-block:: bash
 
@@ -31,4 +31,4 @@ You can run the following commands to load sample data into your deployment:
 
       .. code-block:: bash
 
-         atlas clusters sampleData load myTestDb
+         atlas clusters sampleData load myDeployment

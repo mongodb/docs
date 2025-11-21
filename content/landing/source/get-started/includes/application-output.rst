@@ -1,4 +1,5 @@
 .. code-block:: none
+   :copyable: false
 
    {
       _id: ...,

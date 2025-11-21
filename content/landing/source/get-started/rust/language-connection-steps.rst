@@ -45,6 +45,8 @@
       .. literalinclude:: /shared/drivers-get-started/rust/get-started-connect.rs
          :language: rust
 
+   .. step:: Add your connection string
+
       .. include:: /get-started/includes/connection-string-note.rst
 
    .. step:: Run your Rust application

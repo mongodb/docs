@@ -60,6 +60,8 @@
       .. literalinclude:: /shared/drivers-get-started/kotlin-coroutine/get-started-connect.kt
          :language: kotlin
 
+   .. step:: Add your connection string
+
       .. include:: /get-started/includes/connection-string-note.rst
 
    .. step:: Run your application

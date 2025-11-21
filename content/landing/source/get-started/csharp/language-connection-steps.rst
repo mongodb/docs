@@ -25,6 +25,8 @@
       .. literalinclude:: /shared/drivers-get-started/csharp/get-started-connect.cs
          :language: csharp
 
+   .. step:: Add your connection string
+
       .. include:: /get-started/includes/connection-string-note.rst
 
    .. step:: Run your application

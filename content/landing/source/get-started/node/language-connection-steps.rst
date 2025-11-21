@@ -6,7 +6,7 @@
 
    .. step:: Initialize your application
 
-      Run the following commands in your shell to create a new
+      Run the following commands in your terminal to create a new
       directory and a file for your application. The command also
       initializes ``npm`` in the directory and installs the {+node-driver+}.
 
@@ -41,8 +41,10 @@
 
       .. literalinclude:: /code-examples/tested/javascript/driver/get-started/get-started.snippet.example.js
          :language: javascript
+         
+   .. step:: Add your connection string
 
-         .. include:: /get-started/includes/connection-string-note.rst
+      .. include:: /get-started/includes/connection-string-note.rst
 
    .. step:: Run your application
 
