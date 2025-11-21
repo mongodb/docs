@@ -1,5 +1,4 @@
-Be sure to also clean up any open resources by calling the 
-following methods, as appropriate:
+Clean up any open resources by calling the following methods, as appropriate:
 
 - `bson_destroy <http://mongoc.org/libbson/current/bson_destroy.html>`__
 
