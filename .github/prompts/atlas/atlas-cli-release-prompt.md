@@ -37,17 +37,8 @@
    #### ALIAS REDIRECTS Section
    - Find the redirect pointing to current URL under `### ALIAS REDIRECTS`
    - Change the version number in the `from` line to the new version
-   #### First CATCH ALLS Section
-   - Find the two intermediary redirects for `current`
-   - Add two new intermediary redirects for the previous current version:
-     [[redirects]]
-     from = "/docs/atlas/cli/<former-version>/*"
-     to = "/docs/atlas/cli/intermediary/<former-version>/:splat"
-
-     [[redirects]]
-     from = "/docs/atlas/cli/intermediary/<former-version>/*"
-     to = "/docs/atlas/cli/<former-version>"
-   #### Second CATCH ALLS Section
+   
+   #### CATCH ALLS Section
    - Under `### CATCH ALLS (add slug to paths without slug)`
    - Find the redirect for the current version
    - Add a redirect for the former current version immediately below:
