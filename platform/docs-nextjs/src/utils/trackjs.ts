@@ -4,6 +4,7 @@ import { TrackJS } from 'trackjs';
 const trackjsConfig = {
   token: 'c3fccd861d9b4238bfe1af83ebdec219',
   application: 'nextjs',
+  dependencies: false,
   // Add any additional configuration options here
   // See https://docs.trackjs.com for more options
 };
