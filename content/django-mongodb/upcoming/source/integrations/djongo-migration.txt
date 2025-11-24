@@ -1,0 +1,491 @@
+.. _django-djongo-migration:
+
+===============================
+Migrate Your Djongo Application
+===============================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: model, settings, connection, embedded, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to modify your Djongo project
+to use {+django-odm+}. Djongo is a third-party library that translates
+SQL queries into MongoDB Query Language (MQL) queries, allowing you to
+use MongoDB as your {+framework+} backend for {+framework+} versions 4.0 and
+earlier. However, {+django-odm+} is the officially supported integration
+and offers more comprehensive {+framework+} support, expanded access to MongoDB
+features, and compatibility with newer {+framework+} versions.
+
+This guide shows how to migrate a Djongo application to {+django-odm+}
+by updating the following application components:
+
+- :ref:`django-migration-update-settings`
+- :ref:`django-migration-update-models`
+- :ref:`django-migration-update-indexes`
+- :ref:`django-migration-update-queries`
+- :ref:`django-migration-update-migrations`
+
+.. _django-migration-update-settings:
+
+Database Settings
+-----------------
+
+To connect to MongoDB by using {+django-odm+} instead of Djongo,
+modify the ``DATABASES`` setting in your application's ``settings.py`` file.
+Update the value of this setting's nested ``ENGINE`` key from ``"djongo"`` to
+``"django_mongodb_backend"``. Then, specify your connection string in the
+nested ``HOST`` key instead of the ``CLIENT`` key.
+
+.. tip::
+
+   To learn more about the ``DATABASES`` setting, see the
+   :ref:`django-connection-configuration` guide.
+
+Example
+~~~~~~~
+
+The following example shows how to modify your ``DATABASES`` setting to use
+{+django-odm+}. Select the :guilabel:`Djongo` tab to see the initial setting
+configuration, and select the :guilabel:`{+django-odm+}` tab to see the
+updated setting:
+
+.. tabs::
+
+    .. tab:: Djongo
+        :tabid: djongo
+
+        .. code-block:: python
+
+            DATABASES = {
+                'default': {
+                    'ENGINE': 'djongo',
+                    'CLIENT': {
+                        'host': 'mongodb+srv://cluster0.example.mongodb.net',
+                    },
+                    'NAME': 'my_database'
+                }
+            }
+
+    .. tab:: {+django-odm+}
+        :tabid: django-mongodb
+
+        .. code-block:: python
+
+            DATABASES = {
+                'default': {
+                    'ENGINE': 'django_mongodb_backend',
+                    'HOST': 'mongodb+srv://cluster0.example.mongodb.net',
+                    'NAME': 'my_database'
+                },
+            }
+
+.. _django-migration-update-models:
+
+Model Definitions
+-----------------
+
+To update your models to use {+django-odm+}, make the following changes
+to your model definitions:
+
+1. Import the ``models`` module from ``django.db`` instead of from ``djongo``.
+#. Remove explicit ``ObjectIdField`` definitions, because {+django-odm+}
+   automatically creates an ``_id`` field of type ``ObjectIdField``.
+#. Modify the syntax of MongoDB-specific array and embedded fields.
+
+.. important:: Field Types
+
+   Djongo and {+django-odm+} likely store {+framework+} fields in the same
+   format. However, you might experience incompatibilities due to differences in the
+   integrations' field converters. If you encounter any issues, you
+   can submit feedback by using the :guilabel:`Rate this page` tab on the right
+   side of this page.
+
+.. tip::
+
+   To learn more {+django-odm+} models, see the :ref:`django-models`
+   guide.
+
+Single Model Example
+~~~~~~~~~~~~~~~~~~~~
+
+The following example shows how to update a model class
+named ``Recipe`` for compatibility with {+django-odm+}. Select the
+:guilabel:`Djongo` tab to see the initial model, and select the
+:guilabel:`{+django-odm+}` tab to see the updated model:
+
+.. tabs::
+
+    .. tab:: Djongo
+        :tabid: djongo
+
+        .. code-block:: python
+
+            from djongo import models
+
+            class Tag(models.Model):
+                data = models.CharField(max_length=100)
+
+                class Meta:
+                    abstract = True
+
+            class Recipe(models.Model):
+                _id = models.ObjectIdField()
+                title = models.CharField(max_length=100)
+                cuisine = models.CharField(max_length=100)
+                cook_time = models.IntegerField(default=0)
+                tags = models.ArrayField(model_container=Tag)
+
+    .. tab:: {+django-odm+}
+        :tabid: django-mongodb
+
+        .. code-block:: python
+
+            from django.db import models
+            from django_mongodb_backend.fields import ArrayField
+
+            class Recipe(models.Model):
+                title = models.CharField(max_length=100)
+                cuisine = models.CharField(max_length=100)
+                cook_time = models.IntegerField(default=0)
+                tags = ArrayField(
+                         models.CharField(max_length=100),
+                         size=4,
+                         null=True,
+                         blank=True)
+
+To create a ``Recipe`` object that stores the preceding fields,
+use the following code:
+
+.. tabs::
+
+    .. tab:: Djongo
+        :tabid: djongo
+
+        .. code-block:: python
+
+            Recipe.objects.create(
+                title="Tiramisu",
+                cuisine="Italian",
+                cook_time=20,
+                tags=[
+                    {"data": "dessert"},
+                    {"data": "classic"},
+                    {"data": "espresso"},
+                    {"data": "chocolate"}
+                ]
+            )
+
+    .. tab:: {+django-odm+}
+        :tabid: django-mongodb
+
+        .. code-block:: python
+
+            Recipe.objects.create(
+                title="Tiramisu",
+                cuisine="Italian",
+                cook_time=20,
+                tags=["dessert", "classic", "espresso", "chocolate"]
+            )
+
+.. _django-migration-update-embedded:
+
+Embedded Model Example
+~~~~~~~~~~~~~~~~~~~~~~
+
+When using Djongo, you can use an ``EmbeddedField`` to represent an
+embedded MongoDB document. To define a field that stores multiple embedded
+documents, you can use an ``ArrayField``.
+
+{+django-odm+} provides the following fields that represent embedded documents:
+
+- ``EmbeddedModelField``: Stores a nested model
+- ``EmbeddedModelArrayField``: Stores an array of nested models
+
+.. tip:: Model Polymorphism
+
+   You cannot use Djongo fields to store an array of multiple model types.
+   However, {+django-odm+} provides the ``PolymorphicEmbeddedModelField``
+   and ``PolymorphicEmbeddedModelArrayField`` fields to support polymorphism.
+   To learn more, see :ref:`django-advanced-fields` in the Create Models guide.
+
+The following example shows how to update a ``models.py`` file that defines a
+``Recipe`` model containing the following embedded model fields:
+
+- ``nutrition``: Stores one embedded ``Nutrition`` model that represents nutrition information
+- ``reviews``: Stores multiple embedded ``Review`` models that represent individual recipe reviews
+
+Select the :guilabel:`Djongo` tab to see the initial models, and select the
+:guilabel:`{+django-odm+}` tab to see the updated models:
+
+.. tabs::
+
+    .. tab:: Djongo
+        :tabid: djongo
+
+        .. code-block:: python
+
+            from djongo import models
+
+            class Nutrition(models.Model):
+                calories = models.IntegerField(default=0)
+                carb_grams = models.IntegerField(default=0)
+                protein_grams = models.IntegerField(default=0)
+
+                class Meta:
+                    abstract = True
+
+            class Review(models.Model):
+                author = models.CharField(max_length=100)
+                rating = models.IntegerField(default=0)
+
+                class Meta:
+                    abstract = True
+
+            class Recipe(models.Model):
+                _id = models.ObjectIdField()
+                title = models.CharField(max_length=100)
+                cuisine = models.CharField(max_length=100)
+                cook_time = models.IntegerField(default=0)
+                nutrition = models.EmbeddedField(model_container=Nutrition)
+                reviews = models.ArrayField(model_container=Review)
+
+    .. tab:: {+django-odm+}
+        :tabid: django-mongodb
+
+        .. code-block:: python
+
+            from django.db import models
+            from django_mongodb_backend.models import EmbeddedModel
+            from django_mongodb_backend.fields import EmbeddedModelField, EmbeddedModelArrayField
+
+            class Nutrition(EmbeddedModel):
+                calories = models.IntegerField(default=0)
+                carb_grams = models.IntegerField(default=0)
+                protein_grams = models.IntegerField(default=0)
+
+            class Review(EmbeddedModel):
+                author = models.CharField(max_length=100)
+                rating = models.IntegerField(default=0)
+
+            class Recipe(models.Model):
+                title = models.CharField(max_length=100)
+                cuisine = models.CharField(max_length=100)
+                cook_time = models.IntegerField(default=0)
+                nutrition = EmbeddedModelField(Nutrition, null=True, blank=True)
+                reviews = EmbeddedModelArrayField(Review, null=True, blank=True)
+
+.. _django-migration-update-indexes:
+
+Indexes
+-------
+
+To update the indexes in your Djongo app for {+django-odm+}
+compatibility, you must use the index classes provided by
+{+django-odm+}.
+
+Djongo provides separate classes to represent each MongoDB index,
+including classes for single field indexes, compound indexes, multikey
+indexes, and more.
+
+{+django-odm+} provides the following three classes to
+represent all index types:
+
+- ``Index`` class: {+framework+}'s index class, which represents all non-Search
+  index types
+- ``SearchIndex`` class: A {+django-odm+}-specific class to represent MongoDB
+  Search indexes
+- ``VectorSearchIndex`` class: A {+django-odm+}-specific class to represent MongoDB
+  Vector Search indexes
+
+.. tip:: 
+
+   To learn more about how to use {+django-odm+} to create indexes,
+   see the :ref:`django-indexes` guide.
+
+Example
+~~~~~~~
+
+The following example shows how to update a compound index on a ``Recipe`` model. The
+{+django-odm+} implementation also adds a MongoDB Search index,
+which Djongo does not support. Select the :guilabel:`Djongo` tab to see the initial
+index, and select the :guilabel:`{+django-odm+}` tab to see the
+updated indexes:
+
+.. tabs::
+
+    .. tab:: Djongo
+        :tabid: djongo
+
+        .. code-block:: python
+
+            from djongo import models
+            from djongo.models.indexes import CompoundIndex
+
+            class Recipe(models.Model):
+                _id = models.ObjectIdField()
+                title = models.CharField(max_length=100)
+                cuisine = models.CharField(max_length=100)
+                cook_time = models.IntegerField(default=0)
+
+                class Meta:
+                    indexes = [
+                        CompoundIndex(fields=["title", "cook_time"])
+                    ]
+
+    .. tab:: {+django-odm+}
+        :tabid: django-mongodb
+
+        .. code-block:: python
+
+            from django.db import models
+            from django_mongodb_backend.indexes import SearchIndex
+
+            class Recipe(models.Model):
+                title = models.CharField(max_length=100)
+                cuisine = models.CharField(max_length=100)
+                cook_time = models.IntegerField(default=0)
+            
+                class Meta:
+                    indexes = [
+                        models.Index(fields=["title", "cook_time"]),
+                        SearchIndex(fields=["cuisine"], name="cuisine_search_idx")
+                    ]
+
+
+.. _django-migration-update-queries:
+
+Queries
+-------
+
+You can use {+framework+}'s :py:class:`~django.db.models.query.QuerySet` API to
+query both Djongo and {+django-odm+} models. However, the syntax differs
+for embedded model queries.
+
+Djongo treats embedded models as {+language+} dictionaries, and you
+must use {+language+} dictionary syntax to access or modify their
+fields. {+django-odm+} treats embedded models as {+framework+} models, so
+you use the same syntax for interacting with their fields as with
+all other models.
+
+.. important:: Performance Regressions
+
+   Djongo and {+django-odm+} queries generate different underlying MQL queries,
+   which might have performance implications. When migrating from Djongo
+   to {+django-odm+}, we recommend that you monitor performance changes to identify
+   potential regressions and :ref:`file a JIRA ticket<django-ih-bugs-features>` if
+   you discover any.
+
+.. tip:: 
+
+   To learn more about how to use {+django-odm+} to query your models,
+   see the :ref:`django-specify-query` guide.
+
+Example
+~~~~~~~
+
+The following example shows the difference between a Djongo and a {+django-odm+}
+query on the ``Recipe`` model and its ``nutrition`` embedded model field,
+defined in the :ref:`django-migration-update-embedded` section.
+The code queries the ``Nutrition`` embedded model's ``calories`` field.
+Select the :guilabel:`Djongo` tab to see the initial
+query, and select the :guilabel:`{+django-odm+}` tab to see the
+updated query:
+
+.. tabs::
+
+    .. tab:: Djongo
+        :tabid: djongo
+
+        .. code-block:: python
+
+            Recipe.objects.filter(nutrition__lt={'calories': 500})
+
+
+    .. tab:: {+django-odm+}
+        :tabid: django-mongodb
+
+        .. code-block:: python
+
+            Recipe.objects.filter(nutrition__calories__lt=500)
+
+.. _django-migration-update-transactions:
+
+Transactions
+------------
+
+Both Djongo and {+django-odm+} support {+framework+}'s atomic transaction
+API functionality. However, they each provide a custom API to implement
+this functionality. You can update your transactions for {+django-odm+}
+compatibility by modifying your code's import statement.
+
+.. tip:: 
+
+   To learn more about how to use {+django-odm+} to perform transactions,
+   see the :ref:`django-transactions` guide.
+
+Example
+~~~~~~~
+
+The following example shows how to update your code to import
+{+django-odm+}'s transaction API. Select the :guilabel:`Djongo` tab to see the initial
+statement, and select the :guilabel:`{+django-odm+}` tab to see the
+updated statement:
+
+.. tabs::
+
+    .. tab:: Djongo
+        :tabid: djongo
+
+        .. code-block:: python
+
+            from djongo import transaction
+
+    .. tab:: {+django-odm+}
+        :tabid: django-mongodb
+
+        .. code-block:: python
+
+            from django_mongodb_backend import transaction
+
+.. _django-migration-update-migrations:
+
+Migrations
+----------
+
+Djongo does not support database migrations and does not enforce
+schema validation by default. If you set the ``ENFORCE_SCHEMA`` setting
+to ``True`` in your ``settings.py`` file, Djongo enforces ``MigrationErrors``
+when retrieved documents have missing field values.
+
+{+django-odm+} supports database migrations with some limitations.
+To learn more about these limitations, see :ref:`django-feature-compat-migrations`
+in the Feature Compatibility guide.
+
+{+django-odm+} does not enforce schema validation. As a result, updating model
+fields without running migrations to update the database schema
+does not generate errors.
+
+Additional Information
+----------------------
+
+To learn how to set up a new application that uses
+{+django-odm+}, see the :ref:`django-get-started`
+tutorial.
+
+To learn more about running database operations by
+using {+django-odm+}, see the :ref:`django-crud` guide.
+
+To learn more about creating {+django-odm+} models,
+see the :ref:`django-models` guide.

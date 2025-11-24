@@ -136,6 +136,18 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: 'Third-Party Integrations',
+        contentSite: 'django',
+        collapsible: true,
+        items: [
+          {
+            label: 'Migrate Djongo Applications',
+            contentSite: 'django',
+            url: '/docs/languages/python/django-mongodb/:version/integrations/djongo-migration',
+          },
+        ],
+      },
+      {
         label: 'Feature Compatibility',
         contentSite: 'django',
         url: '/docs/languages/python/django-mongodb/:version/limitations-upcoming',
