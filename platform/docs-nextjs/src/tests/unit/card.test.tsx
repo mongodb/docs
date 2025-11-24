@@ -23,6 +23,13 @@ jest.mock('@/context/page-context', () => ({
   }),
 }));
 
+// Mock the VersionContext
+jest.mock('@/context/version-context', () => ({
+  useVersionContext: () => ({
+    siteBasePrefix: 'university',
+  }),
+}));
+
 beforeAll(() => {
   mockLocation({ search: '', pathname: `/` });
 });

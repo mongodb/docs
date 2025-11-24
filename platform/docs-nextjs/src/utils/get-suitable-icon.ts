@@ -1,10 +1,26 @@
-export const getSuitableIcon = (icon: string | undefined, iconDark: string | undefined, isDarkMode: boolean) => {
-  if (typeof icon == 'string') {
-    const isPath = icon.startsWith('/');
-    const getIcon = `${icon}${isDarkMode ? '_inverse' : ''}`;
-    const imageUrl = `https://webimages.mongodb.com/_com_assets/icons/${getIcon}.svg`;
+import { DOTCOM_BASE_URL, ICONS_BASE_URL } from '@/constants';
 
-    return isPath ? (isDarkMode && iconDark ? iconDark : icon) : imageUrl;
+export const getSuitableIcon = ({
+  icon,
+  iconDark,
+  isDarkMode,
+  siteBasePrefix,
+}: {
+  icon?: string;
+  iconDark?: string;
+  isDarkMode?: boolean;
+  siteBasePrefix: string;
+}) => {
+  if (typeof icon === 'string') {
+    if (icon.startsWith('/')) {
+      // Ensure proper URL joining with slashes. Docsets prefixes do not have leading slashes
+      const prefix = siteBasePrefix.length ? `${DOTCOM_BASE_URL}/${siteBasePrefix}` : DOTCOM_BASE_URL;
+      return isDarkMode && iconDark ? `${prefix}${iconDark}` : `${prefix}${icon}`;
+    }
+
+    const getIcon = `${icon}${isDarkMode ? '_inverse' : ''}`;
+    // ICONS_BASE_URL already has trailing slash, so just concatenate
+    return `${ICONS_BASE_URL}${getIcon}.svg`;
   }
 
   return '';

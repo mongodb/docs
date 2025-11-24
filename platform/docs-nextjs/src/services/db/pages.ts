@@ -38,7 +38,7 @@ const getPageAST = cache(async (path: string | string[], prId?: number) => {
     page_path: pathString,
   };
   if (prId) {
-    query['pr_id'] = prId;
+    query.pr_id = prId;
   }
   try {
     log({

@@ -4,7 +4,7 @@ import { getSnootyMetadata } from '@/services/db/snooty-metadata';
 import { getAllDocsetsWithVersionsCached } from '@/services/db/docsets';
 import { type ASTDocument, getPageDocFromParams } from '@/services/db/pages';
 import { getPageMetadata, getLocaleLinks } from '@/utils/seo';
-import { type DBMetadataDocument } from '@/services/db/snooty-metadata';
+import type { DBMetadataDocument } from '@/services/db/snooty-metadata';
 import { fetchAllAssets } from '@/services/db/assets';
 import { CustomTemplate } from './custom-template';
 import { cookies } from 'next/headers';
@@ -18,8 +18,8 @@ interface PageProps {
 }
 
 export default async function Page({ params: { path } }: PageProps) {
-  const cookieStore: ReadonlyRequestCookies = await cookies();
-  const cookieArray = await cookieStore.getAll();
+  const cookieStore: ReadonlyRequestCookies = cookies();
+  const cookieArray = cookieStore.getAll();
 
   // Convert array of cookie objects to key-value pairs object
   const cookieValues = cookieArray.reduce((acc, cookie) => {

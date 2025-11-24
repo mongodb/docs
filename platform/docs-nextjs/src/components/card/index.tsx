@@ -17,6 +17,7 @@ import { isRelativeUrl } from '@/utils/is-relative-url';
 import { getSuitableIcon } from '@/utils/get-suitable-icon';
 import type { CardNode } from '@/types/ast';
 import { usePageContext } from '@/context/page-context';
+import { useVersionContext } from '@/context/version-context';
 
 const cardBaseStyles = css`
   display: flex;
@@ -165,11 +166,13 @@ const Card = ({
 }: CardProps) => {
   const { template } = usePageContext();
   const { darkMode } = useDarkMode();
+  const { siteBasePrefix } = useVersionContext();
+
   const router = useRouter();
 
   const isLanding = template === 'landing';
 
-  let imgSize;
+  let imgSize: string;
   if (isLargeIconStyle) imgSize = '50';
   else if (isLanding) imgSize = '64';
   else if (template === 'product-landing') imgSize = '32';
@@ -185,7 +188,12 @@ const Card = ({
     isLanding && !isLargeIconStyle ? landingStyles : '', // must come after other styles to override
   ];
 
-  const iconSrc = getSuitableIcon(icon, iconDark, darkMode);
+  const iconSrc = getSuitableIcon({
+    icon,
+    iconDark,
+    isDarkMode: darkMode,
+    siteBasePrefix,
+  });
 
   return (
     <LeafyGreenCard className={cx(styling)} onClick={url ? () => onCardClick(url, router) : undefined}>

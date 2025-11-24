@@ -19,6 +19,31 @@ const nextConfig = {
       },
     ];
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'www.mongodb.com',
+        port: '',
+        pathname: '/**',
+        search: '',
+      },
+      {
+        protocol: 'https',
+        hostname: 'mongodbcom-cdn.staging.corp.mongodb.com',
+        port: '',
+        pathname: '/**',
+        search: '',
+      },
+      {
+        protocol: 'https',
+        hostname: 'webimages.mongodb.com',
+        port: '',
+        pathname: '/_com_assets/icons/**',
+        search: '',
+      },
+    ],
+  },
 };
 
 const withMDX = createMDX({
