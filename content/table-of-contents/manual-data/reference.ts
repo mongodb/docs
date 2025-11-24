@@ -3296,11 +3296,6 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/operator/aggregation/cosh',
           },
           {
-            label: '$count-accumulator',
-            contentSite: 'docs',
-            url: '/docs/:version/reference/operator/aggregation/count-accumulator',
-          },
-          {
             label: '$covariancePop',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/covariancePop',
