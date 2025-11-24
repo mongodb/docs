@@ -408,9 +408,16 @@ async function copyExamplesFromGit(tagOrBranch: string): Promise<void> {
     fs.mkdirSync(currentExamplesDir, { recursive: true });
     fs.mkdirSync(atlasExamplesDir, { recursive: true });
 
-    // Get all example files from the cloned repo
-    const files = getFilesRecursively(sourceExamplesDir, []);
-    console.log(`📁 Found ${files.length} example files in the repository`);
+    // Get all example files from the cloned repo and filter out Serverless files
+    const allFiles = getFilesRecursively(sourceExamplesDir, []);
+    const files = allFiles.filter(file => !path.basename(file).toLowerCase().includes('serverless'));
+    
+    const filteredCount = allFiles.length - files.length;
+    console.log(`📁 Found ${allFiles.length} total example files in the repository`);
+    if (filteredCount > 0) {
+      console.log(`🚫 Filtered out ${filteredCount} files containing 'Serverless'`);
+    }
+    console.log(`📄 Processing ${files.length} example files`);
 
     if (files.length === 0) {
       console.log(`ℹ️  No example files to copy`);
