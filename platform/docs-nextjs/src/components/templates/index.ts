@@ -2,7 +2,7 @@ import BlankTemplate from './blank';
 import type { ReactNode } from 'react';
 import DocumentTemplate from './document';
 import DriversIndexTemplate from './drivers-index';
-// import InstruqtTemplate from './instruqt';
+import InstruqtTemplate from './instruqt';
 import LandingTemplate from './landing';
 // import NotFoundTemplate from './NotFound';
 // import FeatureNotAvailableTemplate from './FeatureNotAvailable';
@@ -22,7 +22,7 @@ export {
   BlankTemplate,
   DocumentTemplate,
   DriversIndexTemplate,
-  // InstruqtTemplate,
+  InstruqtTemplate,
   LandingTemplate,
   // NotFoundTemplate,
   // FeatureNotAvailableTemplate,

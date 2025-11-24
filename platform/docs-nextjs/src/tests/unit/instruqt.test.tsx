@@ -1,5 +1,5 @@
 import type { RenderResult } from '@testing-library/react';
-import { render, screen, act, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { HeadingNode, InstruqtNode } from '@/types/ast';
 import userEvent from '@testing-library/user-event';
 import Instruqt, { type InstruqtProps } from '@/components/instruqt';

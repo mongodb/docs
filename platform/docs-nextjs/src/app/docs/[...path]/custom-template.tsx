@@ -9,6 +9,7 @@ import {
   DocumentTemplate,
   LandingTemplate,
   OpenAPITemplate,
+  InstruqtTemplate,
   BlankTemplate,
   DriversIndexTemplate,
 } from '@/components/templates';
@@ -42,6 +43,10 @@ function getTemplate(templateOption: PageTemplateType): {
     case 'changelog':
       Template = ChangelogTemplate;
       renderSidenav = true;
+      break;
+    case 'instruqt':
+      renderSidenav = true;
+      Template = InstruqtTemplate;
       break;
     case 'drivers-index':
       renderSidenav = true;
