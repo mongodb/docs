@@ -9,7 +9,10 @@ import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import { Body } from '@leafygreen-ui/typography';
 import { theme } from '@/styles/theme';
 import Link from '@/components/link';
+import layoutStyles from '@/app/layout.module.scss';
+
 import { DOTCOM_BASE_URL, DOTCOM_BASE_PREFIX } from '@/constants';
+import ActionBar from '@/components/action-bar';
 
 const BASE_URL = `${DOTCOM_BASE_URL}/${DOTCOM_BASE_PREFIX}`;
 
@@ -92,8 +95,8 @@ const ErrorBoxContainer = () => {
       </Body>
       {pathname ? (
         <Body>
-          The page with the URL &lsquo;<Link to={fromURL}>{fromURL}</Link>&rsquo; does not exist. It might have been
-          moved or deleted.
+          The page with the URL &ldquo;<Link to={fromURL}>{fromURL}</Link>
+          &rdquo; does not exist. It might have been moved or deleted.
         </Body>
       ) : (
         <Body>The page might have been moved or deleted.</Body>
@@ -127,58 +130,47 @@ export const notFoundContainerStyle = css`
   display: flex;
   flex-direction: column;
   margin-bottom: ${theme.size.xxlarge};
+  grid-column: 6/-3;
 
-  @media ${theme.screenSize.upToSmall} {
-    margin-top: -${theme.size.large};
-  }
-
-  @media ${theme.screenSize.upToMedium} {
-    grid-column: 2/-2;
+  @media ${theme.screenSize.upToXLarge} {
+    grid-column: 4/-4;
   }
 
   @media ${theme.screenSize.upToLarge} {
     grid-column: 3/-3;
-  }
-
-  @media ${theme.screenSize.largeAndUp} {
-    grid-column: 4/-4;
-  }
-  @media ${theme.screenSize.xLargeAndUp} {
-    grid-column: 6/-3;
-    justify-content: start;
+    margin-top: -${theme.size.large};
   }
 `;
 
 export const gridStyling = `
-  @media ${theme.screenSize.mediumAndUp} {
-    grid-template-columns: ${`${theme.size.xlarge} repeat(12, minmax(0, 1fr)) ${theme.size.xlarge};`};
+  grid-template-columns: minmax(${theme.size.xlarge}, 1fr) repeat(12, minmax(0, 1fr)) minmax(${theme.size.xlarge}, 1fr);
+
+  @media ${theme.screenSize.upToLarge} {
+    grid-template-columns: ${theme.size.medium} repeat(12, 1fr) ${theme.size.medium};
   }
 
   @media ${theme.screenSize.upToMedium} {
-    grid-template-columns: 48px repeat(12, 1fr) 48px;
-  }
-
-  @media ${theme.screenSize.upToSmall} {
-    grid-template-columns: ${theme.size.large} 1fr ${theme.size.large};
-  }
-
-  @media ${theme.screenSize.upToXSmall} {
-    grid-template-columns: ${theme.size.medium} 1fr ${theme.size.medium};
+    grid-template-columns: repeat(12, 1fr);
   }
 `;
 
 export const wrapperStyle = css`
   display: grid;
+  height: 100%;
+  align-content: start;
   ${gridStyling}
 `;
 
 export default function NotFound() {
   return (
-    <main className={wrapperStyle}>
-      <div className={notFoundContainerStyle}>
-        <NotFoundImage />
-        <ErrorBoxContainer />
+    <div className={layoutStyles['content-container']}>
+      <ActionBar template="errorpage" sidenav={false} />
+      <div className={wrapperStyle}>
+        <div className={notFoundContainerStyle}>
+          <NotFoundImage />
+          <ErrorBoxContainer />
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

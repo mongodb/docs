@@ -13,7 +13,6 @@ export type PageTemplateType =
   | 'blank'
   | 'drivers-index'
   | 'document'
-  | 'errorpage'
   | 'feature-not-avail'
   | 'instruqt'
   | 'landing'
@@ -21,6 +20,7 @@ export type PageTemplateType =
   | 'changelog'
   | 'search'
   | 'guide'
+  | 'errorpage'
   | 'product-landing';
 
 type ComponentType =
