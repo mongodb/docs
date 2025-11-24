@@ -1,7 +1,6 @@
-Set your ``MONGODB_URI`` environment variable to the 
-:manual:`connection string </reference/connection-string/>`
-that you saved when you created your deployment. Your connection string
-has the following format:
+Set your ``MONGODB_URI`` environment variable to your 
+:manual:`connection string </reference/connection-string/>`,
+which has the following format:
 
 .. tabs::
 

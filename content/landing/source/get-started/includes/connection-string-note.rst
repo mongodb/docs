@@ -1,7 +1,6 @@
 In your application file, replace the ``<connection string URI>``
-placeholder with the :manual:`connection string </reference/connection-string/>`
-that you saved when you created your deployment. Your connection string
-has the following format:
+placeholder with your :manual:`connection string </reference/connection-string/>`.
+The connection string has the following format:
 
 .. tabs::
 
