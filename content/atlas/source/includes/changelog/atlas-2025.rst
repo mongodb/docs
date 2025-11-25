@@ -3,6 +3,10 @@
 19 November 2025 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
+- Adds support for deploying {+service+} clusters on {+aws+} regions
+  ``ap-east-2`` and ``ap-southeast-6``, and {+azure+} regions
+  ``chilecentral``, ``indonesiacentral``, and ``malaysiawest``.
+  
 - Reduces the inactivity policy for pausing inactive |service| ``M0`` {+Free-clusters+} 
   from 60 to 30 days. You'll receive an email notification 7 days before {+service+} 
   pauses your cluster. To resume a paused cluster, see :ref:`resume-cluster`. If 
@@ -21,6 +25,14 @@
 
 - Adds a ``Maintenance window completed`` event to the :ref:`Project Activity Feed <activity-feed>` 
   to confirm when maintenance operations finish.
+
+- Adds support for cross-region :ref:`cloud-based initial sync
+  <cloud-based-initial-sync>` between {+aws+} nodes. This allows
+  {+service+} to provision new data nodes from existing nodes in a
+  different {+aws+} region by leveraging {+aws+} snapshot capabilities.
+  To further speed up data copy across regions, you can
+  :ref:`Enable Faster Cross-Region Initial Sync for AWS Clusters
+  <enable_time_based_initial_sync_aws>`. 
 
 .. _atlas_2025_10_22:
 
