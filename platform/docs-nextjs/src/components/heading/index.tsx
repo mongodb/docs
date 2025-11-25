@@ -18,6 +18,7 @@ import { useInstruqt } from '@/context/instruqt-context';
 import { disabledStyle } from '@/components/button/styles';
 import Permalink from '@/components/permalink';
 import Contents from '@/components/contents';
+import CopyPageMarkdownButton from '@/components/widgets/markdown-widget';
 
 const titleMarginStyle = css`
   margin-top: ${theme.size.default};
@@ -106,7 +107,7 @@ const Heading = ({ nodeChildren, sectionDepth = 1, id = '', className, as, ...re
   const { hasDrawer, isOpen, setIsOpen } = useInstruqt();
   const hasSelectors = selectors && Object.keys(selectors).length > 0;
   const shouldShowLabButton = isPageTitle && hasDrawer;
-  const { page, tabsMainColumn, template } = usePageContext();
+  const { page, template } = usePageContext();
   const hasMethodSelector = page?.options?.['has_method_selector'];
   const shouldShowMobileHeader = !!(isPageTitle && isTabletOrMobile && hasSelectors && !hasMethodSelector);
   const showRating = !(template === 'product-landing');
@@ -157,15 +158,14 @@ const Heading = ({ nodeChildren, sectionDepth = 1, id = '', className, as, ...re
               >
                 {children}
                 {/* using showRating since it has similar logic for showing the copy markdown button only for non-landing pages */}
-                {/* TODO: Uncomment below when CopyPageMarkdownButton is implemented */}
-                {/* <CopyPageMarkdownButton
+                <CopyPageMarkdownButton
                   slug={rest.slug ?? ''}
                   className={css`
                     @media ${theme.screenSize.upToLarge} {
                       display: none;
                     }
                   `}
-                /> */}
+                />
               </div>
             )}
           >
@@ -191,7 +191,7 @@ const Heading = ({ nodeChildren, sectionDepth = 1, id = '', className, as, ...re
         <>
           {/* TODO: Uncomment below when TimeRequired and MultiPageTutorials is implemented */}
           {/* <TimeRequired /> */}
-          <Contents className={contentsStyle} slug={rest.slug ?? ''} />
+          <Contents className={contentsStyle} />
         </>
       )}
     </>

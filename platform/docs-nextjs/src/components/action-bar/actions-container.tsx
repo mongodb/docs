@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import Button from '@leafygreen-ui/button';
 import Icon from '@leafygreen-ui/icon';
@@ -11,6 +11,8 @@ import { chatbotButtonStyling, ActionsBox as ActionsBoxStyled } from './styles';
 import { chatbotMobileButtonStyling } from './styles';
 import DarkModeDropdown from './dark-mode-dropdown';
 import { reportAnalytics } from '@/utils/report-analytics';
+import { useChatbotModal } from '@/context/chatbot-context';
+
 const Chatbot = dynamic(() => import('mongodb-chatbot-ui').then((mod) => mod), {
   ssr: false,
 });
@@ -22,7 +24,7 @@ const ChatbotModal = dynamic(() => import('./chatbot-modal').then((mod) => mod),
 const CHATBOT_TEXT = 'Ask MongoDB AI';
 
 const UIContainer = () => {
-  const [chatbotClicked, setChatbotClicked] = useState(false);
+  const { setChatbotClicked } = useChatbotModal();
   const env = process.env.NEXT_PUBLIC_ENV as Environments;
 
   const CHATBOT_SERVER_BASE_URL = ['dotcomprd', 'production'].includes(env)
@@ -52,7 +54,7 @@ const UIContainer = () => {
       {
         <Suspense>
           <Chatbot serverBaseUrl={CHATBOT_SERVER_BASE_URL}>
-            <ChatbotModal chatbotClicked={chatbotClicked} setChatbotClicked={setChatbotClicked} />
+            <ChatbotModal />
           </Chatbot>
         </Suspense>
       }

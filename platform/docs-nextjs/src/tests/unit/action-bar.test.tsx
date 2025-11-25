@@ -13,6 +13,16 @@ jest.mock('next/navigation', () => ({
   }),
 }));
 
+jest.mock('@/context/chatbot-context', () => ({
+  useChatbotModal: () => ({
+    chatbotClicked: false,
+    setChatbotClicked: jest.fn(),
+    text: '',
+    setText: jest.fn(),
+  }),
+  ChatbotProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 const conversationSpy = jest.fn();
 
 jest.mock('mongodb-chatbot-ui', () => {

@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { useEffect } from 'react';
 import { css } from '@leafygreen-ui/emotion';
 import { theme } from '@/styles/theme';
-import { PoweredByAtlasVectorSearch, useChatbotContext, MongoDbLegalDisclosure } from 'mongodb-chatbot-ui';
+import { useChatbotContext } from 'mongodb-chatbot-ui';
 import { useConversationContext } from '../../contexts/ConversationContext';
 
 const InputBarTrigger = dynamic(() => import('mongodb-chatbot-ui').then((m) => m.InputBarTrigger), { ssr: false });
@@ -103,17 +103,6 @@ function ChatViews() {
     initialMessageText: INITIAL_MESSAGE_TEXT,
     initialMessageSuggestedPrompts: SUGGESTED_PROMPTS,
     initialMessageReferences: INITIAL_MESSAGE_REFERENCES,
-    disclaimer: (
-      <>
-        <MongoDbLegalDisclosure />
-        <PoweredByAtlasVectorSearch
-          className={css`
-            margin-top: 8px;
-          `}
-          linkStyle="text"
-        />
-      </>
-    ),
   };
   return !firstSubmitted ? (
     <div className={firstLoadContainerStyle}>

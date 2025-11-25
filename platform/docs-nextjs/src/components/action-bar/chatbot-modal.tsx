@@ -1,14 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import {
-  useChatbotContext,
-  ModalView,
-  MongoDbLegalDisclosure,
-  mongoDbVerifyInformationMessage,
-  PoweredByAtlasVectorSearch,
-} from 'mongodb-chatbot-ui';
-import { css } from '@leafygreen-ui/emotion';
+import { useChatbotContext, ModalView, mongoDbVerifyInformationMessage } from 'mongodb-chatbot-ui';
+import { useChatbotModal } from '@/context/chatbot-context';
 
 const defaultSuggestedPrompts = [
   'Get started with MongoDB',
@@ -17,34 +11,21 @@ const defaultSuggestedPrompts = [
   'Why should I use Atlas Search?',
 ];
 
-interface ChatbotModalProps {
-  chatbotClicked: boolean;
-  setChatbotClicked: (chatbotClicked: boolean) => void;
-}
-
-const ChatbotModal = ({ chatbotClicked, setChatbotClicked }: ChatbotModalProps) => {
-  const { openChat } = useChatbotContext();
+const ChatbotModal = () => {
+  const { openChat, setInputText } = useChatbotContext();
+  const { text, setText, chatbotClicked, setChatbotClicked } = useChatbotModal();
   useEffect(() => {
     if (chatbotClicked) {
+      setInputText(text);
       openChat();
       setChatbotClicked(false);
+      setText('');
     }
-  }, [chatbotClicked, openChat, setChatbotClicked]);
+  }, [chatbotClicked, openChat, setChatbotClicked, setText, text]);
 
   return (
     <ModalView
       inputBottomText={mongoDbVerifyInformationMessage}
-      disclaimer={
-        <>
-          <MongoDbLegalDisclosure />
-          <PoweredByAtlasVectorSearch
-            linkStyle="text"
-            className={css`
-              margin-top: 8px;
-            `}
-          />
-        </>
-      }
       initialMessageText={'Welcome to MongoDB AI'}
       initialMessageSuggestedPrompts={defaultSuggestedPrompts}
     />

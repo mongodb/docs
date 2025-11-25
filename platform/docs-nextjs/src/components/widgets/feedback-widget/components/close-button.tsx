@@ -5,7 +5,7 @@ import { theme } from '@/styles/theme';
 import { CLOSE_BUTTON_ALT_TEXT } from '../constants';
 
 const buttonStyles = css`
-  position: absolute;
+  position: absolute !important;
   top: ${theme.size.default};
   right: ${theme.size.default};
   height: ${theme.size.default};
