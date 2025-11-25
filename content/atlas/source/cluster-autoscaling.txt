@@ -102,10 +102,6 @@ Eligible Clusters for Reactive Auto-Scaling
 
 .. include:: /includes/fact-auto-scaling-availability.rst
 
-.. important::
-
-   Flex Clusters are not eligible for reactive auto-scaling.
-
 .. _howitworks-scale-cluster-tier:
 .. _system-memory-calculation:
 
@@ -662,20 +658,190 @@ automatically scale to. |service| sets these values as follows:
 In addition, |service| might use :ref:`predictive auto-scaling <predictive-autoscaling-overview>`
 if your cluster is eligible and its workload is cyclical and predictable.
 
+.. _enable-autoscaling-example-cli-api:
+
+Enable Auto-Scaling with {+atlas-cli+} and {+atlas-admin-api+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can enable auto-scaling for both compute and storage when creating or
+updating a cluster using the :atlascli:`{+atlas-cli+} </>` or {+atlas-admin-api+}.
+The following examples show how to enable auto-scaling for both electable
+nodes and analytics nodes. Replace the cluster tiers and provider settings
+with the ones you need.
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      To configure auto-scaling with the {+atlas-cli+}, create a JSON file
+      that contains the auto-scaling configuration and then specify it in the :atlascli:`atlas api clusters updateCluster </command/atlas-api-clusters-updateCluster/>` command.
+
+      .. collapsible::
+         :heading: clusters updateCluster
+         :sub_heading: Enable auto-scaling with the updateCluster command
+         :expanded: false
+
+         Use the :atlascli:`atlas api clusters updateCluster </command/atlas-api-clusters-updateCluster/>`
+         command to directly call the API and enable auto-scaling settings
+         on an existing cluster. To enable auto-scaling when creating a new
+         cluster, use the :atlascli:`atlas api clusters createCluster </command/atlas-api-clusters-createCluster/>` command.
+         
+         .. procedure::
+            :style: normal
+
+            .. step:: Create the payload file.
+               
+               Create a ``payload.json`` file with the following content. Replace the placeholder values with your specific cluster configuration:
+
+               .. code-block:: json
+                  :copyable: true
+                  :emphasize-lines: 17, 29
+
+                  {
+                    "replicationSpecs": [
+                      {
+                        "regionConfigs": [
+                          {
+                            "providerName": "{CLOUD-PROVIDER}",
+                            "regionName": "{REGION-NAME}",
+                            "priority": 7,
+                            "electableSpecs": {
+                              "instanceSize": "{INSTANCE-SIZE}",
+                              "nodeCount": 3
+                            },
+                            "analyticsSpecs": {
+                              "instanceSize": "{ANALYTICS-INSTANCE-SIZE}",
+                              "nodeCount": 1
+                            },
+                            "autoScaling": {
+                              "compute": {
+                                "enabled": true,
+                                "scaleDownEnabled": true,
+                                "minInstanceSize": "{MIN-INSTANCE-SIZE}",
+                                "maxInstanceSize": "{MAX-INSTANCE-SIZE}"
+                              },
+                              "diskGB": {
+                                "enabled": true
+                              }
+                            },
+                            "analyticsAutoScaling": {
+                              "compute": {
+                                "enabled": true,
+                                "scaleDownEnabled": true,
+                                "minInstanceSize": "{MIN-ANALYTICS-INSTANCE-SIZE}",
+                                "maxInstanceSize": "{MAX-ANALYTICS-INSTANCE-SIZE}"
+                              },
+                              "diskGB": {
+                                "enabled": true
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+
+            .. step:: Run the update command.
+
+               After creating the ``payload.json`` file, run the following command to enable auto-scaling on an existing cluster and specify the JSON file with the ``--file`` flag:
+
+               .. code-block:: bash
+                  :copyable: true
+                  :emphasize-lines: 5
+
+                  atlas api clusters updateCluster \
+                    --version 2024-10-23 \
+                    --clusterName {CLUSTER-NAME} \
+                    --groupId {GROUP-ID} \
+                    --file payload.json
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      You can use the {+atlas-admin-api+} to enable auto-scaling by specifying 
+      the auto-scaling configuration in the request body.
+
+      .. collapsible::
+         :heading: Update One Cluster in One Project
+         :sub_heading: Enable auto-scaling with the Atlas Administration API
+         :expanded: false
+
+         Use the :oas-bump-atlas-op:`Update One Cluster in One Project <updategroupcluster>`
+         endpoint to enable auto-scaling by including the ``autoScaling`` object.
+
+         .. code-block:: bash
+            :copyable: true
+            :emphasize-lines: 18, 33
+
+            curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+                 --header "Accept: application/vnd.atlas.2025-03-12+json" \
+                 --header "Content-Type: application/json" \
+                 --include \
+                 --request PATCH "https://cloud.mongodb.com/api/atlas/v2/groups/{GROUP-ID}/clusters/{CLUSTER-NAME}" \
+                 --data '{
+                 "replicationSpecs": [
+                   {
+                     "regionConfigs": [
+                       {
+                         "providerName": "{CLOUD-PROVIDER}",
+                         "regionName": "{REGION-NAME}",
+                         "priority": 7,
+                         "electableSpecs": {
+                           "instanceSize": "{INSTANCE-SIZE}",
+                           "nodeCount": 3
+                         },
+                         "autoScaling": {
+                           "compute": {
+                             "enabled": true,
+                             "scaleDownEnabled": true,
+                             "minInstanceSize": "{MIN-INSTANCE-SIZE}",
+                             "maxInstanceSize": "{MAX-INSTANCE-SIZE}"
+                           },
+                           "diskGB": {
+                             "enabled": true
+                           }
+                         },
+                         "analyticsSpecs": {
+                           "instanceSize": "{ANALYTICS-INSTANCE-SIZE}",
+                           "nodeCount": 1
+                         },
+                         "analyticsAutoScaling": {
+                           "compute": {
+                             "enabled": true,
+                             "scaleDownEnabled": true,
+                             "minInstanceSize": "{MIN-ANALYTICS-INSTANCE-SIZE}",
+                             "maxInstanceSize": "{MAX-ANALYTICS-INSTANCE-SIZE}"
+                           },
+                           "diskGB": {
+                             "enabled": true
+                           }
+                         }
+                       }
+                     ]
+                   }
+                 ]
+               }'
+
 Review the {+Cluster+} Tier Auto-Scaling Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To review the enabled auto-scaling options for {+cluster+} tier and storage:
 
-1. In the selected :guilabel:`Auto-Scale` checkbox, review
-   the :guilabel:`Maximum Cluster Size` and
-   :guilabel:`Minimum Cluster Size` values, and adjust them if needed.
+.. procedure::
+  :style: normal
 
-#. Review the :guilabel:`Allow cluster to be scaled down` option 
-   that is checked by default when you create a new {+cluster+}.
+  .. step:: Review the cluster tier values.
+      
+     In the selected :guilabel:`Auto-Scale` checkbox, review the :guilabel:`Maximum Cluster Size` and :guilabel:`Minimum Cluster Size` values, and adjust them if needed.
 
-#. Review the options under the :guilabel:`Storage Scaling` checkbox
-   that is checked by default.
+  .. step:: Review the :guilabel:`Allow cluster to be scaled down` option.
+      
+     Review the :guilabel:`Allow cluster to be scaled down` option that is checked by default when you create a new {+cluster+} in the {+atlas-ui+}.
+
+  .. step:: Review the :guilabel:`Storage Scaling` options.
+      
+     Review the options under the :guilabel:`Storage Scaling` checkbox that is checked by default.
 
 .. _opt-out-autoscaling:
 
@@ -707,13 +873,22 @@ the event in the project :guilabel:`Activity Feed`.
 
 To view or download only auto-scaling events:
 
-a. .. include:: /includes/nav/list-project-activity-feed.rst 
-#. In the :guilabel:`Activity Feed`, click the :guilabel:`Filter by event(s)` menu and check :guilabel:`Atlas`.
-#. In the search box above the list, start typing ``auto-scaling``.
+.. procedure::
+   :style: normal
 
-   In the right-hand side of the menu, all auto-scaling events display.
-   Deselect any that you don't want to see.
-   The feed list automatically updates with each change you make.
+   .. include:: /includes/nav/list-project-activity-feed.rst
+
+   .. step:: Filter the activity feed for Atlas events.
+
+      In the :guilabel:`Activity Feed`, click the :guilabel:`Filter by event(s)` menu and check :guilabel:`Atlas`.
+
+   .. step:: Search for auto-scaling events.
+
+      In the search box above the list, start typing ``auto-scaling``.
+
+      In the right-hand side of the menu, all auto-scaling events display.
+      Deselect any that you don't want to see.
+      The feed list automatically updates with each change you make.
 
 .. _custom-alerts-auto-scaling-events:
 

@@ -12,6 +12,12 @@
      type        = string
      description = "Atlas Project Name"
    }
+
+   # Atlas Group Name
+   variable "atlas_group_name" {
+     type        = string
+     description = "Atlas Group Name"
+   }
    
    # Atlas Project Environment
    variable "environment" {
@@ -44,14 +50,14 @@
    }
 
    # Storage Auto-scaling Enablement Flag
-   variable "auto_scaling_disk_gb" {
-     type        = boolean
+   variable "auto_scaling_disk_gb_enabled" {
+     type        = bool
      description = "Flag that specifies whether disk auto-scaling is enabled"
    }
 
    # Compute Auto-scaling Enablement Flag
-   variable "auto_scaling_compute" {
-     type        = boolean
+   variable "auto_scaling_compute_enabled" {
+     type        = bool
      description = "Flag that specifies whether cluster tier auto-scaling is enabled"
    }
 

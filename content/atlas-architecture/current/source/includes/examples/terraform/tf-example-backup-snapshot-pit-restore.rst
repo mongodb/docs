@@ -17,17 +17,21 @@
      pit_enabled            = true
      retain_backups_enabled = true # keep the backup snapshopts once the cluster is deleted
 
-     replication_specs {
-       region_configs {
-         priority      = 7
-         provider_name = "AWS"
-         region_name   = "US_EAST_1"
-         electable_specs {
-           instance_size = "M10"
-           node_count    = 3
-         }
+     replication_specs = [
+       {
+         region_configs = [
+           {
+             priority      = 7
+             provider_name = "AWS"
+             region_name   = "US_EAST_1"
+             electable_specs = {
+               instance_size = "M10"
+               node_count    = 3
+             }
+           }
+         ]
        }
-     }
+     ]
    }
 
    # Specify number of days to retain backup snapshots

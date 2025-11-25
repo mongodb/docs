@@ -24,11 +24,11 @@
                },
                "autoScaling": {
                  "compute": {
-                   "enabled": false,
-                   "scaleDownEnabled": false
+                   "enabled": true,
+                   "scaleDownEnabled": true
                  },
                  "diskGB": {
-                   "enabled": false
+                   "enabled": true
                  }
                },
                "readOnlySpecs": {
@@ -46,6 +46,6 @@
          "appName": "ProductManagementApp",
          "env": "Production",
          "version": "8.0",
-         "email": "marissa@acme.com"
+         "email": "marissa@example.com"
        }]
      }

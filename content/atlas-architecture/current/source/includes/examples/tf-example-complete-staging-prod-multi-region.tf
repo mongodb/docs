@@ -1,17 +1,46 @@
+# Variables for authentication and configuration
+variable "mongodbatlas_public_key" {
+  description = "MongoDB Atlas public key"
+  type        = string
+}
+
+variable "mongodbatlas_private_key" {
+  description = "MongoDB Atlas private key"
+  type        = string
+  sensitive   = true
+}
+
+variable "atlas_org_id" {
+  description = "MongoDB Atlas organization ID"
+  type        = string
+}
+
+variable "atlas_project_name" {
+  description = "MongoDB Atlas project name"
+  type        = string
+}
+
 # Add the Mongodb Atlas Provider
 terraform {
   required_providers {
     mongodbatlas = {
       source  = "mongodb/mongodbatlas",
-      version = "1.34.0"
+      version = "~> 2.2"
     }
   }
+  required_version = ">= 1.0"
 }
 
 # Configure the MongoDB Atlas Provider 
 provider "mongodbatlas" {
-  public_key = var.mongodbatlas_public_key
-  private_key  = var.mongodbatlas_private_key
+  # Legacy API key authentication (backward compatibility)
+  public_key  = var.mongodbatlas_public_key
+  private_key = var.mongodbatlas_private_key
+  
+  # Recommended: Service account authentication
+  # Uncomment and configure the following for service account auth:
+  # service_account_id = var.mongodb_service_account_id
+  # private_key_file   = var.mongodb_service_account_key_file
 }
 
 # Create a Project
@@ -26,54 +55,69 @@ resource "mongodbatlas_advanced_cluster" "atlas-cluster" {
   name = "ClusterPortalProd"
   cluster_type = "REPLICASET"
   mongo_db_major_version = 8.0
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 2
-      }
-      provider_name = "GCP"
-      priority      = 7
-      region_name   = "NORTH_AMERICA_NORTHEAST_1"
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 2
+          }
+          auto_scaling = {
+            disk_gb_enabled = true
+            compute_enabled = true
+            compute_scale_down_enabled = true
+            compute_max_instance_size = "M60"
+            compute_min_instance_size = "M10"
+          }
+          provider_name = "GCP"
+          priority      = 7
+          region_name   = "NORTH_AMERICA_NORTHEAST_1"
+        },
+        {
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 3
+          }
+          auto_scaling = {
+            disk_gb_enabled = true
+            compute_enabled = true
+            compute_scale_down_enabled = true
+            compute_max_instance_size = "M60"
+            compute_min_instance_size = "M10"
+          }
+          provider_name = "GCP"
+          priority      = 6
+          region_name   = "WESTERN_US"
+        }
+      ]
     }
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      provider_name = "GCP"
-      priority      = 6
-      region_name   = "WESTERN_US"
-    }
+  ]
+  tags = {
+    BU       = "ConsumerProducts"
+    TeamName = "TeamA"
+    AppName  = "ProductManagementApp"
+    Env      = "Production"
+    Version  = "8.0"
+    Email    = "marissa@example.com"
   }
-  tags {
-    key   = "BU"
-    value = "ConsumerProducts"
-  }
-  tags {
-    key   = "TeamName"
-    value = "TeamA"
-  }
-  tags {
-    key   = "AppName"
-    value = "ProductManagementApp"
-  }
-  tags {
-    key   = "Env"
-    value = "Production"
-  }
-  tags {
-    key   = "Version"
-    value = "8.0"
-  }
-  tags {
-    key   = "Email"
-    value = "marissa@acme.com"
+  
+  # MongoDB recommends enabling auto-scaling
+  # When auto-scaling is enabled, Atlas may change the instance size, and this lifecycle
+  # block prevents Terraform from reverting Atlas auto-scaling changes
+  # that modify instance size back to the original configured value
+  lifecycle {
+    ignore_changes = [
+      replication_specs[0].region_configs[0].electable_specs.instance_size,
+      replication_specs[0].region_configs[0].electable_specs.disk_size_gb,
+      replication_specs[0].region_configs[1].electable_specs.instance_size,
+      replication_specs[0].region_configs[1].electable_specs.disk_size_gb
+    ]
   }
 }
 
 # Outputs to Display
-output "atlas_cluster_connection_string" { value = mongodbatlas_advanced_cluster.atlas-cluster.connection_strings.0.standard_srv }
+output "atlas_cluster_connection_string" { value = mongodbatlas_advanced_cluster.atlas-cluster.connection_strings }
 output "project_name"      { value = mongodbatlas_project.atlas-project.name }
 
 # Set up an alert notification by email when there is replication lag
@@ -297,25 +341,45 @@ resource "mongodbatlas_advanced_cluster" "automated_backup_test_cluster" {
  name         = each.value.name
   cluster_type = "REPLICASET"
 
- replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-
-      provider_name = "AWS"
-      region_name   = each.value.region
-      priority      = 7
+ replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 3
+          }
+          analytics_specs = {
+            instance_size = "M10"
+            node_count    = 1
+          }
+          auto_scaling = {
+            compute_enabled = true
+            compute_scale_down_enabled = true
+            compute_max_instance_size = "M60"
+            compute_min_instance_size = "M10"
+          }
+          provider_name = "AWS"
+          region_name   = each.value.region
+          priority      = 7
+        }
+      ]
     }
-  }
+  ]
 
   backup_enabled = true # enable cloud backup snapshots
   pit_enabled    = true
+  
+  # MongoDB recommends enabling auto-scaling
+  # When auto-scaling is enabled, Atlas may change the instance size, and this lifecycle
+  # block prevents Terraform from reverting Atlas auto-scaling changes
+  # that modify instance size back to the original configured value
+  lifecycle {
+    ignore_changes = [
+      replication_specs[0].region_configs[0].electable_specs.instance_size,
+      replication_specs[0].region_configs[0].analytics_specs.instance_size
+    ]
+  }
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {

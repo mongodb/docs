@@ -10,45 +10,47 @@ resource "mongodbatlas_advanced_cluster" "atlas-cluster" {
   name = "ClusterPortalDev"
   cluster_type = "REPLICASET"
   mongo_db_major_version = var.mongodb_version
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = var.cluster_instance_size_name
-        node_count    = 3
-      }
-      priority      = 7
-      provider_name = var.cloud_provider
-      region_name   = var.atlas_region
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = var.cluster_instance_size_name
+            node_count    = 3
+          }
+          auto_scaling = {
+            disk_gb_enabled = true
+            compute_enabled = true
+            compute_scale_down_enabled = true
+            compute_max_instance_size = var.compute_max_instance_size
+            compute_min_instance_size = var.compute_min_instance_size
+          }
+          priority      = 7
+          provider_name = var.cloud_provider
+          region_name   = var.atlas_region
+        }
+      ]
     }
+  ]
+  # Prevent Terraform from reverting auto-scaling changes
+  lifecycle {
+    ignore_changes = [
+      replication_specs[0].region_configs[0].electable_specs.instance_size,
+      replication_specs[0].region_configs[0].electable_specs.disk_size_gb
+    ]
   }
-  tags {
-    key   = "BU"
-    value = "ConsumerProducts"
-  }
-  tags {
-    key   = "TeamName"
-    value = "TeamA"
-  }
-  tags {
-    key   = "AppName"
-    value = "ProductManagementApp"
-  }
-  tags {
-    key   = "Env"
-    value = "Test"
-  }
-  tags {
-    key   = "Version"
-    value = "8.0"
-  }
-  tags {
-    key   = "Email"
-    value = "marissa@acme.com"
+  tags = {
+    BU       = "ConsumerProducts"
+    TeamName = "TeamA"
+    AppName  = "ProductManagementApp"
+    Env      = "Test"
+    Version  = "8.0"
+    Email    = "marissa@example.com"
   }
 }
 
 # Outputs to Display
-output "atlas_cluster_connection_string" { value = mongodbatlas_advanced_cluster.atlas-cluster.connection_strings.0.standard_srv }
+output "atlas_cluster_connection_string" { value = mongodbatlas_advanced_cluster.atlas-cluster.connection_strings }
 output "project_name"      { value = mongodbatlas_project.atlas-project.name }
 
 resource "mongodbatlas_alert_configuration" "test" {
