@@ -217,3 +217,40 @@ instead have the raw Arrow type, ``FixedSizeBinaryType(fixed_size_binary[12])``.
 
 These values can be consumed as-is, or converted individually to the
 desired extension type, such as ``_id = out['nested'][0]['_id'].cast(ObjectIdType())``.
+
+.. _pymongo-arrow-type-adherence:
+
+Strict Type Adherence
+---------------------
+
+When you provide a schema for data in {+driver-short+} v1.9 and later, the driver enforces
+strict type adherence. If a field value had a type mismatch with the
+schema's type for that field, the driver raises a ``TypeError``. ``NaN`` is a valid
+type for all fields. 
+
+To suppress ``TypeErrors`` and silently convert type mismatches
+to ``NaN``, pass the ``allow_invalid=True`` argument to your ``pymongoarrow`` API call.
+The following example passes ``allow_invalid=True`` to the ``pymongoarrow`` API call to
+convert mismatches in sample data to ``NaN``:
+
+.. code-block:: python
+
+   >>> from pymongoarrow.monkey import patch_all
+   >>> from pymongoarrow.api import Schema, find_arrow_all
+   >>> from pyarrow import int32, string
+   >>> from pymongo import MongoClient
+   >>> patch_all()
+   >>> client = MongoClient()
+   >>> coll = client.test.test
+   >>> sample_data = [
+   ...     {"name": "Alice", "age": 35, "city": "Chicago"},
+   ...     {"name": {"first": "Bob", "last": "Smith"}, "age": 28, "city": "Boston"},
+   ...     {"name": "Charlie", "age": "thirty-two", "city": "Seattle"}
+   ... ]
+   >>> coll.insert_many(sample_data)
+   >>> schema = Schema({
+   ...     "name": string(),
+   ...     "age": int32(),
+   ...     "city": string()
+   ... })
+   >>> result = find_arrow_all(collection, {}, schema=schema, allow_invalid=True)
