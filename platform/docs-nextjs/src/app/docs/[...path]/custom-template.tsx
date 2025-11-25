@@ -12,6 +12,7 @@ import {
   InstruqtTemplate,
   BlankTemplate,
   DriversIndexTemplate,
+  FeatureNotAvailableTemplate,
 } from '@/components/templates';
 import ActionBar from '@/components/action-bar';
 import layoutStyles from '@/app/layout.module.scss';
@@ -58,6 +59,9 @@ function getTemplate(templateOption: PageTemplateType): {
       break;
     case 'blank':
       Template = BlankTemplate;
+      break;
+    case 'feature-not-avail':
+      Template = FeatureNotAvailableTemplate;
       break;
     default:
       console.warn(`Unknown template option: ${templateOption}. Defaulting to DocumentTemplate.`);
