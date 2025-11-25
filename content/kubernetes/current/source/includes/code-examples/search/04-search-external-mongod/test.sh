@@ -16,7 +16,10 @@ run 04_0046_create_image_pull_secrets.sh
 run 04_0048_configure_prerelease_image_pullsecret.sh
 run_for_output 04_0090_helm_add_mogodb_repo.sh
 run_for_output 04_0100_install_operator.sh
+run 04_0304_install_cert_manager.sh
 run 04_0305_create_mongodb_community_user_secrets.sh
+run 04_0306_prepare_cert_manager_issuer.sh
+run 04_0307_issue_tls_certificates.sh
 run 04_0310_create_mongodb_community_resource.sh
 run_for_output 04_0315_wait_for_community_resource.sh
 run 04_0320_create_mongodb_search_resource.sh
