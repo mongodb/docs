@@ -5,7 +5,6 @@ import { palette } from '@leafygreen-ui/palette';
 import type { ProductUpdateEntry } from '../services/contentstack';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import useScreenSize from '@/hooks/use-screen-size';
 import { SearchInput } from '@leafygreen-ui/search-input';
 import { theme } from '@/styles/theme';
 import type { FilterCategory } from '../consts/filters';
@@ -250,7 +249,6 @@ interface UpdatesProps {
 }
 
 const Updates = ({ updates }: UpdatesProps) => {
-  const size = useScreenSize();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

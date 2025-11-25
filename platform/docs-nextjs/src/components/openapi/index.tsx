@@ -195,11 +195,7 @@ const OpenAPI = ({ argument, nodeChildren, options, ...rest }: OpenAPIProps) => 
   return (
     <>
       {/* Wrapper with emotion CSS classes - ensures emotion processes and injects the styles */}
-      <div
-        className={emotionCssClasses}
-        // style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}
-        // aria-hidden="true"
-      >
+      <div className={emotionCssClasses}>
         {needsWhitelistWarning && <JustifiedWhitelistWarning />}
         {/* Temporary loading widget to be removed once the Redoc component loads */}
         {isLoading && !needsWhitelistWarning && <LoadingWidget className={tempLoadingDivClassName} />}

@@ -1,6 +1,15 @@
 import { render } from '@testing-library/react';
 import Link from '@/components/link';
 import { TestWrapper } from '../utils/test-wrapper';
+import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
+
+jest.mock('@/utils/use-snooty-metadata', () => ({
+  useSnootyMetadata: jest.fn(),
+}));
+
+beforeAll(() => {
+  (useSnootyMetadata as jest.Mock).mockImplementation(() => ({ project: 'docs-node', branch: 'v4.9' }));
+});
 
 const setup = ({ text, ...rest }: { text: string; [key: string]: unknown }) => {
   return render(

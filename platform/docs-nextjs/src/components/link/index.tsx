@@ -1,6 +1,7 @@
 'use client';
 
-import Link from 'next/link';
+import NextLink from 'next/link';
+import { usePathname } from 'next/navigation';
 import { css, cx } from '@leafygreen-ui/emotion';
 import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import { palette } from '@leafygreen-ui/palette';
@@ -8,6 +9,9 @@ import { Link as LGLink } from '@leafygreen-ui/typography';
 import { validateHTMAttributes } from '@/utils/validate-element-attributes';
 import Icon from '@leafygreen-ui/icon';
 import { isRelativeUrl } from '@/utils/is-relative-url';
+import { joinClassNames } from '@/utils/join-class-names';
+import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
+import { assertLeadingAndTrailingSlash } from '@/utils/assert-leading-and-trailing-slash';
 
 type LinkThemeStyle = {
   color: string;
@@ -36,6 +40,31 @@ const THEME_STYLES: LinkThemeStyles = {
 export const sharedDarkModeOverwriteStyles = `
   color: var(--link-color-primary);
   font-weight: var(--link-font-weight);
+`;
+
+const symLinkStyling = css`
+  padding-top: 6px;
+  padding-bottom 6px;
+  svg {
+    transform: rotate(-45deg);
+    margin-left: 7px;
+    margin-bottom: -3px;
+    width: 13px;
+    height: 13px;
+    opacity: 1;
+  }
+`;
+
+const externalNavLinks = css`
+  font-weight: unset;
+  display: flex;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  svg {
+    margin-left: 8px;
+    margin-bottom: -10px;
+    color: ${palette.gray.base};
+  }
 `;
 
 /**
@@ -82,27 +111,38 @@ const lgLinkStyling = css`
 `;
 
 export type LinkProps = {
-  className?: string;
   children?: React.ReactNode;
+  className?: string;
+  activeClassName?: string;
+  partiallyActive?: boolean;
   to?: string;
   showLinkArrow?: boolean;
   hideExternalIcon?: boolean;
   showExternalIcon?: boolean;
   openInNewTab?: boolean;
   onClick?: () => void;
+  contentSite?: string | null | undefined;
+  InternalPageNav?: boolean;
 };
 
 const LinkComponent = ({
-  className,
   children,
+  className,
+  activeClassName,
+  partiallyActive,
   to,
   showLinkArrow,
   hideExternalIcon,
   showExternalIcon,
   openInNewTab,
   onClick,
+  contentSite,
+  InternalPageNav,
   ...other
 }: LinkProps) => {
+  const pathname = usePathname();
+  const { project } = useSnootyMetadata();
+
   if (!to) to = '';
   const anchor = to.startsWith('#');
 
@@ -118,19 +158,78 @@ const LinkComponent = ({
     ''
   );
 
+  // If contentSite is truthy, this is for the UnifiedSideNav
+  if (contentSite) {
+    // For an external link, inside the unified toc
+    if (!isRelativeUrl(to)) {
+      const strippedUrl = to?.replace(/(^https:\/\/)|(www\.)/g, '');
+      const isMDBLink = strippedUrl.includes('mongodb.com/docs'); // For symlinks
+
+      if (isMDBLink) {
+        // If used in InternalPageNav, use NextLink to maintain original styling
+        if (InternalPageNav) {
+          return null;
+          // TODO: Uncomment when InternalPageNav is completed (DOP-6284)
+          //   return (
+          //     <NextLink
+          //       className={cx(className)}
+          //       activeClassName={activeClassName}
+          //       partiallyActive={partiallyActive}
+          //       to={to}
+          //       onClick={onClick}
+          //       {...anchorProps}
+          //     >
+          //       {children}
+          //       {decoration}
+          //     </NextLink>
+          //   );
+        }
+
+        return (
+          <NextLink className={joinClassNames(symLinkStyling, className)} href={to} target={'_self'} {...anchorProps}>
+            {children}
+            {decoration}
+            <Icon glyph={'ArrowRight'} fill={palette.gray.base} />
+          </NextLink>
+        );
+      }
+
+      return (
+        <LGLink
+          className={joinClassNames(lgLinkStyling, externalNavLinks, className)}
+          href={to}
+          hideExternalIcon={false}
+          target={'_blank'}
+          style={{ fill: palette.gray.base }}
+          {...anchorProps}
+        >
+          {children}
+          {decoration}
+        </LGLink>
+      );
+    }
+
+    to = assertLeadingAndTrailingSlash(to);
+    const isActive = pathname === to;
+
+    return (
+      <NextLink className={cx(className, isActive && activeClassName)} onClick={onClick} href={to} {...anchorProps}>
+        {children}
+        {decoration}
+      </NextLink>
+    );
+  }
+
   const strippedUrl = to?.replace(/(^https:\/\/)|(www\.)/g, '');
   const isMDBLink = strippedUrl.includes('mongodb.com');
   const showExtIcon = showExternalIcon ?? (!anchor && !isMDBLink && !hideExternalIcon);
   const target = !showExtIcon ? '_self' : undefined;
 
   if (to && isRelativeUrl(to) && !anchor) {
-    if (!to.startsWith('/')) to = `/${to}`;
-
-    // Ensure trailing slash
-    to = to.replace(/\/?(\?|#|$)/, '/$1');
+    to = assertLeadingAndTrailingSlash(to);
 
     return (
-      <Link
+      <NextLink
         className={cx(linkStyling(THEME_STYLES[siteTheme]), className)}
         onClick={onClick}
         href={to}
@@ -139,7 +238,7 @@ const LinkComponent = ({
       >
         {children}
         {decoration}
-      </Link>
+      </NextLink>
     );
   }
 

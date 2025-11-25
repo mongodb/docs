@@ -1,9 +1,15 @@
 import { render } from '@testing-library/react';
 import { mockLocation } from '../utils/mock-location';
 import ContentsListItem from '@/components/contents/contents-list-item';
+import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
+
+jest.mock('@/utils/use-snooty-metadata', () => ({
+  useSnootyMetadata: jest.fn(),
+}));
 
 beforeAll(() => {
   mockLocation({ hash: '' });
+  (useSnootyMetadata as jest.Mock).mockImplementation(() => ({ project: 'docs-node', branch: 'v4.9' }));
 });
 
 describe('ContentsListItem', () => {

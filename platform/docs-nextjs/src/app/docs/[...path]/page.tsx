@@ -10,6 +10,7 @@ import { CustomTemplate } from './custom-template';
 import { cookies } from 'next/headers';
 import envConfig from '@/utils/env-config';
 import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
+import NotFound from './not-found';
 
 interface PageProps {
   params: {
@@ -68,7 +69,7 @@ export default async function Page({ params: { path } }: PageProps) {
 
 export async function generateMetadata({ params: { path } }: PageProps) {
   const pageDoc = (await getPageDocFromParams({ path })) as ASTDocument;
-  const snootyMetadata = (await getSnootyMetadata(pageDoc?.buildId ?? '')) as DBMetadataDocument;
+  const snootyMetadata = (await getSnootyMetadata(pageDoc.buildId)) as DBMetadataDocument;
 
   let metadata = null;
   if (pageDoc) {
