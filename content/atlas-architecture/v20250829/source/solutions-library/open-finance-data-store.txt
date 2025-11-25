@@ -1,0 +1,311 @@
+.. _arch-center-is-open-finance-data-store:
+
+=======================
+Open Finance Data Store
+=======================
+
+.. meta:: 
+   :keywords: Open Finance, Financial Services, Atlas, Data Integration, Real-Time Analytics, Aggregation Pipeline, Secure Data Management, PSD2 Compliance, Personalized Financial Insights
+   :description: MongoDB powers open finance with flexible data integration, built-in security, and scalability—enabling seamless, compliant, and personalized financial services.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB powers open finance with flexible data integration,
+built-in security, and scalable financial services.
+
+- **Use cases:** `App Driven-Analytics`_
+
+- **Industries:** `Financial Services`_
+
+- **Products and tools:** :ref:`Aggregation Pipeline
+  <aggregation-pipeline>`, `MongoDB Atlas`_
+
+Solution Overview
+-----------------
+
+Open finance is transforming the financial industry, enabling
+seamless data sharing across banks, fintech companies, and
+third-party providers. However, the integration of diverse
+financial data while ensuring security, compliance, and
+scalability remains a major challenge. MongoDB provides a
+foundation for open finance through its:
+
+- Flexible document model
+
+- Native JSON support
+
+- Powerful aggregation framework
+
+These features allow institutions to unify data from multiple
+sources and ensure secure and compliant data management without
+the complexity of traditional relational databases.
+
+.. figure:: /includes/images/industry-solutions/open-finance.gif
+  :alt: Open Finance demo in gif format
+
+  Figure 1. Open finance application with MongoDB
+
+Reference Architectures
+-----------------------
+
+This solution demonstrates a banking application that allows
+users to securely connect external bank accounts.
+
+#. The user initiates requests to connect their external bank
+   accounts. This operation requires explicit user consent,
+   ensuring security and compliance with regulations like PSD2.
+   To authenticate, the application emulates {+oauth2+} and
+   generates tokens to enable secure communication between
+   institutions.
+
+#. When authorized, the application uses APIs to communicate
+   with external banks. These banks expose financial data such
+   as accounts, transactions, and balances through their
+   microservices. The responses are in JSON format, which
+   ensures compatibility and seamless data exchange.
+
+#. The application then pushes the financial data into
+   |service-fullname|. With the document model, MongoDB lets you
+   handle diverse data structures from different banks. The
+   application can then use aggregation pipelines to analyze and
+   enrich the data, giving users a holistic financial view while
+   enabling the bank to offer personalized financial insights.
+
+.. figure:: /includes/images/industry-solutions/open-finance-architecture.svg
+   :width: 750px
+   :alt: Open Finance architecture diagram
+
+   Figure 2. Open finance architecture diagram
+  
+Data Model Approach
+-------------------
+
+In this solution, the data model emulates real-world financial
+data integration. This approach leverages the flexibility of the
+document model to handle diverse data structures from different
+financial entities.
+
+Components
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Collection
+     - Description
+
+   * - ``tokens``
+     - Stores Bearer tokens, which the application uses for
+       authenticating and authorizing API requests with external
+       banks.
+
+       .. code-block:: javascript
+
+          {
+             "_id": { "$oid": "unique_id" }, 
+             "UserName": "string", 
+             "BearerToken": "string",
+             "TokenDates": {
+                "CreationDate": { "$date": "ISODate" }, 
+                "LastUseDate": { "$date": "ISODate" }
+             },
+          }
+
+   * - ``external_accounts``
+     - Stores information on external bank accounts linked by
+       users.
+
+       .. code-block:: javascript
+          
+          {
+             "_id": { "$oid": "unique_id" }, 
+             "AccountId": "string", 
+             "AccountBank": "string",
+             "AccountStatus": "string", 
+             "AccountType": "string", 
+             "AccountBalance": "number",
+             "AccountCurrency": "string", 
+             "AccountDate": {
+                "OpeningDate": { "$date": "ISODate" }
+             }, 
+             "AccountUser": {
+                "UserName": "string", 
+                "UserId": { "$oid": "unique_id" }
+             },
+             "GreenAccountNarrative": "string"
+          }
+
+   * - ``external_products``
+     - Stores information on financial products (such as loans
+       and mortgages) associated with users.
+
+       .. code-block:: javascript
+
+          {
+             "_id": { "$oid": "unique_id" }, 
+             "ProductId": "string", 
+             "ProductBank": "string",
+             "ProductStatus": "string", 
+             "ProductType": "string", 
+             "ProductAmount": "number",
+             "ProductCurrency": "string", 
+             "ProductInterestRate": "number", 
+             "ProductDate": {
+                "OpeningDate": { "$date": "ISODate" }
+             }, 
+             "ProductCustomer": {
+                "UserName": "string", 
+                "UserId": { "$oid": "unique_id" }
+             }, 
+             "GreenProductNarrative": "string", 
+             "RepaymentPeriod": "number", 
+             "LoanCollateral": "string"
+          }
+
+In real-world applications, these collections would involve more
+complex security mechanisms and detailed information. Each
+financial entity has its own data model definitions.
+
+Data mapping and relationships
+  The application needs a robust data mapping and
+  relationship later to translate diverse data models from
+  different financial entities to a unified format.
+
+Security and compliance
+  The application must ensure data security and compliance with
+  regulations, such as GDPR, PSD2, and other local financial
+  regulations. This includes encryption, access controls, and
+  audit trails.
+
+Scalability and performance 
+  The application requires a data model that can handle large
+  volumes of data efficiently with considerations for indexing,
+  sharding, and performance optimization.
+
+Integration and interoperability
+  The application implements APIs and microservices that
+  can integrate with various external systems, ensuring
+  interoperability and real-time data exchange.
+
+With the flexibility of the document model, this solution
+demonstrates how financial institutions can unify and manage
+diverse data sources. A production-grade implementation needs to address the complexities and nuances of real-world
+financial data integration.
+
+Build the Solution
+------------------
+
+This solution is available through two GitHub repositories:
+
+- :ref:`arch-is-open-finance-backend`: The Backend_ repository
+  provides the open finance demo service. It shows how to
+  integrate with third party banks and secure data exchange.
+
+- :ref:`arch-is-open-finance-frontend`: The Frontend_ repository
+  provides the open finance user interface. The UI acts as the
+  main hub and provides an overview of all integrated services.
+
+.. _arch-is-open-finance-backend:
+
+Solution Backend
+~~~~~~~~~~~~~~~~
+
+For details of the solution backend, see the Backend_ GitHub
+repository. This repository provides the open finance demo
+service. It shows how to integrate with third-party banks and
+secure data exchange. MongoDB serves as the central data store.
+
+To build the solution, complete the following steps: 
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set up MongoDB database and collections
+
+      Create a new database in |service-fullname| named
+      ``open_finance``. Then add three collections:
+
+      - ``tokens``
+      - ``external_accounts``
+      - ``external_products``
+
+   .. step:: Import the sample data
+   
+      Import the sample data from the ``/backend/data/sample``
+      directory into the respective collections.
+
+   .. step:: Create a MongoDB user
+
+      Create a new user with ``readWrite`` access to the
+      ``open_finance`` database to manage data securely.
+
+   .. step:: Configure environment variables
+
+      Add the database credentials and API origins to a ``.env`` file.
+
+   .. step:: Run the solution locally
+
+      a. Set up a virtual environment using Poetry
+
+      #. Install dependencies
+
+      #. Start the backend with Uvicorn
+
+      #. Ensure the service runs on the correct port for API
+         communication
+
+.. _arch-is-open-finance-frontend:
+
+Solution Frontend
+~~~~~~~~~~~~~~~~~
+
+The user interface of this solution is available in the
+Frontend_ repository on GitHub. The components are designed as
+microservices. The UI repository acts as the main hub and
+provides an overview of all integrated services.
+
+Key Learnings
+-------------
+
+- **Implement a central data store**: Use MongoDB as a central `data
+  store`_ to support open finance ecosystems.
+
+- **Secure data management**: MongoDB provides secure data
+  management with built-in encryption, granular access controls,
+  and high availability. This helps organizations protect
+  sensitive information and comply with regulatory requirements.
+
+- **Offer personalized insights:** Use MongoDB’s aggregation
+  pipeline to analyze customer data and deliver customized
+  financial insights to your users.
+
+Authors
+-------
+
+- Luis Pazmino Diaz, MongoDB
+- Ainhoa Mugica, MongoDB
+- Julian Boronat, MongoDB
+- Andrea Alaman Calderon, MongoDB
+
+Learn More
+----------
+
+- :ref:`arch-center-is-card-fraud-solution`
+
+- :ref:`arch-center-is-payments-solution`
+
+- :ref:`arch-center-hasura-fintech-services`
+
+.. Reference Links
+.. _`App Driven-Analytics`: https://www.mongodb.com/collateral/application-driven-analytics
+.. _`Backend`: https://github.com/mongodb-industry-solutions/leafy-bank-backend-openfinance
+.. _`data store`: https://www.mongodb.com/resources/basics/data-stores
+.. _`Financial Services`: https://www.mongodb.com/industries/financial-services
+.. _`Frontend`: https://github.com/mongodb-industry-solutions/leafy-bank-ui
+.. _`GitHub`: https://github.com/mongodb-industry-solutions/leafy-bank-backend-openfinance
+.. _`MongoDB Atlas`: https://www.mongodb.com/atlas/database

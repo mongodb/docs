@@ -1,0 +1,311 @@
+.. _arch-center-landing-zone:
+
+===================
+Landing Zone Design
+===================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::   
+   :description: Learn how to design a landing zone for MongoDB Atlas.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+A landing zone is a framework for establishing a well-architected and
+pre-configured cloud environment. A MongoDB {+service+} landing zone
+defines organization-specific requirements for operational efficiency,
+security, reliability, performance, and cost, as well as the tools,
+procedures, and {+service+} configurations that teams must use to meet
+these requirements. We recommend that all enterprise customers design a
+landing zone before moving workloads to {+service+}.
+
+Designing and implementing a landing zone can help you avoid expensive
+efforts to redesign initial setups later. For example, in recent
+discussions to move their workloads to {+service+}, one longtime MongoDB
+enterprise customer cited concerns about peer financial services
+companies struggling with user data leaks and runaway cloud costs due to
+inconsistent encryption policies and redundant servers across business
+units. To avoid these risks, this enterprise customer worked with our
+`Professional Services <https://www.mongodb.com/services/consulting>`__
+team to design a landing zone that aligned all of their teams and
+stakeholders on company requirements, including encryption-at-rest with
+{+byok+} and FinOps integrations to tag and track spending.
+
+You can use this Architecture Center content as a starting point for you
+to build your own well-architected {+service+} environment. We recommend
+that you compile the following resources in a document and customize
+them to meet your organization's goals. {+ps+} can help you adjust your
+landing zone design to best fit your enterprise's requirements. 
+
+.. _landing-zone-considerations:
+
+What Are Some Landing Zone Considerations?
+------------------------------------------
+
+As you create your landing zone, define requirements for the following considerations: 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80 
+
+   * - Consideration
+     - Description
+   * - System Hierarchy
+     - Choose a deployment hierarchy that groups your {+service+}
+       organizations, projects, and clusters to promote isolation and
+       separation of responsibilities between business units,
+       environments, and billable groups as needed. For example, you can
+       group business units into individual organizations to ensure that
+       Sales credentials cannot authenticate to Product resources. We
+       also recommend that you separate your development and production
+       environments into individual projects or organizations to meet
+       different security and resiliency requirements for each
+       environment.
+       
+       To get recommendations and learn more about this topic, see
+       :ref:`arch-center-hierarchy`.
+
+   * - Security
+     - By default, {+service+} blocks all access to your clusters,
+       enforces |tls-ssl| encryption for all connections to your
+       databases, and encrypts data at rest using :ref:`cloud provider
+       disk encryption <security-kms-encryption>`. You must define the
+       following security requirements to enable secure access to your
+       clusters: 
+
+
+       - Network security configurations such as IP access list
+         restrictions, or required private endpoints and |vpc|
+         connections to limit the extension of your network trust
+         boundary
+       - Mechanisms for how to authenticate users and authorize their
+         access to the |service| control plane ({atlas-ui+} and
+         {+atlas-admin-api+}), database resources, and database
+         operations
+       - Additional data encryption requirements for data in transit, at
+         rest, and in use
+
+       To get recommendations and learn more about this topic, see the following pages:
+
+       - :ref:`arch-center-network-security`
+       - :ref:`arch-center-auth`
+       - :ref:`arch-center-data-encryption`
+       - :ref:`arch-center-auditing-logging`
+
+   * - Compliance
+     - Consider how your deployment's data residency determines data
+       sovereignty and therefore which laws apply to your data. Identify
+       and account for any specific legal and regulatory requirements
+       not clearly articulated within other categories of requirements. 
+
+       Your data residency depends on which regions and geographies you
+       choose to deploy to in your deployment paradigm, and whether you
+       choose to partition your data between geographies.  
+
+       To get recommendations and learn more about this topic, see the
+       following pages:
+
+       - :ref:`arch-center-compliance`
+       - :ref:`arch-center-paradigms`
+
+   * - Reliability and Resiliency
+     - Define and record standards for reliability and resiliency that
+       can be achieved through a disaster recovery plan and high
+       availability architecture: 
+
+       - To begin, define an optimal {+rpo+} and {+rto+} for your
+         organization based on app criticality levels.
+         
+         - If your RTO and RPO are near-zero, then define a **high
+           availability architecture** to ensure near-continuous
+           operation during outages. This may involve requiring
+           additional nodes, regions, or cloud providers in your
+           deployment paradigm to increase redundancy and support
+           automatic failover, and scheduling maintenance windows to
+           ensure that primary node restarts occur outside of
+           business-critical hours. To learn more, see
+           :ref:`arch-center-high-availability` and
+           :ref:`arch-center-paradigms`.
+         
+         - If your RTO or RPO allow for longer periods of outage or data
+           loss, define a **disaster recovery plan** to ensure that your
+           application is prepared to recover from an outage. To learn
+           more, see :ref:`arch-center-dr` and
+           :ref:`arch-center-backups`.
+
+           A thorough disaster recovery plan does the following:
+
+           - Documents and tests recovery procedures such as shifting
+             workloads between regions or cloud providers or performing
+             snapshot restores to previous versions to recover from
+             possible disaster scenarios such as zonal, regional, or
+             cloud-provider outages, resource failures, and data
+             corruption events.
+           - Defines a backup snapshot schedule and requirements for
+             snapshot retention and mutli-region distribution to satisfy
+             your {+rpo+} and {+rto+}.
+
+   * - Billing
+     - Identify any specific requirements for billing, such as
+       integrations with FinOps tools for reporting and charge-back.
+       You can build these requirements into the automation and
+       provisioning process for {+service+} clusters to facilitate
+       this integration.
+
+       To get recommendations and learn more about this topic, see
+       :ref:`arch-center-billing-data`.
+
+   * - Data Retention
+     - Identify and record your data retention policies. This may
+       require creating a data classification framework that integrates
+       with automation to archive or purge data according to its nature
+       and purpose, such as financial records, customer data, or
+       employee information that entail different legal and regulatory
+       requirements. Identify performance characteristics for the
+       retrieval of archived records.
+
+       To get recommendations and learn more about this topic, see the following pages:
+       
+       - :ref:`arch-center-backups`
+       - :ref:`arch-center-automation`
+
+   * - Monitoring and Observability
+     - Set standards for observability that define which logs and
+       metrics you will monitor and how you will monitor them. For
+       example, set up external system integrations that ingest
+       {+service+} log files, audit logs, or activity feed data, or
+       configure alerts and reporting guidelines for certain event
+       types.
+
+       To get recommendations and learn more about this topic, see
+       the following pages:
+       
+       - :ref:`arch-center-monitoring-alerts`.
+       - :ref:`arch-center-auditing-logging`.
+
+   * - Auditing and Change Control
+     - Define any auditing or change control requirements. This can
+       include change approval processes and tools, along with reporting
+       guidelines and integration into third-party systems for retention
+       and analysis. These requirements may differ between your
+       production and non-production environments. 
+
+       To get recommendations and learn more about this topic, see
+       :ref:`arch-center-auditing-logging`.
+
+Design Your Landing Zone
+------------------------
+
+{+ps+} team partners with enterprise
+customers to create custom landing zones for {+service+}. If you're
+working with {+ps+}, the resources on this
+page can also help you plan for those discussions.
+
+Use the following resources as a starting point for your {+service+}
+landing zone. Designing a landing zone is an iterative process that
+involves reviewing and realigning standards across teams. We recommend
+that you compile all diagrams, recommendations, and examples on this
+page in a document and adjust them to meet your organization's
+requirements.
+
+Example Landing Zone Diagram
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example diagram unifies many of the architectural diagrams
+across the {+atlas-arch-center+} in one image to visualize your landing
+zone. You can adjust it as needed to customize it for your organization.
+
+.. figure:: /includes/images/LandingZone.svg
+   :alt: "A diagram showing an example {+service+} landing zone."
+   :figwidth: 1000px
+   :align: center
+   :lightbox:
+
+See the following landing zone guidance for more example setups with
+different cloud providers: 
+
+- `GCP's FAST MongoDB Atlas Configuration
+  <https://github.com/GoogleCloudPlatform/cloud-foundation-fabric/tree/master/fast/project-templates/data-mongodb>`__
+  is a project template that creates and configures a managed {+service+}
+  cluster and connects it to a local {+vpc+} network via Private Endpoints.
+
+- The `AWS and MongoDB {+service+} Landing Zone
+  <https://github.com/mongodb-partners/AWS-MongoDB-Atlas-Landing-Zone>`__
+  is a Terraform script that automates the setup of an {+service+}
+  project, cluster, and private endpoint alongside an {+aws+} {+vpc+}
+  with subnets and NAT gateways in multiple Availability Zones. This
+  landing zone setup provides a starting point for enterprises to adopt
+  MongoDB {+service+} services as part of a secure cloud storage
+  solution.
+
+Information In The {+atlas-arch-center+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To begin, copy the relevant guidance and examples in
+:ref:`arch-center-hierarchy`, which helps you create your first
+foundational components in {+service+}.
+
+Then, review the guidance and examples for each of the pages nested
+under each {+waf+} pillar in the {+atlas-arch-center+}. Copy the
+diagrams, recommendations, tools, and examples that are relevant for
+your organization.
+
+The {+atlas-arch-center+} pages include:
+
+- Operational Efficiency
+
+  - :ref:`arch-center-automation`
+  - :ref:`arch-center-monitoring-alerts`
+  
+- Security
+
+  - :ref:`arch-center-network-security`
+  - :ref:`arch-center-auth`
+  - :ref:`arch-center-data-encryption`
+  - :ref:`arch-center-compliance`
+  - :ref:`arch-center-auditing-logging`
+
+- Reliability
+
+  - :ref:`arch-center-high-availability`
+  - :ref:`arch-center-backups`
+  - :ref:`arch-center-dr`
+
+- Performance
+
+  - :ref:`arch-center-scalability`
+  - :ref:`arch-center-latency-strategies`
+
+- Cost Optimization
+
+  - :ref:`arch-center-cost-saving-config`
+  - :ref:`arch-center-billing-data`
+
+Your Organization's Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Adjust the example landing zone diagram, recommendations, and examples
+that you copied from the {+atlas-arch-center+} to fit your
+organization's specific requirements. For example, if you use only 
+{+gcp+} as a cloud provider, your landing zone should specify that
+requirement and you should exclude any recommendations and examples
+applicable only to |aws| and |azure|.
+
+To identify more considerations and requirements specific to your
+organization, see the previous section on
+:ref:`Landing Zone Considerations <landing-zone-considerations>`.
+
+Next Steps
+----------
+
+See the :ref:`arch-center-migration` page to plan your migration
+to {+service+} or use the left
+navigation to find features and best practices for each {+waf+} pillar.

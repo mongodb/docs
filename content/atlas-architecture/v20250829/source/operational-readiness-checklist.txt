@@ -1,0 +1,335 @@
+.. _arch-center-checklist:
+
+==================================================
+|service-fullname| Operational Readiness Checklist
+==================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+This checklist is designed to help you prepare your environment and team
+for a successful deployment and operation of |service-fullname|.
+Use this checklist to track your progress. For example, you can print it
+and check off each item as you complete the tasks.
+
+Consult the official |service-fullname| documentation for detailed guidance
+on each of these aspects.
+
+Account and Organization Setup
+-------------------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 5 55
+
+   * - Check
+     - Action
+
+   * - :icon-fa4:`square-o`
+     - Create a |service-fullname| account, set up your |service| organizations
+       according to your internal structure, and configure a root user
+       with appropriate access. To get recommendations and learn more about
+       this topic, see :ref:`arch-center-hierarchy`.
+
+   * - :icon-fa4:`square-o`
+     - Set up projects based on your environment and application needs.
+       Isolate environments by setting up production and non-production
+       projects, at a minimum. To get recommendations and learn more about
+       this topic, see :ref:`arch-center-orgs-projects-clusters-recs`.
+
+   * - :icon-fa4:`square-o`
+     - Consider cross-organization billing, if applicable. To get recommendations
+       and learn more about this topic, see :ref:`arch-center-billing-data`.
+
+Network and Security Configuration
+-----------------------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 5 55
+
+   * - Check
+     - Action
+
+   * - :icon-fa4:`square-o`
+     - Select cloud providers and regions for your |service| clusters.
+       Consider data sovereignty requirements and latency. To get
+       recommendations and learn more about this topic, see
+       :ref:`arch-center-paradigms`.
+
+   * - :icon-fa4:`square-o`
+     - Configure network security based on your organization's needs.
+       To get recommendations and learn more about this topic, see
+       :ref:`arch-center-auth`.
+
+   * - :icon-fa4:`square-o`
+     - Choose a network connectivity method.
+       As a general recommendation, we advise that you set up and use :ref:`Private Endpoints <arch-center-private-endpoints>`:
+
+       - AWS PrivateLink
+       - Azure Private Link, or
+       - Google Cloud Private Service Connect 
+       
+       Private Endpoints allow a one-way private connection from your
+       VPC to |service|. For multi-region clusters, enable private
+       endpoints in each region. To learn more,
+       see :ref:`Recommendations for Multi-Region Deployments <arch-center-network-security-recs>`.
+       In addition, you can choose one of the following network connectivity methods:
+
+       - :ref:`VPC Peering <arch-center-vpc-vnet-peering>` to set up private
+         secure traffic routing within your network boundaries.
+       - Public :ref:`IP Access Lists <arch-center-ip-access-list>` to
+         restrict inbound connections to specific IP addresses or |cidr| blocks.
+         As an alternative to endpoints, consider
+         :setting:`IP Allow lists <security.clusterIpSourceAllowlist>`,
+         if necessary.
+
+   * - :icon-fa4:`square-o`
+     - TLS is mandatory and enabled by default. You can't disable it.
+       TLS 1.2+ is the default, which ensures support for the next version
+       once |service| supports it. Review your TLS configuration to ensure
+       that it's set in a way that meets your internal standards.
+       To learn more, see :ref:`<arch-center-tls>`.
+
+   * - :icon-fa4:`square-o`
+     - Configure authentication and authorization. To get recommendations and
+       learn more about this topic, see :ref:`arch-center-auth`.
+
+       - For database access in cloud environments, consider Workforce and
+         Workload Identity Federation, such as OIDC, OAuth 2.0, AWS IAM roles,
+         or Azure Managed Identities, for passwordless access.
+
+   * - :icon-fa4:`square-o`
+     - Implement robust encryption. To learn more, see :ref:`arch-center-data-encryption`.
+  
+       - Encryption at rest is enabled by default using cloud providers'
+         transparent disk encryption (AES-256).
+       - We strongly recommend that you enable "Bring Your Own Key (BYOK)"
+         encryption using Key Management Service (KMS) providers (AWS KMS, Azure Key Vault,
+         or GCP KMS). |service| can't rotate customer-managed encryption keys.
+       - Consider Client-Side Field Level Encryption (CSFLE) to encrypt
+         data within your application before transmitting it to |service|.
+       - Explore :manual:`Queryable Encryption </core/queryable-encryption/>`
+         for applications that run queries on encrypted data.
+
+   * - :icon-fa4:`square-o`
+     - Configure database auditing to track database access and actions.
+       Create custom filters if needed. To get recommendations and learn
+       more about this topic, see :ref:`arch-center-auditing-logging`.
+  
+   * - :icon-fa4:`square-o`
+     - |service| regularly rotates certificates to remain in compliance
+       with security standards and various authorities.
+
+       - Ensure that you are not pinning a low-level certificate.
+       - Be aware of hard-coded certificate authority certificates.
+       - Ensure that you set up your applications in a way that lets
+         you handle potential CA certificate updates.
+
+       |service| clusters use TLS certificates signed by a widely trusted
+       Certificate Authority (CA). While applications using recent
+       MongoDB drivers handle certificate validation automatically, older
+       applications or those with custom TLS configurations might require
+       updates to trust the new CA certificates, if MongoDB updates its
+       certificate provider. To learn more, see :atlas:`Hard-coded certificate authority </reference/faq/security/#hard-coded-certificate-authority>`.
+
+   * - :icon-fa4:`square-o`
+     - Understand and plan for compliance with relevant standards and
+       regulations, such as ISO/IEC 27001, HIPAA, GDPR, PCI DSS, FedRAMP,
+       and others. To learn more, see :ref:`arch-center-compliance-atlas-gov`.
+
+Backup and Restore Strategy
+----------------------------
+
+.. list-table::
+   :widths: 5 55
+
+   * - Check
+     - Action
+
+   * - :icon-fa4:`square-o`
+     - Enable |service| Cloud Backup, which provides localized backup
+       storage using the cloud provider's native snapshot functionality.
+       To get recommendations and learn more about this topic, see
+       :ref:`arch-center-backups`.
+  
+   * - :icon-fa4:`square-o`
+     - Enable Continuous Cloud Backup with a restore window that meets your
+       your Recovery Point Objective (RPO). We recommend having a restore
+       window of 7 days to allow for Point In Time (PIT) recovery using the oplog.
+
+   * - :icon-fa4:`square-o`
+     - Define a backup schedule and retention policy that aligns with your
+       business continuity and compliance requirements. Consider hourly,
+       daily, weekly, and monthly snapshots with appropriate retention periods.
+
+   * - :icon-fa4:`square-o`
+     - Consider :ref:`multi-region snapshot distribution <atlas-backup-distribution>`
+       for increased resilience by copying snapshots to other geographic regions.
+
+   * - :icon-fa4:`square-o`
+     - Enable :ref:`Backup Compliance Policy <atlas-backup-compliance>` to
+       prevent unauthorized modifications or deletions of backups and comply
+       with strict data protection requirements.
+
+   * - :icon-fa4:`square-o`
+     - Understand the process for restoring from scheduled or on-demand snapshots.
+       To learn more, see :ref:`arch-center-backups-recs`.
+
+   * - :icon-fa4:`square-o`
+     - Learn about the process for restoring from Continuous Cloud Backup
+       to a specific point in time. To learn more, see :ref:`arch-center-backups-recs`.
+  
+   * - :icon-fa4:`square-o`
+     - Plan and test your Disaster Recovery (DR) strategy. Understand
+       Recovery Time Objective (RTO) and Recovery Point Objective (RPO).
+       Consider testing application's resilience in |service|.
+       To learn more, see :ref:`arch-center-dr`.
+  
+   * - :icon-fa4:`square-o`
+     - Consider options for downloading and archiving snapshots, if required,
+       using the {+atlas-ui+}, {+atlas-admin-api+}, or {+atlas-cli+}.
+       To learn more, see :ref:`arch-center-backups`.
+
+Maintenance and Patching
+------------------------
+
+.. list-table::
+   :widths: 5 55
+
+   * - Check
+     - Action
+  
+   * - :icon-fa4:`square-o`
+     - Be aware that |service| deploys major version upgrades in a rolling
+       manner to minimize downtime. This means that |service| upgrades
+       the secondary cluster nodes and fails over the primary cluster
+       nodes to a newer version.
+
+   * - :icon-fa4:`square-o`
+     - Define a Maintenance Window for |service| automated systems to apply
+       automatic minor version updates. Configure the day and hour of
+       allowed maintenance using the ``mongodbatlas_maintenance_window`` resource.
+       To learn more, see :ref:`arch-center-high-availability`.
+  
+   * - :icon-fa4:`square-o`
+     - Understand that |service| has non-deferrable maintenance hours for critical security
+       patches or operational necessities. Configure Protected Hours for your
+       project and :atlas:`define a daily window </tutorial/cluster-maintenance-window/>`
+       when standard updates cannot begin. |service| performs standard updates
+       that don't involve cluster restarts or resyncs outside of these hours.
+
+Monitoring and Alerts
+---------------------
+
+.. list-table::
+   :widths: 5 55
+
+   * - Check
+     - Action
+
+   * - :icon-fa4:`square-o`
+     - Use built-in monitoring capabilities in |service| via the Metrics tab
+       to track cluster health and performance.
+
+   * - :icon-fa4:`square-o`
+     - Configure alerts for various cluster metrics and events to proactively
+       identify and respond to potential issues. As a starting point, review
+       and configure recommended alerts. Consider setting up multiple alerts
+       for different severity levels.
+
+   * - :icon-fa4:`square-o`
+     - Integrate |service| monitoring with your existing enterprise monitoring
+       and observability tools if required.
+
+   * - :icon-fa4:`square-o`
+     - Familiarize yourself with Performance Advisor, Real-Time Performance Panel (RTPP),
+       and Query Profiler for performance tuning and optimization.
+
+To get recommendations and learn more about monitoring performance and alerts,
+see :ref:`arch-center-monitoring-alerts`.
+
+Operational Procedures and Team Readiness
+------------------------------------------
+
+.. list-table::
+   :widths: 5 55
+
+   * - Check
+     - Action
+
+   * - :icon-fa4:`square-o`  
+     - Define roles and responsibilities for managing and operating |service-fullname|.
+
+   * - :icon-fa4:`square-o`  
+     - Establish change control and auditability processes. To learn more,
+       see :ref:`arch-center-auditing-logging`.
+
+   * - :icon-fa4:`square-o`  
+     - Develop a clear Disaster Recovery Process Documentation
+       specific to your applications and |service| setup. To learn more,
+       see :ref:`arch-center-dr`.
+
+   * - :icon-fa4:`square-o`  
+     - Ensure your team is trained on |service-fullname| fundamentals,
+       security best practices, and operational procedures.
+       Consider |mdb-university| and Professional Services for
+       training and enablement.
+
+   * - :icon-fa4:`square-o`
+     - Establish a process for engaging with |mdb-support| for
+       production issues or when MongoDB's access level is required.
+
+   * - :icon-fa4:`square-o`  
+     - Plan for performance improvement using tools like Query Profiler
+       and Performance Advisor. To learn more, see :ref:`arch-center-monitoring-alerts`.
+
+   * - :icon-fa4:`square-o`  
+     - Define how you will handle data lifecycle management.
+       Configure archival strategies, such as :manual:`TTL indexes </core/index-ttl/>`,
+       or :ref:`online archive <online-archive-overview>`. Ensure that
+       the application development team, (and not the operations team),
+       handles decisions for archiving.
+
+   * - :icon-fa4:`square-o`  
+     - Consider how your developers will connect to and develop with 
+       |service| clusters. Useful tools include:
+
+       - :ref:`Atlas UI <atlas-ui>`
+       - :compass:`Compass </>`
+       - :mdb-shell:`MongoDB Shell </>`
+       - :atlascli:`Atlas CLI </install-atlas-cli/>`
+       - `MCP Server <https://www.mongodb.com/docs/mcp-server/>`__
+       - `MongoDB for VSCode <https://www.mongodb.com/docs/mongodb-vscode/>`__
+       - `MongoDB for IntelliJ <https://www.mongodb.com/docs/mongodb-intellij/>`__
+
+       Ensure that your developers can easily install, access, and 
+       integrate your tools in your toolchain. Set up appropriate 
+       access.
+
+   * - :icon-fa4:`square-o`  
+     - Establish integration strategies with other tooling and services,
+       such as Datadog, Prometheus, PagerDuty, and other tools.
+       To learn more, see :ref:`arch-center-monitoring-alerts`.
+  
+   * - :icon-fa4:`square-o`  
+     - Consider establishing a MongoDB Center of Excellence (CoE) within
+       your organization to foster best practices and knowledge sharing.
+
+By completing these checklist actions, you will enhance your operational
+readiness for deploying and managing |service-fullname|. This will ensure
+that you set up a reliable, secure, and performant database environment.
+
+Next Steps
+----------
+
+Use the left navigation to find features and best practices for each {+waf+} pillar.
+
+- :ref:`arch-center-monitoring-alerts`
+- :ref:`arch-center-network-security`
+- :ref:`arch-center-backups`

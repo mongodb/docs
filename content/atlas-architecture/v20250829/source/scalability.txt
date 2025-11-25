@@ -1,0 +1,310 @@
+.. _arch-center-scalability:
+
+====================================
+Guidance for Atlas Scalability
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+Features for Atlas Scalability
+------------------------------------
+
+Auto-scaling enables clusters to automatically adjust their tier, storage capacity, or both, in 
+response to real-time use. Atlas analyzes the CPU and memory utilization to determine when 
+and whether to scale the cluster tier up and down. See :ref:`Cluster tier scaling <cluster-autoscaling>` 
+to learn more about the conditions under which Atlas scales up or down your cluster nodes. You can 
+also specify a range of maximum and minimum cluster sizes that your cluster can automatically scale 
+to in order to guarantee minimum performance or control costs. Atlas won't scale a cluster if the 
+new tier falls outside of your specified size range or if your memory usage would exceed the capacity of 
+the new tier. Auto-scaling is throttled with a delay to scale a cluster tier up or down to ensure that 
+auto-scaling doesn't cause any application impact. Therefore, it is best suited for a steadily growing or 
+declining application load, not sudden spikes in which the database is being inundated with usage. If your 
+workload experiences frequent spikes or if you are expecting a large increase in traffic because of an event 
+or a launch, MongoDB recommends that you pre-scale programmatically. 
+
+Atlas deployment templates, as referenced in the :ref:`Recommended Deployment Topologies <arch-center-deployment-topologies>`, 
+provide you with horizontal and vertical scaling options. Specifically, sharding distributes data across 
+numerous machines, which is useful when no single server can handle your workloads. Sharding follows a 
+shared-nothing architecture, a distributed computing architecture where none of the nodes share any 
+resources with each other. See :manual:`Choose a Shard Key </core/sharding-choose-a-shard-key>` to learn more 
+about the ideal choice of shard key that allows MongoDB to distribute documents evenly throughout your cluster 
+while facilitating common query patterns. Furthermore, see `Performance Best Practices: Sharding <https://www.mongodb.com/blog/post/performance-best-practices-sharding>`__ 
+to learn about the key sharding strategies, such as ranged sharding, hashed sharding, and zoned sharding.
+
+Upgrading an Atlas cluster to the next available Atlas tier is available through the 
+Atlas control plane GUI, the 
+`Atlas Administration API <https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Clusters/operation/upgradeSharedCluster>`__, 
+or through IaC tools, such as the Atlas Kubernetes Operator, the MongoDB & HashiCorp Terraform, or the Atlas CLI. See 
+:ref:`arch-center-automation` to learn more. Changing an Atlas tier, either upscaling or 
+downscaling, allows zero downtime. The tier changes in a rolling fashion, which involves electing a secondary 
+member as a replacement, promoting this secondary member to become the new primary, then restoring or replacing 
+the failing member to ensure that the cluster is returned to its target configuration as soon as possible. 
+Horizontal scaling occurs post-deployment based on Administrator action, which can be triggered from a programmatic 
+script. Some cluster templates require sharded clusters. Starting with MongoDB version 8.0, you may make 
+use of :manual:`embedded config servers </reference/command/transitionFromDedicatedConfigServer>` to reduce 
+costs associated with config servers on small sharded clusters. 
+
+The low CPU option in Atlas helps applications that require higher memory but not as much 
+processing power. This option provides instances with half the vCPUs compared to the General tier of 
+the same cluster size, reducing costs for workloads that are memory-intensive but not CPU-bound. 
+
+Data tiering and archival allows you to archive data in low-cost storage while still enabling 
+queries alongside live cluster data, which is particularly useful for long-term record retention. 
+To optimize this process, MongoDB recommends that you automate data archiving with simple, configurable 
+rules. See :ref:`Archive Data <manage-online-archive>` to learn more about the criteria that you can specify 
+in an archiving rule. For scenarios where data retention is not a priority, Atlas offers the option to 
+automatically delete unused data based on date criteria. For infrequently accessed data, :manual:`TTL indexes </core/index-ttl/>` 
+are special single-field indexes that automatically delete documents from a collection after a specified 
+period or at a set clock time. This is particularly useful for data like logs, session information, 
+or event data that only needs to be retained for a limited time. To create a TTL index, you can define 
+an index on a field that holds date values and specify a time-to-live duration in seconds.
+
+{+service+} also provides you with automated tools, such as the :opsmgr:`Performance Advisor </tutorial/performance-advisor/>`, 
+to identify and optimize inefficient queries by adding or removing an index or changing your client's query 
+structure. You can reduce unnecessary compute time and resource consumption by following Performance Advisor's actionable recommendations 
+to enhance your query performance. Additionally, you can leverage intelligent index recommendations provided by 
+Atlas to further improve data retrieval efficiency and minimize the resources needed for database operations. 
+
+.. _arch-center-scalability-recs:
+
+Recommendations for Atlas Scalability
+-------------------------------------------
+
+.. collapsible::
+   :heading: Single-Region Deployment Recommendations
+   :sub_heading: Recommendations that apply only to deployments in a single region
+   :expanded: true
+
+   For single-region deployments, focus on vertical scaling strategies that optimize performance within a single cloud region:
+
+   - Enable auto-scaling for both compute and storage to handle gradual traffic 
+     increases without manual intervention.
+   - Use sharding when your dataset exceeds the capacity of a single server, 
+     even within a single region, to distribute load across multiple shards.
+   - Consider the low CPU instance option for memory-intensive workloads that 
+     do not require high processing power.
+   - Implement data tiering and archival for historical data to reduce storage 
+     costs while maintaining query capabilities.
+   - Monitor query performance with the Performance Advisor and implement 
+     recommended indexes to optimize resource utilization.
+   - Pre-scale clusters before expected traffic spikes rather than relying 
+     solely on auto-scaling for sudden load increases.
+
+.. collapsible::
+   :heading: Multi-Region and Multi-Cloud Deployment Recommendations
+   :sub_heading: Recommendations that apply only to deployments across multiple regions or multiple cloud providers
+   :expanded: true
+
+   For multi-region and multi-cloud deployments, implement scaling strategies that account for geographic distribution and cross-cloud complexity:
+
+   - Configure read replicas in regions closest to your users to reduce latency 
+     and distribute read workloads geographically.
+   - Use zone sharding to partition data based on geographic or logical 
+     boundaries, ensuring data locality and compliance requirements.
+   - Implement global clusters with local reads and writes to optimize 
+     performance across regions while maintaining data consistency.
+   - Monitor network latency between regions and adjust replica priorities to 
+     ensure optimal failover behavior.
+   - Consider the impact of cross-region data transfer costs when implementing 
+     auto-scaling across multiple regions.
+   - Use different cluster tiers in different regions based on regional usage 
+     patterns and cost optimization strategies.
+   - Implement region-specific backup and archival strategies to comply with 
+     data residency requirements.
+
+All Deployment Paradigm Recommendations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following recommendations apply to all :ref:`deployment paradigms
+<arch-center-paradigms>`.
+
+For development and testing environments, do not enable auto-scaling
+compute and auto-scaling storage. This saves costs in your 
+non-production environments.
+
+For staging and production environments, we recommend that you:
+
+- Enable auto-scaling for compute and storage for instances where your 
+  application grows organically from small to medium.
+  
+  If you use {+iac+} tools, leverage settings to ignore resource drift caused by auto-scaling. For example, in Terraform, if ``disk_gb_enabled`` is true, |service| will 
+  automatically scale disk size up and down. This will cause the value
+  of ``disk_size_gb`` returned to potentially be different than what is 
+  specified in the Terraform config and if one then applies a plan, not 
+  noting this, Terraform will scale the cluster disk size back to the 
+  original ``disk_size_gb`` value. To prevent this a lifecycle 
+  customization should be used, i.e.: 
+  ``lifecycle { ignore_changes = [disk_size_gb] }``.
+
+  Similarly, in Terraform, if ``compute_enabled`` is true, then 
+  |service| will automatically 
+  scale up to the maximum provided and down to the minimum, if provided. This will 
+  cause the value of ``provider_instance_size_name`` returned to potentially be different 
+  than what is specified in the Terraform config, and if one then applies a plan, 
+  not noting this, Terraform will scale the cluster back to the original 
+  ``instanceSizeName`` value. To prevent this a lifecycle customization should be used, 
+  i.e.: ``lifecycle { ignore_changes = [provider_instance_size_name] }``.
+
+Automation Examples: {+service+} Scalability
+--------------------------------------------
+
+.. include:: /includes/complete-examples-terraform.rst
+
+The following examples enable auto-scaling compute and storage using |service| 
+:ref:`tools for automation <arch-center-automation>`.
+
+These examples also apply other recommended configurations, including:
+
+.. tabs::
+
+   .. tab:: Dev and Test Environments
+      :tabid: devtest
+
+      .. include:: /includes/shared-settings-clusters-devtest.rst
+
+   .. tab:: Staging and Prod Environments
+      :tabid: stagingprod
+
+      .. include:: /includes/shared-settings-clusters-stagingprod.rst
+
+.. tabs::
+
+   .. tab:: CLI
+      :tabid: cli
+
+      .. note::
+
+         Before you
+         can create resources with the {+atlas-cli+}, you must:
+
+         - :atlas:`Create your paying organization 
+           </billing/#configure-a-paying-organization>` and :atlas:`create an API key </configure-api-access/>` for the
+           paying organization.
+         - :atlascli:`Install the {+atlas-cli+} </install-atlas-cli/>` 
+         - :atlascli:`Connect from the {+atlas-cli+} 
+           </connect-atlas-cli/>` using the steps for :guilabel:`Programmatic Use`.
+
+      Create One Deployment Per Project
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. tabs::
+
+         .. tab:: Dev and Test Environments
+            :tabid: devtest
+
+            For your development and testing environments, auto-scaling compute and storage is disabled to save costs.
+
+         .. tab:: Staging and Prod Environments
+            :tabid: stagingprod
+
+            For your staging and production environments, create the following ``cluster.json`` file for each project. 
+            Change the IDs and names to use your values:
+
+            .. include:: /includes/examples/cli/cli-json-example-create-clusters-with-autoscaling.rst
+
+            After you create the ``cluster.json`` file, run the
+            following command for each project. The
+            command uses the ``cluster.json`` file to create a cluster.
+
+            .. include:: /includes/examples/cli/staging-prod/cli-example-create-clusters-stagingprod.rst 
+
+      For more configuration options and info about this example, 
+      see :ref:`atlas-clusters-create`.
+
+   .. tab:: Terraform
+      :tabid: Terraform
+
+      .. note::
+
+         Before you
+         can create resources with Terraform, you must:
+
+         - :atlas:`Create your paying organization 
+           </billing/#configure-a-paying-organization>` and :atlas:`create an API key </configure-api-access/>` for the
+           paying organization. Store your API key as environment
+           variables by running the following command in the terminal:
+
+           .. code-block::
+
+              export MONGODB_ATLAS_PUBLIC_KEY="<insert your public key here>"
+              export MONGODB_ATLAS_PRIVATE_KEY="<insert your private key here>"
+
+         - `Install Terraform 
+           <https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli>`__ 
+
+      Create the Projects and Deployments
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. tabs::
+
+         .. tab:: Dev and Test Environments
+            :tabid: devtest
+
+            For your development and testing environments, auto-scaling compute and storage is disabled to save costs.
+
+         .. tab:: Staging and Prod Environments
+            :tabid: stagingprod
+
+            For your staging and production environments, create the
+            following files for each application and environment 
+            pair. Place the files for each application and environment
+            pair in their own directory. Change the IDs, names, and disk size
+            to use your values.
+
+            main.tf
+            ```````
+
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-main-stagingprod.rst 
+
+            variables.tf
+            ````````````
+
+            .. include:: /includes/examples/terraform/tf-example-autoscaling-variables.rst
+
+            terraform.tfvars
+            ````````````````
+
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-tfvars-autoscaling-stagingprod.rst
+
+            provider.tf
+            ```````````
+
+            .. include:: /includes/examples/terraform/tf-example-provider.rst
+
+            After you create the files, navigate to each application and environment pair's directory and run the following
+            command to initialize Terraform:
+
+            .. code-block::
+
+               terraform init
+
+            Run the following command to view the Terraform plan:
+
+            .. code-block::
+
+               terraform plan
+            
+            After adding the ``lifecycle`` block to explicitly change ``disk_size_gb`` and 
+            ``instant_size``, comment out the ``lifecycle`` block and run ``terraform apply``. 
+            Please be sure to uncomment the ``lifecycle`` block once done to prevent any accidental 
+            changes.
+
+            Run the following command to create one project and one deployment for the application and environment pair. The command uses the files and the |service-terraform| to
+            create the projects and clusters:
+
+            .. code-block::
+
+               terraform apply
+
+            When prompted, type ``yes`` and press :kbd:`Enter` to apply
+            the configuration. 
+      
+      For more configuration options and info about this example, 
+      see |service-terraform| and the `MongoDB Terraform Blog Post
+      <https://www.mongodb.com/developer/products/atlas/deploy-mongodb-atlas-terraform-aws/>`__.

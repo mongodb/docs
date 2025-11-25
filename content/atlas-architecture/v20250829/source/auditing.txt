@@ -1,0 +1,208 @@
+.. _arch-center-auditing:
+
+=================================
+Guidance for {+service+} Auditing
+=================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:   
+   :description: Learn about auditing mechanisms in MongoDB Atlas.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+To monitor |service| platform activities, use auditing.
+
+Features for {+service+} Auditing
+---------------------------------
+
+Available on ``M10+`` {+clusters+}, database auditing lets you track system
+activity for deployments with multiple users.
+
+As |a-service| administrator, you can create a custom JSON audit filter
+in MongoDB to precisely control what gets audited across your system.
+
+This approach lets you specify exactly which actions, database users, and
+|service| roles should be monitored, giving you more granular control
+over your auditing process compared with the standard filter builder in
+the {+atlas-ui+}.
+
+With :manual:`manual auditing configuration </core/auditing>`, you can
+monitor almost all documented :manual:`system event actions </reference/audit-message/mongo/#audit-event-actions--details--and-results>` in |service|.
+
+The comprehensive database auditing capabilities provide detailed tracking of:
+
+- DDL (Data Definition Language) operations
+- DML (Data Manipulation Language) operations
+- DCL (Data Control Language) operations.
+
+This provides complete visibility into database schema changes, data
+modifications, and permission adjustments.
+
+For implementation guidance, including complete event lists and practical
+configuration examples, refer to the :manual:`MongoDB auditing </core/auditing>`
+and :atlas:`Example Auditing Filters </database-auditing/#example-auditing-filters>` documentation.
+Additional setup instructions are available in the :atlas:`Set up Database Auditing </database-auditing>` section.
+
+Create and Enable an Audit Filter in {+service+}
+------------------------------------------------
+
+You can create audit filters to limit audits to only certain operations of concern.
+When you enable auditing of operations, |service| records all auditable
+operations as detailed in :manual:`Audit Event Actions, Details, and Results </reference/audit-message/mongo/#audit-event-actions--details--and-results>`.
+
+To limit which events |service| should record, you can specify event audit filters.
+
+The following document defines an audit filter that restricts audits to only the
+authentication operations that occur against the ``test`` database. 
+To learn more, see :manual:`Configure Audit Filters </tutorial/configure-audit-filters/>`.
+
+.. include:: /includes/examples/cli/cli-example-audit-filter.rst
+
+To enable an audit filter, run the :ref:`atlas auditing update <atlas-auditing-update>`
+command with the ``--enabled`` flag and specify the audit filter document in single quotes
+to pass the document as a string: 
+
+.. include:: /includes/examples/cli/cli-example-audit-filter-use.rst
+
+Custom audit filters let you forgo the managed {atlas-ui+} auditing filter
+builder in favor of hand-tailored granular control of event auditing.
+|service| checks only that the custom filter uses valid JSON syntax, and
+doesn't validate or test the filter's functionality.
+
+The audit filter document:
+
+- Must resolve to a query that matches one or more fields in the audit event message.
+- Can use combinations of query operators and equality conditions to match
+  the desired audit messages.
+
+|service| supports specifying a JSON-formatted audit filter for
+customizing MongoDB auditing.
+
+Configuring a JSON configuration file for your custom filter is also useful
+because if you need to create a large filter, it is easier to manage and
+maintain the filter if you store the filter's configuration in a separate file.
+
+The following {+atlas-cli+} command enables an audit filter that is defined
+in the specified |json| configuration file: 
+
+.. include:: /includes/examples/cli/cli-example-audit-logs-config-file.rst
+
+.. _arch-center-auditing-recs:
+
+Recommendations for {+service+} Auditing
+----------------------------------------
+
+The following recommendations apply to all :ref:`deployment paradigms
+<arch-center-paradigms>`.
+
+We recommend that you :atlas:`set up database auditing </database-auditing>`
+when you provision your {+clusters+}.
+
+Database auditing increases cluster resource usage and operational expenses.
+
+- To maintain optimal performance and control costs, consider auditing only
+  essential users and turning off auditing in development environments where
+  it's not required.
+- Certain industries, such as healthcare and financial services, may opt
+  to keep auditing enabled in development environments for compliance reasons.
+
+We recommend that you audit the following events at a minimum:
+
+- Failed logon
+- Session activity
+- Logon and logoff
+- Attempts to perform unauthorized functions
+- Password change
+- Database User Access changes
+- DDL & System configuration stored procedures
+- Modification of Native audit
+- Running a backup or restore operation
+- Altering DBMS native audit settings
+- Altering security
+- Running database start and stop commands
+
+Automation Examples: {+service+} Auditing
+-----------------------------------------
+
+.. include:: /includes/complete-examples-terraform.rst
+
+The following examples show how to retrieve and download logs and configure auditing
+using |service| :ref:`tools for automation <arch-center-automation>`.
+
+.. tabs::
+
+   .. tab:: CLI
+      :tabid: cli
+
+      Update Audit Configuration
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      To update your project's audit configuration, use the :ref:`atlas auditing update <atlas-auditing-describe>`
+      command and specify the new audit filter. The following command replaces the existing 
+      audit filter configuration with a new filter that audits all authentication events for known users in the project: 
+
+      .. include:: /includes/examples/cli/cli-example-audit-logs-known-users.rst
+
+      Describe Audit Configuration
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Run the :ref:`atlas auditing describe <atlas-auditing-describe>`
+      command to return the auditing configuration for the specified project:
+
+      .. include:: /includes/examples/cli/cli-example-audit-logs-describe.rst
+
+   .. tab:: Terraform
+      :tabid: Terraform
+ 
+      The following example demonstrates how to enable auditing for
+      your deployment. Before you can create resources with Terraform,
+      you must:
+
+      - :ref:`Create your paying organization <configure-paying-org>`
+        and :ref:`create an API key <atlas-admin-api-access>` for the
+        paying organization. Store your public and private keys as
+        environment variables by running the following commands in the terminal:
+
+        .. code-block::
+
+           export MONGODB_ATLAS_PUBLIC_KEY="<insert your public key here>"
+           export MONGODB_ATLAS_PRIVATE_KEY="<insert your private key here>"
+
+      - `Install Terraform <https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli>`__.
+
+      Enable Auditing and Create an Auditing Filter
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      You can :manual:`configure manual auditing </core/auditing>` of most of the
+      documented :manual:`system event actions </reference/audit-message/mongo/>`
+      by creating audit filters. To learn more about configuring audit filters,
+      see :manual:`Configure Audit Filters </tutorial/configure-audit-filters/>`.
+
+      The following  Terraform script sets up a complete MongoDB |service|
+      infrastructure with comprehensive database auditing. The script:
+      
+      - Creates a new project within an organization and provisions a
+        three-node replica set cluster (M10 instances) deployed on AWS
+        in the US East region. 
+      
+      - Enables detailed auditing capabilities using a JSON filter that
+        monitors authentication events, user management operations, and
+        various database commands, including data manipulation and query
+        operations. 
+        
+      The auditing configuration specifically targets admin and external
+      database users, while tracking critical operations, such as
+      authentication attempts, role modifications, and common database
+      commands, such as ``find``, ``insert``, ``update``, and ``delete``
+      operations.
+
+      .. include:: /includes/examples/terraform/tf-example-auditing-filter.rst
