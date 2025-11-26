@@ -1,7 +1,7 @@
 .. important::
 
-   {+abic+} is approaching end-of-life.
-   It will be deprecated and no longer supported in September 2026.
-
-   MongoDB is transitioning away from the |bic| to :ref:`Atlas SQL <sql-connect>`.
-   To learn about transitioning to the new interface, see :ref:`transition-bic-to-atlas-sql`.
+   The MongoDB Connector for Business Intelligence for |service| and on-premises reaches end-of-life (EOL) and will no longer be supported after September 2026.
+   For all new projects, we recommend using the new MongoDB {+sql-interface+} to 
+   connect to |service| or Enterprise Advanced deployments.
+   The {+sql-interface+} offers improved performance, a simplified setup, and enhanced
+   features. To learn more, see :ref:`connect-with-sql-overview`.
