@@ -175,6 +175,12 @@ const tocData: TocItem[] = [
                 url: '/docs/atlas/architecture/:version/compliance/dora',
                 versions: { excludes: ['v20250604', 'v20250317', 'v20250228'] },
               },
+              {
+                label: 'GDPR',
+                contentSite: 'atlas-architecture',
+                url: '/docs/atlas/architecture/:version/compliance/gdpr',
+                versions: { excludes: ['v20250604', 'v20250317', 'v20250228'] },
+              },
             ],
           },
           {
