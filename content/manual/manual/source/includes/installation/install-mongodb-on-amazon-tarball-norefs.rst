@@ -69,7 +69,7 @@ Procedure
 Follow these steps to manually install MongoDB |edition| Edition from
 the ``.tgz``.
 
-.. include:: /includes/steps/install-mongodb-on-amazon-tarball.rst
+.. include:: /includes/deploy/install-tar.rst
 
 Run MongoDB Community Edition
 -----------------------------
