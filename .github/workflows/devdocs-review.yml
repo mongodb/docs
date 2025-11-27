@@ -13,30 +13,37 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request || github.event.issue.pull_request }}
     steps:
-      - name: Check for @DevDocs mention and send to Slack
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const text = context.payload.comment?.body 
-                      || context.payload.issue?.body 
-                      || context.payload.pull_request?.body 
-                      || context.payload.review?.body 
-                      || "";
-
-            if (text.includes("@DevDocs") || text.includes("@mongodb/devdocs")) {
-              await fetch(process.env.SLACK_WEBHOOK_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  text: `:eyes: @DevDocs has been mentioned in *${context.payload.repository.full_name}* 
-              Event: *${context.eventName}* 
-              Link: ${context.payload.comment?.html_url
-                    || context.payload.issue?.html_url
-                    || context.payload.pull_request?.html_url
-                    || context.payload.review?.html_url}`
-                }),
-              });
-                          }
+      - name: Send Slack Notification
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          EVENT_BODY: ${{ github.event.pull_request.body || github.event.comment.body }}
+          PR_TITLE: ${{ github.event.pull_request.title || github.event.issue.title }}
+          PR_USER: ${{ github.event.pull_request.user.login || github.event.comment.user.login }}
+          PR_URL: ${{ github.event.pull_request.html_url || github.event.comment.html_url }}
+          REPO_NAME: ${{ github.repository }}
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if ! echo "$EVENT_BODY" | grep -qE "@DevDocs|@mongodb/devdocs"; then
+            echo "::notice::No '@DevDocs' or '@mongodb/devdocs' tag found. Skipping notification."
+            exit 0
+          fi
+
+          # 2. Build the message and payload in one step
+          SLACK_PAYLOAD=$(jq -n \
+            --arg repo "$REPO_NAME" \
+            --arg title "$PR_TITLE" \
+            --arg user "$PR_USER" \
+            --arg url "$PR_URL" \
+            '{
+              "channel": "#docs-devdocs-notifications",
+              "username": "Issue Notifier",
+              "icon_emoji": ":mega:",
+              "text": "*📢 @DevDocs mentioned in * \($repo)\n*Title:* \($title)\n*By:* \($user)\n*URL:* \($url)"
+            }')
+
+          # 3. Send to Slack
+          curl -X POST \
+               -H 'Content-type: application/json' \
+               --data "$SLACK_PAYLOAD" \
+               "$SLACK_WEBHOOK"
