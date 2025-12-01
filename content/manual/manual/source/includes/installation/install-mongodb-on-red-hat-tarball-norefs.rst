@@ -55,7 +55,7 @@ Prerequisites
 
 .. include:: /includes/fact-tarball-dependencies.rst
 
-.. include:: /includes/extracts/install-mongodb-community-manually-redhat.rst
+.. include:: /includes/deploy/community-prereq-rhel.rst
 
 Procedure
 ~~~~~~~~~

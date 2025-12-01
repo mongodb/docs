@@ -55,7 +55,7 @@ Prerequisites
 
 .. include:: /includes/fact-tarball-dependencies.rst
 
-.. include:: /includes/extracts/install-mongodb-community-manually-suse-15.rst
+.. include:: /includes/deploy/community-prereq-suse.rst
 
 Procedure
 ~~~~~~~~~

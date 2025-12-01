@@ -54,7 +54,7 @@ Prerequisites
 
 .. include:: /includes/fact-tarball-dependencies.rst
 
-.. include:: /includes/extracts/install-mongodb-community-manually-debian-12.rst
+.. include:: /includes/deploy/community-prereq-debian.rst
 
 Procedure
 ~~~~~~~~~
