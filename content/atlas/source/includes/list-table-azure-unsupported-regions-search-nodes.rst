@@ -47,6 +47,9 @@
    * - SOUTH_AFRICA_WEST
      - ``southafricawest``
 
+   * - SPAIN_CENTRAL
+     - ``spaincentral``
+
    * - SWEDEN_SOUTH
      - ``swedensouth``
 
