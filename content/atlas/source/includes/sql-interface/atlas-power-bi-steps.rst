@@ -34,7 +34,6 @@
       it's "online and ready to be used".
          
       .. note::
-
          You may need to restart the gateway via :guilabel:`Service Settings`.
 
    4. From Power BI Desktop, publish your created report to Power BI Service.

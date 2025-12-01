@@ -7,41 +7,39 @@
 
          To enable the {+sql-interface+} with an |service|-managed {+fdi+}:
 
-         .. procedure::
-            :style: normal
 
-            .. include:: /includes/nav/steps-db-deployments-page.rst
+         a. .. include:: /includes/nav/list-db-deployments-page.rst
 
-            .. step:: On the deployment you want to query with SQL, connect with :guilabel:`Atlas SQL`.
+         #. On the deployment you want to query with SQL, connect with :guilabel:`Atlas SQL`.
 
-               Click the :guilabel:`Connect` link at the bottom of your 
-               deployment card, under :guilabel:`Atlas SQL`.
+            - Click the :guilabel:`Connect` link at the bottom of your 
+              deployment card, under :guilabel:`Atlas SQL`.
 
-               A connection dialog box opens.
+            - A connection dialog box opens.
 
-            .. step:: Select :guilabel:`Quick Start`.
+         #. Select :guilabel:`Quick Start`.
 
-            .. step:: Click :guilabel:`Create` to create an |service| SQL connection for your cluster.
+         #. Click :guilabel:`Create` to create an |service| SQL connection for your cluster.
                         
-               |service| creates and manages a {+fdi+} in the background to 
-               support the SQL connection.
+            - |service| creates and manages a {+fdi+} in the background to 
+              support the SQL connection.
                             
-               To view or delete the {+fdi+} created with 
-               :guilabel:`Quick Start`:
+            - To view or delete the {+fdi+} created with 
+              :guilabel:`Quick Start`:
                             
-               .. include:: /includes/nav/list-data-federation.rst
+              .. include:: /includes/nav/list-data-federation.rst
                             
-               Your {+fdi+} appears under :guilabel:`Quick Start {+asql+} 
-               {+fdi+}`. You cannot modify this {+fdi+}.
+            - Your {+fdi+} appears under :guilabel:`Quick Start {+asql+} 
+              {+fdi+}`. You cannot modify this {+fdi+}.
 
-            .. step:: From the :guilabel:`Select your driver` dropdown, select a driver.
+         #. From the :guilabel:`Select your driver` dropdown, select a driver.
 
-            .. step:: Select a database and copy your connection settings.
+         #. Select a database and copy your connection settings.
 
-               Select a database from the :guilabel:`Database` dropdown.
+            - Select a database from the :guilabel:`Database` dropdown.
 
-               Save your connection information. You'll need this 
-               in a later step.
+            - Save your connection information. You'll need this 
+              in a later step.
 
       .. tab:: Advanced Configuration
          :tabid: advanced
