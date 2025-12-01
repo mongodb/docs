@@ -512,7 +512,7 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: 'Import S3 Archive',
+        label: 'Import Archives',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/backup/cloud-backup/import-archive',
       },
