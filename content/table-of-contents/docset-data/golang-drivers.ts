@@ -234,6 +234,12 @@ const tocData: TocItem[] = [
             url: '/docs/drivers/go/:version/crud/gridfs',
             versions: { excludes: outdatedVersions },
           },
+          {
+            label: 'Tutorial: Build a Web Application',
+            contentSite: 'golang',
+            url: '/docs/drivers/go/:version/crud/tutorial-web-application',
+            versions: { excludes: outdatedVersions },
+          },
         ],
       },
       {
