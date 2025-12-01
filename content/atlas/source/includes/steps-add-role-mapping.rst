@@ -5,7 +5,7 @@
       
    .. step:: Choose an organization in which you want to map roles.
       
-      a. Click :guilabel:`Manage Organizations`.
+      a. Click :guilabel:`Organizations`.
       
          |service| displays all organizations where you are an
          :authrole:`Organization Owner` in a table.
@@ -24,7 +24,7 @@
       
    .. step:: Navigate to the :guilabel:`Create Role Mapping For Your Users` page.
 
-      a. Click :guilabel:`Create Role Mappings`.
+      a. Click :guilabel:`Manage Role Mappings`.
       
          |service| displays the :guilabel:`Organization Role Mappings`
          page.
