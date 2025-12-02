@@ -1,5 +1,4 @@
 .. note::
 
-   Ensure that all outstanding or failed invoices are resolved within 
-   your {+service+} organization before attempting to link the 
-   organization to your |aws| Billing Account.
+   You must resolve all outstanding or failed invoices in your {+service+} 
+   organization before linking it to your cloud service Billing Account.
