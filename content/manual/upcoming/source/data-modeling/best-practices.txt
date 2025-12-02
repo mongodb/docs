@@ -1,0 +1,362 @@
+.. _data-modeling-best-practices:
+
+===========================================
+Best Practices for Data Modeling in MongoDB
+===========================================
+
+.. meta::
+   :description: Optimize MongoDB data models by considering atomicity, sharding, indexes, and storage strategies for efficient performance and data lifecycle management.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+MongoDB's flexible data model allows you to strategically balance performance 
+and adaptability while ensuring data consistency and integrity. In addition to 
+the general guidance on :ref:`planning your schema 
+<data-modeling-schema-design>`, consider the following best practices to 
+optimize your data model and determine which :ref:`schema design pattern 
+<schema-design-patterns>` may be best suited for your application use case.
+
+Plan Your Schema Early and Iterate
+----------------------------------
+
+.. include:: /includes/fact-plan-schema-early.rst
+
+.. note:: 
+   
+   Depending on your application and the importance of optimization, you may 
+   want to prioritize establishing a simple, working data model that covers 
+   basic functionality before you spend time on optimizations. 
+
+.. _data-modeling-schema-iteration-example:
+
+Modify Your Data Model
+~~~~~~~~~~~~~~~~~~~~~~
+
+As the needs of your application change, you should design your schema 
+iteratively and modify your schema. MongoDB's provides ways to seamlessly
+modify your schema without downtime. However, it can still be difficult
+to modify large-scale schemas that are used in production.
+
+Consider the following example: 
+
+You're tasked with building the backend of an online user learning platform 
+that stores information on courses and their lessons. Initially, the 
+platform only needs to store the following basic information for each course:
+
+- Course title
+- Instructor
+- Description 
+- Lessons, embedded as an array of sub-documents inside each course document. 
+  At this time, each lesson sub-document only contains a title, description, and 
+  presentation slides.
+
+As the platform evolves, each course needs additional learning and testing
+formats, such as videos, quizzes, assignments, and external resource links. 
+Embedding all of this new data in each course document would make the data 
+model too complex. 
+
+Instead, consider creating a separate ``lessons`` collection. This way, you can 
+link the ``course`` and ``lessons`` collections by using :ref:`reference 
+<data-modeling-referencing>` IDs. By using references, each lesson can include 
+different content types and be more flexible for future format changes.
+
+.. _data-modeling-decisions:
+.. _embedded-vs-linked-data:
+.. _embedding-vs-references:
+
+Link Related Data
+-----------------
+
+When you design your data model in MongoDB, consider the structure of
+your documents and the ways your application uses data from related
+entities.
+
+To link related data, you can either:
+
+- Embed related data within a single document.
+
+- Reference related data stored in a separate collection.
+
+For examples of when to use embedding or referencing, refer to the following 
+table: 
+
+.. include:: /includes/data-modeling/table-data-linking.rst
+
+To learn more about use cases, performance considerations, and benefits for each 
+data-linking method, see: 
+
+- :ref:`data-modeling-embedding`
+- :ref:`data-modeling-referencing`
+
+Duplicate Data
+--------------
+
+.. include:: /includes/data-modeling/data-duplication-overview.rst
+
+.. include:: /includes/data-modeling/duplicate-data-considerations.rst
+
+The following table lists the different types of duplicate data that might exist 
+in your schema: 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 35 35
+
+   * - Type of Duplicate Data
+
+     - Description
+
+     - Example
+
+   * - Immutable 
+
+     - Data that never changes. Immutable data is a good candidate for data 
+       duplication
+
+     - The date a user account was created.
+
+   * - Temporal 
+
+     - Data that may change over time, but where it is important to preserve the 
+       historical value of the data.
+
+     - The address of a customer at the time that they placed an order. If the 
+       customer moves to a new address, it doesn't affect the recorded 
+       addresses where previous orders were shipped.
+
+   * - Sensitive to staleness
+
+     - Data that requires frequent updates to ensure that all occurrences of the 
+       data are consistent. Applications can use transactions or triggers to 
+       update all occurrences.
+
+     - The number of items in stock for a given product, which needs to be 
+       updated every time a customer places an order for the product.
+
+   * - Not sensitive to staleness
+
+     - Data that can tolerate staleness for a longer period of time. 
+       Applications can use a background job to periodically update all 
+       occurrences of the data based on acceptable staleness and the cost of 
+       updates. 
+
+     - A list of recommended products for a customer, which doesn't need to be 
+       recomputed every time a new product is added to the system.
+
+If you don't need to update the duplicated data often, minimal
+additional work would be required to keep the two collections consistent.
+However, if the duplicated data is updated often, using a :ref:`reference
+<data-modeling-referencing>` to link related data may be a better approach.
+
+For examples on how duplicating related data can help optimize your data model, 
+see :ref:`data-modeling-duplicate-data`.
+
+Enforce Data Consistency
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you duplicate data in your schema, you need to decide how to keep your 
+data consistent across multiple collections. For example, an e-commerce 
+platform likely requires continuously up-to-date data to provide the real-time 
+status of its product stock. On the other hand, applications that handle data 
+for longer-term strategic decisions, such as social media analytics, can 
+tolerate reading slightly stale data.
+
+You can enforce data consistency in your application with any of the following
+methods:
+
+- :ref:`Embedding related data <enforce-consistency-embedding>`
+- :ref:`Transactions <enforce-consistency-embedding>`
+- :ref:`Atlas Database Triggers <atlas-database-trigger>`
+
+To learn more about each data consistency enforcement method, their use cases, 
+and their performance tradeoffs, see :ref:`data-modeling-data-consistency`.
+
+Enforce Schema with Validation Rules
+------------------------------------
+
+.. include:: /includes/data-modeling/schema-validation-use-case.rst
+
+To learn more, see :ref:`schema-validation-overview`.
+
+.. _data-model-indexes:
+
+Index Commonly Queried Fields
+-----------------------------
+
+When designing your data model, think about how you access and store your data. 
+If you frequently query, filter, sort, or join specific fields, consider 
+creating :ref:`indexes <indexes>` on those fields. With indexes, MongoDB can:
+
+- Return query results faster
+- Sort results more efficiently 
+- Optimize ``$lookup`` and ``$group`` operations 
+- Reduce CPU and I/O usage
+
+As your application grows, :ref:`monitor your deployment's index use 
+<indexes-measuring-use>` to ensure that your indexes still support relevant 
+queries.
+
+When you create indexes, consider the following index behaviors: 
+
+- Each index requires at least 8 kB of data space.
+
+- Adding an index has some negative performance impact for write
+  operations. For collections with high write-to-read ratio, indexes
+  are expensive since each insert must also update any indexes.
+
+- Collections with high read-to-write ratio often benefit from
+  additional indexes. Indexes do not affect un-indexed read operations.
+
+- When active, each index consumes disk space and memory. This usage
+  can be significant and should be tracked for capacity planning,
+  especially for concerns over working set size.
+
+For more information on indexes, see :ref:`indexing-strategies`.
+
+Additional Considerations
+-------------------------
+
+When developing a data model, analyze all of your application's 
+:ref:`read and write operations <crud>` in conjunction with the following 
+considerations.
+
+Atomicity
+~~~~~~~~~
+
+In MongoDB, a write operation is :term:`atomic <atomic operation>` on the level 
+of a single document, even if the operation modifies multiple embedded documents
+within a single document. This means that if an update operation affects several 
+sub-documents, either all of those sub-documents are updated, or the operation 
+fails entirely and no updates occur.
+
+A denormalized data model that uses embedded documents and arrays combines all 
+related data in a single document instead of normalizing across multiple 
+documents and collections. This data model allows atomic operations, in contrast
+to a normalized model where operations affect multiple documents and 
+collections. For an example data model that provides atomic updates for a single 
+document, see :ref:`data-modeling-atomic-operation`.
+
+For data models that store references between related pieces of data, the 
+application must issue separate read and write operations to retrieve and modify 
+these related pieces of data.
+
+.. include:: /includes/extracts/transactions-intro.rst
+
+Data Lifecycle Management
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Data lifecycle management refers to the process of managing data 
+from creation and storage to archiving and deletion. To ensure schema 
+cost-efficiency, performance, and security, consider data life cycle management 
+when making data modeling decisions.
+
+If your application requires some data to persist in the database for a limited 
+period of time, consider using the :ref:`Time to Live or TTL feature 
+<ttl-collections>`. For example, TTL collections could be useful for managing 
+user login sessions on a web application, where sessions are set to 
+automatically expire after 30 minutes of inactivity. This means that MongoDB 
+automatically deletes the session documents after the specified time period, 
+helping you keep your session collection small for efficient querying.
+
+Additionally, if your application only uses recently inserted
+documents, consider :ref:`manual-capped-collection`. Capped collections
+provide *first-in-first-out* (FIFO) management of inserted documents
+and efficiently support operations that insert and read documents based
+on insertion order.
+
+Hardware Constraints
+~~~~~~~~~~~~~~~~~~~~
+
+When you design your schema, consider your deployment's hardware,
+especially the amount of available RAM. Larger documents use more RAM,
+which may cause your application to read from disk and degrade
+performance. When possible, design your schema so only relevant fields
+are returned by queries. This practice ensures that your application's
+:term:`working set` does not grow unnecessarily large.
+
+.. _faq-small-documents:
+
+Small Documents
+~~~~~~~~~~~~~~~
+
+Each MongoDB document contains a certain amount of overhead. This
+overhead is normally insignificant but becomes significant if all
+documents are just a few bytes, as might be the case if the documents
+in your collection only have one or two fields.
+
+Consider the following suggestions and strategies for optimizing
+storage utilization for these collections:
+
+- Use the ``_id`` field explicitly.
+
+  MongoDB clients automatically add an ``_id`` field to each document
+  and generate a unique 12-byte :term:`ObjectId` for the ``_id``
+  field. Furthermore, MongoDB always indexes the ``_id`` field. For
+  smaller documents this may account for a significant amount of
+  space.
+
+  To optimize storage use, you can explicitly specify a value for the ``_id`` 
+  field when inserting documents into the collection. This strategy allows 
+  applications to store a value in the ``_id`` field that would have occupied 
+  space in another portion of the document.
+
+  You can store any value in the ``_id`` field, but because this value
+  serves as a primary key for documents in the collection, it must
+  uniquely identify them. If the field's value is not unique, then it
+  cannot serve as a primary key as there would be collisions in the
+  collection.
+
+- Use shorter field names.
+
+  .. note::
+
+     While shortening field names can reduce BSON size in MongoDB, it's often 
+     more effective to modify the overall document model to reduce BSON size. 
+     Shortening field names might reduce expressiveness, and does not affect the 
+     size of indexes, as indexes have a predefined structure that does not 
+     incorporate field names.
+
+  MongoDB stores all field names in every document. For most
+  documents, this represents a small fraction of the space used by a
+  document; however, for small documents the field names may represent
+  a proportionally large amount of space. Consider a collection of
+  small documents that resemble the following:
+
+  .. code-block:: javascript
+
+     { last_name : "Smith", best_score: 3.9 }
+
+  If you shorten the field named ``last_name`` to ``lname`` and the
+  field named ``best_score`` to ``score``, as follows, you could save 9
+  bytes per document.
+
+  .. code-block:: javascript
+
+     { lname : "Smith", score : 3.9 }
+
+- Embed documents.
+
+  In some cases you may want to embed documents in other documents and
+  save on the per-document overhead. See
+  :ref:`faq-developers-embed-documents`.
+
+Learn More
+----------
+
+To learn more about how to structure your documents and define 
+your schema, see MongoDB University's `Data Modeling
+<https://learn.mongodb.com/learning-paths/data-modeling-for-mongodb>`__ course.
+
+.. toctree::
+   :titlesonly: 
+   :hidden: 
+
+   Embedded Data </data-modeling/embedding>
+   Reference Data </data-modeling/referencing>
+   Duplicate Data </data-modeling/handle-duplicate-data>
+   Data Consistency </data-modeling/data-consistency>
+   Schema Validation </core/schema-validation>

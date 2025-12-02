@@ -2,6 +2,121 @@ import type { TocItem } from '../types';
 
 const tocData: TocItem[] = [
   {
+    label: 'Best Practices',
+    contentSite: 'docs',
+    url: '/docs/:version/data-modeling/best-practices',
+    collapsible: true, 
+    items: [
+      {
+        label: "Embedded Data", 
+        contentSite: "docs", 
+        url: "/docs/:version/data-modeling/embedding"
+      },
+      {
+        label: "Reference Data", 
+        contentSite: "docs",
+        url: "/docs/:version/data-modeling/referencing",
+        collapsible: true,
+        items: [
+          {
+            label: "Database References", 
+            contentSite: "docs", 
+            url: "/docs/:version/reference/database-references"
+          }
+        ]
+      },
+      {
+        label: "Duplicate Data", 
+        contentSite: "docs",
+        url: "/docs/:version/data-modeling/handle-duplicate-data"
+      }, 
+      {
+        label: "Data Consistency",
+        contentSite: "docs",
+        url: "/docs/:version/data-modeling/data-consistency",
+        collapsible: true,
+        items: [
+          {
+            label: "Use Transactions",
+            contentSite: "docs",
+            url: "/docs/:version/data-modeling/enforce-consistency/transactions",
+          },
+          {
+            label: "Use Embedding",
+            contentSite: "docs",
+            url: "/docs/:version/data-modeling/enforce-consistency/embed-data",
+          }
+        ],
+      },
+      {
+        label: "Schema Validation",
+        contentSite: "docs",
+        url: "/docs/:version/core/schema-validation",
+        collapsible: true,
+        items: [
+          {
+            label: "Specify JSON Validation",
+            contentSite: "docs",
+            url: "/docs/:version/core/schema-validation/specify-json-schema",
+            collapsible: true,
+            items: [
+              {
+                label: "Specify Field Values",
+                contentSite: "docs",
+                url: "/docs/:version/core/schema-validation/specify-json-schema/specify-allowed-field-values",
+              },
+              {
+                label: "Best Practices",
+                contentSite: "docs",
+                url: "/docs/:version/core/schema-validation/specify-json-schema/json-schema-tips",
+              },
+            ],
+          },
+          {
+            label: "Specify Query Operators",
+            contentSite: "docs",
+            url: "/docs/:version/core/schema-validation/specify-query-expression-rules",
+          },
+          {
+            label: "Specify Validation Level",
+            contentSite: "docs",
+            url: "/docs/:version/core/schema-validation/specify-validation-level",
+          },
+          {
+            label: "Handle Invalid Documents",
+            contentSite: "docs",
+            url: "/docs/:version/core/schema-validation/handle-invalid-documents",
+          },
+          {
+            label: "Bypass",
+            contentSite: "docs",
+            url: "/docs/:version/core/schema-validation/bypass-document-validation",
+          },
+          {
+            label: "View Existing Rules",
+            contentSite: "docs",
+            url: "/docs/:version/core/schema-validation/view-existing-validation-rules",
+          },
+          {
+            label: "Modify Rules",
+            contentSite: "docs",
+            url: "/docs/:version/core/schema-validation/update-schema-validation",
+          },
+          {
+            label: "Query and Modify",
+            contentSite: "docs",
+            url: "/docs/:version/core/schema-validation/use-json-schema-query-conditions",
+          },
+          {
+            label: "Specify Validation for Polymorphic Collections",
+            contentSite: "docs",
+            url: "/docs/:version/core/schema-validation/specify-validation-polymorphic-collections",
+          },
+        ],
+      },
+    ]
+  },
+  {
     label: 'Designing Your Schema',
     contentSite: 'docs',
     url: '/docs/:version/data-modeling/schema-design-process',
@@ -170,148 +285,79 @@ const tocData: TocItem[] = [
     ],
   },
   {
-    label: 'Data Modeling Concepts',
+    label: 'Model Relationships',
     contentSite: 'docs',
-    url: '/docs/:version/data-modeling/concepts',
+    url: '/docs/:version/applications/data-models-relationships',
     collapsible: true,
     items: [
       {
-        label: 'Embedded Vs Reference',
+        label: 'One-to-One Embedded Documents',
         contentSite: 'docs',
-        url: '/docs/:version/data-modeling/concepts/embedding-vs-references',
+        url: '/docs/:version/tutorial/model-embedded-one-to-one-relationships-between-documents',
       },
       {
-        label: 'Operational Factors',
+        label: 'One-to-Many Embedded Documents',
         contentSite: 'docs',
-        url: '/docs/:version/core/data-model-operations',
+        url: '/docs/:version/tutorial/model-embedded-one-to-many-relationships-between-documents',
+      },
+      {
+        label: 'One-to-Many References',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/model-referenced-one-to-many-relationships-between-documents',
+      },
+      {
+        label: 'Many-to-Many Embedded Documents',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/model-embedded-many-to-many-relationships-between-documents',
       },
     ],
   },
   {
-    label: 'Handle Duplicate Data',
+    label: 'Model Tree Structures',
     contentSite: 'docs',
-    url: '/docs/:version/data-modeling/handle-duplicate-data',
-  },
-  {
-    label: 'Data Consistency',
-    contentSite: 'docs',
-    url: '/docs/:version/data-modeling/data-consistency',
+    url: '/docs/:version/applications/data-models-tree-structures',
     collapsible: true,
     items: [
       {
-        label: 'Use Transactions',
+        label: 'Parent References',
         contentSite: 'docs',
-        url: '/docs/:version/data-modeling/enforce-consistency/transactions',
+        url: '/docs/:version/tutorial/model-tree-structures-with-parent-references',
       },
       {
-        label: 'Use Embedding',
+        label: 'Child References',
         contentSite: 'docs',
-        url: '/docs/:version/data-modeling/enforce-consistency/embed-data',
+        url: '/docs/:version/tutorial/model-tree-structures-with-child-references',
+      },
+      {
+        label: 'Array of Ancestors',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/model-tree-structures-with-ancestors-array',
+      },
+      {
+        label: 'Materialized Paths',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/model-tree-structures-with-materialized-paths',
+      },
+      {
+        label: 'Nested Sets',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/model-tree-structures-with-nested-sets',
       },
     ],
   },
   {
-    label: 'Schema Validation',
+    label: 'Example Application Models',
     contentSite: 'docs',
-    url: '/docs/:version/core/schema-validation',
+    url: '/docs/:version/applications/data-models-applications',
     collapsible: true,
     items: [
       {
-        label: 'Specify JSON Validation',
+        label: 'Atomic Operations',
         contentSite: 'docs',
-        url: '/docs/:version/core/schema-validation/specify-json-schema',
-        collapsible: true,
-        items: [
-          {
-            label: 'Specify Field Values',
-            contentSite: 'docs',
-            url: '/docs/:version/core/schema-validation/specify-json-schema/specify-allowed-field-values',
-          },
-          {
-            label: 'Best Practices',
-            contentSite: 'docs',
-            url: '/docs/:version/core/schema-validation/specify-json-schema/json-schema-tips',
-          },
-        ],
+        url: '/docs/:version/tutorial/model-data-for-atomic-operations',
       },
       {
-        label: 'Specify Query Operators',
-        contentSite: 'docs',
-        url: '/docs/:version/core/schema-validation/specify-query-expression-rules',
-      },
-      {
-        label: 'Specify Validation Level',
-        contentSite: 'docs',
-        url: '/docs/:version/core/schema-validation/specify-validation-level',
-      },
-      {
-        label: 'Handle Invalid Documents',
-        contentSite: 'docs',
-        url: '/docs/:version/core/schema-validation/handle-invalid-documents',
-      },
-      {
-        label: 'Bypass',
-        contentSite: 'docs',
-        url: '/docs/:version/core/schema-validation/bypass-document-validation',
-      },
-      {
-        label: 'View Existing Rules',
-        contentSite: 'docs',
-        url: '/docs/:version/core/schema-validation/view-existing-validation-rules',
-      },
-      {
-        label: 'Modify Rules',
-        contentSite: 'docs',
-        url: '/docs/:version/core/schema-validation/update-schema-validation',
-      },
-      {
-        label: 'Query and Modify',
-        contentSite: 'docs',
-        url: '/docs/:version/core/schema-validation/use-json-schema-query-conditions',
-      },
-      {
-        label: 'Specify Validation for Polymorphic Collections',
-        contentSite: 'docs',
-        url: '/docs/:version/core/schema-validation/specify-validation-polymorphic-collections',
-      },
-    ],
-  },
-  {
-    label: 'Data Model Examples and Patterns',
-    contentSite: 'docs',
-    url: '/docs/:version/applications/data-models',
-    collapsible: true,
-    items: [
-      {
-        label: 'Document Relationships',
-        contentSite: 'docs',
-        url: '/docs/:version/applications/data-models-relationships',
-        collapsible: true,
-        items: [
-          {
-            label: 'One-to-One Embedded Documents',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/model-embedded-one-to-one-relationships-between-documents',
-          },
-          {
-            label: 'One-to-Many Embedded Documents',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/model-embedded-one-to-many-relationships-between-documents',
-          },
-          {
-            label: 'One-to-Many References',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/model-referenced-one-to-many-relationships-between-documents',
-          },
-          {
-            label: 'Many-to-Many Embedded Documents',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/model-embedded-many-to-many-relationships-between-documents',
-          },
-        ],
-      },
-      {
-        label: 'Tree Structures',
+        label: 'IOT Data',
         contentSite: 'docs',
         url: '/docs/:version/applications/data-models-tree-structures',
         collapsible: true,
@@ -370,11 +416,6 @@ const tocData: TocItem[] = [
             url: '/docs/:version/tutorial/model-monetary-data',
           },
         ],
-      },
-      {
-        label: 'Database References',
-        contentSite: 'docs',
-        url: '/docs/:version/reference/database-references',
       },
     ],
   },
