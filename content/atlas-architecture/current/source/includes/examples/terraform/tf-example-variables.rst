@@ -1,6 +1,35 @@
 .. code-block::
    :copyable: true
 
+   # MongoDB Atlas Provider Authentication Variables
+   # Legacy API key authentication (backward compatibility)
+   variable "mongodbatlas_public_key" {
+     type        = string
+     description = "MongoDB Atlas API public key"
+     sensitive   = true
+   }
+   
+   variable "mongodbatlas_private_key" {
+     type        = string
+     description = "MongoDB Atlas API private key"
+     sensitive   = true
+   }
+   
+   # Recommended: Service account authentication
+   variable "mongodb_service_account_id" {
+     type        = string
+     description = "MongoDB service account ID for authentication"
+     sensitive   = true
+     default     = null
+   }
+   
+   variable "mongodb_service_account_key_file" {
+     type        = string
+     description = "Path to MongoDB service account private key file"
+     sensitive   = true
+     default     = null
+   }
+
    # Atlas Organization ID 
    variable "atlas_org_id" {
      type        = string

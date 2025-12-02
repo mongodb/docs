@@ -20,11 +20,6 @@ const tocData: TocItem[] = [
     ],
   },
   {
-    label: 'Default MongoDB Port',
-    contentSite: 'docs',
-    url: '/docs/:version/reference/default-mongodb-port',
-  },
-  {
     label: 'Connection Methods',
     contentSite: 'cloud-docs',
     collapsible: true,

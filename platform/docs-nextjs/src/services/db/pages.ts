@@ -77,6 +77,6 @@ interface GetPageDocFromParamsArgs {
 }
 
 export const getPageDocFromParams = async ({ path, prefix = 'docs' }: GetPageDocFromParamsArgs) => {
-  const fullPagePath = [prefix, path?.join('/') ?? ''].join('/');
+  const fullPagePath = path ? [prefix, path.join('/')].join('/') : prefix;
   return getPageAST(fullPagePath);
 };

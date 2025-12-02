@@ -6,15 +6,22 @@
      required_providers {    
        mongodbatlas = {    
          source  = "mongodb/mongodbatlas"    
-         version = "1.34.0"    
+         version = "~> 2.2"    
        }    
      }    
+     required_version = ">= 1.0"
    }  
   
    # Configure the MongoDB Atlas Provider  
    provider "mongodbatlas" {    
+     # Legacy API key authentication (backward compatibility)
      public_key  = var.mongodbatlas_public_key    
      private_key = var.mongodbatlas_private_key    
+     
+     # Recommended: Service account authentication
+     # Uncomment and configure the following for service account auth:
+     # service_account_id = var.mongodb_service_account_id
+     # private_key_file   = var.mongodb_service_account_key_file
    }  
   
    # Create a Project  
@@ -30,17 +37,21 @@
      cluster_type           = "REPLICASET"    
      mongo_db_major_version = "8.0"    
     
-     replication_specs {    
-       region_configs {    
-         electable_specs {    
-           instance_size = "M10"    
-           node_count    = 1    
-         }    
-         provider_name = "AWS"    
-         priority      = 7    
-         region_name   = "US_WEST_1"    
-       }    
-     }    
+     replication_specs = [
+       {
+         region_configs = [
+           {    
+             electable_specs = {    
+               instance_size = "M10"    
+               node_count    = 1    
+             }    
+             provider_name = "AWS"    
+             priority      = 7    
+             region_name   = "US_WEST_1"    
+           }    
+         ]
+       }
+     ]    
     
      # Advanced configuration  
      backup_enabled         = true    

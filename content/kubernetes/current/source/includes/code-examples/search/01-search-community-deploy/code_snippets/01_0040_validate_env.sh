@@ -16,9 +16,10 @@ required=(
 
 missing_req=()
 for v in "${required[@]}"; do [[ -n "${!v:-}" ]] || missing_req+=("${v}"); done
+
 if (( ${#missing_req[@]} )); then
   echo "ERROR: Missing required environment variables:" >&2
   for m in "${missing_req[@]}"; do echo "  - ${m}" >&2; done
+else
+  echo "All required environment variables present."
 fi
-
-echo "All required environment variables present."

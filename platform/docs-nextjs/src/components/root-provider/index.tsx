@@ -19,8 +19,10 @@ import type { PageTemplateType } from '@/types/ast';
 import { InstruqtProvider } from '@/context/instruqt-context';
 import { ImageContextProvider, type ImageContextType } from '@/context/image-context';
 import type { Environments } from '@/utils/env-config';
+import { SidenavContextProvider } from '@/context/sidenav-context';
 import { UnifiedTocProvider } from '@/context/unified-toc-context';
 import { CookiesProvider } from '@/context/cookies-context';
+import { ChatbotProvider } from '@/context/chatbot-context';
 
 const getPageSlug = (fileName: ASTDocument['filename']) => {
   return fileName === 'index' ? '/' : fileName.replace('.txt', '');
@@ -57,11 +59,15 @@ const RootProvider = ({ cookies, children, metadata, page, assets, docsets, env,
             >
               <FootnoteProvider pageNodes={pageNodes}>
                 <ContentsProvider headingNodes={headingNodes}>
-                  <TabProvider selectors={page.ast.options?.selectors} defaultTabs={page.ast.options?.default_tabs}>
-                    <InstruqtProvider hasLabDrawer={!!page.ast.options?.instruqt}>
-                      <ImageContextProvider value={assets}>{children}</ImageContextProvider>
-                    </InstruqtProvider>
-                  </TabProvider>
+                  <SidenavContextProvider>
+                    <TabProvider selectors={page.ast.options?.selectors} defaultTabs={page.ast.options?.default_tabs}>
+                      <InstruqtProvider hasLabDrawer={!!page.ast.options?.instruqt}>
+                        <ImageContextProvider value={assets}>
+                          <ChatbotProvider>{children}</ChatbotProvider>
+                        </ImageContextProvider>
+                      </InstruqtProvider>
+                    </TabProvider>
+                  </SidenavContextProvider>
                 </ContentsProvider>
               </FootnoteProvider>
             </PageContext.Provider>

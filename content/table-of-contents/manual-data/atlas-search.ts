@@ -183,6 +183,11 @@ const tocData: TocItem[] = [
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/atlas-search/field-types/uuid-type',
               },
+              {
+                label: 'vector',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/atlas-search/field-types/vector-type',
+              },
             ],
           },
           {
@@ -331,6 +336,11 @@ const tocData: TocItem[] = [
                 label: 'text',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/atlas-search/operators-collectors/text',
+              },
+              {
+                label: 'vectorSearch',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/atlas-search/operators-collectors/vectorSearch',
               },
               {
                 label: 'wildcard',

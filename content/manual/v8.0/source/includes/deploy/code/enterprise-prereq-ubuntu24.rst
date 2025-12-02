@@ -1,0 +1,5 @@
+.. Prerequisite to Install MongoDB Enterprise on Ubuntu 24.04
+.. code-block:: bash
+
+   sudo apt-get install libcurl4 libgssapi-krb5-2 libldap2 libwrap0 libsasl2-2 libsasl2-modules libsasl2-modules-gssapi-mit snmp openssl liblzma5
+

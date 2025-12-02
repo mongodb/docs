@@ -1,0 +1,39 @@
+db.embedded_movies.aggregate([
+  {
+    "$search": {
+      "index": "<index-name>",
+      "vectorSearch": {
+        "path": "plot_embedding_voyage_3_large",
+        "filter": {
+          "compound": {
+            "should": [{
+              "queryString": {
+                "defaultPath": "fullplot",
+                "query": "plot:courtroom OR lawyer"
+              }
+            },
+            {
+              "range": {
+                "path": "year",
+                "gte": 2000,
+                "lte": 2015
+              }
+            }]
+          }
+        },
+        "queryVector": INTENSE_COURTROOM_DRAMA,
+        "limit": 10,
+        "exact": true
+      },
+      "concurrent": true
+    }
+  },
+  {
+    "$project": {
+      "_id": 0,
+      "title": 1,
+      "plot": 1,
+      "score": { "$meta": "searchScore" }
+    }
+  }
+])

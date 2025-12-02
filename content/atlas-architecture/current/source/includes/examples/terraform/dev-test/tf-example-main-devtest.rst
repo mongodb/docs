@@ -13,40 +13,45 @@
      name = "ClusterPortalDev"
      cluster_type = "REPLICASET"
      mongo_db_major_version = var.mongodb_version
-     replication_specs {
-       region_configs {
-         electable_specs {
-           instance_size = var.cluster_instance_size_name
-           node_count    = 3
-         }
-         priority      = 7
-         provider_name = var.cloud_provider
-         region_name   = var.atlas_region
+     replication_specs = [
+       {
+         region_configs = [
+           {
+             electable_specs = {
+               instance_size = var.cluster_instance_size_name
+               node_count    = 3
+             }
+             auto_scaling = {
+               compute_enabled = true
+               compute_scale_down_enabled = true
+               compute_max_instance_size = "M60"
+               compute_min_instance_size = "M10"
+             }
+             priority      = 7
+             provider_name = var.cloud_provider
+             region_name   = var.atlas_region
+           }
+         ]
        }
+     ]
+     tags = {
+       BU       = "ConsumerProducts"
+       TeamName = "TeamA"
+       AppName  = "ProductManagementApp"
+       Env      = "Test"
+       Version  = "8.0"
+      Email    = "marissa@example.com"
      }
-     tags {
-       key   = "BU"
-       value = "ConsumerProducts"
-     }
-     tags {
-       key   = "TeamName"
-       value = "TeamA"
-     }
-     tags {
-       key   = "AppName"
-       value = "ProductManagementApp"
-     }
-     tags {
-       key   = "Env"
-       value = "Test"
-     }
-     tags {
-       key   = "Version"
-       value = "8.0"
-     }
-     tags {
-       key   = "Email"
-       value = "marissa@acme.com"
+     
+     # MongoDB recommends enabling auto-scaling
+     # When auto-scaling is enabled, Atlas may change the instance size, and this lifecycle
+     # block prevents Terraform from reverting Atlas auto-scaling changes
+     # that modify instance size back to the original configured value
+     
+     lifecycle {
+       ignore_changes = [
+         replication_specs[0].region_configs[0].electable_specs.instance_size
+       ]
      }
    }
    
@@ -63,23 +68,50 @@
 
 .. code-block::
 
-   replication_specs {
-     region_configs {
-       electable_specs {
-         instance_size = "M10"
-         node_count    = 2
-       }
-       provider_name = "GCP"
-       priority      = 7
-       region_name   = "NORTH_AMERICA_NORTHEAST_1"
+   replication_specs = [
+     {
+       region_configs = [
+         {
+           electable_specs = {
+             instance_size = "M10"
+             node_count    = 2
+           }
+           auto_scaling = {
+             compute_enabled = true
+             compute_scale_down_enabled = true
+             compute_max_instance_size = "M60"
+             compute_min_instance_size = "M10"
+           }
+           provider_name = "GCP"
+           priority      = 7
+           region_name   = "NORTH_AMERICA_NORTHEAST_1"
+         },
+         {
+           electable_specs = {
+             instance_size = "M10"
+             node_count    = 3
+           }
+           auto_scaling = {
+             compute_enabled = true
+             compute_scale_down_enabled = true
+             compute_max_instance_size = "M60"
+             compute_min_instance_size = "M10"
+           }
+           provider_name = "GCP"
+           priority      = 6
+           region_name   = "WESTERN_US"
+         }
+       ]
      }
-     region_configs {
-       electable_specs {
-         instance_size = "M10"
-         node_count    = 3
-       }
-       provider_name = "GCP"
-       priority      = 6
-       region_name   = "WESTERN_US"
-     }
+   ]
+   
+   # MongoDB recommends enabling auto-scaling
+   # When auto-scaling is enabled, Atlas may change the instance size, and this lifecycle
+   # block prevents Terraform from reverting Atlas auto-scaling changes
+   # that modify instance size back to the original configured value
+   lifecycle {
+     ignore_changes = [
+       replication_specs[0].region_configs[0].electable_specs.instance_size,
+       replication_specs[0].region_configs[1].electable_specs.instance_size
+     ]
    }

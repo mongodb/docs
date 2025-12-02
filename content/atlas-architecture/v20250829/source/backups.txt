@@ -1,0 +1,346 @@
+.. _arch-center-backups:
+
+================================
+Guidance for {+service+} Backups
+================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn the best practices for configuring backups for you Atlas cluster.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+|service-fullname| provides fully managed and customizable backups to
+ensure data retention and recovery: 
+
+- Cloud Backups: Supports full-copy snapshots and localized snapshot
+  storage using your cloud provider's native snapshot capabilities.
+  These snapshots are always incremental in nature for low cost and fast
+  restores. You choose a backup policy that specifies the frequency and
+  retention period of hourly, daily, weekly, monthly and yearly
+  snapshots.
+- Continuous Cloud Backups: Enhances standard cloud backups by offering
+  Point In Time (PIT) recovery. This additive feature stores snapshots
+  along with the cluster's oplog to capture data changes between
+  snapshots, enabling you to recover your data to the exact moment (a
+  point in time) right before any failure or event. This supports
+  Recovery Point Objectives (RPOs) as low as 1 minute.
+
+We don't recommend enabling backup for development and test
+environments. For staging and production environments, we recommend
+developing automated deployment templates that include the
+backup policy recommendations described in this page. 
+
+Features for {+service+} Backups
+--------------------------------
+
+|service| provides fully-managed backups of your data, including
+point-in-time data recovery and consistent, cluster-wide snapshots of
+all clusters, including sharded clusters. In |service|, you can
+choose from five snapshot frequencies, each with its own retention
+period: hourly, daily, weekly, monthly, and yearly.
+
+.. list-table:: 
+   :widths: 20 80 
+   :stub-columns: 1
+
+   * - Cloud Backups
+     - This feature provides localized backup storage using the native
+       snapshot functionality of your cluster's cloud service provider.
+       Benefits include a strong default backup retention schedule of 12
+       months, full flexibility to customize snapshot and retention
+       schedules, and the ability to set different snapshot frequencies
+       (such as hourly for recovery, weekly or monthly for long-term
+       retention) to meet industry regulations. You can access your
+       backup data instantly, which is useful for auditing, compliance,
+       or data recovery purposes.
+
+   * - Continuous Cloud Backups
+     - This feature can be enabled on top of Cloud Backups to provide
+       Point In Time (PIT) recovery. Continuous Cloud Backups work by
+       storing snapshots along with the cluster's oplog up to a
+       customizable Point In Time Restore (PITr) window, enabling you to
+       restore to the last snapshot and then replay all operations since
+       the snapshot was taken. This allows you to recover your data to
+       the exact moment (a point in time) right before any failure or
+       data loss event, like a cyber attack.
+
+   * - Multi-region Snapshot Distribution
+     - This feature allows you to increase resilience by distributing
+       copies of backup snapshots and oplogs across geographic regions
+       in addition to the default primary region. This configuration
+       meets compliance requirements of storing backups in different
+       geographical locations to ensure disaster recovery in case of
+       regional outages.
+
+       To learn more, see :atlas:`Snapshot Distribution </backup/cloud-backup/snapshot-distribution/>`.
+
+   * - Backup Compliance Policy 
+     - This feature further secures business critical data by preventing
+       all snapshots and oplogs stored in {+service+} from being
+       modified or deleted, guaranteeing that your backups are fully
+       WORM (Write Once Read Many) compliant. Only a designated,
+       authorized user can turn off this protection after completing a
+       verification process with MongoDB support. There is a mandatory
+       cooldown period to disable this feature so that an attacker
+       cannot change the backup policy and export the data.
+
+       To learn more, see `Configure a Backup Compliance Policy <https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/>`__.
+
+.. _arch-center-backups-recs:
+
+Recommendations for {+service+} Backups
+---------------------------------------
+
+Recommendations for Backup Strategy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You must align your backup strategy with specific Recovery Point
+Objectives (RPO) and Recovery Time Objectives (RTO) to meet business
+continuity requirements, particularly for critical applications where
+near-zero {+rpo+} and rapid recovery times are crucial. {+rpo+}
+defines the maximum amount of data loss acceptable during a failure or
+disruption, while {+rto+} defines the maximum amount of time it takes
+for your cluster or service to recover. You must calculate your
+standards for {+rpo+} and {+rto+} based on the criticality of your
+application. For example, mission-critical data typically requires a
+lower {+rpo+} than clickstream analytics.
+
+The nature of your disaster scenario and your method of recovery affects
+your achievable {+rpo+} and {+rto+}. MongoDB's default high availability
+architecture supports automatic failover to recover from temporary cloud
+provider outages with a near-zero {+rto+} and {+rpo+}, depending on the
+scope of the outage and your chosen deployment paradigm. To learn more
+about deployment configurations that support automatic failover, see
+:ref:`arch-center-high-availability`. For disaster scenarios that
+require you to restore from backup, such a code error that corrupts your
+entire database or an accidental cluster deletion, your deployment's
+{+rto+} and {+rpo+} depend on the following:
+
+- {+rpo+} depends on the snapshot interval defined in your backup
+  policy. When Continuous Cloud Backups is disabled, your {+rpo+}
+  directly corresponds to the amount of time between snapshots. If you
+  take backup snapshots every four hours, for example, then you can lose
+  up to four hours of data during a failure event. If you enable
+  Continuous Cloud Backups, then you can perform {+pit+} restores that
+  guarantee an {+rpo+} as low as one minute within your customizable
+  {+pitr+} window. 
+- {+rto+} depends on the size of your backup and the efficiency of your
+  restore operation. Large replica sets (and shards) take longer to
+  restore. To speed up restores, {+service+} automatically performs
+  optimized direct attach restores for clusters that are based in the
+  same project and regions where you store snapshot copies. If there is
+  no local snapshot available, or if the cluster uses NVMe storage
+  instead of standard General or Low CPU storage, then {+service+}
+  defaults to slower streaming restores. Additionally, if you enable
+  Continuous Cloud Backups, then {+service+} must replay operations
+  after restoring to the last snapshot in order to complete a {+pit+}
+  restore. The less time between snapshots, the fewer operations must be
+  replayed. Therefore, you can lower your {+rto+} by prioritizing
+  optimized restores and requiring more frequent snapshots in your
+  backup policy. 
+
+For a comprehensive backup policy, we recommend the default
+backup policy below. You should adjust this policy according to your
+business's data retention and disaster recovery needs.
+
+.. list-table::
+   :widths: 15 15 20 30 20
+   :header-rows: 1
+
+   * - Policy Type
+     - Tier
+     - {+PIT-Restore+}
+     - Snapshot Taken
+     - Snapshot Retained
+
+   * - Hourly
+     - |nvme|
+     - Enabled
+     - Every 12 hours
+     - 7 days
+
+   * - Hourly
+     - non-|nvme|
+     - Enabled
+     - Every 6 hours
+     - 7 days
+
+   * - Daily
+     - All
+     - Either
+     - Every day
+     - 7 days
+
+   * - Weekly
+     - All
+     - Either
+     - Every Saturday
+     - 4 weeks
+
+   * - Monthly
+     - All
+     - Either
+     - Last day of the month
+     - 12 months
+
+   * - Yearly
+     - All
+     - Either
+     - Every 1st of December
+     - 1 year
+
+
+.. seealso:: 
+
+   :mdbu-course:`Choosing the Right Atlas Backup Policy </learn/article/choosing-the-right-atlas-backup-policy>`
+
+.. _atlas-backup-distribution:
+
+Recommendations for Backup Distribution 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To further enhance resilience in a single-region deployment, we
+recommend that you configure {+service+} to copy snapshots from the primary
+region to a secondary backup region to ensure that you can still restore
+to previous versions if the primary region goes down. To learn more,
+see :ref:`snapshot-distribution`.
+
+.. _atlas-backup-compliance:
+
+Recommendations for Backup Compliance Policy 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We recommend enforcing {+service+}'s `Backup Compliance Policy
+<https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/>`__
+to prevent unauthorized modifications or deletions of backups, thereby
+ensuring data protection and robust disaster recovery. 
+
+Recommendations for PIT Recovery
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Continuous Cloud Backups enable precise Point In Time (PIT) recovery,
+which minimizes data loss during failures. {+service+} can quickly
+recover to the exact timestamp before a failure event, guaranteeing at
+least a one minute {+rpo+}. This is because {+service+} restores the
+most recent snapshot from before the desired point in time and then
+replays the oplog changes to restore to that particular point.
+Recovery times can vary due to cloud provider disk warming and how
+much of the oplog must replay during recovery. Your cluster
+performance might be slow until the cloud provider disk warming
+completes after a restore. If you can be flexible in your requirements
+for recovery, we recommend designing templates that identify the best
+compromise between reasonable recovery options and cost. 
+
+Recommendations for Backup Costs 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To optimize {+service+} backup costs, you can adjust backup frequency and
+retention policies to align with data criticality and reduce unnecessary
+storage expenses. For example, we recommend that you disable backups in
+lower environments, such as development or test clusters where data
+recovery is not critical. For upper environments, we recommend balancing
+cross-region data transfer costs against high availability requirements
+when distributing backup snapshots across regions. 
+
+Automation Examples: {+service+} Backups
+----------------------------------------
+
+The following examples enable backup and restore operations using |service|
+:ref:`tools for automation <arch-center-automation>`.
+
+These examples apply only for staging and production environments where
+backup is enabled for the cluster.
+
+.. tabs::
+
+   .. tab:: CLI
+      :tabid: cli
+
+      Run the following command to take a backup snapshot for the cluster
+      named myDemo and retain the snapshot for 7 days:
+
+      .. include:: /includes/examples/cli/cli-example-backup-take-snapshot.rst
+
+      Enable backup compliance policy for your project with a
+      designated, authorized user (``governance@example.org``) who alone can turn
+      off this protection after completing a verification process with
+      MongoDB support. 
+
+      .. include:: /includes/examples/cli/cli-example-backup-compliance-policy-enable.rst
+
+      Run the following command to create a compliance policy for
+      scheduled backup snapshots that enforces the number of times
+      snapshots must be taken, which is set to every ``6`` hours, and
+      the duration for retaining the snapshots, which is set to ``1``
+      month.   
+
+      .. include:: /includes/examples/cli/cli-example-backup-compliance-policy-schedule.rst
+
+   .. tab:: Terraform
+      :tabid: Terraform
+ 
+      The following examples demonstrate how to configure backups during
+      deployment. Before you can create resources with Terraform,
+      you must:  
+
+      - :ref:`Create your paying organization <configure-paying-org>`
+        and :ref:`create an API key <atlas-admin-api-access>` for the
+        paying organization. Store your API key as environment variables
+        by running the following command in the terminal: 
+
+        .. code-block::
+
+           export MONGODB_ATLAS_PUBLIC_KEY="<insert your public key here>"
+           export MONGODB_ATLAS_PRIVATE_KEY="<insert your private key here>"
+
+      - `Install Terraform <https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli>`__.
+
+      Common Files 
+      ~~~~~~~~~~~~
+
+      You must create the following files for each example. Place the
+      files for each example in their own directory. Change the IDs and
+      names to use your values. Then run the commands to initialize
+      Terraform, view the Terraform plan, and apply the changes. 
+
+      variables.tf 
+      ````````````
+
+      .. include:: /includes/examples/terraform/tf-example-backup-variables.rst
+
+      Configure Backup Schedule for the Cluster 
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Use the following to configure a backup schedule for the cluster
+      with the following snapshot frequency and retention:
+
+      - Hourly: Every 12 hours, retain for 7 days
+      - Daily: Once a day, retain for 7 days
+      - Weekly: Saturday, retain for 4 weeks
+      - Monthly: Last day of month, retain for 3 months
+
+      main.tf 
+      ```````
+
+      .. include:: /includes/examples/terraform/tf-example-backup-snapshot-schedule-tier1.rst
+
+      Configure Backup and PIT Restore for the Cluster
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+      Use the following to configure cloud backup snapshot and PIT restore
+      job.
+
+      main.tf 
+      ```````
+      
+      .. include:: /includes/examples/terraform/tf-example-backup-snapshot-pit-restore.rst

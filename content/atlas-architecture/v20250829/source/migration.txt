@@ -1,0 +1,135 @@
+.. _arch-center-migration:
+
+=========
+Migration
+=========
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: atlas architecture center
+   :description: Learn about live migrating data into Atlas from on-premises MongoDB databases using several automated processes.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: onecol
+
+You can migrate data from your on-premises MongoDB deployments to |service| using one of 
+a variety of methods. We recommend using |service| :atlas:`live migration </atlas/import/#migrate-or-import-data>` 
+when possible because it automates many of the tasks with the least amount of downtime, but you 
+can use other tools that accommodate the variety and complexity inherent to database migration. 
+
+Live Migration Overview
+----------------------- 
+
+|service| live migration automates moving data from on-premises MongoDB databases to |service|.
+|service| live migration includes the following features:
+
+- The migration host always encrypts traffic to the |service| cluster. Traffic to, from, and 
+  between |service| nodes is always encrypted, and this feature can't be disabled. Only users 
+  with specific Role-Based Access Control (RBAC) database :ref:`roles <authorization>` 
+  (such as :authrole:`backup`, :authrole:`readAnyDatabase`, or :authrole:`clusterMonitor`), and 
+  |service| Project Owner can initiate a live migration. Users authenticate to clusters using 
+  :manual:`SCRAM-SHA-1 or SCRAM-SHA-256 </core/security-scram/>`.
+
+- Live migration automates most tasks. For the fully-managed "pull" method, live migration 
+  monitors key metrics, provisions the migration servers and performs the strict sequencing 
+  of the migration commands. Furthermore, you can also select what |service| Destination 
+  cluster tier configurations you would like to migrate to.
+
+- Detailed instructions help you scale destination clusters to control costs. Recommendations 
+  include appropriate cluster sizing and temporary scaling, followed by resizing to optimal 
+  levels post-migration.
+
+- Live migration uses |mongosync| behind the scenes, which facilitates fast cutover 
+  through parallel data copying. Processes manage temporary network interruptions and 
+  cluster elections, using continuous data synchronization and a final cutover phase to 
+  achieve minimal downtime. Retry mechanisms and pre-migration validations enhance resilience 
+  against interruptions.
+
+- Monitor migrations with real-time status updates and notifications.
+
+Live Migration Methods
+----------------------
+
+You can have a live migration server pull data into |service|. The pull live 
+migration method supports migration paths between specific MongoDB versions. 
+See :atlas:`Supported Migration Paths </atlas/c2c-pull-live-migration/>` to 
+learn more. To migrate data from databases using unsupported versions of MongoDB, 
+see :atlas:`Legacy Migration </atlas/legacy-migration/>` 
+or :ref:`arch-center-manual-migration`.
+
+* **Pull data into Atlas.** |service| pulls data from the source MongoDB deployment 
+  and requires access to the source deployment through the deployment's firewall. When the 
+  clusters are fully synced, you must follow the cutover process of stopping write operations 
+  on the source, redirect applications to the |service| cluster, and restart them. The following
+  considerations apply:
+
+  - Best for deployments not monitored by |com|. 
+  - The source database must be publicly accessible to allow inbound access from the live migration server.
+  - Doesn't support :ref:`VPC peering <vpc-peering>` or :ref:`private endpoints <private-endpoint>`
+    for either the source or destination cluster.
+  - Source and destination cluster topologies must match. For example, both 
+    must be replica sets or sharded clusters with the same number of shards.
+  - Plan for minimal downtime during cutover, to stop writes and restart applications with a new connection string. 
+    The migration process is CPU-intensive on the destination cluster and requires significant network bandwidth.
+  - To ensure a smooth migration process, confirm that the source cluster's oplog size is adequate to 
+    cover the entire migration duration. For the source cluster, the live migration's lag window should 
+    stay within the bounds of the oplog replication lag window. You can fulfill this requirement by increasing 
+    the minimum oplog window or by increasing the fixed oplog size. For the destination cluster, MongoDB 
+    recommends that you choose a destination cluster tier that is at least two tiers above the source cluster 
+    for the duration of the migration. If storage auto-scaling is disabled on the destination cluster, increase the 
+    oplog size on the destination cluster to a high enough fixed value. If storage auto-scaling is enabled on the 
+    destination cluster, set a high enough minimum oplog window on the destination cluster. See 
+    :atlas:`Oplog Requirements <atlas/import/c2c-pull-live-migration/#oplog-requirements>` to learn more.
+  - For full migration recommendations and instructions, see :ref:`c2c-pull-live-migration`.
+
+Monitoring Migrations
+---------------------
+
+.. include:: /includes/cloud-docs/shared-migration-monitoring-description.rst
+
+To learn more, see :ref:`monitor-migrations`.
+
+.. _arch-center-manual-migration:
+
+Manual Migration Methods
+------------------------
+
+If |service| live migration can't satisfy the constraints of your migration requirements, 
+you can bring data from existing MongoDB deployments, ``JSON``, or ``CSV`` files
+into |service| using one of the following tools that you run outside of |service|.
+
+.. include:: /includes/cloud-docs/shared-migration-tools-table.rst
+
+If you are required to use either |service| VNet peering or Private Link configurations, you 
+don't want to allow direct connection from a third party to its source cluster, or if you 
+don't already have or don't want to import the source cluster in |onprem| or |mms|, then MongoDB 
+recommends the standalone mongosync approach.
+
+If you have relatively small datasets (<300 GB) to migrate, and can afford application downtime 
+for an extended time period, then MongoDB recommends the :dbtools:`mongodump </database-tools/mongodump/#mongodump>` 
+and :dbtools:`mongorestore </database-tools/mongodump/#mongodump>` approach.
+
+If you have relatively small datasets (<300 GB) to migrate, no index concerns, and can afford 
+application downtime for an extended time period, then MongoDB recommends the :dbtools:`mongoexport </database-tools/mongoexport/>` 
+and :dbtools:`mongoimport </database-tools/mongoimport/>` approach.
+
+Cutover
+-------
+
+.. include:: /includes/cloud-docs/shared-migration-cutover-description.rst
+
+To learn more, see :ref:`monitor-migrations`.
+
+Next Steps
+----------
+
+See the :ref:`arch-center-hierarchy` page to learn about the building blocks of your {+service+} enterprise estate or use the left
+navigation to find features and best practices for each {+waf+} pillar.

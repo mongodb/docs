@@ -131,7 +131,7 @@ Procedure
 Follow these steps to run MongoDB |edition| Edition. These instructions
 assume that you are using the default settings.
 
-.. include:: /includes/steps/run-mongodb-on-osx.rst
+.. include:: /includes/deploy/install-tar.rst
 
 Additional Information
 ----------------------

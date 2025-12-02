@@ -9,37 +9,36 @@ import { formatText } from '@/utils/format-text';
 import type { HeadingNodeSelectorIds } from '@/types/ast';
 import ContentsList from './contents-list';
 import ContentsListItem from './contents-list-item';
-// TODO: DOP-5978 feedback rating component
-// import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
-// import { usePageContext } from '@/context/page-context';
-// import FeedbackRating from '@/components/feedback-rating';
-// import { theme } from '@/styles/theme';
+import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
+import { usePageContext } from '@/context/page-context';
+import FeedbackRating from '@/components/widgets/feedback-widget';
+import { theme } from '@/styles/theme';
+import useScreenSize from '@/hooks/use-screen-size';
 
 const formatTextOptions = {
   literalEnableInline: true,
 };
 
-// TODO: DOP-5978 feedback rating component
-// const formContainer = css`
-//   @media ${theme.screenSize.tablet} {
-//     z-index: 1;
-//   }
-// `;
+const formContainer = css`
+  @media ${theme.screenSize.tablet} {
+    z-index: 1;
+  }
+`;
 
-// const formStyle = css`
-//   position: absolute;
-//   right: 0;
-//   margin-top: ${theme.size.tiny};
+const formStyle = css`
+  position: absolute;
+  right: 0;
+  margin-top: ${theme.size.tiny};
 
-//   @media ${theme.screenSize.upToLarge} {
-//     position: fixed;
-//     top: 0;
-//     bottom: 0;
-//     left: 0;
-//     right: 0;
-//     overflow-y: auto;
-//   }
-// `;
+  @media ${theme.screenSize.upToLarge} {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow-y: auto;
+  }
+`;
 
 const styledContentList = css`
   overflow: auto;
@@ -72,32 +71,34 @@ const isHeadingVisible = (
   return isHeadingVisible(headingSelectorIds.children ?? {}, activeSelectorIds, searchParams);
 };
 
-const Contents = ({ className }: { className?: string; slug?: string }) => {
+const Contents = ({ className }: { className?: string }) => {
   const { activeHeadingId, headingNodes, showContentsComponent, activeSelectorIds } = useContext(ContentsContext);
-  // const metadata = useSnootyMetadata();
+  const metadata = useSnootyMetadata();
   const searchDict: URLSearchParams = useSearchParams() ?? new URLSearchParams();
-  // const { options } = usePageContext();
+  const { options } = usePageContext();
+  const { isTabletOrMobile } = useScreenSize();
 
   const filteredNodes = headingNodes.filter((headingNode) => {
     return isHeadingVisible(headingNode.selector_ids, activeSelectorIds, searchDict);
   });
 
   if (filteredNodes.length === 0 || !showContentsComponent) {
-    // TODO: DOP-5978 feedback rating component
-    return <div className={className}>{/* <FeedbackRating slug={slug} className={formStyle} /> */}</div>;
+    return (
+      <div className={className}>
+        <FeedbackRating className={formStyle} />
+      </div>
+    );
   }
 
   const label = 'On this page';
-  // TODO: Uncomment when necessary
-  // const shouldProjShowFW = !DEPRECATED_PROJECTS.includes(metadata.project);
-  // const hideFWOnMobile = options?.hidefeedback === 'header';
+  const shouldProjShowFW = !DEPRECATED_PROJECTS.includes(metadata.project);
+  const hideFWOnMobile = options?.hidefeedback === 'header';
 
   return (
     <>
-      {/* TODO: Uncomment Feedback */}
-      {/* {!isTabletOrMobile && shouldProjShowFW && (
-        <FeedbackRating slug={slug} className={formStyle} classNameContainer={formContainer} />
-      )} */}
+      {!isTabletOrMobile && shouldProjShowFW && (
+        <FeedbackRating className={formStyle} classNameContainer={formContainer} />
+      )}
       <div className={cx(className, styledContentList)}>
         <ContentsList label={label}>
           {filteredNodes.map(({ depth, id, title }) => {
@@ -111,10 +112,9 @@ const Contents = ({ className }: { className?: string; slug?: string }) => {
           })}
         </ContentsList>
       </div>
-      {/* TODO: Uncomment Feedback */}
-      {/* {isTabletOrMobile && shouldProjShowFW && !hideFWOnMobile && (
-        <FeedbackRating slug={slug} className={formStyle} classNameContainer={formContainer} />
-      )} */}
+      {isTabletOrMobile && shouldProjShowFW && !hideFWOnMobile && (
+        <FeedbackRating className={formStyle} classNameContainer={formContainer} />
+      )}
     </>
   );
 };

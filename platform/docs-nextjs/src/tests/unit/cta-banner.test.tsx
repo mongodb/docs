@@ -2,14 +2,19 @@ import { render } from '@testing-library/react';
 import { mockLocation } from '@/tests/utils/mock-location';
 import CTABanner from '@/components/banner/cta-banner';
 import type { ASTNode } from '@/types/ast';
-import { TestWrapper } from '../utils/test-wrapper';
+import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 
 // data for this component
 import mockData from '../data/cta-banner.test.json';
 
+jest.mock('@/utils/use-snooty-metadata', () => ({
+  useSnootyMetadata: jest.fn(),
+}));
+
 //TODO: uncomment snapshot tests once Next migration is complete
 beforeAll(() => {
   mockLocation({ hash: '' });
+  (useSnootyMetadata as jest.Mock).mockImplementation(() => ({ project: 'docs-node', branch: 'v4.9' }));
 });
 
 it('renders a CTABanner correctly when non-default icon is specified', () => {

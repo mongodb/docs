@@ -6,11 +6,9 @@
 
       .. include:: /includes/search-shared/find-connection-string.rst
    
-      .. note::
-
-         Ensure that your connection string includes your database 
-         user's credentials. To learn more about finding your connection string, 
-         see :ref:`connect-via-driver`. 
+      :gold:`IMPORTANT:` Ensure that your connection string includes your database 
+      user's credentials. To learn more about finding your connection string, 
+      see :ref:`connect-via-driver`. 
       
    .. tab:: Local Deployment
       :tabid: local

@@ -24,11 +24,12 @@ Set Up On-Premise {+sql-interface+} for Power BI on Windows
 
    .. step:: Download and install `the Power Bi connector file <https://www.mongodb.com/try/download/power-bi-connector/>`__.
 
-      .. note:: The certified MongoDB Power BI Connector ships with Power BI Desktop and can be used for both Atlas and EA database connections.
-                If your version of Power BI Desktop already has the MongoDB 
-                Atlas SQL connector, you can skip this step. To use a different 
-                version than the one bundled with Power BI Desktop, complete 
-                this step.
+      .. note::
+         The certified MongoDB Power BI Connector ships with Power BI Desktop and can be used for both Atlas and EA database connections.
+         If your version of Power BI Desktop already has the MongoDB 
+         Atlas SQL connector, you can skip this step. To use a different 
+         version than the one bundled with Power BI Desktop, complete 
+         this step.
    
       Move the connector file to the following directory path: 
       
@@ -72,7 +73,6 @@ Set Up On-Premise {+sql-interface+} for Power BI on Windows
          it's "online and ready to be used".
          
          .. note::
-
             You may need to restart the gateway via :guilabel:`Service Settings`.
 
       #. From Power BI Desktop, publish your created report to Power BI Service.

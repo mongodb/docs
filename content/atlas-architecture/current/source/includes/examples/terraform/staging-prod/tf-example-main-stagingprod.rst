@@ -15,11 +15,13 @@
    resource "mongodbatlas_project" "atlas-project" {
      org_id = var.atlas_org_id
      name = var.atlas_project_name
-     # Assign the Project the Group with Specific Roles
-     teams {
-      team_id    = mongodbatlas_team.project_group.team_id
-      role_names = ["GROUP_READ_ONLY", "GROUP_CLUSTER_MANAGER"]
-    }
+   }
+
+   # Assign the team to project with specific roles
+   resource "mongodbatlas_team_project_assignment" "project_team" {
+     project_id = mongodbatlas_project.atlas-project.id
+     team_id    = mongodbatlas_team.project_group.team_id
+     role_names = ["GROUP_READ_ONLY", "GROUP_CLUSTER_MANAGER"]
    }
    
    # Create an Atlas Advanced Cluster 
@@ -28,45 +30,46 @@
      name = "ClusterPortalProd"
      cluster_type = "REPLICASET"
      mongo_db_major_version = var.mongodb_version
-     replication_specs {
-       region_configs {
-         electable_specs {
-           instance_size = var.cluster_instance_size_name
-           node_count    = 3
-         }
-         priority      = 7
-         provider_name = var.cloud_provider
-         region_name   = var.atlas_region
+     replication_specs = [
+       {
+         region_configs = [
+           {
+             electable_specs = {
+               instance_size = var.cluster_instance_size_name
+               node_count    = 3
+               disk_size_gb  = var.disk_size_gb
+             }
+             auto_scaling = {
+               disk_gb_enabled = var.auto_scaling_disk_gb_enabled
+               compute_enabled = var.auto_scaling_compute_enabled
+               compute_max_instance_size = var.compute_max_instance_size
+             }
+             priority      = 7
+             provider_name = var.cloud_provider
+             region_name   = var.atlas_region
+           }
+         ]
        }
+     ]
+     # Prevent Terraform from reverting auto-scaling changes
+     lifecycle {
+       ignore_changes = [
+         replication_specs[0].region_configs[0].electable_specs.instance_size,
+         replication_specs[0].region_configs[0].electable_specs.disk_size_gb
+       ]
      }
-     tags {
-       key   = "BU"
-       value = "ConsumerProducts"
-     }
-     tags {
-       key   = "TeamName"
-       value = "TeamA"
-     }
-     tags {
-       key   = "AppName"
-       value = "ProductManagementApp"
-     }
-     tags {
-       key   = "Env"
-       value = "Production"
-     }
-     tags {
-       key   = "Version"
-       value = "8.0"
-     }
-     tags {
-       key   = "Email"
-       value = "marissa@acme.com"
+     tags = {
+       BU       = "ConsumerProducts"
+       TeamName = "TeamA"
+       AppName  = "ProductManagementApp"
+       Env      = "Production"
+       Version  = "8.0"
+      Email    = "marissa@example.com"
      }
    }
 
    # Outputs to Display
-   output "atlas_cluster_connection_string" { value = mongodbatlas_advanced_cluster.atlas-cluster.connection_strings.0.standard_srv }
+   output "atlas_cluster_connection_string" { value = mongodbatlas_advanced_cluster.atlas-cluster.connection_strings.standard_srv }
    output "project_name"      { value = mongodbatlas_project.atlas-project.name }
 
 .. note::
@@ -77,23 +80,27 @@
 
 .. code-block::
 
-   replication_specs {
-     region_configs {
-       electable_specs {
-         instance_size = "M10"
-         node_count    = 2
-       } 
-       provider_name = "GCP"
-       priority      = 7
-       region_name   = "NORTH_AMERICA_NORTHEAST_1"
+   replication_specs = [
+     {
+       region_configs = [
+         {
+           electable_specs = {
+             instance_size = "M10"
+             node_count    = 2
+           }
+           provider_name = "GCP"
+           priority      = 7
+           region_name   = "NORTH_AMERICA_NORTHEAST_1"
+         },
+         {
+           electable_specs = {
+             instance_size = "M10"
+             node_count    = 3
+           }
+           provider_name = "GCP"
+           priority      = 6
+           region_name   = "WESTERN_US"
+         }
+       ]
      }
-     region_configs {
-       electable_specs {
-         instance_size = "M10"
-         node_count    = 3
-       }
-       provider_name = "GCP"
-       priority      = 6
-       region_name   = "WESTERN_US"
-     }
-   }
+   ]

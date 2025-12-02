@@ -1,0 +1,16 @@
+db.embedded_movies.createSearchIndex(
+  "default",
+  {
+    "mappings": { 
+      "dynamic": true,
+      "fields": {
+        "plot_embedding_voyage_3_large": {
+          "numDimensions": 2048,
+          "quantization": "scalar",
+          "similarity": "dotProduct",
+          "type": "vector"
+        } 
+      }
+    }
+  }
+)

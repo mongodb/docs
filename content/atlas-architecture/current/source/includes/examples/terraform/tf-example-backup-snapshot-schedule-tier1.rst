@@ -19,22 +19,26 @@
     name         = each.value.name
      cluster_type = "REPLICASET"
 
-    replication_specs {
-       region_configs {
-         electable_specs {
-           instance_size = "M10"
-           node_count    = 3
-         }
-         analytics_specs {
-           instance_size = "M10"
-           node_count    = 1
-         }
+    replication_specs = [
+      {
+         region_configs = [
+           {
+             electable_specs = {
+               instance_size = "M10"
+               node_count    = 3
+             }
+             analytics_specs = {
+               instance_size = "M10"
+               node_count    = 1
+             }
 
-         provider_name = "AWS"
-         region_name   = each.value.region
-         priority      = 7
+             provider_name = "AWS"
+             region_name   = each.value.region
+             priority      = 7
+           }
+         ]
        }
-     }
+     ]
 
      backup_enabled = true # enable cloud backup snapshots
      pit_enabled    = true

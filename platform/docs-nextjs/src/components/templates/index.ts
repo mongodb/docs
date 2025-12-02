@@ -4,7 +4,7 @@ import DocumentTemplate from './document';
 import DriversIndexTemplate from './drivers-index';
 import InstruqtTemplate from './instruqt';
 import LandingTemplate from './landing';
-// import FeatureNotAvailableTemplate from './FeatureNotAvailable';
+import FeatureNotAvailableTemplate from './feature-not-available';
 import OpenAPITemplate from './openapi';
 import type { Root } from '@/types/ast';
 // import ProductLandingTemplate from './product-landing';
@@ -23,7 +23,7 @@ export {
   DriversIndexTemplate,
   InstruqtTemplate,
   LandingTemplate,
-  // FeatureNotAvailableTemplate,
+  FeatureNotAvailableTemplate,
   OpenAPITemplate,
   // ProductLandingTemplate,
   // ChangelogTemplate,

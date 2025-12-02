@@ -44,7 +44,7 @@
       copies from removed policies`. You must check this **before**
       saving your changes.
 
-      Type `delete snapshots` in the prompt that appears when you
+      Type ``delete snapshots`` in the prompt that appears when you
       check this option.
 
    .. step:: Click

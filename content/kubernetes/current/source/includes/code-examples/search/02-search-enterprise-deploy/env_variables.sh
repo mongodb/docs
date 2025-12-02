@@ -7,6 +7,7 @@ export MDB_NS="mongodb"
 # name of the MongoDB Custom Resource.
 export MDB_RESOURCE_NAME="mdb-rs"
 
+export MDB_MEMBERS=3
 # OM/CM's project name to be used to manage mongodb replica set
 export OPS_MANAGER_PROJECT_NAME="<arbitrary project name>"
 
@@ -44,4 +45,4 @@ export MDB_TLS_CA_ISSUER="my-ca-issuer"
 export MDB_TLS_SERVER_CERT_SECRET_NAME="${MDB_TLS_CERT_SECRET_PREFIX}-${MDB_RESOURCE_NAME}-cert"
 export MDB_SEARCH_TLS_SECRET_NAME="${MDB_RESOURCE_NAME}-search-tls"
 
-export MDB_CONNECTION_STRING="mongodb://mdb-user:${MDB_USER_PASSWORD}@${MDB_RESOURCE_NAME}-svc.${MDB_NS}.svc.cluster.local:27017/?replicaSet=${MDB_RESOURCE_NAME}&tls=true"
+export MDB_CONNECTION_STRING="mongodb://mdb-user:${MDB_USER_PASSWORD}@${MDB_RESOURCE_NAME}-svc.${MDB_NS}.svc.cluster.local:27017/?replicaSet=${MDB_RESOURCE_NAME}&tls=true&tlsCAFile=/tls/ca.crt"

@@ -1,4 +1,1 @@
-``storedSource`` is only available on clusters running one of 
-the following versions:
-
-- MongoDB 7.0+
+``storedSource`` is only available on clusters running MongoDB 7.0+.

@@ -10,7 +10,7 @@ import Tooltip from '@leafygreen-ui/tooltip';
 import { palette } from '@leafygreen-ui/palette';
 import { TabContext } from '@/context/tabs-context';
 import { reportAnalytics } from '@/utils/report-analytics';
-import { usePageContext } from '@/context/page-context';
+// import { usePageContext } from '@/context/page-context';
 import type { LanguageOption } from '@/components/code/code-context';
 import type { DriverMap } from '@/components/icons/DriverIconMap';
 import { DRIVER_ICON_MAP } from '@/components/icons/DriverIconMap';
@@ -78,7 +78,7 @@ const Code = ({
 }: CodeNode) => {
   const { setActiveTab } = useContext(TabContext);
   const { languageOptions, codeBlockLanguage } = useContext(CodeContext);
-  const { slug } = usePageContext();
+  // const { slug } = usePageContext();
   const code = value;
   let language = (languageOptions?.length > 0 && codeBlockLanguage) || getLanguage(lang);
 

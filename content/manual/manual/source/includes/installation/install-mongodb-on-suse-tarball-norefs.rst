@@ -57,7 +57,7 @@ Prerequisites
 
 .. include:: /includes/fact-tarball-dependencies.rst
 
-.. include:: /includes/extracts/install-mongodb-community-manually-suse-15.rst
+.. include:: /includes/deploy/community-prereq-suse.rst
 
 Procedure
 ~~~~~~~~~
@@ -65,7 +65,7 @@ Procedure
 Follow these steps to manually install MongoDB |edition| Edition from
 the ``.tgz``.
 
-.. include:: /includes/steps/install-mongodb-on-linux.rst
+.. include:: /includes/deploy/install-tar.rst
 
 Run MongoDB Community Edition
 -----------------------------

@@ -28,10 +28,47 @@ variable "cluster_instance_size_name" {
   description = "Cluster instance size name"
 }
 
+# Auto Scaling Maximum Instance Size
+variable "compute_max_instance_size" {
+  type        = string
+  description = "Maximum instance size for auto scaling"
+}
+
+# Auto Scaling Minimum Instance Size
+variable "compute_min_instance_size" {
+  type        = string
+  description = "Minimum instance size for auto scaling"
+}
+
 # Cloud Provider to Host Atlas Cluster
 variable "cloud_provider" {
   type        = string
   description = "AWS or GCP or Azure"
+}
+
+# MongoDB Atlas API Authentication (Legacy)
+variable "mongodbatlas_public_key" {
+  type        = string
+  description = "MongoDB Atlas API public key"
+}
+
+variable "mongodbatlas_private_key" {
+  type        = string
+  description = "MongoDB Atlas API private key"
+  sensitive   = true
+}
+
+# MongoDB Atlas Service Account Authentication (Recommended)
+variable "mongodb_service_account_id" {
+  type        = string
+  description = "MongoDB Atlas service account ID"
+  default     = null
+}
+
+variable "mongodb_service_account_key_file" {
+  type        = string
+  description = "Path to MongoDB Atlas service account private key file"
+  default     = null
 }
 
 # Atlas Region

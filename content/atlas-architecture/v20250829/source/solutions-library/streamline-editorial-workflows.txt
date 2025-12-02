@@ -1,0 +1,335 @@
+.. _arch-center-is-editorial-workflows:
+
+===============================
+Editorial Workflows with Gen AI
+===============================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta:: 
+   :keywords: GenAI, MongoDB Atlas, Editorial, Media, Content Delivery, Automation, Content Management
+   :description: Streamline editorial operations with GenAI and MongoDB to gain real-time insights, accelerate drafting, and ensure reliable content delivery.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: onecol
+
+**Use cases:** 
+`Content Management <https://www.mongodb.com/solutions/use-cases/content-management>`__,
+`Gen AI <https://www.mongodb.com/solutions/use-cases/artificial-intelligence>`__
+
+**Industries:** 
+Media,
+`Telecommunications <https://www.mongodb.com/solutions/industries/telecommunications>`__
+
+**Products and Tools:** 
+`MongoDB Atlas <https://www.mongodb.com/products/platform/atlas-database>`__,
+`MongoDB Atlas Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__
+
+**Partners:**
+`Amazon Bedrock <https://cloud.mongodb.com/ecosystem/amazon-bedrock>`__
+
+Solution Overview
+-----------------
+
+Content teams face increasing pressure to produce engaging and credible
+content in a fast-paced news environment. Traditional methods often lead
+to creative fatigue and missed opportunities rather than content
+creation, due to time spent on manual research, source verification, and
+tool management. With MongoDB, you can combine Generative AI with
+MongoDB's adaptable data infrastructure to optimize editorial
+operations. To help you test these capabilities, we provide you with the
+Content Lab demo, a solution you can replicate.
+
+The Content Lab demo streamlines editorial workflows and allows you to:
+
+- **Ingest and structure diverse content:** This demo efficiently
+  processes high volumes of unstructured and semi-structured content
+  from various sources, dynamically organizing it by topic, industry,
+  and source metadata.
+
+- **Enable AI-powered discovery and drafting:** Embedding models and
+  MongoDB Atlas Vector Search transform raw content into structured,
+  searchable data. This combination enables semantic retrieval of
+  trending topics and automates content drafting, reducing creative
+  fatigue.
+
+- **Enhance content credibility:** This demo captures and stores
+  source URLs, which are then embedded directly into topic suggestions.
+  Integration with external search agents further enriches content
+  suggestions with contextual information.
+
+- **Facilitate personalization and boost workflow efficiency:** This
+  demo processes the user's profile to deliver personalized writing
+  suggestions and stores drafts for version control and reuse. MongoDB’s
+  flexible schema makes this possible by adapting effortlessly to
+  evolving profile data, draft formats, and new content types without
+  disrupting the workflow.
+
+.. figure:: /includes/images/industry-solutions/editorial-workflows-flow.svg
+   :figwidth: 750px
+   :alt: An image showing the user journey diagram for editorial workflows
+
+   Figure 1. User journey flow diagram
+
+By providing a unified storage solution, real-time insights, and
+automated content assistance, this demo shows how MongoDB helps
+editorial teams reduce complexity, enhance content quality, and
+accelerate production. It offers publishers a clear path from idea to
+publication.
+
+Reference Architecture
+----------------------
+
+The Content Lab demo provides an AI-driven publishing tool that
+combines Gen AI with MongoDB's flexible data infrastructure to streamline
+editorial operations. The architecture is designed as a microservice to:
+
+- Handle diverse content ingestion 
+
+- Drive AI-powered discovery and drafting 
+
+- Enhance content credibility
+
+- Support personalization and workflow efficiency 
+
+.. figure:: /includes/images/industry-solutions/editorial-workflows-architecture.svg
+   :figwidth: 750px
+   :alt: An image showing the reference architecture of the conten lab solution
+
+   Figure 2. High-level architecture of the Content Lab demo
+
+This architecture uses the following components:
+
+- **User interface (UI):** Users interact with the system through a UI
+  that provides features like topic suggestions, drafting tools, and
+  draft management.
+
+- **Backend services:** These microservices handle different functions
+  of the demo, including:
+
+  - **Content analysis and suggestions backend:** This service processes
+    news and Reddit data, transforming content into semantic vectors
+    through embedding models like `Cohere-embed
+    <https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-embed.html>`__.
+    These vectors can then be processed with Atlas Vector Search to
+    provide real-time topic suggestions. The microservice has these
+    major components:
+
+    - **Scheduler and orchestration:** This service automates ingestion,
+      embedding generation, and topic suggestion workflows daily.
+      
+    - **Role:** This service powers downstream writing assitance and
+      personalization to the writing assistant microservice using
+      semantic search and retrieval.
+      
+    Below you can find a high-level overview diagram of this microservice.
+
+    .. figure:: /includes/images/industry-solutions/editorial-workflows-architecture2.svg
+       :figwidth: 750px
+       :alt: An image showing the reference architecture of the content analysis and suggestions backend
+   
+       Figure 3. High-level architecture of the content and suggestions backend
+
+  - **Writing assistant backend:** This service provides tools for
+    publishing, which include draft outlining, proofreading, content
+    refinement, and chat completion. These tools use :abbr:`LLMs (Large
+    Language Models)` such as Anthropic Claude via AWS Bedrock.
+
+- **MongoDB Atlas:** Atlas serves as the primary data store, providing
+  semantic search capabilities, database storage, and aggregation
+  pipelines for efficient processing and retrieval.
+
+Data Model Approach
+-------------------
+
+This demo uses the following document model design and collections to
+store content. 
+
+There are five main collections in the Content Lab demo:
+
+- ``userProfile``
+
+- ``reddit_posts``
+
+- ``news``
+
+- ``suggestions``
+
+- ``drafts``
+
+The ``userProfile`` collection stores individual user preferences to
+tailor personalized AI-driven suggestions. These preferences include:
+
+- ``persona``: The type of writer the user can choose. 
+
+- ``tone``: The desired tone the user can choose, for example, casual,
+  formal or semi-formal. 
+
+- ``styleTraits``: The predefined characteristics of the writer. 
+
+- ``sampleText``: An example sentence from a writer.
+
+This schema follows the MongoDB design principle that data frequently
+accessed together is stored together, enabling the writing assistant to
+quickly retrieve user recommendations. A sample document is shown below.
+
+.. code-block:: json
+   
+   {  
+     "_id": {  
+       "$oid": "6862a8988c0f7bf43af995a8"  
+     },  
+     "persona": "The Formal Expert",  
+     "userName": "Mark S.",  
+     "tone": "Polished, academic, appeals to professionals and older readers",  
+     "styleTraits": [  
+       "Long, structured paragraphs",  
+       "Formal language with rich vocabulary",  
+       "Analytical, often includes references or citations"  
+     ],  
+     "sampleText": "This development represents..."  
+   }  
+
+The ``reddit_posts`` and ``news`` collections store raw data ingested
+from their respective APIs. These documents are further enriched with
+embeddings, which are numerical representations of the content's meaning
+that enable semantic search. 
+
+The ``suggestions`` collection contains the topics suggested from the
+processed ``reddit_posts`` and ``news`` data. The UI can easily find
+these documents and use them for topic selection. A sample document is
+shown below.
+
+.. code-block:: json
+   
+   {    
+     "_id": {    
+       "$oid": "686fb23055303796c4f37b7e"    
+     },    
+     "topic": "Backlash against generative AI",    
+     "keywords": [    
+       "algorithmic bias",    
+       "data privacy",    
+       "AI regulation",    
+       "public trust"    
+     ],    
+     "description": "As generative AI tools like ChatGPT proliferate, a growing public backlash highlights concerns over their negative impacts and the need for stronger oversight.",    
+     "label": "technology",    
+     "url": "https://www.wired.com/story/generative-ai-backlash/",    
+     "type": "news_analysis",    
+     "analyzed_at": {    
+       "$date": "2025-07-10T12:29:36.277Z"    
+     },    
+     "source_query": "Viral social media content"    
+   } 
+
+Finally, the ``drafts`` collection stores users’ drafts. Each draft is
+associated with a suggested topic, allowing for easy organization and
+retrieval. This model ensures persistence, version control, and content
+reusability for editorial workflows. 
+
+Build the Solution
+------------------
+
+You can replicate this demo by following these steps:
+
+.. procedure::
+   :style: normal
+   
+   .. step:: Fork and clone repositories
+
+      Fork and clone the `backend #1 <https://github.com/mongodb-industry-solutions/ist-media-internship-be?tab=readme-ov-file>`__,
+      `backend  #2 <https://github.com/mongodb-industry-solutions/ist-media-internship-be2>`__,
+      and `frontend <https://github.com/mongodb-industry-solutions/ist-media-internship-fe>`__
+      repos to your GitHub account.
+
+   .. step:: Provision MongoDB Atlas
+
+      Within your `MongoDB Atlas account
+      <https://account.mongodb.com/account/login>`__, create a cluster
+      and a database named ``contentlab`` with these collections:
+
+      - ``drafts``: Store user-created draft documents
+
+      - ``news``: Store scraped news articles with embeddings.
+
+      - ``reddit_posts``: Store Reddit posts and comments with embeddings.
+
+      - ``suggestions``: Store AI-generated topic suggestions.
+
+      - ``userProfiles``: Store user profile information and preferences.
+
+   .. step:: Obtain API keys 
+
+      Generate and save your keys for: 
+   
+      - `MongoDB Atlas <https://account.mongodb.com/account/login>`__
+   
+      - `NewsAPI <https://newsapi.org/register>`__
+   
+      - `Reddit API <https://www.reddit.com/login/?dest=https://www.reddit.com/prefs/apps>`__
+   
+      - `Tavily <https://www.tavily.com/>`__
+   
+      - `AWS <https://aws.amazon.com/bedrock/>`__
+
+   .. step:: Configure environment files
+    
+      Add your Atlas URI, database name, and all API keys to each
+      backend’s ``.env`` file.
+
+   .. step:: Install dependencies and run services
+
+      Install and start both backend services on ports 8000 and 8001.
+      Then, install frontend dependencies and launch the dev server at
+      http://localhost:3000.
+
+Key Learnings
+-------------
+
+- **Adapt data models with MongoDB’s flexible schema:** With MongoDB,
+  you can seamlessly add new fields or adapt existing ones-such as
+  custom metadata, summaries, and version histories-in your collections,
+  without downtime or complex migrations.
+
+- **Integrate Atlas Vector Search for meaningful discovery:** With
+  MongoDB, you can store embeddings from various APIs in their
+  respective collections and then run similarity queries to uncover
+  relevant topics in seconds.
+
+- **Ensure editorial trust by tracking content sources:** With MongoDB,
+  you can store source URLs and metadata alongside suggestions, making it
+  easy to verify origins and preserving credibility in drafts.
+
+- **Maintain a constant stream of ideas by automating your pipeline:**
+  With MongoDB, you can schedule daily jobs to scrape news, process
+  embeddings, and generate suggestions that guarantee up-to-date topic
+  recommendations.
+
+Authors
+-------
+
+- Aswin Subramanian Maheswaran, MongoDB
+- Felipe Trejos, MongoDB
+
+Learn More
+----------
+
+- To understand how Atlas Vector Search powers semantic search and
+  enables real-time analytics, visit the `Atlas Vector Search page
+  <https://www.mongodb.com/products/platform/atlas-vector-search>`__. 
+
+- To learn how MongoDB is transforming media operations, read the
+  `AI-Powered Media Personalization: MongoDB and Vector Search article
+  <https://www.mongodb.com/company/bloginnovationai-powered-media-personalization-mongodb-vector-search>`__.
+
+- To discover how MongoDB supports modern media workflows, visit the
+  `MongoDB for Media and Entertainment page
+  <https://www.mongodb.com/solutions/industries/media-and-entertainment>`__.

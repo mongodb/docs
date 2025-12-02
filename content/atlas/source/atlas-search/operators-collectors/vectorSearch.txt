@@ -1,0 +1,468 @@
+.. _fts-vectorSearch-ref:
+
+====================================
+``vectorSearch`` (|fts| Operator)
+====================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: vectorSearch operator, hybrid search, semantic search with full text search
+   :description: Perform a full-text search on exact, similar, or synonymous terms.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+Definition
+----------
+
+The ``vectorSearch`` operator performs an |ann| or |enn| search on
+vector embeddings in the specified field. Use this operator to add
+analyzed text capabilities such a fuzzy search, phrase matching,
+location filtering, wildcard pattern matching, and so on alongside 
+semantic search. 
+
+.. _fts-vectorSearch-syntax:
+
+Syntax 
+------
+
+``vectorSearch`` has the following syntax:
+
+.. code-block:: json 
+   :copyable: true 
+
+   {
+     "$search": {
+       "index": "<index name>", // optional, defaults to "default"
+       "vectorSearch": {
+         "exact": true | false,
+         "filter": {<operator-specification>},
+         "limit": <number-of-results>,
+         "numCandidates": <number-of-candidates>,
+         "path": "<field-to-search>",
+         "queryVector": [<array-of-numbers>],
+         "score": {<options>}
+       }
+     }
+   }
+
+.. _fts-vectorSearch-options:
+
+Options 
+-------
+
+``vectorSearch`` uses the following fields to construct a query: 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 20 50 
+   
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``exact``
+     - Boolean
+     - Optional 
+     - This is required if ``numCandidates`` is omitted. 
+
+       Flag that specifies whether to run |enn| or |ann| search. Value
+       can be one of the following: 
+ 
+       - ``false`` - to run |ann| search 
+       - ``true`` - to run |enn| search
+
+       If omitted, defaults to ``false``. 
+
+       .. include:: /includes/avs/shared/avs-requirements-cluster-version-ann-enn.rst
+
+   * - ``filter``
+     - Object
+     - Optional
+     - |fts| :ref:`operator <operators-ref>` to use to pre-filter
+       documents based on metadata or specific search criteria. 
+       
+       To learn more, see :ref:`fts-vectorSearch-pre-filter`. 
+
+   * - ``limit`` 
+     - Int 
+     - Required 
+     - Number (of type ``int`` only) of documents to return in the
+       results. This value can't exceed the value of ``numCandidates`` if
+       you specify ``numCandidates``.
+
+       On sharded clusters, you must use :pipeline:`$limit` after the
+       :pipeline:`$search` stage to limit the number of documents in the
+       results. 
+
+   * - ``numCandidates``
+     - Int 
+     - Optional 
+     - This field is required if ``exact`` is ``false`` or omitted.
+       
+       Number of nearest neighbors to use during the search. Value must 
+       be less than or equal to (``<=``) ``10000``. You can't specify a
+       number less than the number of documents to return (``limit``).
+       
+       We recommend that you specify a number at least 20 times higher than the 
+       number of documents to return (``limit``) to increase accuracy.
+       
+       This overrequest pattern is the recommended way to 
+       trade off latency and :term:`recall` in your |ann| searches, 
+       and we recommend tuning this parameter based on your specific dataset 
+       size and query requirements.
+
+   * - ``path``
+     - String 
+     - Required 
+     - Indexed :ref:`vector <avs-types-vector>` type field to search.
+
+   * - ``queryVector``
+     - Array of Integers or Floats 
+     - Required 
+     - Array of numbers of ``float32``, |bson|
+       :manual:`BinData </reference/method/BinData/>` vectors with subtype
+       ``float32``, or |bson| :manual:`BinData </reference/method/BinData/>` 
+       vectors with subtype ``int1`` or ``int8`` type that represent the
+       query vector. 
+
+       To learn more about generating |bson| ``binData``
+       vectors with subtype ``float32``, ``int8``, or ``int1``,
+       see :ref:`avs-bindata-vector-subtype`. 
+
+       The array size must match the number of vector dimensions
+       (``numDimensions``) specified in the :ref:`index definition
+       <bson-data-types-vector>` for the field. 
+
+       You must embed your query with the same model that you used to
+       embed the data.
+
+       You can query your embeddings with full-fidelity vectors,
+       as long as the vector subtype is the same. This is only possible with
+       ``binData`` vectors with subtype ``float32``. If you use any other
+       subtype (``int8`` or ``int1``), |fts| doesn't return any results or errors.
+
+   * - ``score``
+     - Object
+     - Optional
+     - Score assigned to matching search term results. Use one of 
+       the following options to modify the score:
+
+       - ``boost``: multiply the result score by the given number.
+       - ``constant``: replace the result score with the given number.
+       - ``function``: replace the result score using the given
+         expression. 
+       
+       For information on using ``score`` in your query, see
+       :ref:`scoring-ref`.
+
+Behavior
+--------
+
+|fts| Index
+~~~~~~~~~~~
+
+You must index the fields to search using the ``vectorSearch`` operator.
+You can index the following types of fields in the |fts| index definition: 
+
+- Field that contains vector embeddings. This is the field you specify in
+  the query ``path`` option.
+- Fields to pre-filter the documents. These are the fields you specify in
+  the query ``filter`` option.
+
+.. _fts-vectorSearch-pre-filter: 
+
+Pre-Filter
+~~~~~~~~~~
+
+You can pre-filter the documents to narrow the scope of your semantic
+search and ensure that not all vectors are considered for comparison.
+You can use any supported |fts| operator in the ``filter`` field to
+query and filter the documents. 
+
+You **must** index the fields that you want to filter your data in the
+index definition for the ``vector`` type. 
+
+Score 
+~~~~~
+
+You can include the score of each document in your search results.
+Specify the :manual:`$meta </reference/operator/aggregation/meta/>`
+expression with the ``searchScore`` value in the :pipeline:`$project`
+stage. You can also specify the ``searchScoreDetails`` value for the 
+``scoreDetails`` field :manual:`$meta </reference/operator/aggregation/meta/>` 
+expression for a detailed breakdown of the score.
+
+To learn more, see :ref:`scoring-ref` and :ref:`fts-score-details`.
+
+.. _fts-vectorSearch-limitations:
+
+``vectorSearch`` Operator Limitations 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``vectorSearch`` operator must be the top-level operator in your
+queries. Therefore, you can't use the ``vectorSearch`` operator
+inside the following |fts| :ref:`operators <operators-ref>`: 
+
+- :ref:`embeddedDocument <embedded-document-ref>`
+- :ref:`compound <compound-ref>`
+- :ref:`facet <fts-facet-ref>`
+
+You can't use the ``vectorSearch`` operator to query fields indexed
+using a :ref:`vectorSearch <avs-types-vector-search>` type index.
+
+You can't use the following :pipeline:`$search` options with the
+``vectorSearch`` operator: 
+
+- :ref:`highlight <highlight-ref>`
+- :ref:`sort <sort-ref>` 
+- :ref:`searchSequenceToken <fts-paginate-results>`
+
+  Instead, use :pipeline:`$skip` and :pipeline:`$limit` after the
+  :pipeline:`$search` stage. 
+
+- :ref:`tracking <fts-tracking-ref>` (deprecated)
+
+You can't run :pipeline:`$search` queries with the ``vectorSearch``
+operator using the :ref:`Search Tester <atlas-search-queries>`.
+
+.. _fts-vectorSearch-egs:
+
+Examples 
+--------
+
+The following examples use the ``sample_mflix.embedded_movies``
+collection from the sample data. If you :ref:`load the sample data
+<sample-data>` and create the :ref:`sample
+index <fts-vector-field-type-example>` on the collection, you can run the following  |ann| and |enn| queries
+against the collection after replacing the ``<connection-string>`` and
+``<index-name>`` placeholders in the queries. 
+
+.. composable-tutorial::
+   :options: vector-search-type, prefilter-type, interface, language 
+   :defaults: ann, compound, driver, python
+
+   .. selected-content::
+      :selections: ann, compound, compass, none
+
+      .. include:: /includes/fts/operators/vectorSearch/compound-ann-query-description.rst
+
+      .. io-code-block:: 
+         :copyable: true
+      
+         .. input:: /includes/fts/operators/vectorSearch/compound-ann-query-compass.json
+            :language: javascript
+            :linenos: 
+
+         .. output:: /includes/fts/operators/vectorSearch/compound-ann-query-compass-output.js
+            :language: javascript
+            :visible: false
+
+   .. selected-content::
+      :selections: ann, compound, mongosh, none
+
+      .. include:: /includes/fts/operators/vectorSearch/compound-ann-query-description.rst
+
+      .. include:: /includes/fts/operators/vectorSearch/steps-compound-ann-query-mongosh.rst
+
+   .. selected-content::
+      :selections: ann, compound, driver, python
+
+      .. include:: /includes/fts/operators/vectorSearch/compound-ann-query-description.rst
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/fts/operators/vectorSearch/compound-ann-query.py
+            :language: javascript
+            :linenos: 
+
+         .. output:: /includes/fts/operators/vectorSearch/compound-ann-query-python-output.js
+            :language: javascript
+            :visible: false
+
+   .. selected-content::
+      :selections: ann, compound, driver, nodejs
+
+      .. include:: /includes/fts/operators/vectorSearch/compound-ann-query-description.rst
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/fts/operators/vectorSearch/compound-ann-query.js
+            :language: javascript
+            :linenos: 
+
+         .. output:: /includes/fts/operators/vectorSearch/compound-ann-query-nodejs-output.js
+            :language: javascript
+            :visible: false
+
+   .. selected-content::
+      :selections: enn, compound, compass, none
+
+      .. include:: /includes/fts/operators/vectorSearch/compound-enn-query-description.rst
+
+      .. io-code-block:: 
+         :copyable: true
+      
+         .. input:: /includes/fts/operators/vectorSearch/compound-enn-query-compass.json
+            :language: javascript
+            :linenos: 
+
+         .. output:: /includes/fts/operators/vectorSearch/compound-enn-query-compass-output.js
+            :language: javascript
+            :visible: false
+
+   .. selected-content::
+      :selections: enn, compound, mongosh, none
+
+      .. include:: /includes/fts/operators/vectorSearch/compound-enn-query-description.rst
+
+      .. include:: /includes/fts/operators/vectorSearch/steps-compound-enn-query-mongosh.rst
+
+   .. selected-content::
+      :selections: enn, compound, driver, python
+
+      .. include:: /includes/fts/operators/vectorSearch/compound-enn-query-description.rst
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/fts/operators/vectorSearch/compound-enn-query.py
+            :language: javascript
+            :linenos: 
+
+         .. output:: /includes/fts/operators/vectorSearch/compound-enn-query-python-output.js
+            :language: javascript
+            :visible: false
+
+   .. selected-content::
+      :selections: enn, compound, driver, nodejs
+
+      .. include:: /includes/fts/operators/vectorSearch/compound-enn-query-description.rst
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/fts/operators/vectorSearch/compound-enn-query.js
+            :language: javascript
+            :linenos: 
+
+         .. output:: /includes/fts/operators/vectorSearch/compound-enn-query-nodejs-output.js
+            :language: javascript
+            :visible: false
+
+   .. selected-content::
+      :selections: ann, fuzzy, compass, none
+
+      .. include:: /includes/fts/operators/vectorSearch/fuzzy-ann-query-description.rst
+
+      .. io-code-block:: 
+         :copyable: true
+      
+         .. input:: /includes/fts/operators/vectorSearch/fuzzy-ann-query-compass.json
+            :language: javascript
+            :linenos: 
+
+         .. output:: /includes/fts/operators/vectorSearch/fuzzy-ann-query-compass-output.js
+            :language: javascript
+            :visible: false
+
+   .. selected-content::
+      :selections: ann, fuzzy, mongosh, none
+
+      .. include:: /includes/fts/operators/vectorSearch/fuzzy-ann-query-description.rst
+
+      .. include:: /includes/fts/operators/vectorSearch/steps-fuzzy-ann-query-mongosh.rst
+
+   .. selected-content::
+      :selections: ann, fuzzy, driver, python
+
+      .. include:: /includes/fts/operators/vectorSearch/fuzzy-ann-query-description.rst
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/fts/operators/vectorSearch/fuzzy-ann-query.py
+            :language: javascript
+            :linenos: 
+
+         .. output:: /includes/fts/operators/vectorSearch/fuzzy-ann-query-python-output.js
+            :language: javascript
+            :visible: false
+
+   .. selected-content::
+      :selections: ann, fuzzy, driver, nodejs
+
+      .. include:: /includes/fts/operators/vectorSearch/fuzzy-ann-query-description.rst
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/fts/operators/vectorSearch/fuzzy-ann-query.js
+            :language: javascript
+            :linenos: 
+
+         .. output:: /includes/fts/operators/vectorSearch/fuzzy-ann-query-nodejs-output.js
+            :language: javascript
+            :visible: false
+
+   .. selected-content::
+      :selections: enn, fuzzy, compass, none
+
+      .. include:: /includes/fts/operators/vectorSearch/fuzzy-enn-query-description.rst
+
+      .. io-code-block:: 
+         :copyable: true
+      
+         .. input:: /includes/fts/operators/vectorSearch/fuzzy-enn-query-compass.json
+            :language: javascript
+            :linenos: 
+
+         .. output:: /includes/fts/operators/vectorSearch/fuzzy-enn-query-compass-output.js
+            :language: javascript
+            :visible: false
+
+   .. selected-content::
+      :selections: enn, fuzzy, mongosh, none
+
+      .. include:: /includes/fts/operators/vectorSearch/fuzzy-enn-query-description.rst
+
+      .. include:: /includes/fts/operators/vectorSearch/steps-fuzzy-enn-query-mongosh.rst
+
+   .. selected-content::
+      :selections: enn, fuzzy, driver, python
+
+      .. include:: /includes/fts/operators/vectorSearch/fuzzy-enn-query-description.rst
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/fts/operators/vectorSearch/fuzzy-enn-query.py
+            :language: javascript
+            :linenos: 
+
+         .. output:: /includes/fts/operators/vectorSearch/fuzzy-enn-query-python-output.js
+            :language: javascript
+            :visible: false
+
+   .. selected-content::
+      :selections: enn, fuzzy, driver, nodejs
+
+      .. include:: /includes/fts/operators/vectorSearch/fuzzy-enn-query-description.rst
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/fts/operators/vectorSearch/fuzzy-enn-query.js
+            :language: javascript
+            :linenos: 
+
+         .. output:: /includes/fts/operators/vectorSearch/fuzzy-enn-query-nodejs-output.js
+            :language: javascript
+            :visible: false

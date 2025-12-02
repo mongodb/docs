@@ -892,6 +892,117 @@ Replication oplog metrics include:
 
 .. include:: /includes/fact-alerts-charting-metrics.rst
 
+.. _outside-metric-threshold:
+
+Outside Metric Threshold
+`````````````````````````
+
+You can configure alerts that trigger when a metric occurs outside of 
+a specified threshold using the :alert:`OUTSIDE_METRIC_THRESHOLD` event type.
+When enabled, |mms| triggers an alert if the monitored metric's value goes
+outside the threshold that you specify.
+
+When configuring an :alert:`OUTSIDE_METRIC_THRESHOLD` alert, you must set 
+values in the ``metricThreshold`` object to specify which metric to 
+monitor and the threshold conditions.
+
+Specify the following key parameters when creating an alert for
+``OUTSIDE_METRIC_THRESHOLD``. This ensures you're notified whenever
+the metric value goes above or below your defined threshold. Also specify
+notification parameters. To learn more about the notification parameters, see :doc:`/reference/api/global-alert-configurations`.
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Parameter
+     - Description
+
+   * - ``metricName``
+     - The name of the metric you want to monitor.
+
+   * - ``operator``
+     - The comparison operator, either ``GREATER_THAN`` or ``LESS_THAN``.
+
+   * - ``threshold``
+     - The value at which the alert should be triggered.
+
+   * - ``units``
+     - The measurement unit, dependent on the metric type.
+
+   * - ``mode``
+     - Set this parameter to ``AVERAGE``, since |mms| computes the metric's value as an average.
+
+Examples: Outside Metric Threshold
+```````````````````````````````````
+
+You can monitor :manual:`oplog <https://www.mongodb.com/docs/manual/core/replica-set-oplog/>` replication lag using the ``OPLOG_REPLICATION_LAG_TIME`` 
+metric. This metric measures the replication lag between secondary members 
+and the primary in a replica set and reports an approximate number of seconds
+the secondary node is behind the primary in applying ``write`` operations.
+This metric is only accurate if the lag is larger than 1-2 seconds, as
+the precision of this statistic is limited.
+
+Use this alert to detect when replication lag exceeds acceptable thresholds, 
+which may indicate performance issues or network problems affecting replica 
+set synchronization.
+
+The following examples create an alert configuration that triggers when 
+oplog replication lag exceeds 5 seconds:
+
+.. tabs::
+
+   .. tab:: API Request
+      :tabid: api-request
+
+      To create an alert configuration that triggers when oplog replication lag exceeds 5 seconds, 
+      send the following JSON object in a ``POST`` request to the 
+      :doc:`/groups/{PROJECT-ID}/alertConfigs </reference/api/alert-configurations-create-config>` endpoint.
+      After creation, you can retrieve the configuration and its notification IDs to test the alert.
+      Adjust the ``notifications`` array to match your desired notification settings.
+      
+      .. code-block:: json
+
+         {
+           "eventTypeName": "OUTSIDE_METRIC_THRESHOLD",
+           "enabled": true,
+           "metricThreshold": {
+             "metricName": "OPLOG_REPLICATION_LAG_TIME",
+             "mode": "AVERAGE",
+             "operator": "GREATER_THAN",
+             "threshold": 5.0,
+             "units": "SECONDS"
+           },
+           "notifications": [
+             {
+               "delayMin": 0,
+               "emailEnabled": true,
+               "intervalMin": 60,
+               "typeName": "GROUP"
+             }
+           ]
+         }
+
+   .. tab:: MongoDB CLI
+      :tabid: cli
+
+      The following example uses the :command:`mongocli ops-manager alerts config create` command
+      to create an alert configuration that triggers when oplog replication lag
+      exceeds 5 seconds. Replace ``<notification-token>`` with your actual notification token
+      obtained from the :command:`mongocli ops-manager notifications create` command.
+
+      .. code-block:: bash
+
+         mongocli ops-manager alerts config create \
+           --event OUTSIDE_METRIC_THRESHOLD \
+           --enabled \
+           --metricName OPLOG_REPLICATION_LAG_TIME \
+           --metricOperator GREATER_THAN \
+           --metricThreshold 5.0 \
+           --notificationToken <notification-token> \
+           --output json
+
 Operations Scan and Order
 `````````````````````````
 

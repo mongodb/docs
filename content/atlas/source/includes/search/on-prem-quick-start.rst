@@ -65,11 +65,10 @@ Procedure
 
          docker pull mongodb/mongodb-community-server:latest && docker pull mongodb/mongodb-community-search:latest
          
-      .. note::
-
-         You must have a minimum of MongoDB 8.2.0 to use MongoDB Search with a
-         self-managed deployment. For more information, see :ref:`MongoDB Search
-         Compatibility <fts-feature-availability>`. 
+         .. note::
+            You must have a minimum of MongoDB 8.2.0 to use MongoDB Search with a
+            self-managed deployment. For more information, see :ref:`MongoDB Search
+            Compatibility <fts-feature-availability>`. 
 
    .. step:: Download an archive of sample data
 
@@ -83,10 +82,9 @@ Procedure
 
       Create a password file for ``mongot`` to connect to ``mongod``. 
 
-      .. important::
-
-         Do not include trailing newlines in your password file. ``mongot``
-         rejects password files that contain trailing newlines. 
+      .. note::
+         Do not include trailing newlines in your password file. 
+         ``mongot`` rejects password files that contain trailing newlines. 
 
       Select your operating system and run the command to create your password file:
 
@@ -99,8 +97,6 @@ Procedure
 
                echo -n "mongotPassword" > pwfile
                chmod 400 pwfile
-
-            .. note::
 
                The ``-n`` flag prevents a trailing newline. 
 
@@ -118,13 +114,13 @@ Procedure
 
                [System.IO.File]::WriteAllText("pwfile", "mongotPassword")    
          
-      .. note::
+      .. note:: 
 
          - If you change the ``mongot`` password, you must also update the
-            password value in the ``init-mongo-sh`` script. 
+           password value in the ``init-mongo-sh`` script. 
 
          - Most text editors automatically add newlines to files when you
-            edit files manually. 
+           edit files manually. 
 
    .. step:: Set up your configuration files
 

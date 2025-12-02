@@ -15,12 +15,10 @@
       {+asql+} through {+adf+} without configuring a data source 
       yourself. This tutorial references a specific sample dataset.
 
-      .. note::
-
-         To connect to your own data instead, click 
-         :guilabel:`Add Data Sources`. To learn more about 
-         configuring different types of data sources, see 
-         :ref:`config-adf`.
+      :gold:`IMPORTANT:` To connect to your own data instead, click 
+      :guilabel:`Add Data Sources`. To learn more about 
+      configuring different types of data sources, see 
+      :ref:`config-adf`.
 
          If you want to configure data from a |service| cluster, you 
          must use MongoDB version 5.0 or greater for that cluster to 

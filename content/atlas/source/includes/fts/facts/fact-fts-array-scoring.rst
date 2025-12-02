@@ -1,2 +1,2 @@
-When querying array values, |fts| assigns the same score
-regardless of how many values in the array match the query.
+When querying array values, |fts| assigns higher scores if more values
+in the array match the query. 

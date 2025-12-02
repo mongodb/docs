@@ -26,6 +26,12 @@ const getSnootyMetadataCollection = async () => {
 
 /** This will return the snooty metadata for a given build_id, returning the first match (sorted descending _id field) */
 const _getSnootyMetadata = async (build_id: string) => {
+  // Validate that build_id is a valid ObjectId format
+  if (!build_id || build_id.length !== 24 || !/^[0-9a-fA-F]{24}$/.test(build_id)) {
+    log({ message: `Invalid build_id format: "${build_id}". Expected 24-character hex string.`, level: 'warn' });
+    return undefined;
+  }
+
   const collection = await getSnootyMetadataCollection();
 
   try {

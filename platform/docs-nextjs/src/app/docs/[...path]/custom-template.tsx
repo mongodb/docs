@@ -4,6 +4,7 @@ import ComponentFactory from '@/components/component-factory';
 import RootProvider from '@/components/root-provider';
 import type { ImageContextType } from '@/context/image-context';
 import type { Environments } from '@/utils/env-config';
+import { UnifiedSidenav } from '@/components/unified-sidenav/UnifiedSidenav';
 import type { BaseTemplateProps } from '@/components/templates';
 import {
   DocumentTemplate,
@@ -12,6 +13,7 @@ import {
   InstruqtTemplate,
   BlankTemplate,
   DriversIndexTemplate,
+  FeatureNotAvailableTemplate,
 } from '@/components/templates';
 import ActionBar from '@/components/action-bar';
 import layoutStyles from '@/app/layout.module.scss';
@@ -59,6 +61,9 @@ function getTemplate(templateOption: PageTemplateType): {
     case 'blank':
       Template = BlankTemplate;
       break;
+    case 'feature-not-avail':
+      Template = FeatureNotAvailableTemplate;
+      break;
     default:
       console.warn(`Unknown template option: ${templateOption}. Defaulting to DocumentTemplate.`);
       renderSidenav = true;
@@ -91,18 +96,7 @@ export const CustomTemplate = ({ cookies, pageDoc, metadata, assets, docsets, en
       env={env}
       template={template}
     >
-      {renderSidenav && (
-        // TODO: return a sidenav here
-        <div
-          className={layoutStyles['sidenav-container']}
-          style={{
-            gridArea: 'sidenav',
-            width: '268px',
-          }}
-        >
-          REPLACE WITH SIDENAV
-        </div>
-      )}
+      {renderSidenav && <UnifiedSidenav />}
       <div className={layoutStyles['content-container']}>
         <ActionBar template="document" sidenav={true} />
         <Template pageOptions={pageDoc.ast.options} slug={pageDoc.filename}>

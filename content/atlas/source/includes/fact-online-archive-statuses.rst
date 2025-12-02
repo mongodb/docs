@@ -24,10 +24,9 @@
        additional documents are not archived. You can resume archiving 
        for paused archives at any time.
    * - Orphaned
-     - Indicates collection associated with an active or paused 
-       online archive was deleted. |service| will not automatically 
-       delete the archived data. You must manually delete the online 
-       archives associated with the deleted collection.
+     - Indicates collection associated with an active or paused online archive 
+       was deleted or resharded. |service| will not automatically delete the 
+       archived data. You must manually :ref:`delete <delete-online-archive>` the orphaned online archive. If your collection was resharded, you can :ref:`create <config-online-archive>` another online archive for the same database, collection, and fields as the deleted online archive if there is no other online archive for the same database, collection, and fields in the ``Active`` state.
    * - Deleted 
      - Indicates online archive was deleted. When you delete an 
        online archive, associated archived documents are removed from 

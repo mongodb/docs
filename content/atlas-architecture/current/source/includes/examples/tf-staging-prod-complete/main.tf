@@ -2,18 +2,19 @@
 resource "mongodbatlas_team" "project_group" {
   org_id = var.atlas_org_id
   name   = var.atlas_group_name
-  usernames = ["user1@example.com", "user2@example.com"]
 }
 
 # Create a Project
 resource "mongodbatlas_project" "atlas-project" {
   org_id = var.atlas_org_id
   name = var.atlas_project_name
-  # Assign the Project with Specific Roles
-    teams {
-      team_id    = mongodbatlas_team.project_group.team_id
-      role_names = ["GROUP_READ_ONLY", "GROUP_CLUSTER_MANAGER"]
-    }
+}
+
+# Assign the team to project with specific roles
+resource "mongodbatlas_team_project_assignment" "project_team" {
+  project_id = mongodbatlas_project.atlas-project.id
+  team_id    = mongodbatlas_team.project_group.team_id
+  role_names = ["GROUP_READ_ONLY", "GROUP_CLUSTER_MANAGER"]
 }
 
 # Create an Atlas Advanced Cluster
@@ -22,46 +23,48 @@ resource "mongodbatlas_advanced_cluster" "atlas-cluster" {
   name = "ClusterPortalProd"
   cluster_type = "REPLICASET"
   mongo_db_major_version = var.mongodb_version
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = var.cluster_instance_size_name
-        node_count    = 3
-      }
-      priority      = 7
-      provider_name = var.cloud_provider
-      region_name   = var.atlas_region
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = var.cluster_instance_size_name
+            node_count    = 3
+          }
+          auto_scaling = {
+            disk_gb_enabled = true
+            compute_enabled = true
+            compute_scale_down_enabled = true
+            compute_max_instance_size = var.compute_max_instance_size
+            compute_min_instance_size = var.compute_min_instance_size
+          }
+          priority      = 7
+          provider_name = var.cloud_provider
+          region_name   = var.atlas_region
+        }
+      ]
     }
+  ]
+  # Prevent Terraform from reverting auto-scaling changes
+  lifecycle {
+    ignore_changes = [
+      replication_specs[0].region_configs[0].electable_specs.instance_size,
+      replication_specs[0].region_configs[0].electable_specs.disk_size_gb
+    ]
   }
-  tags {
-    key   = "BU"
-    value = "ConsumerProducts"
-  }
-  tags {
-    key   = "TeamName"
-    value = "TeamA"
-  }
-  tags {
-    key   = "AppName"
-    value = "ProductManagementApp"
-  }
-  tags {
-    key   = "Env"
-    value = "Production"
-  }
-  tags {
-    key   = "Version"
-    value = "8.0"
-  }
-  tags {
-    key   = "Email"
-    value = "test@test.com"
+  tags = {
+    BU       = "ConsumerProducts"
+    TeamName = "TeamA"
+    AppName  = "ProductManagementApp"
+    Env      = "Production"
+    Version  = "8.0"
+    Email    = "test@test.com"
   }
 }
 
 # Outputs to Display
 output "atlas_cluster_connection_string" {
-  value = mongodbatlas_advanced_cluster.atlas-cluster.connection_strings.0.standard_srv
+  value = mongodbatlas_advanced_cluster.atlas-cluster.connection_strings
 }
 output "project_name" {
   value = mongodbatlas_project.atlas-project.name
@@ -192,22 +195,32 @@ resource "mongodbatlas_advanced_cluster" "automated_backup_test_cluster" {
   name         = each.value.name
   cluster_type = "REPLICASET"
 
-  replication_specs {
-    region_configs {
-      electable_specs {
-        instance_size = "M10"
-        node_count    = 3
-      }
-      analytics_specs {
-        instance_size = "M10"
-        node_count    = 1
-      }
-
-      provider_name = "AWS"
-      region_name   = each.value.region
-      priority      = 7
+  replication_specs = [
+    {
+      region_configs = [
+        {
+          electable_specs = {
+            instance_size = "M10"
+            node_count    = 3
+          }
+          analytics_specs = {
+            instance_size = "M10"
+            node_count    = 1
+          }
+          auto_scaling = {
+            disk_gb_enabled = true
+            compute_enabled = true
+            compute_scale_down_enabled = true
+            compute_max_instance_size = var.compute_max_instance_size
+            compute_min_instance_size = var.compute_min_instance_size
+          }
+          provider_name = "AWS"
+          region_name   = each.value.region
+          priority      = 7
+        }
+      ]
     }
-  }
+  ]
 
   backup_enabled = true # enable cloud backup snapshots
   pit_enabled    = true
