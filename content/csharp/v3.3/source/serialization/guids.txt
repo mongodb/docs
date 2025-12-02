@@ -81,6 +81,28 @@ To standardize GUID byte order across applications, we added ``BsonBinaryData`` 
 which all MongoDB drivers encode in the same way. If your application uses GUIDs, we
 recommend using ``BsonBinaryData`` subtype 4 to store them.
 
+.. note:: Empty GUIDs
+
+   When serializing ``Guid.Empty`` values, the {+driver-short+} treats these values as
+   unset IDs. Unset IDs receive a new GUID when inserted into a collection.
+   The following example demonstrates this behavior:
+
+   .. code-block:: csharp
+      :copyable: true
+
+      var doc = new MyDocument { Name = "Test" }; // Id will default to Guid.Empty
+      collection.InsertOne(doc); // doc.Id will now contain a generated GUID, not Guid.Empty
+
+   To store documents with a ``Guid.Empty`` value as an ID in the collection, 
+   turn off auto ID generation by using a ``MongoCollectionSettings`` object. The following code example
+   demonstrates how to disable auto ID generation:
+
+   .. code-block:: csharp
+      :copyable: true
+
+      var collectionSettings = new MongoCollectionSettings { AssignIdOnInsert = false }       
+      var collection = database.GetCollection<MyDocument>("MyCollection", collectionSettings); 
+
 For a list of all ``BsonBinaryData`` subtypes, see the
 API documentation for the `BsonBinarySubType <{+api-root+}/MongoDB.Bson/MongoDB.Bson.BsonBinarySubType.html>`__
 enum.
