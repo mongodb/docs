@@ -24,6 +24,9 @@ db.embedded_movies.aggregate( [
                         }
                      }
                   },
+                  {
+                     "$limit": 20
+                  }
                ]
             },
             normalization: "sigmoid"
