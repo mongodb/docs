@@ -3,7 +3,7 @@
 
    .. include:: /includes/nav/steps-db-deployments-page.rst
 
-   .. include:: /includes/nav/steps-atlas-search.rst
+   .. include:: /includes/nav/steps-search-simple.rst
 
    .. step:: Click the name of the index that you want to update. 
 

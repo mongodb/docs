@@ -1,4 +1,4 @@
 .. procedure:: 
    :style: normal 
 
-   .. include:: /includes/nav/steps-atlas-search.rst
+   .. include:: /includes/nav/steps-search-simple.rst

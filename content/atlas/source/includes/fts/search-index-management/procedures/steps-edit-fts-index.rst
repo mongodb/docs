@@ -1,7 +1,7 @@
 .. procedure::
    :style: normal
       
-   .. include:: /includes/nav/steps-atlas-search.rst
+   .. include:: /includes/nav/steps-search-simple.rst
 
    .. step:: Click :icon-mms:`ellipsis` and choose one of the following from the dropdown.
       
