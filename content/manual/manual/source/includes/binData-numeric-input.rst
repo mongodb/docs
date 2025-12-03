@@ -1,5 +1,5 @@
-Starting in MongoDB 8.1, you can set ``input`` to ``binData`` if you set
-``to`` to one of the following values:
+Starting in MongoDB 8.1, you can set the ``to`` field to ``binData`` if
+you set the ``input`` field to one of the following types:
 
 - ``int``
 - ``long``
