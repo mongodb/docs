@@ -1,0 +1,294 @@
+.. _c-tls:
+
+========================================
+Configure Transport Layer Security (TLS) 
+========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: security, authentication, transport layer security, encrypt
+
+Overview
+--------
+
+In this guide, you can learn how to use the :wikipedia:`TLS <Transport_Layer_Security>`
+protocol to secure your connection to a MongoDB deployment.
+
+When you enable TLS for a connection, the {+driver-short+} performs the following actions:
+
+- Uses TLS to connect to the MongoDB deployment
+- Verifies the deployment's certificate
+- Ensures that the certificate certifies the deployment
+
+To learn how to configure your MongoDB deployment for TLS, see the
+:manual:`TLS configuration guide </tutorial/configure-ssl/>` in the
+MongoDB Server manual. 
+
+.. note::
+
+   A full description of TLS/SSL, PKI (Public Key Infrastructure) certificates, and
+   Certificate Authorities (CAs) is beyond the scope of this document. This page assumes prior
+   knowledge of TLS/SSL and access to valid certificates.
+
+.. _c-enable-tls:
+
+Enable TLS
+----------
+
+You can enable TLS on a connection to your MongoDB instance
+in the following ways:
+
+- Setting the ``tls`` parameter in your connection string
+- Using the ``mongoc_uri_set_option_as_bool()`` function to set the ``MONGOC_URI_TLS`` connection
+  option to ``true``
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      .. literalinclude:: /includes/connect/tls.c
+         :language: c
+         :start-after: start-connect-str
+         :end-before: end-connect-str
+         :dedent:
+
+   .. tab:: MongoC URI Options
+      :tabid: mongocurioptions
+
+      .. literalinclude:: /includes/connect/tls.c
+         :language: c
+         :start-after: start-connect-uri-opt
+         :end-before: end-connect-uri-opt
+         :dedent:
+
+.. tip::
+   
+   If your connection string includes the ``+srv`` modification, which specifies the
+   SRV connection format, TLS is enabled on your connection by default.
+
+   To learn more about the SRV connection format, see
+   :manual:`SRV Connection Format </reference/connection-string/#srv-connection-format>`
+   in the {+mdb-server+} documentation.
+
+.. _c-specify-client-cert:
+
+Specify a Client Certificate
+----------------------------
+
+When you connect to a MongoDB deployment with TLS enabled, the deployment will by default require the client to provide
+a client certificate issued by a certificate authority, or an authority
+trusted by the native certificate store in use on the server.
+
+You can provide the client certificate in the following ways:
+
+- Setting the ``tlsCertificateKeyFile`` parameter in your connection string to a ``.pem`` file containing the root certificate chain
+- Using the ``mongoc_uri_set_option_as_utf8()`` function to set the ``MONGOC_URI_TLSCERTIFICATEKEYFILE`` option
+  to a ``.pem`` file containing the root certificate chain
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      .. literalinclude:: /includes/connect/tls.c
+         :language: c
+         :start-after: start-connect-ca-file-str
+         :end-before: end-connect-ca-file-str
+         :dedent:
+
+   .. tab:: MongoC URI Options
+      :tabid: mongocurioptions
+
+      .. literalinclude:: /includes/connect/tls.c
+         :language: c
+         :start-after: start-connect-ca-file-uri
+         :end-before: end-connect-ca-file-uri
+         :dedent:
+
+.. _c-certificate-revocation:
+
+Server Certificate Verification
+-------------------------------
+
+The MongoDB C Driver will automatically verify the validity of a server certificate issued
+by the configured Certificate Authority. The driver also performs hostname validation and revocation checking.
+
+To overwrite this behavior, it is possible to disable hostname validation, OCSP endpoint revocation checking,
+all revocation checking, and allow invalid certificates.
+
+This behavior is controlled using the ``tlsAllowInvalidHostnames``, ``tlsDisableOCSPEndpointCheck``,
+``tlsDisableCertificateRevocationCheck``, and ``tlsAllowInvalidCertificates`` options. By default,
+all are set to ``false``.
+
+It is not recommended to change these defaults, since you might expose your client to the following security risks:
+
+- `Man In The Middle attacks <https://en.wikipedia.org/wiki/Man-in-the-middle_attack>`_, when
+  ``tlsAllowInvalidHostnames`` is set
+- Invalid certificates, when ``tlsAllowInvalidCertificates`` is set
+- Potentially revoked certificates, when ``tlsDisableOCSPEndpointCheck`` or ``tlsDisableCertificateRevocationCheck`` are set
+
+Supported Libraries
+-------------------
+
+By default, libmongoc will attempt to find a supported TLS library and enable TLS support. This is controlled
+by the cmake flag ``ENABLE_SSL``, which is set to ``AUTO`` by default. This flag accepts the following values:
+
+- ``AUTO``: Links to the system's native TLS library, or attempts to find OpenSSL. This is the default value.
+- ``OPENSSL``: Links to OpenSSL (libssl). An optional install path may be specified with ``OPENSSL_ROOT``.
+- ``WINDOWS``: Links to Secure Channel, the native TLS library on Windows.
+- ``DARWIN``: Links to Secure Transport, the native TLS library on macOS.
+- ``OFF``: Disables TLS support.
+
+OpenSSL
+~~~~~~~
+
+The MongoDB C Driver uses OpenSSL on Linux and Unix platforms (besides macOS). Industry best practices
+and some regulations require the use of TLS 1.1 or newer, which requires at least OpenSSL 1.0.1. Use the following command
+to check your OpenSSL version:
+
+.. code-block:: bash
+
+   openssl version
+
+Ensure your system's OpenSSL is a recent version (at least 1.0.1), or use the following command to install a recent version in a
+non-system path and build against it:
+
+.. code-block:: bash
+
+   cmake -DOPENSSL_ROOT_DIR=/absolute/path/to/openssl
+
+When compiled against OpenSSL, the driver will attempt to load the system default certificate store, as configured by the
+distribution. That can be overridden by setting the ``tlsCAFile`` URI option or with the fields ``ca_file`` and ``ca_dir``
+in the `mongoc_ssl_opt_t <{+api-libmongoc+}/mongoc_ssl_opt_t.html>`__.
+
+The Online Certificate Status Protocol (OCSP) is fully supported
+when using OpenSSL 1.0.1+. However, when a ``crl_file`` is set with `mongoc_ssl_opt_t <{+api-libmongoc+}/mongoc_ssl_opt_t.html>`__ and the ``crl_file`` revokes
+the server's certificate, the certificate is considered revoked, even if the certificate has a valid stapled OCSP response.
+  
+.. tip::
+ 
+   For more information about OCSP, see `RFC 6960 <https://tools.ietf.org/html/rfc6960>`__.
+
+.. _c-native-tls:
+
+Native TLS Support on Windows (Secure Channel)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The MongoDB C Driver supports the Windows native TLS library (Secure Channel, or SChannel) and its native crypto library
+(Cryptography API: Next Generation, or CNG).
+
+When compiled against the Windows native libraries, the ``ca_dir`` option of a `mongoc_ssl_opt_t <{+api-libmongoc+}/mongoc_ssl_opt_t.html>`__ is not supported
+and issues an error if used. Encrypted PEM files, set by using the ``tlsCertificateKeyPassword`` URI option, are also
+not supported and issue errors when you attempt to load them.
+
+The ``tlsCertificateKeyFile`` URI option can refer to a certificate encoded in either the PKCS#8 or
+PKCS#1 format. Starting with version 2.1.0 of the C driver, the driver imports the private
+key as a persistent key to support modern signature algorithms. In earlier versions, the
+driver imported the key as ephemeral. To learn more about managing imported keys, see
+:ref:`managing-imported-keys`.
+
+When ``tlsCAFile`` is set, the driver imports the Certificate Authority file to the ``System Local Machine Root`` certificate store.
+When no ``tlsCAFile`` is set, the driver looks up the Certificate Authority file using the ``System Local Machine Root``
+certificate store to confirm the provided certificate.
+
+When ``crl_file`` is set with `mongoc_ssl_opt_t <{+api-libmongoc+}/mongoc_ssl_opt_t.html>`__, the driver imports the revocation list to
+the ``System Local Machine Root`` certificate store. Setting ``tlsDisableOCSPEndpointCheck`` has no effect.
+
+The Online Certificate Status Protocol (OCSP) is partially supported
+with the following notes:
+
+- Must-Staple extension (see `RFC 7633 <https://tools.ietf.org/html/rfc7633>`__) is ignored.
+- Connection will continue if a Must-Staple certificate is presented without a stapled response and the OCSP responder is down.
+- Connection will not continue if the client receives a revoked response from an OCSP responder.
+- When a ``crl_file`` is set with `mongoc_ssl_opt_t <{+api-libmongoc+}/mongoc_ssl_opt_t.html>`__, and the ``crl_file`` revokes the server's certificate, the OCSP response
+  takes precedence. For example, if the server presents a certificate with a valid stapled OCSP response, the certificate is considered
+  valid even if the ``crl_file`` marks it as revoked.
+
+.. tip::
+ 
+   For more information about OCSP, see `RFC 6960
+   <https://tools.ietf.org/html/rfc6960>`__.
+   
+.. _managing-imported-keys:
+
+Managing Imported Keys
+```````````````````````
+
+The C Driver imports PKCS#8 keys into the CNG KSP: ``Microsoft Software Key Storage
+Provider`` and imports PKCS#1 keys into the legacy CryptoAPI CSP: ``Microsoft Enhanced
+Cryptographic Provider v1.0``. To learn more about key imports, see `Key Storage and
+Retrieval <https://learn.microsoft.com/en-us/windows/win32/seccng/key-storage-and-retrieval#key-directories-and-files>`__
+in the Microsoft documentation.
+
+After you import keys, you might need to compute the key name and provider, view the key,
+or delete the key. The following PowerShell code computes the key name and providers:
+
+.. literalinclude:: /includes/connect/manage-imported-keys.ps1
+   :language: powershell 
+   :start-after: #start-manage-imported-keys
+   :end-before: #end-manage-imported-keys
+   :dedent:
+
+The following PowerShell code displays details about the key:
+
+.. literalinclude:: /includes/connect/manage-imported-keys.ps1
+   :language: powershell 
+   :start-after: #start-view-key
+   :end-before: #end-view-key
+   :copyable:
+   :dedent:
+
+The following PowerShell code deletes the key:
+
+.. literalinclude:: /includes/connect/manage-imported-keys.ps1
+   :language: powershell 
+   :start-after: #start-view-key
+   :end-before: #end-view-key
+   :copyable:
+   :dedent:
+
+.. _secure-transport:
+
+Native TLS Support on macOS / Darwin (Secure Transport)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The MongoDB C Driver supports both the Darwin native TLS library and Common Crypto, its native crypto
+library.
+
+When compiled against Secure Transport, the ``ca_dir`` and ``crl_file`` options of a `mongoc_ssl_opt_t <{+api-libmongoc+}/mongoc_ssl_opt_t.html>`__ are not supported.
+An error is issued if either are used.
+
+When ``tlsCAFile`` is set, the driver will only allow server certificates issued by the authority (or authorities) provided.
+When no ``tlsCAFile`` is set, the driver will use the Certificate Authorities in the unlocked keychains.
+
+Setting ``tlsDisableOCSPEndpointCheck`` and ``tlsDisableCertificateRevocationCheck`` has no effect when compiling against secure transport.
+
+The Online Certificate Status Protocol (OCSP) is partially supported
+with the following notes.
+
+- Must-Staple extension (see `RFC 7633 <https://tools.ietf.org/html/rfc7633>`__) is ignored
+- Connection will continue if a Must-Staple certificate is presented without a stapled response and the OCSP responder is down
+- Connection will not continue if the client receives a revoked response from an OCSP responder
+
+.. tip::
+ 
+   For more information about OCSP, see `RFC 6960 <https://tools.ietf.org/html/rfc6960>`__.
+
+API Documentation
+-----------------
+
+For more information about the objects and functions mentioned in this guide, see
+the following API documentation: 
+
+- `mongoc_uri_t <https://mongoc.org/libmongoc/current/mongoc_uri_t.html>`__
+- `mongoc_uri_set_option_as_bool() <https://mongoc.org/libmongoc/current/mongoc_uri_set_option_as_bool.html>`__

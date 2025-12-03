@@ -1,0 +1,355 @@
+.. _c-gridfs:
+
+=================
+Store Large Files
+=================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: binary large object, blob, storage, code example
+
+Overview
+--------
+
+In this guide, you can learn how to store and retrieve large files in
+MongoDB by using **GridFS**. GridFS is a specification implemented by 
+the {+driver-short+} that describes how to split files into chunks when storing them
+and reassemble them when retrieving them. The driver's implementation of
+GridFS is an abstraction that manages the operations and organization of
+the file storage. 
+
+Use GridFS if the size of your files exceeds the BSON document
+size limit of 16MB. For more detailed information on whether GridFS is
+suitable for your use case, see :manual:`GridFS </core/gridfs>` in the
+{+mdb-server+} manual.
+
+How GridFS Works
+----------------
+
+GridFS organizes files in a **bucket**, a group of MongoDB collections
+that contain the chunks of files and information describing them. The
+bucket contains the following collections, named using the convention
+defined in the GridFS specification:
+
+- The ``chunks`` collection stores the binary file chunks.
+- The ``files`` collection stores the file metadata.
+
+The driver creates the GridFS bucket, if it doesn't exist, when you perform
+the first write operation. The bucket contains the preceding collections
+prefixed with the default bucket name ``fs``, unless you specify a different
+name. To ensure efficient retrieval of the files and related metadata, the driver
+also creates an index on each collection if they don't exist and when the
+bucket is empty. 
+	
+For more information about GridFS indexes, see :manual:`GridFS Indexes
+</core/gridfs/#gridfs-indexes>` in the {+mdb-server+} manual.
+
+When using GridFS to store files, the driver splits the files into smaller
+chunks, each represented by a separate document in the ``chunks`` collection.
+It also creates a document in the ``files`` collection that contains
+a file ID, file name, and other file metadata. You can upload the file by passing
+a stream to the {+driver-short+} to consume or creating a new stream and writing to it
+directly.
+
+The following diagram shows how GridFS splits files when they are
+uploaded to a bucket:
+
+.. figure:: /includes/figures/GridFS-upload.png
+   :alt: A diagram that shows how GridFS uploads a file to a bucket
+
+When you retrieve files from GridFS, it fetches the metadata from the ``files``
+collection in the specified bucket and uses the information to reconstruct
+the file from documents in the ``chunks`` collection. You can read the file
+by writing its contents to an existing stream or creating a new stream that points
+to the file.
+
+.. _gridfs-create-bucket:
+
+Create a GridFS Bucket
+----------------------
+
+To use GridFS, first call the ``mongoc_gridfs_bucket_new()`` function.
+This function creates a new ``mongoc_gridfs_bucket_t`` structure or accesses
+an existing ``mongoc_gridfs_bucket_t`` and accepts the following parameters:
+
+- **Database**: Specifies the database in which to create the bucket
+- **Options document**: Specifies options to customize the bucket, or ``NULL``
+- **Read preference**: Specifies the read preference to use for read operations, or ``NULL``
+  to inherit the database's read preference
+- **Error location**: Specifies a location for an error value, or ``NULL``
+
+The following example calls the ``mongoc_gridfs_bucket_new()`` function and passes
+the ``db`` database as a parameter:
+
+.. literalinclude:: /includes/write/gridfs.c
+   :language: c
+   :dedent:
+   :start-after: start-create-bucket
+   :end-before: end-create-bucket
+
+.. _gridfs-create-custom-bucket:
+
+Customize the Bucket
+~~~~~~~~~~~~~~~~~~~~
+
+You can customize the GridFS bucket configuration by passing a BSON document that specifies
+option values to the ``mongoc_gridfs_bucket_new()`` function. The following table describes
+the options you can set in the document:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+
+   * - ``bucketName`` 
+     - | Specifies the bucket name to use as a prefix for the files and chunks collections.
+         The default value is ``"fs"``.
+       | **Type**: ``string``
+
+   * - ``chunkSizeBytes`` 
+     - | Specifies the chunk size that GridFS splits files into. The default value is 255 kB.
+       | **Type**: ``int32``
+
+   * - ``readConcern`` 
+     - | Specifies the read concern to use for bucket operations. The default value is the 
+         database's read concern.
+       | **Type**: ``mongoc_read_concern_t``
+
+   * - ``writeConcern`` 
+     - | Specifies the write concern to use for bucket operations. The default value is the 
+         database's write concern.
+       | **Type**: ``mongoc_write_concern_t``
+
+The following example creates a bucket named ``"myCustomBucket"`` by passing an
+options document to ``mongoc_gridfs_bucket_new()`` that sets the ``bucketName`` option:
+
+.. literalinclude:: /includes/write/gridfs.c
+   :language: c
+   :dedent:
+   :start-after: start-create-custom-bucket
+   :end-before: end-create-custom-bucket
+
+.. _gridfs-upload-files:
+
+Upload Files
+------------
+
+You can upload files to a GridFS bucket by using the following functions:
+
+- ``mongoc_gridfs_bucket_open_upload_stream()``: Opens a new upload stream
+  to which you can write file contents
+- ``mongoc_gridfs_bucket_upload_from_stream()``: Uploads the contents of
+  an existing stream to a GridFS file
+
+.. _gridfs-open-upload-stream:
+
+Write to an Upload Stream
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``mongoc_gridfs_bucket_open_upload_stream()`` function to create an
+upload stream for a given file name. The ``mongoc_gridfs_bucket_open_upload_stream()``
+function allows you to specify configuration information in an options document,
+which you can pass as a parameter.
+
+This example uses an upload stream to perform the following
+actions:
+
+- Opens a writable stream for a new GridFS file named ``"my_file"``
+- Calls the ``mongoc_stream_write()`` function to write data to ``"my_file"``, which the stream points to
+- Calls the ``mongoc_stream_close()`` and ``mongoc_stream_destroy()`` functions to
+  close and destroy the stream pointing to ``"my_file"`` 
+
+.. literalinclude:: /includes/write/gridfs.c
+   :language: c
+   :dedent:
+   :start-after: start-open-upload-stream
+   :end-before: end-open-upload-stream
+
+Upload an Existing Stream
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``mongoc_gridfs_bucket_upload_from_stream()`` function to upload the contents
+of a stream to a new GridFS file. The ``mongoc_gridfs_bucket_upload_from_stream()``
+function allows you to specify configuration information in an options document, which
+you can pass as a parameter.
+
+This example performs the following actions:
+
+- Calls the ``mongoc_stream_file_new_for_path()`` function to open a file located
+  at ``/path/to/input_file`` as a stream in read only (``O_RDONLY``) mode
+- Calls the ``mongoc_gridfs_bucket_upload_from_stream()`` function to upload the
+  contents of the stream to a GridFS file named ``"new_file"`` 
+- Calls the ``mongoc_stream_close()`` and ``mongoc_stream_destroy()`` functions to
+  close and destroy the stream
+
+.. literalinclude:: /includes/write/gridfs.c
+   :language: c
+   :dedent:
+   :start-after: start-upload-from-stream
+   :end-before: end-upload-from-stream
+
+.. _gridfs-retrieve-file-info:
+
+Retrieve File Information
+-------------------------
+
+In this section, you can learn how to retrieve file metadata stored in the
+``files`` collection of the GridFS bucket. A file's metadata contains information
+about the file it refers to, including:
+
+- The ``_id`` of the file
+- The name of the file
+- The length/size of the file
+- The upload date and time
+- A ``metadata`` document in which you can store any other information
+
+To retrieve files from a GridFS bucket, call the ``mongoc_gridfs_bucket_find()``
+function and pass your bucket as a parameter. The function returns a cursor
+from which you can access the results. 
+
+.. tip::
+
+   To learn more about cursors in the {+driver-short+}, see the
+   :ref:`<c-cursors>` guide.
+
+Example 
+~~~~~~~
+
+The following code example shows you how to retrieve and print file metadata
+from files in a GridFS bucket. It uses a ``while`` loop to iterate through
+the returned cursor and display the contents of the files uploaded in the
+:ref:`gridfs-upload-files` examples:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/write/gridfs.c
+      :start-after: start-retrieve-file-info
+      :end-before: end-retrieve-file-info
+      :language: c
+      :dedent:
+
+   .. output::
+      :visible: false
+
+      { "_id" : { "$oid" : "..." }, "length" : 13, "chunkSize" : 261120, "uploadDate" : 
+      { "$date" : ... }, "filename" : "my_file", "metadata" : {  } }
+
+      { "_id" : { "$oid" : "..." }, "length" : 13, "chunkSize" : 261120, "uploadDate" :
+      { "$date" : ... }, "filename" : "new_file", "metadata" : {  } }
+
+The ``mongoc_gridfs_bucket_find()`` function accepts various query specifications. You can use its
+options parameter to specify the sort order, maximum number of documents to return,
+and the number of documents to skip before returning. To view a list of available
+options, see the `mongoc_collection_find_with_opts() <{+api-libmongoc+}/mongoc_collection_find_with_opts.html>`__
+API documentation.
+
+.. _gridfs-download-files:
+
+Download Files
+--------------
+
+You can download files from a GridFS bucket by using the following functions:
+
+- ``mongoc_gridfs_bucket_open_download_stream()``: Opens a new download stream
+  from which you can read the file contents
+- ``mongoc_gridfs_bucket_download_to_stream()``: Writes the entire file to
+  an existing download stream
+
+Read From a Download Stream
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can download files from your MongoDB database by using the
+``mongoc_gridfs_bucket_open_download_stream()`` function to
+create a download stream.
+
+This example uses a download stream to perform the following actions:
+
+- Calls the ``mongoc_gridfs_bucket_open_download_stream()`` function to select
+  a GridFS file with the specified ``_id`` value and opens it as a readable stream 
+- Calls the ``mongoc_stream_read()`` function to read the contents of the file
+- Calls the ``mongoc_stream_close()`` and ``mongoc_stream_destroy()`` functions to
+  close and destroy the download stream pointing to the file
+
+.. literalinclude:: /includes/write/gridfs.c
+   :language: c
+   :dedent:
+   :start-after: start-open-download-stream
+   :end-before: end-open-download-stream
+
+.. note::
+
+   If there are multiple documents with the same file name,
+   GridFS will stream the most recent file with the given name (as
+   determined by the ``uploadDate`` field).
+
+Download to an Existing Stream
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can download the contents of a GridFS file to an existing stream
+by calling the ``mongoc_gridfs_bucket_download_to_stream()`` function.
+
+This example performs the following actions:
+
+- Calls the ``mongoc_stream_file_new_for_path()`` function to open a file
+  located at ``/path/to/output_file`` as a stream in read and write (``O_RDWR``) mode
+- Downloads a GridFS file that has the specified ``_id`` value
+  to the stream
+- Calls the ``mongoc_stream_close()`` and ``mongoc_stream_destroy()`` functions to
+  close and destroy the file stream 
+
+.. literalinclude:: /includes/write/gridfs.c
+   :language: c
+   :dedent:
+   :start-after: start-download-to-stream
+   :end-before: end-download-to-stream
+
+.. _gridfs-delete-files:
+
+Delete Files
+------------
+
+Use the ``mongoc_gridfs_bucket_delete_by_id()`` function to remove a file's collection
+document and associated chunks from your bucket. This effectively deletes the file.
+
+The following example shows you how to delete a file by referencing its ``_id`` field:
+
+.. literalinclude:: /includes/write/gridfs.c
+   :language: c
+   :dedent:
+   :start-after: start-delete-files
+   :end-before: end-delete-files
+
+.. note:: File Revisions
+
+   The ``mongoc_gridfs_bucket_delete_by_id()`` function supports deleting only one
+   file at a time. If you want to delete each file revision, or files with different upload
+   times that share the same file name, collect the ``_id`` values of each revision.
+   Then, pass each ``_id`` value in separate calls to the ``mongoc_gridfs_bucket_delete_by_id()``
+   function.
+
+API Documentation
+-----------------
+
+To learn more about using the {+driver-short+} to store and retrieve large files,
+see the following API documentation:
+
+- `mongoc_gridfs_bucket_new() <{+api-libmongoc+}/mongoc_gridfs_bucket_new.html>`__
+- `mongoc_gridfs_bucket_open_upload_stream() <{+api-libmongoc+}/mongoc_gridfs_bucket_open_upload_stream.html>`__
+- `mongoc_gridfs_bucket_upload_from_stream() <{+api-libmongoc+}/mongoc_gridfs_bucket_upload_from_stream.html>`__
+- `mongoc_gridfs_bucket_find() <{+api-libmongoc+}/mongoc_gridfs_bucket_find.html>`__
+- `mongoc_gridfs_bucket_open_download_stream() <{+api-libmongoc+}/mongoc_gridfs_bucket_open_download_stream.html>`__
+- `mongoc_gridfs_bucket_download_to_stream() <{+api-libmongoc+}/mongoc_gridfs_bucket_download_to_stream.html>`__
+- `mongoc_gridfs_file_set_metadata() <{+api-libmongoc+}/mongoc_gridfs_file_set_metadata.html>`__
+- `mongoc_gridfs_bucket_delete_by_id() <{+api-libmongoc+}/mongoc_gridfs_bucket_delete_by_id.html>`__

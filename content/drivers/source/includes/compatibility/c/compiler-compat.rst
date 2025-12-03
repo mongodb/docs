@@ -16,5 +16,5 @@ The following compilers are continually tested with the C driver:
        9.4, and 10.2. The MinGW-w64 GCC is also tested and supported.
 
    * - Microsoft Visual C++ (MSVC)
-     - Tested with MSVC 14.x (Visual Studio 2015) and 15.x (Visual Studio
-       2017). Newer MSVC versions are supported but not yet tested.
+     - Tested with 15.x (Visual Studio 2017). Newer MSVC versions are supported
+       but not yet tested.

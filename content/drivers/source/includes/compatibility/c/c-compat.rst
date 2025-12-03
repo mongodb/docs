@@ -12,7 +12,7 @@ The following table shows compatibility between the C driver and the C language:
      - C99
      - C89
   
-   * - 1.24 to 2.1
+   * - 1.24 to 2.2
      - ✓
      - ✓
      - ✓

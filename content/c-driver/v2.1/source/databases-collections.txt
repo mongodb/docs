@@ -1,0 +1,314 @@
+.. _c-databases-collections:
+
+=========================
+Databases and Collections
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: table, row, organize, storage
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   Time Series </databases-collections/time-series>
+   Run a Database Command </databases-collections/run-command>
+
+Overview
+--------
+
+In this guide, you can learn how to interact with MongoDB databases and
+collections by using the {+driver-short+}.
+
+MongoDB organizes data into a hierarchy of the following levels:
+
+- **Databases**: Top-level data structures in a MongoDB deployment that store collections.
+- **Collections**: Groups of MongoDB documents. They are analogous to tables in relational databases.
+- **Documents**: Units that store literal data such as string, numbers, dates, and other embedded documents.
+  For more information about document field types and structure, see the
+  :manual:`Documents </core/document/>` guide in the {+mdb-server+} manual.
+
+Access a Database
+-----------------
+
+Access a database by using the ``mongoc_client_get_database()`` function.
+
+The following example accesses a database named ``test_database``:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.c
+   :start-after: start-access-database
+   :end-before: end-access-database
+   :language: c
+   :copyable:
+   :dedent:
+
+Access a Collection
+-------------------
+
+Access a collection by using the ``mongoc_client_get_collection()`` or ``mongoc_database_get_collection()``
+functions.
+
+The following example accesses a collection named ``test_collection`` by using the 
+``mongoc_database_get_collection()`` function:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.c
+   :start-after: start-access-collection
+   :end-before: end-access-collection
+   :language: c
+   :copyable:
+   :dedent:
+
+.. tip::
+
+   If the provided collection name does not already exist in the database,
+   MongoDB implicitly creates the collection when you first insert data
+   into it.
+
+Create a Collection
+-------------------
+
+Use the ``mongoc_database_create_collection()`` function to explicitly create a collection in a
+MongoDB database.
+
+The following example creates a collection called ``example_collection``:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.c
+   :start-after: start-create-collection
+   :end-before: end-create-collection
+   :language: c
+   :copyable:
+   :dedent:
+
+You can specify collection options, such as maximum size and document
+validation rules, by passing them inside a ``bson_t`` structure as the third parameter
+to the ``mongoc_database_create_collection()`` function. For a full list of
+optional parameters, see the :manual:`create command </reference/command/create>`
+documentation in the {+mdb-server+} manual.
+
+Get a List of Collections
+-------------------------
+
+You can query for a list of collections in a database by calling the
+``mongoc_database_find_collections_with_opts()`` function. The function returns a cursor containing all
+collections in the database and their associated metadata.
+
+The following example calls the ``mongoc_database_find_collections_with_opts()`` function and iterates over
+the cursor to print the results:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/databases-collections/databases-collections.c
+      :language: c
+      :start-after: start-find-collections
+      :end-before: end-find-collections
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Collection: { "name" : "test_collection", "type" : "collection", ...}
+      Collection: { "name" : "example_collection", "type" : "collection", ... }
+
+To query for only the names of the collections in the database, call the
+``mongoc_database_get_collection_names_with_opts()`` function as follows:
+
+.. io-code-block::
+   :copyable:
+
+   .. input:: /includes/databases-collections/databases-collections.c
+      :language: c
+      :start-after: start-find-collection-names
+      :end-before: end-find-collection-names
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      test_collection
+      example_collection
+
+For more information about iterating over a cursor, see :ref:`c-cursors`. 
+
+Delete a Collection
+-------------------
+
+You can delete a collection from the database by using the ``mongoc_collection_drop()``
+function.
+
+The following example deletes the ``test_collection`` collection:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.c
+   :start-after: start-delete-collection
+   :end-before: end-delete-collection
+   :language: c
+   :copyable:
+   :dedent:
+
+.. warning:: Dropping a Collection Deletes All Data in the Collection
+
+   Dropping a collection from your database permanently deletes all
+   documents and all indexes within that collection.
+
+   Drop a collection only if the data in it is no longer needed.
+
+Delete a Database
+-----------------
+
+You can delete a database from your cluster by using the ``mongoc_database_drop()``
+function.
+
+The following example deletes the ``test_database`` database:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.c
+   :start-after: start-delete-database
+   :end-before: end-delete-database
+   :language: c
+   :copyable:
+   :dedent:
+
+.. warning:: Dropping a Database Deletes All Data in the Database
+
+   Dropping a database permanently deletes all collections,
+   documents, and indexes within that database.
+
+   Drop a database only if the data in it is no longer needed.
+
+.. _c-config-read-write:
+
+Configure Read and Write Operations
+-----------------------------------
+
+You can control how the driver routes read operations by setting a **read preference**.
+You can also control options for how the driver waits for acknowledgment of
+read and write operations on a replica set by setting a **read concern** and a
+**write concern**.
+
+By default, databases inherit these settings from the ``mongoc_client_t`` instance,
+and collections inherit them from the database. However, you can change these
+settings on your database by using one of the following functions:
+
+- ``mongoc_database_set_read_prefs()``
+- ``mongoc_database_set_read_concern()``
+- ``mongoc_database_set_write_concern()``
+
+The following example shows how to change the read preference of a database by using the
+``mongoc_database_set_read_prefs()`` function:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.c
+   :start-after: start-database-read-prefs
+   :end-before: end-database-read-prefs
+   :language: c
+   :copyable:
+   :dedent:
+
+You can change the read and write settings on your collections by using one of the following functions:
+
+- ``mongoc_collection_set_read_prefs()``
+- ``mongoc_collection_set_read_concern()``
+- ``mongoc_collection_set_write_concern()``
+
+The following example shows how to change the read preference of a collection by using the
+``mongoc_collection_set_read_prefs()`` function:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.c
+   :start-after: start-collection-read-prefs
+   :end-before: end-collection-read-prefs
+   :language: c
+   :copyable:
+   :dedent:
+
+.. tip::
+
+   To see the types of available read preferences, see the
+   `API documentation <{+api-libmongoc+}/mongoc_read_prefs_t.html#read-modes>`__. 
+
+To learn more about the read and write settings, see the following guides in the
+{+mdb-server+} manual:
+
+- :manual:`Read Preference </core/read-preference/>`
+- :manual:`Read Concern </reference/read-concern/>`
+- :manual:`Write Concern </reference/write-concern/>`
+
+Tag Sets
+~~~~~~~~
+
+In the {+mdb-server+}, you can apply key-value :manual:`tags
+</core/read-preference-tags/>` to replica-set
+members according to any criteria you choose. You can then use
+those tags to target one or more members for a read operation.
+
+By default, the {+driver-short+} ignores tags
+when choosing a member to read from. To instruct the {+driver-short+}
+to prefer certain tags, use the ``mongoc_read_prefs_set_tags()`` function to set the
+tags in an instance of ``mongoc_read_prefs_t``. 
+
+In the following code example, the tag set passed to the ``mongoc_read_prefs_set_tags()``
+function instructs the {+driver-short+} to prefer reads from the
+New York data center (``'dc': 'ny'``) and to fall back to the San Francisco data
+center (``'dc': 'sf'``):
+
+.. literalinclude:: /includes/databases-collections/databases-collections.c
+   :start-after: start-tags
+   :end-before: end-tags
+   :language: c
+   :copyable:
+   :dedent:
+
+Local Threshold
+~~~~~~~~~~~~~~~
+
+If multiple replica-set members match the read preference and tag sets you specify,
+the {+driver-short+} reads from the nearest replica-set members, chosen according to
+their ping time.
+
+By default, the driver uses only those members whose ping times are within 15 milliseconds
+of the nearest member for queries. To distribute reads between members with
+higher latencies, include the ``localThresholdMS`` parameter in your connection string URI.
+
+The following example connects to a MongoDB deployment running on ``localhost:27017``
+and specifies a local threshold of 35 milliseconds:
+
+.. literalinclude:: /includes/databases-collections/databases-collections.c
+   :start-after: start-local-threshold
+   :end-before: end-local-threshold
+   :language: c
+   :copyable:
+   :dedent:
+
+In the preceding example, the {+driver-short+} distributes reads between matching members
+within 35 milliseconds of the closest member's ping time.
+
+API Documentation
+-----------------
+
+To learn more about any of the functions discussed in this
+guide, see the following API documentation:
+
+- `mongoc_database_create_collection() <{+api-libmongoc+}/mongoc_database_create_collection.html>`__
+- `mongoc_database_find_collections_with_opts() <{+api-libmongoc+}/mongoc_database_find_collections_with_opts.html>`__
+- `mongoc_database_get_collection_names_with_opts() <{+api-libmongoc+}/mongoc_database_get_collection_names_with_opts.html>`__
+- `mongoc_client_get_database() <{+api-libmongoc+}/mongoc_client_get_database.html>`__
+- `mongoc_client_get_collection() <{+api-libmongoc+}/mongoc_client_get_collection.html>`__
+- `mongoc_database_get_collection() <{+api-libmongoc+}/mongoc_database_get_collection.html>`__
+- `mongoc_collection_drop() <{+api-libmongoc+}/mongoc_collection_drop.html>`__
+- `mongoc_database_drop() <{+api-libmongoc+}/mongoc_database_drop.html>`__
+- `mongoc_database_set_read_prefs() <{+api-libmongoc+}/mongoc_database_set_read_prefs.html>`__
+- `mongoc_database_set_read_concern() <{+api-libmongoc+}/mongoc_database_set_read_concern.html>`__
+- `mongoc_database_set_write_concern() <{+api-libmongoc+}/mongoc_database_set_write_concern.html>`__
+- `mongoc_collection_set_read_prefs() <{+api-libmongoc+}/mongoc_collection_set_read_prefs.html>`__
+- `mongoc_collection_set_read_concern() <{+api-libmongoc+}/mongoc_collection_set_read_concern.html>`__
+- `mongoc_collection_set_write_concern() <{+api-libmongoc+}/mongoc_collection_set_write_concern.html>`__
+- `mongoc_read_prefs_set_tags() <{+api-libmongoc+}/mongoc_read_prefs_set_tags.html>`__

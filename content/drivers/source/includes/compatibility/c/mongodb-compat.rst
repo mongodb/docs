@@ -13,7 +13,7 @@ The following table shows compatibility between the C driver and {+mdb-server+}:
      - MongoDB 4.4
      - MongoDB 4.2
 
-   * - 1.28 to 2.1
+   * - 1.28 to 2.2
      - ✓
      - ✓
      - ✓
