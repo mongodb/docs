@@ -36,7 +36,7 @@ create a free MongoDB Atlas cluster and load the sample datasets, see the
 `Get Started with Atlas <https://www.mongodb.com/docs/get-started/?language=rust>`__ guide.
 
 Run a {+search+} Query
----------------------------------
+------------------------------------
 
 This section shows how to create an aggregation pipeline to run an
 {+search+} query on a collection. 
@@ -57,7 +57,7 @@ the ``aggregate()`` method and pass your pipeline array as a parameter.
    guide. 
 
 {+search+} Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This example runs an {+search+} query by performing the
 following actions:
@@ -97,7 +97,7 @@ following actions:
       }
 
 {+search+} Metadata
-------------------------------
+------------------------------------
 
 Use the ``$searchMeta`` pipeline stage to create a :manual:`$searchMeta
 </reference/operator/aggregation/searchMeta/>` aggregation stage, which returns
@@ -150,7 +150,7 @@ The MongoDB Rust driver provides helper methods and builders for creating
 search queries using Rust's type system for better compile-time safety.
 
 {+search+} Operators
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The {+driver-short+} supports the following {+search+} operators through
 BSON document construction:
@@ -285,6 +285,51 @@ specifications:
 
 To learn more about {+search+} operators, see the
 :atlas:`{+search+} Operators </atlas-search/operators-and-collectors/>` documentation.
+
+.. _rust-atlas-search-type-safe:
+
+Type-Safe Query Construction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+driver-long+} provides type-safe helper methods for constructing
+{+search+} queries. These helpers use Rust's type system to provide
+compile-time validation and better IDE support compared to raw BSON document
+construction.
+
+The following example builds an autocomplete query with type safety by using the
+``atlas_search`` module:
+
+.. code-block:: rust
+
+   use mongodb::atlas_search;
+   
+   let cursor = collection.aggregate(vec![
+       atlas_search::autocomplete("title", "pre")
+           .fuzzy(doc! { "maxEdits": 1, "prefixLength": 1, "maxExpansions": 256 })
+           .into_stage(),
+       doc! {
+           "$limit": 10,
+       },
+       doc! {
+           "$project": {
+               "_id": 0,
+               "title": 1,
+           }
+       },
+   ]).await?;
+
+The query in the preceding example performs the following operations:
+
+1. Uses the ``autocomplete()`` method to search for titles starting with ``"pre"``
+#. Uses the ``fuzzy()`` method to add tolerance for typos with specific parameters:
+
+   - ``maxEdits``: Sets the maximum number of character changes allowed to ``1``
+   - ``prefixLength``: Sets the number of characters at the beginning that must match exactly to ``1``
+   - ``maxExpansions``: Sets the maximum number of variations to consider to ``256``
+
+#. Uses the ``into_stage()`` method to generate the proper ``$search`` BSON document
+#. Limits the output to ``10`` documents
+#. Returns only the ``title`` field, excluding ``_id``
 
 Additional Information
 ----------------------

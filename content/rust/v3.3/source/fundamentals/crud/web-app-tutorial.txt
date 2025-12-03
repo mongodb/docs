@@ -1,0 +1,490 @@
+.. _rust-rocket-web-app-tutorial:
+
+========================
+CRUD Web App with Rocket
+========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, transform, pipeline
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this tutorial, you can learn how to create a {+language+} web
+application by using the `Rocket <https://rocket.rs/>`__ web framework.
+The {+driver-short+} allows you to leverage features such as memory
+management, lifetimes, and database pooling to improve your
+application's performance.
+
+After you complete this tutorial, you will have a web application with
+routes to perform CRUD operations.
+
+.. tip:: Complete App
+
+   To view a complete version of the app created in this tutorial, visit
+   the :github:`mongodb-api-rs <latonis/mongodb-api-rs>` repository on
+   GitHub.
+
+Prerequisites
+-------------
+
+Ensure you have {+language+} {+min-rust-version+} or later, and Cargo, the
+{+language+} package manager, installed in your development environment.
+
+For information about how to install {+language+} and Cargo, see
+the official {+language+} guide on `downloading and installing Rust
+<https://www.rust-lang.org/tools/install>`__.
+
+You must also set up a MongoDB Atlas cluster. To learn how to create a
+cluster, see the :ref:`rust-quick-start-create-deployment` step of the
+Quick Start guide. Save your connection string in a safe location to use
+later in the tutorial.
+
+Steps
+-----
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a {+language+} project.
+
+      Run the following commands to create and enter the
+      ``rust-crud-app`` project directory:
+
+      .. code-block:: bash
+
+         cargo new rust-crud-app
+         cd rust-crud-app
+
+   .. step:: Install the {+driver-short+}.
+
+      Run the following command to add the {+driver-short+}:
+
+      .. code-block:: shell
+
+         cargo add mongodb
+
+      Verify that your ``Cargo.toml`` file contains the following entry
+      for the {+driver-short+}:
+
+      .. code-block:: toml
+
+         [dependencies]
+         mongodb = "{+version+}"
+
+   .. step:: Select the asynchronous runtime.
+
+      When using the {+driver-short+}, you must select either the
+      synchronous or asynchronous runtime. This tutorial uses the
+      asynchronous runtime, which is more suitable for building APIs.
+
+      The driver runs with the async ``tokio`` runtime by default.
+
+      To learn more about the available runtimes, see the
+      :ref:`rust-runtimes` guide.
+
+   .. step:: Create a database and collection in the Atlas UI.
+
+      Access the Atlas UI, and then select the :guilabel:`Collections` tab
+      in your cluster settings. Select the :guilabel:`+ Create Database`
+      button. In the modal, create a database called ``bread``, and
+      within it, a collection called ``recipes``.
+
+   .. step:: Insert sample data.
+
+      Select the :guilabel:`INSERT DOCUMENT` button and paste the
+      contents of the :github:`bread_data.json
+      <latonis/mongodb-api-rs/blob/main/bread_data.json>` file in the
+      sample app repository.
+
+      After you insert the data, you can see the sample documents in
+      the ``recipes`` collection.
+
+   .. step:: Install Rocket.
+
+      Open your IDE and enter your project directory. Run the following
+      command from your project root to install the Rocket web
+      framework:
+
+      .. code-block:: bash
+
+         cargo add -F json rocket
+
+      Verify that the dependencies list in your ``Cargo.toml`` file
+      contains an entry for ``rocket``.
+
+      You must also add a crate developed by Rocket that allows you to
+      use a wrapper to manage a collection pool for the async
+      connections made by your MongoDB client. This crate allows you to
+      parameterize your MongoDB databases and collections and have each
+      app function receive its own connection to use.
+
+      Run the following command to add the ``rocket_db_pools`` crate:
+
+      .. code-block:: shell
+
+         cargo add -F mongodb rocket_db_pools
+
+      Verify that the dependencies list in your ``Cargo.toml`` file
+      contains an entry for ``rocket_db_pools`` that contains a feature
+      flag for ``mongodb``.
+
+   .. step:: Configure Rocket.
+
+      To configure Rocket to use the ``bread`` database, create a
+      file called ``Rocket.toml`` in your project root. Rocket looks for
+      this file to read configuration settings. You can also store your
+      MongoDB connection string in this file.
+
+      Paste the following configuration into ``Rocket.toml``:
+
+      .. code-block:: toml
+
+         [default.databases.db]
+         url = "<connection string>"
+
+      To learn more about configuring Rocket, see `Configuration
+      <https://rocket.rs/guide/v0.5/configuration/#configuration>`__ in
+      the Rocket documentation.
+
+   .. step:: Learn about the app structure.
+
+      Before you begin writing the API, learn about the structure of a
+      simple Rocket app and create the corresponding files in your
+      application.
+
+      The following diagram demonstrates the file structure that your
+      Rocket app must have and explains the function of each file:
+
+      .. code-block:: text
+
+         .
+         ├── Cargo.lock      # Dependency info
+         ├── Cargo.toml      # Project and dependency info
+         ├── Rocket.toml     # Rocket configuration
+         └── src             # Directory for all app code
+             ├── db.rs       # Establishes database connection
+             ├── main.rs     # Starts the web app
+             ├── models.rs   # Organizes data
+             └── routes.rs   # Stores API routes
+
+      Create the ``src`` directory and the files it contains, according
+      to the preceding diagram. At this point, the files can be empty.
+
+   .. step:: Set up the database connection.
+
+      Paste the following code into the ``db.rs`` file.
+
+      .. code-block:: rust
+
+         use rocket_db_pools::{mongodb::Client, Database};
+
+         #[derive(Database)]
+         #[database("db")]
+         pub struct MainDatabase(Client);
+
+      You must also attach the database struct to your Rocket
+      instance. In ``main.rs``, initialize the database and
+      attach it, as shown in the following code:
+
+      .. code-block:: rust
+
+         mod db;
+         mod models;
+         mod routes;
+
+         use rocket::{launch, routes};
+         use rocket_db_pools::Database;
+
+         #[launch]
+         fn rocket() -> _ {
+             rocket::build()
+                 .attach(db::MainDatabase::init())
+                 .mount()
+         }
+
+      Your IDE might raise an error that ``mount()`` is missing
+      arguments. You can ignore this error as you will add routes in a
+      later step.
+
+   .. step:: Create data models.
+
+      Defining consistent and useful structs to represent
+      your data is important for maintaining type safety and reducing
+      runtime errors.
+
+      In your ``models.rs`` file, define a ``Recipe`` struct that
+      represents a recipe to bake bread.
+
+      .. code-block:: rust
+
+         use mongodb::bson::oid::ObjectId;
+         use rocket::serde::{Deserialize, Serialize};
+
+         #[derive(Debug, Serialize, Deserialize)]
+         #[serde(crate = "rocket::serde")]
+         pub struct Recipe {
+             #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+             pub id: Option<ObjectId>,
+             pub title: String,
+             pub ingredients: Vec<String>,
+             pub temperature: u32,
+             pub bake_time: u32,
+         }
+
+   .. step:: Set up API routes.
+
+      Routing allows the program to direct the request to the proper
+      endpoint to send or receive the data. The file ``routes.rs``
+      stores all the routes defined in the API.
+
+      Add the following code to your ``routes.rs`` file to define the
+      index route and a simple ``get_recipes()`` route:
+
+      .. code-block:: rust
+
+         use crate::db::MainDatabase;
+         use crate::models::Recipe;
+         use mongodb::bson::doc;
+         use rocket::{futures::TryStreamExt, get, serde::json::Json};
+         use rocket_db_pools::{mongodb::Cursor, Connection};
+
+         #[get("/")]
+         pub fn index() -> Json<Value> {
+             Json(json!({"status": "It is time to make some bread!"}))
+         }
+
+         #[get("/recipes", format = "json")]
+         pub async fn get_recipes(db: Connection<MainDatabase>) -> Json<Vec<Recipe>> {
+             let recipes: Cursor<Recipe> = db
+                 .database("bread")
+                 .collection("recipes")
+                 .find(None, None)
+                 .await
+                 .expect("Failed to retrieve recipes");
+
+             Json(recipes.try_collect().await.unwrap())
+         }
+
+      Before you write the remaining routes, add the routes to the main
+      launch function for Rocket.
+
+      In ``main.rs``, replace the arguments to ``mount()`` so that the
+      file resembles the following code:
+
+      .. code-block:: rust
+
+         mod db;
+         mod models;
+         mod routes;
+
+         use rocket::{launch, routes};
+         use rocket_db_pools::Database;
+
+         #[launch]
+         fn rocket() -> _ {
+             rocket::build().attach(db::MainDatabase::init()).mount(
+                 "/",
+                 routes![
+                     routes::index,
+                     routes::get_recipes,
+                     routes::create_recipe,
+                     routes::update_recipe,
+                     routes::delete_recipe,
+                     routes::get_recipe
+                 ],
+             )
+         }
+
+   .. step:: Implement error handling and responses.
+
+      In your app, you must implement error handling and custom
+      responses to deal with unexpected outcomes of your CRUD
+      operations.
+
+      Install the ``serde_json`` crate by running the following
+      command:
+
+      .. code-block:: bash
+
+         cargo add serde_json
+
+      This crate includes the ``Value`` enum that represents a JSON
+      value.
+
+      You can specify that your routes return HTTP status codes
+      by using Rocket's ``status::Custom`` structs, which allow you to
+      specify the HTTP status code and any custom data to return. The
+      following step describes how to write routes that return the
+      ``status::Custom`` type.
+
+   .. step:: Write CRUD operation routes.
+
+      Create
+      ~~~~~~
+
+      When you attempt to create data in MongoDB, there are two possible
+      outcomes:
+
+      - Document is successfully created, so your app returns ``HTTP
+        201``.
+      - Error occurred during insertion, so your app returns ``HTTP
+        400``.
+      
+      Add the following route to your ``routes.rs`` file to define the
+      ``create_recipe()`` route and implement error handling:
+
+      .. code-block:: rust
+      
+         #[post("/recipes", data = "<data>", format = "json")]
+         pub async fn create_recipe(
+             db: Connection<MainDatabase>,
+             data: Json<Recipe>,
+         ) -> status::Custom<Json<Value>> {
+             if let Ok(res) = db
+                 .database("bread")
+                 .collection::<Recipe>("recipes")
+                 .insert_one(data.into_inner(), None)
+                 .await
+             {
+                 if let Some(id) = res.inserted_id.as_object_id() {
+                     return status::Custom(
+                         Status::Created,
+                         Json(json!({"status": "success", "message": format!("Recipe ({}) created successfully", id.to_string())})),
+                     );
+                 }
+             }
+      
+             status::Custom(
+                 Status::BadRequest,
+                 Json(json!({"status": "error", "message":"Recipe could not be created"})),
+             )
+         }
+
+      Read
+      ~~~~
+
+      When you attempt to read data from MongoDB, there are two possible
+      outcomes:
+
+      - Return the vector of matching documents.
+      - Return an empty vector, because there are no matching documents
+        or because an error occurred.
+
+      Because of these expected outcomes, replace your ``get_recipes()``
+      route with the following code:
+      
+      .. code-block:: rust
+      
+         #[get("/recipes", format = "json")]
+         pub async fn get_recipes(db: Connection<MainDatabase>) -> Json<Vec<Recipe>> {
+             let recipes = db
+                 .database("bread")
+                 .collection("recipes")
+                 .find(None, None)
+                 .await;
+      
+             if let Ok(r) = recipes {
+                 if let Ok(collected) = r.try_collect::<Vec<Recipe>>().await {
+                     return Json(collected);
+                 }
+             }
+      
+             return Json(vec![]);
+         }
+
+      Other Operations
+      ~~~~~~~~~~~~~~~~
+
+      You can copy the ``get_recipe()``, ``update_recipe()``, and
+      ``delete_recipe()`` routes from the :github:`routes.rs
+      <latonis/mongodb-api-rs/blob/main/src/routes.rs>` file in the
+      sample app repository.
+
+   .. step:: Test routes to perform CRUD operations.
+
+      Start your application by running the following command in
+      your terminal:
+
+      .. code-block:: bash
+      
+         cargo run
+      
+      In another terminal window, run the following command to test the
+      ``create_recipe()`` route:
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input::
+            :language: bash
+      
+            curl -v --header "Content-Type: application/json" --request POST --data '{"title":"simple bread recipe","ingredients":["water, flour"], "temperature": 250, "bake_time": 120}' http://127.0.0.1:8000/recipes
+      
+         .. output::
+            :language: none
+            :visible: false
+      
+            {"status":"success","message":"Recipe (684c4245f5a3ca09efa92593) created successfully"}
+
+      Run the following command to test the ``get_recipes()`` route:
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input::
+            :language: bash
+      
+            curl -v --header "Content-Type: application/json" --header "Accept: application/json" http://127.0.0.1:8000/recipes/
+      
+         .. output::
+            :language: none
+            :visible: false
+      
+            [{"_id":...,"title":"artisan","ingredients":["salt","flour","water","yeast"],"temperature":404,"bake_time":5},
+            {"_id":...,"title":"rye","ingredients":["salt"],"temperature":481,"bake_time":28},...]
+      
+      Run the following command to test the ``delete_recipe()`` route.
+      Replace the ``<id>`` placeholder with a known ``_id`` value from
+      your collection, which might resemble ``68484d020f561e78c03c7800``:
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input::
+            :language: bash
+      
+            curl -v --header "Content-Type: application/json" --header "Accept: application/json" --request DELETE http://127.0.0.1:8000/recipes/<id>
+      
+         .. output::
+            :language: none
+            :visible: false
+      
+            {"status":"","message":"Recipe (68484d020f561e78c03c7800) successfully deleted"}
+
+Conclusion
+----------
+
+In this tutorial, you learned how to build a simple web application with
+Rocket to perform CRUD operations.
+
+Resources
+~~~~~~~~~
+
+To learn more about CRUD operations, see the following guides:
+
+- :ref:`rust-insert-guide`
+- :ref:`rust-retrieve-guide`
+- :ref:`rust-query-guide`
+- :ref:`rust-change-guide`
+- :ref:`rust-delete-guide`

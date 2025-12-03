@@ -1,0 +1,348 @@
+.. _rust-insert-guide:
+
+================
+Insert Documents
+================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: set options, bulk write error, code example
+   :description: Learn how to insert documents into a MongoDB collection with the MongoDB Rust Driver, including options for single and multiple document inserts.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to **insert** documents into a MongoDB
+collection.
+
+Before you can find, update, and delete any documents in MongoDB, you need
+to insert them. You can insert documents by using the following methods:
+
+- ``insert_one()`` to insert one document
+- ``insert_many()`` to insert one or more documents
+
+This guide includes the following sections:
+
+- :ref:`The _id Field <rust-id-field>` describes the ``_id`` field
+  that each document contains
+
+- :ref:`Insert a Document <rust-insert-one>` describes how to use the
+  driver to insert a single document into a collection
+
+- :ref:`Insert Multiple Documents <rust-insert-multiple>` describes how to use the
+  driver to insert multiple documents into a collection
+
+- :ref:`Additional Information <rust-crud-insert-addtl-info>`
+  provides links to resources and API documentation for types
+  and methods mentioned in this guide
+
+.. _rust-id-field:
+
+The _id Field
+-------------
+
+In a MongoDB collection, each document *must* contain a unique ``_id``
+field value. The driver automatically generates a unique value for each
+document as an ``ObjectId`` type when you insert data into a
+collection.
+
+If you prefer to set custom values, you can assign the values in
+the ``_id`` fields of documents passed to your insert operation.
+
+.. important:: Duplicate _id Values
+
+   If you attempt to insert documents that
+   include duplicate ``_id`` values, these values violate unique
+   index constraints and cause the write operation to fail.
+
+To learn more about the ``_id`` field, see :manual:`Unique Indexes
+</core/index-unique/>` in the Server manual.
+
+To learn more about document structure and rules, see
+:manual:`Documents </core/document>` in the Server manual.
+
+.. _rust-insert-one:
+
+Insert a Document
+-----------------
+
+Use the ``insert_one()`` method to insert a single document into a
+collection.
+
+Upon successful insertion, the method returns an
+``InsertOneResult`` instance that contains the ``_id`` of the inserted
+document.
+
+Example
+~~~~~~~
+
+The following example uses the ``insert_one()`` method to insert a
+document into the ``books`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/insert.rs
+      :start-after: begin-insert-one
+      :end-before: end-insert-one
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Inserted document with _id: 8
+
+.. include:: /includes/fundamentals/automatic-creation.rst
+
+Modify insert_one Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``insert_one()`` method by chaining option
+builder methods to ``insert_one()``. These option builder methods set ``InsertOneOptions``
+struct fields.
+
+.. note:: Setting Options
+   
+   You can set ``InsertOneOptions`` fields by chaining option builder methods directly
+   to the ``insert_one()`` method call. If you're using an earlier version of the
+   driver, you must construct an ``InsertOneOptions`` instance by chaining option builder
+   methods to the ``builder()`` method. Then, pass your options instance as a parameter
+   to ``insert_one()``.
+
+The following table describes the options available in ``InsertOneOptions``:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :class: compatibility-large
+
+   * - Option
+     - Description
+
+   * - ``bypass_document_validation``
+     - | If ``true``, allows the driver to perform a write that violates
+         document-level validation. To learn more about validation, see
+         the guide on :ref:`rust-schema-validation`.
+       |
+       | Type: ``bool``
+       | Default: ``false``
+
+   * - ``write_concern``
+     - | The write concern for the operation. If you don't set this
+         option, the operation inherits the write concern set for
+         the collection. To learn more about write concerns, see
+         :manual:`Write Concern </reference/write-concern/>` in the
+         Server manual.
+       |
+       | Type: ``WriteConcern``
+
+   * - ``comment``
+     - | An arbitrary ``Bson`` value tied to the operation to trace
+         it through the database profiler, ``currentOp``, and
+         logs. This option is available only when connecting to
+         {+server+} versions 4.4 and later.
+       |    
+       | Type: ``Bson``
+       | Default: ``None``
+
+.. _rust-insertone-bypass-validation-ex:
+
+The following code shows how to set the ``bypass_document_validation`` field
+by chaining the ``bypass_document_validation()`` method to the ``insert_one()``
+method:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/insert.rs
+   :start-after: begin-one-options
+   :end-before: end-one-options
+   :language: rust
+   :copyable:
+   :dedent:
+
+.. _rust-insert-multiple:
+
+Insert Multiple Documents
+-------------------------
+
+Use the ``insert_many()`` method to insert multiple documents into a
+collection.
+
+Upon successful insertion, the method returns an
+``InsertManyResult`` instance that contains the ``_id`` values of the
+inserted documents.
+
+Example
+~~~~~~~
+
+The following example uses the ``insert_many()`` method to insert
+multiple documents into the ``books`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/insert.rs
+      :start-after: begin-insert-many
+      :end-before: end-insert-many
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Inserted documents with _ids:
+      Int32(5)
+      Int32(6)
+      Int32(7)
+
+.. include:: /includes/fundamentals/automatic-creation.rst
+
+Modify insert_many Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``insert_many()`` method by chaining
+option builder methods to ``insert_many()``. These option builder methods set ``InsertManyOptions``
+struct fields.
+
+The following table describes the options available in ``InsertManyOptions``:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :class: compatibility-large
+
+   * - Option
+     - Description
+
+   * - ``bypass_document_validation``
+     - | If ``true``, allows the driver to perform a write that violates
+         document-level validation. To learn more about validation, see
+         the guide on :ref:`rust-schema-validation`.
+       |
+       | Type: ``bool``
+       | Default: ``false``
+
+   * - ``ordered``
+     - | If ``true``, when any insert fails, the operation returns
+         without inserting the remaining documents. If ``false``, even
+         if an insert fails, the operation continues with the remaining
+         writes. To learn more about ordered inserts, see the
+         :ref:`Ordered Behavior Example <rust-ordered-behavior>` section
+         of this guide.
+       |
+       | Type: ``bool``
+       | Default: ``true``
+
+   * - ``write_concern``
+     - | The write concern for the operation. If you don't set this
+         option, the operation inherits the write concern set for
+         the collection. To learn more about write concerns, see
+         :manual:`Write Concern </reference/write-concern/>` in the
+         Server manual.
+       |
+       | Type: ``WriteConcern``
+
+   * - ``comment``
+     - | An arbitrary ``Bson`` value tied to the operation to trace
+         it through the database profiler, ``currentOp``, and
+         logs. This option is available only when connecting to
+         {+server+} versions 4.4 and later.
+       |
+       | Type: ``Bson``
+       | Default: ``None``
+
+The following code shows how to set the ``comment`` field by
+chaining the ``comment()`` method to the ``insert_many()``
+method:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/insert.rs
+   :start-after: begin-many-options
+   :end-before: end-many-options
+   :language: rust
+   :copyable:
+   :dedent:
+
+.. _rust-ordered-behavior:
+
+Ordered Behavior Example
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Assume you want to insert the following documents into the ``books``
+collection:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id": 1, "title": "Where the Wild Things Are" }
+   { "_id": 2, "title": "The Very Hungry Caterpillar" }
+   { "_id": 1, "title": "Blueberries for Sal" }
+   { "_id": 3, "title": "Goodnight Moon" }
+
+When you attempt to insert these documents, the result depends on the
+value passed to the ``ordered()`` option builder method:
+
+- If you pass a value of ``true`` (the default value), the driver throws a
+  ``BulkWriteError`` when it attempts to insert the document with the
+  duplicate ``_id`` value. However, the driver still inserts the
+  documents before the error occurs. 
+
+- If you pass a value of ``false``, the driver still throws a
+  ``BulkWriteError`` when it attempts to insert the document with the
+  duplicate ``_id`` value, but it inserts every other document.
+
+The following code shows how to perform an unordered write operation to
+insert the preceding documents:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/insert.rs
+   :start-after: begin-unordered
+   :end-before: end-unordered
+   :emphasize-lines: 8-9
+   :language: rust
+   :copyable:
+   :dedent:
+
+Even though this operation results in a ``BulkWriteError``, you can
+still find the non-error-producing documents in your collection:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id": 1, "title": "Where the Wild Things Are" }
+   { "_id": 2, "title": "The Very Hungry Caterpillar" }
+   { "_id": 3, "title": "Goodnight Moon" }
+
+.. _rust-crud-insert-addtl-info:
+
+Additional Information
+----------------------
+
+For runnable examples of the insert operations, see the following usage
+examples:
+
+- :ref:`rust-insert-one-usage`
+- :ref:`rust-insert-many-usage`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `insert_one() <{+api+}/struct.Collection.html#method.insert_one>`__
+- `InsertOneResult <{+api+}/results/struct.InsertOneResult.html>`__
+- `InsertOneOptions <{+api+}/options/struct.InsertOneOptions.html>`__
+- `insert_many() <{+api+}/struct.Collection.html#method.insert_many>`__
+- `InsertManyResult <{+api+}/results/struct.InsertManyResult.html>`__
+- `InsertManyOptions <{+api+}/options/struct.InsertManyOptions.html>`__
+- `BulkWriteError <{+api+}/error/struct.BulkWriteError.html>`__
+- `BulkWriteFailure <{+api+}/error/struct.BulkWriteFailure.html>`__

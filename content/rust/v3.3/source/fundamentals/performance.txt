@@ -1,0 +1,261 @@
+.. _rust-performance:
+
+==========================
+Performance Considerations
+==========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, optimization, speed, memory
+   :description: Optimize the MongoDB Rust Driver performance by reusing Client instances, configuring connection pools, and utilizing parallelism and runtime management strategies.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to optimize the performance of the
+{+driver-short+}. To connect to MongoDB, you must create a ``Client`` instance. Your ``Client``
+instance automatically handles most aspects of connection, such as
+discovering server topology, monitoring your connection, and maintaining
+an internal connection pool. This guide describes best practices for
+configuring and using your ``Client`` instance.
+
+This guide includes the following sections:
+
+- :ref:`Client Lifecycle <rust-performance-client-lifecycle>` describes
+  best practices for creating and managing a ``Client`` instance
+
+- :ref:`Connection Pool <rust-performance-pool>` describes
+  how connection pooling works in the driver
+
+- :ref:`Parallelism <rust-performance-parallelism>` provides sample code
+  for running parallel, asynchronous tasks
+
+- :ref:`Runtime <rust-performance-runtime>` describes how to manage
+  runtimes by using functionalities of the ``tokio`` and ``async_std`` crates
+
+- :ref:`Additional Information <rust-perf-addtl-info>`
+  provides links to resources and API documentation for types
+  and methods mentioned in this guide
+
+.. _rust-performance-client-lifecycle:
+
+Client Lifecycle
+----------------
+
+We recommend that you reuse your client across sessions and operations.
+You can use the same ``Client`` instance to perform multiple tasks, as
+the ``Client`` type is safe for concurrent use by multiple threads.
+Creating a new ``Client`` instance for each request results in slower
+performance.
+
+The following code creates a method that accepts a pointer to an
+existing ``Client`` instance, which allows you to perform many requests
+by using the same client:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/performance.rs
+   :language: rust
+   :dedent:
+
+.. _rust-performance-pool:
+
+Connection Pool
+---------------
+
+Every ``Client`` instance has a built-in connection pool for each server
+in your MongoDB topology. Connection pools open sockets on demand to
+support concurrent requests to MongoDB in your application. 
+
+The default configuration for a ``Client`` works for most applications.
+The following code shows how to create a client with default connection
+settings:
+
+.. code-block:: rust
+   
+   let client = Client::with_uri_str("<connection string>").await?;
+
+Alternatively, you can tune the connection pool to best fit the needs of your
+application and optimize performance. For more information on how to customize
+your connection settings, see the following subsections of this guide:
+
+- :ref:`rust-max-pool`
+- :ref:`rust-concurrent-connections`
+- :ref:`rust-max-idle`
+
+.. tip::
+   
+   To learn more about configuring a connection pool, see
+   :manual:`Tuning Your Connection Pool Settings
+   </tutorial/connection-pool-performance-tuning/>` in the Server manual.
+
+.. _rust-max-pool:
+
+Configure Maximum Pool Size
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The maximum size of each connection pool is set by the ``max_pool_size``
+option, which defaults to ``10``. If the number of in-use connections to
+a server reaches the value of ``max_pool_size``, the next request to
+that server waits until a connection becomes available.
+
+In addition to the sockets needed to support your application's requests,
+each ``Client`` instance opens two more sockets per server
+in your MongoDB topology for monitoring the server's state.
+For example, a client connected to a three-node replica set opens six
+monitoring sockets. If the application uses the default setting for
+``max_pool_size`` and only queries the primary (default) node, then
+there can be at most 16 total connections in the connection pool. If the
+application uses a read preference to query the secondary nodes, those
+connection pools grow and there can be 36 total connections.
+
+To support high numbers of concurrent MongoDB requests
+within one process, you can increase the value of the ``max_pool_size``
+option. The following code demonstrates how to specify a value for
+``max_pool_size`` when instantiating a ``Client``:
+
+.. code-block:: rust
+   
+   let mut client_options = ClientOptions::parse("<connection string>").await?;
+   client_options.max_pool_size = Some(20);
+
+   let client = Client::with_options(client_options)?;
+
+.. _rust-concurrent-connections:
+
+Configure Concurrent Connection Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Connection pools are rate-limited. The ``max_connecting`` option
+determines the number of connections that the pool can create in
+parallel at any time. For example, if the value of ``max_connecting`` is
+``2``, the default value, the third request that attempts to concurrently
+check out a connection succeeds only when one of the following cases occurs:
+
+- The connection pool finishes creating a connection and the number of
+  connections in the pool is less than or equal to the value of ``max_pool_size``.
+- An existing connection is checked back into the pool.
+- The driver's ability to reuse existing connections improves due to
+  rate limits on connection creation.
+
+You can set the minimum number of concurrent connections to
+each server with the ``min_pool_size`` option, which defaults to ``0``.
+The driver initializes the connection pool with this number of sockets. If
+sockets are closed and the total number of sockets, both in use and
+idle, drops below the minimum, the connection pool opens more sockets until the
+minimum is reached.
+
+The following code sets the ``max_connecting`` and ``min_pool_size`` options when
+instantiating a ``Client``:
+
+.. code-block:: rust
+   
+   let mut client_options = ClientOptions::parse("<connection string>").await?;
+   client_options.max_connecting = Some(3);
+   client_options.min_pool_size = Some(1);
+
+   let client = Client::with_options(client_options)?;
+
+.. _rust-max-idle:
+
+Configure Maximum Idle Time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can set the maximum amount of time that a connection can
+remain idle in the pool by setting the ``max_idle_time`` option.
+Once a connection has been idle for the duration specified in
+``max_idle_time``, the connection pool removes and replaces that
+connection. This option defaults to ``0``, or no limit.
+
+When the ``Client::shutdown()`` method is called at any point in your
+application, the driver closes all idle sockets and closes all sockets
+that are in use as they are returned to the pool. Calling ``Client::shutdown()``
+closes only inactive sockets, so you cannot interrupt or terminate
+any ongoing operations by using this method. The driver closes these
+sockets only when the process completes.
+
+The following code sets the value of the ``max_idle_time`` option to
+``90`` seconds when instantiating a ``Client``:
+
+.. code-block:: rust
+   
+   let mut client_options = ClientOptions::parse("<connection string>").await?;
+   client_options.max_idle_time = Some(Duration::new(90, 0));
+
+   let client = Client::with_options(client_options)?;
+
+.. _rust-performance-parallelism:
+
+Parallelism
+-----------
+
+If you can run parallel data operations, you can optimize performance by
+running asynchronous, concurrent tasks. The following code uses the
+``spawn()`` method from the ``tokio::task`` module to create separate,
+concurrent tasks to perform insert operations:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/performance-parallel.rs
+   :language: rust
+   :dedent:
+
+.. _rust-performance-runtime:
+
+Runtime
+-------
+
+A ``Client`` instance is bound to the instance of the ``tokio`` or
+``async-std`` runtime in which you created it. If you use a ``Client``
+instance to perform operations on a different runtime, you might
+experience unexpected behavior or failures.
+
+If use the ``test`` helper macro from the ``tokio`` or
+``async_std`` crate to test your application, you might accidentally run
+operations on a different runtime than intended. This is because these
+helper macros create a new runtime for each test. However, you can use
+one of the following strategies to avoid this issue:
+
+- Attach the runtime to the ``Client`` instance without using the ``test`` helper macros.
+- Create a new ``Client`` instance for every ``async`` test.
+
+This example follows the first strategy and creates a global runtime used only for testing.
+In the following code, the ``test_list_dbs()`` method uses a client that
+manually connects to this runtime to list databases in the deployment:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/performance-bundle-runtime.rs
+   :language: rust
+   :dedent:
+
+Implementing the second strategy, the following code creates a new
+``Client`` instance for each test run with ``tokio::test``,
+ensuring that there are no unintended interactions between runtimes:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/performance-new-client.rs
+   :language: rust
+   :dedent:
+
+.. _rust-perf-addtl-info:
+
+Additional Information
+----------------------
+
+To learn more about connecting to MongoDB, see the
+:ref:`rust-connect-to-mongodb`.
+
+To learn more about the available runtimes for the {+driver-short+}, see
+the guide on :ref:`rust-runtimes`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+- `Client() <{+api+}/struct.Client.html>`__
+- `ClientOptions <{+api+}/options/struct.ClientOptions.html>`__
+- `spawn() <https://docs.rs/tokio/latest/tokio/task/fn.spawn.html>`__ in
+  the ``tokio::task`` module
+- `tokio::runtime <https://docs.rs/tokio/latest/tokio/runtime/index.html>`__ module

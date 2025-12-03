@@ -1,0 +1,309 @@
+.. _rust-enterprise-auth:
+
+====================================
+Enterprise Authentication Mechanisms
+====================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: enterprise edition, verify credentials, code example
+   :description: Learn how to authenticate to MongoDB with the MongoDB Rust Driver using enterprise authentication mechanisms like LDAP and MONGODB-OIDC with the Rust driver.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to authenticate to MongoDB using the
+authentication mechanisms available in the MongoDB Enterprise
+Edition. When you connect to MongoDB, you can use an authentication
+mechanism to establish trust between the driver and the server.
+
+The {+driver-short+} supports authenticating to a Lightweight
+Directory Access Protocol (LDAP) server by using the
+:ref:`LDAP (PLAIN) <rust-LDAP>` enterprise authentication mechanism.
+
+.. seealso::
+
+   To authenticate to MongoDB by using mechanisms available in
+   the MongoDB Community Edition, see the guide on :ref:`<rust-authentication>`.
+
+   To learn more about connecting to a MongoDB deployment, see the
+   :ref:`rust-connect-to-mongodb`.
+
+To select a specific authentication mechanism, specify the
+mechanism, your credentials, and other necessary information
+in the options of your connection string or in a ``Credential`` struct.
+
+.. _rust-LDAP:
+
+Authenticate to LDAP (PLAIN)
+----------------------------
+
+You can authenticate to a Lightweight Directory Access Protocol (LDAP) server 
+by using your directory server username and password.
+
+The name of the authentication mechanism is ``PLAIN`` instead of LDAP
+because the mechanism uses the PLAIN Simple Authentication and
+Security Layer (SASL) defined in `RFC-4616
+<https://tools.ietf.org/html/rfc4616>`__.
+
+.. warning::
+
+   This authentication mechanism sends your password to the server in
+   plaintext. Use this mechanism only after enabling TLS
+   on your connection to improve security and reduce vulnerabilities in
+   your application.
+   
+   To learn more, see :manual:`TLS/SSL (Transport Encryption)
+   </core/security-transport-encryption/>` in the Server manual.
+
+Example
+~~~~~~~
+
+To specify the ``PLAIN`` authentication mechanism, set the
+``mechanism`` field of your ``Credential`` struct to
+``AuthMechanism::Plain``. This example specifies the
+authentication mechanism by using the following placeholders:
+
+- ``username``: Your LDAP username
+- ``password``: Your LDAP password
+
+.. literalinclude:: /includes/fundamentals/code-snippets/enterprise-auth.rs
+   :language: rust
+   :dedent:
+   :start-after: start-ldap
+   :end-before: end-ldap
+
+.. note:: Authentication Database
+
+   Because your credentials are stored outside of MongoDB, you must use the
+   ``$external`` database for authentication. The ``source`` field of
+   the ``Credential`` struct defaults to ``$external``, so you can omit
+   this field.
+
+Alternatively, you can authenticate by using a connection string URI by
+setting the value of the ``authMechanism`` connection string option to ``PLAIN``.
+This example shows how to specify the ``PLAIN`` authentication mechanism in
+a connection string URI by using the following placeholders:
+
+- ``username``: Your LDAP username
+- ``password``: Your LDAP password
+- ``hostname``: The network address of your MongoDB server
+
+.. code-block:: rust
+   
+   let uri = "mongodb://<username>:<password>@<hostname>/?authSource=$external&authMechanism=PLAIN";
+
+.. _rust-mongodb-oidc:
+
+MONGODB-OIDC
+------------
+
+.. important::
+
+   The MONGODB-OIDC authentication mechanism requires MongoDB Server
+   v7.0 or later running on a Linux platform.
+
+The {+driver-short+} supports OpenID Connect (**OIDC**) authentication for **workload
+identities**. A workload identity is an identity you assign to a
+software workload, such as an application, service, script, or
+container, to authenticate and access other services and resources.
+
+The following sections describe how to use the MONGODB-OIDC
+authentication mechanism to authenticate to various platforms.
+
+To learn more about the MONGODB-OIDC authentication mechanism, see
+:manual:`OpenID Connect Authentication </core/security-oidc/>` and
+:manual:`MongoDB Server Parameters </reference/parameters/#mongodb-parameter-param.oidcIdentityProviders>`
+in the Server manual.
+
+.. _rust-mongodb-oidc-azure-imds:
+
+Azure IMDS
+~~~~~~~~~~
+
+If your application runs on an Azure VM, or otherwise uses the
+`Azure Instance Metadata Service <https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service>`__
+(IMDS), you can authenticate to MongoDB by using the {+driver-short+}'s
+built-in Azure support.
+
+You can configure OIDC for Azure IMDS by setting the ``mechanism`` field of your
+``Credential`` struct to ``AuthMechanism::MongoDbOidc``. This example specifies
+the authentication mechanism by using the following placeholders:
+
+- ``username``:  If you're using an Azure managed identity, set this to the
+  client ID of the managed identity. If you're using a service principal to
+  represent an enterprise application, set this to the application ID of the
+  service principal.
+- ``mechanism_properties``: Set the ``ENVIRONMENT`` property to ``azure`` and
+  the ``TOKEN_RESOURCE`` to the value of the audience parameter configured
+  on your MongoDB deployment.
+
+The following code example shows how to set these options when creating a
+``Client``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/enterprise-auth.rs
+   :language: rust
+   :dedent:
+   :start-after: start-azure-imds
+   :end-before: end-azure-imds
+   :emphasize-lines: 2-5
+
+.. _rust-mongodb-oidc-gcp-imds:
+
+GCP IMDS
+~~~~~~~~
+
+If your application runs on a Google Compute Engine VM, or otherwise uses the
+`GCP Instance Metadata Service <https://cloud.google.com/compute/docs/metadata/querying-metadata>`__,
+you can authenticate to MongoDB by using the {+driver-short+}'s built-in GCP
+support.
+
+You can configure OIDC for GCP IMDS by setting the ``mechanism`` field of your
+``Credential`` struct to ``AuthMechanism::MongoDbOidc``. Then, specify the
+authentication mechanism by setting the following values in the
+``mechanism_properties`` field:
+
+- ``ENVIRONMENT``: Set this property to ``gcp``.
+- ``TOKEN_RESOURCE``: Set this property to the value of the audience parameter configured
+  on your MongoDB deployment.
+
+The following code example shows how to set these options when creating a
+``Client``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/enterprise-auth.rs
+   :language: rust
+   :dedent:
+   :start-after: start-gcp-imds
+   :end-before: end-gcp-imds
+   :emphasize-lines: 2-4
+
+Kubernetes
+~~~~~~~~~~
+
+If your application runs on a Kubernetes cluster, you can authenticate to MongoDB by using
+the {+driver-short+}'s built-in Kubernetes support.
+
+You can configure OIDC for Kubernetes by setting the ``mechanism`` field of your
+``Credential`` struct to ``AuthMechanism::MongoDbOidc``. Then, specify the
+authentication mechanism by setting the ``ENVIRONMENT`` property to ``k8s`` in the
+``mechanism_properties`` field.
+
+The following code example shows how to set these options when creating a
+``Client``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/enterprise-auth.rs
+   :language: rust
+   :dedent:
+   :start-after: start-kubernetes
+   :end-before: end-kubernetes
+   :emphasize-lines: 2-4
+
+.. _rust-mongodb-oidc-custom-callback:
+
+Custom Callback
+~~~~~~~~~~~~~~~
+
+The {+driver-short+} doesn't offer built-in support for all platforms, including
+the AWS Elastic Kubernetes Service (EKS). To use OIDC to authenticate against
+unsupported platforms, you must define a custom callback function.
+
+The following code is an example implementation of a custom callback for an EKS
+cluster. First, set the ``oidc_callback`` field of your ``Credential`` struct to
+``oidc::Callback::machine``. Then, read the access token from a path set in the
+``AWS_WEB_IDENTITY_TOKEN_FILE`` environment variable. Finally, set the value of
+the ``access_token`` field of the ``IdpServerResponse`` struct. Optionally, set
+the values of the ``expires`` and ``refresh_token`` fields.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/enterprise-auth.rs
+   :language: rust
+   :dedent:
+   :start-after: start-custom-callback-machine
+   :end-before: end-custom-callback-machine
+   :emphasize-lines: 3, 5-7
+
+When the workforce identity authentication process involves human interaction,
+you must configure the client by setting the ``oidc_callback`` field of your
+``Credential`` struct to ``oidc::Callback::human`` instead of
+``oidc::Callback::machine``. The {+driver-short+} uses the callback in the
+following process:
+
+1. The driver retrieves the Identity Provider Information (IDPInfo) for the
+   provided username.
+#. The callback negotiates with the IDP to obtain an ``access_token``, and any
+   potential ``refresh_token`` and timeout values, if configured. The callback
+   returns a ``Result<IdpServerInfo>``.
+
+The following example defines a custom callback to handle workforce identity. To
+customize this example for your use case, replace ``<human flow>`` with your own
+custom flow. Refer to `Authorization Code Flow with OIDC
+<https://auth0.com/docs/authenticate/login/oidc-conformant-authentication/oidc-adoption-auth-code-flow>`__
+for more details.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/enterprise-auth.rs
+   :language: rust
+   :dedent:
+   :start-after: start-custom-callback-user
+   :end-before: end-custom-callback-user
+   :emphasize-lines: 3
+
+.. _rust_GSSAPI:
+
+GSSAPI (Kerberos)
+-----------------
+
+The Generic Security Services API (GSSAPI) authentication mechanism allows you
+to authenticate to a Kerberos service by using your principal name. To specify
+the ``GSSAPI`` authentication mechanism, set the ``mechanism`` field of your
+``Credential`` struct to ``AuthMechanism::Gssapi``. 
+
+Optionally, you can specify authentication mechanism properties by setting the
+``SERVICE_REALM``, ``SERVICE_NAME``, and ``SERVICE_HOST`` properties in the
+``mechanism_properties`` field.
+
+This example specifies the authentication mechanism by using the following
+placeholders:
+
+- ``<username>``: Your URL-encoded principal name
+- ``<password>``: Your Kerberos password
+
+.. literalinclude:: /includes/fundamentals/code-snippets/enterprise-auth.rs
+   :language: rust
+   :dedent:
+   :start-after: start-gssapi
+   :end-before: end-gssapi
+
+For more information on GSSAPI (Kerberos), see :manual:`Kerberos Authentication</core/kerberos/>` in the Server manual.
+
+Additional Information
+----------------------
+
+To learn more about the concepts in this guide, see the following documentation:
+
+- :manual:`MongoDB Server Support for LDAP Proxy Authentication
+  </core/security-ldap/>` in the Server manual
+- :ref:`rust-connection-options` guide
+- :manual:`Connection Strings </reference/connection-string>` in the
+  Server manual
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `Credential <{+api+}/options/struct.Credential.html>`__
+- `ClientOptions <{+api+}/options/struct.ClientOptions.html>`__
+- `Client <{+api+}/struct.Client.html>`__
+- `with_options() <{+api+}/struct.Client.html#method.with_options>`__
+- `CallbackContext <{+api+}/options/oidc/struct.CallbackContext.html>`__
+- `IdpServerResponse <{+api+}/options/oidc/struct.IdpServerResponse.html>`__
+- `IdpServerInfo <{+api+}/options/oidc/struct.IdpServerInfo.html>`__

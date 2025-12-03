@@ -1,0 +1,303 @@
+.. _rust-atlas-search:
+
+===========================
+Run a MongoDB Search Query
+===========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: full text, text analyzer, meta, pipeline, scoring, Lucene
+   :description: Learn about how to use MongoDB Search with the MongoDB Rust driver.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to
+run :atlas:`{+search+} </atlas-search/>` queries on a collection.
+{+search+} enables you to perform full-text searches on collections
+hosted on MongoDB Atlas. {+search+} indexes specify the behavior of the
+search and which fields to index.
+
+Sample Data
+~~~~~~~~~~~
+
+The example in this guide uses the ``movies`` collection in the ``sample_mflix``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to
+create a free MongoDB Atlas cluster and load the sample datasets, see the
+`Get Started with Atlas <https://www.mongodb.com/docs/get-started/?language=rust>`__ guide.
+
+Run a {+search+} Query
+---------------------------------
+
+This section shows how to create an aggregation pipeline to run an
+{+search+} query on a collection. 
+
+To run an {+search+} query, you must create an {+search+} index on your
+collection. To learn how to programmatically create an {+search+} index, see the
+:ref:`rust-atlas-search-indexes` section of the Indexes guide. You can replace
+the ``<search index name>`` placeholder in the code examples in this guide with
+the name of your {+search+} index.
+
+After you create an {+search+} index, add the ``$search`` stage in your array 
+of pipeline stages to specify the search criteria. Then, call
+the ``aggregate()`` method and pass your pipeline array as a parameter.
+
+.. tip:: 
+
+   To learn more about aggregation operations, see the :ref:`rust-aggregation`
+   guide. 
+
+{+search+} Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example runs an {+search+} query by performing the
+following actions:
+
+- Creates a ``$search`` stage that instructs the driver
+  to query for documents in which the ``title`` field contains
+  the word ``"Alabama"``
+
+- Creates a ``$project`` stage that instructs the driver to
+  include the ``title`` field in the query results
+
+- Passes the pipeline stages to the ``aggregate()`` method and
+  prints the results
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/atlas-search-query.rs
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      {
+        "_id": ObjectId("..."),
+        "title": "Alabama Moon"
+      }
+      {
+        "_id": ObjectId("..."),
+        "title": "Crazy in Alabama"
+      }
+      {
+        "_id": ObjectId("..."),
+        "title": "Sweet Home Alabama"
+      }
+
+{+search+} Metadata
+------------------------------
+
+Use the ``$searchMeta`` pipeline stage to create a :manual:`$searchMeta
+</reference/operator/aggregation/searchMeta/>` aggregation stage, which returns
+only the metadata from the {+search+} results.
+
+.. tip:: Only Available on Atlas for MongoDB v4.4.11 and later
+
+   This aggregation pipeline operator is available only
+   on :atlas:`MongoDB Atlas </>` clusters running v4.4.11 and later.
+
+The following example shows how to retrieve metadata for an {+search+}
+aggregation stage:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/atlas-search-metadata.rs
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      {
+        "count": 3,
+        "hits": [
+          {
+            "id": ObjectId("..."),
+            "score": 1.0
+          },
+          {
+            "id": ObjectId("..."),
+            "score": 1.0
+          },
+          {
+            "id": ObjectId("..."),
+            "score": 1.0
+          }
+        ]
+      }
+
+.. _rust-atlas-search-helpers:
+
+Create Pipeline Search Stages
+-----------------------------
+
+The MongoDB Rust driver provides helper methods and builders for creating
+{+search+} pipeline stages. These helpers allow you to construct complex
+search queries using Rust's type system for better compile-time safety.
+
+{+search+} Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`
+
+The {+driver-short+} supports the following {+search+} operators through
+BSON document construction:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Operator
+     - Description
+
+   * - :atlas:`autocomplete </atlas-search/autocomplete/>`
+     - Performs a search for a word or phrase that contains a sequence of
+       characters from an incomplete input string.
+
+   * - :atlas:`compound </atlas-search/compound/>`
+     - Combines two or more operators into a single query.
+
+   * - :atlas:`equals </atlas-search/equals/>` 
+     - Checks whether a field matches a value you specify.
+
+   * - :atlas:`exists </atlas-search/exists/>`
+     - Tests if a path to a specified indexed field name exists in a document.
+
+   * - :atlas:`geo </atlas-search/geoShape/>`
+     - For geographic queries that allow search by location.
+
+   * - :atlas:`highlight </atlas-search/highlighting/>`
+     - To return the snippets of text matching the search criteria, useful for 
+       user interfaces that need to highlight search terms.
+
+   * - :atlas:`in </atlas-search/in/>`
+     - Performs a search for an array of BSON number, date, boolean, objectId,
+       uuid, or string values at the given path and returns documents where the
+       value of the field equals any value in the specified array.
+
+   * - :atlas:`moreLikeThis </atlas-search/morelikethis/>`
+     - Returns documents similar to input documents.
+
+   * - :atlas:`near </atlas-search/near/>`
+     - Supports querying and scoring numeric, date, and GeoJSON point values.
+
+   * - :atlas:`phrase </atlas-search/phrase/>`
+     - Performs a search for documents containing an ordered sequence of terms
+       by using the analyzer specified in the index configuration.
+
+   * - :atlas:`queryString  </atlas-search/queryString/>`
+     - Supports querying a combination of indexed fields and values.
+
+   * - :atlas:`range </atlas-search/range/>` 
+     - Supports querying and scoring numeric, date, and string values.
+
+   * - :atlas:`regex </atlas-search/regex/>`
+     - Interprets the query field as a regular expression.
+
+   * - :atlas:`text </atlas-search/text/>`
+     - Performs a full-text search by using the analyzer that you specify in the
+       index configuration.
+
+   * - :atlas:`wildcard </atlas-search/wildcard/>`
+     - Enables queries which use special characters in the search string that
+       can match any character.
+
+Example Pipeline Search Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note:: Atlas Sample Dataset
+
+   This example uses the ``sample_mflix.movies`` collection from the Atlas sample
+   datasets. To learn how to set up a free-tier Atlas cluster and load the
+   sample dataset, see the `Get Started with Atlas <https://www.mongodb.com/docs/get-started/?language=rust>`__ tutorial
+   in the Atlas documentation.
+
+Before you can run this example, you must create an {+search+} index on the ``movies``
+collection that has the following definition:
+
+.. code-block:: json
+
+   {
+     "mappings": {
+       "dynamic": true,
+       "fields": {
+         "title": {
+           "analyzer": "lucene.keyword",
+           "type": "string"
+         },
+         "genres": {
+           "normalizer": "lowercase",
+           "type": "token"
+         }
+       }
+     }
+   }
+
+To learn more about creating {+search+} indexes, see the
+:ref:`rust-atlas-search-indexes` section of the Indexes guide.
+
+You can replace the ``<search index name>`` placeholder in the code with the name of your
+{+search+} index.
+
+The following code creates a ``$search`` stage that has the following
+specifications:
+
+- Checks that the ``genres`` array includes ``"Comedy"``
+- Searches the ``fullplot`` field for the phrase ``"new york"``
+- Matches ``year`` values between ``1950`` and ``2000``, inclusive
+- Searches for ``title`` values that begins with the term ``"Love"``
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/atlas-search-pipeline.rs
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      {
+        "_id": ObjectId("..."),
+        "genres": ["Comedy", "Romance"],
+        "title": "Love at First Bite",
+        "year": 1979
+      }
+      {
+        "_id": ObjectId("..."),
+        "genres": ["Comedy", "Drama"],
+        "title": "Love Affair",
+        "year": 1994
+      }
+
+To learn more about {+search+} operators, see the
+:atlas:`{+search+} Operators </atlas-search/operators-and-collectors/>` documentation.
+
+Additional Information
+----------------------
+
+To learn more about {+search+}, see :atlas:`{+search+} </atlas-search/>`
+in the Atlas documentation.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods mentioned in this guide, see the
+following API documentation:
+
+- `aggregate() <{+api+}/struct.Collection.html#method.aggregate>`__
+- `Client <{+api+}/struct.Client.html>`__
+- `Collection <{+api+}/struct.Collection.html>`__
