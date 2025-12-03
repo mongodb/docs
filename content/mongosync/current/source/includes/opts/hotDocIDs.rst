@@ -2,7 +2,8 @@
 .. reference/mongosync.txt
 
 Sets an identifer for hot documents, or documents that update very
-frequently on source clusters.
+frequently on source clusters. ``mongosync`` then copies these documents
+during the migration commit stage. 
 
 Use this |opt-term| for migrations that have replication lag due to hot 
 documents when running ``mongosync``.
