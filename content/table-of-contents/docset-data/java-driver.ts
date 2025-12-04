@@ -678,7 +678,15 @@ const tocData: TocItem[] = [
       {
         label: 'Third-Party Integrations',
         contentSite: 'java',
+        collapsible: true,
         url: '/docs/drivers/java/sync/:version/integrations',
+        items: [
+          {
+            label: 'Spring Data MongoDB',
+            contentSite: 'java',
+            url: '/docs/drivers/java/sync/:version/integrations/spring-data-integration',
+          },
+        ],
       },
       {
         label: 'Reference',
