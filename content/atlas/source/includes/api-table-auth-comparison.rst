@@ -42,12 +42,12 @@
    * - Each service account belongs to only one organization, and can
        grant access to any number of projects in that organization. To
        give an organization-level service account access to a project,
-       see :ref:`invite-org-app-api-keys`.
+       see :ref:`Grant Existing Service Account Access to a Project <invite-org-app-api-keys>`.
      - Each pair of |api| keys belongs to only one organization, and
        can grant access to any number of projects in that organization.
        To give organization-level |api| keys access to a project, see
-       :ref:`invite-org-app-api-keys`.
-
+       :ref:`Grant Existing Service Account Access to a Project <invite-org-app-api-keys>`.
+   
    * - |service| binds many resources to a project. Many |api| resource
        |url|\s follow the format of ``/api/atlas/<version>/groups/<GROUP-ID>/``, 
        where ``<GROUP-ID>`` is your :ref:`project ID <project-id>`.

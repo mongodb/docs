@@ -1,3 +1,9 @@
+This section describes how to configure all types of alerts.
+In addition, see:
+
+- :ref:`Configure an Auto-Scaling Alert <configure-autoscaling-alert>`
+- :ref:`Configure a Maintenance Window Alert <configure-mw-alert>`
+
 .. procedure::
    :style: normal
 
@@ -60,3 +66,23 @@
          .. include:: /includes/list-table-alert-notification-methods.rst
       
    .. step:: Click :guilabel:`Save`.
+
+.. _configure-autoscaling-alert:
+
+Configure an Auto-Scaling Alert
+------------------------------------
+
+You can configure alerts for projects for a list
+of :ref:`auto-scaling events <alert-conditions-autoscaling>`.
+
+.. include:: /includes/steps-configure-autoscaling-alert.rst
+
+.. _configure-mw-alert:
+
+Configure a Maintenance Window Alert
+------------------------------------
+
+You can configure :ref:`maintenance-window-alerts` for projects with
+:ref:`configured maintenance windows <atlas-modify-project-settings>`.
+
+.. include:: /includes/steps-configure-maintenance-window-alert.rst
