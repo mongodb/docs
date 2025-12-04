@@ -1,0 +1,182 @@
+.. _c-mongodb-vector-search:
+
+=================================
+Run a MongoDB Vector Search Query
+=================================
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code example, semantic, text, embeddings
+   :description: Learn how to use the C driver to perform MongoDB Vector Search queries.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to perform searches on your documents
+by using the {+vector-search+} feature. The {+driver-short+} allows you to
+perform {+vector-search+} queries by using the aggregation framework.
+To learn more about performing aggregations, see the
+:ref:`c-aggregation` guide.
+
+.. note:: Deployment Compatibility
+
+   You can use the {+vector-search+} feature only when you connect to 
+   MongoDB Atlas clusters. This feature is not available for 
+   self-managed deployments.
+
+To learn more about {+vector-search+}, see the :atlas:`{+vector-search+} Overview
+</atlas-vector-search/vector-search-overview/>` in the Atlas
+documentation.
+
+{+vector-search+} Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before you perform {+vector-search+} queries, you must create a
+{+vector-search+} index on your collection. To learn more about
+creating this index, see the {+language+} :ref:`c-atlas-search-index` guide.
+
+Vector Search Aggregation Stage
+-------------------------------
+
+To create a ``$vectorSearch`` stage in your aggregation pipeline, include the ``$vectorSearch``
+pipeline stage definition in your ``bson_t`` pipeline structure, then pass the pipeline
+to the ``mongoc_collection_aggregate()`` function.
+
+Define the following fields in your ``$vectorSearch`` stage:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``index``
+     - string
+     - Name of the vector search index
+
+   * - ``path``
+     - string
+     - Field that contains vector embeddings
+
+   * - ``queryVector``
+     - BSON array of doubles
+     - Vector representation of your query
+
+   * - ``limit``
+     - number
+     - Number of results to return
+
+.. _c-vector-search-examples:
+
+{+search+} Query Examples
+------------------------------
+
+.. tip:: Sample Data
+
+   The example in this section uses sample data from the
+   ``sample_mflix.embedded_movies`` collection. To learn how to load 
+   this sample data, see the :ref:`MongoDB Get Started <unified-get-started>`
+   guide.
+
+The following code performs a {+vector-search+} query on the
+``plot_embedding`` vector field by using a query vector that is a vector
+embedding of the phrase "time travel". It then uses the ``$project`` 
+stage to output only the ``title`` and ``plot`` fields and add a
+``score`` field to show the relevance score of each document:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/vector-search.c
+      :start-after: start-vector-search
+      :end-before: end-vector-search
+      :language: c
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      { "plot" : "At the age of 21, Tim discovers he can travel in time and change what happens and has happened in his own life. His decision to make his world a better place by getting a girlfriend turns out not to be as easy as you might think.", "title" : "About Time", "score" : { "$numberDouble" : "0.77101063728332519531" } }
+      { "plot" : "A psychiatrist makes multiple trips through time to save a woman that was murdered by her brutal husband.", "title" : "Retroactive", "score" : { "$numberDouble" : "0.76004797220230102539" } }
+      { "plot" : "A time-travel experiment in which a robot probe is sent from the year 2073 to the year 1973 goes terribly wrong thrusting one of the project scientists, a man named Nicholas Sinclair into a...", "title" : "A.P.E.X.", "score" : { "$numberDouble" : "0.75768613815307617188" } }
+      { "plot" : "An officer for a security agency that regulates time travel, must fend for his life against a shady politician who has a tie to his past.", "title" : "Timecop", "score" : { "$numberDouble" : "0.75765615701675415039" } }
+      { "plot" : "After visiting 2015, Marty McFly must repeat his visit to 1955 to prevent disastrous changes to 1985... without interfering with his first trip.", "title" : "Back to the Future Part II", "score" : { "$numberDouble" : "0.7521393895149230957" } }
+      { "plot" : "A reporter, learning of time travelers visiting 20th century disasters, tries to change the history they know by averting upcoming disasters.", "title" : "Thrill Seekers", "score" : { "$numberDouble" : "0.75099325180053710938" } }
+      { "plot" : "Lyle, a motorcycle champion is traveling the Mexican desert, when he find himself in the action radius of a time machine. So he find himself one century back in the past between rapists, ...", "title" : "Timerider: The Adventure of Lyle Swann", "score" : { "$numberDouble" : "0.75026428699493408203" } }
+      { "plot" : "Hoping to alter the events of the past, a 19th century inventor instead travels 800,000 years into the future, where he finds humankind divided into two warring races.", "title" : "The Time Machine", "score" : { "$numberDouble" : "0.75025033950805664062" } }
+      { "plot" : "A romantic drama about a Chicago librarian with a gene that causes him to involuntarily time travel, and the complications it creates for his marriage.", "title" : "The Time Traveler's Wife", "score" : { "$numberDouble" : "0.74949634075164794922" } }
+      { "plot" : "A modern aircraft carrier is thrown back in time to 1941 near Hawaii, just hours before the Japanese attack on Pearl Harbor.", "title" : "The Final Countdown", "score" : { "$numberDouble" : "0.74691337347030639648" } }
+
+Vector Search Options
+---------------------
+
+You can modify your {+vector-search+} queries by specifying the
+following options in the stage definition:
+
+.. list-table::
+   :widths: 20 20 40 20
+   :header-rows: 1
+
+   * - Option
+     - Type
+     - Description
+     - Default Value
+
+   * - ``exact``
+     - boolean
+     - Specifies whether to run an Exact Nearest Neighbor (``true``) or
+       Approximate Nearest Neighbor (``false``) search.
+     - ``false``
+
+   * - ``filter``
+     - document
+     - Specifies a pre-filter for documents to search on. You can filter 
+       on boolean, date, objectId, numeric, string, UUID values, and 
+       arrays of these types.
+     - No filtering
+
+   * - ``numCandidates``
+     - number
+     - Specifies the number of nearest neighbors to use during the
+       search.
+     - No limit
+
+To learn more about these options, see the :atlas:`Fields
+</atlas-vector-search/vector-search-stage/#fields>` section of the
+``$vectorSearch`` operator reference in the Atlas documentation.
+
+Additional Information
+----------------------
+
+To learn more about the concepts mentioned in this guide, see the
+following {+mdb-server+} manual entries:
+
+- :atlas:`Run Vector Search Queries </atlas-vector-search/vector-search-stage/>`
+- :manual:`Aggregation Pipeline </core/aggregation-pipeline/>`
+- :manual:`Aggregation Stages </reference/mql/aggregation-stages>`
+
+To learn more about aggregation pipelines in the {+driver-short+}, see the {+language+}
+:ref:`c-aggregation` guide.
+
+To perform advanced full-text search on your documents, you can use 
+the {+search+} feature. To learn more, see the
+:atlas:`{+search+} Overview </atlas-search/atlas-search-overview/>`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the functions mentioned in this
+guide, see the following API documentation:
+
+- `mongoc_collection_aggregate() <{+api-libmongoc+}/mongoc_collection_aggregate.html>`__
