@@ -1,5 +1,5 @@
-Add a Kinesis Connection through {+atlas-cli+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Add a Kinesis Connection through the {+atlas-cli+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To add a kinesis connection to your {+spw+} through
 {+atlas-cli+}, follow these steps:
