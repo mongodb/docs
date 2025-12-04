@@ -1,0 +1,551 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _grove-copy-files:
+
+========================================
+Copy Files Automatically to Another Repo
+========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+In some cases, you might want to copy files from one repository to another.
+For example, you might need to copy driver examples to a dedicated code examples GitHub repo.
+
+The DevDocs team maintains a tool for automatically copying files between repositories 
+(`source code <https://github.com/mongodb/code-example-tooling/tree/main/examples-copier>`__). 
+This tool is configured through workflows defined in YAML files.
+
+.. note:: Adding a New Destination Repository
+
+    To add a workflow that points to a new destination repository, contact the DevDocs team.
+
+How It Works
+------------
+
+The copier app works from a **source** repository and copies files to a **destination** repository. 
+
+1. You merge a PR to ``main`` in a source repository (for example, the Docs monorepo).
+2. A webhook notifies copier app of the merge.
+3. Copier app verifies the filepaths from the PR. 
+
+   - If any filepaths match a defined workflow, files are copied to one or more destination repositories.
+   - Otherwise, the copier app does nothing.
+   
+   .. important:: Copier App Does Not Delete Files
+    
+      The copier app does *not* automatically delete files in the destination repository.
+      If a file is deleted in the source repository, the copier app adds the file to a
+      ``deprecated_examples.json`` that lives in the source repo.
+      To learn more, see :ref:`deleted-files-copier`. 
+
+You can optionally define *how* the copy is managed. Based on the workflow configuration, one of the following behaviors occurs: 
+
+- The copier creates a PR in the destination repository (**default**).
+  You can set your own process for handling that PR, which might involve manual testing or review.
+- The copier commits directly to the destination repository without a PR.
+  You might prefer this option if you want a fully automated workflow with no review at the destination repo.
+
+To learn, more see the :ref:`commit-strategies` section.
+
+.. _deleted-files-copier:
+
+Deleted Files
+~~~~~~~~~~~~~
+
+The copier app does *not* automatically delete files in the destination repository. 
+If your PR deletes a file in the source repository, the copier app adds that filepath to a 
+``deprecated_examples.json`` that lives in the source repository. But the file itself remains
+in the destination repository.
+
+Your team can set a process to manually remove the file from the destination
+repository, which might include updating any docs links that refer to that file
+before deleting it.
+This is to prevent breaking changes in the destination repository, including 
+any links to the file. 
+
+.. tip:: 
+    
+   A maintainer of the destination repository should periodically review the 
+   ``deprecated_examples.json`` file and delete any files that are no longer needed.
+
+Workflow Configuration
+----------------------
+
+Workflows are defined in a ``.copier/config.yaml`` file in the root of 
+each source repository. You can define multiple workflows in a single file.
+
+.. code-block:: yaml
+
+   workflows:
+     - name: "my-workflow"
+       destination: # where to copy the files to
+         repo: "mongodb/destination-repo"
+         branch: "main"
+       transformations: # defines the source files to copy and where/how to copy them
+         - move:
+             from: "source/path"
+             to: "destination/path"
+
+Available Workflow Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Required Fields
+```````````````
+
+- ``name``: Unique, human-readable name that identifies the collection of rules in this workflow.
+- ``destination``: Location to copy the files to.
+- ``transformations``: Filepaths to apply this workflow to, and the type of action to take
+  for those filepaths. Valid transformation types: ``move``, ``copy``, ``glob``, and ``regex``.
+  The valid properties depend on the transformation type. To learn more, see the :ref:`transform-files` section.
+
+Optional Fields
+```````````````
+
+- ``commit_strategy``: Method to commit changes. Valid strategies: ``PR`` or ``direct commit``. For more information, refer to the :ref:`commit-strategies` section. 
+- ``exclude``: Files or file patterns to exclude from the workflow. For more information, refer to the :ref:`exclude-files` section.
+
+.. note::
+
+   Patterns and paths are matched against the full repository path, *not* the 
+   relative path of the configuration file.
+
+Global Defaults
+~~~~~~~~~~~~~~~
+
+You can define global defaults in the ``.copier/config.yaml`` file. 
+These defaults apply to all workflows unless overridden in an individual workflow.
+
+.. note:: 
+
+   Don't change the global defaults. Contact the DevDocs team if you need them modified.
+
+Update Copier Behavior
+----------------------
+
+To change how the copier app copies or transforms files, you must
+update the workflow in the source repo, then merge the updated configuration file.
+The copier app detects the change and uses the new configuration on the next PR merge to ``main``.
+
+Define the Workflow and Destination
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To define a workflow, you must specify the following information in the ``.copier/config.yaml`` file in the root of your source repository:
+
+.. code-block:: yaml
+    :caption: .copier/config.yaml
+
+    workflows:
+    - name: "my-workflow"
+        destination:
+          repo: "mongodb/destination-repo"
+          branch: "main"
+
+- ``name``: A unique name for the workflow.
+- ``destination``: The repository and branch to copy files to:
+
+  - ``repo``: Owner or name for the git repository to copy the files to.
+  - ``branch``: Branch to copy the files to, either to open a PR against or to commit to directly. Defaults to ``main``.
+
+.. note:: Copier App Must Be Installed in the Destination Repo
+
+   The copier must already be installed in the destination repository to work. 
+   If you need the copier app installed in a new destination, contact the DevDocs team.
+
+Copy to Multiple Destinations
+`````````````````````````````
+
+To copy to multiple destinations, you can create multiple workflows, one for each destination. 
+
+The following example workflow copies the same source files to both the ``mongodb/docs`` and ``mongodb/website`` repositories:
+
+.. code-block:: yaml
+
+    workflows:
+    - name: "copy-to-docs" # Workflow name 1
+        destination:
+          repo: "mongodb/docs" # Destination repository 1
+        transformations:
+        - move: { from: "examples", to: "code" }
+
+    - name: "copy-to-website" # Workflow name 2
+        destination:
+          repo: "mongodb/website" # Destination repository 2
+        transformations:
+        - move: { from: "examples", to: "static/examples" }
+
+.. note::
+
+   The workflow names must be unique.
+
+.. _transform-files:
+
+Transform Files
+~~~~~~~~~~~~~~~
+
+To define the source files to copy and where to copy them to, use the ``transformation`` block.
+You can also transform files (for example, change the file path, name, or extension) as they are copied to the destination repository.
+
+Supported transformations include basic moves and copies, as well as more complex 
+transformations that use glob and regex patterns.
+
+.. tip::     
+  
+   Use the :ref:`available-transform-variables` to include dynamic information by using the ``transform`` property.
+
+Transformation Types
+````````````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 35 50
+
+   * - Type
+     - Description
+     - Example
+
+   * - ``move``
+     - Copies all files from one directory to another.
+     - .. code-block:: yaml
+
+          transformations:
+            - move:
+                from: "examples/go"
+                to: "code/go"
+
+   * - ``copy``
+     - Copies specific files.
+     - .. code-block:: yaml
+
+          transformations:
+            - copy:
+                from: "README.md"
+                to: "docs/README.md"
+
+   * - ``glob``
+     - Uses glob patterns for flexible matching. Use the ``transform`` property to change the path of the copied files.
+     - .. code-block:: yaml
+
+          transformations:
+            - glob:
+                pattern: "examples/**/*.go"
+                transform: "code/${relative_path}"
+
+   * - ``regex``
+     - Uses regex patterns for advanced matching. Use the ``transform`` property to change the path of the copied files. You can optionally use capture groups in the pattern to extract information from the source path, and then use that information in the ``transform`` property.
+     - .. code-block:: yaml
+
+          transformations:
+            - regex:
+                pattern: "^examples/(?P<lang>[^/]+)/(?P<file>.+)$"
+                transform: "code/${lang}/${file}"
+
+.. _available-transform-variables:
+
+Available Transform Variables
+``````````````````````````````
+
+For ``glob`` and ``regex`` transformations, you can use the following dynamic variables in path transformations:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 40 35
+
+   * - Variable
+     - Description
+     - Example
+
+   * - ``${relative_path}``
+     - Path relative to the matched pattern.
+     - ``transform: "${relative_path}"``
+
+   * - ``${path}``
+     - Full source file path.
+     - ``transform: "${path}"``
+
+   * - ``${filename}``
+     - Only the filename.
+     - ``transform: "docs/${filename}"``
+
+   * - ``${dir}``
+     - Directory path.
+     - ``transform: "${dir}/${filename}.md"``
+
+   * - ``${ext}``
+     - File extension.
+     - ``transform: "${dir}/${filename}.txt"``
+
+.. _exclude-files:
+
+Exclude Files
+~~~~~~~~~~~~~
+
+Use the ``exclude`` block to prevent certain files from being copied:
+
+.. code-block:: yaml
+    :emphasize-lines: 8-11
+
+    workflows:
+     - name: "my-workflow"
+       destination:
+         repo: "mongodb/destination-repo"
+         branch: "main"
+       transformations:
+         - move: { from: "src", to: "dest" }
+       exclude:
+         - "**/.env"
+         - "**/node_modules/**"
+         - "**/*.test.js"
+
+The following are common files to exclude:
+
+- Environment files: ``**/.env``
+- Dependencies: ``**/node_modules/**``
+- Build artifacts: ``**/dist/**``, ``**/build/**``
+- Test files: ``**/*.test.*``, ``**/tests/**``
+- System files: ``**/.DS_Store``, ``**/Thumbs.db``
+
+.. _commit-strategies:
+
+Define the Commit Strategy
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To define how the copier app commits changes to the destination repository, add a ``commit_strategy`` block to the workflow.
+
+There are three strategies available:
+
+- Pull request with manual merge (*default*)
+- Pull request with auto-merge
+- Direct commit
+
+If you don't include a ``commit_strategy`` section, the copier app uses the default
+strategy, which is a pull request with manual merge.
+
+Pull Request (Recommended)
+``````````````````````````
+
+Set the ``type`` to ``"pull_request"`` and set ``auto_merge`` to ``false`` to create a PR 
+in the destination repository for review, as shown in the following example:
+
+.. code-block:: yaml
+    :emphasize-lines: 2, 9
+
+    commit_strategy:
+    type: "pull_request"
+    pr_title: "Update examples from ${source_repo}"
+    pr_body: |
+        Automated update from source repository.
+
+        Source PR: #${pr_number}
+        Commit: ${commit_sha}
+    auto_merge: false  # Requires manual review and merge
+
+Use this commit strategy when:
+
+- The destination repository requires code review.
+- You want to run CI or CD tests before you merge the PR.
+- Changes need approval.
+
+.. tip:: Use PR Templates
+
+   You can use PR templates to provide additional context for reviewers. 
+   Include the ``use_pr_template: true`` property in the workflow. 
+    
+   The template must be defined in the destination repository.
+
+Pull Request with Auto-Merge
+````````````````````````````
+
+Set ``auto_merge: true`` to create a PR and automatically merge it if there are no conflicts.
+
+.. code-block:: yaml
+    :emphasize-lines: 3
+
+    commit_strategy:
+    type: "pull_request"
+    auto_merge: true  # Automatically merges if no conflicts
+
+Use this commit strategy when:
+
+- The destination repository has automated tests that must pass.
+- You trust the source content completely.
+
+Direct Commit
+`````````````
+
+Use ``type: "direct"`` to commit directly to the destination branch (no PR):
+
+.. code-block:: yaml
+    :emphasize-lines: 2
+
+    commit_strategy:
+    type: "direct"
+    commit_message: "Update examples from ${source_repo}"
+
+Use this commit strategy when:
+
+- The destination repository doesn't require review.
+- You need immediate updates.
+- You have full confidence in the source content.
+
+.. important:: 
+    
+   Direct commits bypass code review and CI checks.
+
+Customize Pull Request Details
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can customize the PR title, body, and commit message to include relevant information.
+
+.. tip:: 
+    
+   Use the :ref:`available-pr-variables` to include dynamic information.
+
+Configure Pull Request Format
+`````````````````````````````
+
+Add custom PR titles and descriptions:
+
+.. code-block:: yaml
+
+   workflows:
+     - name: "my-workflow"
+       destination:
+         repo: "mongodb/destination-repo"
+         branch: "main"
+       transformations:
+         - move: { from: "src", to: "dest" }
+       commit_strategy:
+         type: "pull_request"
+         pr_title: "Update examples from ${source_repo}"
+         pr_body: |
+           Automated update from source repository.
+
+           Source PR: #${pr_number}
+           Commit: ${commit_sha}
+         auto_merge: false
+
+Use PR templates from the destination repository:
+
+.. code-block:: yaml
+
+   workflows:
+     - name: "my-workflow"
+       destination:
+         repo: "mongodb/destination-repo"
+         branch: "main"
+       transformations:
+         - move: { from: "src", to: "dest" }
+       commit_strategy:
+         type: "pull_request"
+         use_pr_template: true
+
+.. note:: 
+    
+   If the destination repository uses a pull request template, any custom body you configure here will be appended after the template content.
+
+.. _available-pr-variables:
+
+Available Variables
+````````````````````
+
+You can use the following dynamic variables in PR titles, bodies, and commit messages:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 35 40
+
+   * - Variable
+     - Description
+     - Example
+
+   * - ``${source_repo}``
+     - Source repository name.
+     - ``copied from ${source_repo}``
+
+   * - ``${source_branch}``
+     - Source branch name.
+     - ``copied from ${source_repo}/${source_branch}``
+
+   * - ``${pr_number}``
+     - Source PR number.
+     - ``from PR ${pr_number}``
+
+   * - ``${commit_sha}``
+     - Source commit SHA.
+     - ``Commit: ${commit_sha}``
+
+   * - ``${file_count}``
+     - Number of files changed.
+     - ``${file_count} files changed``
+
+
+Example: Complete Workflow
+--------------------------
+
+.. code-block:: yaml
+
+   # .copier/config.yaml
+
+   defaults:
+     commit_strategy:
+       type: "pull_request"
+       auto_merge: false
+     exclude:
+       - "**/.env"
+       - "**/node_modules/**"
+
+   workflows:
+   # Defaults apply unless overridden
+     - name: "go-examples"
+       destination:
+         repo: "mongodb/go-examples-repo"
+         branch: "main"
+       transformations:
+         - move:
+             from: "examples/go"
+             to: "code"
+       commit_strategy:
+         pr_title: "Update Go examples from ${source_repo}"
+         pr_body: |
+           Automated update of Go code examples.
+
+           **Source**: ${source_repo} (PR # ${pr_number})
+           **Commit**: ${commit_sha}
+           **Files**: ${file_count} changed
+         commit_message: "Automated copy from ${source_repo} PR #${pr_number}"
+       deprecation_check:
+         enabled: true
+         file: "deprecated_examples.json"
+
+
+Troubleshooting
+---------------
+
+For help troubleshooting or adding new workflows, contact the DevDocs team.
+
+My files weren't copied
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Verify:
+
+- Was the PR merged to ``main``? The PR must be merged (not closed) to the correct branch to trigger the copier. 
+- Do the changed files match your transformation patterns? The filepaths must match at least one workflow pattern to be copied.
+- Is the copier installed in the destination repository? Verify with the DevDocs team to confirm.
+- Are your files being excluded due to your ``exclude`` patterns?
+
+Files are being copied to the wrong location
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Verify:
+
+- Is the destination repository and branch correct?
+- Your filepaths: 
+
+  - Are your paths relative to repository root? Filepaths must be relative to repository root, not relative to config file location. For example, to copy files from the ``examples/go`` directory in the source repository, use ``from: "examples/go"`` instead of ``from: "../examples/go"``.
+  - If you're using glob or regex transform types, is your pattern correct? Are your variables used correctly?
+  - If you're using move or copy transform types, are your to paths correct?
