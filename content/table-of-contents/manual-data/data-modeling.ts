@@ -359,63 +359,17 @@ const tocData: TocItem[] = [
       {
         label: 'IOT Data',
         contentSite: 'docs',
-        url: '/docs/:version/applications/data-models-tree-structures',
-        collapsible: true,
-        items: [
-          {
-            label: 'Parent References',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/model-tree-structures-with-parent-references',
-          },
-          {
-            label: 'Child References',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/model-tree-structures-with-child-references',
-          },
-          {
-            label: 'Array of Ancestors',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/model-tree-structures-with-ancestors-array',
-          },
-          {
-            label: 'Materialized Paths',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/model-tree-structures-with-materialized-paths',
-          },
-          {
-            label: 'Nested Sets',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/model-tree-structures-with-nested-sets',
-          },
-        ],
+        url: '/docs/:version/tutorial/model-iot-data',
       },
       {
-        label: 'Specific Application Contexts',
+        label: 'Keyword Search',
         contentSite: 'docs',
-        url: '/docs/:version/applications/data-models-applications',
-        collapsible: true,
-        items: [
-          {
-            label: 'Atomic Operations',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/model-data-for-atomic-operations',
-          },
-          {
-            label: 'IOT Data',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/model-iot-data',
-          },
-          {
-            label: 'Keyword Search',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/model-data-for-keyword-search',
-          },
-          {
-            label: 'Monetary Data',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/model-monetary-data',
-          },
-        ],
+        url: '/docs/:version/tutorial/model-data-for-keyword-search',
+      },
+      {
+        label: 'Monetary Data',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/model-monetary-data',
       },
     ],
   },
