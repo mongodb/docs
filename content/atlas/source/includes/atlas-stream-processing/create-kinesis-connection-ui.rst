@@ -14,13 +14,16 @@ follow these steps:
 
    .. step:: Set up Unified AWS Access.
 
-      Follow the procedure described in `Set Up Unified AWS
-      Access
+      Follow the procedure described in `Set Up Unified AWS Access
       <https://docs.mongodb.com/atlas/security/set-up-unified-aws-access/?interface=atlas-ui>`__.
 
-      Ensure that you grant your IAM role ``ListAllMyBuckets`` and
-      ``PutObject`` permissions.
+      Ensure that you grant your IAM role the following permissions:
 
+      - ``SubscribeToShard``
+      - ``ListShards``
+      - ``DescribeStreamSummary``
+      - ``PutRecords``
+      
       Note the ARN value in ``Statement.Principal.AWS`` for later in this
       procedure.
 

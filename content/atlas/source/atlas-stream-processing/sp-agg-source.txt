@@ -35,6 +35,8 @@ from. The following connection types are supported:
 - {+kafka+} broker
 - MongoDB collection change stream 
 - MongoDB database change stream
+- MongoDB cluster change stream
+- {+aws+} Kinesis data stream
 - Document array
 
 .. _atlas-sp-agg-source-syntax:
@@ -93,9 +95,9 @@ The ``$source`` stage takes a document with the following fields:
    * - ``topic``
      - string or array of strings
      - Required
-     - Name of one or more {+kafka+} topics to stream messages from.
-       If you want to stream messages from more than one topic,
-       specify them in an array. 
+     - Name of one or more {+kafka+} topics from which to stream
+       messages. If you want to stream messages from more than one
+       topic, specify them in an array. 
 
    * - ``timeField``
      - document
@@ -106,9 +108,9 @@ The ``$source`` stage takes a document with the following fields:
        If you use ``timeField``, you must define it as one of the
        following:
 
-       - a ``$toDate`` expression that takes a source message field as 
-         an argument
-       - a ``$dateFromString`` expression that takes a source message 
+       - a :expression:``$toDate`` that takes a source message field as 
+         an argument.
+       - a :expression:``$dateFromString`` that takes a source message 
          field as an argument.
 
        If you do not declare a ``timeField``, {+atlas-sp+} creates a
@@ -838,6 +840,149 @@ The ``$source`` stage takes a document with the following fields:
 
        Defaults to ``1000``.
 
+.. _atlas-sp-agg-source-syntax-kinesis:
+
+{+aws+} Kinesis Data Stream
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To operate on data from an {+aws+} Kinesis data stream, the
+``$source`` stage has the following prototype form:
+
+.. code-block:: json
+
+   {
+     "$source": {
+       "connectionName": "<registered-connection>",
+       "stream": "<stream-name>",
+       "region": "<aws-region>",
+       "timeField": {
+         $toDate | $dateFromString: <expression>
+       },
+       "tsFieldName": "<field-name>",
+       "shardIdleTimeout": {
+         "size": <duration-number>,
+         "unit": "<duration-unit>"
+       },
+       "config": {
+         "consumerARN": "<aws-arn>",
+	 "initialPosition": <initial-position>,
+	 reshardDetectionIntervalSecs: <interval>
+       }
+     }
+   }
+
+The ``$source`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 16 17 17 60
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``connectionName`` 
+     - string
+     - Required
+     - Label that identifies the connection in the
+       :ref:`Connection Registry <atlas-sp-manage-connections>`, from
+       which to ingest data.
+
+   * - ``stream``
+     - string
+     - Required
+     - {+aws+} Kinesis data stream from which to stream messages.
+   
+   * - ``region``
+     - string
+     - Conditional
+     - {+aws+} region in which the specified stream exists. Kinesis
+       supports multiple data streams with the same name in different
+       regions. If you use the same name for data streams in two or
+       more regions within the same connection, you must use this
+       field to specify which combination of name and region to use.
+
+   * - ``timeField``
+     - document
+     - Optional 
+     - Document that defines an authoritative timestamp for incoming
+       messages.
+       
+       If you use ``timeField``, you must define it as one of the
+       following:
+
+       - a ``$toDate`` expression that takes a source message field as 
+         an argument
+       - a ``$dateFromString`` expression that takes a source message 
+         field as an argument.
+
+       If you do not declare a ``timeField``, {+atlas-sp+} creates a
+       timestamp from the message timestamp provided by the source.
+
+   * - ``shardIdleTimeout``
+     - document
+     - Optional
+     - Document specifying the amount of time that a shard is allowed
+       to idle before it is ignored in watermark calculations.
+
+       This field is disabled by default. To handle shards that don't
+       move forwar due to idleness, set a value for this field.
+
+   * - ``shardIdleTimeout.size``
+     - document
+     - Optional
+     - Number specifying the duration of the shard idle timeout.
+
+   * - ``shardIdleTimeout.unit``
+     - document
+     - Optional
+     - Unit of time for the duration of the shard idle timeout.
+
+       The value of ``unit`` can be one of the following:
+
+       - ``"ms"`` (millisecond)
+       - ``"second"``
+       - ``"minute"``
+       - ``"hour"``
+       - ``"day"``   
+
+   * - ``config``
+     - document 
+     - Optional
+     - Document containing fields that override various default 
+       values.
+
+   * - ``config.consumerARN``
+     - string
+     - Optional
+     - :aws:`ARN <IAM/latest/UserGuide/reference-arns>` corresponding
+       to a :aws:`Kinesis consumer
+       <streams/latest/dev/building-consumers>`. If you specify this
+       field, your consumer will use :aws:`Enhanced fan-out
+       <streams/latest/dev/building-enhanced-consumers-api>`;
+       otherwise, Kinesis will use a standard consumer.
+
+   * - ``config.initialPosition``
+     - string 
+     - Optional
+     - Position in the Kinesis data stream's history from which to
+       begin ingesting messages. Must be one of either:
+
+       - ``"TRIM_HORIZON"``: Begin ingesting from the oldest message
+         in the shard.
+       - ``"LATEST"``: Begin ingesting from the newest message in the
+         shard.
+
+       Defaults to "LATEST".
+
+   * - ``reshardDetectionIntervalSecs``
+     - integer
+     - Optional
+     - Interval, in seconds, between checks against the rate of data
+       flow through your Kinesis stream for the purposes of
+       :aws:`resharding <streams/latest/dev/kinesis-using-sdk-java-resharding>`.
+
 .. _atlas-sp-agg-source-syntax-array:
 
 Document Array
@@ -867,7 +1012,6 @@ The ``$source`` stage takes a document with the following fields:
      - Type 
      - Necessity 
      - Description
-
 
    * - ``timeField``
      - document
