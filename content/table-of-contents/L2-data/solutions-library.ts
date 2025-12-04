@@ -348,6 +348,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: 'Amplify Brands in Real Time for Retail Growth',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/brand-amplification',
+          },
+          {
             label: 'Building an Inventory Management System',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/retail-asset-event-driven-inventory',
