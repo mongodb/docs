@@ -1,0 +1,98 @@
+.. _ak8so-metrics:
+
+=============================================
+View Metrics and Troubleshoot Resource Issues
+=============================================
+
+.. meta::
+   :description: View and analyze performance metrics collected by Atlas Kubernetes Operator.
+
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+View and analyze performance metrics
+====================================
+
+The AKO binary exposes standard controller-runtime metrics on http://localhost:8080/metrics. 
+There, you can find the following:
+
+- Total number of reconciliation errors and successful reconciles per controller.
+- Length of reconcile queues per controller.
+- Reconciliation latency.
+- Standard resource metrics such as CPU, memory usage, and file descriptor usage.
+- Go runtime metrics such as the number of Go routines and GC duration.
+
+To learn more, see `Controller Metrics <https://book-v1.book.kubebuilder.io/beyond_basics/controller_metrics>`__.
+
+SRE Runbook
+===========
+
+Resource Stuck in Reconciliation
+--------------------------------
+
+Problem: Resource stuck in reconciliation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This problem occurs when the ``AtlasProject`` resource is not in a ``Ready`` state. 
+It can occur with every |ak8so| resource type.
+
+Symptoms
+`````````
+
+- The resource is not in a ``Ready`` state.
+- A high error rate.
+  
+To monitor the error rate, you can create a query to calculate the 
+reconciliation error rate for the ``AtlasProject`` controller as a percentage 
+over the last minute. This metric helps in identifying and monitoring the 
+health and stability of the ``AtlasProject`` controller. A high or rising 
+error percentage indicates issues in the reconciliation process.
+
+Example Query
+^^^^^^^^^^^^^
+
+To calculate the error rate, use the following `Prometheus <https://prometheus.io/docs/introduction/overview/>`__ query:
+
+.. code-block:: prometheus
+
+   100 * rate(controller_runtime_reconcile_errors_total{controller="AtlasProject"}[1m]) / rate(controller_runtime_reconcile_total{controller="AtlasProject"}[1m])
+
+Status
+```````
+
+Check the resource status condition for further details:
+
+.. code-block:: yaml
+
+   status:
+     conditions:
+       - type: Ready
+         status: "False"
+         reason: ....
+
+Action Items
+````````````
+
+1. **Verify Resource Status:**
+   
+   - Check the status condition message for more detailed information.
+   - If the ``AtlasProject`` is not ready, proceed with the next troubleshooting steps.
+  
+2. **Check Connection Secret:**
+   
+   - Ensure the connection secret referenced by ``spec.connectionSecretRef.name`` is correctly labeled with ``atlas.mongodb.com/type=credentials``.
+
+3. **Investigate Logs:**
+   
+   - Review logs for the ``AtlasProject`` controller for any potential errors or failed reconciliation attempts.
+
+Additional Resources
+`````````````````````
+
+- `AtlasProject resource <https://www.mongodb.com/docs/atlas/operator/upcoming/atlasproject-custom-resource/>`__

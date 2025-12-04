@@ -1,0 +1,298 @@
+.. _atlasprivateendpoint-custom-resource:
+
+========================================
+``AtlasPrivateEndpoint`` Custom Resource
+========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/subresource-deprecation.rst
+
+The ``AtlasPrivateEndpoint`` custom resource configures a
+:ref:`private endpoint <private-endpoint-overview>` for a |service|
+project. This allows you to connect your cloud provider to |service|
+without sending information through a public network. Private
+endpoints are unidirectional connections *to* |service| *from* your
+virtual network.
+
+.. include:: /includes/fact-ak8so-crds.rst
+
+|ak8so| takes one of the following actions using the |service|
+:oas-bump-atlas-tag:`Private Endpoint Service API Resource
+<private-endpoint-services>`:
+   
+- Creates a new private endpoint service.
+- Updates an existing private endpoint service.
+
+To learn more about implementing private endpoints in |ak8so|, see
+:ref:`Manage Private Endpoints <ak8so-private-endpoint>`.
+
+Examples
+--------
+
+.. _atlasprivateendpoint-example-basic:
+
+Basic Example
+~~~~~~~~~~~~~
+
+The following example shows an ``AtlasPrivateEndpoint`` custom resoure
+that defines an |aws| private endpoint within the ``my-project`` project.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasPrivateEndpoint
+   metadata:
+    name: my-atlas-pe1
+   spec:
+     projectRef:
+       name: my-project
+       namespace: my-operator-namespace
+     provider: AWS
+     region: us-east-1
+     awsConfiguration:
+       - id: vpcpe-xyz 
+
+.. _atlasprivateendpoint-example-independent:
+
+Independent CRD Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasPrivateEndpoint``
+:ref:`independent CRD <ak8so-independent-crd>` that defines the same
+private endpoint defined in the :ref:`Basic Example
+<atlasprivateendpoint-example-basic>`. This custom resource definition
+allows you to create this private endpoint in a project you don't
+manage in the same instance of |ak8so| with which you define this
+resource. To enable independent operation, you must use an
+``externalProjectRef`` instead of a ``projectRef``, and you must
+supply a ``connectionSecret`` directly since this resource can't
+inherit API credentials from its parent project.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasPrivateEndpoint
+   metadata:
+    name: my-atlas-pe1
+   spec:
+     externalProjectRef:
+       projectID: 66e2f2b621571b7e69a89b66
+     connectionSecret:
+       name: atlas-connection-secret
+     provider: AWS
+     region: us-east-1
+     awsConfiguration:
+       - id: vpcpe-xyz
+
+Parameters
+----------
+
+This section describes the ``AtlasPrivateEndpoint`` custom resource
+parameters available.
+
+``metadata.name``
+   *Type*: string
+
+   *Required*
+
+   Name that the :ref:`atlasprivateendpoint-custom-resource` uses to
+   add this private endpoint to a project.
+
+.. setting:: metadata.namespace
+
+   *Type*: string
+
+   *Optional*
+
+   Namespace that you want to contain the ``AtlasPrivateEndpoint``
+   custom resource. If unspecified, |ak8so| uses the current namespace
+   set by ``kubectl``.
+
+   If you define a custom namespace, you must add it to the
+   :ref:`atlasproject-custom-resource` in the
+   ``spec.privateEndpoint.privateEndpointRef.namespace`` field.
+
+.. setting:: spec.awsConfiguration.id
+
+   *Type*: string
+
+   *Conditional*
+
+   ID of the private endpoint network interface. This parameter is
+   mandatory for and limited to |aws| private endpoints.
+
+.. setting:: spec.azureConfiguration.id
+
+   *Type*: string
+
+   *Conditional*
+
+   ID of the private endpoint network interface. This parameter is
+   mandatory for and limited to |azure| private endpoints.
+
+.. setting:: spec.azureConfiguration.ipAddress
+
+   *Type*: string
+
+   *Conditional*
+
+   IP address of the private endpoint in your |azure| VNet. This
+   parameter is mandatory for and limited to |azure| private
+   endpoints.
+
+.. setting:: spec.connectionSecret.name
+
+   *Type*: string
+
+   *Conditional*
+
+   Name of the opaque |k8s-secret| that contains the organization ID
+   and :ref:`API keys <about-org-api-keys>` that |ak8so| uses to
+   :ref:`connect <ak8so-access-to-atlas-ref>` to |service|.  If
+   unspecified, |ak8so| falls back to either:
+
+   - The ``spec.connectionSecretRef.name`` parameter of the parent
+     ``atlasProject``
+   - The default ``global`` secret, if ``spec.connectionSecretRef.name``
+     is undefined for the parent ``atlasProject``
+
+   This parameter is mandatory for :ref:`independent CRDs
+   <ak8so-independent-crd>`.
+   
+   .. include:: /includes/fact-ak8so-label-secret.rst
+
+.. setting:: spec.externalProjectRef.id
+
+   *Type*: string
+
+   *Conditional*
+
+   ID of the project to which the private endpoint belongs. You must
+   specify the project ID of an existing :ref:`Atlas Project
+   <manage-projects>`. This parameter is required for private endpoints
+   that belong to projects managed by either:
+
+   - A different instance of |ak8so|
+   - Tooling other than |ak8so|
+
+   For deployments who belong to projects managed by
+   the same instance of |ak8so|, use ``spec.projectRef.name`` if you
+   do not use ``spec.externalProjectRef.id``.
+
+   A private endpoint can only belong to one project. To define the same
+   private endpoint for multiple projects, create custom resource
+   definitions for each project.
+
+.. setting:: spec.gcpConfiguration.endpoints
+
+   *Type*: array
+
+   *Conditional*
+
+   List of individual private endpoints that comprise this endpoint
+   group. This parameter is mandatory for and limited to {+gcp+}
+   private endpoints.
+
+.. setting:: spec.gcpConfiguration.endpoints.[n].ipAddress
+
+   *Type*: string
+
+   *Conditional*
+
+   IP address to which the given {+gcp+} private endpoint
+   resolves. This parameter is mandatory for and limited to {+gcp+}
+   private endpoints.
+
+.. setting:: spec.gcpConfiguration.endpoints.[n].name
+
+   *Type*: string
+
+   *Conditional*
+
+   Name uniquely identifying the given {+gcp+} private endpoint. This
+   parameter is mandatory for and limited to {+gcp+} private
+   endpoints.
+
+.. setting:: spec.gcpConfiguration.groupName
+
+   *Type*: string
+
+   *Conditional*
+
+   Name that uniquely identifies a set of {+gcp+} private
+   endpoints. This parameter is mandatory for and limited to {+gcp+}
+   private endpoints.
+
+.. setting:: spec.gcpConfiguration.projectId
+
+   *Type*: string
+
+   *Conditional*
+
+   Unique identifier for the {+gcp+} project to which your private
+   endpoints belong.
+
+.. setting:: spec.projectRef.name
+
+   *Type*: string
+
+   *Conditional*
+
+   Name of the project to which the private endpoint belongs. You must
+   specify an existing :ref:`atlasproject-custom-resource`. This
+   parameter applies only to private endpoints that belong to projects
+   managed by the same instance |ak8so|.
+
+   For private endpoints that belong to projects managed by either:
+
+   - a different instance of |ak8so|
+   - tooling other than |ak8so|
+
+   use ``spec.externalProjectRef.id``.
+
+   A private endpoint can only belong to one project. To define the
+   same private endpoint for multiple projects, create custom resource
+   definitions for each project.
+
+.. setting:: spec.projectRef.namespace
+
+   *Type*: string
+
+   *Conditional*
+
+   Namespace in which the :ref:`atlasproject-custom-resource`
+   specified in ``spec.projectRef.name`` exists.
+
+   For deployments that belong to projects managed by either:
+
+   - a different instance of |ak8so|
+   - tooling other than |ak8so|
+
+   do not set this parameter.
+
+.. setting:: spec.provider
+
+   *Type*: string
+
+   *Required*
+
+   Name of the cloud service provider for which to create a private
+   endpoint service.
+
+.. setting:: spec.region
+
+   *Type*: string
+
+   *Required*
+
+   Cloud provider region in which to create a private endpoint
+   service.
+
+

@@ -1,0 +1,276 @@
+.. _custom-resources:
+
+================
+Custom Resources
+================
+
+.. meta::
+   :description: Explore the custom resource definitions supported by Atlas Kubernetes Operator for managing Atlas configurations.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+|ak8so| supports the following custom resource definitions:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 60 10
+
+   * - Resource
+     - Description
+     - Short Name
+  
+   * - :ref:`bcp-custom-resource`
+     - Configuration of a {+bcp+} to protect your backup data.
+     - abcp
+
+   * - :ref:`atlasbackuppolicy-custom-resource`
+     - Backup policy to back up your {+cluster+}
+       |service|.
+     - abp
+
+   * - :ref:`atlasbackupschedule-custom-resource`
+     - Backup schedule to back up your {+cluster+}
+       |service|.
+     - abs
+
+   * - :ref:`atlascustomrole-custom-resource`
+     - a :ref:`custom database role <mongodb-roles>` to allocate
+       privileges to your :ref:`database users <mongodb-users>`.
+     - acr
+
+   * - :ref:`atlasdeployment-custom-resource`
+     - {+Cluster+} inside some project in |service|.
+     - ad
+
+   * - :ref:`atlasdatabaseuser-custom-resource`
+     - Database user inside some project in 
+       |service|.
+     - adu
+
+   * - :ref:`atlasipaccesslist-custom-resource`
+     - List of permitted sources for connections to |service|.
+     - aal
+
+   * - :ref:`atlasproject-custom-resource`
+     - Project in |service|. 
+     - ap
+
+   * - :ref:`atlasteam-custom-resource`
+     - Project team in |service|.
+     - at
+
+   * - :ref:`atlasdatafederation-custom-resource`
+     - {+fdi+} and its private endpoints in 
+       |service|.
+     - adf
+
+   * - :ref:`atlasnetworkpeering-custom-resource`
+     - |vpc| peering connection between your {+service+} project and
+       your cloud provider.
+     - anp
+
+   * - :ref:`atlasnetworkcontainer-custom-resource`
+     - Network container supporting |vpc| peering between
+       your {+service+} project and a cloud provider.
+     - anc
+
+   * - :ref:`atlasorgsettings-custom-resource`
+     - Modify the specific organization settings.
+     - aos
+
+   * - :ref:`atlasprivateendpoint-custom-resource`
+     - Private endpoint connection from your chosen cloud
+       provider to |service|.
+     - ape
+
+   * - :ref:`atlassearchindexconfig-custom-resource`
+     - Index for some collection in your |service| {+cluster+}.
+     - asic
+
+   * - :ref:`atlasstreamconnection-custom-resource`
+     - {+atlas-sp+} connection.
+     - asc
+
+   * - :ref:`atlasstreamworkspace-custom-resource`
+     - {+atlas-sp+} workspace.
+     - asi
+
+   * - :ref:`atlasfederatedauth-custom-resource`
+     - Federated authentication in |service|.
+     - afa
+
+.. include:: /includes/fact-ak8so-crds.rst
+
+Managing |ak8so| with ``kubectl``
+-----------------------------------
+
+To list all |ak8so| resources in your cluster with ``kubectl``, you can run:
+
+.. code-block:: sh
+
+   kubectl get atlas
+
+For your convenience, to list or describe specific types of |ak8so| CRDs, 
+you can use the short names listed in the above table. For example, to list all
+``atlasdatabaseusers`` in the ``mongodb`` namespace, you can run:
+
+.. code-block:: sh
+
+   kubectl get adu -n mongodb
+
+|ak8so| Workflow
+----------------
+
+When you use |ak8so|, you can create a new |service| project, or you 
+can work with an existing |service| project.
+
+.. include:: /includes/fact-ak8so-api-key-permission.rst
+
+To learn more, see :ref:`ak8so-access-to-atlas-ref`.
+
+.. _ak8so-create-update-process:
+
+Create and Update Process
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each time you change the ``spec`` field in any of the supported 
+custom resources, the following workflow begins in |ak8so|:
+
+1. |ak8so| receives an event about the changed custom resource.
+
+#. |ak8so| updates the ``status.conditions`` field to reflect that the 
+   resource is not ready:
+
+   .. code-block:: sh
+      
+      conditions:
+      - lastTransitionTime: "2021-03-13T16:26:17Z"
+        status: "False"
+        type: Ready
+
+#. .. include:: /includes/fact-ak8so-orgid-api-key-locations.rst
+
+#. .. include:: /includes/fact-ak8so-connection-information.rst
+
+#. .. include:: /includes/fact-ak8so-connection-errors.rst
+
+#. If the update succeeds, ``status.conditions`` reflects that the 
+   resource is ready:
+
+   .. code-block:: sh
+    
+      conditions:
+      - lastTransitionTime: "2021-03-13T16:26:17Z"
+        status: "True"
+        type: Ready
+
+.. _ak8so-delete-process:
+
+Delete Process
+~~~~~~~~~~~~~~
+
+As of |ak8so| 2.0, when you delete a custom resource from |k8s|, the object
+stays in |service| by default but |ak8so| 
+:ref:`no longer controls the object <deletion-protection>`. You can 
+:ref:`revert this default for your entire deployment <revert-deletion-protection>`, 
+or override this default for a specific custom resource with an 
+:ref:`annotation <ak8so-annotations>` to allow |ak8so| to delete the 
+corresponding object from |service|. If you override with an annotation,
+the following workflow begins:
+
+1. |ak8so| receives an event about the deleted custom resource.
+
+#. To connect to the {+atlas-admin-api+}, |ak8so| reads the 
+   organization ID 
+   and |api| keys from one of the following locations:
+
+   - :setting:`spec.connectionSecretRef.name` (if specified in 
+     the :ref:`atlasproject-custom-resource`).
+
+     .. include:: /includes/fact-ak8so-connection-secret-namespace.rst
+
+   - ``global`` |ak8so| |k8s-secret| 
+     ``<operator-deployment-name>-api-key`` 
+     (if :setting:`spec.connectionSecretRef.name` is not specified).
+
+#. To delete the resource from |service|, |ak8so| uses the connection 
+   information to make |api| calls to |service|. 
+  
+   .. note::
+
+      |ak8so| removes any related objects created in |k8s|. For 
+      example, if you remove ``AtlasDatabaseUser``, |ak8so| removes the 
+      related connection |k8s-secrets|.
+
+.. _ak8so-annotations:
+
+Use Annotations to Skip or Override Defaults
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use annotations to modify the :ref:`new default behaviour <deletion-protection>` 
+of |ak8so|. 
+
+* If you add the ``mongodb.com/atlas-resource-policy: "delete"`` annotation 
+  to a custom resource's ``metadata``, |ak8so| deletes the corresponding object in |service|
+  when you delete the |ak8so| resource.
+
+  **Example**
+
+  .. code-block:: yaml
+
+     apiVersion: atlas.mongodb.com/v1
+     kind: AtlasProject
+     metadata:
+       name: my-project
+       annotations:
+         mongodb.com/atlas-resource-policy: "delete"
+
+* If you have :ref:`reverted the new delete behavior <revert-deletion-protection>` 
+  to the default used prior to |ak8so| 2.0, you can add the 
+  ``mongodb.com/atlas-resource-policy: "keep"`` annotation 
+  to a custom resource's ``metadata`` so |ak8so| won't delete the 
+  resource when you delete the |ak8so| resource. 
+
+* If you add the ``mongodb.com/atlas-reconciliation-policy: "skip"`` 
+  annotation to a custom resource's ``metadata``, |ak8so| doesn't start 
+  the reconciliation for the resource. This annotation lets you pause the 
+  sync with the spec until you remove the annotation. You can use this 
+  annotation to make manual changes to a custom resource and avoid
+  |ak8so| undoing them during a sync. When you remove this annotation, 
+  |ak8so| reconciles the resource and syncs it with the spec.
+
+* If you add the ``mongodb.com/atlas-resource-version-policy: "allow"``
+  annotation to a custom resource's ``metadata``, |ak8so| lets you use a 
+  resource even if its version label doesn't match the version of 
+  |ak8so| that you are using. If your resource version is a major version 
+  behind your |ak8so| version, the latest features might not work. Minor 
+  version discrepancies are backward-compatible. 
+
+.. toctree::
+   :titlesonly:
+
+   AtlasProject </atlasproject-custom-resource>
+   AtlasDeployment </atlasdeployment-custom-resource>
+   AtlasDatabaseUser </atlasdatabaseuser-custom-resource>
+   AtlasCustomRole </atlascustomrole-custom-resource>
+   AtlasBackupPolicy </atlasbackuppolicy-custom-resource>
+   AtlasBackupSchedule </atlasbackupschedule-custom-resource>
+   AtlasBackupCompliancePolicy </bcp-custom-resource>
+   AtlasIPAccessList </atlasipaccesslist-custom-resource>
+   AtlasNetworkContainer </atlasnetworkcontainer-custom-resource>
+   AtlasOrgSettings </atlasorgsettings-custom-resource>
+   AtlasPrivateEndpoint </atlasprivateendpoint-custom-resource>
+   AtlasTeam </atlasteam-custom-resource>
+   AtlasThirdPartyIntegration </atlasthirdpartyintegration-custom-resource>
+   AtlasDataFederation </atlasdatafederation-custom-resource>
+   AtlasNetworkPeering </atlasnetworkpeering-custom-resource>
+   AtlasSearchIndexConfig </atlassearchindexconfig-custom-resource>
+   AtlasStreamConnection </atlasstreamconnection-custom-resource>
+   AtlasStreamWorkspace </atlasstreamworkspace-custom-resource>
+   AtlasFederatedAuth </atlasfederatedauth-custom-resource>

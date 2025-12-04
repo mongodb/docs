@@ -26,7 +26,7 @@
   Custom Resource with the configuration for :setting:`spec.flexSpec`. Or, you can
   continue using the same spec. Managing a deployment via the ``spec.deploymentSpec``
   in the ``AtlasDeployment`` Custom Resource will continue to work even
-  after |service| automatically migrated these existing ``M2`` and ``M5`` {+clusters+}
+  once |service| automatically migrates these existing ``M2`` and ``M5`` {+clusters+}
   to {+Flex-clusters+} in May 2025.
 
 - For your existing {+Serverless-instances+}, if you receive errors during
