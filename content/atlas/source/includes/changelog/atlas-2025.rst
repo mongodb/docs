@@ -1,3 +1,16 @@
+.. _atlas_2025_12_05:
+
+05 December 2025 Release 
+------------------------
+
+- Deprecates :ref:`$search.tracking <fts-tracking-ref>` and :ref:`Query
+  Analytics UI <fts-query-analytics>`. The official end-of-life and
+  complete removal of support will occur in February 2026. Therefore,
+  |service| will no longer collect query data for display in the
+  {+atlas-ui+} for all ``$search.tracking`` requests. If you have any
+  questions or need further assistance, reach out to our support team
+  from the MongoDB Support Portal or contact your Account Executive. 
+
 .. _atlas_2025_11_19:
 
 19 November 2025 Release
