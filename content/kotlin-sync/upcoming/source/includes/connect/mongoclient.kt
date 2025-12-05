@@ -6,7 +6,6 @@ import org.bson.Document
 fun main() {
     
     // start-connect-to-atlas
-    // start-connect-to-atlas-w-uri
     // Replace the placeholder with your Atlas connection string
     val uri = "<connection string>"
     val mongoClient1 = MongoClient.create(uri)
