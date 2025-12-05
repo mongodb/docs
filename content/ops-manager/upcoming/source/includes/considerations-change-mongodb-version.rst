@@ -23,6 +23,5 @@
 
 .. note:: Downgrading Limitations
 
-   You cannot downgrade a MongoDB deployment:
-
-   - From version 6.0 to any version before 4.4.0
+   You cannot downgrade a MongoDB deployment from version 6.0 to any
+   version before 4.4.0.
