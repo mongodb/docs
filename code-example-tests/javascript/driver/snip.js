@@ -2,6 +2,8 @@ import { processFiles } from '../../processFiles.js';
 import { exec, execSync, spawnSync } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { readdir } from 'fs/promises';
+import { join } from 'path';
 
 // ------ CONFIGURATION: Set these values for your language/project ----------
 const IGNORE_PATTERNS = new Set([
@@ -61,20 +63,69 @@ function isPrettierInstalled() {
   }
 }
 
-// Helper to run the formatting tool on the output directory
-function runFormatter(directory) {
-  return new Promise((resolve, reject) => {
-    const command = `prettier --config "${PRETTIER_CONFIG_PATH}" --write "${directory}"`;
+// Helper to recursively get all .js files in a directory
+async function getAllJsFiles(dir, fileList = []) {
+  const entries = await readdir(dir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      await getAllJsFiles(fullPath, fileList);
+    } else if (entry.isFile() && entry.name.endsWith('.js')) {
+      fileList.push(fullPath);
+    }
+  }
+
+  return fileList;
+}
+
+// Helper to format a single file with prettier
+function formatFile(filePath) {
+  return new Promise((resolve) => {
+    const command = `prettier --config "${PRETTIER_CONFIG_PATH}" --write "${filePath}"`;
     exec(command, (error, stdout, stderr) => {
       if (error) {
-        console.error(`Error running Prettier: ${error.message}`);
-        reject(error);
-      } else if (stderr) {
-        console.error(`Prettier Errors:\n${stderr}`);
+        // File couldn't be formatted (likely syntax error), skip it
+        resolve({ success: false, file: filePath, error: error.message });
+      } else {
+        resolve({ success: true, file: filePath });
       }
-      resolve();
     });
   });
+}
+
+// Helper to run the formatting tool on the output directory
+async function runFormatter(directory) {
+  try {
+    // Get all .js files in the directory
+    const jsFiles = await getAllJsFiles(directory);
+
+    if (jsFiles.length === 0) {
+      console.log('No JavaScript files found to format.');
+      return;
+    }
+
+    console.log(`Found ${jsFiles.length} JavaScript file(s) to format...`);
+
+    // Format each file individually
+    const results = await Promise.all(jsFiles.map(formatFile));
+
+    // Summarize results
+    const successful = results.filter(r => r.success);
+    const failed = results.filter(r => !r.success);
+
+    console.log(`Successfully formatted ${successful.length} file(s).`);
+
+    if (failed.length > 0) {
+      console.log(`\nSkipped ${failed.length} file(s) that could not be formatted:`);
+      failed.forEach(({ file }) => {
+        const relativePath = path.relative(directory, file);
+        console.log(`  - ${relativePath}`);
+      });
+    }
+  } catch (error) {
+    console.error('Error during formatting:', error.message);
+  }
 }
 
 // Snip code example files, and then run the formatting tool on the output
