@@ -36,7 +36,7 @@
                      This index definition indexes only the vector
                      embeddings field (``plot_embedding_voyage_3_large``) for performing vector search.  
 
-                  .. tab:: Advanced Example 
+                  .. tab:: Filter Example 
                      :tabid: advanced
 
                      For the ``embedded_movies`` collection, the ``plot_embedding_voyage_3_large`` field displays.
