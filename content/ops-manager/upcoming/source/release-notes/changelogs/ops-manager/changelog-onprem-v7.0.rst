@@ -1,3 +1,28 @@
+.. _opsmgr-server-7.0.20:
+
+|onprem| Server 7.0.20
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-12-08*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`107.0.20.8807-1 <mongodb-107.0.20.8807-1>`.
+- Implements a :ref:`Telemetry <om-telemetry-overview>` report to collect and send 
+  |onprem| usage data to MongoDB, with controls to enable or disable telemetry 
+  through the |onprem| UI or API.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes an issue where disabling |ldap| authorization did not trigger a rolling 
+  restart, ensuring proper configuration changes.
+- Fixes a problem where requesting logs via the UI for |bson| files could 
+  generate unusable files due to |bson| size errors.
+- Fixes an issue that prevented modifying the custom configuration when the 
+  ``mms.mail.transport`` setting is present.
+
 .. _opsmgr-server-7.0.19:
 
 |onprem| Server 7.0.19
