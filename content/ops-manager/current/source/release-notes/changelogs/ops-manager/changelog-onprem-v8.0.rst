@@ -9,7 +9,7 @@ Improvements
 ~~~~~~~~~~~~
 
 - Updates the {+mdbagent+} to :ref:`108.0.16.8895-1 <mongodb-108.0.16.8895-1>`.
-- Supports :bic:`MongoDB Connector for BI 2.14.25 <bi-2-14-25>`.
+- Adds support for |bic-full| 2.14.25.
 - Updates JDK to `jdk-21.0.9+10 <https://adoptium.net/temurin/release-notes/?version=jdk-21.0.9+10>`__.
 - Upgrades the Jetty library to 11.0.26.
 - Introduces an app setting to bypass on-demand snapshots triggered by FCV change detection.

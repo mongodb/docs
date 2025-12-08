@@ -2871,6 +2871,27 @@ const tocData: TocItem[] = [
                 ],
               },
               {
+                label: 'Telemetry',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/reference/api/telemetry',
+                collapsible: true,
+                versions: { excludes: ['v6.0'] },
+                items: [
+                  {
+                    label: 'Retrieve Telemetry Data',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/telemetry/get-data',
+                    versions: { excludes: ['v6.0'] },
+                  },
+                  {
+                    label: 'Toggle Telemetry Status',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/telemetry/toggle-status',
+                    versions: { excludes: ['v6.0'] },
+                  },
+                ],
+              },
+              {
                 label: 'Diagnostic Archives',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/reference/api/diagnostic-archives',
@@ -3419,6 +3440,11 @@ const tocData: TocItem[] = [
             label: 'Audit Events',
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/reference/audit-events',
+          },
+          {
+            label: 'Telemetry ',
+            contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/reference/telemetry-overview',
           },
           {
             label: 'Kubernetes Operator Object Specification',
