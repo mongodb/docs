@@ -8,8 +8,6 @@ import LinkComponent from '@/components/link';
 import ComponentFactory from '@/components/component-factory';
 import { isRelativeUrl } from '@/utils/is-relative-url';
 import { useVersionContext } from '@/context/version-context';
-import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
-
 const cardRefStyling = css`
   background: ${palette.gray.light3};
   border-radius: ${theme.size.tiny};
@@ -36,8 +34,7 @@ export type RefRoleProps = {
 };
 
 const RefRole = ({ nodeChildren, fileid, url, cardRef = false, showLinkArrow = false }: RefRoleProps) => {
-  const { siteBasePrefix, activeVersions } = useVersionContext();
-  const { project } = useSnootyMetadata();
+  const { siteBasePrefix } = useVersionContext();
   // Render intersphinx target links
   const stylingClass = cardRef ? cardRefStyling : '';
   if (url) {
@@ -65,15 +62,8 @@ const RefRole = ({ nodeChildren, fileid, url, cardRef = false, showLinkArrow = f
     }
   }
 
-  if (isRelativeUrl(link)) {
-    const version = activeVersions[project];
-    if (siteBasePrefix) {
-      if (version) {
-        link = `${siteBasePrefix}/${version}/${link}`;
-      } else {
-        link = `${siteBasePrefix}/${link}`;
-      }
-    }
+  if (isRelativeUrl(link) && siteBasePrefix) {
+    link = `${siteBasePrefix}/${link}`;
   }
 
   return (

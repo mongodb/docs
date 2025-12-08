@@ -15,6 +15,7 @@ import { getLocalValue, setLocalValue } from '@/utils/browser-storage';
 import type { Environments } from '@/utils/env-config';
 import type { BranchData, Docset, Group } from '@/types/data';
 import { getUrl } from '@/utils/url-utils';
+import { assertTrailingSlash } from '@/utils/assert-trailing-slash';
 
 export type ActiveVersions = Record<string, string>;
 export type AvailableVersions = Record<string, BranchData[]>;
@@ -105,6 +106,17 @@ const getDefaultActiveVersions = ({ project, branch }: ActiveVersionState) => {
   // for current metadata.project, should always default to metadata.branch
   return { [project]: branch };
 };
+
+const buildSiteBasePrefix = (pathPrefix: string | undefined, branch: string): string => {
+  if (!pathPrefix) {
+    return '';
+  }
+  if (branch === 'main' || branch === 'master') {
+    return pathPrefix;
+  }
+
+  return `${assertTrailingSlash(pathPrefix)}${branch}`;
+};
 // <-------------- end helper functions -------------->
 
 type VersionContextType = {
@@ -151,9 +163,13 @@ export const VersionContextProvider = ({ docsets, slug, env, children }: Version
 
   const { metadata, siteBasePrefix } = useMemo(() => {
     const repoBranches = docsets.find((docset) => docset.project === project);
+    const pathPrefix = repoBranches?.prefix?.[getRepoBranchesPrefixEnv(env)];
+
+    const siteBasePrefix = buildSiteBasePrefix(pathPrefix, branch);
+
     return {
       metadata: { project, branch },
-      siteBasePrefix: repoBranches?.prefix?.[getRepoBranchesPrefixEnv(env)] ?? '',
+      siteBasePrefix,
     };
   }, [project, branch, docsets, env]);
 

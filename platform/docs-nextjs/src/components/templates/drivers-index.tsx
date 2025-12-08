@@ -2,9 +2,7 @@
 
 import styled from '@emotion/styled';
 import { theme } from '@/styles/theme';
-// import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
-// TODO: DOP-5962 add breadcrumbs
-// import Breadcrumbs from '../components/Breadcrumbs';
+import Breadcrumbs from '@/components/breadcrumbs';
 import MainColumn from './main-column';
 import type { BaseTemplateProps } from '.';
 
@@ -18,13 +16,12 @@ const StyledMainColumn = styled(MainColumn)`
   grid-area: main;
 `;
 
-const DriversIndexTemplate = ({ children, slug }: BaseTemplateProps) => {
-  //   const { title, parentPaths } = useSnootyMetadata();
+const DriversIndexTemplate = ({ children }: BaseTemplateProps) => {
   return (
     <DocumentContainer>
       <StyledMainColumn>
         <div className="body">
-          {/* <Breadcrumbs parentPathsProp={parentPaths[slug]} siteTitle={title} slug={slug} /> */}
+          <Breadcrumbs />
           {children}
         </div>
       </StyledMainColumn>

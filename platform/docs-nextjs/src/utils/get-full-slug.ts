@@ -1,23 +1,22 @@
 import { removeLeadingSlash } from './remove-leading-slash';
-import { removeTrailingSlash } from './remove-trailing-slash';
-import { isBrowser } from './is-browser';
 import { getAvailableLanguages } from './locale';
 
-// Getting a list of the available languages
 const langArray = getAvailableLanguages(true).map((lang) => lang.localeCode);
 
-// Get the full slug including the path prefix
 export const getFullSlug = (initialSlug: string, pathPrefix: string): string => {
-  const tempSlug = isBrowser ? removeLeadingSlash(removeTrailingSlash(window.location.pathname)) : initialSlug;
-  const hasLang = langArray.some(
-    (lang) =>
-      removeLeadingSlash(tempSlug)?.startsWith(lang + '/') || removeLeadingSlash(tempSlug)?.startsWith(lang + '/'),
-  );
+  const cleanedSlug = removeLeadingSlash(initialSlug);
 
-  const alreadyCompleteSlug = tempSlug?.startsWith('docs/') || hasLang ? tempSlug : null;
-  const withPathPrefixSlug = tempSlug === '/' || tempSlug === '' ? pathPrefix + tempSlug : `${pathPrefix}/${tempSlug}/`;
+  // Check if slug already starts with docs/ or has a language prefix
+  const hasLang = langArray.some((lang) => cleanedSlug?.startsWith(lang + '/'));
+  const alreadyCompleteSlug = cleanedSlug?.startsWith('docs/') || hasLang;
 
-  const fullSlug = alreadyCompleteSlug ? alreadyCompleteSlug : withPathPrefixSlug;
+  if (alreadyCompleteSlug) {
+    return cleanedSlug;
+  }
 
-  return fullSlug;
+  if (initialSlug === '/' || initialSlug === '') {
+    return pathPrefix;
+  }
+
+  return `${pathPrefix}/${cleanedSlug}`;
 };

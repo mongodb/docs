@@ -6,15 +6,7 @@ import styled from '@emotion/styled';
 import Button from '@leafygreen-ui/button';
 import { H2 } from '@leafygreen-ui/typography';
 import { theme } from '@/styles/theme';
-/*import Breadcrumbs, {
-	BreadcrumbInfoLocalStorage,
-	PageInfo,
-	SelfCrumb,
-} from "../components/Breadcrumbs";
-import { isBrowser } from "@/utils/is-browser";
-import { getCompleteUrl, getUrl } from "@/utils/url-utils";
-*/
-import type { BaseTemplateProps } from '.';
+import Breadcrumbs from '@/components/breadcrumbs';
 import { DOTCOM_BASE_URL } from '@/constants';
 import Image from 'next/image';
 
@@ -100,42 +92,11 @@ const FeatureNotAvailContainer = styled.div`
 `;
 
 // TODO: Much better type checks for the data on this page/component
-// TODO: DOP-5962: Add breadcrumbs
-const FeatureNotAvailable = (props: BaseTemplateProps) => {
-  /* let breadcrumbInfo: BreadcrumbInfoLocalStorage | undefined;
-	let selfBreadcrumb: SelfCrumb | undefined;
-	let pageInfo: PageInfo | undefined;
-
-	if (isBrowser) {
-		breadcrumbInfo = JSON.parse(sessionStorage.getItem("breadcrumbInfo") ?? "");
-		if (breadcrumbInfo?.pageTitle && breadcrumbInfo?.slug) {
-			selfBreadcrumb = {
-				title: breadcrumbInfo.pageTitle,
-				slug: breadcrumbInfo.slug,
-			};
-		}
-		pageInfo = JSON.parse(sessionStorage.getItem("pageInfo") ?? "");
-	}
-
-	const { urlSlug, project = "", siteBasePrefix = "" } = pageInfo || {};
-	const selfCrumbPath = getCompleteUrl(
-		getUrl(urlSlug, project, siteBasePrefix, selfBreadcrumb?.slug),
-	);
-*/
+const FeatureNotAvailable = () => {
   return (
     <StyledMain>
       <div className="body">
-        {/* TODO: DOP-5962: Add breadcrumbs */}
-        {/* {breadcrumbInfo && (
-					<Breadcrumbs
-						siteTitle={breadcrumbInfo.siteTitle}
-						slug={breadcrumbInfo.slug}
-						parentPathsProp={breadcrumbInfo.parentPathsSlug}
-						queriedCrumbsProp={breadcrumbInfo.queriedCrumbs}
-						selfCrumb={selfBreadcrumb}
-						pageInfo={pageInfo}
-					/>
-				)} */}
+        <Breadcrumbs />
         <FeatureNotAvailContainer>
           <FeatureNotAvailImage />
           <ContentBox>

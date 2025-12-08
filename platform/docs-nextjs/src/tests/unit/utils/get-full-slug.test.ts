@@ -11,13 +11,13 @@ describe('getFullSlug', () => {
   it('should handle root slash by concatenating with pathPrefix', () => {
     const initialSlug = '/';
     const result = getFullSlug(initialSlug, pathPrefix);
-    expect(result).toBe('docs/atlas/');
+    expect(result).toBe('docs/atlas');
   });
 
   it('should wrap regular slug with pathPrefix and trailing slash', () => {
     const initialSlug = 'get-started';
     const result = getFullSlug(initialSlug, pathPrefix);
-    expect(result).toBe('docs/atlas/get-started/');
+    expect(result).toBe('docs/atlas/get-started');
   });
 
   it('should return slug as-is when it starts with docs/', () => {

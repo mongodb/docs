@@ -12,6 +12,7 @@ import TabSelectors from '@/components/tabs/tab-selectors';
 import DismissibleSkillsCard from '@/components/dismissable-skills-card';
 import type { BaseTemplateProps } from '.';
 import { cx } from '@leafygreen-ui/emotion';
+import Breadcrumbs from '@/components/breadcrumbs';
 
 const MAX_ON_THIS_PAGE_WIDTH = '200px';
 const MAX_CONTENT_WIDTH = '775px';
@@ -33,10 +34,8 @@ export default function DocumentTemplate({ children, slug, pageOptions }: BaseTe
     <div className={cx(documentStyling.document, 'document-template')}>
       <MainColumn className={documentStyling['main-column']}>
         <div className="body">
-          {/* TODO: breadcrumbs components */}
-          {/* <Breadcrumbs siteTitle={title} slug={slug} /> */}
+          <Breadcrumbs />
           {children}
-          {/* TODO: prev next components */}
           {showPrevNext && (
             <InternalPageNav slug={slug} slugTitleMapping={slugToBreadcrumbLabel ?? {}} toctreeOrder={toctreeOrder} />
           )}
