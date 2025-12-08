@@ -1112,11 +1112,6 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/method/db.collection.dropIndexes',
           },
           {
-            label: 'db.collection.ensureIndex',
-            contentSite: 'docs',
-            url: '/docs/:version/reference/method/db.collection.ensureIndex',
-          },
-          {
             label: 'db.collection.estimatedDocumentCount',
             contentSite: 'docs',
             url: '/docs/:version/reference/method/db.collection.estimatedDocumentCount',
