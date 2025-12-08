@@ -1,3 +1,32 @@
+.. _opsmgr-server-8.0.17:
+
+|onprem| Server 8.0.17
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-12-08*
+
+Improvements
+~~~~~~~~~~~~
+
+- Implement APIs for organization and project role mappings.
+- Implements a :ref:`Telemetry <om-telemetry-overview>` report to collect and send 
+  |onprem| usage data to MongoDB, with controls to enable or disable telemetry 
+  through the |onprem| UI or API.
+- Adds |oidc| support for |onprem| user authentication. 
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes an issue where tooltips were not displayed in |onprem|.
+- Fixes an issue in the Agent where disabling |ldap| authorization did not cause 
+  a rolling restart.
+- Fixes an issue where destination targets did not load when restoring an 
+  imported snapshot from the snapshot list.
+- Fixes an issue where snapshots were duplicated in the snapshots list.
+- Resolves blocked automation configuration changes when ``mms.mail.transport`` 
+  is present.
+- Accounts for deleted but retained snapshots when performing dead bytes calculation.
+
 .. _opsmgr-server-8.0.16:
 
 |onprem| Server 8.0.16
