@@ -1,10 +1,10 @@
 .. important::
 
-   If you enable the :ref:`new Data Explorer <atlas-ui>` interface, the 
+   In the updated :guilabel:`Data Explorer` interface, the 
    :guilabel:`Project Activity Feed` no longer logs the usernames of |service| 
-   users when they read or modify data in the :guilabel:`Data Explorer`. 
-   Although the :guilabel:`Project Activity Feed` no longer logs usernames, it 
-   continues to log user connections from the {+atlas-ui+} to a {+cluster+}.
+   users when they read or modify data. Although the 
+   :guilabel:`Project Activity Feed` no longer logs usernames, it continues to 
+   log user connections from the {+atlas-ui+} to a {+cluster+}.
 
    To track user activity, you can use :ref:`database audit logs <set-up-database-auditing>`
    and create custom audit filters that isolate user activity associated with
