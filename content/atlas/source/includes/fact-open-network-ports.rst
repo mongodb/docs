@@ -10,12 +10,27 @@ environment. To add the inbound network access from your application environment
 
    :ref:`security-ip-access-list`
 
-If your firewall blocks outbound network connections, you must also
-open outbound access from your application environment to |service|.
-You must configure your firewall to allow your applications to make
-outbound connections to ports 27015 to 27017 to |tcp| traffic on
-|service| hosts. This grants your applications access to databases
-stored on |service|.
+If your firewall blocks outbound network connections, you must also 
+open outbound access from your application environment to |service|. 
+You must configure your firewall to allow your applications to make 
+outbound connections to ports 27015 to 27017 to |tcp| traffic on 
+the hostnames or IP addresses of your cluster. 
+This grants your applications access to databases stored on |service|.
+
+To obtain the current list of cluster IP addresses, use the 
+:oas-bump-atlas-op:`Return All IP Addresses for One Project endpoint <getgroupipaddresses>` 
+of the {+atlas-admin-api+}. 
+
+.. code-block::
+
+   curl --header "Authorization: Bearer <access-token>" \
+        --header "Accept: application/vnd.atlas.2025-03-12+json" \
+        --request GET \
+        "https://cloud.mongodb.com/api/atlas/v2/groups/{GROUP-ID}/ipAddresses"
+
+.. seealso::
+
+   :ref:`create-project-api-key`      
 
 .. note::
 
