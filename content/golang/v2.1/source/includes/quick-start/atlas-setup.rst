@@ -10,7 +10,7 @@ cloud.
 
    .. step:: Create a free tier cluster
 
-      Complete the `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=go`__ guide to
+      Complete the `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=go>`__ guide to
       set up a new Atlas account, create a free tier MongoDB cluster, load
       datasets, and interact with the data.
 
