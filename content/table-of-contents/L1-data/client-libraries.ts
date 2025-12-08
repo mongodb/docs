@@ -165,9 +165,22 @@ const tocData: TocItem[] = [
       {
         label: 'Node.js',
         contentSite: 'landing',
-        url: '/docs/languages/javascript',
-        showSubNav: true,
-        items: NodeDriverData,
+        url: '/docs/languages/javascript/',
+        collapsible: true,
+        items: [
+          {
+            label: 'Node.js Driver',
+            contentSite: 'node',
+            url: '/docs/drivers/node/current/',
+            showSubNav: true,
+            items: NodeDriverData,
+          },
+          {
+            label: 'React Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/node-frameworks/react/',
+          },
+        ],
       },
       {
         label: 'Python',

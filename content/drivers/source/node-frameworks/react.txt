@@ -1,0 +1,431 @@
+.. _node-react-integration:
+
+============================
+Integrate MongoDB with React
+============================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: web app, mern, code example, full-stack
+   :description: Build a complete MERN stack application that uses MongoDB, Express, React, and Node.js. Learn how to connect to MongoDB and query sample data.
+
+.. contents:: On this page 
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to create a **React** web application
+that uses the **MERN stack**. The MERN stack is a web development framework
+that uses MongoDB, Express, React, and Node.js and consists of the following
+layers:
+
+- **Database layer**: MongoDB provides data storage and retrieval
+- **Application layer**: Express and Node.js make up the middle tier for server-side logic
+- **Presentation layer**: React implements the user interface and front-end interactions
+
+Why Use MongoDB in a React Application?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By storing your React application data in MongoDB, you can use the document
+data model to build complex query expressions. The document model's flexibility allows you
+to store nested data structures and iterate quickly on your application
+design. You can also grow your application easily by using MongoDB's horizontal
+scaling capabilities.
+
+The MERN stack with MongoDB supports applications that require dynamic,
+evolving data structures. As a result, this framework is well-designed for
+real world applications such as real-time dashboards or one-page applications
+that update content continuously.
+
+.. _node-react-qs-tutorial:
+
+Quick Start Tutorial
+--------------------
+
+This tutorial shows you how to build a web application by using the 
+MERN stack. The application accesses sample restaurant data, queries
+the data, and displays the results on a locally hosted site. The tutorial
+also includes instructions on connecting to a MongoDB cluster hosted
+on MongoDB Atlas and accessing and displaying data from your database.
+
+.. tip::
+
+   If you prefer to connect to MongoDB by using the Node.js driver without
+   React, see the :driver:`Get Started with the Node.js Driver </node/current/get-started/>`
+   guide.
+
+.. _node-react-set-up:
+
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to install the project dependencies,
+create an Atlas cluster, and set up the application directories.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites
+
+      To create the Quick Start application, you need the following software
+      installed in your development environment:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Prerequisite
+           - Notes
+
+         * - `Node.js <https://nodejs.org/>`__
+           - Download either the **Latest LTS** or **Latest Release** version.
+  
+         * - Code editor
+           - This tutorial uses `Visual Studio Code <https://code.visualstudio.com/>`__, but you can use the editor
+             of your choice.
+  
+         * - Terminal app and shell 
+           - For MacOS users, use Terminal or a
+             similar app. For Windows users, use PowerShell.          
+
+   .. step:: Create a MongoDB Atlas cluster
+      
+      MongoDB Atlas is a fully managed cloud database service that hosts your
+      MongoDB deployments. If you do not have a MongoDB deployment, you can create a MongoDB
+      cluster for free (no credit card required) by completing the
+      `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=nodejs>`__
+      tutorial. The MongoDB Get Started tutorial also demonstrates how to load sample
+      datasets into your cluster, including the ``sample_restaurants`` database
+      that is used in this tutorial. 
+
+      To connect to your MongoDB cluster, you must use a **connection URI**. To
+      learn how to retrieve your connection URI, see the `Add your connection string
+      <https://www.mongodb.com/docs/get-started/?language=nodejs#add-your-connection-string>`__
+      section of the MongoDB Get Started tutorial.
+
+      .. tip::
+
+         Save your connection string in a secure location.
+
+   .. step:: Create your project directories
+
+      Run the following command in your terminal to create a directory for 
+      your project named ``react-quickstart``:
+
+      .. code-block:: bash
+
+         mkdir react-quickstart
+         cd react-quickstart
+
+      Then, run the following commands from the ``react-quickstart`` directory
+      to create a folder for the back end named ``server`` and initialize the
+      ``package.json`` file:
+
+      .. code-block:: bash
+
+         mkdir server
+         cd server
+         npm init -y
+
+   .. step:: Modify your ``package.json`` file
+
+      Navigate to the ``package.json`` file in the ``react-quickstart/server``
+      directory. To use `ECMAScript modules <https://nodejs.org/api/esm.html#modules-ecmascript-modules>`__,
+      the standard format for packaging JavaScript code for reuse, replace the
+      existing line that specifies the ``"type"`` field with the following line:
+
+      .. code-block:: bash
+
+         "type": "module",
+
+      Run the following command to install the ``mongodb``, ``express``, and ``cors``
+      dependencies:
+
+      .. code-block:: bash
+
+         npm install mongodb express cors
+
+      This command installs MongoDB, the Express web framework, and the
+      ``cors`` Node.js package that enables cross-origin resource sharing.
+
+Configure the Back End
+~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up the project structure and dependencies, follow
+the steps in this section to configure your web server and 
+connect to MongoDB.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Configure your Express web server
+
+      Create a file named ``server.js`` in your ``react-quickstart/server`` directory
+      and paste the following code:
+
+      .. literalinclude:: /includes/node-frameworks/react/server.js
+         :caption: react-quickstart/server/server.js
+         :language: js
+
+   .. step:: Set environment variables
+
+      In the ``server`` directory, create a ``config.env`` file that stores the 
+      following variables:
+
+      .. code-block:: none
+
+         MONGODB_URI=<connection URI>
+         PORT=5050
+
+      Replace the ``<connection URI>`` placeholder with the connection
+      URI that you saved in a :ref:`previous step <node-react-set-up>`.
+
+   .. Connect your server to the database
+
+      In the ``server`` directory, create a subdirectory called ``db``.
+      Add a new file named ``connection.js`` to this subdirectory and paste
+      the following code:
+
+      .. code-block:: js
+
+         import { MongoClient } from "mongodb";
+
+         const uri = process.env.MONGODB_URI || "";
+         const client = new MongoClient(uri);
+
+         try {
+         // Connect the client to the server
+         await client.connect();
+         // Send a ping to confirm a successful connection
+         await client.db("admin").command({ ping: 1 });
+         console.log(
+            "Pinged your deployment. You successfully connected to MongoDB!"
+         );
+         } catch(err) {
+            console.error(err);
+         }
+
+         let db = client.db("sample_restaurants");
+
+         export default db;
+
+      This file connects to your MongoDB deployment, accesses the
+      ``sample_restaurants`` database, and tests the 
+      database connection.
+
+   .. step:: Create server API endpoints
+
+      In the ``server`` directory, create a subdirectory named ``routes``.
+      Create a file named ``restaurant.js`` in the ``routes`` subdirectory and
+      paste the following code:
+
+      .. literalinclude:: /includes/node-frameworks/react/restaurant.js
+         :caption: react-quickstart/server/routes/restaurant.js
+         :language: js
+
+      This file accesses the ``restaurants`` collection in the 
+      ``sample_restaurants`` database and defines the following ``GET``
+      endpoints:
+
+      - ``/``: Retrieves all restaurants from the sample collection
+      - ``/browse``: Retrieves restaurants that match the query criteria,
+        which filters for restaurants in Queens that contain the word ``"Moon"`` in the name
+
+Configure the Front End
+~~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up the application's back end, follow the steps in
+this section to configure React and add the front end components.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Add the React template
+
+      In the ``react-quickstart`` directory, run the following commands
+      to add the React template files by using `Vite <https://vite.dev/>`__:
+
+      .. code-block:: bash
+
+         npm create vite@latest client
+
+      This command prompts you to respond to a series of configuration questions.
+      For each question, choose the following responses from the dropdown menu:
+      
+      - Select a framework: **React**
+      - Select a variant: **JavaScript**
+      - Use rolldown-vite (Experimental)?: **No**
+      - Install with npm and start now?: **No**
+
+      After running the command, your project has a ``client`` directory
+      that contains front-end scaffolding.
+
+   .. step:: Install Tailwind CSS
+
+      This sample application uses the Tailwind CSS framework
+      for UI formatting. To install it, navigate to the ``client``
+      directory created in the previous step and run the following command:
+
+      .. code-block:: bash
+
+         npm install tailwindcss @tailwindcss/vite
+
+      After installing, navigate to your ``vite.config.js`` file. Add the 
+      ``@tailwindcss/vite`` plugin by updating the import statements
+      and ``plugins`` array, as shown in the highlighted lines:
+
+      .. literalinclude:: /includes/node-frameworks/react/vite.config.js
+         :caption: react-quickstart/client/vite.config.js
+         :language: js
+         :emphasize-lines: 3, 9
+
+      Then, navigate to the ``client/src/index.css`` file and add the following
+      import statement:
+
+      .. code-block:: css
+
+         @import "tailwindcss";
+
+   .. step:: Install the React router
+
+      To enable client-side page routing to React, install
+      the ``react-router-dom`` package by running the following command
+      in the ``client`` directory:
+
+      .. code-block:: bash
+
+         npm install -D react-router-dom
+
+   .. step:: Set up the React router
+
+      Navigate to the ``client/src/main.jsx`` file and paste
+      the following code:
+
+      .. literalinclude:: /includes/node-frameworks/react/main.jsx
+         :caption: react-quickstart/client/src/main.jsx
+         :language: js
+
+      This file configures client-side routing and defines
+      the following routes:
+
+      - ``/``: Renders the ``RestaurantList`` component, which calls the 
+        ``/restaurant/`` API endpoint to display all restaurants
+      - ``/browse``: Renders the ``RestaurantList`` component, which calls the 
+        ``/restaurant/browse`` API endpoint to display filtered restaurants
+
+   .. step:: Create the components
+
+      Run the following commands from the ``client`` directory to create a new folder named
+      ``components`` that contains two files:
+
+      .. code-block:: bash
+
+         mkdir src/components
+         cd src/components
+         touch Navbar.jsx RestaurantList.jsx
+
+      The ``Navbar.jsx`` file configures a navigation bar that links
+      to the required components. Paste the following code into this file:
+
+      .. literalinclude:: /includes/node-frameworks/react/Navbar.jsx
+         :caption: react-quickstart/client/src/components/Navbar.jsx
+         :language: js
+
+      The ``RestaurantList.jsx`` file is the viewing component for the restaurants,
+      and it retrieves and displays the restaurant information. Paste the following
+      code into this file:
+
+      .. literalinclude:: /includes/node-frameworks/react/RestaurantList.jsx
+         :caption: react-quickstart/client/src/components/RestaurantList.jsx
+         :language: js
+
+      Finally, navigate to the ``client/src/App.jsx`` file. This file is the main
+      layout component, and it ensures that the ``Navbar`` component renders at the top
+      of each page above the child component. Paste the following code
+      into this file:
+        
+      .. literalinclude:: /includes/node-frameworks/react/App.jsx
+         :caption: react-quickstart/client/src/App.jsx
+         :language: js
+
+Run Your Application
+~~~~~~~~~~~~~~~~~~~~
+
+Finally, follow the steps in this section to run your application and
+view the rendered restaurant data.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Run the server application
+
+      Navigate to the ``react-quickstart/server`` directory and run
+      the following command to start the server:
+
+      .. code-block:: bash
+
+         node --env-file=config.env server
+
+      If successful, this command outputs the following information:
+
+      .. code-block:: bash
+         :copyable: false
+
+         Pinged your deployment. You successfully connected to MongoDB!
+         Server listening on port 5050
+
+   .. step:: Run the client application
+
+      In a separate terminal window, navigate to the ``react-quickstart/client``
+      directory. Run the following command to start the React front end:
+
+      .. code-block:: bash
+
+         npm run dev
+    
+      If successful, this command outputs the following information:
+
+      .. code-block:: bash
+         :copyable: false
+
+         VITE v7.2.4  ready in 298 ms
+
+         ➜  Local:   http://localhost:5173/
+         ➜  Network: use --host to expose
+         ➜  press h + enter to show help
+
+   .. step:: Open the application site
+
+      Open the http://localhost:5173/ URL, retrieved from the preceding step. The initial
+      landing page displays a list all restaurants in the ``sample_restaurants.restaurants``
+      collection:
+
+      .. figure:: /figures/react-landing.png
+         :alt: The landing page that displays all restaurants
+
+      Then, navigate to the http://localhost:5173/browse URL to view
+      the restaurants that match the ``name`` and ``borough`` field query:
+
+      .. figure:: /figures/react-filtered.png
+         :alt: The web page that displays the matching restaurants
+
+Congratulations on completing the Quick Start tutorial!
+
+After you complete these steps, you have a React web application that
+connects to your MongoDB deployment, runs a query on sample restaurant data,
+and renders a retrieved result.
+
+Additional Resources
+--------------------
+
+To learn more about React, MongoDB, and the MERN stack, view the following resources:
+
+- `React <https://react.dev/learn>`__ documentation
+- `Express <https://expressjs.com/>`__ documentation
+- :driver:`Node.js driver </node/current/>` documentation
