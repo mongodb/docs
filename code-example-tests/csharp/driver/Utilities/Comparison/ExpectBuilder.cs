@@ -3,26 +3,33 @@ namespace Utilities.Comparison;
 public class ExpectBuilder : IBuilder
 {
     private readonly object? _actual;
-    private ComparisonOptions _options = ComparisonOptions.Default;
+    private ComparisonOptions _options;
 
     internal ExpectBuilder(object? actual)
     {
+        _options = new ComparisonOptions();
         _actual = actual;
     }
 
     public IBuilder WithOrderedSort()
     {
-        _options = ComparisonOptions.Ordered;
+
+        _options.ArrayMode = ArrayComparisonMode.Ordered;
+
         return this;
     }
     public IBuilder WithUnorderedSort()
     {
-        _options = ComparisonOptions.Unordered;
+        _options.ArrayMode = ArrayComparisonMode.Unordered;
+
         return this;
     }
     public IBuilder WithIgnoredFields(params string[] fieldNames)
     {
-        _options = ComparisonOptions.IgnoreFields(fieldNames);
+        foreach (var fieldName in fieldNames)
+        {
+            _options.IgnoredFields.Add(fieldName);
+        }
         return this;
     }
 

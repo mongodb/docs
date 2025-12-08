@@ -1,3 +1,4 @@
+using DotNetEnv;
 using Examples.TimeSeries;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -15,6 +16,7 @@ public class TimeSeriesTest
     {
         CreateAndPopulateTimeSeriesCollection.CreateTimeSeriesCollection();
     }
+
 
     [Test]
     public async Task TestQueryByTimeRange()

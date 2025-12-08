@@ -1,3 +1,5 @@
+using MongoDB.Bson;
+
 namespace Utilities.Comparison;
 
 public sealed class FileValidationBuilder : IBuilder
@@ -7,6 +9,7 @@ public sealed class FileValidationBuilder : IBuilder
 
     internal FileValidationBuilder(string? filePath)
     {
+        if (filePath == null) throw new ArgumentNullException(nameof(filePath));
         _filePath = filePath;
     }
 
@@ -34,30 +37,26 @@ public sealed class FileValidationBuilder : IBuilder
     /// <returns>Validation result</returns>
     public ComparisonResult ShouldMatch(object? actualOutput)
     {
-        try
+
+        if (_filePath != null)
         {
-            if (_filePath != null)
+            var fullPath = ResolveExpectedFilePath(_filePath);
+            var parseResult = FileContentsParser.ParseFile(fullPath);
+            if (!parseResult.IsSuccess)
             {
-                var fullPath = ResolveExpectedFilePath(_filePath);
-                var parseResult = FileContentsParser.ParseFile(fullPath);
-                if (!parseResult.IsSuccess)
-                {
-                    return new ComparisonError(
-                        ($"Failed to parse expected output file: {parseResult.Error}"));
-                }
-
-                var result = PerformValidation(parseResult.Data!, actualOutput);
-                if (!result.IsSuccess)
-                    if (result.Error != null)
-                        return new ComparisonError
-                            ($"Validation error: {result.Error}");
+                throw new ComparisonException(
+                    ($"Failed to parse expected output file: {parseResult.Error}"));
             }
-        }
-        catch (Exception ex)
-        {
-            return new ComparisonError($"Validation error: {ex.Message}");
-        }
 
+            var result = PerformValidation(parseResult.Data!, actualOutput);
+            if (result.IsSuccess.Equals(false))
+            {
+                var error = (ComparisonError)result;
+                throw new ComparisonException($"Validation error: {error.Message}");
+            }
+
+            return result;
+        }
         return new ComparisonSuccess();
     }
 
@@ -71,40 +70,41 @@ public sealed class FileValidationBuilder : IBuilder
     /// <returns></returns>
     public ComparisonResult ShouldNotMatch(object? actualOutput)
     {
-        var result = ShouldMatch(actualOutput);
-        if (result.IsSuccess)
+        try
         {
-            return new ComparisonError($"Validation error: the two objects match, but were expected not to.");
+            var result = ShouldMatch(actualOutput);
         }
-        return new ComparisonSuccess();
+        catch (ComparisonException ce)
+        {
+            return new ComparisonSuccess();
+        }
+        return new ComparisonError($"Validation error that didn't throw.");
+
     }
 
     public async Task<ComparisonResult> ShouldMatchAsync(object? expected, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        try
-        {
-            if (_filePath != null)
-            {
-                var fullPath = ResolveExpectedFilePath(_filePath);
-                var parseResult = await FileContentsParser.ParseFileAsync(fullPath);
 
-                if (!parseResult.IsSuccess)
-                    return new ComparisonError($"Failed to parse expected output file: {parseResult.Error}");
-
-                var result = PerformValidation(parseResult.Data!, expected);
-                if (!result.IsSuccess)
-                    if (result.Error != null)
-                        return new ComparisonError($"Validation error: {result.Error}");
-            }
-        }
-        catch (Exception ex)
+        if (_filePath != null)
         {
-            return new ComparisonError($"Validation error: {ex.Message}");
+            var fullPath = ResolveExpectedFilePath(_filePath);
+            var parseResult = await FileContentsParser.ParseFileAsync(fullPath);
+
+            if (!parseResult.IsSuccess)
+                return new ComparisonError($"Failed to parse expected output file: {parseResult.Error}");
+
+            var result = PerformValidation(parseResult.Data!, expected);
+            if (!result.IsSuccess)
+                if (result.Error != null)
+                {
+                    var error = (ComparisonError)result;
+                    return new ComparisonError($"Validation error: {error.Message}");
+                }
         }
+
         return new ComparisonSuccess();
     }
-
 
     /// <summary>
     ///     Core validation logic shared between file and text validation.
@@ -117,9 +117,8 @@ public sealed class FileValidationBuilder : IBuilder
         _options = DetermineComparisonOptions(normalizedExpected);
         var comparisonResult = ComparisonEngine.Compare(normalizedExpected, normalizedActual, _options);
 
-        return comparisonResult.IsSuccess
-            ? new ComparisonSuccess()
-            : new ComparisonError(comparisonResult.Error!.ToString());
+        if (comparisonResult.IsSuccess) return new ComparisonSuccess();
+        return (ComparisonError)comparisonResult;
     }
 
     /// <summary>
@@ -165,7 +164,7 @@ public sealed class FileValidationBuilder : IBuilder
         // unwrap the expected to compare arrays directly
         if (expectedData.Count == 1 &&
             expectedData[0] is IEnumerable<object> expectedArray &&
-            actualOutput is IEnumerable<object>)
+            (actualOutput is IEnumerable<object> || actualOutput is IEnumerable<BsonDocument>))
             return (expectedArray, actualOutput);
 
         // Otherwise compare as collections

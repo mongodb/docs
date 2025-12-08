@@ -27,10 +27,9 @@ public class QuickStartTest
         example.LoadSampleData();
         var results = example.RunMetaFieldQuery();
 
-        var solutionRoot = Env.GetString("SOLUTION_ROOT",
-            "Env variable not found. Verify you have a .env file with a valid connection string.");
-        var outputLocation = "Examples/TimeSeries/QuickStart/MetaFieldQueryOutput.txt";
-        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../";
+        var outputLocation = $"TimeSeries/OutputFiles/MetaFieldOutput.txt";
+        var fullPath = $"{solutionRoot}{outputLocation}";
 
         Expect.That(fullPath).ShouldMatch(results);
     }
@@ -43,9 +42,8 @@ public class QuickStartTest
         example.LoadSampleData();
         var results = example.RunTimeFieldQuery();
 
-        var solutionRoot = Env.GetString("SOLUTION_ROOT",
-            "Env variable not found. Verify you have a .env file with a valid connection string.");
-        var outputLocation = "Examples/TimeSeries/QuickStart/TimeFieldQueryOutput.txt";
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../";
+        var outputLocation = $"TimeSeries/OutputFiles/TimeFieldQueryOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
         Expect.That(fullPath)

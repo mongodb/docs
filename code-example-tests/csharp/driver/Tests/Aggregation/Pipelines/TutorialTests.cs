@@ -1,7 +1,5 @@
 using DotNetEnv;
-using Examples.Aggregation.Pipelines.Filter;
 using MongoDB.Driver;
-using Utilities;
 using Utilities.Comparison;
 
 namespace Tests.Aggregation.Pipelines;
@@ -23,13 +21,12 @@ public class TutorialTests
     [Description("Tests that Aggregation Filter pipeline output matches the expected documentation examples with ordered sorting")]
     public void TestFilterOutputMatchesDocs()
     {
-        var example = new Tutorial();
+        var example = new Examples.Aggregation.Pipelines.Filter.Tutorial();
         example.LoadSampleData();
         var results = example.PerformAggregation();
 
-        var solutionRoot = Env.GetString("SOLUTION_ROOT",
-            "Env variable not found. Verify you have a .env file with a valid connection string.");
-        var outputLocation = "Examples/Aggregation/Pipelines/Filter/TutorialOutput.txt";
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../";
+        var outputLocation = "Aggregation/OutputFiles/FilterTutorialOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
         Expect.That(fullPath)
@@ -45,9 +42,8 @@ public class TutorialTests
         example.LoadSampleData();
         var results = example.PerformAggregation();
 
-        var solutionRoot = Env.GetString("SOLUTION_ROOT",
-            "Env variable not found. Verify you have a .env file with a valid connection string.");
-        var outputLocation = "Examples/Aggregation/Pipelines/Group/TutorialOutput.txt";
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../";
+        var outputLocation = "Aggregation/OutputFiles/GroupTutorialOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
         Expect.That(fullPath)
@@ -64,9 +60,8 @@ public class TutorialTests
         example.LoadSampleData();
         var results = example.PerformAggregation();
 
-        var solutionRoot = Env.GetString("SOLUTION_ROOT",
-            "Env variable not found. Verify you have a .env file with a valid connection string.");
-        var outputLocation = "Examples/Aggregation/Pipelines/Unwind/TutorialOutput.txt";
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../";
+        var outputLocation = "Aggregation/OutputFiles/UnwindTutorialOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
         Expect.That(fullPath).ShouldMatch(results);
@@ -80,9 +75,8 @@ public class TutorialTests
         example.LoadSampleData();
         var results = example.PerformAggregation();
 
-        var solutionRoot = Env.GetString("SOLUTION_ROOT",
-            "Env variable not found. Verify you have a .env file with a valid connection string.");
-        var outputLocation = "Examples/Aggregation/Pipelines/JoinOneToOne/TutorialOutput.txt";
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../";
+        var outputLocation = $"Aggregation/OutputFiles/JoinTutorialOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
         Expect.That(fullPath)
@@ -98,9 +92,8 @@ public class TutorialTests
         example.LoadSampleData();
         var results = example.PerformAggregation();
 
-        var solutionRoot = Env.GetString("SOLUTION_ROOT",
-            "Env variable not found. Verify you have a .env file with a valid connection string.");
-        var outputLocation = "Examples/Aggregation/Pipelines/JoinMultiField/TutorialOutput.txt";
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../";
+        var outputLocation = $"Aggregation/OutputFiles/JoinMultifieldTutorialOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
         Expect.That(fullPath)

@@ -26,12 +26,13 @@ public enum ArrayComparisonMode
 /// <param name="IgnoredFields">Field names whose values should be ignored during comparison (case-sensitive)</param>
 /// <param name="TimeoutSeconds">Maximum time to spend on comparison operations</param>
 /// <param name="InheritedGlobalEllipsis">Whether global ellipsis from parent should apply (internal use)</param>
-public record ComparisonOptions(
-    ArrayComparisonMode ArrayMode = ArrayComparisonMode.Unordered,
-    ImmutableHashSet<string>? IgnoredFields = null,
-    int TimeoutSeconds = 30,
-    bool InheritedGlobalEllipsis = false)
+public record ComparisonOptions
 {
+    public ArrayComparisonMode ArrayMode { get; set; } = ArrayComparisonMode.Unordered;
+    public List<string>? IgnoredFields { get; set; } = new List<string>();
+    public int TimeoutSeconds { get; set; } = 30;
+    public bool InheritedGlobalEllipsis { get; set; } = false;
+
     /// <summary>
     ///     Default comparison options with unordered array comparison.
     /// </summary>
@@ -55,7 +56,7 @@ public record ComparisonOptions(
     /// </summary>
     public static ComparisonOptions IgnoreFields(params string[] fieldNames)
     {
-        return Default with { IgnoredFields = fieldNames.ToImmutableHashSet() };
+        return Default with { IgnoredFields = fieldNames.ToList() };
     }
 
 }

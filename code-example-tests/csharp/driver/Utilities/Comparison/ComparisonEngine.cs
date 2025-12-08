@@ -90,6 +90,7 @@ public static class ComparisonEngine
             return await CompareObjectsAsync(expectedDict, actualDict, options, path, cancellationToken);
 
         // Step 7: Type mismatch
+        //throw new 
         return new ComparisonError(
             path,
             normalizedExpected?.GetType().Name ?? "null",
@@ -409,7 +410,7 @@ public static class ComparisonEngine
         CancellationToken cancellationToken)
     {
         var hasGlobalEllipsis = EllipsisPatternMatcher.HasGlobalEllipsis(expected) || options.InheritedGlobalEllipsis;
-        var ignoredFields = options.IgnoredFields ?? ImmutableHashSet<string>.Empty;
+        var ignoredFields = options.IgnoredFields ?? new List<string>();
 
         foreach (var (key, expectedValue) in expected)
         {
@@ -428,7 +429,7 @@ public static class ComparisonEngine
                         $"{path}.{key}",
                         SafeToString(expectedValue),
                         "missing",
-                        "Expected property is missing from actual object");
+                        $"Expected property is missing from actual object: {path}.{key}");
                 continue;
             }
 
@@ -444,11 +445,14 @@ public static class ComparisonEngine
         {
             var extraKeys = actual.Keys.Except(expected.Keys).Except(ignoredFields).ToList();
             if (extraKeys.Count > 0)
+            {
+                var extraKeysStr = string.Join(", ", extraKeys);
                 return new ComparisonError(
                     path,
                     "No extra properties",
                     $"Extra properties: {string.Join(", ", extraKeys)}",
-                    "Actual object contains unexpected properties");
+                    $"Actual object contains unexpected properties: {extraKeysStr}");
+            }
         }
 
         return new ComparisonSuccess();

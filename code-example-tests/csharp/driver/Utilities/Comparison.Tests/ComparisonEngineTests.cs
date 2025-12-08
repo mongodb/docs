@@ -113,10 +113,10 @@ public class ComparisonEngineTests
             var actualArray = new object[] { "a", "b", "c" };
             var expectedArray = new object[] { "a", "b", "c" };
 
-            Expect.That(actualArray)
+            Expect.That(expectedArray)
                 .WithOrderedSort()
                 .WithIgnoredFields("_id", "name")
-                .ShouldMatch(expectedArray);
+                .ShouldMatch(actualArray);
         }
 
         [Test]

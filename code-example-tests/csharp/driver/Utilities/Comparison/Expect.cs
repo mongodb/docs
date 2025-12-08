@@ -6,14 +6,12 @@ public static class Expect
     {
         if (actual is string actualString && PathUtilities.LooksLikeFilePath(actualString))
         {
-            if (File.Exists(actualString))
+            if (!File.Exists(actualString))
             {
-                return new FileValidationBuilder(actualString);
+                return new FileValidationBuilder(null);
             }
-
-            return new FileValidationBuilder(null);
+            return new FileValidationBuilder(actualString);
         }
-
         return new ExpectBuilder(actual);
     }
 }

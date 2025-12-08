@@ -692,7 +692,7 @@ public class IntegrationTests
                         { "data", new string('x', 1000) }
                 }).ToArray();
 
-        var options = new ComparisonOptions(TimeoutSeconds: 10); // 10 second timeout
+        var options = new ComparisonOptions() { TimeoutSeconds = 10 }; // 10 second timeout
 
         // Create expected that matches
         var expected = new Dictionary<string, object>();

@@ -19,8 +19,8 @@ public static class PathUtilities
         if (Regex.IsMatch(input, @"^[A-Za-z]:"))
             return true;
 
-        // Check for file extensions
-        if (Regex.IsMatch(input, @"\.[A-Za-z0-9]+$"))
+        // Check for file extensions (non-numeric only to exclude timestamps)
+        if (Regex.IsMatch(input, @"\.[A-Za-z][A-Za-z0-9]*$"))
             return true;
 
         // Check for relative path indicators
