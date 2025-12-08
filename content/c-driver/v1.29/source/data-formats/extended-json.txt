@@ -1,5 +1,299 @@
 .. _c-extended-json:
 
-==============
-Extended JSON
-==============
+============================
+Work with Extended JSON Data
+============================
+
+.. meta::
+   :description: Learn how to create, modify, write, and read BSON documents using the C Driver.
+
+.. meta::
+   :keywords: document, BSON, JSON
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the Extended JSON format in the
+{+driver-short+}.
+
+JSON is a data format that represents the values of objects, arrays, numbers,
+strings, booleans, and nulls. This format supports only a
+subset of BSON data types, which is the format that MongoDB uses to store data. The
+Extended JSON format supports more BSON types, defining a reserved
+set of keys prefixed with "``$``" to represent field type information that
+directly corresponds to each type in BSON.
+
+For more information about the difference between these formats, see the `JSON and BSON
+<https://www.mongodb.com/resources/basics/json-and-bson>`__ resource.
+
+Extended JSON Formats
+---------------------
+
+MongoDB Extended JSON features different string formats to represent BSON data.
+Each of the different formats conforms to the JSON RFC
+and meet specific use cases. 
+
+The following table describes each format:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 40
+
+   * - Name
+     - Description
+
+   * - **Extended**
+     - | Also known as the *canonical* format, this JSON representation avoids loss of BSON type information.
+       | This format prioritizes type preservation at the loss of human-readability and interoperability with older formats.
+
+   * - **Relaxed Mode**
+     - | JSON representation that describes BSON documents with some type information loss.
+       | This format prioritizes human-readability and interoperability at the loss of
+         certain type information.
+       
+   * - **Shell**
+     - | *Deprecated*. JSON representation that matches the syntax used in the MongoDB shell.
+       | This format prioritizes compatibility with the MongoDB shell, which often uses
+         JavaScript functions to represent types.
+       | The legacy API uses this format.
+
+   * - **Strict**
+     - | *Deprecated.* This representation is the legacy format that fully conforms to the
+         `JSON RFC <http://www.json.org/>`__, which allows any JSON parser to read the type
+         information.
+       | The legacy API uses this format.
+
+.. _extended_json_example_section:
+
+.. note::
+
+   The driver parses the ``$uuid`` Extended JSON type from a string to binary data
+   with subtype 4 (``BSON_SUBTYPE_UUID``). For more information about ``$uuid`` field
+   parsing, see the
+   :spec:`special rules for parsing $uuid fields </extended-json/extended-json.md#special-rules-for-parsing-uuid-fields>`.
+
+For more detailed information on these formats, see the following
+resources:
+
+- `JSON RFC <https://tools.ietf.org/html/rfc7159>`__ official documentation
+- :manual:`MongoDB Extended JSON </reference/mongodb-extended-json/>` Server Manual entry
+- `BSON_SUBTYPE_UUID <{+api-libbson+}/bson_subtype_t.html>`__ API documentation
+- :spec:`Extended JSON </extended-json/extended-json.md>` specification on GitHub
+
+Extended JSON Examples
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following examples show a document containing an ObjectId, date, and long
+number field represented in each Extended JSON format. Click the tab that
+corresponds to the format of the example you want to see:
+
+.. tabs::
+
+   .. tab:: Extended
+      :tabid: extended-format
+
+      .. code-block:: json
+
+         {
+           "_id": { "$oid": "573a1391f29313caabcd9637" },
+           "createdAt": { "$date": { "$numberLong": "1601499609" }},
+           "numViews": { "$numberLong": "36520312" }
+         }
+
+   .. tab:: Relaxed Mode
+      :tabid: relaxed-mode-format
+
+      .. code-block:: json
+
+         {
+           "_id": { "$oid": "573a1391f29313caabcd9637" },
+           "createdAt": { "$date": "2020-09-30T18:22:51.648Z" },
+           "numViews": 36520312
+         }
+
+   .. tab:: Shell
+      :tabid: shell-format
+
+      .. code-block:: json
+
+         {
+           "_id": ObjectId("573a1391f29313caabcd9637"),
+           "createdAt": ISODate("2020-09-30T18:22:51.648Z"),
+           "numViews": NumberLong("36520312")
+         }
+
+   .. tab:: Strict
+      :tabid: strict-format
+
+      .. code-block:: json
+
+         {
+           "_id": { "$oid": "573a1391f29313caabcd9637" },
+           "createdAt": { "$date": 1601499609 },
+           "numViews": { "$numberLong": "36520312" }
+         }
+
+
+Read Extended JSON
+------------------
+
+Use BSON Functions
+~~~~~~~~~~~~~~~~~~
+
+You can read an Extended JSON string into a BSON document by calling
+the ``bson_new_from_json()`` function. This function parses the Extended
+JSON string and returns a ``bson_t`` structure containing the data.
+
+The following example shows how you can read an example Extended JSON string 
+into a ``bson_t`` document:
+
+.. code-block:: c
+
+   /* Read Extended JSON string to BSON */
+   const char *ejson_str = "{ \"_id\": { \"$oid\": \"507f1f77bcf86cd799439011\"},"
+                           "\"myNumber\": {\"$numberLong\": \"4794261\" }}";
+   bson_error_t error;
+   bson_t *doc = bson_new_from_json ((const uint8_t *)ejson_str, -1, &error);
+
+For more information, see the `bson_new_from_json()
+<{+api-libbson+}/bson_new_from_json.html>`__ and `bson_as_canonical_extended_json()
+<{+api-libbson+}/bson_as_canonical_extended_json.html>`__ API documentation.  
+
+Use the BSON JSON Reader
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also parse Extended JSON strings by using the ``bson_json_reader_t`` type,
+which provides a streaming interface for converting JSON to BSON. This is
+particularly useful when processing multiple JSON documents or when you need
+more control over the parsing process.
+
+The following code example shows how you can use ``bson_json_reader_t`` to
+convert an Extended JSON string into a BSON document:
+
+.. io-code-block::
+
+   .. input::
+      :language: c
+
+      const char *ejson_str = "{ \"_id\": { \"$oid\": \"507f1f77bcf86cd799439011\"},"
+                              "\"myNumber\": {\"$numberLong\": \"4794261\" }}";
+      bson_json_reader_t *reader;
+      bson_error_t error;
+      bson_t doc = BSON_INITIALIZER;
+      int ret;
+
+      reader = bson_json_data_reader_new (false, 0);
+      bson_json_data_reader_ingest (reader, (const uint8_t *)ejson_str, strlen (ejson_str));
+
+      ret = bson_json_reader_read (reader, &doc, &error);
+      if (ret > 0) {
+         bson_iter_t iter;
+         if (bson_iter_init (&iter, &doc)) {
+            while (bson_iter_next (&iter)) {
+               const char *key = bson_iter_key (&iter);
+               
+               if (strcmp (key, "_id") == 0 && BSON_ITER_HOLDS_OID (&iter)) {
+                  const bson_oid_t *oid = bson_iter_oid (&iter);
+                  char oid_str[25];
+                  bson_oid_to_string (oid, oid_str);
+                  printf ("%s is type: ObjectId\n", oid_str);
+               }
+               
+               if (strcmp (key, "myNumber") == 0 && BSON_ITER_HOLDS_INT64 (&iter)) {
+                  int64_t number = bson_iter_int64 (&iter);
+                  printf ("%ld is type: int64_t\n", (long)number);
+               }
+            }
+         }
+      } else if (ret < 0) {
+         printf ("Error: %s\n", error.message);
+      }
+
+      bson_json_reader_destroy (reader);
+      bson_destroy (&doc);
+
+   .. output::
+      :language: none
+      :visible: false
+
+      507f1f77bcf86cd799439011 is type: ObjectId
+      4794261 is type: int64_t
+
+For more information, see the following API documentation:
+
+- `bson_json_data_reader_new() <{+api-libbson+}/bson_json_data_reader_new.html>`__
+- `bson_json_data_reader_ingest() <{+api-libbson+}/bson_json_data_reader_ingest.html>`__
+- `bson_json_reader_read() <{+api-libbson+}/bson_json_reader_read.html>`__
+- `bson_json_reader_destroy() <{+api-libbson+}/bson_json_reader_destroy.html>`__
+
+Write Extended JSON
+-------------------
+
+You can write a BSON document as an Extended JSON string by calling
+the ``bson_as_json_with_opts()`` function. This function converts a
+``bson_t`` document to an Extended JSON string with options to specify
+the output format.
+
+The following example shows how to create a BSON document and output it
+as Extended JSON in Relaxed format:
+
+.. io-code-block::
+
+   .. input::
+      :language: c
+
+      bson_t *doc;
+      bson_oid_t oid;
+      bson_json_opts_t *opts;
+      char *json_str;
+
+      // Create a BSON document
+      doc = bson_new ();
+      bson_oid_init_from_string (&oid, "507f1f77bcf86cd799439012");
+      bson_append_oid (doc, "_id", -1, &oid);
+      bson_append_int32 (doc, "myNumber", -1, 11223344);
+
+      // Configure JSON output options for Relaxed mode
+      opts = bson_json_opts_new (BSON_JSON_MODE_RELAXED, BSON_MAX_LEN_UNLIMITED);
+      
+      // Convert to Extended JSON
+      json_str = bson_as_json_with_opts (doc, NULL, opts);
+      printf ("%s\n", json_str);
+
+      // Cleanup
+      bson_free (json_str);
+      bson_json_opts_destroy (opts);
+      bson_destroy (doc);
+
+   .. output::
+      :language: none
+      :visible: false
+
+      { "_id" : { "$oid" : "507f1f77bcf86cd799439012" }, "myNumber" : 11223344 }
+
+For more information, see the `bson_as_json_with_opts()
+<{+api-libbson+}/bson_as_json_with_opts.html>`__ API documentation.
+
+API Documentation
+-----------------
+
+To learn more about the functions and types you can use to work with Extended JSON data, see the following API
+documentation:
+
+- `bson_t <{+api-libbson+}/bson_t.html>`__
+- `bson_new_from_json() <{+api-libbson+}/bson_new_from_json.html>`__
+- `bson_as_json_with_opts() <{+api-libbson+}/bson_as_json_with_opts.html>`__
+- `bson_json_reader_t <{+api-libbson+}/bson_json_reader_t.html>`__
+- `bson_json_opts_t <{+api-libbson+}/bson_json_opts_t.html>`__
+- `bson_as_canonical_extended_json() <{+api-libbson+}/bson_as_canonical_extended_json.html>`__
+- `bson_as_relaxed_extended_json() <{+api-libbson+}/bson_as_relaxed_extended_json.html>`__
+- `bson_array_as_canonical_extended_json() <{+api-libbson+}/bson_array_as_canonical_extended_json.html>`__
+- `bson_array_as_relaxed_extended_json() <{+api-libbson+}/bson_array_as_relaxed_extended_json.html>`__
+- `bson_array_as_legacy_extended_json() <{+api-libbson+}/bson_array_as_legacy_extended_json.html>`__

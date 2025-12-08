@@ -3,3 +3,243 @@
 =================
 In-Use Encryption
 =================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: encryption, CSFLE, libmongocrypt, security
+
+In-Use Encryption provides two features that encrypt sensitive data in 
+your MongoDB collections:
+
+- :ref:`c-csfle` - Encrypts specific data fields client-side
+- :ref:`c-queryable-encryption` - Encrypts data while maintaining the 
+  ability to query encrypted fields
+
+Both features guarantee that unauthorized parties, including server 
+administrators, cannot read encrypted data.
+
+Installation
+------------
+
+You must install ``libmongocrypt`` as a dependency to use In-Use Encryption.
+See the :manual:`libmongocrypt installation instructions
+</core/csfle/reference/libmongocrypt>` in the {+mdb-server+} manual for a complete installation
+guide.
+
+After you install ``libmongocrypt``, configure the {+driver-short+} with 
+``-DENABLE_CLIENT_SIDE_ENCRYPTION=ON`` to enable In-Use Encryption, as shown
+in the following example:
+
+.. code-block:: bash
+
+   $ cd mongo-c-driver
+   $ mkdir cmake-build && cd cmake-build
+   $ cmake -DENABLE_CLIENT_SIDE_ENCRYPTION=ON ..
+   $ cmake --build . --target install
+
+.. _query_analysis:
+
+Query Analysis
+--------------
+
+To support automatic encryption, you need one of the following 
+dependencies:
+
+- The ``mongocryptd`` executable. See the :manual:`mongocryptd </core/queryable-encryption/reference/mongocryptd>`
+  guide in the {+mdb-server+} manual for installation instructions.
+- The ``crypt_shared`` library. See the :manual:`Automatic Encryption Shared Library </core/queryable-encryption/reference/shared-library>`
+  guide in the {+mdb-server+} manual for more information.
+
+A `mongoc_client_t <{+api-libmongoc+}/mongoc_client_t.html>`__ or 
+`mongoc_client_pool_t <{+api-libmongoc+}/mongoc_client_pool_t.html>`__ 
+configured with auto encryption automatically tries to load the 
+``crypt_shared`` library. If loading the ``crypt_shared`` library fails, 
+the `mongoc_client_t <{+api-libmongoc+}/mongoc_client_t.html>`__ or 
+`mongoc_client_pool_t <{+api-libmongoc+}/mongoc_client_pool_t.html>`__ 
+tries to spawn the ``mongocryptd`` process from the application's 
+``PATH``. To configure use of ``crypt_shared`` and ``mongocryptd``, see 
+`mongoc_auto_encryption_opts_set_extra <{+api-libmongoc+}/mongoc_auto_encryption_opts_set_extra.html>`__.
+
+API
+---
+
+Use `mongoc_client_encryption_t <{+api-libmongoc+}/mongoc_client_encryption_t.html>`__ 
+for explicit encryption and key management. Use 
+`mongoc_client_enable_auto_encryption <{+api-libmongoc+}/mongoc_client_enable_auto_encryption.html>`__ 
+and `mongoc_client_pool_enable_auto_encryption <{+api-libmongoc+}/mongoc_client_pool_enable_auto_encryption.html>`__ 
+to enable automatic encryption.
+
+The Queryable Encryption (QE) and Client-Side Field Level Encryption (CSFLE)
+features share much of the same API, with some exceptions:
+
+- The supported algorithms documented in `mongoc_client_encryption_encrypt_opts_set_algorithm <{+api-libmongoc+}/mongoc_client_encryption_encrypt_opts_set_algorithm.html>`__
+  do not apply to both features.
+- `mongoc_auto_encryption_opts_set_encrypted_fields_map <{+api-libmongoc+}/mongoc_auto_encryption_opts_set_encrypted_fields_map.html>`__
+  applies only to Queryable Encryption.
+- `mongoc_auto_encryption_opts_set_schema_map <{+api-libmongoc+}/mongoc_auto_encryption_opts_set_schema_map.html>`__ 
+  applies only to CSFLE.
+
+.. _c-csfle:
+
+Client-Side Field Level Encryption
+-----------------------------------
+
+CSFLE enables administrators and developers to encrypt specific data 
+fields in addition to other MongoDB encryption features.
+
+By using CSFLE, you can encrypt fields client side without any 
+server-side configuration or directives. CSFLE supports workloads where 
+applications must guarantee that unauthorized parties, including server 
+administrators, cannot read encrypted data.
+
+Automatic encryption, where sensitive fields in commands encrypt 
+automatically, requires an Enterprise-only dependency for Query Analysis. 
+See :ref:`query_analysis` for more information.
+
+.. seealso::
+
+   | The :manual:`Client-Side Field Level Encryption </core/security-client-side-encryption>` guide in the {+mdb-server+} manual
+
+Automatic Client-Side Field Level Encryption
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Enable automatic encryption by calling `mongoc_client_enable_auto_encryption <{+api-libmongoc+}/mongoc_client_enable_auto_encryption.html>`__
+on a `mongoc_client_t <{+api-libmongoc+}/mongoc_client_t.html>`__ object. The 
+following examples show how to set up automatic encryption by using 
+`mongoc_client_encryption_t <{+api-libmongoc+}/mongoc_client_encryption_t.html>`__ 
+to create a new encryption data key.
+
+.. note::
+
+   Automatic encryption requires MongoDB Enterprise Advanced 4.2 or later, or a MongoDB 4.2 
+   or later Atlas cluster. The community version of {+mdb-server+} supports automatic 
+   decryption and :ref:`c-explicit-client-side-encryption`.
+
+Providing Local Automatic Encryption Rules
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can specify automatic encryption rules by using a schema map. To create a
+schema map, call the `mongoc_auto_encryption_opts_set_schema_map <{+api-libmongoc+}/mongoc_auto_encryption_opts_set_schema_map.html>`__
+function. The automatic encryption rules use a strict subset of the JSON Schema 
+syntax.
+
+Supplying a schema map provides more security than relying on JSON 
+Schemas obtained from the server. It protects against a malicious server 
+advertising a false JSON Schema, which could trick the client into 
+sending unencrypted data that should be encrypted.
+
+JSON Schemas supplied in the schema map only apply to configuring 
+automatic encryption. Other validation rules in the JSON schema are not 
+enforced by the driver and result in an error.
+
+The following example uses the ``mongoc_auto_encryption_opts_set_schema_map()``
+function to create a schema map that specifies automatic encryption rules:
+
+.. literalinclude:: /includes/security/client-side-encryption-schema-map.c
+   :caption: client-side-encryption-schema-map.c
+   :language: c
+
+Server-Side Field Level Encryption Enforcement
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+{+mdb-server+} supports using schema validation to enforce 
+encryption of specific fields in a collection. This schema validation 
+prevents an application from inserting unencrypted values for any fields 
+marked with the ``encrypt`` JSON Schema keyword.
+
+To implement server-side enforcement, you must create both an encryption 
+data key and a collection configured with the appropriate JSON Schema validation rules,
+as shown in the following example:
+
+.. literalinclude:: /includes/security/client-side-encryption-server-schema.c
+   :caption: client-side-encryption-server-schema.c
+   :language: c
+
+.. _c-explicit-client-side-encryption:
+
+Explicit Encryption
+~~~~~~~~~~~~~~~~~~~
+
+You can use explicit encryption to specify how to encrypt fields in your document
+for each operation you perform on the database. You must define your own encryption
+data keys and encryption options when using explicit encryption.
+
+Explicit encryption is a MongoDB Community Edition feature and does not use 
+:ref:`query_analysis` (``mongocryptd`` or ``crypt_shared``). Explicit 
+encryption uses the `mongoc_client_encryption_t <{+api-libmongoc+}/mongoc_client_encryption_t.html>`__ 
+class. The following example demonstrates how to use explicit encryption and decryption:
+
+.. literalinclude:: /includes/security/client-side-encryption-explicit.c
+   :caption: client-side-encryption-explicit.c
+   :language: c
+
+Explicit Encryption with Automatic Decryption
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Although automatic encryption requires MongoDB Enterprise Advanced or a 
+MongoDB Atlas cluster, all {+mdb-server+} products support automatic decryption.
+To configure explicit encrytpion with automatic decryption, 
+set ``bypass_auto_encryption=True`` in `mongoc_auto_encryption_opts_t <{+api-libmongoc+}/mongoc_auto_encryption_opts_t.html>`__,
+as shown in the following example:
+
+.. literalinclude:: /includes/security/client-side-encryption-auto-decryption.c
+   :caption: client-side-encryption-auto-decryption.c
+   :language: c
+
+.. _c-queryable-encryption:
+
+Queryable Encryption
+---------------------
+
+Queryable Encryption is the next-generation in-use encryption feature, first introduced
+as a preview feature in {+mdb-server+} version 6.0 and as a generally available
+(GA) feature in MongoDB 7.0. Queryable Encryption supports searching
+encrypted fields for equality and encrypts each value uniquely.
+
+.. note:: QE Requires {+mdb-server+} 7.0 or later
+
+   For information about upgrading your {+mdb-server+} deployment from 6.0 to 7.0,
+   see :manual:`Upgrade 6.0 to 7.0 </release-notes/7.0-upgrade/>` in the {+mdb-server+}
+   manual.
+
+See the :manual:`Queryable Encryption
+</core/queryable-encryption>` guide in the {+mdb-server+} manual for 
+more information about the feature.
+
+QE in {+mdb-server+} 6.0
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+mdb-server+} 6.0 introduced Queryable Encryption as a Public 
+Technical Preview. {+mdb-server+} 7.0 includes backwards breaking 
+changes to the Queryable Encryption protocol that affect compatibility 
+between different versions of the driver libraries and server.
+
+The following table shows which versions are compatible for Queryable Encryption:
+
+.. list-table::
+   :widths: 30 30 40
+   :header-rows: 1
+
+   * - libmongocrypt
+     - libmongoc 
+     - Compatible {+mdb-server+} Versions
+   * - 1.7.x and earlier
+     - 1.23.x and earlier
+     - 6.0 only
+   * - 1.8.0 and later
+     - 1.24.0 and later
+     - 7.0 and later
+
+.. important:: Version Mismatch Errors
+   
+   Using incompatible versions of the packages listed in the preceding table results in
+   server errors.

@@ -67,6 +67,3 @@ if (!mongoc_collection_insert_one(collection, doc, NULL, NULL, &error)) {
 bson_destroy(doc);
 mongoc_collection_destroy(collection);
 mongoc_database_destroy(database);
-
-
-

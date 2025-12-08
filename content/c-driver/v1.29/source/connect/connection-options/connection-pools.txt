@@ -1,0 +1,142 @@
+.. _c-connection-pools:
+
+================
+Connection Pools
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The MongoDB C driver provides two connection modes: **single-threaded**
+and **pooled**. We recommend using pooled mode, especially for multi-threaded applications.
+
+.. important::
+
+   Unlike other MongoDB drivers, the {+driver-short+} does not implement the
+   CMAP specification for connection pooling. In the context of the {+driver-short+},
+   connection pooling refers to the driver's cache of client objects, not
+   database connections.
+
+Pooled Mode
+-----------
+
+To use the pooled mode, create a
+`mongoc_client_pool_t <{+api-libmongoc+}/mongoc_client_pool_t.html>`__:
+
+.. code-block:: c
+
+   mongoc_uri_t *uri = mongoc_uri_new("mongodb://hostA,hostB/?replicaSet=my_rs");
+
+   mongoc_client_pool_t *pool = mongoc_client_pool_new(uri);
+
+When you first call `mongoc_client_pool_pop <{+api-libmongoc+}/mongoc_client_pool_pop.html>`__,
+the pool launches monitoring threads in the background. Monitoring
+threads independently connect to all servers in the connection URI.
+As monitoring threads receive hello responses from the servers, they
+update the shared view of the server topology. The pool creates
+additional monitoring threads and connections as it discovers new
+servers. Monitoring threads terminate when the pool removes servers from
+the shared view of the server topology.
+
+Each thread that executes MongoDB operations must check out a client from
+the pool:
+
+.. code-block:: c
+
+   mongoc_client_t *client = mongoc_client_pool_pop(pool);
+
+   /* use the client for operations ... */
+
+   mongoc_client_pool_push(pool, client);
+
+Individual `mongoc_client_t <{+api-libmongoc+}/mongoc_client_t.html>`__ objects
+are not thread-safe. Only the
+`mongoc_client_pool_t <{+api-libmongoc+}/mongoc_client_pool_t.html>`__ object provides
+thread-safety.
+
+In pooled mode, your program's operations unblock as soon as monitoring
+discovers a usable server. For example, if a thread in your program
+waits to execute an "insert" on the primary, it unblocks as soon as the
+primary is discovered, instead of waiting for all secondaries to be
+checked.
+
+The pool opens one connection per server for monitoring. Each client
+opens its own connection to each server it uses for application
+operations. Background monitoring threads re-scan servers independently
+about every 10 seconds. You can configure this interval by specifying the
+``heartbeatFrequencyMS`` option in the connection URI. (See
+`mongoc_uri_t <{+api-libmongoc+}/mongoc_uri_t.html>`__).
+
+The client pool creates a new ``mongoc_client_t`` object when there is no available client
+object in the pool and the ``maxPoolSize`` limit has not yet been reached. The default
+``maxPoolSize`` value is 100.
+
+You can also specify ``waitQueueTimeoutMS`` in the connection URI to
+limit the time that
+`mongoc_client_pool_pop <{+api-libmongoc+}/mongoc_client_pool_pop.html>`__
+waits for a client from the pool. (See
+`mongoc_uri_t <{+api-libmongoc+}/mongoc_uri_t.html>`__). If you specify
+``waitQueueTimeoutMS``, confirm that the pool actually returns a client:
+
+.. code-block:: c
+
+   mongoc_client_t *client = mongoc_client_pool_pop(pool);
+
+   if (client) {
+      /* use the client for operations */
+
+      mongoc_client_pool_push(pool, client);
+   } else {
+      /* handle a wait queue timeout */
+   }
+
+.. tip::
+
+   For a non-blocking alternative to ``mongoc_client_pool_pop``, use
+   `mongoc_client_pool_try_pop <{+api-libmongoc+}/mongoc_client_pool_try_pop.html>`__.
+
+See `connection pool options
+<{+api-libmongoc+}/mongoc_uri_t.html#connection-pool-options>`__ to
+configure pool size and behavior. See
+`mongoc_client_pool_t <{+api-libmongoc+}/mongoc_client_pool_t.html>`__
+for an extended example of a multi-threaded program that uses the driver
+in pooled mode.
+
+Single-Threaded Mode
+--------------------
+
+To use the single-threaded mode, create a
+`mongoc_client_t <{+api-libmongoc+}/mongoc_client_t.html>`__ directly:
+
+.. code-block:: c
+
+   mongoc_client_t *client = mongoc_client_new(
+      "mongodb://hostA,hostB/?replicaSet=my_rs");
+
+The client connects on demand when you first use it for a MongoDB
+operation. Using a non-blocking socket per server, the client begins a
+check on each server concurrently and uses the asynchronous ``poll`` or
+``select`` function to receive events from the sockets until all have
+responded or timed out. In single-threaded mode, the C Driver fans out
+to begin all checks concurrently, then fans in once all checks complete
+or time out. After the scan completes, the client executes your
+operation and returns.
+
+In single-threaded mode, the client re-scans the server topology about once per
+minute. If more than a minute passes since the previous scan, the next
+operation on the client blocks while the client completes its scan. You
+can configure this interval by using the ``heartbeatFrequencyMS`` parameter in the
+connection URI. (See
+`mongoc_uri_t <{+api-libmongoc+}/mongoc_uri_t.html>`__).
+
+A single-threaded client opens one connection per server in your topology. These
+connections handle both scanning the topology and performing normal
+operations.
+
+.. tip::
+
+   You can specify the ``serverSelectionTryOne=false`` option in your connection URI
+   to improve the resiliency of single-threader client objects' connection to MongoDB.

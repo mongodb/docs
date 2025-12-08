@@ -60,20 +60,243 @@ The breaking changes in this section are categorized by the driver version that 
 them. When upgrading driver versions, address all the breaking changes between the current
 and upgrade versions.
 
-.. example:: Upgrading from Version 1.26
+The {+driver-short+} consists of two libraries: ``{+libbson+}`` and ``{+libmongoc+}``. The
+sections of this guide describe the breaking changes included in each library.
 
-  If you're upgrading the {+driver-short+} from version 1.26 to version 1.27,
-  address all breaking changes listed for versions 1.27.0 to 1.27.6, if any.
+.. example:: Upgrading to Version 2.0.0
 
-.. _c-version-1.24.0-breaking-changes:
+  If you're upgrading the {+driver-short+} from version 1.x to version 2.0.0,
+  address all breaking changes that are listed for versions 1.x up to and
+  including version 2.0.0
 
-Version 1.24.0 Breaking Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _c-version-2.2.0-breaking-changes:
 
-The 1.24.0 release of ``libmongoc``, one of the libraries constituting the C driver, introduces 
-the following backward-breaking change:
+Version 2.2.0
+~~~~~~~~~~~~~
 
-- Requires {+mdb-server+} version 7.0 and later to use Queryable Encryption.
+{+libbson+} Breaking Changes
+````````````````````````````
+
+The 2.2.0 release of ``{+libbson+}`` includes the following breaking
+change:
+
+- Removes support for Visual Studio 2015. The minimum supported version is
+  Visual Studio 2017.
+
+{+libmongoc+} Breaking Changes
+``````````````````````````````
+
+The 2.2.0 release of ``{+libmongoc+}`` includes the following breaking
+change:
+
+- Removes support for Visual Studio 2015. The minimum supported version is
+  Visual Studio 2017.
+
+.. _c-version-2.1.0-breaking-changes:
+
+Version 2.1.0
+~~~~~~~~~~~~~
+
+{+libbson+} Breaking Changes
+````````````````````````````
+
+The 2.1.0 release of ``{+libbson+}`` includes the following breaking
+changes:
+
+- Removes support for Debian 9 and Debian 10.
+- The CMake project sets a CMake policy max version of ``4.0``. Previous driver versions
+  don't set the policy max version. This might be a build-system breaking change
+  depending on your CMake version and CMake configuration options. 
+
+{+libmongoc+} Breaking Changes
+``````````````````````````````
+
+The 2.1.0 release of ``{+libmongoc+}`` includes the following breaking
+changes:
+
+- Removes support for Debian 9 and Debian 10.
+- The CMake project sets a CMake policy max version of ``4.0``. Previous driver versions
+  don't set the policy max version. This might be a build-system breaking change
+  depending on your CMake version and CMake configuration options. 
+
+.. _c-version-2.0.0-breaking-changes:
+
+Version 2.0.0
+~~~~~~~~~~~~~
+
+{+libbson+} Breaking Changes in v2.0.0
+``````````````````````````````````````
+
+The 2.0.0 release of ``{+libbson+}`` includes the following breaking changes:
+
+- Reduces the value of the ``BSON_ERROR_BUFFER_SIZE`` macro from ``504``
+  to ``503`` to reserve the final byte for internal use.
+
+- Renames the following ``pkg-config`` files:
+
+  - ``libbson-1.0``: Renamed to ``bson2``
+  - ``libbson-static-1.0``: Renamed to ``bson2-static``
+
+- Removes the ``bson-1.0`` CMake package. Instead, use ``bson`` and
+  specify a version or version range to be imported, as shown in the
+  following example:
+
+  .. code-block:: c
+     
+     find_package(bson 1.30...2.0)
+
+- Renames the following imported targets:
+
+  - ``mongo::bson_static``: Renamed to ``bson::static``
+  - ``mongo::bson_shared``: Renamed to ``bson::shared``
+
+- Adds the ``bson::bson`` target, which points to either the static
+  library or shared library depending on the value of the
+  ``BSON_DEFAULT_IMPORTED_LIBRARY_TYPE`` CMake option. If you don't set this option and
+  both library types are available, ``bson::bson`` uses
+  the static library.
+
+{+libmongoc+} Breaking Changes in v2.0.0
+````````````````````````````````````````
+
+The 2.0 release of ``{+libmongoc+}`` includes the following breaking changes:
+
+- If you pass the ``batchSize:0`` option to ``mongoc_client_watch``, ``mongoc_database_watch``,
+  or ``mongoc_collection_watch``, the ``aggregate`` command no longer ignores this option and
+  applies it.
+
+- Removes ``bson_oid_init_sequence``. Instead, use ``bson_oid_init``.
+
+- Changes the return type of ``mongoc_server_description_host`` from ``mongoc_host_list_t *``
+  to ``const mongoc_host_list_t *``.
+
+- Implements the following changes to URI authentication credentials validation, which
+  apply when creating a new ``mongoc_uri_t`` object from a connection string:
+
+  - Requires that usernames are non-empty for all authentication mechanisms.
+  - Validates username and password specification requirements and returns
+    a client error for the specified authentication mechanism.
+  - For the ``MONGODB-AWS`` authentication mechanism, the ``authSource`` value defaults to
+    ``$external``.
+  - Validates ``authMechanism`` values and returns a client error for invalid values.
+  - Validates ``authMechanismProperties`` values and returns a client error for invalid
+    properties for the specified authentication mechanism.
+  - Correctly parses colon (``:``) characters within ``authMechanismProperties`` values.
+    For example, setting ``authMechanismProperties=A:B,C:D:E,F:G`` caused the driver to
+    parse the value as ``{'A': 'B', 'C': 'D:E,F:G'}``. This is now parsed as
+    ``{'A': 'B': 'C': 'D:E', 'F': 'G'}``.
+
+- Generates an error if you call ``mongoc_bulk_operation_execute`` on the same 
+  ``mongoc_bulk_operation_t`` repeatedly.
+
+- Consistently applies the ``__cdecl`` calling convention to function declarations in
+  the public API.
+
+- ``mongoc_client_set_ssl_opts`` ignores a pooled ``mongoc_client_t`` and logs an error.
+  Before popping a client, use ``mongoc_client_pool_set_ssl_opts`` to set TLS options on
+  a ``mongoc_client_pool_t``.
+
+- ``mongoc_client_set_ssl_stream_initiator`` ignores a pooled ``mongoc_client_t`` and
+  logs an error.
+
+- Renames the following ``pkg-config`` files:
+
+  - ``libmongoc-1.0``: Renamed to ``mongoc2``
+  - ``libmongoc-static-1.0``: Renamed to ``mongoc2-static``
+
+- Removes the ``mongoc-1.0`` CMake package. Instead, use ``mongoc`` and
+  specify a version or version range to be imported, as shown in the
+  following example:
+
+  .. code-block:: c
+     
+     find_package(mongoc 1.30...2.0)
+
+- Renames the following imported targets:
+
+  - ``mongo::mongoc_static``: Renamed to ``mongoc::static``
+  - ``mongo::mongoc_shared``: Renamed to ``mongoc::shared``
+
+- Adds the ``mongoc::mongoc`` target, which points to either the static
+  library or shared library depending on the value of the
+  ``MONGOC_DEFAULT_IMPORTED_LIBRARY_TYPE`` CMake option. If you don't set this option and
+  both library types are available, ``mongoc::mongoc`` uses
+  the static library.
+
+.. _c-version-1.29.0-breaking-changes:
+
+Version 1.29.0
+~~~~~~~~~~~~~~
+
+{+libmongoc+} Breaking Changes in v1.29.0
+`````````````````````````````````````````
+
+The 1.29.0 release of ``{+libmongoc+}`` includes the following breaking changes:
+
+- Drops support for Visual Studio 2013
+- Raises required version of the ``libmongocrypt`` dependency to 1.12.0 to
+  support the In-Use Encryption feature
+
+.. _c-version-1.28.0-breaking-changes:
+
+Version 1.28.0
+~~~~~~~~~~~~~~
+
+{+libbson+} Breaking Changes in v1.28.0
+`````````````````````````````````````
+
+The 1.28.0 release of ``{+libbson+}`` includes the following breaking changes:
+
+- Removes automatic ``ccache`` detection and usage
+- Removes ``Mongo_USE_CCACHE``
+
+{+libmongoc+} Breaking Changes in v1.28.0
+`````````````````````````````````````````
+
+The 1.28.0 release of ``{+libmongoc+}`` includes the following breaking changes:
+
+- Raises the minimum wire protocol version from ``6`` to ``7``
+- Raises the required ``libmongocrypt`` version to v1.11.0 to support In-Use
+  Encryption
+
+.. _c-version-1.27.0-breaking-changes:
+
+Version 1.27.0
+~~~~~~~~~~~~~~
+
+{+libmongoc+} Breaking Changes in v1.27.0
+`````````````````````````````````````````
+
+The 1.27.0 release of ``{+libmongoc+}`` includes the following breaking changes:
+
+- Raises the required version of libmongocrypt to 1.10.0 to support In-Use
+  Encryption. This corresponds to the CMake option ``ENABLE_CLIENT_SIDE_ENCRYPTION``.
+
+.. _c-version-1.26.2-breaking-changes:
+
+Version 1.26.2
+~~~~~~~~~~~~~~
+
+{+libmongoc+} Breaking Changes in v1.26.2
+`````````````````````````````````````````
+
+The 1.26.2 release of ``{+libmongoc+}`` includes the following breaking changes:
+
+- By default, disables plugin loading with Cyrus SASL on Windows. 
+  To re-enable, set the CMake option ``CYRUS_PLUGIN_PATH_PREFIX`` to the 
+  absolute path prefix of the Cyrus SASL plugins.
+
+.. _c-version-1.24-breaking-changes:
+
+Version 1.24
+~~~~~~~~~~~~
+
+{+libmongoc+} Breaking Changes in v1.24
+```````````````````````````````````````
+
+The 1.24 release of ``{+libmongoc+}`` includes the following breaking changes:
+
+- Requires {+mdb-server+} version 7.0 and later to use Queryable Encryption
 
 .. _c-server-release-compatability-changes:
 
