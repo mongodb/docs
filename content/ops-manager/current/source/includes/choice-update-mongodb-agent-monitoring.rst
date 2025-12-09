@@ -1,114 +1,93 @@
-.. tabs-platforms::
+.. composable-tutorial::
+   :options: operating-system-om, arch-ubuntu, arch-rhel, rhel-version, package-rhel
+   :defaults: windows, None, None, None, None
 
-   .. tab::
-      :tabid: windows
+   .. selected-content::
+      :selections: windows
 
       Use this procedure to update to the {+mdbagent+} on x86_64
       architecture running Microsoft Windows:
 
       .. include:: /includes/steps/update-monitoring-to-mongodb-agent-on-windows.rst
 
-   .. tab::
-      :tabid: debian
+
+   .. selected-content::
+      :selections: ubuntu, intel, None, None, None
+
+      Use this procedure to update to the {+mdbagent+} on x86_64 architecture 
+      running Debian 9, Ubuntu 18.04, Ubuntu 20.04, Ubuntu 22.04, or Ubuntu 24.04:
+
+      .. include:: /includes/steps/update-monitoring-to-mongodb-agent-amd64.ubuntu1604-deb.rst
+
+
+   .. selected-content::
+      :selections: ubuntu, ibm, None, None, None
+
+      Use this procedure to update to the {+mdbagent+} on zSeries 
+      architecture running Ubuntu 18.x using a ``deb`` package:
+
+      .. include:: /includes/steps/update-monitoring-to-mongodb-agent-s390x.ubuntu1804-deb.rst
+
+
+   .. selected-content::
+      :selections: rhel, None, intel, v6, rpm
 
       Use this procedure to update to the {+mdbagent+}:
+      on Intel/AMD architecture running RHEL/CentOS 6.x using an ``rpm`` package:
 
-      .. tabs::
+      .. include:: /includes/steps/update-monitoring-to-mongodb-agent-x86-64-rpm.rst
 
-         .. tab:: Intel/AMD
-            :tabid: x86
 
-            On x86_64 architecture running Debian 9, Ubuntu 18.04,
-            Ubuntu 20.04, Ubuntu 22.04, or Ubuntu 24.04:
-
-            .. include:: /includes/steps/update-monitoring-to-mongodb-agent-amd64.ubuntu1604-deb.rst
-
-         .. tab:: IBM ZSeries
-            :tabid: s390x
-
-            On zSeries architecture running Ubuntu 18.x using a
-            ``deb`` package:
-
-            .. include:: /includes/steps/update-monitoring-to-mongodb-agent-s390x.ubuntu1804-deb.rst
-
-   .. tab::
-      :tabid: rhel
+   .. selected-content::
+      :selections: rhel, None, intel, v7, rpm
 
       Use this procedure to update to the {+mdbagent+}:
+      on Intel/AMD architecture running RHEL (7.x, 8.x, or 9.x), CentOS (7.x or 
+      8.x), SUSE12, SUSE15, or Amazon Linux 2, using an ``rpm`` package:
 
-      .. tabs::
+      .. include:: /includes/steps/update-monitoring-to-mongodb-agent-x86-64.rhel7-rpm.rst
 
-         .. tab:: Intel/AMD
-            :tabid: x86
 
-            On x86_64 architecture:
+   .. selected-content::
+      :selections: rhel, None, intel, v7, tar
 
-            .. tabs::
+      Use this procedure to update to the {+mdbagent+}:
+      on Intel/AMD architecture running RHEL (7.x, 8.x, or 9.x), CentOS (7.x or 
+      8.x), SUSE12, SUSE15, or Amazon Linux 2, using an ``tar`` package:
 
-               .. tab:: RHEL/CentOS 6.x, Amazon Linux
-                  :tabid: v6
+      .. include:: /includes/steps/update-monitoring-to-mongodb-agent-rhel7-x86-64-tar.rst
 
-                  Running RHEL / CentOS 6.x using an ``rpm`` package:
 
-                  .. include:: /includes/steps/update-monitoring-to-mongodb-agent-x86-64-rpm.rst
+   .. selected-content::
+      :selections: rhel, None, powerpc, v7, rpm
 
-               .. tab:: RHEL/CentOS (7.X+), SUSE, Amazon Linux 2
-                  :tabid: v7
+      Use this procedure to update to the {+mdbagent+}: 
+      On RHEL / CentOS (7.x) on PowerPC architecture, using an ``rpm`` package:
 
-                  Running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or
-                  8.x), SUSE12, SUSE15, or Amazon Linux 2:
+      .. include:: /includes/steps/update-monitoring-to-mongodb-agent-ppc641e.rhel7-rpm.rst
 
-                  .. tabs::
 
-                     .. tab:: RPM package
-                        :tabid: rpm
+   .. selected-content::
+      :selections: rhel, None, powerpc, v7, tar
 
-                        Using an ``rpm`` package:
+      Use this procedure to update to the {+mdbagent+}: 
+      On RHEL / CentOS (7.x) on PowerPC architecture, using an ``tar`` package:
 
-                        .. include:: /includes/steps/update-monitoring-to-mongodb-agent-x86-64.rhel7-rpm.rst
+      .. include:: /includes/steps/update-monitoring-to-mongodb-agent-rhel7-ppc64le-tar.rst
 
-                     .. tab:: TAR archive
-                        :tabid: tar
 
-                        Using a ``tar`` archive:
+   .. selected-content::
+      :selections: rhel, None, ibm, v7, None
 
-                        .. include:: /includes/steps/update-monitoring-to-mongodb-agent-rhel7-x86-64-tar.rst
+      Use this procedure to update to the {+mdbagent+}:
+      on zSeries architecture running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x) 
+      using the ``rpm`` package manager:
 
-         .. tab:: PowerPC
-            :tabid: ppc
+      .. include:: /includes/steps/update-monitoring-to-mongodb-agent-s390x.rhel7-rpm.rst
 
-            On RHEL / CentOS (7.x) on PowerPC architecture
-            (managing MongoDB 3.4 or later deployments):
 
-            .. tabs::
-
-               .. tab:: RPM package
-                  :tabid: rpm
-
-                  Using an ``rpm`` package:
-
-                  .. include:: /includes/steps/update-monitoring-to-mongodb-agent-ppc641e.rhel7-rpm.rst
-
-               .. tab:: TAR archive
-                  :tabid: tar
-
-                  Using a ``tar`` archive:
-
-                  .. include:: /includes/steps/update-monitoring-to-mongodb-agent-rhel7-ppc64le-tar.rst
-
-         .. tab:: IBM ZSeries
-            :tabid: s390x
-
-            On zSeries architecture (managing MongoDB 4.4 or
-            later deployments):
-
-            Running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x) 
-            using the ``rpm`` package manager:
-
-            .. include:: /includes/steps/update-monitoring-to-mongodb-agent-s390x.rhel7-rpm.rst
-
-   .. tab::
-      :tabid: linux
+   .. selected-content::
+      :selections: linux, None, None, None, None
 
       Use this procedure to install update to the {+mdbagent+} on
       Linux systems that do not use ``deb`` or ``rpm`` packages.
