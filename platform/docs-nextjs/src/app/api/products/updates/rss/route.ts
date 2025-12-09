@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getProductUpdates } from '@/app/products/updates/services/contentstack';
 import { withCORS } from '@/app/lib/with-cors';
 import { escapeXml, toRFC2822Date } from '@/utils/xml-utils';
+import { generateProductUpdatesSlug } from '@/app/products/updates/utils/generate-product-updates-slug';
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mongodb.com';
 const blogUrl = `${baseUrl}/products/updates`;
@@ -87,10 +88,7 @@ export async function GET(request: NextRequest) {
 
     const itemsXml = filteredEntries
       .map((entry) => {
-        const slug = entry.title
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/(^-|-$)/g, '');
+        const slug = generateProductUpdatesSlug(entry.title);
 
         const itemUrl = `${blogUrl}/${slug}`;
         const pubDate = toRFC2822Date(entry.beamer_created_at || entry.created_at);

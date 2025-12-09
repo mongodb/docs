@@ -46,6 +46,9 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ## Developing
 
+### Product Updates Page
+If you would like to test Aha! integration, grab the CONTENTSTACK_WEBHOOK_TOKEN value from Netlify env config.
+
 ### Styling Conventions
 Next.js supports module [css](https://nextjs.org/docs/app/getting-started/css#css-modules)/[scss](https://nextjs.org/docs/app/guides/sass) out of the box. It is preferred to use css/scss modules for layouts and server side components that do not have to hydrate on the client side.
 

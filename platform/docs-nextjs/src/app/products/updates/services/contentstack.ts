@@ -1,6 +1,7 @@
 import contentstack from '@contentstack/delivery-sdk';
 import envConfig from '@/utils/env-config';
 import { normalizeDate } from '../utils/to-date';
+import { generateProductUpdatesSlug } from '@/app/products/updates/utils/generate-product-updates-slug';
 
 export interface ProductUpdateEntry {
   uid: string;
@@ -72,10 +73,7 @@ export async function getProductUpdateBySlug(slug: string): Promise<ProductUpdat
 
   return (
     entries.find((entry: ProductUpdateEntry) => {
-      const entrySlug = entry.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
+      const entrySlug = generateProductUpdatesSlug(entry.title);
       return entrySlug === slug;
     }) || null
   );

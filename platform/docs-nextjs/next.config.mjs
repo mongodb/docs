@@ -14,6 +14,10 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: '/products/updates/webhook/contentstack',
+        destination: '/api/products/updates/webhook/contentstack',
+      },
+      {
         source: '/products/updates/rss',
         destination: '/api/products/updates/rss',
       },

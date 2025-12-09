@@ -8,6 +8,7 @@ import type { ProductUpdateEntry } from '../services/contentstack';
 import { useRouter } from 'next/navigation';
 import { theme } from '@/styles/theme';
 import { normalizeDate } from '../utils/to-date';
+import { generateProductUpdatesSlug } from '@/app/products/updates/utils/generate-product-updates-slug';
 
 const featuredContainerStyle = css`
   max-width: 1440px;
@@ -118,10 +119,7 @@ const Featured = ({ updates: limitedFeaturedUpdates }: { updates: ProductUpdateE
             day: 'numeric',
           });
 
-          const slug = update.title
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '');
+          const slug = generateProductUpdatesSlug(update.title);
 
           return (
             <Card

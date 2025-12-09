@@ -14,6 +14,7 @@ import Icon from '@leafygreen-ui/icon';
 import { Pagination } from './Pagination';
 import { getPagination } from '../utils/get-pagination';
 import Button from '@leafygreen-ui/button';
+import { generateProductUpdatesSlug } from '@/app/products/updates/utils/generate-product-updates-slug';
 
 const containerStyle = css`
   max-width: 1550px;
@@ -567,10 +568,7 @@ const Updates = ({ updates }: UpdatesProps) => {
               const truncatedDescription =
                 description.length > 100 ? description.substring(0, 100) + '...' : description;
 
-              const slug = update.title
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/(^-|-$)/g, '');
+              const slug = generateProductUpdatesSlug(update.title);
 
               return (
                 <div
