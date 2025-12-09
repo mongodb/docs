@@ -214,6 +214,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/agentic-airport-operations',
           },
           {
+            label: 'AI-Driven Inventory Classification',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/inventory-optimization',
+          },
+          {
             label: 'Automotive Diagnostics',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-automotive-diagnostics',
