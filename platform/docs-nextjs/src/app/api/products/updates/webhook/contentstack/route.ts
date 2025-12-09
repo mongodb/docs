@@ -123,18 +123,19 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
   try {
-    // Validate Bearer token authentication
-    const authHeader = request.headers.get('authorization');
-    const expectedToken = envConfig.CONTENTSTACK_WEBHOOK_TOKEN;
+    // TODO: Revisit this once we have a support for adding auth to endpoints.
+    // // Validate Bearer token authentication
+    // const authHeader = request.headers.get('authorization');
+    // const expectedToken = envConfig.CONTENTSTACK_WEBHOOK_TOKEN;
 
-    if (!expectedToken) {
-      console.warn('CONTENTSTACK_WEBHOOK_TOKEN is not set in environment variables');
-      return withCORS(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
-    }
+    // if (!expectedToken) {
+    //   console.warn('CONTENTSTACK_WEBHOOK_TOKEN is not set in environment variables');
+    //   return withCORS(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
+    // }
 
-    if (!validateBearerToken(authHeader, expectedToken)) {
-      return withCORS(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
-    }
+    // if (!validateBearerToken(authHeader, expectedToken)) {
+    //   return withCORS(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
+    // }
 
     // Get request body
     let body: ContentstackWebhookPayload;
