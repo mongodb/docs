@@ -115,8 +115,9 @@
        content: |
 
          To create an index using the
-         `Ruby driver <https://www.mongodb.com/docs/ruby-driver/current/>`_, use
-         `Mongo::Index::View#create_one <http://www.rubydoc.info/github/mongodb/mongo-ruby-driver/Mongo%2FIndex%2FView%3Acreate_one>`_.
+         :ruby:`Ruby driver </>`, use
+         :ruby-api:`Mongo::Index::View#create_one
+         </Index/View.html#create_one-instance_method>`.
 
          .. code-block:: ruby
 

@@ -40,8 +40,8 @@
    .. wayfinding-option:: https://mongodb.github.io/mongo-java-driver/5.2/apidocs/mongodb-driver-kotlin-sync/mongodb-driver-kotlin-sync/com.mongodb.kotlin.client/-aggregate-iterable/explain.html?query=fun%20%3CR%20:%20Any%3E%20explain(resultClass:%20Class%3CR%3E,%20verbosity:%20ExplainVerbosity?%20=%20null):%20R
       :id: kotlin-sync
 
-   .. wayfinding-option:: https://www.rubydoc.info/github/mongoid/mongoid/Mongoid%2FContextual%2FMongo:explain
-      :id: mongoid
+   .. wayfinding-option:: https://www.mongodb.com/docs/ruby-driver/current/aggregation/#explain-an-aggregation
+      :id: ruby
 
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/rust/current/fundamentals/run-command/#command-example
       :id: rust

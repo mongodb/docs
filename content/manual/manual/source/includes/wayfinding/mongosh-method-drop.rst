@@ -40,8 +40,8 @@
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/kotlin/coroutine/current/fundamentals/databases-collections/#drop-a-collection
       :id: kotlin-sync
 
-   .. wayfinding-option:: https://www.rubydoc.info/gems/mongoid/2.8.1/Mongoid/Collection#drop-instance_method
-      :id: mongoid
+   .. wayfinding-option:: https://www.mongodb.com/docs/ruby-driver/current/databases-collection/#delete-a-collection
+      :id: ruby
 
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/rust/current/fundamentals/database-collection/#drop-a-database
       :id: rust
