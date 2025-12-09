@@ -59,6 +59,11 @@ const tocData: TocItem[] = [
                     url: '/docs/atlas/atlas-stream-processing/s3-private-link-connection',
                   },
                   {
+                    label: 'Google Cloud Private Link Connections',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-stream-processing/gcp-private-link-connection',
+                  },
+                  {
                     label: 'Manage VPC Connections',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/atlas-stream-processing/manage-vpc-peering-connections',
