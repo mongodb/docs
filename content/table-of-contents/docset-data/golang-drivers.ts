@@ -402,7 +402,7 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: 'Third Party Integrations',
+        label: 'Third-Party Integrations',
         contentSite: 'golang',
         collapsible: true,
         versions: { excludes: outdatedVersions },
