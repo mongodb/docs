@@ -402,6 +402,19 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: 'Third Party Integrations',
+        contentSite: 'golang',
+        collapsible: true,
+        versions: { excludes: outdatedVersions },
+        items: [
+          {
+            label: 'Vector Search and AWS Bedrock',
+            contentSite: 'golang',
+            url: '/docs/drivers/go/:version/integrations/vector-search-bedrock',
+          },
+        ],
+      },
+      {
         label: 'Reference',
         contentSite: 'golang',
         collapsible: true,
@@ -541,7 +554,7 @@ const tocData: TocItem[] = [
           {
             label: 'Bulk Operations',
             contentSite: 'golang',
-            url: '/docs/drivers/go/:version/usage-examples/bulkWrite',
+            url: '/docs/drivers/go/:version/usage-examples/bulk',
           },
           {
             label: 'Open a Change Stream',
