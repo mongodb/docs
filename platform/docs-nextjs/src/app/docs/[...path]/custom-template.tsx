@@ -7,6 +7,7 @@ import type { Environments } from '@/utils/env-config';
 import { UnifiedSidenav } from '@/components/unified-sidenav/UnifiedSidenav';
 import type { BaseTemplateProps } from '@/components/templates';
 import {
+  ChangelogTemplate,
   DocumentTemplate,
   LandingTemplate,
   OpenAPITemplate,
@@ -18,8 +19,8 @@ import {
 import ActionBar from '@/components/action-bar';
 import layoutStyles from '@/app/layout.module.scss';
 import ProductLandingTemplate from '@/components/templates/product-landing';
-import ChangelogTemplate from '@/components/templates/changelog';
 import type { PageTemplateType } from '@/types/ast';
+import type { ServerSideChangelogData } from '@/types/openapi';
 
 type TemplateComponent = React.ComponentType<BaseTemplateProps>;
 
@@ -79,10 +80,19 @@ interface CustomTemplateProps {
   docsets: Docset[];
   metadata?: RemoteMetadata;
   assets: ImageContextType;
+  changelogData?: ServerSideChangelogData;
   env: Environments;
 }
 
-export const CustomTemplate = ({ cookies, pageDoc, metadata, assets, docsets, env }: CustomTemplateProps) => {
+export const CustomTemplate = ({
+  cookies,
+  pageDoc,
+  metadata,
+  assets,
+  docsets,
+  changelogData,
+  env,
+}: CustomTemplateProps) => {
   const template = pageDoc.ast.options?.template || 'document';
   const { Template, renderSidenav } = getTemplate(pageDoc.ast.options?.template || 'document');
 
@@ -94,6 +104,7 @@ export const CustomTemplate = ({ cookies, pageDoc, metadata, assets, docsets, en
       assets={assets}
       docsets={docsets}
       env={env}
+      changelogData={changelogData}
       template={template}
     >
       {renderSidenav && <UnifiedSidenav />}

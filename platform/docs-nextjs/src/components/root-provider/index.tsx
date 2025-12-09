@@ -22,6 +22,8 @@ import type { Environments } from '@/utils/env-config';
 import { SidenavContextProvider } from '@/context/sidenav-context';
 import { UnifiedTocProvider } from '@/context/unified-toc-context';
 import { CookiesProvider } from '@/context/cookies-context';
+import { ChangelogDataProvider } from '@/context/changelog-context';
+import type { ServerSideChangelogData } from '@/types/openapi';
 import { ChatbotProvider } from '@/context/chatbot-context';
 
 const getPageSlug = (fileName: ASTDocument['filename']) => {
@@ -36,10 +38,21 @@ interface RootProviderProps {
   docsets: Docset[];
   assets: ImageContextType;
   env: Environments;
+  changelogData?: ServerSideChangelogData;
   template: PageTemplateType;
 }
 
-const RootProvider = ({ cookies, children, metadata, page, assets, docsets, env, template }: RootProviderProps) => {
+const RootProvider = ({
+  cookies,
+  children,
+  metadata,
+  page,
+  assets,
+  docsets,
+  env,
+  template,
+  changelogData,
+}: RootProviderProps) => {
   const pageNodes = page.ast.children || [];
   const headingNodes = page.ast.options?.headings || [];
 
@@ -63,7 +76,9 @@ const RootProvider = ({ cookies, children, metadata, page, assets, docsets, env,
                     <TabProvider selectors={page.ast.options?.selectors} defaultTabs={page.ast.options?.default_tabs}>
                       <InstruqtProvider hasLabDrawer={!!page.ast.options?.instruqt}>
                         <ImageContextProvider value={assets}>
-                          <ChatbotProvider>{children}</ChatbotProvider>
+                          <ChatbotProvider>
+                            <ChangelogDataProvider changelogData={changelogData}>{children}</ChangelogDataProvider>
+                          </ChatbotProvider>
                         </ImageContextProvider>
                       </InstruqtProvider>
                     </TabProvider>

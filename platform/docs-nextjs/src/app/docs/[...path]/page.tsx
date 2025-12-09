@@ -10,7 +10,8 @@ import { CustomTemplate } from './custom-template';
 import { cookies } from 'next/headers';
 import envConfig from '@/utils/env-config';
 import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
-import NotFound from './not-found';
+import type { ServerSideChangelogData } from '@/types/openapi';
+import { getChangelogData } from '@/services/db/openapi';
 
 interface PageProps {
   params: {
@@ -35,6 +36,11 @@ export default async function Page({ params: { path } }: PageProps) {
   ]);
   const env = envConfig.DB_ENV;
 
+  let changelogData: ServerSideChangelogData | undefined;
+  if (pageDoc?.ast?.options?.template === 'changelog') {
+    changelogData = await getChangelogData();
+  }
+
   if (pageDoc && metadata) {
     // Get locale links with custom className for Smartling
     // NOTE: this is done manual vs within generateMetadata for Smartling no-translate classes
@@ -49,6 +55,7 @@ export default async function Page({ params: { path } }: PageProps) {
           metadata={metadata}
           assets={assetMap}
           docsets={docsets}
+          changelogData={changelogData}
           env={env}
         />
       </>

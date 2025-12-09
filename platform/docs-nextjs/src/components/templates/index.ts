@@ -8,7 +8,7 @@ import FeatureNotAvailableTemplate from './feature-not-available';
 import OpenAPITemplate from './openapi';
 import type { Root } from '@/types/ast';
 // import ProductLandingTemplate from './product-landing';
-// import ChangelogTemplate from './changelog';
+import ChangelogTemplate from './changelog';
 
 export type BaseTemplateProps = {
   children: ReactNode;
@@ -26,5 +26,5 @@ export {
   FeatureNotAvailableTemplate,
   OpenAPITemplate,
   // ProductLandingTemplate,
-  // ChangelogTemplate,
+  ChangelogTemplate,
 };

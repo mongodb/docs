@@ -1,4 +1,4 @@
-const ENVIRONMENT_VALUES = ['production', 'dotcomprd', 'dotcomstg', 'dev'] as const;
+const ENVIRONMENT_VALUES = ['production', 'dotcomprd', 'dotcomstg', 'dev', 'development'] as const;
 
 export type Environments = (typeof ENVIRONMENT_VALUES)[number];
 

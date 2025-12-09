@@ -141,6 +141,7 @@ import Root, { type RootProps } from '@/components/root';
 import Figure, { type FigureProps } from '@/components/figure';
 import ComposableContent, { type ComposableContentProps } from '@/components/composable-tutorial/composable-content';
 import ComposableTutorial, { type ComposableTutorialProps } from '@/components/composable-tutorial';
+import OpenAPIChangelog from '../open-api-changelog';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -255,7 +256,7 @@ const getComponent = (() => {
         literalinclude: Include as React.ComponentType<SupportedComponentProps>,
         // 'method-selector': MethodSelector,
         only: Cond as React.ComponentType<SupportedComponentProps>,
-        // 'openapi-changelog': OpenAPIChangelog,
+        'openapi-changelog': OpenAPIChangelog as React.ComponentType<SupportedComponentProps>,
         paragraph: Paragraph as React.ComponentType<SupportedComponentProps>,
         procedure: Procedure as React.ComponentType<SupportedComponentProps>,
         ref_role: RefRole as React.ComponentType<SupportedComponentProps>,
@@ -501,6 +502,8 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('heading')) {
     const headingNode = nodeData as HeadingNode;
     return <ComponentType nodeChildren={headingNode.children} id={headingNode.id} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('openapi-changelog')) {
+    return <OpenAPIChangelog />;
   } else if (ComponentType === getComponent('text')) {
     const textNode = nodeData as TextNode;
     return <ComponentType value={textNode.value} />;
