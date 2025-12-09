@@ -246,7 +246,9 @@ public static class AggregationBuilders
                 group: g => new
                 {
                     Rating = g.Key,
-                    TotalRuntime = g.Sum(m => m.Runtime)
+                    TotalRuntime = g.Sum(m => m.Runtime),
+                    MedianRuntime = g.Select(m => m.Runtime).Median(),
+                    NinetiethPercentileRuntime = g.Select(m => m.Runtime).Percentile(new[] { 0.9 })
                 }
             );
         // end group
@@ -407,6 +409,19 @@ public static class AggregationBuilders
                     ),
                     TemperatureAvg = o.Average(
                         w => w.Temperature, RangeWindow.Create(
+                            RangeWindow.Months(-1),
+                            RangeWindow.Current)
+                    ),
+                    MedianTemperature = o.Median(
+                        w => w.Temperature,
+                        RangeWindow.Create(
+                            RangeWindow.Months(-1),
+                            RangeWindow.Current)
+                    ),
+                    NinetiethPercentileRainfall = o.Percentile(
+                        w => w.Rainfall,
+                        new[] { 0.9 },
+                        RangeWindow.Create(
                             RangeWindow.Months(-1),
                             RangeWindow.Current)
                     )
