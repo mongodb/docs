@@ -8,6 +8,7 @@ use App\Models\Movie;
 use Illuminate\Support\Facades\DB;
 use MongoDB\Builder\Query;
 use MongoDB\Builder\Search;
+use MongoDB\Collection;
 use MongoDB\Driver\Exception\ServerException;
 use MongoDB\Laravel\Schema\Builder;
 use MongoDB\Laravel\Tests\TestCase;
@@ -18,6 +19,7 @@ use function mt_getrandmax;
 use function rand;
 use function range;
 use function srand;
+use function hrtime;
 use function usleep;
 
 #[Group('atlas-search')]
@@ -32,6 +34,7 @@ class AtlasSearchTest extends TestCase
         parent::setUp();
 
         $moviesCollection = DB::connection('mongodb')->getCollection('movies');
+        self::assertInstanceOf(Collection::class, $moviesCollection);
         $moviesCollection->drop();
 
         Movie::insert([
@@ -49,7 +52,7 @@ class AtlasSearchTest extends TestCase
             ['title' => 'D', 'plot' => 'Stranded on a distant planet, astronauts must repair their ship before supplies run out.'],
         ]));
 
-        $moviesCollection = DB::connection('mongodb')->getCollection('movies');
+        $this->waitForSearchIndexesDropped($moviesCollection);
 
         try {
             $moviesCollection->createSearchIndex([
@@ -82,16 +85,7 @@ class AtlasSearchTest extends TestCase
             throw $e;
         }
 
-        // Waits for the index to be ready
-        do {
-            $ready = true;
-            usleep(10_000);
-            foreach ($moviesCollection->listSearchIndexes() as $index) {
-                if ($index['status'] !== 'READY') {
-                    $ready = false;
-                }
-            }
-        } while (! $ready);
+        $this->waitForSearchIndexesReady($moviesCollection);
     }
 
     /**
@@ -155,5 +149,40 @@ class AtlasSearchTest extends TestCase
         }
 
         return $items;
+    }
+
+    /**
+     * Waits for the search index created in the previous test to be deleted
+     */
+    public function waitForSearchIndexesDropped(Collection $collection)
+    {
+        $timeout = hrtime()[0] + 30;
+        // Waits for the search index created in the previous test to be deleted
+        while ($collection->listSearchIndexes()->count()) {
+            if (hrtime()[0] > $timeout) {
+                throw new RuntimeException('Timed out waiting for search indexes to be dropped');
+            }
+
+            usleep(1000);
+        }
+    }
+
+    /**
+     * Waits for all search indexes to be ready
+     */
+    public function waitForSearchIndexesReady(Collection $collection)
+    {
+        $timeout = hrtime()[0] + 30;
+        do {
+            if (hrtime()[0] > $timeout) {
+                throw new RuntimeException('Timed out waiting for search indexes to be ready');
+            }
+
+            usleep(1000);
+            $ready = true;
+            foreach ($collection->listSearchIndexes() as $index) {
+                $ready = $ready && $index['queryable'];
+            }
+        } while (! $ready);
     }
 }
