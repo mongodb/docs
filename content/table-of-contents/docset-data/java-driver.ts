@@ -680,11 +680,13 @@ const tocData: TocItem[] = [
         contentSite: 'java',
         collapsible: true,
         url: '/docs/drivers/java/sync/:version/integrations',
+        versions: { excludes: outdatedVersions },
         items: [
           {
             label: 'Spring Data MongoDB',
             contentSite: 'java',
             url: '/docs/drivers/java/sync/:version/integrations/spring-data-integration',
+            versions: { excludes: outdatedVersions },
           },
         ],
       },
