@@ -79,17 +79,27 @@ When you perform a logical initial sync, MongoDB:
    database and inserts all data into its own copies of these 
    collections.
 
-#. Builds all collection indexes as the documents are copied for each 
-   collection.
-   
-#. Pulls newly added oplog records during the data copy. Ensure that the 
-   |destin| has enough disk space in the ``local`` 
-   database to temporarily store these oplog records for the duration of 
-   this data copy stage.
+#. In parallel with the data clone, ``mongod`` builds all collection indexes as 
+   it copies all the documents for each collection.
+
+#. Applies oplog records that buffered during the data copy.
 
 #. Applies all changes to the data set. Using the oplog from the
    |source|, the :binary:`~bin.mongod` updates its data set to reflect 
    the current state of the replica set.
+
+.. important::
+
+   * During steps 1 and 2, the ``mongod`` pulls newly added oplog records and
+     stores them in a temporary collection in the ``local`` database. Ensure that
+     the target member has enough disk space in the ``local`` database to temporarily
+     store these oplog records for the duration of this data copy stage. 
+
+   * During steps 3 and 4, the syncing node checks for continuity of operations 
+     against the source node. If a gap is found, restart the initial sync from 
+     the beginning. To avoid this, make sure that the size of the oplog provisioned
+     provides enough of an oplog window to cover the time it takes for steps 3
+     and 4 to complete.
 
 When the initial sync finishes, the member transitions from
 :replstate:`STARTUP2` to :replstate:`SECONDARY`.
