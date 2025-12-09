@@ -14,7 +14,8 @@ string:
        .. versionadded:: 8.3
 
    * - BinData
-     - Returns the :bsontype:`BinData <Binary>` as a string.
+     - If the :bsontype:`BinData <Binary>` is a UUID, returns the UUID as a
+       string. Otherwise, returns the base64 encoded string value. 
    
    * - Boolean
      - Returns the Boolean value as a string.
