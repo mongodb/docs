@@ -47,40 +47,66 @@ the {+odm-short+} connects to MongoDB and how to behave while connected.
 Parts of a Connection URI
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following figure explains each part of a sample connection URI:
+A connection string includes the following components:
 
-.. figure:: /includes/figures/connection_uri_parts.png
-   :alt: Parts of a connection URI
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
 
-In this connection URI, ``mongodb+srv`` is the protocol, which uses the
-:manual:`DNS Seed List Connection Format </reference/connection-string/#dns-seed-list-connection-format>`
-for greater flexibility in your deployment and the ability to change the
-servers in rotation without reconfiguring clients.
+   * - Component
+     - Description
 
-If the machine that hosts your MongoDB deployment does not support this
-feature, use protocol for the
-:manual:`Standard Connection String Format </reference/connection-string/#std-label-connections-standard-connection-string-format>`
-instead.
+   * - ``mongodb://`` or ``mongodb+srv://``
+     - Required. A prefix that identifies the URI as a string in the
+       :manual:`standard connection format </reference/connection-string-formats/#standard-connection-string-format>`
+       (``mongodb://``) or in the :manual:`SRV connection format </reference/connection-string-formats/#srv-connection-format>`
+       (``mongodb+srv://``).
 
-If you use a password-based authentication, the part of the connection
-string after the protocol contains your username and password. Replace the
-placeholder for ``user`` with your username and ``pass`` with your password.
-If you use an authentication mechanism that does not require a username
-and password, omit this part of the connection URI.
+       For more information, see :manual:`Connection String Formats </reference/connection-string-formats>`.
 
-The part of the connection string after the credentials specifies your MongoDB
-instance's hostname or IP address and port. The preceding example uses
-``sample.host`` as the hostname and ``27017`` as the port. Replace these values
-to point to your MongoDB instance.
+   * - ``username:password``
+     - Optional. Specifies your database username and password for authentication using
+       the format ``<username>:<password>``. 
+       
+       Omit this section if your
+       deployment does not require authentication.
 
-The last part of the connection string specifies connection and authentication
-options. In the example, we set the following connection options and values:
+   * - ``host[:port]``
 
-- ``maxPoolSize=20``
-- ``w=majority``
+     - Required. The host and optional port number where MongoDB is running. If you don't
+       include the port number, the driver uses the default port, ``27017``.
 
-To learn more about connection options, see
-:ref:`laravel-fundamentals-connection-options`.
+       Note that specifying the port number is only supported when using the 
+       :manual:`standard connection format </reference/connection-string-formats/#standard-connection-string-format>`.
+       If you are using the :manual:`SRV connection format </reference/connection-string-formats/#srv-connection-format>`,
+       omit the port number.
+
+   * - ``/defaultauthdb``
+     
+     - Optional. The authentication database to use if the
+       connection string includes ``username:password@``
+       authentication credentials but not the ``authSource`` option. If you don't include 
+       this component, the client authenticates the user against the ``admin`` database.
+
+       Can also be the application database if and only if the ``database`` option is
+       not specified in the :ref:`database configuration array <laravel-database-config>`.
+
+   * - ``?<options>``
+
+     - Optional. A query string that specifies connection-specific
+       options as ``<name>=<value>`` pairs. See
+       the :ref:`laravel-fundamentals-connection-options` guide for a full 
+       description of these options.
+
+The following example shows a complete connection URI that specifies the
+protocol, credentials, hostname and port, and connection options:
+
+.. code-block::
+
+   mongodb://myUser:myPass123@localhost:27017/?w=majority&retryWrites=true
+
+For more information on connection strings, see :manual:`Connection Strings </reference/connection-string>`
+in the {+server-docs-name+} manual.
 
 .. _laravel-database-config:
 
@@ -182,10 +208,9 @@ in the ``connections`` array item:
    'connections' => [
        'mongodb' => [
            'driver' => 'mongodb',
-           'dsn' => 'mongodb+srv//myUser:myPass123@sample.host:27017/',
+           'dsn' => 'mongodb+srv//myUser:myPass123@sample.host/',
            'database' => 'sample_mflix',
            'options' => [
-               'maxPoolSize' => 20,
                'w' => 'majority',
            ],
            'driver_options' => [
