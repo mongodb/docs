@@ -20,9 +20,9 @@
       configuring different types of data sources, see 
       :ref:`config-adf`.
 
-         If you want to configure data from a |service| cluster, you 
-         must use MongoDB version 5.0 or greater for that cluster to 
-         take advantage of {+asql+}.
+      If you want to configure data from a |service| cluster, you 
+      must use MongoDB version 5.0 or greater for that cluster to 
+      take advantage of {+asql+}.
 
       a. Click :guilabel:`Add Sample Data`.
       

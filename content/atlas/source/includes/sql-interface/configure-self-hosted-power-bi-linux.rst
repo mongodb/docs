@@ -99,13 +99,13 @@ Set Up On-Premise SQL Interface for Power BI on Linux
 
       10. From Power BI Desktop, publish your created report to Power BI Service.
 
-      11. In Power BI Service, verify your gateway is available and
-         online in "Manage connections and gateways".
+      11. In Power BI Service, verify your gateway is available and online in 
+          "Manage connections and gateways".
 
       12. To set up scheduled data refreshes, navigate to your Power BI Service 
-         workspace menu and configure the semantic model connection settings, 
-         including "Gateway connection" and "Data Source Credentials" with your 
-         authentication credentials for your MongoDB database.
+          workspace menu and configure the semantic model connection settings, 
+          including "Gateway connection" and "Data Source Credentials" with your 
+          authentication credentials for your MongoDB database.
 
       13. Return to the Power BI workspace and refresh the semantic model to ensure the
-         on-premises data gateway is working properly.
+          on-premises data gateway is working properly.

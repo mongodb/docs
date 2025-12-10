@@ -115,130 +115,14 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
-        label: 'AWS S3 Bucket',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/data-federation/config/config-aws-s3',
-        collapsible: true,
-        items: [
-          {
-            label: 'Deploy',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/data-federation/deployment/deploy-s3',
-          },
-          {
-            label: 'Generate Collections',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/data-federation/config/aws-gen-wildcard-collections',
-          },
-          {
-            label: 'Define Path for S3 Data',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/data-federation/config/path-syntax-examples',
-          },
-          {
-            label: 'Optimize Queries',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/data-federation/admin/optimize-query-performance',
-          },
-          {
-            label: 'Configure S3 Encryption',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/data-federation/supported-unsupported/encryption',
-          },
-          {
-            label: 'Data Formats',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/data-federation/supported-unsupported/supported-data-formats',
-            collapsible: true,
-            items: [
-              {
-                label: 'Parquet',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/data-federation/supported-unsupported/data-formats/parquet-data-files',
-              },
-              {
-                label: 'CSV and TSV',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/data-federation/supported-unsupported/data-formats/csv-tsv-data-files',
-              },
-            ],
-          },
-          {
-            label: 'Limitations',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/data-federation/supported-unsupported/aws-s3-limitations',
-          },
-        ],
+        label: "Deploy a Data Store",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/deployment/deploy-adf",
       },
       {
-        label: 'Azure Blob Storage',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/data-federation/config/config-azure-blob',
-        collapsible: true,
-        items: [
-          {
-            label: 'Deploy',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/data-federation/deployment/deploy-azure',
-          },
-        ],
-      },
-      {
-        label: 'Google Cloud Storage',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/data-federation/config/config-gcp-bucket',
-        collapsible: true,
-        items: [
-          {
-            label: 'Deploy',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/data-federation/deployment/deploy-gcp',
-          },
-        ],
-      },
-      {
-        label: 'Atlas Cluster',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/data-federation/config/config-atlas-cluster',
-        collapsible: true,
-        items: [
-          {
-            label: 'Deploy',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/data-federation/deployment/deploy-atlas',
-          },
-          {
-            label: 'Generate Collections',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/data-federation/config/atlas-gen-wildcard-collections',
-          },
-        ],
-      },
-      {
-        label: 'HTTP URL',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/data-federation/config/config-http-endpoint',
-        collapsible: true,
-        items: [
-          {
-            label: 'Deploy',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/data-federation/deployment/deploy-http',
-          },
-        ],
-      },
-      {
-        label: 'Atlas Online Archive',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/data-federation/config/config-oa',
-        collapsible: true,
-        items: [
-          {
-            label: 'Create from the UI',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/data-federation/deployment/deploy-oa',
-          },
-        ],
+        label: "Define a Configuration File",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/config/adf-config-file-formats",
       },
       {
         label: 'Use Partition Attributes',
@@ -246,29 +130,32 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/data-federation/supported-unsupported/supported-partition-attributes',
       },
       {
-        label: "Supported Data Formats",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/data-federation/supported-unsupported/supported-data-formats",
+        label: 'Supported Data Formats',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/data-federation/supported-unsupported/supported-data-formats',
+        collapsible: true,
+        items: [
+            {
+              label: 'Parquet',
+              contentSite: 'cloud-docs',
+              url: '/docs/atlas/data-federation/supported-unsupported/data-formats/parquet-data-files',
+            },
+            {
+              label: 'CSV and TSV',
+              contentSite: 'cloud-docs',
+              url: '/docs/atlas/data-federation/supported-unsupported/data-formats/csv-tsv-data-files',
+            },
+            ],
+          },
+      {
+        label: 'Optimize Queries',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/data-federation/admin/optimize-query-performance',
       },
       {
-        label: "File Path Synthax",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/data-federation/config/path-syntax-examples",
-      },
-      {
-        label: "AWS S3 Encryption",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/data-federation/supported-unsupported/adf-encryption",
-      },
-      {
-        label: "AWS S3 Limitations",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/data-federation/supported-unsupported/adf-limitations",
-      },
-      {
-        label: "Supported Data Formats",
-        contentSite: "cloud-docs",
-        url: "/docs/atlas/data-federation/supported-unsupported/supported-data-formats",
+        label: 'Generate Collections',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/data-federation/config/adfa-generate-wildcard-collection',
       },
       {
         label: "File Path Synthax",
