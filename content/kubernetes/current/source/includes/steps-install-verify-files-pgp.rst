@@ -1,7 +1,7 @@
 .. procedure::
    :style: normal
 
-   .. step:: Download the MongoDB installation file.
+   .. step:: Download the MongoDB kubectl plugin file.
       
       To download the ``1.0.0`` release using Darwin with an ARM64 architecture, run the following command:
    
@@ -16,7 +16,7 @@
          
             Saving : « kubectl-mongodb_1.0.0_darwin_arm64.tar.gz »
 
-   .. step:: Unzip the MongoDB installation file.
+   .. step:: Unzip the MongoDB kubectl plugin file.
 
       .. io-code-block::
          :copyable: true
@@ -27,10 +27,10 @@
 
          .. output::
          
-            x kubectl-mongodb.sig
+            x kubectl-mongodb.bundle
             x kubectl-mongodb     
    
-   .. step:: Verify the MongoDB installation file.
+   .. step:: Verify the MongoDB kubectl plugin file.
       
       Run the following command:
 
@@ -39,7 +39,7 @@
 
          .. input::
          
-            cosign verify-blob --key mongodb-enterprise-kubernetes-operator.pem --signature kubectl-mongodb.sig kubectl-mongodb
+            cosign verify-blob --key mongodb-enterprise-kubernetes-operator.pem --insecure-ignore-tlog --bundle kubectl-mongodb.bundle kubectl-mongodb
 
          .. output::
          
