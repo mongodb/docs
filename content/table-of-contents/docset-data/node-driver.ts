@@ -35,7 +35,7 @@ const tocData: TocItem[] = [
           {
             label: 'Connection Guide',
             contentSite: 'node',
-            url: '/docs/drivers/node/:version/connect/connection',
+            url: '/docs/drivers/node/:version/connect/connect',
             versions: { includes: outdatedVersions },
           },
           {
@@ -63,7 +63,6 @@ const tocData: TocItem[] = [
                 label: 'Connection Pools',
                 contentSite: 'node',
                 url: '/docs/drivers/node/:version/connect/connection-options/connection-pools',
-                versions: { excludes: outdatedVersions },
               },
             ],
           },
@@ -150,7 +149,6 @@ const tocData: TocItem[] = [
                 label: 'Specify a Query',
                 contentSite: 'node',
                 url: '/docs/drivers/node/:version/crud/query/query-document',
-                versions: { excludes: outdatedVersions },
               },
               {
                 label: 'Count Documents',
@@ -292,6 +290,38 @@ const tocData: TocItem[] = [
             label: 'BSON',
             contentSite: 'node',
             url: '/docs/drivers/node/:version/data-formats/bson',
+            versions: { excludes: outdatedVersions },
+            collapsible: true,
+            items: [
+              {
+                label: 'Undefined Values',
+                contentSite: 'node',
+                url: '/docs/drivers/node/:version/data-formats/bson/undefined-values',
+              },
+              {
+                label: 'UTF-8 Validation',
+                contentSite: 'node',
+                url: '/docs/drivers/node/:version/data-formats/bson/utf8-validation',
+              },
+            ],
+          },
+          {
+            label: 'BSON',
+            contentSite: 'node',
+            versions: { includes: outdatedVersions },
+            collapsible: true,
+            items: [
+              {
+                label: 'Undefined Values',
+                contentSite: 'node',
+                url: '/docs/drivers/node/:version/data-formats/bson/undefined-values',
+              },
+              {
+                label: 'UTF-8 Validation',
+                contentSite: 'node',
+                url: '/docs/drivers/node/:version/data-formats/bson/utf8-validation',
+              },
+            ],
           },
           {
             label: 'Extended JSON',
@@ -516,7 +546,6 @@ const tocData: TocItem[] = [
           {
             label: 'Update & Replace',
             contentSite: 'node',
-            url: '/docs/drivers/node/:version/usage-examples/update-and-replace-operations',
             collapsible: true,
             items: [
               {
@@ -563,11 +592,6 @@ const tocData: TocItem[] = [
             label: 'Bulk Operations',
             contentSite: 'node',
             url: '/docs/drivers/node/:version/usage-examples/bulkWrite',
-          },
-          {
-            label: 'Perform a Transaction',
-            contentSite: 'node',
-            url: '/docs/drivers/node/:version/usage-examples/transactions',
           },
         ],
       },
