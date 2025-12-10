@@ -1,8 +1,8 @@
-.. setting:: spec.podSpec.podTemplate.affinity.podAntiAffinity
+.. setting:: spec.podSpec.podTemplate.spec.affinity.podAntiAffinity
 
-   *Type*: string
+   *Type*: Struct
 
-   *Default*: ``""``
+   *Default*: kubernetes.io/hostname
 
    
    Sets a |k8s-rule| to spread |k8s-pods| hosting |k8s-mdbrsc|

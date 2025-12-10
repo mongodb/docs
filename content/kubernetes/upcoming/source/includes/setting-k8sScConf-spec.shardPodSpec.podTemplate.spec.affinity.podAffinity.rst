@@ -1,4 +1,4 @@
-.. setting:: spec.shardSpecificPodSpec.podTemplate.affinity.podAffinity
+.. setting:: spec.shardPodSpec.podTemplate.spec.affinity.podAffinity
 
    *Type*: string
 

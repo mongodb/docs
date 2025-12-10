@@ -1,4 +1,4 @@
-.. setting:: spec.configSrvPodSpec.podTemplate.affinity.podAntiAffinity
+.. setting:: spec.mongosPodSpec.podTemplate.spec.affinity.podAntiAffinity
 
    *Type*: string
 

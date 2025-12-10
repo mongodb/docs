@@ -1,6 +1,6 @@
-.. setting:: spec.podSpec.podTemplate.affinity.podAntiAffinity
+.. setting:: spec.shardSpecificPodSpec.podTemplate.spec.affinity.podAntiAffinity
 
-   *Type*: Struct
+   *Type*: string
 
    *Default*: kubernetes.io/hostname
 
@@ -9,3 +9,4 @@
    to different locations. A location can be a single node, rack, or
    region. By default, |k8s-op-short| tries to spread pods across
    different nodes.
+   

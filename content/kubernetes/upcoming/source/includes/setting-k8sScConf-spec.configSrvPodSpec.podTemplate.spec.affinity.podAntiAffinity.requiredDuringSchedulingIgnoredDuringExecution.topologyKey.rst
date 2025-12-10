@@ -1,4 +1,4 @@
-.. setting:: spec.shardPodSpec.podTemplate.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey
+.. setting:: spec.configSrvPodSpec.podTemplate.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey
 
    *Type*: string
 

@@ -1,4 +1,4 @@
-.. setting:: spec.configSrvPodSpec.podTemplate.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey
+.. setting:: spec.podSpec.podTemplate.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey
 
    *Type*: string
 
@@ -10,3 +10,4 @@
    is used to determine which topology
    :k8sdocs:`domain <concepts/scheduling-eviction/topology-spread-constraints/>`
    a node belongs to.
+   

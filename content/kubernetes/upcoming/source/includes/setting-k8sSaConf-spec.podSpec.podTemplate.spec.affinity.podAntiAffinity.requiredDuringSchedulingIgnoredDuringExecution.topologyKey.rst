@@ -1,6 +1,6 @@
-.. setting:: spec.podSpec.podTemplate.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey
+.. setting:: spec.podSpec.podTemplate.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey
 
-   *Type*: string
+   *Type*: Struct
 
    *Default*: kubernetes.io/hostname
 

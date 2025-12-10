@@ -1,4 +1,4 @@
-.. setting:: spec.podSpec.podTemplate.affinity.nodeAffinity
+.. setting:: spec.podSpec.podTemplate.spec.affinity.nodeAffinity
 
    *Type*: Struct
 

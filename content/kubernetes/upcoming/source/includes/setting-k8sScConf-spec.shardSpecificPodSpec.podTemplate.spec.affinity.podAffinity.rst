@@ -1,6 +1,6 @@
-.. setting:: spec.configSrvPodSpec.podTemplate.affinity.podAffinity
+.. setting:: spec.shardSpecificPodSpec.podTemplate.spec.affinity.podAffinity
 
-   *Type*: collection
+   *Type*: string
 
    |k8s| |k8s-rule| to determine whether multiple |k8s-mdbrsc| |k8s-pods|
    must be co-located with other |k8s-pods|. To learn more about the use cases,

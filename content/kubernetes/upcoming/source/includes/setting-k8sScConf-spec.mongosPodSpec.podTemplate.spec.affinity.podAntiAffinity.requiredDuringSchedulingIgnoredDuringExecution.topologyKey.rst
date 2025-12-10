@@ -1,4 +1,4 @@
-.. setting:: spec.mongosPodSpec.podTemplate.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey
+.. setting:: spec.mongosPodSpec.podTemplate.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey
 
    *Type*: string
 
