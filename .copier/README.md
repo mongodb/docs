@@ -1,8 +1,9 @@
 # Code Copier Workflows
 
-This directory contains workflow configurations for automatically copying code examples to destination repositories.
+This directory contains workflow configurations for automatically copying code examples to destination repositories. See [Copy Files Automatically to Another Repo](https://www.mongodb.com/docs/meta/grove/copy-files/) for the full documentation.
 
-The copier app is owned by the Dev Docs team. 
+The copier app is owned by the Dev Docs team ([source code](https://github.com/grove-platform/github-copier))
+
 
 ## Adding a New Workflow
 
@@ -19,8 +20,6 @@ To add a new workflow, create a new DOCSP Jira ticket with the component set to 
 You can optionally define *how* the copy is managed. Based on the workflow configuration: 
 - The copier creates a PR in the destination repository (**default**). You can set your own process for handling that PR, which may involve manual testing or review.
 - The copier commits directly to the destination repository **without a PR**. You may prefer this option if you want a fully automated workflow with no review at the destination repo. 
-
-Source Code: [Code Example Tooling Repository](https://github.com/mongodb/code-example-tooling)
 
 ## Basic Workflow Structure
 
