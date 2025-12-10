@@ -17,7 +17,7 @@ MongoDB MCP Server Usage Examples
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 2
+   :depth: 1
    :class: singlecol
 
 This page demonstrates how to use the MongoDB MCP Server through practical examples
@@ -1255,6 +1255,185 @@ Get recommendations for improving your database schema design and structure.
       - Implement pagination for array access
       - Use embedded documents with limits (e.g., max 100 items)
       - Consider denormalization for frequently accessed array elements
+
+.. _mcp-server-vector-search-examples:
+
+Vector Search
+-------------
+
+.. include:: /includes/note-vector-search-preview.rst
+
+The following examples demonstrate how to use the MongoDB MCP Server to work with
+:ref:`MongoDB Vector Search <avs-overview>`. To learn more about how the
+MCP Server works with vector search, see :ref:`mcp-vector-search-tools`.
+
+.. note::
+
+   To use automatic embedding generation, you must configure the MCP Server with a
+   :ref:`Voyage AI API key <mcp-voyage-api-key>`.
+
+Create and Manage Vector Search Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create, drop, and list vector search indexes for your collections.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: text
+
+      Create a vector search index on the sample_db.products collection 
+      for the embeddings field with 1024 dimensions 
+      using dot product similarity
+
+   .. output::
+      :language: text
+      :visible: false
+
+      I'll help you create a vector search index on the MongoDB collection. Let me first check the available MongoDB tools and then create the index.
+
+      Now I'll create the vector search index:
+
+        Ran ``create-index``
+
+      Vector search index created successfully! 
+      The index embeddings_vector_index has been created on the sample_db.products collection for the embeddings field with:
+
+      1024 dimensions
+      Dot product similarity
+      Note that vector search indexes can take some time to build. You can check the index status using the collection-indexes tool.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: text
+
+      Show me all vector search indexes on the sample_db.products collection
+
+   .. output::
+      :language: text
+      :visible: false
+
+      Ran ``collection-indexes``
+
+      The sample_db.products collection has 1 vector search index:
+
+      embeddings_vector_index
+
+      Type: vectorSearch
+      Status: READY ✓
+      Queryable: Yes
+      Field: embeddings
+      Dimensions: 2048
+      Similarity: dotProduct
+      Quantization: none
+      The index is ready and can be used for vector search queries.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: text
+
+      Drop the vector search index from the sample_db.products collection 
+
+   .. output::
+      :language: text
+      :visible: false
+
+      First, let me check what indexes exist on this collection to identify the vector search index.
+
+      I can see there's a vector search index named embeddings_vector_index on the collection. 
+      Now I need to activate the index management tools to drop it.
+
+        Ran ``drop-index``
+
+      Done! The vector search index embeddings_vector_index has been successfully dropped from the sample_db.products collection.
+
+Insert Documents with Automatic Embeddings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you configure a :ref:`Voyage AI API key <mcp-voyage-api-key>`, the MCP
+Server automatically generates embeddings when inserting documents. You can
+provide raw text values, and the server generates the embeddings for fields
+with vector search indexes.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: text
+
+      Insert documents into the sample_db database and products collection.
+      Use the voyage-3-large embedding model to generate 
+      vector embeddings from descriptions for the `embeddings` field.
+      
+      1. name: "Headphones", description: "Premium wireless noise-canceling headphones with 30-hour battery"
+      2. name: "Earbuds", description: "True wireless earbuds with active noise cancellation"
+      3. name: "Monitor", description: "24-inch 4K monitor with 1ms response time"
+      4. name: "Keyboard", description: "Mechanical keyboard with customizable RGB lighting"
+      5. name: "Mouse", description: "Wireless ergonomic mouse with programmable buttons"
+
+   .. output::
+      :language: text
+      :visible: false
+
+      I'll insert these documents with embeddings for their descriptions. 
+      Let me activate the necessary tools and generate embeddings.
+
+        Ran ``insert-many``
+
+      Successfully inserted 5 documents into sample_db.products:
+
+      Headphones - Premium wireless noise-canceling headphones with 30-hour battery
+      Earbuds - True wireless earbuds with active noise cancellation
+      Monitor - 24-inch 4K monitor with 1ms response time
+      Keyboard - Mechanical keyboard with customizable RGB lighting
+      Mouse - Wireless ergonomic mouse with programmable buttons
+
+      The documents have been inserted with their descriptions embedded in the embeddings field. 
+      When you perform vector searches using the $vectorSearch aggregation stage, the MCP server 
+      will automatically generate the proper vector embeddings from the text for comparison.
+
+Run a Vector Search Query
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you configure a :ref:`Voyage AI API key <mcp-voyage-api-key>`, the MCP
+Server automatically generates embeddings when running vector search queries. You
+can provide the raw text and the server automatically generates embeddings for
+the query.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: text
+
+      Run a vector search query on sample_db.products on the 'embeddings' field
+      using the vector search index to find products that I can use to listen to music. 
+
+   .. output::
+      :language: text
+      :visible: false
+
+      I'll search for products related to listening to music using vector search.
+
+      Ran ``aggregate``
+
+      Products for Listening to Music
+      1. Earbuds (Score: 0.77)
+
+         True wireless earbuds with active noise cancellation
+      
+      2. Headphones (Score: 0.77)
+
+         Premium wireless noise-canceling headphones with 30-hour battery
+         
+      These are the two most relevant products for listening to music in your database. 
+      Both scored highly on the semantic search and are specifically designed for audio listening, 
+      with the earbuds and headphones being the clear top matches.
 
 Next Steps
 ----------

@@ -150,25 +150,31 @@ The following table describes the database tools:
      - Description
 
    * - ``connect``
-     - Connects to a cluster.
+     - Connects to a MongoDB cluster.
 
    * - ``find``
-     - Runs a database query.
+     - Runs a MongoDB database query.
 
    * - ``aggregate``
-     - Runs an aggregation pipeline.
+     - Runs a MongoDB aggregation pipeline.
 
    * - ``count``
      - Returns the number of documents in a collection.
 
-   * - ``insert-one``
-     - Adds a single document to a collection.
-
    * - ``insert-many``
-     - Adds multiple documents to a collection.
+     - Adds documents to a collection. 
+       
+       If you specify a :ref:`Voyage AI API key
+       <mcp-voyage-api-key>` in your MCP configuration, 
+       the server can automatically generate vector embeddings from text
+       and include them in the inserted documents.
 
    * - ``create-index``
-     - Adds an index to a collection.
+     - Creates an index on a collection.
+       This tool supports creating :ref:`vector search indexes <mcp-vector-search-tools>`.
+
+   * - ``drop-index``
+     - Removes a :ref:`vector search index <mcp-vector-search-tools>` from a collection.
 
    * - ``update-one``
      - Modifies a single document in a collection.
@@ -179,11 +185,8 @@ The following table describes the database tools:
    * - ``rename-collection``
      - Changes the name of a collection.
 
-   * - ``delete-one``
-     - Removes a single document from a collection.
-
    * - ``delete-many``
-     - Removes multiple documents from a collection.
+     - Removes documents from a collection.
 
    * - ``drop-collection``
      - Deletes a collection from a database.
@@ -199,7 +202,8 @@ The following table describes the database tools:
      - Returns a list of collections in a database.
 
    * - ``collection-indexes``
-     - Returns information about collection indexes.
+     - Returns information about collection indexes, 
+       including :ref:`vector search indexes <mcp-vector-search-tools>`.
 
    * - ``collection-schema``
      - Returns collection :ref:`schema <schema-validation-overview>`
@@ -225,30 +229,108 @@ Tool Details
 For additional information about specific MCP tools, 
 see the following sections.
 
-Connecting without Atlas Connection String
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _mcp-vector-search-tools:
 
-If you configured the MCP server without specifying a connection string
-to an Atlas cluster, the ``atlas-connect-cluster`` tool
-creates a temporary :ref:`database user <mongodb-users>` 
-to establish connection to the cluster
-by using the configured Atlas API service account credentials.
+Vector Search Support
+~~~~~~~~~~~~~~~~~~~~~
 
-The temporary database user has the following characteristics:
+.. include:: /includes/note-vector-search-preview.rst
 
-- Randomly generated username and password.
-- Automatically expires after 12 hours.
-- Role assigned based on how you configured the MCP Server:
+The MongoDB MCP Server supports :ref:`MongoDB Vector Search
+<avs-overview>`. You can create and manage
+vector search indexes, generate embeddings, and run semantic search queries through
+natural language prompts. The following table summarizes key features.
 
-  - :atlasrole:`readAnyDatabase` if you enabled :ref:`read-only mode 
-    <mcp-server-configuration-read-only-mode>`
-    or disabled the ``create``, ``delete``, and ``update`` tool categories.
-  - :atlasrole:`readWriteAnyDatabase` if the server has full permissions.
+.. list-table::
+   :widths: 25 45 30
+   :header-rows: 1
 
-.. note:: 
+   * - Use Case
+     - Example Prompts
+     - Relevant Tools
 
-   User credentials are stored only in the MCP Server's
-   memory and are never returned to or exposed in the LLM context.
+   * - Manage indexes
+     - | ``Create a vector search index on the sample_db database and products collection``
+       |
+       | ``Show me all vector search indexes on the products collection``
+       |
+       | ``Drop the vector search index named vector_index``
+     - | ``create-index``
+       | ``collection-indexes``
+       | ``drop-index``
+
+   * - Insert documents with automatic embeddings
+     - | ``Insert these documents into the products collection and embed their descriptions``
+     - | ``insert-many``
+
+   * - Vector search queries
+     - | ``Search for documents semantically similar to this description``
+       |
+       | ``Find me related products filtered by price range``
+     - | ``aggregate``
+
+Use the following resources to learn more:
+
+- For detailed usage examples and sample outputs, see :ref:`mcp-server-vector-search-examples`.
+- To configure the MCP Server for vector search, see :ref:`mcp-vector-search-options`.
+- To learn more about vector search, see :ref:`avs-overview`.
+
+Index Management
+````````````````
+
+The following tools allow you to manage 
+:ref:`vector search indexes <avs-types-vector-search>`:
+
+- ``collection-indexes``: Lists all indexes on a collection, including vector search
+  indexes, and provides index status information.
+- ``create-index``: Creates a new vector search index on a collection.
+- ``drop-index``: Deletes a vector search index from a collection.
+
+.. note::
+
+   To update a vector search index, drop the existing index and create
+   a new one.
+
+Automatic Embedding Generation
+```````````````````````````````
+
+If you configure the MCP Server with a :ref:`Voyage AI API key
+<mcp-voyage-api-key>`, the server can automatically generate 
+embeddings in the following ways:
+
+- **Generate embeddings for documents**: 
+  Embeds text fields in documents when using the 
+  ``insert-many`` tool.
+- **Generates embeddings for queries**: Embeds the search query when 
+  running vector search queries with the ``aggregate`` tool. 
+  Specifically, the server generates embeddings for
+  the ``queryVector`` parameter in :pipeline:`$vectorSearch` aggregation queries. 
+
+The MCP Server supports the following Voyage AI embedding models:
+
+- ``voyage-3-large``
+- ``voyage-3.5``
+- ``voyage-3.5-lite``
+- ``voyage-code-3``
+
+To learn more about Voyage AI models, see the `Voyage AI documentation
+<https://docs.voyageai.com/docs/embeddings>`__.
+
+.. note::
+
+   By default, the MongoDB MCP Server validates that fields with vector search indexes
+   contain valid vector embeddings to prevent breaking vector search indexes.
+   To disable this behavior, set the ``disableEmbeddingsValidation`` option to ``true``.
+   To learn more, see :ref:`mcp-vector-search-options`.
+
+Considerations
+``````````````
+
+The MongoDB MCP Server supports pre-filtering vector search queries. 
+To learn more, see :ref:`vectorSearch-agg-pipeline-filter`.
+
+The MCP server does not support the ``quantization`` field for 
+vector search indexes.
 
 .. _mcp-pa-tool:
 
@@ -300,6 +382,31 @@ optimization opportunities by analyzing slow queries and suggesting improvements
      - :oas-bump-atlas-op:`schemaAdvice <listgroupclusterperformanceadvisorschemaadvice>`
 
 For detailed usage examples and sample outputs, see :ref:`mcp-server-performance-examples`.
+
+Connecting without Atlas Connection String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you configure the MCP server without specifying a connection string
+to an Atlas cluster, the ``atlas-connect-cluster`` tool
+creates a temporary :ref:`database user <mongodb-users>` 
+to establish connection to the cluster
+by using the configured Atlas API service account credentials.
+
+The temporary database user has the following characteristics:
+
+- Randomly generated username and password.
+- Automatically expires after 12 hours.
+- Role assigned based on how you configured the MCP Server:
+
+  - :atlasrole:`readAnyDatabase` if you enabled :ref:`read-only mode 
+    <mcp-server-configuration-read-only-mode>`
+    or disabled the ``create``, ``delete``, and ``update`` tool categories.
+  - :atlasrole:`readWriteAnyDatabase` if the server has full permissions.
+
+.. note:: 
+  
+   The MongoDB MCP Server stores user credentials in
+   memory only and never returns or exposes the credentials in the LLM context.
 
 Learn More
 ----------
