@@ -28,8 +28,8 @@ document identifiers from collections ``coll1`` and ``coll2``:
 .. code-block:: 
 
     mongosync \
-    --hotDocIDs {"db":"db1","collection":"coll1","ids":[{"_id":{"$oid":"doc1"}},{"_id":{"$oid":"6aa23c249cef3cd958e43785"}}]} \
-    --hotDocIDs {"db":"db2","collection":"coll2","ids":[{"_id":{"$oid":"70023c249cef3cd958e43269"}},{"_id":{"$oid":"7aa23c249cef3cd958e43785"}}]} \
+    --hotDocIDs '{"db":"db1","collection":"coll1","ids":[{"_id":{"$oid":"doc1"}},{"_id":{"$oid":"6aa23c249cef3cd958e43785"}}]}' \
+    --hotDocIDs '{"db":"db2","collection":"coll2","ids":[{"_id":{"$oid":"70023c249cef3cd958e43269"}},{"_id":{"$oid":"7aa23c249cef3cd958e43785"}}]}' \
     ... other CLI arguments ...
 
 Once started, you cannot remove a hot document identifer. If you set one 
