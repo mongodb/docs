@@ -57,6 +57,8 @@ The following example uses the ``unless`` clause to allow users to create
 Restrict IP Addresses
 ~~~~~~~~~~~~~~~~~~~~~~
 
+.. include:: /includes/fact-wildcard-ip.rst
+
 The following example prevents users from editing a project 
 from a wildcard IP (``0.0.0.0/0``):
 

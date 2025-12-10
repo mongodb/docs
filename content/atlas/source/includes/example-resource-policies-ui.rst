@@ -151,6 +151,8 @@ in the regions ``aws:us-east-1`` and ``aws:us-west-1``:
 Restrict IP Addresses
 ~~~~~~~~~~~~~~~~~~~~~
 
+.. include:: /includes/fact-wildcard-ip.rst
+
 The following example prevents users from editing a project 
 from a wildcard IP (``0.0.0.0/0``):
 

@@ -46,6 +46,8 @@
              Ensure that strong credentials (username and password) are
              used for all database users when allowing access from
              anywhere.
+
+             .. include:: /includes/fact-nested-wildcard-ip.rst
       
          * - Security Group ID (AWS Only)
       

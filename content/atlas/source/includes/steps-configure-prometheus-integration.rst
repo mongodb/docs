@@ -42,6 +42,8 @@
                 the network access to scrape metrics from your |service| clusters.
                 Ensure that ``0.0.0.0/0`` isn't on the list. Having this entry
                 disables the integration.
+
+                .. include:: /includes/fact-nested-wildcard-ip.rst
       
              b. In the :guilabel:`Choose Discovery API Target Type`
                 step in the {+atlas-ui+}, do one of the following tasks:
