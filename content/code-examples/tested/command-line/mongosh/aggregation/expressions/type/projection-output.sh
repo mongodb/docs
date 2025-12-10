@@ -1,0 +1,9 @@
+[
+   { _id: 0, "a" : "int" },
+   { _id: 1, "a" : "array" },
+   { _id: 2, "a" : "object" },
+   { _id: 3, "a" : "string" },
+   { _id: 4, "a" : "long" },
+   { _id: 5, "a" : "null" },
+   { _id: 6, "a" : "missing" }
+]
