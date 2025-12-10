@@ -11,7 +11,7 @@
      name: X.509 Certificates
      content: |
 
-       .. include:: /includes/steps-add-x509-user.rst
+       .. include::  /includes/steps-adf-add-self-managed-x509-user.rst
 
    - id: aws-iam
      name: AWS IAM

@@ -9,11 +9,6 @@ HTTP URL
 
 .. default-domain:: mongodb
 
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 2
-   :class: singlecol
 
 {+adf+} supports publicly accessible |url|\s as {+fdi+} stores. You 
 must define mappings in your {+fdi+} to your |http| data stores to run 

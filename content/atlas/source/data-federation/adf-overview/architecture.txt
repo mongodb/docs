@@ -1,0 +1,108 @@
+.. _data-federation-architecture:
+
+:orphan:
+
+==============================================
+{+adf+} Architecture  
+==============================================
+
+.. default-domain:: mongodb
+
+.. facet:: 
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: data plane
+   :description: Explore how Atlas Data Federation enables querying, transforming, and moving data across various sources within and outside MongoDB Atlas.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+{+adf+} adheres to the following principles:
+
+- **Secure Connections**: When using {+adf+}, {+fdi+}\s reside in
+  regional |vpc|\s. All data traffic to |service| clusters or cloud
+  storage use |tls| encryption, which is the primary form of
+  network security available with {+adf+}. If your {+fdi+} and data
+  source (|service| cluster, |s3|, Blob, or {+gcs+}) share the same
+  cloud provider, data traffic uses the cloud provider's network
+  infrastructure or the public internet, depending on the cloud
+  provider's capabilities. If they are on different cloud providers,
+  data traffic uses the public internet.
+- **Query Routing**: {+adf+} and {+fdi+}\s use a unified interface
+  that abstracts the underlying data sources to route queries across
+  multiple data sources. {+Fdi+}\s enable access to external data
+  sources by creating virtual collections to represent external data
+  in a MongoDB-like format. Logical databases group virtual collections
+  and connected cluster collections into unified namespaces for
+  seamless querying across diverse data sources.
+- **Query Parsing**: When you run a query, {+adf+} parses it and
+  plans efficient execution paths across the data sources mapped in the
+  virtual collections. |service| pushes down operations, such as
+  filtering and aggregation, to the source when possible. For
+  other operations, such as joins or aggregations across multiple
+  sources, the {+fdi+} retrieves and processes data internally, and
+  then combines the results within the logical database to deliver a 
+  nified result set. This allows you to query diverse data sources as
+  if they were a single database.
+
+The following diagram illustrates these principles:
+
+.. figure:: /images/adf-architecture.png
+   :alt: Atlas Data Federation Architecture
+   :figwidth: 700px
+
+Data Plane
+----------
+
+The **Data Plane** in the preceding diagram is where your data
+resides.  You can configure {+adf+} to access data in a variety of
+storage services. Specifically, you can configure {+adf+} to access
+data in your |aws| |s3| buckets, {+az-bs+} containers, {+gcp+} Storage
+buckets, |service| {+clusters+}, |service| {+Online-Archive+}s, and
+|http| and |https| |url|\s. To learn more about configuring {+adf+}
+to access your data stores, see :ref:`config-adf`.
+
+Compute Plane
+-------------
+
+{+adf+} preserves data locality and maximizes local computation, where
+possible, to minimize data transfer and optimize performance. The
+**Compute Plane** in the preceding diagram shows where {+adf+} processes
+all requests. {+adf+} uses an elastic pool of agents in the region
+nearest to your data store to process the data for your queries.
+To learn more about supported regions, see
+:ref:`atlas-data-federation-regions`.
+
+{+adf+} doesn't persist underlying data but does temporarily persist
+cursor data in the frontend region of the connection. Any necessary
+metadata for query execution is stored in the global backend. Using
+a frontend region that is the same as your data region can help comply
+with data sovereignty regulations.
+
+Control Plane
+-------------
+
+The **Control Plane** in the preceding diagram handles key functions
+such as  TLS termination, managing cursors, and temporarily storing
+cursor data during query execution. It also coordinates with the
+compute plane, which processes user queries and aggregates final
+results.
+
+When you execute a query, it is first processed by the Control Plane,
+which determines the most efficient execution strategy. This 
+planned query is then distributed to the Compute Plane,
+which executes the query logic directly against your data stores and returns 
+the results back to the Control Plane. If your only data source is a single Atlas
+cluster, the Control Plane issues the query directly to the cluster,
+bypassing the Compute Plane and simplifying the operation.
+To learn more, see :ref:`query-fdi`.
+
+You can then set up role-based access control for your {+fdi+}\s. You
+can control how your client connects to your {+fdi+}, either through a
+global connection option or by pinning it to a specific region. To learn
+more, see :ref:`config-connection`.

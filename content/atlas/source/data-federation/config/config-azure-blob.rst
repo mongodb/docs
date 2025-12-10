@@ -9,11 +9,6 @@ Azure Blob Storage
 
 .. default-domain:: mongodb
 
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 2
-   :class: singlecol
 
 .. _aws-configuration-file-overview:
 

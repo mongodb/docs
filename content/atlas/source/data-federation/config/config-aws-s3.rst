@@ -9,11 +9,6 @@ AWS S3 Bucket
 
 .. default-domain:: mongodb
 
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 2
-   :class: singlecol
 
 .. _aws-configuration-file-overview:
 
@@ -479,21 +474,9 @@ Example Configuration for S3 Data Store
    and supported aggregations to analyze data in the |aws| |s3| bucket 
    through the ``datacenter-alpha-metrics.hardware`` collection.
 
-   For more information, see :ref:`query-s3`.
 
-.. toctree::
-   :titlesonly:
-   :hidden:
+.. seealso:: 
 
-   Deploy </data-federation/deployment/deploy-s3>
-   Generate Collections </data-federation/config/aws-gen-wildcard-collections>
-   Define Path for S3 Data </data-federation/config/path-syntax-examples>
-   Optimize Queries </data-federation/admin/optimize-query-performance>
-   Configure S3 Encryption </data-federation/supported-unsupported/encryption>
-   Data Formats </data-federation/supported-unsupported/supported-data-formats>
-   Limitations </data-federation/supported-unsupported/aws-s3-limitations>
-   
-.. seealso::
-
+   - :ref:`Querying Data in S3 <query-s3>`
    - `Tutorial: Federated Queries and $out to S3 
      <https://www.mongodb.com/developer/products/atlas/atlas-data-lake-federated-queries-out-aws-s3/>`__

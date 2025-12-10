@@ -22,17 +22,13 @@
       
          To learn more, see :ref:`atlas-data-federation-regions`.
       
-      #. Click :guilabel:`Next`.
+      #. Click the :guilabel:`Next` button.
       
    .. step:: Configure your private endpoint.
 
       a. Enter the following details about your |azure| private endpoint:
       
-         .. tip:: 
-      
-            You can click :guilabel:`Show instruction` in the {+atlas-ui+} for 
-            the following settings to display a screenshot of the |azure| Dashboard 
-            where you can find the value for the setting. 
+         .. include:: /includes/admonitions/tips/tip-show-instructions-button.rst 
       
          .. list-table::
             :widths: 20 80
@@ -56,7 +52,7 @@
                 that exceeds 24 characters is automatically transformed into a unique 
                 identifier in your private endpoint |uri| :ref:`connection string <gst-connect-adf>`.
 
-      #. Click :guilabel:`Next`.
+      #. Click the :guilabel:`Next` button.
 
       #. Copy the command the dialog box displays and run it using the |azure| 
          CLI.

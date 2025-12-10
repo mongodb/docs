@@ -1,8 +1,8 @@
 .. _df-limitations:
 
-===========================
-{+df+} Limitations
-===========================
+====================================
+{+adf+} Limitations
+====================================
 
 .. meta::
    :description: Understand the limitations of Data Federation, including unsupported features like creating indexes and querying documents larger than 16MB.
@@ -13,36 +13,96 @@
    :name: genre
    :values: reference
 
-{+df+} does not support the following features:
+This page consolidates {+adf+} limitations and operational behaviors with detailed guidance on connections, performance, 
+and provider-specific recomendations.
 
-* Creating Indexes
-* Authenticating with methods other than :ref:`SCRAM
+.. important::
+   Atlas Online Archive depends on Atlas Data Federation. For limitations specific to Online Archive, see :ref:`online-archive-limitations`.
+
+General Limitations
+-------------------
+
+Unsupported Features
+~~~~~~~~~~~~~~~~~~~~
+
+- You cannot create indexes on federated data sources.
+- Supported authentication methods are limited to :ref:`SCRAM
   <authentication-scram>`, :manual:`X.509 Certificates
   </core/security-x.509/>`, :ref:`OIDC
   <oidc-authentication-authorization>`, and :ref:`AWS IAM
-  <set-up-pwdless-auth>` 
-* Monitoring {+fdi+}\s with |service| monitoring tools
-* Creating a {+fdi+} with cloud storage from more than one cloud
-  service provider.
-* Creating a {+fdi+} with cloud storage from more than one account
-  on the same cloud service provider.
-* Querying documents larger than 16MB
-* Returning documents in the same order across queries unless imposed 
-  by the query operators used
-* Having more than 120 *guaranteed* simultaneous connections per region 
-  to a {+fdi+}. In some scenarios, you may have more than 60 
-  simultaneous connections per region to a {+fdi+}, but MongoDB can't 
-  *guarantee* to support this for any particular scenario.
-* Running more than 30 simultaneous queries on your {+fdi+}
+  <set-up-pwdless-auth>` .
+- Atlas monitoring tools do not cover Federated Database Instances.
+- The {+fdi+} can use object storage from only *one cloud provider* and from only *one account* within that provider.
+- Change streams and multi-document ACID transactions are not supported on federated sources.
 
-  .. include:: /includes/data-federation/fact-currentop-query-caveat.rst
+Document Size and Result Ordering
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  .. important:: 
+- Federated database instances don't support documents larger than 16 MB.
+- Returned document order is not guaranteed unless enforced (for example, with ``$sort``).
 
-     .. include:: /includes/data-federation/fact-cursor-expires.rst   
+Source and Region Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  .. important:: 
-      The amount of Data Federation Instances is limited to **25** per project. 
-      If your project requires additional Data Federation Instances, 
-      contact your Product Representative to increase the limit to up to 100 
-      instances. 
+- Each {+fdi+} runs in a specific cloud and region.
+- Archived data stays in the provider's private network.  
+- Object storage sources are *read-only*.
+
+Connection Limits and Concurrency
+---------------------------------
+
+Client Connections per Region
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Up to *120 guaranteed simultaneous client connections* per region are supported.  
+
+Concurrent Queries
+~~~~~~~~~~~~~~~~~~
+
+- Running more than *30 simultaneous queries* on an {+fdi+} is not supported.  
+
+.. include:: /includes/data-federation/fact-currentop-query-caveat.rst
+
+Instance Count per Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Each project supports up to *25 {+fdi+}s* by default. 
+- Contact your product representative to increase the limit to up to *100 {+fdi+}s*
+
+Provider-Specific Recomendations
+--------------------------------
+
+.. tabs::
+
+   .. tab:: AWS
+      :tabid: aws
+
+      .. list-table::
+         :widths: 75 25
+         :header-rows: 1
+
+        * - Supported storage 
+
+          - Amazon S3
+  
+   .. tab:: Microsoft Azure
+      :tabid: azure
+
+      .. list-table::
+         :widths: 75 25
+         :header-rows: 1
+
+        * - Supported storage
+
+          - Blob Storage
+
+   .. tab:: Google Cloud
+      :tabid: gcp
+
+      .. list-table::
+         :widths: 75 25
+         :header-rows: 1
+
+        * - Supported storage
+
+          - Google Cloud Storage.

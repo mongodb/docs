@@ -6,11 +6,6 @@
 
 .. default-domain:: mongodb
 
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 2
-   :class: singlecol
 
 .. _gcp-configuration-file-overview:
 
@@ -19,7 +14,6 @@ define mappings in your {+fdi+} to your Cloud Storage bucket to run
 queries against your data.
 
 .. note:: 
-
    We refer to objects as files and delimiter-separated prefixes as
    directories in this page. However, these object storage services
    aren't actually file systems and don't have the same behaviors in

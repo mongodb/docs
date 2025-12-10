@@ -87,7 +87,7 @@ Use features like :ref:`online archive <online-archive-overview>`
 or :manual:`TTL indexes </core/index-ttl/>` to move older data from more
 expensive hot storage to less expensive cold storage, or delete data
 that is no longer needed. After you archive data, you can access the
-data through :ref:`Atlas Data Federation <data-federation-overview>`. 
+data through :ref:`Atlas Data Federation <atlas-data-federation>`. 
 
 Use Cost Explorer
 -----------------

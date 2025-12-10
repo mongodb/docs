@@ -49,13 +49,13 @@ a. Select the dataset for your {+fdi+} from the  :guilabel:`Data Sources` sectio
 
              .. include:: /includes/data-federation/fact-read-preference-modes.rst
 
-             If you add an |service| cluster as a store, the
-             value default value is ``secondary``.
-                  
+             :gold:`IMPORTANT` If you add an |service| cluster as a store, the
+             default value is ``secondary``.
+             
              If you don't set anything in your {+fdi+} storage
              configuration, the default value is ``nearest``. To
-             learn more, see :manual:`Read preference mode 
-             </core/read-preference/#read-preference-modes>`.
+             learn more, see :manual:`Read preference mode </core/read-preference/#read-preference-modes>`.
+
 
              Corresponds to :datalakeconf-atlas:`stores.[n].readPreference.mode`.
 

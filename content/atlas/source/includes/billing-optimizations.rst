@@ -59,7 +59,7 @@ Optimize Storage
   or :manual:`TTL indexes </core/index-ttl/>` to 
   move older data from more expensive hot storage to less expensive cold 
   storage. After you archive data, you can access the data through 
-  :ref:`Atlas Data Federation <data-federation-overview>`. 
+  :ref:`Atlas Data Federation <atlas-data-federation>`. 
 
 - |service| supports scaling |azure| |iops| independently 
   from storage. You can increase storage performance without increasing storage.

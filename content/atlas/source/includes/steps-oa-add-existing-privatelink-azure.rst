@@ -7,35 +7,37 @@
 
    .. step:: Click the :guilabel:`Federated Database Instance / Online Archive` tab.   
       
-   .. step:: Click :guilabel:`Connect Existing Endpoint`.    
-      
-   .. step:: Enter your endpoint details.
-      
-      a. Click the :guilabel:`Azure` button.
+   .. step:: Click the :guilabel:`Connect Existing Endpoint` button.    
 
-      #. From the dropdown, select the region where you 
-         want to create the private endpoint.
-      
-         You can select one of the following regions: 
-      
-         .. include:: /includes/list-table-adf-supported-azure-regions.rst
-      
-         To learn more, see :ref:`atlas-data-federation-regions`.
+   .. step:: Select |azure| as cloud provider.   
+   
+   .. step:: Enter your |azure| endpoint details:
 
-      #. Enter the 22-character alphanumeric string that identifies your private endpoint 
-         in the :guilabel:`Your Private Endpoint ID` field. Find this value in your |azure| account.
+      .. list-table::
+         :widths: 20 80
 
-         .. tip:: 
-      
-            You can click :guilabel:`Show instruction` in the {+atlas-ui+} for 
-            the following settings to display a screenshot of the |azure| Dashboard 
-            where you can find the value for the setting. 
+         * - :guilabel:`Region`
+           - Region where your endpoint is located. 
 
-      #. Add a comment to associate with this endpoint. You can enter your subnet ID, 
-         VNet, |azure| region, and other information to associate with this endpoint.
+         * - :guilabel:`Private Endpoint ID`
+           - Unique alphanumeric string identifier of the |azure| Endpoint. Find this
+             value on the |azure| Private Endpoints dashboard in your |azure| account.
 
-      #. Enter the private IP address for your endpoint in the :guilabel:`Your Endpoint Private IP Address` 
-         field. Find this value in your |azure| account.
+         * - :guilabel:`Comment`
+           - Optional comment to associate with this endpoint, such as subnet ID, |vpc| ID,
+             |azure| region, or other useful information.
 
-      #. Click :guilabel:`Confirm` to add the existing private endpoint.
+         * - :guilabel:`Endpoint Private IP Address`
+           - You Private IP Address can be found in the Azure Private Endpoints Dashboard.
+
+      .. include:: /includes/admonitions/tips/tip-show-instructions-button.rst 
+
+
+   .. step:: Click the :guilabel:`Confirm` button to add the existing private endpoint.
+
+
+
+
+
+   
       

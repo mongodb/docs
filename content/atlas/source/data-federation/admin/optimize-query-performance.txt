@@ -18,13 +18,68 @@ Optimize Query Performance
 
 The performance of your {+fdi+} is affected by the following factors:
 
-- The structure of your data in |s3| and how you represent it in your
-  {+fdi+} :ref:`configuration <adf-configuration-file-aws>`.
 - The size of your data files.
 - The format and structure of your data files.
 
+See the following sections to learn how to optimize your {+fdi+} query performance.
+
+
+Data File Size
+--------------
+
+Each file that {+adf+} handles requires a certain amount of compute 
+resources. If your {+fdi+} store contains many small data
+files, the resources required compound and can reduce performance.
+Alternatively, many large data files are problematic as
+{+df+} then downloads and processes unnecessary data.
+
+For most use cases, a performant file size is **100 to 200 MB**.
+
+Data File Format
+----------------
+
+{+FDI+}\s support several :ref:`data file formats 
+<adf-data-formats>`. You can improve performance by compressing
+certain file formats or by optimizing file contents for your queries.
+
+Compression
+~~~~~~~~~~~
+
+When you compress data files, they take less time to download. Reduced
+download time has a greater performance benefit than parsing
+uncompressed data.
+
+You can compress the following file formats using `gzip
+<https://www.gnu.org/software/gzip/manual/gzip.html>`__:
+
+- |json|
+- |bson|
+- :ref:`CSV <adf-csv-tsv-data>` 
+- :ref:`TSV <adf-csv-tsv-data>` 
+
+File Structure
+~~~~~~~~~~~~~~
+
+`Parquet <https://parquet.apache.org/docs/>`__, `Avro
+<https://avro.apache.org/docs/current/>`_, and `ORC
+<https://orc.apache.org/docs/>`_ files contain metadata about the file
+itself so that an application can traverse the file contents in 
+different ways. If you structure your data file to align with the
+queries you want to run, {+adf+} can leverage this metadata to quickly 
+jump to the right data. 
+
+Of these formats, `Parquet
+<https://parquet.apache.org/docs/>`__ files provide the
+best performance and space efficiency for {+fdi+}, as it is
+optimized to parse row and column groups for `Parquet
+<https://parquet.apache.org/docs/>`__. 
+
+
 Data Structure in |s3|
 ----------------------
+In |aws| S3 Buckets, the structure of your data and the way you define it in the
+:ref:`configuration file <adf-configuration-file-aws>` affect the performance
+of your {+fdi+}.
 
 For easier management, ensure that your data is logically grouped 
 into partitions. {+adf+} utilizes partitions you create with the field 
@@ -120,53 +175,3 @@ and decreases cost, because {+df+} reads and downloads less files from
 For more information on mapping partition attributes to a collection
 :datalakeconf-aws:`databases.[n].collections.[n].dataSources.[n].path`, see
 :ref:`adf-path-syntax`.
-
-Data File Size
---------------
-
-Each file that {+adf+} handles requires a certain amount of compute 
-resources. If your {+fdi+} store contains many small data
-files, the resources required compound and can reduce performance.
-Alternatively, many large data files are problematic as
-{+df+} then downloads and processes unnecessary data.
-
-For most use cases, a performant file size is **100 to 200 MB**.
-
-Data File Format
-----------------
-
-{+FDI+}\s support several :ref:`data file formats 
-<adf-data-formats>`. You can improve performance by compressing
-certain file formats or by optimizing file contents for your queries.
-
-Compression
-~~~~~~~~~~~
-
-When you compress data files, they take less time to download. Reduced
-download time has a greater performance benefit than parsing
-uncompressed data.
-
-You can compress the following file formats using `gzip
-<https://www.gnu.org/software/gzip/manual/gzip.html>`__:
-
-- |json|
-- |bson|
-- :ref:`CSV <adf-csv-tsv-data>` 
-- :ref:`TSV <adf-csv-tsv-data>` 
-
-File Structure
-~~~~~~~~~~~~~~
-
-`Parquet <https://parquet.apache.org/docs/>`__, `Avro
-<https://avro.apache.org/docs/current/>`_, and `ORC
-<https://orc.apache.org/docs/>`_ files contain metadata about the file
-itself so that an application can traverse the file contents in 
-different ways. If you structure your data file to align with the
-queries you want to run, {+adf+} can leverage this metadata to quickly 
-jump to the right data. 
-
-Of these formats, `Parquet
-<https://parquet.apache.org/docs/>`__ files provide the
-best performance and space efficiency for {+fdi+}, as it is
-optimized to parse row and column groups for `Parquet
-<https://parquet.apache.org/docs/>`__. 

@@ -2,9 +2,37 @@ import type { TocItem } from '../types';
 
 const tocData: TocItem[] = [
   {
-    label: 'Data Federation Overview',
+    label: 'Overview',
     contentSite: 'cloud-docs',
-    url: '/docs/atlas/data-federation/overview',
+    url: "/docs/atlas/data-federation/adf-overview/overview",
+    collapsible: true,
+    items: [
+      {
+        label: "Key Concepts",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/adf-overview/key-concepts",
+      },
+      {
+        label: "Architecture",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/adf-overview/architecture",
+      },
+      {
+        label: "Query Performance Optimization",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/adf-overview/query-performance-optimization",
+      },
+      {
+        label: "Supported Sources and Providers",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/adf-overview/supported-sources-and-providers",
+      },
+      {
+        label: "Supported Regions",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/adf-overview/regions",
+      },
+    ],
   },
   {
     label: 'Get Started',
@@ -56,6 +84,29 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/data-federation/tutorial/run-queries',
       },
     ],
+  },
+  { 
+    label: "Advanced Security Options ",
+    contentSite: "cloud-docs",
+    url: "/docs/atlas/data-federation/advanced-security-options",
+    collapsible: true,
+    items: [
+      {
+        label: "Private Endpoints",
+        contentSite: "cloud-docs",
+        url: "docs/atlas/data-federation/tutorial/config-private-endpoint",
+      },
+      {
+        label: "Authentication Methods",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/tutorial/adf-authentication-methods",
+      },
+      {
+        label: "Advanced User Configuration",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/tutorial/advanced-security-options/advanced-db-user-config/",
+      },
+    ]
   },
   {
     label: 'Define Data Stores',
@@ -193,6 +244,46 @@ const tocData: TocItem[] = [
         label: 'Use Partition Attributes',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/data-federation/supported-unsupported/supported-partition-attributes',
+      },
+      {
+        label: "Supported Data Formats",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/supported-unsupported/supported-data-formats",
+      },
+      {
+        label: "File Path Synthax",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/config/path-syntax-examples",
+      },
+      {
+        label: "AWS S3 Encryption",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/supported-unsupported/adf-encryption",
+      },
+      {
+        label: "AWS S3 Limitations",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/supported-unsupported/adf-limitations",
+      },
+      {
+        label: "Supported Data Formats",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/supported-unsupported/supported-data-formats",
+      },
+      {
+        label: "File Path Synthax",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/config/path-syntax-examples",
+      },
+      {
+        label: "AWS S3 Encryption",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/supported-unsupported/adf-encryption",
+      },
+      {
+        label: "AWS S3 Limitations",
+        contentSite: "cloud-docs",
+        url: "/docs/atlas/data-federation/supported-unsupported/adf-limitations",
       },
     ],
   },
