@@ -3060,6 +3060,12 @@
        Search process ran out of memory
      - yes
 
+   * - ``HOST_MONGOT_PAUSE_INITIAL_SYNC``
+     - .. _atlas_event_host_mongot_pause_initial_sync:
+
+       Mongot paused initial sync because disk utilization is too high.
+     - yes
+
    * - ``HOST_MONGOT_RECOVERED_OOM``
      - .. _atlas_event_host_mongot_recovered_oom:
 

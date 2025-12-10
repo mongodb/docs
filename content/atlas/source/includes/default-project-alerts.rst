@@ -31,6 +31,7 @@ using :ref:`security-aws-kms`:
 - :alert:`Insufficient disk space to support rebuilding search indexes <Insufficient disk space to support rebuilding search indexes>`
 - :alert:`Atlas Search: Mongot stopped replication <Atlas Search: Mongot stopped replication>`
 - :alert:`Search Process: Ran out of memory <Search Process: Ran out of memory>`
+- - :alert:`Atlas Search: Mongot paused initial sync <Atlas Search: Mongot paused initial sync>`
 
 For a full list of |fts| alerts, see :ref:`Alert Conditions for {+fts+} <alert-conditions-atlas-search>`.
 
