@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import Card from '@leafygreen-ui/card';
 import { Body, Link, Subtitle } from '@leafygreen-ui/typography';
@@ -11,6 +13,7 @@ import { currentScrollPosition } from '@/utils/current-scroll-position';
 import CloseButton from '@/components/widgets/feedback-widget/components/close-button';
 import SkillsBadgeIcon from '@/components/svg/skills-badge-icon';
 import { useCookiesContext } from '@/context/cookies-context';
+import { usePageContext } from '@/context/page-context';
 
 export const DISMISSIBLE_SKILLS_CARD_CLASSNAME = 'dismissible-skills-card';
 
@@ -71,10 +74,9 @@ const hrStyles = css`
 export type DismissibleSkillsCardProps = {
   skill: string;
   url: string;
-  slug: string;
 };
 
-const reportDismissibleSkillsCard = async (skill: string, url: string, element?: HTMLElement | null) => {
+const reportDismissibleSkillsCard = async (skill: string, element?: HTMLElement | null) => {
   const translatedLabel = element?.textContent?.trim() || skill;
 
   reportAnalytics('Click', {
@@ -87,8 +89,9 @@ const reportDismissibleSkillsCard = async (skill: string, url: string, element?:
   });
 };
 
-const DismissibleSkillsCard = ({ skill, url, slug }: DismissibleSkillsCardProps) => {
+const DismissibleSkillsCard = ({ skill, url }: DismissibleSkillsCardProps) => {
   const { getCookie, setCookie } = useCookiesContext();
+  const { slug } = usePageContext();
 
   // Generate a unique cookie name for this specific skills card
   const cookieName = `dismissed-skills-${slug
@@ -99,11 +102,11 @@ const DismissibleSkillsCard = ({ skill, url, slug }: DismissibleSkillsCardProps)
   const [isDismissed, setIsDismissed] = useState(getCookie(cookieName) === 'true');
 
   const onLinkClick = (event: React.MouseEvent) => {
-    reportDismissibleSkillsCard(skill, url, event.currentTarget as HTMLElement);
+    reportDismissibleSkillsCard(skill, event.currentTarget as HTMLElement);
   };
 
   const onClose = (event: React.MouseEvent) => {
-    reportDismissibleSkillsCard(skill, url, event.currentTarget as HTMLElement);
+    reportDismissibleSkillsCard(skill, event.currentTarget as HTMLElement);
 
     // Save to cookie (expires in 1 year)
     setCookie(cookieName, 'true');

@@ -4,27 +4,36 @@ import { InternalPageNav } from '@/components/internal-page-nav';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { PageContext } from '@/context/page-context';
 
-import slugToBreadcrumbLabel from '../data/ecosystem/slugToBreadcrumbLabel.json';
-
-const data = ['drivers/csharp', 'drivers/go', 'drivers/java', 'drivers/motor', 'drivers/cxx'];
+import { UnifiedTocProvider } from '@/context/unified-toc-context';
 
 jest.mock('@/utils/use-snooty-metadata', () => ({
   useSnootyMetadata: jest.fn(),
 }));
 
+jest.mock('@/context/toc-data', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mockTocTree = require('../data/ecosystem/tocTree.json');
+  return {
+    tocData: mockTocTree,
+  };
+});
+
 const renderNav = (slug: string) =>
   render(
-    <PageContext.Provider
-      value={{
-        slug,
-        template: 'document',
-        tabsMainColumn: false,
-        options: null,
-        page: null,
-      }}
-    >
-      <InternalPageNav slug={slug} slugTitleMapping={slugToBreadcrumbLabel} toctreeOrder={data} />
-    </PageContext.Provider>,
+    <UnifiedTocProvider>
+      <PageContext.Provider
+        value={{
+          slug,
+          template: 'document',
+          tabsMainColumn: false,
+          options: null,
+          page: null,
+        }}
+      >
+        <InternalPageNav />
+      </PageContext.Provider>
+      ,
+    </UnifiedTocProvider>,
   );
 
 beforeAll(() => {
@@ -32,70 +41,19 @@ beforeAll(() => {
   (useSnootyMetadata as jest.Mock).mockImplementation(() => ({}));
 });
 
-// TODO: remove this skip once the internal page nav is fully implemented (after unified TOC and version context)
-describe.skip('internal page nav', () => {
+describe('internal page nav', () => {
   it('renders a page with next and previous links correctly', () => {
-    const tree = renderNav('drivers/go');
+    const tree = renderNav('docs/languages/go');
     expect(tree.asFragment()).toMatchSnapshot();
   });
 
   it('renders a page with no previous link correctly', () => {
-    const tree = renderNav('drivers/csharp');
+    const tree = renderNav('docs/atlas/access/manage-org-users');
     expect(tree.asFragment()).toMatchSnapshot();
   });
 
   it('renders a page with no next link correctly', () => {
-    const tree = renderNav('drivers/cxx');
+    const tree = renderNav('docs/atlas/atlas-resource-policies');
     expect(tree.asFragment()).toMatchSnapshot();
-  });
-
-  describe('multi-page tutorials', () => {
-    it('renders a page with next and previous page steps', () => {
-      const mockData = ['drivers/csharp', 'drivers/java', 'drivers/cxx'];
-      (useSnootyMetadata as jest.Mock).mockImplementation(() => ({
-        multiPageTutorials: {
-          'mock-page': {
-            slugs: mockData,
-            total_steps: mockData.length,
-          },
-        },
-        slugToBreadcrumbLabel,
-      }));
-
-      const tree = renderNav('drivers/go');
-      expect(tree.asFragment()).toMatchSnapshot();
-    });
-
-    it('renders a page with next in multi-page tutorial, and previous toctree order', () => {
-      const mockData = ['drivers/go', 'drivers/motor'];
-      (useSnootyMetadata as jest.Mock).mockImplementation(() => ({
-        multiPageTutorials: {
-          'mock-page': {
-            slugs: mockData,
-            total_steps: mockData.length,
-          },
-        },
-        slugToBreadcrumbLabel,
-      }));
-
-      const tree = renderNav('drivers/go');
-      expect(tree.asFragment()).toMatchSnapshot();
-    });
-
-    it('renders a page with previous in multi-page tutorial, and next toctree order', () => {
-      const mockData = ['drivers/go', 'drivers/motor'];
-      (useSnootyMetadata as jest.Mock).mockImplementation(() => ({
-        multiPageTutorials: {
-          'mock-page': {
-            slugs: mockData,
-            total_steps: mockData.length,
-          },
-        },
-        slugToBreadcrumbLabel,
-      }));
-
-      const tree = renderNav('drivers/motor');
-      expect(tree.asFragment()).toMatchSnapshot();
-    });
   });
 });

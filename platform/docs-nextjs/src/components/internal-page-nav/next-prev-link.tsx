@@ -1,13 +1,14 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { css, cx } from '@leafygreen-ui/emotion';
 import Button from '@leafygreen-ui/button';
 import { Body } from '@leafygreen-ui/typography';
 import Icon from '@leafygreen-ui/icon';
 import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
-import Link from '../link';
 import { navLinkButtonStyle } from './styles';
 
 const commonTextStyles = css`
@@ -64,34 +65,40 @@ const baseButtonStyle = css`
   }
 `;
 
+function scrollToTopHtml() {
+  Promise.resolve().then(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        document.documentElement.scrollTop = 0;
+      });
+    });
+  });
+}
+
 export type NextPrevLinkProps = {
   pageTitle: ReactNode;
   title: string;
   targetSlug: string;
   direction: string;
   icon: string;
-  contentSite?: string | null | undefined;
   onClick: (direction: string, targetSlug: string) => void;
   className: string;
 };
 
-const NextPrevLink = ({
-  className,
-  icon,
-  direction,
-  pageTitle,
-  targetSlug,
-  title,
-  // contentSite,
-  onClick,
-}: NextPrevLinkProps) => {
+const NextPrevLink = ({ className, icon, direction, pageTitle, title, targetSlug, onClick }: NextPrevLinkProps) => {
   const isNext = direction.toLowerCase() === 'next';
   const isPrev = direction.toLowerCase() === 'back';
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push(targetSlug);
+    onClick(direction, targetSlug);
+    scrollToTopHtml();
+  };
 
   return (
-    <div className={className} onClick={() => onClick(direction, targetSlug)}>
-      {/* TODO: add back prop when ready for unified TOC: contentSite={contentSite} */}
-      <Link to={targetSlug} {...{ title }}>
+    <div className={className}>
+      <Link href={targetSlug} title={title} onClick={handleClick}>
         <div className={cx({ [nextLinkContainerStyling]: isNext, [prevLinkContainerStyling]: isPrev })}>
           <Button className={cx(baseButtonStyle, navLinkButtonStyle)}>
             <Icon glyph={icon} />

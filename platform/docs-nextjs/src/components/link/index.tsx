@@ -10,7 +10,6 @@ import { validateHTMAttributes } from '@/utils/validate-element-attributes';
 import Icon from '@leafygreen-ui/icon';
 import { isRelativeUrl } from '@/utils/is-relative-url';
 import { joinClassNames } from '@/utils/join-class-names';
-import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { assertLeadingAndTrailingSlash } from '@/utils/assert-leading-and-trailing-slash';
 
 type LinkThemeStyle = {
@@ -114,7 +113,6 @@ export type LinkProps = {
   children?: React.ReactNode;
   className?: string;
   activeClassName?: string;
-  partiallyActive?: boolean;
   to?: string;
   showLinkArrow?: boolean;
   hideExternalIcon?: boolean;
@@ -122,14 +120,12 @@ export type LinkProps = {
   openInNewTab?: boolean;
   onClick?: () => void;
   contentSite?: string | null | undefined;
-  InternalPageNav?: boolean;
 };
 
 const LinkComponent = ({
   children,
   className,
   activeClassName,
-  partiallyActive,
   to,
   showLinkArrow,
   hideExternalIcon,
@@ -137,11 +133,9 @@ const LinkComponent = ({
   openInNewTab,
   onClick,
   contentSite,
-  InternalPageNav,
   ...other
 }: LinkProps) => {
   const pathname = usePathname();
-  const { project } = useSnootyMetadata();
 
   if (!to) to = '';
   const anchor = to.startsWith('#');
@@ -166,25 +160,6 @@ const LinkComponent = ({
       const isMDBLink = strippedUrl.includes('mongodb.com/docs'); // For symlinks
 
       if (isMDBLink) {
-        // If used in InternalPageNav, use NextLink to maintain original styling
-        if (InternalPageNav) {
-          return null;
-          // TODO: Uncomment when InternalPageNav is completed (DOP-6284)
-          //   return (
-          //     <NextLink
-          //       className={cx(className)}
-          //       activeClassName={activeClassName}
-          //       partiallyActive={partiallyActive}
-          //       to={to}
-          //       onClick={onClick}
-          //       {...anchorProps}
-          //     >
-          //       {children}
-          //       {decoration}
-          //     </NextLink>
-          //   );
-        }
-
         return (
           <NextLink className={joinClassNames(symLinkStyling, className)} href={to} target={'_self'} {...anchorProps}>
             {children}
