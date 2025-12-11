@@ -141,7 +141,8 @@ import Root, { type RootProps } from '@/components/root';
 import Figure, { type FigureProps } from '@/components/figure';
 import ComposableContent, { type ComposableContentProps } from '@/components/composable-tutorial/composable-content';
 import ComposableTutorial, { type ComposableTutorialProps } from '@/components/composable-tutorial';
-import OpenAPIChangelog from '../open-api-changelog';
+import Transition from '@/components/transition';
+import OpenAPIChangelog from '@/components/open-api-changelog';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -280,7 +281,7 @@ const getComponent = (() => {
         text: Text as React.ComponentType<SupportedComponentProps>,
         time: Time as React.ComponentType<SupportedComponentProps>,
         title_reference: TitleReference as React.ComponentType<SupportedComponentProps>,
-        // transition: Transition,
+        transition: Transition as React.ComponentType<SupportedComponentProps>,
         versionadded: VersionModified as React.ComponentType<SupportedComponentProps>,
         versionchanged: VersionModified as React.ComponentType<SupportedComponentProps>,
         // wayfinding: Wayfinding,
@@ -699,6 +700,8 @@ const renderComponentWithProps = (
   } else if (ComponentType === getComponent('list-table')) {
     const listTableNode = nodeData as ListTableNode;
     return <ListTable nodeChildren={listTableNode.children} options={listTableNode.options} />;
+  } else if (ComponentType === getComponent('transition')) {
+    return <Transition />;
   } else if (ComponentType === getComponent('root')) {
     const rootNode = nodeData as RootNode;
     return <Root nodeChildren={rootNode.children} {...propsToDrill} />;
