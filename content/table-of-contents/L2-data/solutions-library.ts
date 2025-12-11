@@ -395,7 +395,7 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/search-enterprise-server',
           },
           {
-            label: 'Automating Product Descriptions',
+            label: 'Automate Product Descriptions',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/retail-asset-product-description',
           },
