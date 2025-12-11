@@ -36,7 +36,7 @@ const menuItemStyling = css`
   }
 `;
 
-const DROPDOWN_ICON_SIZE = 34;
+const DROPDOWN_ICON_SIZE = 20;
 const darkModeSvgStyle = {
   width: DROPDOWN_ICON_SIZE,
   height: DROPDOWN_ICON_SIZE,
