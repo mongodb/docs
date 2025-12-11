@@ -14,6 +14,12 @@
          an error if there are invalid arguments or a server or network error 
          occurs.
 
+     - id: compass
+       content: |
+         When you confirm the deletion in the pop-up window that appears when you click :guilabel:`DELETE`,
+         MongoDB Compass deletes all documents and displays a message 
+         indicating how many documents were deleted.
+
      - id: python
        content: |
          The :py:meth:`~pymongo.collection.Collection.delete_many`

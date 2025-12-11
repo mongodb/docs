@@ -11,6 +11,13 @@
                { item: "paper", instock: [ { warehouse: "A", qty: 60 }, { warehouse: "B", qty: 40 } ] }
             )
 
+     - id: compass
+       content: |
+
+         To replace a document, connect to your 
+         MongoDB deployment from :binary:`~bin.mongosh` or a MongoDB driver
+         and follow the examples in this section for your preferred method.
+
      - id: c
        content: |
 

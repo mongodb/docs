@@ -7,7 +7,6 @@
          .. code-block:: javascript
 
             db.inventory.deleteMany({ status : "A" })
-
      
      - id: c
        content: |
@@ -17,6 +16,13 @@
             :dedent: 3
             :start-after: Start Example 57
             :end-before: End Example 57
+
+     - id: compass
+       content: |
+
+         .. figure:: /images/compass-delete-filter.png
+            :alt: MongoDB Compass showing the Documents tab with the DELETE button highlighted with a filter of { status: "A" }.
+       
             
      - id: python
        content: |

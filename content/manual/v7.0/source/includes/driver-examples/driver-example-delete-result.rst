@@ -7,6 +7,19 @@
          more information and examples, see
          :method:`~db.collection.deleteMany()`.
 
+     - id: c
+       content: |
+         The `mongoc_collection_delete_many <https://mongoc.org/libmongoc/current/mongoc_collection_delete_many.html>`__ 
+         method returns ``true`` if successful, or returns ``false`` and sets 
+         an error if there are invalid arguments or a server or network error 
+         occurs.
+
+     - id: compass
+       content: |
+         When you confirm the deletion in the pop-up window that appears when you click :guilabel:`DELETE`,
+         MongoDB Compass deletes all documents and displays a message 
+         indicating how many documents were deleted.
+
      - id: python
        content: |
          The :py:meth:`~pymongo.collection.Collection.delete_many`
@@ -36,6 +49,14 @@
          returns a `Publisher <http://www.reactive-streams.org/reactive-streams-1.0.1-javadoc/org/reactivestreams/Publisher.html>`_
          object of type com.mongodb.client.result.DeleteResult_ if
          successful. Returns an instance of ``com.mongodb.MongoException`` if unsuccessful.
+
+     - id: kotlin-coroutine
+       content: |
+         The `MongoCollection.deleteMany() <{+java-api-docs+}/driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/delete-many.html>`__
+         method returns an instance of
+         `com.mongodb.client.result.DeleteResult <{+java-api-docs+}/driver-core/com/mongodb/client/result/DeleteResult.html>`__
+         that describes the status of the
+         operation and count of deleted documents.
 
      - id: nodejs
        content: |

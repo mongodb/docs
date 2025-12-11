@@ -16,6 +16,13 @@
 
          .. include:: /includes/fact-update-many-operation-uses.rst
 
+     - id: compass
+       content: |
+
+         To update multiple documents, connect to your 
+         MongoDB deployment from :binary:`~bin.mongosh` or a MongoDB driver
+         and follow the examples in this section for your preferred method.
+
      - id: c
        content: |
 

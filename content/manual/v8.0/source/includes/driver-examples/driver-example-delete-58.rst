@@ -11,40 +11,8 @@
      - id: compass
        content: |
 
-         1. Click the :guilabel:`Table` button in the top navigation
-            to access the :ref:`Table View <compass-documents-table-view>`:
-
-            .. figure:: /images/compass-table-btn-click-2.png
-               :alt: Compass Table View button
-
-         #. Use the Compass :ref:`query bar <compass-query-bar-filter>` to
-            locate the target document.
-
-            Copy the following filter document into the query bar and click
-            :guilabel:`Find`:
-
-            .. code-block:: javascript
-
-               { item: "paper" }
-
-            .. figure:: /images/compass-delete-paper-find.png
-               :alt: Compass Find button
-
-         #. Hover over the document and click the trash icon which
-            appears on the right-hand side:
-
-            .. figure:: /images/compass-delete-button-click.png
-               :alt: Compass Delete Document button
-
-            After clicking the delete button, the document is flagged
-            for deletion and Compass asks for confirmation that you
-            want to remove the document:
-
-            .. figure:: /images/compass-delete-confirm.png
-               :alt: Compass Confirm Deletion button
-
-         #. Click :guilabel:`Delete` to confirm. Compass deletes the
-            document from the collection.
+         .. figure:: /images/compass-delete-one.png
+            :alt: MongoDB Compass Delete One Document that matches a filter
 
      - id: c
        content: |
@@ -65,6 +33,12 @@
             :dedent: 8
             :start-after: Start Example 58
             :end-before: End Example 58
+
+
+     - id: kotlin-coroutine
+       content: |
+
+         .. include:: /includes/fact-remove-one-condition-inv-example.rst
 
      - id: motor
        content: |
