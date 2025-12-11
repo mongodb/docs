@@ -20,6 +20,15 @@
          .. figure:: /images/compass-multiple-query-conditions-nested-fields-2.png
             :alt: A single nested document meets multiple query conditions on nested fields
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 35
+            :end-before: End Example 35
+
      - id: python
        content: |
 
@@ -53,6 +62,15 @@
          .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
             :language: java
             :dedent: 8
+            :start-after: Start Example 35
+            :end-before: End Example 35
+
+     - id: kotlin-coroutine
+       content: |
+
+         .. literalinclude:: /driver-examples/kotlin_examples.kt
+            :language: kotlin
+            :dedent:
             :start-after: Start Example 35
             :end-before: End Example 35
 

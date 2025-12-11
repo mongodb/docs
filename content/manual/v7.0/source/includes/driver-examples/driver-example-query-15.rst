@@ -21,6 +21,15 @@
          .. figure:: /images/compass-match-embedded.png
             :alt: Query embedded field
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 15
+            :end-before: End Example 15  
+
      - id: python
        content: |
 
@@ -54,6 +63,15 @@
          .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
             :language: java
             :dedent: 8
+            :start-after: Start Example 15
+            :end-before: End Example 15
+
+     - id: kotlin-coroutine
+       content: |
+
+         .. literalinclude:: /driver-examples/kotlin_examples.kt
+            :language: kotlin
+            :dedent:
             :start-after: Start Example 15
             :end-before: End Example 15
 

@@ -21,6 +21,15 @@
          .. figure:: /images/compass-find-embedded-field-arr-index.png
             :alt: Query for array element matching single condition
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 32
+            :end-before: End Example 32
+
      - id: python
        content: |
 
@@ -54,6 +63,15 @@
          .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
             :language: java
             :dedent: 8
+            :start-after: Start Example 32
+            :end-before: End Example 32
+
+     - id: kotlin-coroutine
+       content: |
+
+         .. literalinclude:: /driver-examples/kotlin_examples.kt
+            :language: kotlin
+            :dedent:
             :start-after: Start Example 32
             :end-before: End Example 32
 

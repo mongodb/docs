@@ -8,6 +8,13 @@
 
          .. include:: /includes/driver-examples/examples-intro.rst
 
+     - id: c
+       content: |
+         This page provides examples of |query_operations| using
+         `mongoc_collection_find_with_opts <https://mongoc.org/libmongoc/current/mongoc_collection_find_with_opts.html>`__.
+
+         .. include:: /includes/driver-examples/examples-intro.rst
+
      - id: compass
        content: |
          This page provides examples of |query_operations| using
@@ -53,6 +60,21 @@
          This page provides examples of |query_operations| using the
          `com.mongodb.reactivestreams.client.MongoCollection.find <http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/com/mongodb/reactivestreams/client/MongoCollection.html#find()>`_
          method in the MongoDB `Java Reactive Streams Driver <http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/>`_.
+
+         .. include:: /includes/driver-examples/examples-intro.rst
+
+     - id: kotlin-coroutine
+       content: |
+         This page provides examples of |query_operations| by using the
+         `MongoCollection.find() <{+java-api-docs+}/driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/find.html>`__ method in the MongoDB
+         :driver:`Kotlin Coroutine Driver </kotlin/coroutine/current/>`.
+
+         .. tip::
+
+            The driver provides `com.mongodb.client.model.Filters <{+java-api-docs+}/driver-core/com/mongodb/client/model/Filters.html>`__
+            helper methods to facilitate the creation of filter
+            documents. The examples on this page use these methods to
+            create the filter documents.
 
          .. include:: /includes/driver-examples/examples-intro.rst
 
