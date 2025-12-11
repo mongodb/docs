@@ -1,0 +1,241 @@
+.. _ruby-csot:
+
+===========================
+Limit Server Execution Time
+===========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: error, blocking, thread, task, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the ``timeout_ms`` option to set a 
+timeout for server operations. 
+
+When you use the {+driver-short+} to perform a server operation, you can
+limit the duration allowed for the server to finish the operation. To do so,
+specify a **client-side operation timeout (CSOT)**. The timeout applies to all
+steps needed to complete the operation, including server selection, connection
+checkout, and server-side execution. If the timeout expires before the operation 
+completes, the {+driver-short+} raises a timeout exception.
+
+timeout_ms Option
+-----------------
+
+To specify a timeout when connecting to a MongoDB deployment, set the
+``timeout_ms`` connection option to the timeout length in milliseconds. You can
+specify a timeout value in the following ways: 
+
+- Pass the ``timeout_ms`` client option to the ``Mongo::Client`` constructor.
+- Pass the ``timeoutMS`` connection string option as a parameter to your connection string.
+
+Select from the following tabs to view examples for how to use the ``timeout_ms`` client
+option or the ``timeoutMS`` connection string option to specify a timeout of 30 seconds:
+
+.. tabs::
+
+   .. tab:: Mongo::Client
+      :tabid: mongoclient
+
+      .. code-block:: ruby
+         :emphasize-lines: 2
+
+         uri = "<connection string>"
+         options = { timeout_ms: 30000 }
+
+         client = Mongo::Client.new(uri, options)
+   
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      .. code-block:: ruby
+         :emphasize-lines: 1
+
+         uri = "mongodb://<hostname>:<port>?timeoutMS=30000"
+         client = Mongo::Client.new(uri)
+
+If you specify the ``timeout_ms`` option, the driver automatically applies the
+specified timeout for each server operation.
+
+.. note:: 
+
+   The ``timeout_ms`` connection option unifies most timeout related options.
+   The following timeout options are deprecated: 
+
+   - ``socket_timeout``
+   - ``wait_queue_timeout``
+   - ``wtimeout``
+   - ``max_time_ms``
+   - ``max_commit_time_ms``
+
+   The ``timeout_ms`` connection option takes precedence over these 
+   deprecated timeout options. 
+
+Timeout Inheritance
+~~~~~~~~~~~~~~~~~~~
+
+When you specify a ``timeout_ms`` option, the driver applies the timeout
+according to the same inheritance behaviors as the other {+driver-short+} options.
+The following table describes how the timeout value is inherited at each level:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Level
+     - Inheritance Description
+
+   * - Operation
+     - Takes the highest precedence and overrides ``timeout_ms``
+       options set at any other level.
+
+   * - Transaction
+     - Takes precedence over ``timeout_ms`` set at the session,
+       collection, database, or client level.
+
+   * - Session
+     - Applies to all transactions and operations within
+       that session, unless the option is overridden by options set at those levels.
+
+   * - Database
+     - Applies to all sessions and operations within that
+       database, unless the option is overridden by options set at those levels.
+
+   * - Collection
+     - Applies to all sessions and operations on that
+       collection, unless the option is overridden by options set at those levels.
+
+   * - Client
+     - Applies to all databases, collections, sessions, transactions, and
+       operations within that client that do not otherwise specify
+       ``timeout_ms``.
+
+To learn more about overriding the timeout option and setting other options, see the 
+following :ref:`ruby-csot-overrides` section.
+
+.. _ruby-csot-overrides:
+
+Overrides
+---------
+
+You can specify a ``timeout_ms`` option at the operation level to override the
+client-level configuration for a specific operation. This allows you to
+customize timeouts based on the needs of individual queries.
+
+The following example demonstrates how an operation-level ``timeout_ms``
+configuration can override a client-level ``timeout_ms`` configuration:
+
+.. literalinclude:: /includes/connect/csot.rb
+   :language: ruby
+   :start-after: start-csot-overrides
+   :end-before: end-csot-overrides
+
+Transactions
+~~~~~~~~~~~~
+
+You can set a timeout for transactions by using the ``default_timeout_ms`` client option.
+
+When you create a new ``Mongo::Session`` instance to implement a transaction, 
+you can set the ``default_timeout_ms`` client option to specify the
+``timeout_ms`` values for the following methods:
+
+- `commit_transaction <{+api-root+}/Mongo/Session.html#commit_transaction-instance_method>`__
+- `abort_transaction <{+api-root+}/Mongo/Session.html#abort_transaction-instance_method>`__
+- `with_transaction <{+api-root+}/Mongo/Session.html#with_transaction-instance_method>`__
+- `end_session <{+api-root+}/Mongo/Session.html#end_session-instance_method>`__
+
+If you do not specify ``default_timeout_ms``, the driver uses the ``timeout_ms``
+value set on the parent ``Mongo::Client``.
+
+You cannot override the ``timeout_ms`` value of the ``Mongo::Client`` for a 
+call to ``start_session``. 
+
+You can only set a timeout value for the 
+`start_transaction <{+api-root+}/Mongo/Session.html#start_transaction-instance_method>`__
+method by using the ``timeout_ms`` option.
+ 
+You cannot override ``default_timeout_ms`` by setting the ``timeout_ms`` option on an
+operation in a transaction session provided by the ``with_transaction`` callback,
+or the driver throws an error.
+
+Client Encryption
+~~~~~~~~~~~~~~~~~
+
+When you use Client-Side Field Level Encryption (CSFLE), the driver uses the
+``timeout_ms`` option to limit the time allowed for encryption and decryption
+operations.
+
+If you specify the ``timeout_ms`` option when you construct a
+``ClientEncryption`` instance, it controls the lifetime of all operations
+performed on that instance. If you do not provide ``timeout_ms``, the instance
+inherits the ``timeout_ms`` setting from the ``Mongo::Client`` used in the
+``ClientEncryption`` constructor.
+
+If you set ``timeout_ms`` on both the client and directly in
+``ClientEncryption``, the value provided to ``ClientEncryption`` takes
+precedence.
+
+Cursors
+-------
+
+Cursors offer configurable timeout settings when using the CSOT feature. You can
+adjust cursor handling by configuring either the cursor lifetime or cursor
+iteration mode if needed. To configure the mode, set the ``timeoutMode`` option
+to ``cursorLifetime``, which is the default, or ``iteration``.
+
+Cursor Lifetime Mode
+~~~~~~~~~~~~~~~~~~~~
+
+The cursor lifetime mode uses ``timeout_ms`` to limit the entire lifetime of a
+cursor. In this mode, the initialization of the cursor and all subsequent calls
+to the cursor methods must complete within the limit specified by the
+``timeout_ms`` option. All documents must be returned within this limit.
+Otherwise, the cursor's lifetime expires and a timeout error occurs.
+
+When you close a cursor by calling the  ``to_a`` or ``close`` method, the
+timeout resets to ensure server-side resources are cleaned up.
+
+The following example shows how to set the ``timeout_ms`` option to ensure that
+the cursor is initialized and all documents are retrieved within 10 seconds:
+
+.. code-block:: ruby
+
+   docs = collection.find({}, timeout_ms:10000).to_a
+
+Cursor Iteration Mode
+~~~~~~~~~~~~~~~~~~~~~
+
+The cursor iteration mode uses the ``timeout_ms`` option to limit each call to
+the ``try_next`` method. The timeout refreshes after each call completes. 
+This is the default mode for all tailable cursors,
+such as the tailable cursors returned by the ``find`` method on capped
+collections or change streams.
+
+The following code example iterates over documents in a sample collection
+by using an iterable cursor, and then fetches and logs the ``title`` information for 
+each movie document:
+
+.. literalinclude:: /includes/connect/csot.rb
+   :language: ruby
+   :start-after: start-csot-iterable
+   :end-before: end-csot-iterable
+
+API Documentation
+-----------------
+
+To learn more about using timeouts with the {+driver-short+}, see the following
+API documentation:
+
+- :ruby-api:`Mongo::Client <Client.html>`
+- :ruby-api:`Mongo::Session <Session.html>`
