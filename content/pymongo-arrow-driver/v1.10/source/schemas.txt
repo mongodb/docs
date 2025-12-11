@@ -1,0 +1,110 @@
+.. _pymongo-arrow-schemas:
+
+===============
+Schema Examples
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: pandas, numpy, flatten
+   :description: Explore how to use PyMongoArrow schemas for handling nested data and projections in MongoDB operations with Python.
+
+This guide shows examples of how to use PyMongoArrow schemas in common situations.
+
+Nested Data with Schema
+-----------------------
+
+When performing aggregate or find operations, you can provide a schema for nested data
+by using the ``struct`` object. There can be conflicting
+names in sub-documents compared to their parent documents.
+
+.. code-block:: python
+
+   >>> from pymongo import MongoClient
+   ... from pymongoarrow.api import Schema, find_arrow_all
+   ... from pyarrow import struct, field, int32
+   ... coll = MongoClient().db.coll
+   ... coll.insert_many(
+   ...     [
+   ...         {"start": "string", "prop": {"name": "foo", "start": 0}},
+   ...         {"start": "string", "prop": {"name": "bar", "start": 10}},
+   ...     ]
+   ... )
+   ... arrow_table = find_arrow_all(
+   ...     coll, {}, schema=Schema({"start": str, "prop": struct([field("start", int32())])})
+   ... )
+   ... print(arrow_table)
+   pyarrow.Table
+   start: string
+   prop: struct<start: int32>
+     child 0, start: int32
+   ----
+   start: [["string","string"]]
+   prop: [
+     -- is_valid: all not null
+     -- child 0 type: int32
+   [0,10]]
+
+You can do the same thing when using Pandas and NumPy:
+
+.. code-block:: python
+
+   >>> df = find_pandas_all(
+   ...     coll, {}, schema=Schema({"start": str, "prop": struct([field("start", int32())])})
+   ... )
+   ... print(df)
+       start           prop
+   0  string   {'start': 0}
+   1  string  {'start': 10}
+
+Nested Data with Projections
+----------------------------
+
+You can also use projections to flatten the data before passing it to {+driver-short+}.
+The following example illustrates how to do this by using a very simple nested document
+structure:
+
+.. code-block:: python
+
+   >>> df = find_pandas_all(
+   ...     coll,
+   ...     {
+   ...         "prop.start": {
+   ...             "$gte": 0,
+   ...             "$lte": 10,
+   ...         }
+   ...     },
+   ...     projection={"propName": "$prop.name", "propStart": "$prop.start"},
+   ...     schema=Schema({"_id": ObjectIdType(), "propStart": int, "propName": str}),
+   ... )
+   ... print(df)
+                                    _id  propStart propName
+   0  b'c\xec2\x98R(\xc9\x1e@#\xcc\xbb'          0      foo
+   1  b'c\xec2\x98R(\xc9\x1e@#\xcc\xbc'         10      bar
+
+When performing an aggregate operation, you can flatten the fields by using the ``$project``
+stage, as shown in the following example:
+
+.. code-block:: pycon
+
+   >>> df = aggregate_pandas_all(
+   ...     coll,
+   ...     pipeline=[
+   ...         {"$match": {"prop.start": {"$gte": 0, "$lte": 10}}},
+   ...         {
+   ...             "$project": {
+   ...                 "propStart": "$prop.start",
+   ...                 "propName": "$prop.name",
+   ...             }
+   ...         },
+   ...     ],
+   ... )
