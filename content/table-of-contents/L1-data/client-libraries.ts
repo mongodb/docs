@@ -96,6 +96,11 @@ const tocData: TocItem[] = [
             showSubNav: true,
             items: HibernateExtData,
           },
+          {
+            label: 'Spring Data MongoDB Integration',
+            contentSite: 'java',
+            url: '/docs/drivers/java/sync/current/integrations/spring-data-integration',
+          },
         ],
       },
       {
