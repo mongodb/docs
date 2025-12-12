@@ -1,0 +1,1587 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _grove-audit-cli:
+
+===================================
+Audit CLI for MongoDB Documentation
+===================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+As you scope and complete routine documentation work, consider auditing your content to:
+
+- Find everyplace a term is used.
+- Find everywhere a specific file is referenced.
+- Understand our includes or procedure structures to evaluate the impact of
+  proposed changes.
+- Compare the contents of a specific file across versions.
+- Extract code examples for testing.
+- Extract procedure variations for testing or maintenance purposes.
+- Count the number of documentation pages or tested code examples.
+
+Grove's Audit CLI tool helps you complete these tasks.
+
+How it Works
+------------
+
+The Audit CLI tool uses the documentation repository file contents on your
+local machine to perform tasks. While the specifics vary depending on the task,
+usage generally resembles:
+
+1. Clone the tooling repo.
+2. Build the CLI tool locally.
+3. Run the CLI tool in your terminal with a path to a file or directory you
+   want to work with, along with any options you want to use.
+
+The CLI provides detailed documentation for each task, which you can access by
+running ``audit-cli --help`` or ``audit-cli <task> --help``.
+
+The CLI provides output to your terminal, and some of the commands also write
+files to your local machine. You can use this output to scope and complete your
+work.
+
+Install the CLI
+---------------
+
+To install the CLI, you must have `Go <https://go.dev/>`__ installed on your
+local machine.
+
+.. procedure::
+
+   .. step:: Clone the tooling repo.
+
+      Clone the `audit-cli <https://github.com/grove-platform/audit-cli>`__
+      repo to your local machine.
+
+      .. code-block:: sh
+
+         git clone git@github.com:grove-platform/audit-cli.git
+
+   .. step:: Build the CLI tool.
+
+      a. Go to the ``audit-cli`` directory.
+
+      #. Create a ``bin`` directory.
+
+         .. code-block:: sh
+
+            mkdir bin
+
+      #. Build the CLI tool:
+
+         .. code-block:: sh
+
+            cd audit-cli/bin
+            go build ../
+
+      .. tip::
+
+         The ``bin`` directory is in the ``.gitignore`` file, so building the
+         binary in this directory doesn't add it to your git history.
+
+   .. step:: Add the CLI tool to your ``PATH`` (Optional).
+
+      You can optionally add the ``audit-cli`` directory to your ``PATH`` so
+      you can run the CLI tool from any directory on your local machine.
+
+      To add the CLI tool to your ``PATH``, edit your shell's configuration file
+      and add the following line:
+
+      .. code-block:: sh
+
+         export PATH=$PATH:/path/to/audit-cli/bin
+
+      If you don't want to add the CLI tool to your ``PATH``, you can run the
+      tool from the ``audit-cli/bin`` directory by using ``./audit-cli`` instead
+      of ``audit-cli``.
+
+   .. step:: Run the CLI tool.
+
+      You can now run the CLI tool on your local machine. For
+      example, to see the help documentation, run the following command:
+
+      .. tabs::
+
+         .. tab:: With PATH
+            :tabid: path
+
+            Run from anywhere on your local machine.
+
+            .. code-block:: sh
+
+               audit-cli --help
+
+         .. tab:: Without PATH
+            :tabid: no-path
+
+            Run from the ``audit-cli/bin`` directory.
+
+            .. code-block:: sh
+
+               cd audit-cli/bin
+               ./audit-cli --help
+
+Update the CLI
+--------------
+
+To take advantage of new functionality, you must pull changes from the
+``audit-cli`` repo and rebuild the CLI tool.
+
+.. procedure::
+
+   .. step:: Compare the version information.
+
+      Use the ``--version`` flag to see the version of the CLI tool you are
+      currently using.
+
+      .. code-block:: sh
+
+         audit-cli --version
+
+      Compare your version with
+      `the tooling CHANGELOG.md <https://github.com/grove-platform/audit-cli/blob/main/CHANGELOG.md>`__
+      to identify whether you need to update your version of the CLI tool.
+
+   .. step:: Pull changes from the ``audit-cli`` repo.
+
+      Go to the ``audit-cli`` directory on your local machine, and run
+      the following command to pull changes from the ``audit-cli`` repo:
+
+      .. code-block:: sh
+
+         cd audit-cli
+         git pull
+
+   .. step:: Rebuild the CLI tool.
+
+      Rebuild the CLI tool by running the following command from the
+      ``audit-cli/bin`` directory:
+
+      .. code-block:: sh
+
+         cd audit-cli/bin
+         go build ../
+
+      This replaces the prior build with the updated version.
+
+Usage
+-----
+
+The CLI is organized into parent commands with subcommands:
+
+.. code-block::
+
+   audit-cli
+   ├── extract            # Extract content from RST files
+   │   ├── code-examples
+   │   └── procedures
+   ├── search             # Search through extracted content or source files
+   │   └── find-string
+   ├── analyze            # Analyze RST file structures
+   │   ├── includes
+   │   ├── usage
+   │   └── procedures
+   ├── compare          # Compare files across versions
+   │   └── file-contents
+   └── count            # Count code examples and documentation pages
+       ├── tested-examples
+       └── pages
+
+You can use the ``--help`` flag to learn more about each command. For example,
+to see the help documentation for the ``extract`` command, run the following
+command:
+
+.. code-block:: sh
+
+   audit-cli extract --help
+
+To see the help documentation for the ``extract code-examples`` command, run the
+following command:
+
+.. code-block:: sh
+
+   audit-cli extract code-examples --help
+
+The preceding examples show common usage patterns, but you can use the
+``--help`` flag to learn about additional options not documented here for each
+command.
+
+Find Everyplace a Term is Used
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To find everyplace a term is used, use the ``search find-string`` command.
+
+For example, the following command searches for the term "Atlas Search"
+(case-insensitive) in the ``atlas`` directory of the ``docs-mongodb-internal``
+repository:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli search find-string /path/to/docs-mongodb-internal/content/atlas "Atlas Search"
+
+   .. output::
+
+      ============================================================
+      SEARCH REPORT
+      ============================================================
+
+      Files Scanned: 8
+      Files Containing Substring: 1
+      ============================================================
+
+By default, the command searches only the exact file or immediate directory
+you specify. You can use two optional flags to expand the search scope:
+
+-  ``--recursive``: Search all child directories. You might use this option
+   when searching an entire documentation project for a product term.
+-  ``--follow-includes``: Follow include directives to search included files from
+   your start file. You might use this option to find the number of files where
+   the term is used on a given documentation page. For example, the Atlas Search
+   term might be used in many includes that are used on the Atlas Search overview
+   page.
+
+.. tabs::
+
+   .. tab:: Recursive Search
+      :tabid: recursive
+
+      For example, the following command recursively searches for the term
+      "Atlas Search" in the ``atlas`` directory of the repository:
+
+      .. io-code-block::
+
+         .. input::
+            :language: sh
+
+            audit-cli search find-string /path/to/docs-mongodb-internal/content/atlas "Atlas Search" --recursive
+
+         .. output::
+
+            ============================================================
+            SEARCH REPORT
+            ============================================================
+
+            Files Scanned: 7975
+            Files Containing Substring: 210
+            ============================================================
+
+   .. tab:: Follow Includes
+      :tabid: follow-includes
+
+      For example, the following command searches for the term "Atlas Search"
+      in the ``atlas-search/faq.txt`` page, following ``include`` directives to
+      search included files. The command searches the start file and the three
+      include files referenced by the start file.
+
+      .. io-code-block::
+
+         .. input::
+            :language: sh
+
+            audit-cli search find-string /path/to/docs-mongodb-internal/content/atlas/source/atlas-search/faq.txt "Atlas Search" --follow-includes
+
+         .. output::
+
+            ============================================================
+            SEARCH REPORT
+            ============================================================
+
+            Files Scanned: 4
+            Files Containing Substring: 1
+            ============================================================
+
+Get Verbose Output
+``````````````````
+
+If you want more details about where a search term is used, you can use the
+``--verbose`` flag. This flag prints more details about the search options
+used, the files checked for the search term, and where the term was found.
+
+In this example, the command searches for the term "Atlas Search" in the
+``atlas-search/faq.txt`` page, following ``include`` directives to search included
+files. The command also uses the ``--verbose`` flag to print more details about
+the search:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli search find-string /path/to/docs-mongodb-internal/content/atlas/source/atlas-search/faq.txt "Atlas Search" --follow-includes --verbose
+
+   .. output::
+      :visible: false
+
+      Found 1 files to search
+      Searching for substring: "Atlas Search"
+      Case sensitive: false
+      Partial match: false
+      Follow includes: true
+
+      Searching: /path/to/docs-mongodb-internal/content/atlas/source/atlas-search/faq.txt
+      Found 3 includes in faq.txt
+      Following include: /path/to/docs-mongodb-internal/content/atlas/source/includes/fact-shardCollection-fts-indexes.rst
+      Following include: /path/to/docs-mongodb-internal/content/atlas/source/includes/nav/steps-atlas-search.rst
+      Following include: /path/to/docs-mongodb-internal/content/atlas/source/includes/fts/facts/fact-fts-indexes-backup-restore.rst
+      ✓ Found substring in /path/to/docs-mongodb-internal/content/atlas/source/includes/nav/steps-atlas-search.rst
+
+      ============================================================
+      SEARCH REPORT
+      ============================================================
+
+      Files Scanned: 4
+      Files Containing Substring: 1
+
+      Files Containing Substring by Language:
+      rst            : 1
+
+      Files Containing Substring:
+      - /path/to/docs-mongodb-internal/content/atlas/source/includes/nav/steps-atlas-search.rst
+      ============================================================
+
+Match Behavior
+``````````````
+
+By default, the search is case insensitive and doesn't match on partial words.
+You can use the following flags to change this behavior:
+
+-  ``--case-sensitive``: Match the case of the search term.
+-  ``--partial-match``: Match on partial words.
+
+Find Everywhere a File is Referenced
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To find everywhere a file is referenced, use the ``analyze usage`` command.
+This command searches for rST directives that refer to the file you specify.
+The ``audit-cli`` limits the reference search scope to the files within the
+``source`` directory for the given project.
+
+For example, the following command searches for all rST directives that refer to
+the ``fact-shardCollection-fts-indexes.rst`` file within the ``atlas/source``
+directory:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli analyze usage /path/to/docs-mongodb-internal/content/atlas/source/includes/fact-shardCollection-fts-indexes.rst
+
+   .. output::
+
+      ============================================================
+      USAGE ANALYSIS
+      ============================================================
+      Target File: /path/to/docs-mongodb-internal/content/atlas/source/includes/fact-shardCollection-fts-indexes.rst
+      Total Files: 6
+      Total Usages: 6
+      ============================================================
+
+      include             : 6
+
+      1. [include] atlas-search/faq.txt
+      2. [include] includes/manage-indexes-considerations.rst
+      3. [include] includes/steps-convert-replset-to-sharded-cluster.rst
+      4. [include] includes/steps-shard-collection.yaml
+      5. [include] reference/alert-resolutions/atlas-search-alerts.txt
+      6. [include] shard-global-collection.txt
+
+The output shows this file is referred to by ``include`` directives in six files.
+Three of them are ``.txt`` files that resolve to documentation pages. The other
+three are rST files that are referenced by ``include`` directives in other
+files.
+
+You can pass an optional flag to search recursively up the tree of files that
+refer to the target file. This follows references until they resolve to a
+``.txt`` file, giving you the documentation page where we use the content.
+
+For example, the following command searches for all rST directives that refer to
+the ``fact-shardCollection-fts-indexes.rst`` file within the ``atlas/source``
+directory, recursively searching up the tree of files to get to documentation
+pages that refer to the target file:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli analyze usage /path/to/docs-mongodb-internal/content/atlas/source/includes/fact-shardCollection-fts-indexes.rst --recursive
+
+   .. output::
+      :visible: false
+
+      ============================================================
+      RECURSIVE USAGE ANALYSIS
+      ============================================================
+      Target File: /path/to/docs-mongodb-internal/content/atlas/source/includes/fact-shardCollection-fts-indexes.rst
+      Total .txt Files: 6
+      (Showing only .txt documentation pages)
+      ============================================================
+
+      1. atlas-search/faq.txt
+      2. atlas-search/manage-indexes.txt
+      3. atlas-ui/collections.txt
+      4. reference/alert-resolutions/atlas-search-alerts.txt
+      5. scale-cluster.txt
+      6. shard-global-collection.txt
+
+Get Verbose Output
+``````````````````
+
+If you want more details about where a file is referenced, you can use the
+``--verbose`` flag. This flag prints more details about the files checked,
+and line numbers where you can find the directive referring to the file.
+
+For example, the following command searches for all rST directives that refer to
+the ``fact-shardCollection-fts-indexes.rst`` file within the ``atlas/source``
+directory, and prints verbose output showing the line numbers where the
+directives are found:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli analyze usage /path/to/docs-mongodb-internal/content/atlas/source/includes/fact-shardCollection-fts-indexes.rst --verbose
+
+   .. output::
+      :visible: false
+
+      Scan complete. Processed 5045 files.
+      ============================================================
+      USAGE ANALYSIS
+      ============================================================
+      Target File: /path/to/docs-mongodb-internal/content/atlas/source/includes/fact-shardCollection-fts-indexes.rst
+      Total Files: 6
+      Total Usages: 6
+      ============================================================
+
+      include             : 6
+
+      1. [include] atlas-search/faq.txt
+         Line 88: /includes/fact-shardCollection-fts-indexes.rst
+      2. [include] includes/manage-indexes-considerations.rst
+         Line 36: /includes/fact-shardCollection-fts-indexes.rst
+      3. [include] includes/steps-convert-replset-to-sharded-cluster.rst
+         Line 75: /includes/fact-shardCollection-fts-indexes.rst
+      4. [include] includes/steps-shard-collection.yaml
+         Line 57: /includes/fact-shardCollection-fts-indexes.rst
+      5. [include] reference/alert-resolutions/atlas-search-alerts.txt
+         Line 27: /includes/fact-shardCollection-fts-indexes.rst
+      6. [include] shard-global-collection.txt
+         Line 207: /includes/fact-shardCollection-fts-indexes.rst
+
+When you combine this with the ``--recursive`` flag, you can see the full
+path tracing back to the page where the content is used, including any
+intermediate include files.
+
+For example, the following command searches for all rST directives that refer to
+the ``fact-shardCollection-fts-indexes.rst`` file within the ``atlas/source``
+directory, recursively searching up the tree of files to get to documentation
+pages that refer to the target file. With the addition of the ``--verbose`` flag,
+the command prints output that lists the intermediate include files:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli analyze usage /path/to/docs-mongodb-internal/content/atlas/source/includes/fact-shardCollection-fts-indexes.rst --recursive --verbose
+
+   .. output::
+      :visible: false
+
+      Starting recursive analysis for: /path/to/docs-mongodb-internal/content/atlas/source/includes/fact-shardCollection-fts-indexes.rst
+      Following usage tree until reaching .txt files...
+
+      Analyzing: includes/fact-shardCollection-fts-indexes.rst
+      -> [.txt] atlas-search/faq.txt
+      -> [.rst] includes/manage-indexes-considerations.rst (following...)
+      Analyzing: includes/manage-indexes-considerations.rst
+          -> [.txt] atlas-search/manage-indexes.txt
+          -> [.txt] atlas-search/manage-indexes.txt
+          -> [.txt] atlas-search/manage-indexes.txt
+          -> [.txt] atlas-search/manage-indexes.txt
+          -> [.txt] atlas-search/manage-indexes.txt
+          -> [.txt] atlas-search/manage-indexes.txt
+          -> [.txt] atlas-search/manage-indexes.txt
+          -> [.txt] atlas-search/manage-indexes.txt
+          -> [.txt] atlas-search/manage-indexes.txt
+          -> [.txt] atlas-search/manage-indexes.txt
+      -> [.rst] includes/steps-convert-replset-to-sharded-cluster.rst (following...)
+      Analyzing: includes/steps-convert-replset-to-sharded-cluster.rst
+          -> [.txt] scale-cluster.txt
+      -> [.yaml] includes/steps-shard-collection.yaml (following...)
+      Analyzing: includes/steps-shard-collection.yaml
+          -> [.txt] atlas-ui/collections.txt
+      -> [.txt] reference/alert-resolutions/atlas-search-alerts.txt
+      -> [.txt] shard-global-collection.txt
+
+      Recursive analysis complete. Found 6 .txt files.
+      ============================================================
+      RECURSIVE USAGE ANALYSIS
+      ============================================================
+      Target File: /path/to/docs-mongodb-internal/content/atlas/source/includes/fact-shardCollection-fts-indexes.rst
+      Total .txt Files: 6
+      (Showing only .txt documentation pages)
+      ============================================================
+
+      1. atlas-search/faq.txt
+      2. atlas-search/manage-indexes.txt
+      3. atlas-ui/collections.txt
+      4. reference/alert-resolutions/atlas-search-alerts.txt
+      5. scale-cluster.txt
+      6. shard-global-collection.txt
+
+Analyze Included Files
+~~~~~~~~~~~~~~~~~~~~~~
+
+To analyze file dependencies, use the ``analyze includes`` command. This command
+recursively follows any include directives to analyze the relationships of all
+files that are used to build a given file.
+
+For example, the following command analyzes the dependencies of the
+``faq.txt`` file:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli analyze includes /path/to/docs-mongodb-internal/content/atlas/source/atlas-search/faq.txt
+
+   .. output::
+
+      ============================================================
+      INCLUDE ANALYSIS SUMMARY
+      ============================================================
+      Root File: /path/to/docs-mongodb-internal/content/atlas/source/atlas-search/faq.txt
+      Total Files: 4
+      Include Directives: 3
+      Max Depth: 1
+      ============================================================
+
+You can display the details in a tree or list structure to get more information:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli analyze includes /path/to/docs-mongodb-internal/content/atlas/source/atlas-search/faq.txt --tree
+
+   .. output::
+
+      ============================================================
+      INCLUDE TREE
+      ============================================================
+      Root File: /path/to/docs-mongodb-internal/content/atlas/source/atlas-search/faq.txt
+      Total Files: 4
+      Include Directives: 3
+      Max Depth: 1
+      ============================================================
+
+      atlas-search/faq.txt
+      ├── includes/fact-shardCollection-fts-indexes.rst
+      ├── includes/nav/steps-atlas-search.rst
+      └── includes/fts/facts/fact-fts-indexes-backup-restore.rst
+
+Include Files Used Multiple Times
+`````````````````````````````````
+
+Even when an include file is used multiple times, the tool counts it once in
+the summary output. However, you can use the ``--verbose`` flag to see all
+usages of the file.
+
+In the following example, the command shows the start file depends on 18
+unique files, which are used multiple times across the 56 include directives
+that go into making this page:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli analyze includes /path/to/docs-mongodb-internal/content/landing/source/get-started.txt
+
+   .. output::
+
+      ============================================================
+      INCLUDE ANALYSIS SUMMARY
+      ============================================================
+      Root File: /path/to/docs-mongodb-internal/content/landing/source/get-started.txt
+      Unique Files: 18
+      Include Directives: 56
+      Max Depth: 2
+      ============================================================
+
+With the ``--verbose`` flag, the tool lists that the ``get-started.txt``
+file uses the ``load-sample-data.rst`` file 13 times, and where each of those
+usages occur:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli analyze includes /path/to/docs-mongodb-internal/content/atlas/source/atlas-search/faq.txt --verbose
+
+   .. output::
+      :visible: false
+
+      • get-started.txt (24 include directives)
+      • get-started/node/language-connection-steps.rst (3 include directives)
+          • includes/load-sample-data.rst
+          • includes/connection-string-note.rst
+          • includes/application-output.rst
+      • includes/next-steps.rst
+      • get-started/python/language-connection-steps.rst (3 include directives)
+          ◦ includes/load-sample-data.rst
+          ◦ includes/connection-string-note.rst
+          ◦ includes/application-output.rst
+      ◦ includes/next-steps.rst
+      • get-started/java-sync/language-connection-steps.rst (3 include directives)
+          ◦ includes/load-sample-data.rst
+          ◦ includes/connection-string-note.rst
+          ◦ includes/application-output.rst
+      ◦ includes/next-steps.rst
+      • get-started/java-rs/language-connection-steps.rst (3 include directives)
+          ◦ includes/load-sample-data.rst
+          ◦ includes/connection-string-note.rst
+          ◦ includes/application-output.rst
+      ◦ includes/next-steps.rst
+      • get-started/csharp/language-connection-steps.rst (3 include directives)
+          ◦ includes/load-sample-data.rst
+          • includes/env-string-note.rst
+          ◦ includes/application-output.rst
+      ◦ includes/next-steps.rst
+      • get-started/cpp/language-connection-steps.rst (3 include directives)
+          ◦ includes/load-sample-data.rst
+          ◦ includes/connection-string-note.rst
+          ◦ includes/application-output.rst
+      ◦ includes/next-steps.rst
+      • get-started/go/language-connection-steps.rst (3 include directives)
+          ◦ includes/load-sample-data.rst
+          ◦ includes/env-string-note.rst
+          ◦ includes/application-output.rst
+      ◦ includes/next-steps.rst
+      • get-started/kotlin-sync/language-connection-steps.rst (2 include directives)
+          ◦ includes/load-sample-data.rst
+          ◦ includes/connection-string-note.rst
+      ◦ includes/next-steps.rst
+      • get-started/kotlin-coroutine/language-connection-steps.rst (3 include directives)
+          ◦ includes/load-sample-data.rst
+          ◦ includes/connection-string-note.rst
+          ◦ includes/application-output.rst
+      ◦ includes/next-steps.rst
+      • get-started/php/language-connection-steps.rst (2 include directives)
+          ◦ includes/load-sample-data.rst
+          ◦ includes/env-string-note.rst
+      ◦ includes/next-steps.rst
+      • get-started/ruby/language-connection-steps.rst (2 include directives)
+          ◦ includes/load-sample-data.rst
+          ◦ includes/connection-string-note.rst
+      ◦ includes/next-steps.rst
+      • get-started/rust/language-connection-steps.rst (2 include directives)
+          ◦ includes/load-sample-data.rst
+          ◦ includes/connection-string-note.rst
+      ◦ includes/next-steps.rst
+
+The verbose output shows a filled bullet (•)  for the first instance of a file,
+and a hollow bullet (◦) for every time the tool encounters the file again. This
+provides a quick visual indication for files that the page refers to multiple
+times.
+
+Compare File Contents Across Versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the Audit CLI to compare the contents of a file across versions.
+This can help you identify the version when a change was introduced, details that
+appear in only some versions of the file, or understand the evolution of a file
+over time.
+
+The CLI provides two ways to compare files:
+
+1. Compare the contents of two files directly.
+2. Compare the contents of a file across documentation versions.
+
+Compare Two Files Directly
+``````````````````````````
+
+Compare the contents of two files directly by using the ``compare file-contents``
+command with the paths to the two files you want to compare. The tool compares
+the contents of the two files and reports whether they match or they contain
+differences.
+
+The following compares the v4.0 and v5.0 versions of the ``access-mongo-shell-help.txt``
+page:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli compare file-contents /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/access-mongo-shell-help.txt /path/to/docs-mongodb-internal/content/manual/v5.0/source/tutorial/access-mongo-shell-help.txt
+
+   .. output::
+
+      Comparing files...
+      ⚠ Differences found: 1 of 1 versions differ
+     - 1 versions differ
+
+     Use --show-diff to see the differences
+
+For an example showing how to see the differences, refer to :ref:`audit-cli-show-diffs`.
+
+Compare a File Across Documentation Versions
+````````````````````````````````````````````
+
+You can compare a file across all documentation versions, or specify a list
+of specific versions to compare with the source file.
+
+.. tabs::
+
+   .. tab:: Compare All Versions
+      :tabid: compare-all-versions
+
+      You can compare the contents of a file across all versions of the
+      documentation by using the ``compare file-contents`` command with a
+      source file path. The tool will compare the source file to all other
+      versions of the file in the documentation.
+
+      The following compares the v4.4 version of the ``access-mongo-shell-help.txt``
+      page to every other version of that page:
+
+      .. io-code-block::
+
+         .. input::
+            :language: sh
+
+            audit-cli compare file-contents /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/access-mongo-shell-help.txt
+
+         .. output::
+
+            Comparing file across 8 versions...
+            ⚠ Differences found: 1 of 8 versions differ from v4.4
+            - 1 versions match
+            - 1 versions differ
+            - 6 versions not found (file does not exist)
+
+            Use --show-paths to see which files differ
+            Use --show-diff to see the differences
+
+   .. tab:: Compare Specific Versions
+      :tabid: compare-specific-versions
+
+      You can compare the contents of a file across specific versions of the
+      documentation by using the ``--versions`` flag. This flag takes a
+      comma-separated list of versions to compare to the source file.
+
+      The following compares the v4.4 version of the ``access-mongo-shell-help.txt``
+      page to the v5.0 and v6.0 versions:
+
+      .. io-code-block::
+
+         .. input::
+            :language: sh
+
+            audit-cli compare file-contents /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/access-mongo-shell-help.txt --versions v5.0,v6.0
+
+         .. output::
+
+            Comparing file across 2 versions...
+            ⚠ Differences found: 1 of 2 versions differ from v4.4
+            - 1 versions differ
+            - 1 versions not found (file does not exist)
+
+            Use --show-paths to see which files differ
+            Use --show-diff to see the differences
+
+Show Files That Differ
+``````````````````````
+
+Use the ``--show-paths`` flag to see which files differ from the source file.
+The output shows the path to the file in each version of the documentation.
+
+For example, the following command compares the v4.4 version of the
+``access-mongo-shell-help.txt`` page to every other version of that page, and
+shows the paths to the files that differ:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli compare file-contents /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/access-mongo-shell-help.txt --show-paths
+
+   .. output::
+      :visible: false
+
+      Comparing file across 8 versions...
+      ⚠ Differences found: 1 of 8 versions differ from v4.4
+      - 1 versions match
+      - 1 versions differ
+      - 6 versions not found (file does not exist)
+
+      Use --show-paths to see which files differ
+      Use --show-diff to see the differences
+
+      Files that match:
+      ✓ /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/access-mongo-shell-help.txt (reference)
+
+      Files that differ:
+      ✗ /path/to/docs-mongodb-internal/content/manual/v5.0/source/tutorial/access-mongo-shell-help.txt
+
+      Files not found:
+      - /path/to/docs-mongodb-internal/content/manual/manual/source/tutorial/access-mongo-shell-help.txt
+      - /path/to/docs-mongodb-internal/content/manual/upcoming/source/tutorial/access-mongo-shell-help.txt
+      - /path/to/docs-mongodb-internal/content/manual/v6.0/source/tutorial/access-mongo-shell-help.txt
+      - /path/to/docs-mongodb-internal/content/manual/v7.0/source/tutorial/access-mongo-shell-help.txt
+      - /path/to/docs-mongodb-internal/content/manual/v8.0/source/tutorial/access-mongo-shell-help.txt
+      - /path/to/docs-mongodb-internal/content/manual/v8.1/source/tutorial/access-mongo-shell-help.txt
+
+.. _audit-cli-show-diffs:
+
+Show Differences Between Files
+``````````````````````````````
+
+Use the ``--show-diff`` flag to see the differences between the source file and
+the files that differ. The output shows the differences between the source file
+and each of the differing files.
+
+For example, the following command compares the v4.4 version of the
+``access-mongo-shell-help.txt`` page to every other version of that page, and
+shows the differences between the v4.4 and v5.0 versions:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli compare file-contents /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/access-mongo-shell-help.txt --show-diff
+
+   .. output::
+      :visible: false
+
+      Comparing file across 8 versions...
+      ⚠ Differences found: 1 of 8 versions differ from v4.4
+      - 1 versions match
+      - 1 versions differ
+      - 6 versions not found (file does not exist)
+
+      Use --show-paths to see which files differ
+      Use --show-diff to see the differences
+
+      Files that match:
+      ✓ /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/access-mongo-shell-help.txt (reference)
+
+      Files that differ:
+      ✗ /path/to/docs-mongodb-internal/content/manual/v5.0/source/tutorial/access-mongo-shell-help.txt
+
+      Files not found:
+      - /path/to/docs-mongodb-internal/content/manual/manual/source/tutorial/access-mongo-shell-help.txt
+      - /path/to/docs-mongodb-internal/content/manual/upcoming/source/tutorial/access-mongo-shell-help.txt
+      - /path/to/docs-mongodb-internal/content/manual/v6.0/source/tutorial/access-mongo-shell-help.txt
+      - /path/to/docs-mongodb-internal/content/manual/v7.0/source/tutorial/access-mongo-shell-help.txt
+      - /path/to/docs-mongodb-internal/content/manual/v8.0/source/tutorial/access-mongo-shell-help.txt
+      - /path/to/docs-mongodb-internal/content/manual/v8.1/source/tutorial/access-mongo-shell-help.txt
+
+      Diffs:
+      ================================================================================
+      Diff: v4.4 vs v5.0
+      --------------------------------------------------------------------------------
+      --- /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/access-mongo-shell-help.txt
+      +++ /path/to/docs-mongodb-internal/content/manual/v5.0/source/tutorial/access-mongo-shell-help.txt
+      @@ -93,11 +93,7 @@
+
+      .. code-block:: javascript
+
+      -     show collections
+      -
+      -  .. seealso::
+      -
+      -     :ref:`4.0-compat-show-collections`
+      +     show collections
+
+
+      - To see the help for methods available on the collection objects
+      @@ -114,11 +110,11 @@
+      - To see the collection method implementation, type the
+      ``db.<collection>.<method>`` name without the parenthesis (``()``),
+      as in the following example which will return the implementation of
+      -  the :method:`~db.collection.save()` method:
+      +  the :method:`~db.collection.insertOne()` method:
+
+      .. code-block:: javascript
+
+      -     db.collection.save
+      +     db.collection.insertOne
+
+      .. _mongo-shell-help-cursor:
+
+      ================================================================================
+
+The diff displays with ``+`` to the left of the lines that are added in the
+target file, and ``-`` to the left of the lines that are removed in the target
+file. The tool displays diffs comparing each version of the target file to the
+source file, so if you display the diff for all versions, you might see a large
+number of diffs.
+
+Extract Code Examples
+~~~~~~~~~~~~~~~~~~~~~
+
+You can extract code examples from a file using the ``extract code-examples``
+command. The tool extracts all code examples from the source file, and outputs
+them as individual files in a specified output directory.
+
+The following example extracts code examples from the ``access-mongo-shell-help.txt``
+page, outputting them to a ``tmp/output`` directory within the versioned
+documentation directory:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli extract code-examples /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/access-mongo-shell-help.txt --output /path/to/docs-mongodb-internal/content/manual/v4.4/tmp/output
+
+   .. output::
+      :visible: false
+
+      ============================================================
+      CODE EXTRACTION REPORT
+      ============================================================
+
+      Files Traversed: 1
+
+      Output Files Written: 11
+
+      Code Examples by Language:
+      Total: 11 (use --verbose for breakdown)
+
+      Code Examples by Directive Type:
+      code-block          : 11
+
+      ============================================================
+
+.. tip::
+
+   If you want to see what the tool would output without actually creating the
+   output files, use the ``-dry-run`` flag.
+
+   .. code-block::
+
+      audit-cli extract code-examples /input/path --output /output/path --dry-run
+
+Output Filenames
+````````````````
+
+The output filenames are a dot-separated hash based on the following information:
+
+- source filename
+- code example's directive type
+- instance number of the code example in the source file
+- code example's language
+
+The name resembles:
+
+.. code-block:: sh
+
+   <source-filename>.<directive-type>.<instance-number>.<language>
+
+For example, the following code example from the file
+``/path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/query-for-null-fields.txt``:
+
+.. code-block:: rst
+
+   .. code-block:: javascript
+
+      db.inventory.find( { item : { $exists: false } } )
+
+Becomes the file:
+
+.. code-block:: sh
+
+   /path/to/tmp/output/query-for-null-fields.code-block.1.js
+
+Containing the code:
+
+.. code-block:: javascript
+
+   db.inventory.find( { item : { $exists: false } } )
+
+Recursively Extract Code Examples
+`````````````````````````````````
+
+You can use the ``--recursive`` flag to extract code examples from a directory
+and all of its subdirectories.
+
+For example, the following command extracts code examples from all files in the
+``/path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/`` directory,
+outputting them to a ``tmp/output`` directory within the versioned documentation
+directory:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli extract code-examples /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/ --output /path/to/docs-mongodb-internal/content/manual/v4.4/tmp/output --recursive
+
+   .. output::
+      :visible: false
+
+      ============================================================
+      CODE EXTRACTION REPORT
+      ============================================================
+
+      Files Traversed: 206
+
+      Output Files Written: 977
+
+      Code Examples by Language:
+      Total: 977 (use --verbose for breakdown)
+
+      Code Examples by Directive Type:
+      code-block          : 959
+      io-code-block       : 18
+
+      ============================================================
+
+When you recursively extract code examples, the tool creates all output files
+in the root of the specified directory, creating a flat directory. You can use
+the optional ``--preserve-dirs`` flag to preserve the directory structure.
+
+Extract Code Examples from Included Files
+`````````````````````````````````````````
+
+You can use the ``--follow-includes`` flag to extract code examples from
+included files. This flag provides a way to see all the code examples that
+are included for a specific interface, procedure, or documentation page, which
+you might want to compare across versions or move into the code example test
+infrastructure.
+
+For example, this command extracts code examples from the ``access-mongo-shell-help.txt``
+page, following ``include`` directives to check referenced files for code
+examples. The tool writes the code example files to the output path you provide
+- here, a ``tmp/output`` directory within the versioned documentation directory:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli extract code-examples /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/access-mongo-shell-help.txt --output /path/to/docs-mongodb-internal/content/manual/v4.4/tmp/output --follow-includes
+
+   .. output::
+
+      ============================================================
+      CODE EXTRACTION REPORT
+      ============================================================
+
+      Files Traversed: 2
+
+      Output Files Written: 11
+
+      Code Examples by Language:
+      Total: 11 (use --verbose for breakdown)
+
+      Code Examples by Directive Type:
+      code-block          : 11
+
+      ============================================================
+
+Get Verbose Output
+``````````````````
+
+You can use the ``--verbose`` flag to get more detailed output. You may want to
+use this flag to get more information about the code example languages and
+directive types.
+
+For example, the following command extracts code examples from the ``access-mongo-shell-help.txt``
+page, outputting them to a ``tmp/output`` directory within the versioned
+documentation directory. The command also uses the ``--verbose`` flag to print
+more details about the code examples:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli extract code-examples /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/access-mongo-shell-help.txt --output /path/to/docs-mongodb-internal/content/manual/v4.4/tmp/output --verbose
+
+   .. output::
+      :visible: false
+
+      ============================================================
+      CODE EXTRACTION REPORT
+      ============================================================
+
+      Files Traversed: 1
+
+      Traversed Filepaths:
+      - /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/access-mongo-shell-help.txt
+
+      Output Files Written: 11
+
+      Code Examples by Language:
+      bash           : 1
+      javascript     : 10
+
+      Code Examples by Directive Type:
+      code-block          : 11
+
+      Statistics by Source File:
+
+      /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/access-mongo-shell-help.txt:
+         Directives:
+            code-block          : 11
+         Languages:
+            bash           : 1
+            javascript     : 10
+         Output Files: 11
+
+      ============================================================
+
+Extract Procedures
+~~~~~~~~~~~~~~~~~~
+
+You can extract procedures from a file using the ``extract procedures``
+command. The tool extracts all procedures from the source file, and outputs
+them as individual files in a specified output directory.
+
+The following example extracts procedures from the ``rotate-key-sharded-cluster.txt``
+page, outputting them to a ``tmp/output`` directory within the versioned
+documentation directory:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli extract procedures /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/rotate-key-sharded-cluster.txt --output /path/to/docs-mongodb-internal/content/manual/v4.4/tmp/output
+
+   .. output::
+
+      Successfully extracted 1 unique procedures to /tmp/output
+
+This command parses procedures from RST files and extracts all variations based on:
+
+- Composable tutorial selections (``.. composable-tutorial::`` with ``.. selected-content::``)
+- Tab selections (``.. tabs::`` with ``:tabid:``)
+- Procedure directives (``.. procedure::``)
+- Ordered lists
+
+The tool writes each variation to a separate RST file with interpolated content,
+showing the procedure as it would be rendered for that specific variation. This tool
+allows you to test and validate the procedure variations in isolation as they
+would be presented to the user.
+
+.. tip::
+
+   If you want to see what the tool would output without actually creating the
+   output files, use the ``-dry-run`` flag.
+
+   .. code-block::
+
+      audit-cli extract procedures /input/path --output /output/path --dry-run
+
+Output Filenames
+````````````````
+
+The output filenames are an underscore-separated hash based on the following
+information:
+
+- Heading closest to the procedure start
+- Title or first line of the procedure's first step
+- Random hash to ensure uniqueness
+
+The name resembles:
+
+.. code-block:: sh
+
+   <heading>_<first-step-title>_<hash>.rst
+
+For example, a procedure with the "Before You Begin" heading and the following
+first step:
+
+.. code-block:: rst
+
+   .. step:: Pull the MongoDB Docker image.
+
+Becomes the file:
+
+.. code-block:: sh
+
+   before-you-begin_pull-the-mongodb-docker-image_e8eeec.rst
+
+Expand the Include Content Inline
+`````````````````````````````````
+
+To see all of the procedure content inline, for example to manually test the
+procedure, use the ``--expand-includes`` flag. This transcludes all included
+content, such as code blocks and other procedures, into the extracted procedure
+files.
+
+Show Information about Extracted Procedures
+```````````````````````````````````````````
+
+You can use the following flags to display more information about the
+extracted procedures:
+
+- ``--show-steps``: Render the extracted procedure step titles to the console.
+- ``--show-sub-procedures``: Render all extracted sub-procedure step titles to the console.
+
+You can combine these flags to see all of the extracted procedure step titles.
+
+For example, the following command extracts procedures from the ``rotate-key-sharded-cluster.txt``
+page, and shows the step titles and sub-procedure information for each extracted
+procedure:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli extract procedures /path/to/docs-mongodb-internal/content/manual/v4.4/source/tutorial/rotate-key-sharded-cluster.txt --output /path/to/docs-mongodb-internal/content/manual/v4.4/tmp/output --show-sub-procedures
+
+   .. output::
+      :visible: false
+
+      Found 1 unique procedures:
+
+      1. Procedure
+         Output file: procedure_1-modify-the-keyfile-to-include-old-and-new-keys_712a2b.rst
+         Steps: 4
+         Appears in: (no specific selections)
+
+         Step Details:
+         - 1. Modify the Keyfile to Include Old and New Keys
+         - 2. Restart Each Member
+            Contains 5 sub-procedures with a total of 12 sub-steps
+         - 3. Update Keyfile Content to the New Key Only
+         - 4. Restart Each Member
+            Contains 5 sub-procedures with a total of 12 sub-steps
+
+         Sub-Procedures:
+         Step 2 (2. Restart Each Member) contains 5 sub-procedures with a total of 12 sub-steps
+
+            Sub-procedure 1 (2 steps):
+               a. Use the :method:`db.shutdownServer()` method to shut down the member:
+               b. Restart the member.
+
+            Sub-procedure 2 (3 steps):
+               a. Use :method:`rs.stepDown()` to step down the member:
+               b. Use the :method:`db.shutdownServer()` method to shut down the member:
+               c. Restart the member.
+
+            Sub-procedure 3 (2 steps):
+               a. Use the :method:`db.shutdownServer()` method to shut down the member:
+               b. Restart the member.
+
+            Sub-procedure 4 (3 steps):
+               a. Use :method:`rs.stepDown()` to step down the member:
+               b. Use the :method:`db.shutdownServer()` method to shut down the member:
+               c. Restart the member.
+
+            Sub-procedure 5 (2 steps):
+               a. Use the :method:`db.shutdownServer()` method to shut down the member:
+               b. Restart the member.
+         Step 4 (4. Restart Each Member) contains 5 sub-procedures with a total of 12 sub-steps
+
+            Sub-procedure 1 (2 steps):
+               a. Use the :method:`db.shutdownServer()` method to shut down the member:
+               b. Restart the member.
+
+            Sub-procedure 2 (3 steps):
+               a. Use :method:`rs.stepDown()` to step down the member:
+               b. Use the :method:`db.shutdownServer()` method to shut down the member:
+               c. Restart the member.
+
+            Sub-procedure 3 (2 steps):
+               a. Use the :method:`db.shutdownServer()` method to shut down the member:
+               b. Restart the member.
+
+            Sub-procedure 4 (3 steps):
+               a. Use :method:`rs.stepDown()` to step down the member:
+               b. Use the :method:`db.shutdownServer()` method to shut down the member:
+               c. Restart the member.
+
+            Sub-procedure 5 (2 steps):
+               a. Use the :method:`db.shutdownServer()` method to shut down the member:
+               b. Restart the member.
+
+Count Documentation Pages
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can count the number of documentation pages in a given scope by using the
+``count pages`` command. The tool has special handling for the MongoDB
+documentation repository, including awareness of our project and versioning
+structure.
+
+The following example counts the number of pages in the MongoDB documentation
+repository:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli count pages /path/to/docs-mongodb-internal/
+
+   .. output::
+
+      43834
+
+By default, the tool operates across the entire repository. You can specify a
+different scope by using the provided flags.
+
+Count Pages for a Project
+`````````````````````````
+
+You can count pages in a given project by using the ``--for-project`` flag. This
+flag takes the directory name for the given project.
+
+For example, the following command counts the number of pages in the ``meta``
+project:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli count pages /path/to/docs-mongodb-internal/ --for-project meta
+
+   .. output::
+
+      11799
+
+Breakdown by Project
+````````````````````
+
+You can get a breakdown of page counts per project with the ``--by-project`` flag.
+
+For example, the following command shows the page counts for each project in the
+MongoDB documentation repository:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli count pages /path/to/docs-mongodb-internal/ --by-project
+
+   .. output::
+
+      Page Counts by Project:
+
+      app-services                     318
+      atlas                            694
+      atlas-architecture               120
+      atlas-cli                      13060
+      atlas-government                  24
+      atlas-operator                   717
+      bi-connector                      55
+      ...
+
+Breakdown by Version
+````````````````````
+
+You can get a breakdown of page counts per version with the ``--by-version`` flag.
+You can combine this with the ``--for-project`` flag to get a breakdown for a
+specific project, or use this without a project flag to get a breakdown for all
+projects.
+
+For example, the following command shows the page counts for each version in the
+``manual`` project:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli count pages /path/to/docs-mongodb-internal/ --for-project manual --by-version
+
+   .. output::
+
+      Project: manual
+      manual                        1596
+      upcoming                      1596
+      v4.4                          1272
+      v5.0                          1276
+      v6.0                          1388
+      v7.0                          1508
+      v8.0                          1581
+      v8.1                          1582
+
+      Total: 11799
+
+Current Version Only
+````````````````````
+
+If you need a count for only the ``current`` version of the documentation, use
+the ``--current-only`` flag. This flag can be combined with the
+``--for-project`` and ``--count-by-project`` flags.
+
+For example, the following command shows the page count for the ``current``
+versions of all documentation projects:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli count pages /path/to/docs-mongodb-internal/ --current-only
+
+   .. output::
+
+      7833
+
+This command specifically counts the ``current`` version of each project. For
+example, this counts the ``current`` version of the ``manual`` project, but does
+not count the ``upcoming`` version. For unversioned projects, this counts the
+pages in the root of the project.
+
+Exclude Directories
+```````````````````
+
+You can exclude directories from the count using the ``--exclude-dirs`` flag.
+This flag takes a comma-separated list of directory names. You might want to exclude
+directories that contain generated or internal content, for example.
+
+For example, the following command excludes the ``meta`` and ``atlas-cli`` projects
+from the count:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli count pages /path/to/docs-mongodb-internal/ --exclude-dirs meta,atlas-cli
+
+   .. output::
+
+      30711
+
+Count Tested Code Examples
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can count the number of tested code examples in a given scope by using the
+``count tested-examples`` command. The tool has special handling for the MongoDB
+documentation repository, including awareness of our tested code example structure.
+
+The following example counts the number of tested code examples in the MongoDB
+documentation repository:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli count tested-examples /path/to/docs-mongodb-internal/
+
+   .. output::
+
+      397
+
+By default, the tool operates across the entire documentation repository. You
+can specify a different scope by using the provided flags.
+
+Count Tested Examples for a Product
+```````````````````````````````````
+
+You can count tested code examples for a specific product by using the
+``--for-product`` flag. This flag takes the language and directory name for the
+given product.
+
+For example, the following command counts the number of tested code examples for
+the C# Driver:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli count tested-examples /path/to/docs-mongodb-internal/ --for-product csharp/driver
+
+   .. output::
+
+      68
+
+Breakdown by Product
+````````````````````
+
+To get a breakdown of tested code examples per product, use the
+``--count-by-product`` flag.
+
+For example, the following command shows the tested code example counts for each
+product in the MongoDB documentation repository:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli count tested-examples /path/to/docs-mongodb-internal/ --count-by-product
+
+   .. output::
+
+      Product Counts:
+
+        csharp/driver                68  (C#/.NET Driver)
+        go/atlas-sdk                 50  (Atlas Go SDK)
+        go/driver                    46  (Go Driver)
+        java/driver-sync             64  (Java Sync Driver)
+        javascript/driver            66  (Node.js Driver)
+        mongosh                      44  (MongoDB Shell)
+        pymongo                      59  (PyMongo Driver)
+
+      Total: 397
+
+Exclude Output Files
+````````````````````
+
+The MongoDB code example test infrastructure includes tested output files. You
+can exclude these files from the count by using the ``--exclude-output`` flag.
+This flag is useful if you want to count only the tested code examples themselves,
+and not the example output we show in the documentation.
+
+For example, the following command excludes output files from the count of all
+tested code examples in the repository:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli count tested-examples /path/to/docs-mongodb-internal/ --exclude-output
+
+   .. output::
+
+      325
+
+You can combine this flag with other flags to exclude output files for a
+specific product.
+
+For example, the following command excludes output files from the count of tested
+code examples for the C# Driver:
+
+.. io-code-block::
+
+   .. input::
+      :language: sh
+
+      audit-cli count tested-examples /path/to/docs-mongodb-internal/ --for-product csharp/driver --exclude-output
+
+   .. output::
+
+      59
