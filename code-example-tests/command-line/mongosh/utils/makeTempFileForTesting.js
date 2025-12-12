@@ -3,6 +3,27 @@ const path = require("path");
 const { ErrorMessageBuilder } = require("./comparison/errorReporting");
 
 /**
+ * Strips Bluehawk markup tags from code content.
+ * Removes lines containing Bluehawk directives like :snippet-start:, :snippet-end:, etc.
+ * Also removes inline tags like :remove: and :emphasize: from the end of code lines.
+ *
+ * @param {string} content - The code content potentially containing Bluehawk tags
+ * @returns {string} Content with Bluehawk tags removed
+ */
+function stripBluehawkTags(content) {
+  // Remove lines that contain Bluehawk markup tags and inline tags
+  // Block tags (entire line): :snippet-start:, :snippet-end:, :remove-start:, :remove-end:,
+  //                           :uncomment-start:, :uncomment-end:, :replace-start:, :replace-end:,
+  //                           :state-start:, :state-end:, :state-remove-start:, :state-remove-end:
+  // Inline tags (end of line): :remove:, :emphasize:
+  return content
+    .split('\n')
+    .filter(line => !line.trim().match(/^\/\/\s*:[a-z-]+:/))  // Remove block tag lines
+    .map(line => line.replace(/\s*\/\/\s*:[a-z-]+:\s*$/, ''))  // Remove inline tags from end of lines
+    .join('\n');
+}
+
+/**
  * Validates the generated temp file content for common issues.
  *
  * @param {string} content - The temp file content to validate
@@ -84,7 +105,9 @@ function makeTempFileForTesting(details) {
     const snippetFilePath = path.resolve(__dirname, filepathString);
 
     try {
-      const fileContent = fs.readFileSync(snippetFilePath, "utf8").trim();
+      let fileContent = fs.readFileSync(snippetFilePath, "utf8").trim();
+      // Strip Bluehawk markup tags before processing
+      fileContent = stripBluehawkTags(fileContent);
       codeSnippet += fileContent + '\n';
     } catch (error) {
       if (error.code === 'ENOENT') {
@@ -110,6 +133,8 @@ function makeTempFileForTesting(details) {
           let content;
           try {
             content = fs.readFileSync(path.resolve(__dirname, "../examples/" + filepath), "utf8").trim();
+            // Strip Bluehawk markup tags before processing
+            content = stripBluehawkTags(content);
           } catch (error) {
             if (error.code === 'ENOENT') {
               const baseDir = path.resolve(__dirname, "../examples");
