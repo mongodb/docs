@@ -11,7 +11,7 @@
           inputPipelineName: 'fullTextPipeline',
           rank: 2,
           weight: 0.5,
-          value: 2.9571781158447266,
+          value: 2.9629626274108887,
           details: []
         },
         {
@@ -36,7 +36,7 @@
           inputPipelineName: 'fullTextPipeline',
           rank: 2,
           weight: 0.5,
-          value: 2.9571781158447266,
+          value: 2.9629626274108887,
           details: []
         },
         {
@@ -61,7 +61,7 @@
           inputPipelineName: 'fullTextPipeline',
           rank: 4,
           weight: 0.5,
-          value: 2.712062358856201,
+          value: 2.7174296379089355,
           details: []
         },
         {
@@ -86,7 +86,7 @@
           inputPipelineName: 'fullTextPipeline',
           rank: 4,
           weight: 0.5,
-          value: 2.712062358856201,
+          value: 2.7174296379089355,
           details: []
         },
         {
@@ -111,7 +111,7 @@
           inputPipelineName: 'fullTextPipeline',
           rank: 1,
           weight: 0.5,
-          value: 3.609658718109131,
+          value: 3.6164965629577637,
           details: []
         },
         {
@@ -136,7 +136,7 @@
           inputPipelineName: 'fullTextPipeline',
           rank: 4,
           weight: 0.5,
-          value: 2.712062358856201,
+          value: 2.7174296379089355,
           details: []
         },
         {
@@ -161,7 +161,7 @@
           inputPipelineName: 'fullTextPipeline',
           rank: 4,
           weight: 0.5,
-          value: 2.712062358856201,
+          value: 2.7174296379089355,
           details: []
         },
         {
@@ -182,7 +182,7 @@
       value: 0.008064516129032258,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
-        { inputPipelineName: 'fullTextPipeline', rank: 0, weight: 0.5 },
+        { inputPipelineName: 'fullTextPipeline', rank: 'NA' },
         {
           inputPipelineName: 'vectorPipeline',
           rank: 2,
@@ -201,7 +201,7 @@
       value: 0.007936507936507936,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
-        { inputPipelineName: 'fullTextPipeline', rank: 0, weight: 0.5 },
+        { inputPipelineName: 'fullTextPipeline', rank: 'NA' },
         {
           inputPipelineName: 'vectorPipeline',
           rank: 3,
@@ -220,7 +220,7 @@
       value: 0.007936507936507936,
       description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
       details: [
-        { inputPipelineName: 'fullTextPipeline', rank: 0, weight: 0.5 },
+        { inputPipelineName: 'fullTextPipeline', rank: 'NA' },
         {
           inputPipelineName: 'vectorPipeline',
           rank: 3,

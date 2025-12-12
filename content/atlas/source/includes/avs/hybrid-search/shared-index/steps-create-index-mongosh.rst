@@ -26,7 +26,7 @@
       ``plot_embedding_voyage_3_large`` field as the {+avs+} field when
       querying the collection. 
 
-      .. literalinclude:: /includes/avs/rrf-tutorial/create-avs-index-mongosh.sh
+      .. literalinclude:: /includes/avs/hybrid-search/shared-index/create-avs-index-mongosh.sh
          :language: shell
          :copyable: true 
          :linenos:
@@ -36,7 +36,7 @@
       The following index definition automatically indexes all the
       dynamically indexable fields in the collection.
 
-      .. literalinclude:: /includes/avs/rrf-tutorial/create-fts-index-mongosh.sh
+      .. literalinclude:: /includes/avs/hybrid-search/shared-index/create-fts-index-mongosh.sh
          :language: shell
          :copyable: true 
          :linenos:

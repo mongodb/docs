@@ -12,19 +12,17 @@ Perform Hybrid Search with {+avs+} and |fts|
 
 .. facet::
    :name: programming_language
-   :values: javascript/typescript, shell
+   :values: javascript/typescript, shell, python
 
 .. meta::
-   :keywords: MongoDB vector search, vector search, $vectorSearch, $vectorSearch pipeline stage, MongoDB vector search pipeline stage, MongoDB vector search query, MongoDB vector search index, $vectorSearch filter examples, $vectorSearch query examples, $vectorSearch pipeline stage examples, approximate nearest neighbor search, sematic search, $search, MongoDB search, $unionWith
-   :description: Learn how to perform a hybrid search on your vector embeddings that combines full-text and semantic search to return relevant results from your Atlas cluster.
+   :keywords: MongoDB vector search, vector search, $vectorSearch, $vectorSearch pipeline stage, MongoDB vector search pipeline stage, MongoDB vector search query, MongoDB vector search index, $vectorSearch filter examples, $vectorSearch query examples, $vectorSearch pipeline stage examples, approximate nearest neighbor search, sematic search, $search, MongoDB search, $rankFusion, $scoreFusion
+   :description: Learn how to perform a hybrid search on your vector embeddings that combines full-text and semantic search to return relevant results from your MongoDB cluster.
 
 .. contents:: On this page
    :local:
    :backlinks: none
    :depth: 2
    :class: singlecol
-   
-.. |prereq-link| replace:: :ref:`common prerequisites <avs-tutorials-prereqs>` 
 
 This tutorial demonstrates a hybrid search that is an aggregation of
 full-text and semantic search for the same query criteria. While
@@ -59,97 +57,140 @@ Specifically, this tutorial takes you through the following steps:
 #. Create a |fts| index on the ``title`` field in the
    ``sample_mflix.embedded_movies`` collection. This field contains the 
    movie's name as a text string. 
-#. Run a query that uses reciprocal rank fusion to combine the results
-   from a :pipeline:`$vectorSearch` query against the
-   ``plot_embedding_voyage_3_large`` field and a :pipeline:`$search`
+#. Run a query that uses :pipeline:`$rankFusion` or
+   :pipeline:`$scoreFusion` to combine the results from a
+   :pipeline:`$vectorSearch` query against the
+   ``plot_embedding_voyage_3_large`` field and a :pipeline:`$search` 
    query against the ``title`` field.
 
 Prerequisites 
-~~~~~~~~~~~~~
+-------------
 
-Before you begin, complete the |prereq-link|. You must have the
-:authrole:`Project Data Access Admin` access to the project to create
-{+avs+} and |fts| indexes.
+Before you begin, complete the :ref:`prerequisites <avs-hybrid-search-prereqs>`. 
 
-Create the {+avs+} and {+fts+} Indexes 
------------------------------------------------------------
+Procedures 
+----------
 
-This section demonstrates how to create the following indexes on the
-fields in the ``sample_mflix.embedded_movies`` collection: 
+.. composable-tutorial::
+   :options: pipeline-stage, interface, language
+   :defaults: rank-fusion, driver, nodejs
 
-- a {+avs+} index on the ``plot_embedding_voyage_3_large`` field for
-  running vector queries against that field. 
-- a |fts| index on the ``title`` field for running full-text search
-  against that field.
+   Create the {+avs+} and |fts| Indexes 
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Procedure
-~~~~~~~~~
+   .. include:: /includes/avs/hybrid-search/fact-create-indexes-intro.rst
 
-.. include:: /includes/avs/rrf-tutorial/steps-avs-rrf-tutorial-create-index-mongosh.rst
+   .. selected-content:: 
+      :selections: rank-fusion, compass, None
 
-Run a Combined Semantic Search and Full-Text Search Query Using $rankFusion
----------------------------------------------------------------------------
+      .. include:: /includes/avs/hybrid-search/shared-index/steps-create-index-compass.rst
 
-This section demonstrates how to query the data in the
-``sample_mflix.embedded_movies`` collection for *star wars* in the
-``plot_embedding_voyage_3_large`` and ``title`` fields by using the
-:pipeline:`$vectorSearch` and :pipeline:`$search` pipeline stages inside
-the ``$rankFusion`` stage to re-sort the documents in the
-results. The ``$rankFusion`` stage ensures that documents appearing in
-both searches appear at the top of the combined results.
+   .. selected-content:: 
+      :selections: rank-fusion, mongosh, None
 
-.. tip::
-   You can use MongoDB's ``$rankFusion`` aggregation stage to perform a hybrid search 
-   that combines vector search and lexical search.
+      .. include:: /includes/avs/hybrid-search/shared-index/steps-create-index-mongosh.rst
 
-Procedure 
-~~~~~~~~~
+   .. selected-content:: 
+      :selections: rank-fusion, driver, nodejs
 
-.. include:: /includes/avs/rrf-tutorial/steps-avs-rrf-shell-query.rst
+      .. include:: /includes/avs/hybrid-search/shared-index/steps-create-index-nodejs.rst
 
-About the Query 
-~~~~~~~~~~~~~~~
+   .. selected-content:: 
+      :selections: rank-fusion, driver, python
 
-.. include:: /includes/search-shared/extracts/rrf-query-intro.rst 
+      .. include:: /includes/avs/hybrid-search/shared-index/steps-create-index-python.rst
 
-Query Weights
-`````````````
+   .. selected-content:: 
+      :selections: score-fusion, compass, None
 
-.. include:: /includes/search-shared/extracts/rrf-query-variables.rst 
+      .. include:: /includes/avs/hybrid-search/shared-index/steps-create-index-compass.rst
 
-Query Stages
-````````````
+   .. selected-content:: 
+      :selections: score-fusion, mongosh, None
 
-.. include:: /includes/search-shared/extracts/rrf-query-stages.rst 
-   
-Run a Combined Semantic Search and Full-Text Search Query Using ``$scoreFusion`` 
---------------------------------------------------------------------------------
+      .. include:: /includes/avs/hybrid-search/shared-index/steps-create-index-mongosh.rst
+    
+   .. selected-content:: 
+      :selections: score-fusion, driver, nodejs
 
-This section demonstrates how to query the data in the
-``sample_mflix.embedded_movies`` collection for *star wars* in the
-``plot_embedding_voyage_3_large`` and ``title`` fields by using the
-:pipeline:`$vectorSearch` and :pipeline:`$search` pipeline stages inside
-the ``$scoreFusion`` stage to re-sort the documents in the
-results based on their combined scores. The ``$scoreFusion`` stage
-uses mathematical expressions to combine the scores of a document and
-influence the position of the document in the results.  
+      .. include:: /includes/avs/hybrid-search/shared-index/steps-create-index-nodejs.rst
 
-Procedure 
-~~~~~~~~~
+   .. selected-content:: 
+      :selections: score-fusion, driver, python
 
-.. include:: /includes/avs/score-fusion-tutorial/steps-mongosh-query.rst
+      .. include:: /includes/avs/hybrid-search/shared-index/steps-create-index-python.rst
 
-About the Query 
-~~~~~~~~~~~~~~~
+   Run a Combined {+avs+} and |fts| Query 
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/search-shared/extracts/score-fusion-query-intro.rst 
+   .. selected-content:: 
+      :selections: rank-fusion, compass, None
 
-Query Weights
-`````````````
+      .. include:: /includes/avs/hybrid-search/rrf-tutorial/fact-run-query-intro.rst
 
-.. include:: /includes/search-shared/extracts/score-fusion-query-variables.rst 
+      .. include:: /includes/avs/hybrid-search/rrf-tutorial/steps-run-query-compass.rst
 
-Query Stages
-````````````
+      .. include:: /includes/avs/hybrid-search/rrf-tutorial/fact-query-details.rst
 
-.. include:: /includes/search-shared/extracts/score-fusion-query-stages.rst 
+   .. selected-content:: 
+      :selections: rank-fusion, mongosh, None
+
+      .. include:: /includes/avs/hybrid-search/rrf-tutorial/fact-run-query-intro.rst
+
+      .. include:: /includes/avs/hybrid-search/rrf-tutorial/steps-run-query-mongosh.rst
+
+      .. include:: /includes/avs/hybrid-search/rrf-tutorial/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: rank-fusion, driver, nodejs
+
+      .. include:: /includes/avs/hybrid-search/rrf-tutorial/fact-run-query-intro.rst
+
+      .. include:: /includes/avs/hybrid-search/rrf-tutorial/steps-run-query-nodejs.rst
+
+      .. include:: /includes/avs/hybrid-search/rrf-tutorial/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: rank-fusion, driver, python
+
+      .. include:: /includes/avs/hybrid-search/rrf-tutorial/fact-run-query-intro.rst
+
+      .. include:: /includes/avs/hybrid-search/rrf-tutorial/steps-run-query-python.rst
+
+      .. include:: /includes/avs/hybrid-search/rrf-tutorial/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: score-fusion, compass, None
+
+      .. include:: /includes/avs/hybrid-search/score-fusion-tutorial/fact-run-query-intro.rst
+
+      .. include:: /includes/avs/hybrid-search/score-fusion-tutorial/steps-run-query-compass.rst
+
+      .. include:: /includes/avs/hybrid-search/score-fusion-tutorial/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: score-fusion, mongosh, None
+
+      .. include:: /includes/avs/hybrid-search/score-fusion-tutorial/fact-run-query-intro.rst
+
+      .. include:: /includes/avs/hybrid-search/score-fusion-tutorial/steps-mongosh-query.rst
+
+      .. include:: /includes/avs/hybrid-search/score-fusion-tutorial/fact-query-details.rst
+    
+   .. selected-content:: 
+      :selections: score-fusion, driver, nodejs
+
+      .. include:: /includes/avs/hybrid-search/score-fusion-tutorial/fact-run-query-intro.rst
+
+      .. include:: /includes/avs/hybrid-search/score-fusion-tutorial/steps-run-query-nodejs.rst
+
+      .. include:: /includes/avs/hybrid-search/score-fusion-tutorial/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: score-fusion, driver, python
+
+      .. include:: /includes/avs/hybrid-search/score-fusion-tutorial/fact-run-query-intro.rst
+
+      .. include:: /includes/avs/hybrid-search/score-fusion-tutorial/steps-run-query-python.rst
+
+      .. include:: /includes/avs/hybrid-search/score-fusion-tutorial/fact-query-details.rst

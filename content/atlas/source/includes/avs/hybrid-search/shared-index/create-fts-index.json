@@ -1,0 +1,5 @@
+{
+  "mappings": {
+    "dynamic": true
+  }
+}

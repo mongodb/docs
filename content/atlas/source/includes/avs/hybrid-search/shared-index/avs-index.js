@@ -1,14 +1,15 @@
-import { MongoClient } from 'mongodb';
+const { MongoClient } = require("mongodb");
 
-// Connect to your Atlas deployment
-const client = new MongoClient(process.env.ATLAS_CONNECTION_STRING);
+// Connect to your MongoDB deployment
+const MONGODB_URI = "<connection-string>";
+const client = new MongoClient(MONGODB_URI);
 
 async function run() {
     try {
       const database = client.db("sample_mflix");
       const collection = database.collection("embedded_movies");
 
-      // define your MongoDB Vector Search index
+      // Define your vector search index
       const index = {
           name: "hybrid-vector-search",
           type: "vectorSearch",
