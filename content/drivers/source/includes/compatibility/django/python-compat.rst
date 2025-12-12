@@ -6,22 +6,22 @@ The following table shows compatibility between Django MongoDB Backend and Pytho
    :class: compatibility-large
 
    * - Django MongoDB Backend Version
+     - Python 3.14
      - Python 3.13
      - Python 3.12
      - Python 3.11
      - Python 3.10
-     - Python 3.9
+
+   * - 6.0
+     - ✓
+     - ✓
+     - ✓
+     - 
+     - 
 
    * - 5.2
      - ✓
      - ✓
      - ✓
      - ✓
-     -
-
-   * - 5.1
      - ✓
-     - ✓
-     - ✓
-     - ✓
-     -
