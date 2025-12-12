@@ -12,7 +12,7 @@ export const REF_TARGETS = {
   'configuration-options': 'https://www.mongodb.com/docs/manual/reference/configuration-options/#configuration-options',
 };
 
-export const MARIAN_URL = process.env.GATSBY_MARIAN_URL || 'https://docs-search-transport.mongodb.com/';
+export const MARIAN_URL = process.env.NEXT_PUBLIC_MARIAN_URL || 'https://docs-search-transport.mongodb.com/';
 
 export const DATA_TOC_NODE = 'tocnode';
 import { parseBooleanEnv } from './utils/parse-boolean-env';

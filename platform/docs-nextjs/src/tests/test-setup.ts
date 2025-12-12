@@ -2,6 +2,13 @@ import '@testing-library/jest-dom';
 import { mockLeafyGreenIds, resetLeafyGreenIdCounter, restoreLeafyGreenIds } from './utils/mock-leafygreen-ids';
 import { mockWindows } from './utils/mock-windows';
 
+// Mock ResizeObserver for JSDOM (used by FacetTags component)
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+} as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+
 // Mock LeafyGreen ID generation for consistent snapshots
 beforeAll(() => {
   mockLeafyGreenIds();

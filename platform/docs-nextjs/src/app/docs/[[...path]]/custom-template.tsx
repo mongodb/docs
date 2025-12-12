@@ -59,6 +59,10 @@ function getTemplate(templateOption: PageTemplateType): {
       Template = LandingTemplate;
       renderSidenav = true;
       break;
+    case 'search':
+      Template = LandingTemplate;
+      renderSidenav = true;
+      break;
     case 'blank':
       Template = BlankTemplate;
       break;

@@ -141,6 +141,7 @@ import Root, { type RootProps } from '@/components/root';
 import Figure, { type FigureProps } from '@/components/figure';
 import ComposableContent, { type ComposableContentProps } from '@/components/composable-tutorial/composable-content';
 import ComposableTutorial, { type ComposableTutorialProps } from '@/components/composable-tutorial';
+import SearchResults from '@/components/search-results';
 import Transition from '@/components/transition';
 import OpenAPIChangelog from '@/components/open-api-changelog';
 
@@ -265,7 +266,7 @@ const getComponent = (() => {
         // release_specification: ReleaseSpecification,
         root: Root as React.ComponentType<SupportedComponentProps>,
         rubric: Rubric as React.ComponentType<SupportedComponentProps>,
-        // 'search-results': SearchResults,
+        'search-results': SearchResults as React.ComponentType<SupportedComponentProps>,
         section: Section as React.ComponentType<SupportedComponentProps>,
         see: SeeAlso as React.ComponentType<SupportedComponentProps>,
         seealso: SeeAlso as React.ComponentType<SupportedComponentProps>,

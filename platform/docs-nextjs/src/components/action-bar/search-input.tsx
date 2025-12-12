@@ -79,7 +79,7 @@ const SearchInput = ({ className }: SearchInputProps) => {
       query: searchValue,
     });
     inputRef.current?.blur();
-    router.push(`/search/?q=${searchValue}`);
+    router.push(`/docs/search/?q=${searchValue}`);
   };
 
   return (
