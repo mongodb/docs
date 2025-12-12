@@ -1,0 +1,175 @@
+.. _django-geospatial:
+
+=====================
+Model Geospatial Data
+=====================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, gis, geodjango, geographic, location
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use {+django-odm+} to store
+geospatial data. {+django-odm+} supports {+framework+}'s `GeoDjango <{+django-docs+}/ref/contrib/gis>`__
+web framework, which allows you to work with geospatial data in your {+framework+}
+applications.
+
+.. important:: GeoDjango Limitations
+
+   {+django-odm+}'s GeoDjango support has several limitations.
+   To view a list of limitations, see :ref:`django-contrib-app-support`
+   in the {+framework+} and MongoDB Feature Compatibility guide.
+
+.. tip::
+
+   To use the examples in this guide, ensure that you have a {+framework+} application
+   that uses {+django-odm+} and accesses the :atlas:`Atlas sample datasets </sample-data>`.
+   To learn how to set up your application, see the :ref:`django-get-started` tutorial.
+
+Configure GeoDjango
+~~~~~~~~~~~~~~~~~~~
+
+Before you can use {+django-odm+} to model geospatial data, you must
+configure your {+framework+} project to use GeoDjango.
+
+To use GeoDjango, perform the following steps:
+
+1. Install the `GEOS <{+django-docs+}/ref/contrib/gis/install/geolibs/#geos>`__ and
+   `GDAL <{+django-docs+}/ref/contrib/gis/install/geolibs/#gdal>`__ geospatial libraries.
+
+#. Navigate to your project's ``settings.py`` file and add the
+   ``django.contrib.gis`` app to the ``INSTALLED_APPS`` setting,
+   as shown in the following code:
+
+   .. code-block:: python
+
+      INSTALLED_APPS = [
+          "django.contrib.gis",
+          # ... Other installed apps
+      ]
+
+Create a GeoDjango Model
+------------------------
+
+To store geospatial data in your models, add the following import statement
+to your project's ``models.py`` file:
+
+.. code-block:: python
+
+   from django.contrib.gis.db import models
+
+.. important:: 
+
+   If you use the ``from django.db import models`` import statement
+   in your ``models.py`` file, ensure that you replace it with the preceding import statement
+   before defining GeoDjango fields.
+
+Then, you can use GeoDjango fields to define geospatial fields in your
+model classes. MongoDB stores each field type as a ``GeoJSON`` object in
+your collection documents. {+django-odm+} automatically creates ``2dsphere``
+indexes on these fields, which allows you to perform geospatial queries.
+
+.. tip::
+
+   To learn how to query geospatial data by using the ``raw_aggregate()``
+   method, see :ref:`django-raw-queries-geospatial` in the Perform Raw Database Queries
+   guide.
+
+The following table lists the supported GeoDjango fields and their corresponding
+MongoDB ``GeoJSON`` object types:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 50 50
+
+   * - GeoDjango Field
+     - ``GeoJSON`` Type
+
+   * - ``PointField``
+     - :ref:`Point <geojson-point>`
+
+   * - ``LineStringField``
+     - :ref:`LineString <geojson-linestring>`
+
+   * - ``PolygonField``
+     - :ref:`Polygon <geojson-polygon>`
+     
+   * - ``MultiPointField``
+     - :ref:`MultiPoint <geojson-multipoint>`
+
+   * - ``MultiLineStringField``
+     - :ref:`MultiLineString <geojson-multilinestring>`
+
+   * - ``MultiPolygonField``
+     - :ref:`MultiPolygon <geojson-multipolygon>`
+
+   * - ``GeometryCollectionField``
+     - :ref:`GeometryCollection <geojson-geometrycollection>`
+
+.. tip::
+
+   To learn more about the GeoDjango fields, see
+   `Spatial Field Types <{+django-docs+}/ref/contrib/gis/model-api/#spatial-field-types>`__
+   in the {+framework+} documentation.
+
+Model Example
+~~~~~~~~~~~~~
+
+This example defines ``Theater`` and ``Geo`` models to represent
+the ``sample_mflix.theaters`` collection from the :atlas:`Atlas sample datasets </sample-data>`.
+
+In MongoDB, this sample collection's ``location`` field stores a ``Point``
+object that represents the theater's geographic location. Each field stores
+the following data:
+
+.. code-block:: json
+
+   {
+      "location": {
+         "address": {
+            "street": "<street name>",
+            "city": "<city name>",
+            "state": "<state name>",
+            "zip": "<zip code>"
+         },
+         "geo": {
+            "type": "Point",
+            "coordinates": [<longitude>, <latitude>]
+         }
+      }
+   }
+
+You can use {+django-odm+} to store this data by creating the following
+models in your project's ``models.py`` file:
+
+.. literalinclude:: /includes/model-data/geodjango.py
+   :start-after: start-geo-models
+   :end-before: end-geo-models
+   :language: python
+   :copyable:
+
+In the preceding code, the ``Theater`` model has a ``location`` field
+that stores an embedded ``Location`` model. The embedded model contains
+a ``PointField`` named ``geo`` that stores location data.
+
+Additional Information
+----------------------
+
+To learn more about GeoDjango models, see
+`GeoDjango Model API <{+django-docs+}/ref/contrib/gis/model-api/>`__
+in the {+framework+} documentation.
+
+To learn more about storing geospatial data in MongoDB, see
+:ref:`geo-overview-location-data` in the MongoDB Server documentation.

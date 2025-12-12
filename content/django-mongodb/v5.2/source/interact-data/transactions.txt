@@ -1,0 +1,171 @@
+.. _django-transactions:
+
+=========================
+Transactions and Sessions
+=========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, ACID compliance, multi-document
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use {+django-odm+} to perform
+**transactions**. Transactions allow you to run a series of operations
+that change data only if the entire transaction is committed.
+If any operation in the transaction does not succeed, {+django-odm+} stops the
+transaction and discards all changes to the data before they ever become
+visible. This feature is called **atomicity**.
+
+In MongoDB, transactions run within logical sessions. A
+session is a grouping of related read or write operations that you
+want to run sequentially. Sessions enable causal consistency for a group
+of operations and allow you to run operations in an **ACID-compliant**
+transaction, which is a transaction that meets an expectation of
+atomicity, consistency, isolation, and durability. 
+
+{+framework+}'s native transaction API is not supported, but {+django-odm+}
+provides a custom transaction API that enables the same functionality.
+To run operations within a transaction, define them inside an atomic block of
+code. {+django-odm+} manages session logic internally, so you do not need to
+manually start a session before running a transaction.
+
+.. important:: Transaction Limitations
+
+   {+django-odm+}'s transaction API has several limitations.
+   To view a list of limitations, see :ref:`Database and Collection Support <django-feature-compat-db-coll>`
+   in the {+framework+} and MongoDB Feature Compatibility guide.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``Movie`` model, which represents
+the ``sample_mflix.movies`` collection from the :atlas:`Atlas sample datasets </sample-data>`.
+The ``Movie`` model class has the following definition:
+
+.. literalinclude:: /includes/interact-data/crud.py
+   :start-after: start-models
+   :end-before: end-models
+   :language: python
+   :copyable:
+
+.. include:: /includes/use-sample-data.rst
+
+   .. replacement:: model-classes
+
+      ``Movie`` model includes
+
+   .. replacement:: model-imports
+
+      .. code-block:: python
+
+         from <your application name>.models import Movie
+         from django.utils import timezone
+         from datetime import datetime
+
+Start a Transaction
+-------------------
+
+To start a database transaction, call the ``django_mongodb_backend.transaction.atomic()``
+function. You can use this function as a decorator or a context manager.
+
+Ensure that you import the ``transaction`` module by using the following
+import statement:
+
+.. code-block:: python
+
+   from django_mongodb_backend import transaction
+
+Use a Decorator
+~~~~~~~~~~~~~~~
+
+You can start a database transaction by adding the ``@transaction.atomic``
+decorator above your function. This decorator guarantees the atomicity of
+any database operations within the function. If the function successfully
+completes, the changes are committed to MongoDB.
+
+The following example calls the ``create()`` method within a transaction,
+which inserts a document into the ``sample_mflix.movies`` collection if the
+transaction succeeds:
+
+.. literalinclude:: /includes/interact-data/transactions.py
+   :start-after: start-transaction-decorator
+   :end-before: end-transaction-decorator
+   :language: python
+   :copyable:
+
+Use a Context Manager
+~~~~~~~~~~~~~~~~~~~~~
+
+Alternatively, you can use the ``transaction.atomic()`` context manager
+to create an atomic block of code. This example runs the same operation as the
+preceding example but uses a context manager to start a transaction:
+
+.. literalinclude:: /includes/interact-data/transactions.py
+   :start-after: start-transaction-manager
+   :end-before: end-transaction-manager
+   :language: python
+   :copyable:
+
+Run Callbacks After a Transaction
+---------------------------------
+
+To perform certain actions only if a transaction successfully completes,
+you can use the ``transaction.on_commit()`` function. This function allows you to
+register callbacks that run after a transaction is committed to the 
+database. Pass a function, or any callable object, as an argument to
+``on_commit()``.
+
+The following example queries for movies that have a ``genre`` value of
+``["Horror", "Comedy"]`` only after a related database transaction completes:
+
+.. literalinclude:: /includes/interact-data/transactions.py
+   :start-after: start-callback
+   :end-before: end-callback
+   :language: python
+   :copyable:
+
+Handle Transaction Errors
+-------------------------
+
+To handle exceptions that occur during a transaction, add error handling
+logic around your atomic code block. If you handle errors inside
+the atomic block, you might obscure these errors from {+framework+}. Since
+{+framework+} uses errors to determine whether to commit or roll
+back a transaction, this can cause unexpected behavior.
+
+If a transaction does not succeed, {+framework+} does not revert any changes made
+to a model's fields. To avoid inconsistencies between your models and database documents,
+you might need to manually restore the original field values.
+
+Example
+~~~~~~~
+
+The following example includes error handling logic that reverts the modified
+``title`` value of the retrieved document if the database transaction fails:
+
+.. literalinclude:: /includes/interact-data/transactions.py
+   :start-after: start-handle-errors
+   :end-before: end-handle-errors
+   :language: python
+   :copyable:
+
+Since the code performs a second database operation based on the
+model's ``title`` value, reverting the change if the transaction errors
+prevents further data inconsistencies.
+
+Additional Information
+----------------------
+
+To learn more about the {+framework+} transaction API, see `Database Transactions
+<{+django-docs+}/topics/db/transactions>`__ in the {+framework+} documentation.
