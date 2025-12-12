@@ -59,7 +59,7 @@ const tocData: TocItem[] = [
         label: 'Azure Service Connector',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/tutorial/azure-service-connector',
-      }
+      },
     ],
   },
   {
