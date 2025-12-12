@@ -24,8 +24,8 @@
      
    * - Day of Week for Full Snapshot
 
-     - Sets the day of the week when |mms| takes a full snapshot. This
-       ensures a recent complete backup.
+     - Sets the day of the week when |mms| attempts to take a full snapshot. 
+       This ensures a recent complete backup.
 
        |onprem| sets the default value to :guilabel:`Sunday`.
 
