@@ -1,43 +1,10 @@
-.. _connections-connection-examples-atlas:
-
-===================================================
-{+atlas+} Deployment Connection String Examples
-===================================================
-
-.. meta:: 
-   :description: Examples of connection strings to establish connections between MongoDB Atlas instances, tools, and applications that use drivers. 
-
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: singlecol
-
-You can use connection strings to define connections between
-MongoDB instances and the following destinations:
-
-- Your applications when you connect using :driver:`drivers </>`.
-- Tools such as :compass:`MongoDB Compass </>` and 
-  :mongosh:`the MongoDB Shell (mongosh) </>`.
-
-The following example connection strings connect to an Atlas
-deployment.
-
-Atlas Cluster that Authenticates with a Username and Password
--------------------------------------------------------------
-
-.. include:: /includes/connection-examples-by-language-atlas.rst
-
-.. _connections-string-example-mongodb-aws:
-
-Atlas Cluster that Authenticates with AWS IAM Credentials
----------------------------------------------------------
-
 The following example connects to an Atlas cluster that has been
 configured to support authentication via `AWS IAM credentials
 <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html>`__:
 
-.. include:: /includes/connection-examples-by-language-atlas-aws-iam.rst
+.. code-block:: bash
+
+   mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS
 
 Connecting to Atlas using AWS IAM credentials in this manner uses the
 ``MONGODB-AWS`` :urioption:`authentication mechanism <authMechanism>`
@@ -49,7 +16,9 @@ specify an ``AWS_SESSION_TOKEN`` in the
 :urioption:`authMechanismProperties` value, as shown in the following
 example:
 
-.. include:: /includes/connection-examples-by-language-atlas-aws-session-token.rst
+.. code-block:: bash
+
+   mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS&authMechanismProperties=AWS_SESSION_TOKEN:<aws session token>
 
 .. include:: /includes/fact-aws-key-pct-encode-uri.rst
 
@@ -70,7 +39,7 @@ string.
 The following example sets these environment variables in the ``bash``
 shell:
 
-.. code-block:: none
+.. code-block:: bash
 
    export AWS_ACCESS_KEY_ID='<aws access key id>'
    export AWS_SECRET_ACCESS_KEY='<aws secret access key>'
@@ -90,4 +59,6 @@ following command:
 Once set, the following example connects to an Atlas cluster using these
 environment variables:
 
-.. include:: /includes/connection-examples-by-language-atlas-aws-env-variable.rst
+.. code-block:: bash
+
+   mongodb+srv://cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS
