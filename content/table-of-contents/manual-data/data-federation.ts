@@ -94,7 +94,7 @@ const tocData: TocItem[] = [
       {
         label: 'Private Endpoints',
         contentSite: 'cloud-docs',
-        url: 'docs/atlas/data-federation/tutorial/config-private-endpoint',
+        url: '/docs/atlas/data-federation/tutorial/config-private-endpoint',
       },
       {
         label: 'Authentication Methods',
