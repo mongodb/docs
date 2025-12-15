@@ -489,9 +489,17 @@ const tocData: TocItem[] = [
         versions: { excludes: [...outdatedVersions, 'v6.16'] },
         items: [
           {
-            label: 'Get Started with Mongoose',
+            label: 'Integrate with Mongoose',
             contentSite: 'node',
-            url: '/docs/drivers/node/:version/integrations/mongoose-get-started',
+            url: '/docs/drivers/node/:version/integrations/mongoose',
+            collapsible: true,
+            items: [
+              {
+                label: 'Mongoose Get Started',
+                contentSite: 'node',
+                url: '/docs/drivers/node/:version/integrations/mongoose/mongoose-get-started',
+              },
+            ],
           },
           {
             label: 'Integrate with Prisma',
