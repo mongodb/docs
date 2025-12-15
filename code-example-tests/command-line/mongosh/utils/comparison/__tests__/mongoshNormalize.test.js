@@ -4,6 +4,7 @@ const {
   normalizeItem,
   normalizeForComparison,
   ensureComparableFormat,
+  normalizeMapToArray,
 } = require('../mongoshNormalize');
 const {
   ObjectId,
@@ -67,6 +68,84 @@ describe('mongoshNormalize', () => {
       expect(normalizeMongoTypes(123)).toBe(123);
       expect(normalizeMongoTypes(true)).toBe(true);
       expect(normalizeMongoTypes(null)).toBe(null);
+    });
+
+    test('should normalize empty Map to empty array', () => {
+      const map = new Map();
+      const result = normalizeMongoTypes(map);
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toEqual([]);
+    });
+
+    test('should normalize Map with single entry to array with index', () => {
+      const map = new Map([[0, { insertedId: new ObjectId('507f1f77bcf86cd799439011') }]]);
+      const result = normalizeMongoTypes(map);
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        index: 0,
+        insertedId: '507f1f77bcf86cd799439011'
+      });
+    });
+
+    test('should normalize Map with multiple entries to array with indices', () => {
+      const map = new Map([
+        [0, { insertedId: new ObjectId('507f1f77bcf86cd799439011') }],
+        [2, { insertedId: new ObjectId('507f1f77bcf86cd799439012') }]
+      ]);
+      const result = normalizeMongoTypes(map);
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toHaveLength(2);
+      expect(result[0]).toEqual({
+        index: 0,
+        insertedId: '507f1f77bcf86cd799439011'
+      });
+      expect(result[1]).toEqual({
+        index: 2,
+        insertedId: '507f1f77bcf86cd799439012'
+      });
+    });
+  });
+
+  describe('normalizeMapToArray', () => {
+    test('should convert empty Map to empty array', () => {
+      const map = new Map();
+      const result = normalizeMapToArray(map);
+      expect(result).toEqual([]);
+    });
+
+    test('should convert Map with object values to array with index property', () => {
+      const map = new Map([
+        [0, { insertedId: new ObjectId('507f1f77bcf86cd799439011') }],
+        [1, { insertedId: new ObjectId('507f1f77bcf86cd799439012') }]
+      ]);
+      const result = normalizeMapToArray(map);
+      expect(result).toEqual([
+        { index: 0, insertedId: '507f1f77bcf86cd799439011' },
+        { index: 1, insertedId: '507f1f77bcf86cd799439012' }
+      ]);
+    });
+
+    test('should handle Map with non-sequential indices', () => {
+      const map = new Map([
+        [0, { insertedId: new ObjectId('507f1f77bcf86cd799439011') }],
+        [2, { insertedId: new ObjectId('507f1f77bcf86cd799439012') }]
+      ]);
+      const result = normalizeMapToArray(map);
+      expect(result).toEqual([
+        { index: 0, insertedId: '507f1f77bcf86cd799439011' },
+        { index: 2, insertedId: '507f1f77bcf86cd799439012' }
+      ]);
+    });
+
+    test('should handle Map with complex nested objects', () => {
+      const map = new Map([
+        [1, { matchedCount: 1, modifiedCount: 1, didUpsert: false }]
+      ]);
+      const result = normalizeMapToArray(map);
+      expect(result).toEqual([
+        { index: 1, matchedCount: 1, modifiedCount: 1, didUpsert: false }
+      ]);
     });
   });
 

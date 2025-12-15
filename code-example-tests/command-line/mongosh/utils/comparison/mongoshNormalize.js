@@ -21,14 +21,21 @@ const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.?[0-9]*Z?$/;
 
 /**
  * Normalizes MongoDB-specific types to string representations.
- * Handles all mongosh type constructors including Long, Int32, Double.
+ * Handles all mongosh type constructors including Long, Int32, Double, and Map.
  *
  * @param {*} value - The value to normalize
- * @returns {*} Normalized value (string for MongoDB types, original otherwise)
+ * @returns {*} Normalized value (string for MongoDB types, array for Maps, original otherwise)
  */
 function normalizeMongoTypes(value) {
   if (value instanceof Decimal128 || value instanceof ObjectId) {
     return value.toString();
+  }
+
+  // Handle Map objects (from bulkWrite verboseResults)
+  // Convert Map to array of objects with 'index' property
+  // Example: Map([[0, {insertedId: ObjectId('...')}]]) -> [{index: 0, insertedId: '...'}]
+  if (value instanceof Map) {
+    return normalizeMapToArray(value);
   }
 
   // Handle Timestamp (check before Long since Timestamp also has toNumber method)
@@ -64,6 +71,39 @@ function normalizeMongoTypes(value) {
   }
 
   return value;
+}
+
+/**
+ * Converts a Map object to an array of objects with 'index' property.
+ * This is used to normalize bulkWrite verboseResults output.
+ *
+ * The Map keys are numeric indices, and values are result objects.
+ * We convert to an array format that matches the expected output structure.
+ *
+ * @param {Map} map - The Map object to convert
+ * @returns {Array} Array of objects with index property and normalized values
+ *
+ * @example
+ * // Input: Map([[0, {insertedId: ObjectId('...')}], [1, {insertedId: ObjectId('...')}]])
+ * // Output: [{index: 0, insertedId: '...'}, {index: 1, insertedId: '...'}]
+ */
+function normalizeMapToArray(map) {
+  const result = [];
+
+  for (const [key, value] of map.entries()) {
+    // Recursively normalize the value
+    const normalizedValue = normalizeItem(value);
+
+    // If the value is an object, add the index property to it
+    if (typeof normalizedValue === 'object' && normalizedValue !== null && !Array.isArray(normalizedValue)) {
+      result.push({ index: key, ...normalizedValue });
+    } else {
+      // If value is not an object, create an object with index and value
+      result.push({ index: key, value: normalizedValue });
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -212,5 +252,6 @@ module.exports = {
   normalizeObject,
   normalizeForComparison,
   ensureComparableFormat,
+  normalizeMapToArray,
 };
 

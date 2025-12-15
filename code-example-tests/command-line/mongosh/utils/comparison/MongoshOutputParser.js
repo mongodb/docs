@@ -128,6 +128,7 @@ class MongoshOutputParser {
       DBRef: DBRefConstructor,
       MaxKey: MaxKeyConstructor,
       MinKey: MinKeyConstructor,
+      Map: Map, // Native JavaScript Map for mongosh Map output
     };
   }
 
@@ -139,6 +140,7 @@ class MongoshOutputParser {
    * - Trailing commas
    * - MongoDB constructor calls
    * - Comments
+   * - Map literals (Map(n) { key => value } to new Map([[key, value]]))
    *
    * @param {string} str - Raw mongosh output string
    * @returns {string} Normalized JavaScript syntax
@@ -150,6 +152,10 @@ class MongoshOutputParser {
     result = result
       .replace(/^\s*\/\/.*$/gm, '')
       .replace(/^\s*#.*$/gm, '');
+
+    // Convert Map literals: Map(n) { key => value, ... } to new Map([[key, value], ...])
+    // This handles mongosh's Map output format from bulkWrite operations
+    result = this.normalizeMapLiterals(result);
 
     // Convert single-quoted strings to double-quoted
     result = result.replace(/'([^']*)'/g, (match, content) => {
@@ -168,6 +174,157 @@ class MongoshOutputParser {
       .replace(/,(\s*[\}\]])/g, '$1');
 
     return result;
+  }
+
+  /**
+   * Converts mongosh Map literal syntax to JavaScript Map constructor syntax.
+   * Transforms: Map(n) { key => value, ... } to new Map([[key, value], ...])
+   *
+   * This is necessary because mongosh outputs Map objects in a literal format
+   * that isn't valid JavaScript. The format appears in bulkWrite results with
+   * verboseResults: true.
+   *
+   * @param {string} str - String potentially containing Map literals
+   * @returns {string} String with Map literals converted to constructor syntax
+   */
+  static normalizeMapLiterals(str) {
+    // Match Map(n) { ... } patterns, handling nested braces
+    // We need to find the matching closing brace for each Map
+    let result = str;
+    const mapStartPattern = /Map\(\d+\)\s*\{/g;
+
+    // Find all Map starts
+    let match;
+    const replacements = [];
+
+    while ((match = mapStartPattern.exec(str)) !== null) {
+      const startIndex = match.index;
+      const contentStartIndex = match.index + match[0].length;
+
+      // Find the matching closing brace
+      let braceCount = 1;
+      let endIndex = contentStartIndex;
+      let inString = false;
+      let stringChar = null;
+
+      for (let i = contentStartIndex; i < str.length && braceCount > 0; i++) {
+        const char = str[i];
+        const prevChar = i > 0 ? str[i - 1] : null;
+
+        // Track string boundaries
+        if ((char === '"' || char === "'") && prevChar !== '\\') {
+          if (!inString) {
+            inString = true;
+            stringChar = char;
+          } else if (char === stringChar) {
+            inString = false;
+            stringChar = null;
+          }
+        }
+
+        if (!inString) {
+          if (char === '{') braceCount++;
+          if (char === '}') braceCount--;
+        }
+
+        if (braceCount === 0) {
+          endIndex = i;
+          break;
+        }
+      }
+
+      const content = str.substring(contentStartIndex, endIndex);
+      const fullMatch = str.substring(startIndex, endIndex + 1);
+
+      // Handle empty maps
+      if (!content.trim()) {
+        replacements.push({ original: fullMatch, replacement: 'new Map([])' });
+        continue;
+      }
+
+      // Split by commas that are not inside nested braces or brackets
+      const entries = this.splitMapEntries(content);
+
+      // Convert each "key => value" pair to "[key, value]"
+      const arrayEntries = entries.map(entry => {
+        const arrowMatch = entry.match(/^(.+?)\s*=>\s*(.+)$/s);
+        if (arrowMatch) {
+          const key = arrowMatch[1].trim();
+          const value = arrowMatch[2].trim();
+          return `[${key}, ${value}]`;
+        }
+        return entry; // Fallback if format doesn't match
+      });
+
+      replacements.push({
+        original: fullMatch,
+        replacement: `new Map([${arrayEntries.join(', ')}])`
+      });
+    }
+
+    // Apply replacements in reverse order to maintain indices
+    for (let i = replacements.length - 1; i >= 0; i--) {
+      const { original, replacement } = replacements[i];
+      result = result.replace(original, replacement);
+    }
+
+    return result;
+  }
+
+  /**
+   * Splits Map entry content by commas, respecting nested braces and brackets.
+   * This ensures we don't split on commas inside nested objects or arrays.
+   *
+   * @param {string} content - The content inside Map(n) { ... }
+   * @returns {string[]} Array of individual "key => value" entries
+   */
+  static splitMapEntries(content) {
+    const entries = [];
+    let current = '';
+    let braceDepth = 0;
+    let bracketDepth = 0;
+    let inString = false;
+    let stringChar = null;
+
+    for (let i = 0; i < content.length; i++) {
+      const char = content[i];
+      const prevChar = i > 0 ? content[i - 1] : null;
+
+      // Track string boundaries
+      if ((char === '"' || char === "'") && prevChar !== '\\') {
+        if (!inString) {
+          inString = true;
+          stringChar = char;
+        } else if (char === stringChar) {
+          inString = false;
+          stringChar = null;
+        }
+      }
+
+      if (!inString) {
+        // Track brace and bracket depth
+        if (char === '{') braceDepth++;
+        if (char === '}') braceDepth--;
+        if (char === '[') bracketDepth++;
+        if (char === ']') bracketDepth--;
+
+        // Split on comma only at depth 0
+        if (char === ',' && braceDepth === 0 && bracketDepth === 0) {
+          entries.push(current.trim());
+          current = '';
+          continue;
+        }
+      }
+
+      current += char;
+    }
+
+    // Add the last entry
+    if (current.trim()) {
+      entries.push(current.trim());
+    }
+
+    return entries;
   }
 
   /**
