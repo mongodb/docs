@@ -51,18 +51,9 @@ About this Task
 Before you Begin
 ----------------
 
-Before you reshard your collection, ensure that you meet the following 
-requirements:
-
-- .. include:: /includes/resharding-time-reqs.rst
-
-- Your database meets these resource requirements:
-
-  - .. include:: /includes/reshard-storage-space.rst
-  - .. include:: /includes/resharding-mc-io.rst
-  - .. include:: /includes/resharding-mc-cpu.rst
-
-  .. include:: /includes/resharding-mc-important.rst
+.. |operation| replace:: resharding
+.. |op| replace:: reshard
+.. include:: /includes/fact-reshard-considerations.rst
 
 - You must rewrite your application's queries to use **both** the
   current shard key and the new shard key.
@@ -77,14 +68,15 @@ requirements:
      
      #. Rewrite your application to use the **new** shard key.
 
-     #. Wait until resharding completes. To monitor the resharding
-        process, use the :pipeline:`$currentOp` pipeline stage.
+     #. Wait until the resharding operation completes. To
+        monitor the resharding process, use the
+        :pipeline:`$currentOp` pipeline stage.
      
      #. Deploy your rewritten application.
 
-  Before resharding completes, the following queries return an error if
-  the query filter does not include either the current shard key or a
-  unique field (like ``_id``):
+  Before the resharding operation completes, the following
+  queries return an error if the query filter does not include
+  either the current shard key or a unique field (like ``_id``):
 
   - :method:`~db.collection.deleteOne()`
   - :method:`~db.collection.findAndModify()`
@@ -97,39 +89,9 @@ requirements:
   For optimal performance, we recommend that you also rewrite other
   queries to include the new shard key.
 
-  Once the resharding operation completes, you can remove the old shard
-  key from the queries.
+  Once the resharding operation completes, you can remove the
+  old shard key from the queries.
 
-- No index builds are in progress. To check for running index builds, 
-  use ``$currentOp``:
-
-  .. code-block:: javascript
-     
-     db.getSiblingDB("admin").aggregate( [
-        { $currentOp : { idleConnections: true } },
-        { $match: {
-              $or: [
-                  { "op": "command", "command.createIndexes": { $exists: true } },
-                  { "op": "none", "msg": /^Index Build/ }
-              ]
-           }
-        }
-     ] )
-
-  In the result document, if the ``inprog`` field value is an empty
-  array, there are no index builds in progress:
-
-  .. code-block:: javascript
-     :copyable: false
-
-     {
-        inprog: [],
-        ok: 1,
-        '$clusterTime': { ... },
-        operationTime: <timestamp>
-     }
-
-.. |operation| replace:: Resharding
 .. include:: /includes/resharding-oplog-note.rst
 
 .. _resharding_process:
