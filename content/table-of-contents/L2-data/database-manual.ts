@@ -62,11 +62,6 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-            label: 'Atlas Built-In Roles',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/mongodb-users-roles-and-privileges',
-          },
-          {
             label: 'Built-In Roles',
             contentSite: 'docs',
             url: '/docs/:version/reference/built-in-roles',
