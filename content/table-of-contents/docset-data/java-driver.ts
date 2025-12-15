@@ -688,6 +688,11 @@ const tocData: TocItem[] = [
             url: '/docs/drivers/java/sync/:version/integrations/spring-data-integration',
             versions: { excludes: outdatedVersions },
           },
+          {
+            label: 'Quarkus with Panache and MongoDB',
+            contentSite: 'java',
+            url: '/docs/drivers/java/sync/:version/integrations/panache',
+          },
         ],
       },
       {
