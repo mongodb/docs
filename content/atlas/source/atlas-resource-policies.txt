@@ -39,6 +39,10 @@ With resource policies, you can:
 * Enforce minimum and maximum cluster tiers and :ref:`auto-scaling <cluster-autoscaling>` sizes across your organization. 
   If enabled, this policy prevents users from provisioning, updating, or :ref:`auto-scaling <cluster-autoscaling>` {+clusters+} 
   to a tier above or below a specified threshold.
+* Enforce minimum and maximum disk size for all clusters.
+* Enforce the use of a specific cluster topology *only*  (:ref:`replica set <replication>`, 
+  :ref:`sharded cluster <sharding-background>`, or :ref:`global cluster <global-clusters>`).
+* Enforce a minimum and maximum number of shards for sharded clusters.
 
 .. _arps-exception-project-level:
 
@@ -114,6 +118,20 @@ Limitations
 * Private endpoint definitions in {+cedar+} require that you enter individual IP addresses, 
   as wildcard operations are not supported.
 
+* When enforcing disk size, ensure you account for the specific requirements of your 
+  instance sizes and cloud provider limits.
+
+* If you :ref:`enforce a minimum shard count <restrict-shard-count>` greater than one, 
+  you must explicitly allow the transition state for cluster conversions in your policy 
+  (for example, ``&& !context.cluster.isConvertingToSharded``). 
+  Without this exception, |service| blocks users from converting a replica set to 
+  a sharded cluster because the conversion process requires an intermediate state 
+  where the cluster has only one shard.
+
+* |service| treats a replica set as having a shard count of one. If you enforce a 
+  minimum shard count greater than one without checking whether clusters are sharded clusters, 
+  all replica sets in the project are marked as non-compliant.
+
 Using the Cedar Policy Language 
 -------------------------------
 
@@ -181,6 +199,38 @@ Key Cedar Syntax Elements for |service|
         - ``ResourcePolicy::CloudProvider::"aws"`` 
         - ``ResourcePolicy::CloudProvider::"azure"``
         - ``ResourcePolicy::CloudProvider::"gcp"``
+   
+   * - ``context.cluster.clusterType``
+     - Specifies the cluster topology: :ref:`replica set <replication>`, 
+       :ref:`sharded cluster <sharding-background>`, or 
+       :ref:`global cluster <global-clusters>`.
+     - Available options:
+
+       - ``ResourcePolicy::ClusterType::"replicaset"``
+       - ``ResourcePolicy::ClusterType::"sharded"``
+       - ``ResourcePolicy::ClusterType::"geosharded"``
+  
+   * - ``context.cluster.diskSizeGB``
+     - Specifies the disk size in GB.
+     - For example, ``context.cluster.diskSizeGB < 100`` matches clusters  
+       with less than 100 GB of storage.
+
+   * - ``context.cluster.minShardCount``
+     - The current actual number of shards. Use only to enforce  *minimum*  shard counts. 
+       :red:`WARNING`: Do not use this property to enforce  *maximums*. 
+     - For example, ``context.cluster.minShardCount < 3`` matches clusters that 
+       currently have fewer than three shards.
+
+   * - ``context.cluster.maxShardCount``
+     - The maximum possible number of shards. Use only to enforce  *maximum*  shard limits. 
+       :red:`WARNING`: Do not use this property to enforce  *minimums*.
+     - For example, ``context.cluster.maxShardCount > 10`` matches clusters that 
+       have more than ten shards.
+
+   * - ``context.cluster.isConvertingToSharded``
+     - Checks if the current operation is converting a replica set to a sharded cluster. 
+       Required when enforcing minimum shard counts to allow the initial transition.
+     - For example, ``context.cluster.isConvertingToSharded == true``
 
    * - ``context.cluster.regions``
      - Limits access based on deployment regions. 
@@ -194,6 +244,7 @@ Key Cedar Syntax Elements for |service|
 
        - Minimum General class :ref:`cluster tier <create-cluster-instance>`: ``minGeneralClassInstanceSizeValue``
        - Maximum General class :ref:`cluster tier <create-cluster-instance>`: ``maxGeneralClassInstanceSizeValue``
+       - Disk size (GB): ``diskSizeGB``
    
    * - ``context.cluster.minGeneralClassInstanceSizeValue``
      - Sets the minimum :ref:`cluster tier <create-cluster-instance>` for scaling the {+cluster+} down to.
@@ -297,7 +348,10 @@ and add to |service| by using the {+atlas-ui+}, the {+atlas-admin-api+}, or Terr
             * :ref:`prevent-peering-modifications`
             * :ref:`prevent-private-endpoint-modifications`
             * :ref:`restrict-tls-api`
-  
+            * :ref:`enforce-disk-size`
+            * :ref:`restrict-cluster-type`
+            * :ref:`restrict-shard-count`
+
             .. note::
          
                We recommend creating multiple, simple {+arps+} to make tracking easier. 
@@ -353,6 +407,9 @@ and add to |service| by using the {+atlas-ui+}, the {+atlas-admin-api+}, or Terr
                * :ref:`prevent-peering-modifications-ui`
                * :ref:`prevent-private-endpoint-modifications-ui`
                * :ref:`restrict-tls-ui`
+               * :ref:`enforce-disk-size-ui`
+               * :ref:`restrict-cluster-type-ui`
+               * :ref:`restrict-shard-count-ui`
   
                .. note::
          
@@ -436,6 +493,9 @@ and add to |service| by using the {+atlas-ui+}, the {+atlas-admin-api+}, or Terr
             * :ref:`tf-restrict-region`
             * :ref:`tf-restrict-provider-region`
             * :ref:`tf-restrict-ip-addresses`
+            * :ref:`tf-limit-max-disk-size`
+            * :ref:`tf-restrict-cluster-type`
+            * :ref:`tf-restrict-shard-count`
 
             .. note::
 

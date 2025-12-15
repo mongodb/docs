@@ -116,3 +116,63 @@ resource "mongodbatlas_resource_policy" "allow_only_regions_project" {
   ]
 }
 # end-restrict-region-project
+
+# start-limit-max-disk-size
+resource "mongodbatlas_resource_policy" "limit_max_disk_size" {
+  org_id = var.org_id
+  name   = "limit-max-4096gb-disk"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action == ResourcePolicy::Action::"cluster.modify",
+            resource
+        )
+        when { context.cluster has diskSizeGB && context.cluster.diskSizeGB > 4096 };
+      EOF
+    },
+  ]
+}
+# end-limit-max-disk-size
+
+# start-enforce-cluster-type
+resource "mongodbatlas_resource_policy" "require_replica_set" {
+  org_id = var.org_id
+  name   = "require-replica-set"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action == ResourcePolicy::Action::"cluster.modify",
+            resource
+        )
+        unless { context.cluster.clusterType == ResourcePolicy::ClusterType::"replicaset" };
+      EOF
+    },
+  ]
+}
+# end-enforce-cluster-type
+
+# start-restrict-shard-count
+resource "mongodbatlas_resource_policy" "require_min_shards" {
+  org_id = var.org_id
+  name   = "require-min-3-shards"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action == ResourcePolicy::Action::"cluster.modify",
+            resource
+        )
+        when {
+          context.cluster.minShardCount < 3 &&
+          !context.cluster.isConvertingToSharded
+        };
+      EOF
+    },
+  ]
+}
+# end-restrict-shard-count

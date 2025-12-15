@@ -438,3 +438,92 @@ The following example requires that {+clusters+} use the default |tls| cipher su
          }
       ]
    }
+
+.. _enforce-disk-size: 
+
+Enforce Disk Size (GB)
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following example enforces a maximum disk size of 4 TB by forbidding any 
+value greater than (``>``) the limit.
+
+To prevent creating clusters smaller than a certain size, 
+use a less-than operator (``<``) in your forbid policy.
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5 
+
+   {
+      "name": "Limit Max Disk Size to 4000GB",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) when { context.cluster has diskSizeGB && context.cluster.diskSizeGB > 4096 };"
+         }
+      ]
+   }
+
+.. _restrict-cluster-type: 
+
+Enforce Cluster Topology (Replica Set, Sharded, or Global Cluster)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example enables users to create *only* replica set clusters.
+
+.. code-block::
+   :copyable: true 
+   :emphasize-lines: 5 
+
+   {
+      "name": "Require Replica Set Clusters",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) unless { context.cluster.clusterType == ResourcePolicy::ClusterType::\"replicaset\" };"
+         }
+      ]
+   }
+
+To allow a different cluster topology, use one of the following values:
+
+- **Sharded Cluster**: ``ResourcePolicy::ClusterType::"sharded"`` Used for standard 
+  horizontal scaling, where data is distributed across multiple shards to support 
+  large datasets or high throughput.
+- **Global Cluster**: ``ResourcePolicy::ClusterType::"geosharded"`` Used for 
+  location-aware deployments, where data is distributed across specific geographic 
+  zones to ensure data resides close to users.
+
+.. _restrict-shard-count:
+
+Enforce Minimum Shard Count
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example requires that sharded clusters have at least three shards.
+
+.. important::
+   
+   * If you enforce a minimum shard count greater than one, 
+     you must explicitly allow the transition state for cluster conversions in your policy 
+     (for example, ``&& !context.cluster.isConvertingToSharded``). 
+     Without this exception, |service| blocks users from converting a replica set to 
+     a sharded cluster because the conversion process requires an intermediate state 
+     where the cluster has only one shard.
+
+   * |service| treats a replica set as having a shard count of one. If you enforce a 
+     minimum shard count greater than one without checking whether clusters are sharded clusters, all replica sets in the project are marked as non-compliant.
+
+   * Use ``minShardCount`` to enforce *minimums* only (for example, ``< 3``) and 
+     ``maxShardCount`` to enforce *maximums* only (for example, ``> 10``). 
+     Using opposite comparison operators with these properties causes policy evaluation errors.
+
+.. code-block::
+   :copyable: true 
+   :emphasize-lines: 5 
+
+   {
+      "name": "Require Minimum 3 Shards",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) when { context.cluster.minShardCount < 3 && !context.cluster.isConvertingToSharded };"
+         }
+      ] 
+   }
