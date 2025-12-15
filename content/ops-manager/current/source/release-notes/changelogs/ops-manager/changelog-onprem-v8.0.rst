@@ -13,6 +13,7 @@ Improvements
   |onprem| usage data to MongoDB, with controls to enable or disable telemetry 
   through the |onprem| UI or API.
 - Adds |oidc| support for |onprem| user authentication.
+- Addresses `CVE-2025-12383 <https://www.cve.org/CVERecord?id=CVE-2025-12383>`__ by updating the Jersey libraries to 3.1.10.
 
 Bug Fixes
 ~~~~~~~~~
