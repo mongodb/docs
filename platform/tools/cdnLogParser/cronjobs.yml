@@ -1,0 +1,42 @@
+---
+# `image` can be skipped if the values are being set in your .drone.yml file
+image:
+  repository: node
+  tag: 20-slim
+
+# global environment values
+globalEnv:
+  NODE_OPTIONS: --max-old-space-size=32768 --expose-gc
+
+# global secrets are references to k8s Secrets
+globalEnvSecrets:
+  MONGODB_URI: cdn-log-parser
+
+cronJobs:
+  - name: ai-analytics-cdn-data-cronjob
+    schedule: "0 8 * * *"
+    timeZone: "America/New_York"
+    # Run the parser for yesterday's logs at 8am daily
+    # Uses node to calculate yesterday's date in YYYY-MM-DD format (more reliable across platforms)
+    command:
+      - /bin/sh
+      - -c
+      - |
+        YESTERDAY=$(node -e "const d = new Date(); d.setUTCDate(d.getUTCDate() - 1); console.log(d.toISOString().split('T')[0]);")
+        echo "Processing logs for date: $YESTERDAY"
+        node -r ts-node/register parseLogs.ts --start-date=$YESTERDAY
+    resources:
+      requests:
+        cpu: 100m
+        memory: 5Gi
+      limits:
+        cpu: 500m
+        memory: 32Gi
+    serviceAccount:
+      enabled: true
+      name: cdn-log-parser-service-account # named service accounts from role in AWS IAM
+      # AWS IAM role to be associated with the service account
+      irsa:
+        accountId: "216656347858"
+        roleName: cdnLogParserServiceRole # role name in AWS IAM
+
