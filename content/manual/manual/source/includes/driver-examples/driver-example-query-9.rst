@@ -17,6 +17,12 @@
 
             { status: "D" }
 
+         .. note::
+
+            The |compass| query bar autocompletes the current query
+            based on the keys in your collection's documents, including
+            keys in embedded sub-documents.
+
      - id: c
        content: |
 

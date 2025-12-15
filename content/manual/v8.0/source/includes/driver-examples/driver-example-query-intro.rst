@@ -33,10 +33,12 @@
 
      - id: motor
        content: |
+
+         .. include:: /includes/motor-eol.rst
+
          This page provides examples of |query_operations| using the
-         :py:meth:`motor.motor_asyncio.AsyncIOMotorCollection.find`
-         method in the `Motor <https://motor.readthedocs.io/en/stable/>`_
-         driver.
+         :py:meth:`pymongo.asynchronous.collection.AsyncCollection.find`
+         method in the `PyMongo Async API <https://pymongo.readthedocs.io/en/stable/api/pymongo/asynchronous/index.html>`_.
 
          .. include:: /includes/driver-examples/examples-intro.rst
 
