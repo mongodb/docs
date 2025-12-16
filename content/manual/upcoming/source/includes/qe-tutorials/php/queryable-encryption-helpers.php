@@ -60,7 +60,7 @@ function getKMSProviderCredentials(string $kmsProviderName): array
         case 'local':
             // start-generate-local-key
             if (!file_exists('./customer-master-key.txt')) {
-                file_put_contents('./customer-master-key.txt', base64_encode(random_bytes(96)));
+                file_put_contents('./customer-master-key.txt', random_bytes(96));
             }
             // end-generate-local-key
 
@@ -69,7 +69,7 @@ function getKMSProviderCredentials(string $kmsProviderName): array
             $localMasterKey = file_get_contents('./customer-master-key.txt');
             $kmsProviders = [
                 'local' => [
-                    'key' => $localMasterKey,
+                    'key' => new \MongoDB\BSON\Binary($localMasterKey),
                 ],
             ];
             // end-get-local-key

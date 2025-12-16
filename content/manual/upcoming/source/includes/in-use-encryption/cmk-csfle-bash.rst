@@ -15,4 +15,4 @@
 
         $r=[byte[]]::new(96);$g=[System.Security.Cryptography.RandomNumberGenerator]::Create();$g.GetBytes($r);$r
 
-   Save the output of the preceding command to a file named ``customer-master-key.txt``.
+   Save the output of the preceding command to a file named ``master-key.txt``.

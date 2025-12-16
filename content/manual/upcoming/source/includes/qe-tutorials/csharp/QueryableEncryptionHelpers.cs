@@ -82,8 +82,7 @@ public class QueryableEncryptionHelpers
                 {
                     var bytes = new byte[96];
                     randomNumberGenerator.GetBytes(bytes);
-                    var localCustomerMasterKeyBase64 = Convert.ToBase64String(bytes);
-                    File.WriteAllText("customer-master-key.txt", localCustomerMasterKeyBase64);
+                    File.WriteAllBytes("customer-master-key.txt", bytes);
                 }
                 catch (Exception e)
                 {
@@ -97,8 +96,7 @@ public class QueryableEncryptionHelpers
             var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             try
             {
-                var localCustomerMasterKeyBase64 = File.ReadAllText("customer-master-key.txt");
-                var localCustomerMasterKeyBytes = Convert.FromBase64String(localCustomerMasterKeyBase64);
+                var localCustomerMasterKeyBytes = File.ReadAllBytes("customer-master-key.txt");
 
                 if (localCustomerMasterKeyBytes.Length != 96)
                 {

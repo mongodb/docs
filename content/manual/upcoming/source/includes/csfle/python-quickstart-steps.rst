@@ -16,9 +16,12 @@
          :language: python
          :dedent:
 
+      In addition to byte strings, you can also use a Base64-encoded string as a
+      local key.
+      
       .. include:: /includes/queryable-encryption/qe-warning-local-keys.rst
 
-      .. include:: /includes/in-use-encryption/cmk-bash.rst
+      .. include:: /includes/in-use-encryption/cmk-csfle-bash.rst
 
       .. see:: Complete Code
       
