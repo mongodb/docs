@@ -169,6 +169,22 @@ class MongoshOutputParser {
       '$1"$2"$3'
     );
 
+    // Quote unquoted ellipsis used as property values (e.g., { _id: ... , count: ... })
+    // This must come after key quoting but before trailing comma removal
+    // Match: colon, optional whitespace, three dots, followed by comma, whitespace, or closing brace
+    result = result.replace(
+      /:\s*\.\.\.(\s*[,\}\]])/g,
+      ': "..."$1'
+    );
+
+    // Quote standalone ellipsis in arrays (e.g., [ { ... }, ... ] where the last ... is an array element)
+    // Match: line with only whitespace and ... that appears after a comma or opening bracket
+    // This converts [ ..., ... ] to [ ..., "..." ]
+    result = result.replace(
+      /,(\s*)\.\.\./g,
+      ',$1"..."'
+    );
+
     // Remove trailing commas
     result = result
       .replace(/,(\s*[\}\]])/g, '$1');
@@ -414,8 +430,8 @@ class MongoshOutputParser {
     for (const line of lines) {
       const trimmedLine = line.trim();
 
-      // Skip empty lines and standalone ellipsis markers
-      if (!trimmedLine || trimmedLine === '...') {
+      // Skip empty lines (standalone ellipsis are handled in normalization)
+      if (!trimmedLine) {
         continue;
       }
 
