@@ -83,7 +83,9 @@ When creating and managing {+fts+} indexes, consider the following:
    in your index, {+fts+} stores an identical copy of the specified fields on
    disk, which can take disk space.
 
-   .. include:: /includes/fts/facts/fact-fts-document-size.rst
+   .. important::
+         
+         .. include:: /includes/fts/facts/fact-fts-document-size.rst
 
 .. collapsible::
    :heading: Concurrent Requests Error

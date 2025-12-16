@@ -2,6 +2,8 @@ The :guilabel:`{+fts+}` page in the {+atlas-ui+} displays a table of the
 {+fts+} indexes for a cluster. The :guilabel:`Status` column displays
 the status of the {+fts+} index on the primary node in the cluster.
 
+.. _index-statuses:
+
 Possible index statuses include:
 
 .. include:: /includes/fts/list-tables/index-statuses.rst
