@@ -2,8 +2,6 @@
 import type { ProductUpdateEntry } from '../services/contentstack';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMemo } from 'react';
-import DOMPurify from 'dompurify';
 
 export enum LinkTag {
   Docs = 'Docs',
@@ -185,13 +183,6 @@ const ProductUpdateDetail = ({ update }: { update: ProductUpdateEntry }) => {
     day: 'numeric',
   });
 
-  const sanitizedDescription = useMemo(() => {
-    if (!update.description || typeof window === 'undefined') {
-      return '';
-    }
-    return DOMPurify.sanitize(update.description);
-  }, [update.description]);
-
   const getLabel = (label: string) => {
     switch (label) {
       case 'Docs':
@@ -233,7 +224,7 @@ const ProductUpdateDetail = ({ update }: { update: ProductUpdateEntry }) => {
         </div>
 
         {update.description && (
-          <div className={cx(bodyStyle)} dangerouslySetInnerHTML={{ __html: sanitizedDescription }} />
+          <div className={cx(bodyStyle)} dangerouslySetInnerHTML={{ __html: update.description }} />
         )}
         {update.link_with_label && update.link_with_label.length > 0 && (
           <>
