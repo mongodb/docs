@@ -5,56 +5,143 @@ name: production-build
 
 trigger:
   branch:
-    - main
-    - DOP-5575
+  - main
+  - DOP-5575
   event:
-    - push
-    - tag
+  - push
+  - tag
 
 steps:
-  # Builds and publishes Docker image for production
-  - name: publish-production
-    image: plugins/kaniko-ecr
-    settings:
-      create_repository: true
-      registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
-      repo: docs/${DRONE_REPO_NAME}
-      tags:
-        - git-${DRONE_COMMIT_SHA:0:7}
-        - latest
-      context: platform/tools/cdnLogParser
-      dockerfile: platform/tools/cdnLogParser/Dockerfile
-      access_key:
-        from_secret: ecr_access_key
-      secret_key:
-        from_secret: ecr_secret_key
-
+# Builds and publishes Docker image for production
+- name: publish-production
+  image: plugins/kaniko-ecr
+  settings:
+    create_repository: true
+    registry: 795250896452.dkr.ecr.us-east-1.amazonaws.com
+    repo: docs/${DRONE_REPO_NAME}
+    tags:
+    - git-${DRONE_COMMIT_SHA:0:7}
+    - latest
+    context: platform/tools/cdnLogParser
+    dockerfile: platform/tools/cdnLogParser/Dockerfile
+    access_key:
+      from_secret: ecr_access_key
+    secret_key:
+      from_secret: ecr_secret_key
 ---
-depends_on: ['production-build']
+depends_on: [ 'production-build' ]
 kind: pipeline
 type: kubernetes
 name: production-deploy
 
 trigger:
   branch:
-    - main
-    - DOP-5575
+  - main
+  - DOP-5575
   event:
-    - push
-    - tag
+  - push
+  - tag
 
 steps:
-  # Deploys docker image to production
-  - name: deploy-production
-    image: quay.io/mongodb/drone-helm:v3
-    settings:
-      chart: mongodb/cronjobs
-      chart_version: 1.21.2
-      add_repos: [mongodb=https://10gen.github.io/helm-charts]
-      namespace: docs
-      release: ${DRONE_REPO_NAME}
-      values: image.tag=git-${DRONE_COMMIT_SHA:0:7},image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}
-      values_files: ['platform/tools/cdnLogParser/cronjobs.yml']
-      api_server: https://api.prod.corp.mongodb.com
-      kubernetes_token:
-        from_secret: prod_kubernetes_token
+# Deploys docker image to production
+- name: deploy-production
+  image: quay.io/mongodb/drone-helm:v3
+  settings:
+    chart: mongodb/cronjobs
+    chart_version: 1.21.2
+    add_repos: [ mongodb=https://10gen.github.io/helm-charts ]
+    namespace: docs
+    release: ${DRONE_REPO_NAME}
+    values: image.tag=git-${DRONE_COMMIT_SHA:0:7},image.repository=795250896452.dkr.ecr.us-east-1.amazonaws.com/docs/${DRONE_REPO_NAME}
+    values_files: [ 'platform/tools/cdnLogParser/cronjobs.yml' ]
+    api_server: https://api.prod.corp.mongodb.com
+    kubernetes_token:
+      from_secret: prod_kubernetes_token
+---
+# Pipeline for OpenAPI test suite cronjob
+kind: pipeline
+type: kubernetes
+name: openapi-tests-build
+
+trigger:
+  branch:
+  - main
+  event:
+  - push
+  - tag
+  paths:
+  - code-example-tests/openapi/**
+
+steps:
+# Run tests to ensure they pass before building
+- name: test
+  image: node:20-alpine
+  commands:
+  - cd code-example-tests/openapi
+  - npm ci
+  - npm test
+
+# Build and publish Docker image for production
+- name: publish-production
+  image: plugins/kaniko-ecr
+  settings:
+    create_repository: true
+    registry:
+      from_secret: ecr_registry
+    repo: docs/openapi-tests
+    tags:
+    - git-${DRONE_COMMIT_SHA:0:7}
+    - latest
+    access_key:
+      from_secret: ecr_access_key
+    secret_key:
+      from_secret: ecr_secret_key
+    context: code-example-tests/openapi
+    dockerfile: code-example-tests/openapi/Dockerfile
+---
+depends_on: [ 'openapi-tests-build' ]
+kind: pipeline
+type: kubernetes
+name: openapi-tests-deploy
+
+trigger:
+  branch:
+  - main
+  event:
+  - push
+  - tag
+  paths:
+  - code-example-tests/openapi/**
+
+steps:
+# Deploy cronjob to production using Helm
+- name: deploy-production
+  image: quay.io/mongodb/drone-helm:v3
+  environment:
+    ECR_REGISTRY:
+      from_secret: ecr_registry
+  settings:
+    chart: mongodb/cronjobs
+    chart_version: 1.21.2
+    add_repos: [ mongodb=https://10gen.github.io/helm-charts ]
+    namespace: docs
+    release: openapi-tests
+    values: image.tag=git-${DRONE_COMMIT_SHA:0:7},image.repository=$ECR_REGISTRY/docs/openapi-tests
+    values_files: [ 'code-example-tests/openapi/cronjobs.yml' ]
+    api_server: https://api.prod.corp.mongodb.com
+    kubernetes_token:
+      from_secret: prod_kubernetes_token
+
+# Notify Slack of build/deploy status
+- name: notify-slack
+  image: plugins/slack
+  settings:
+    webhook:
+      from_secret: slack_webhook_url
+    channel: int-cb-notes
+    template: >
+      {{#success build.status}} :white_check_mark: *OpenAPI Tests Deploy Succeeded* {{else}} :x: *OpenAPI Tests Deploy Failed* {{/success}} *Repo:* {{repo.name}} *Branch:* {{build.branch}} *Commit:* {{truncate build.commit 7}} *Author:* {{build.author}} *Build:* <{{build.link}}|#{{build.number}}>
+  when:
+    status:
+    - success
+    - failure

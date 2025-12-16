@@ -1,0 +1,31 @@
+---
+# Kubernetes CronJob configuration for OpenAPI test suite
+# This runs daily to validate OpenAPI specs against live endpoints
+
+# Image repository and tag are set via Drone pipeline values
+
+# Service account configuration for IRSA (IAM Roles for Service Accounts)
+# Adjust if your setup requires specific AWS permissions
+serviceAccount:
+  enabled: false
+
+cronJobs:
+- name: openapi-validation
+  # Run daily at 9am UTC (1am PST / 4am EST)
+  # This ensures the tests run regularly to catch any API changes
+  schedule: "0 9 * * *"
+  command:
+  - npm
+  - test
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  # Restart policy for failed jobs
+  restartPolicy: OnFailure
+  # Keep last 3 successful and 3 failed jobs for debugging
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
