@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { theme } from '@/styles/theme';
 import { normalizeDate } from '../utils/to-date';
 import { generateProductUpdatesSlug } from '@/app/products/updates/utils/generate-product-updates-slug';
+import { stripHtml } from '../utils/strip-html';
 
 const featuredContainerStyle = css`
   max-width: 1440px;
@@ -130,7 +131,7 @@ const Featured = ({ updates: limitedFeaturedUpdates }: { updates: ProductUpdateE
             >
               <Body className={cx(dateStyle)}>{date}</Body>
               <H3 className={cx(titleStyle)}>{update.title}</H3>
-              <Body className={cx(bodyStyle)}>{update.multi_line}</Body>
+              {update.description && <div className={cx(bodyStyle)}>{stripHtml(update.description)}</div>}
               <div className={cx(chipsStyle)}>
                 {/* Display all tags from the three tag fields */}
                 {[

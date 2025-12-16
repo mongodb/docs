@@ -15,6 +15,7 @@ import { Pagination } from './Pagination';
 import { getPagination } from '../utils/get-pagination';
 import Button from '@leafygreen-ui/button';
 import { generateProductUpdatesSlug } from '@/app/products/updates/utils/generate-product-updates-slug';
+import { stripHtml } from '../utils/strip-html';
 
 const containerStyle = css`
   max-width: 1550px;
@@ -324,7 +325,8 @@ const Updates = ({ updates }: UpdatesProps) => {
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
         const titleMatch = update.title.toLowerCase().includes(searchLower);
-        const descriptionMatch = (update.multi_line || '').toLowerCase().includes(searchLower);
+        const descriptionText = update.description ? stripHtml(update.description) : '';
+        const descriptionMatch = descriptionText.toLowerCase().includes(searchLower);
 
         if (!titleMatch && !descriptionMatch) {
           return false;
@@ -564,11 +566,10 @@ const Updates = ({ updates }: UpdatesProps) => {
                 day: 'numeric',
               });
 
-              const description = update.multi_line || 'No description available';
-              const truncatedDescription =
-                description.length > 100 ? description.substring(0, 100) + '...' : description;
-
               const slug = generateProductUpdatesSlug(update.title);
+              const descriptionText = update.description ? stripHtml(update.description) : '';
+              const truncatedDescription =
+                descriptionText.length > 100 ? descriptionText.substring(0, 100) + '...' : descriptionText;
 
               return (
                 <div
@@ -578,7 +579,7 @@ const Updates = ({ updates }: UpdatesProps) => {
                 >
                   <Body className={cx(newsItemDateStyle)}>{date}</Body>
                   <div className={cx(newsItemTitleStyle)}>{update.title}</div>
-                  <div className={cx(newsItemDescriptionStyle)}>{truncatedDescription}</div>
+                  {descriptionText && <div className={cx(newsItemDescriptionStyle)}>{truncatedDescription}</div>}
                 </div>
               );
             })}

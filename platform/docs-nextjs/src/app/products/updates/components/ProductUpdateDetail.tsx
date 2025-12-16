@@ -2,6 +2,8 @@
 import type { ProductUpdateEntry } from '../services/contentstack';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useMemo } from 'react';
+import DOMPurify from 'dompurify';
 
 export enum LinkTag {
   Docs = 'Docs',
@@ -79,6 +81,24 @@ const bodyStyle = css`
   color: ${palette.black};
   margin-bottom: 40px;
   white-space: pre-line;
+
+  p {
+    margin-bottom: 16px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  a {
+    color: ${palette.blue.base};
+    text-decoration: none;
+    text-underline-offset: 2px;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 `;
 
 const relatedContentTitleStyle = css`
@@ -165,6 +185,13 @@ const ProductUpdateDetail = ({ update }: { update: ProductUpdateEntry }) => {
     day: 'numeric',
   });
 
+  const sanitizedDescription = useMemo(() => {
+    if (!update.description || typeof window === 'undefined') {
+      return '';
+    }
+    return DOMPurify.sanitize(update.description);
+  }, [update.description]);
+
   const getLabel = (label: string) => {
     switch (label) {
       case 'Docs':
@@ -205,7 +232,9 @@ const ProductUpdateDetail = ({ update }: { update: ProductUpdateEntry }) => {
           <Body className={cx(dateStyle)}>{date}</Body>
         </div>
 
-        <Body className={cx(bodyStyle)}>{update.multi_line || 'No content available'}</Body>
+        {update.description && (
+          <div className={cx(bodyStyle)} dangerouslySetInnerHTML={{ __html: sanitizedDescription }} />
+        )}
         {update.link_with_label && update.link_with_label.length > 0 && (
           <>
             <H3 className={cx(relatedContentTitleStyle)}>Related Content</H3>

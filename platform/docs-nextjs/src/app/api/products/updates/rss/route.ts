@@ -3,6 +3,7 @@ import { getProductUpdates } from '@/app/products/updates/services/contentstack'
 import { withCORS } from '@/app/lib/with-cors';
 import { escapeXml, toRFC2822Date } from '@/utils/xml-utils';
 import { generateProductUpdatesSlug } from '@/app/products/updates/utils/generate-product-updates-slug';
+import { stripHtml } from '@/app/products/updates/utils/strip-html';
 
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mongodb.com';
 const blogUrl = `${baseUrl}/products/updates`;
@@ -92,7 +93,8 @@ export async function GET(request: NextRequest) {
 
         const itemUrl = `${blogUrl}/${slug}`;
         const pubDate = toRFC2822Date(entry.beamer_created_at || entry.created_at);
-        const description = escapeXml(entry.multi_line || entry.title);
+        const descriptionText = entry.description ? stripHtml(entry.description) : entry.title;
+        const description = escapeXml(descriptionText);
 
         return `    <item>
       <title>${escapeXml(entry.title)}</title>
