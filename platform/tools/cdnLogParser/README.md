@@ -6,7 +6,7 @@ This script reads and processes CDN log files from the `dop-cdn-logs` S3 bucket 
 
 1. Install dependencies:
 ```bash
-npm install
+pnpm install
 ```
 
 2. Configure AWS credentials (choose one method):
@@ -59,17 +59,17 @@ const parser = new LogParser({
 
 ### Basic usage
 ```bash
-npm start
+pnpm start
 ```
 
 ### Development mode (with file watching)
 ```bash
-npm run dev
+pnpm dev
 ```
 
 ### Build for production
 ```bash
-npm run build
+pnpm build
 ```
 
 ## Features
