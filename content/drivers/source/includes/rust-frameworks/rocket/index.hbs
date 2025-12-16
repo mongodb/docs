@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Explorer</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Restaurant Directory</h1>
+        </header>
+
+        <div class="controls">
+            <a href="/" class="btn" id="all-btn">All Restaurants</a>
+            <a href="/browse" class="btn" id="browse-btn">Browse Filtered</a>
+        </div>
+
+        <div id="restaurants-container">
+            <div class="loading">Loading restaurants...</div>
+        </div>
+    </div>
+
+    <script>
+        // Sets the active button based on the current path
+        const path = window.location.pathname;
+        if (path === '/browse') {
+            document.getElementById('browse-btn').classList.add('active');
+        } else {
+            document.getElementById('all-btn').classList.add('active');
+        }
+
+        // Loads the restaurant documents
+        async function loadRestaurants() {
+            try {
+                const apiEndpoint = path === '/browse' ? '/restaurants/browse' : '/restaurants';
+                const response = await fetch(apiEndpoint);
+                const restaurants = await response.json();
+                
+                displayRestaurants(restaurants);
+            } catch (error) {
+                document.getElementById('restaurants-container').innerHTML = 
+                    '<div class="error">Error loading restaurants. Please try again later.</div>';
+            }
+        }
+
+        // Displays restaurants in a grid format
+        function displayRestaurants(restaurants) {
+            const container = document.getElementById('restaurants-container');
+            
+            if (restaurants.length === 0) {
+                container.innerHTML = '<div class="error">No restaurants found.</div>';
+                return;
+            }
+
+            const restaurantsHTML = restaurants.map(function(restaurant) {
+                return '<div class="restaurant-card">' +
+                    '<div class="restaurant-name">' + (restaurant.name || 'Unknown Name') + '</div>' +
+                    (restaurant.cuisine ? '<div class="cuisine-tag">' + restaurant.cuisine + '</div>' : '') +
+                    (restaurant.borough ? '<div class="restaurant-info"><strong>Borough:</strong> ' + restaurant.borough + '</div>' : '') +
+                    (restaurant.restaurant_id ? '<div class="restaurant-info"><strong>ID:</strong> ' + restaurant.restaurant_id + '</div>' : '') +
+                    (restaurant.address ? 
+                        '<div class="address">' +
+                        (restaurant.address.building ? restaurant.address.building + ' ' : '') +
+                        (restaurant.address.street ? restaurant.address.street : '') +
+                        (restaurant.address.zipcode ? ', ' + restaurant.address.zipcode : '') +
+                        '</div>' : '') +
+                    '</div>';
+            }).join('');
+
+            container.innerHTML = '<div class="restaurants-grid">' + restaurantsHTML + '</div>';
+        }
+
+        loadRestaurants();
+    </script>
+</body>
+</html>

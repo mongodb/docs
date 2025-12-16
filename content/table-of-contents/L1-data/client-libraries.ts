@@ -247,8 +247,21 @@ const tocData: TocItem[] = [
         label: 'Rust',
         contentSite: 'landing',
         url: '/docs/languages/rust/',
-        showSubNav: true,
-        items: RustDriverData,
+        collapsible: true,
+        items: [
+          {
+            label: 'Rust Driver',
+            contentSite: 'rust',
+            url: '/docs/drivers/rust/current/',
+            showSubNav: true,
+            items: RustDriverData,
+          },
+          {
+            label: 'Rocket Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/rust-frameworks/rocket/',
+          },
+        ],
       },
       {
         label: 'Scala',

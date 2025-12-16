@@ -1,0 +1,397 @@
+.. _rust-rocket-integration:
+
+=============================
+Integrate MongoDB with Rocket
+=============================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: rust, rocket, web app, templates, code example
+   :description: Build a complete web application using Rust, Rocket, and MongoDB with Handlebars templates. Learn how to connect to MongoDB and display sample data.
+
+.. contents:: On this page 
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to create a **Rust** web application
+that uses **Rocket** as the web framework. Rocket is a framework for Rust
+that allows you to create secure, type-safe web applications.
+
+The application in this tutorial consists of the following layers:
+
+- **Database layer**: MongoDB provides data storage and retrieval.
+- **Application layer**: Rocket handles HTTP requests, routing, and logic processing.
+- **Presentation layer**: HTML templates render restaurant data on web pages.
+
+Why Use MongoDB with Rust and Rocket?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By integrating MongoDB with Rust and Rocket, you can use Rust's memory safety
+and performance characteristics alongside MongoDB's flexible document model.
+Rocket's type system ensures compile-time guarantees for your API endpoints,
+and MongoDB's document storage works efficiently with Rust's serialization
+libraries, such as Serde.
+
+The combination of Rust, Rocket, and MongoDB supports applications that require
+high performance, type safety, and scalability. As a result, this stack is 
+well-designed for real world applications such as high-throughput APIs,
+microservices, or systems that require strict performance guarantees.
+
+.. _rust-rocket-qs-tutorial:
+
+Quick Start Tutorial
+--------------------
+
+This tutorial shows you how to build a web application that uses 
+Rust and Rocket. The application accesses sample restaurant data, queries
+the data, and displays it through HTML templates with styling. The tutorial
+also includes instructions for connecting to a MongoDB cluster hosted
+on MongoDB Atlas and accessing and displaying data from your database.
+
+.. tip::
+
+   If you prefer to connect to MongoDB by using the Rust driver without Rocket,
+   see the :driver:`Rust Driver Quick Start </rust/current/quick-start/>` tutorial.
+
+.. _rust-rocket-set-up:
+
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to install the project dependencies,
+create an Atlas cluster, and set up the application structure.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites
+
+      To create the Quick Start application, install the following software
+      in your development environment:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Prerequisite
+           - Notes
+
+         * - `Rust <https://rustup.rs/>`__
+           - Install the latest stable version by using ``rustup``.
+  
+         * - Code editor
+           - This tutorial uses `Visual Studio Code <https://code.visualstudio.com/>`__
+             with the Rust extension, but you can use the editor of your choice.
+  
+         * - Terminal app and shell 
+           - For MacOS users, use Terminal or a
+             similar app. For Windows users, use PowerShell.          
+
+   .. step:: Create a MongoDB Atlas cluster
+      
+      MongoDB Atlas is a fully managed cloud database service that hosts your
+      MongoDB deployments. If you do not have a MongoDB deployment, you can create a MongoDB
+      cluster for free (no credit card required) by completing the
+      `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=rust>`__
+      tutorial. The MongoDB Get Started tutorial also demonstrates how to load sample
+      datasets into your cluster, including the ``sample_restaurants`` database
+      that is used in this tutorial. 
+
+      To connect to your MongoDB cluster, you must use a **connection URI**. To
+      learn how to retrieve your connection URI, see the `Add your connection string
+      <https://www.mongodb.com/docs/get-started/?language=rust#add-your-connection-string>`__
+      section of the MongoDB Get Started tutorial.
+
+      .. important::
+
+         Save your connection string in a secure location.
+
+   .. step:: Create your Rust project
+
+      Run the following command in your terminal to create a new Rust project:
+
+      .. code-block:: bash
+
+         cargo new rocket-quickstart
+         cd rocket-quickstart
+
+      This creates a new Rust project named ``rocket-quickstart`` with the default
+      directory structure.
+
+   .. step:: Configure your project dependencies
+
+      Navigate to the ``Cargo.toml`` file and replace its contents with
+      the following code:
+
+      .. literalinclude:: /includes/rust-frameworks/rocket/Cargo.toml
+         :caption: rocket-quickstart/Cargo.toml
+         :language: toml 
+
+      Install the dependencies by running the following command from your ``rocket-quickstart``
+      directory:
+
+      .. code-block:: bash
+
+         cargo build
+
+      This command installs the following dependencies:
+      
+      - **Rocket**, the project's web framework with JSON support
+      - **Serde**, for data serialization
+      - **MongoDB Rust driver**, for MongoDB operations
+      - **Tokio**, the asynchronous runtime
+      - **rocket_dyn_templates**, for Handlebars template rendering
+
+   .. step:: Create the project structure
+
+      To create the necessary directories and files for this application,
+      run the following commands from your ``rocket-quickstart`` directory:
+
+      .. code-block:: bash
+
+         mkdir -p src/models src/repository src/api templates static
+         touch src/models/restaurant.rs src/repository/mongodb_repo.rs src/api/restaurant_api.rs
+         touch src/models.rs src/repository.rs src/api.rs 
+         touch templates/index.hbs static/style.css
+
+      These commands structure your project to follow Rust's modular
+      architecture pattern, which groups files into different directories
+      according to their purpose. After running the commands, you have the following
+      directories:
+
+      - ``src/models``: Contains data structures to model restaurant data
+      - ``src/repository``: Contains database access logic
+      - ``src/api``: Contains HTTP endpoint handlers
+      - ``templates``: Contains a Handlebars template file for rendering data
+      - ``static``: Contains a CSS file for styling
+
+      The commands also create module declaration
+      files for each ``src/`` directory, which list the modules
+      available in their corresponding directories and allow you
+      to access them throughout the application.
+
+Configure the Back End
+~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up the project structure and dependencies, follow
+the steps in this section to connect to MongoDB and set up your
+data models.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Provide your connection URI
+
+      Set the ``MONGO_URI`` environment variable to your connection URI
+      by running the following command from the ``rocket-quickstart`` directory:
+
+      .. code-block:: bash
+
+         export MONGO_URI="<connection URI>"
+
+      Replace the ``<connection URI>`` placeholder with the connection URI
+      that you saved in a :ref:`previous step <rust-rocket-set-up>`.
+
+   .. step:: Create your data models
+
+      Navigate to the ``src/models/restaurant.rs`` file and paste the following code:
+
+      .. literalinclude:: /includes/rust-frameworks/rocket/models/restaurant.rs
+         :caption: rocket-quickstart/src/models/restaurant.rs
+         :language: rust
+
+      This file defines the ``Restaurant`` and ``Address`` models, which represent
+      the data in the ``sample_restaurants.restaurants`` sample collection. 
+      
+      To use your models in your project files, you must register the ``restaurant`` module,
+      which corresponds to the ``restaurant.rs`` file. Navigate to the ``src/models.rs`` file
+      and paste the following code:
+
+      .. literalinclude:: /includes/rust-frameworks/rocket/models.rs
+         :caption: rocket-quickstart/src/models.rs
+         :language: rust
+
+   .. step:: Access the MongoDB sample collection
+
+      Navigate to the ``src/repository/mongodb_repo.rs`` file and paste the following
+      code:
+
+      .. literalinclude:: /includes/rust-frameworks/rocket/repository/mongodb_repo.rs
+         :caption: rocket-quickstart/src/repository/mongodb_repo.rs
+         :language: rust
+
+      This file accesses the ``restaurants`` collection in the ``sample_restaurants`` database.
+      Then, it defines the following query methods that retrieve collection documents: 
+
+      - ``get_all_restaurants()``: Retrieves all documents in the ``restaurants`` collection
+      - ``get_filtered_restaurants()``: Retrieves documents in the ``restaurants`` collection
+        that have a ``borough`` value of ``"Queens"`` and a ``name`` value containing ``"Moon"``.
+        The ``$options`` value specifies that this ``name`` query is case-insensitive.
+      
+      This code also includes logic for skipping documents that
+      cannot be deserialized. This avoids errors when documents
+      don't contain each field defined in the ``Restaurant`` model.
+
+      Then, register the module in ``src/repository.rs``:
+
+      .. literalinclude:: /includes/rust-frameworks/rocket/repository.rs
+         :caption: rocket-quickstart/src/repository.rs
+         :language: rust
+
+Configure the Front End
+~~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up the data layer, follow the steps in this section
+to create Rocket API handlers and templates for the user interface.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create the API handlers
+
+      Navigate to the ``src/api/restaurant_api.rs`` file and paste the following code:
+
+      .. literalinclude:: /includes/rust-frameworks/rocket/api/restaurant_api.rs
+         :caption: rocket-quickstart/src/api/restaurant_api.rs
+         :language: rust
+
+      This code creates the ``/restaurants`` and ``/restaurants/browse`` endpoints.
+      These endpoints provide JSON data from your query methods that will be consumed
+      by the frontend JavaScript code to dynamically load and display restaurant information.
+
+      Then, register the API module in ``src/api.rs``:
+
+      .. literalinclude:: /includes/rust-frameworks/rocket/api.rs
+         :caption: rocket-quickstart/src/api.rs
+         :language: rust
+
+   .. step:: Update the main application file
+
+      Navigate to the ``src/main.rs`` file and paste the following code:
+
+      .. literalinclude:: /includes/rust-frameworks/rocket/main.rs
+         :caption: rocket-quickstart/src/main.rs
+         :language: rust
+
+      This file sets up the Rocket web server and configures the following
+      routes:
+      
+      - ``/``: Returns HTML code that formats the main index page, which shows all restaurants
+      - ``/browse``: Returns HTML code that formats the filtered restaurants page
+
+   .. step:: Create the Handlebars template
+
+      Navigate to the ``templates/index.hbs`` file and paste the following code:
+
+      .. literalinclude:: /includes/rust-frameworks/rocket/index.hbs
+         :caption: rocket-quickstart/templates/index.hbs
+         :language: html
+
+      This `Handlebars <https://docs.rs/crate/handlebars/6.3.2>`__ template uses
+      JavaScript to create a responsive web interface that dynamically
+      loads restaurant data from your API endpoints and displays the
+      restaurants in an interactive grid layout.
+
+   .. step:: Add CSS styling
+
+      Add the following code to ``static/style.css``:
+
+      .. literalinclude:: /includes/rust-frameworks/rocket/style.css
+         :caption: rocket-quickstart/static/style.css
+         :language: css
+
+      This CSS file styles the restaurant data displayed on the web pages.
+
+Run Your Application
+~~~~~~~~~~~~~~~~~~~~
+
+Finally, follow the steps in this section to run your web application and
+explore the restaurant data by using the browser interface.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Start the Rocket application
+
+      Navigate to your project directory and run the following command:
+
+      .. code-block:: bash
+
+         cargo run
+
+      If successful, the command output resembles the following example:
+
+      .. code-block:: bash
+         :copyable: false
+
+         Configured for debug.
+            >> address: 127.0.0.1
+            >> port: 8000
+            ...
+         Routes:
+            >> (index) GET /
+            >> (browse) GET /browse
+            >> (get_all_restaurants) GET /restaurants
+            >> (get_filtered_restaurants) GET /restaurants/browse
+            >> (FileServer: static/) GET /static/<path..> [10]
+         Fairings:
+            >> Templating (ignite, liftoff, request)
+            >> Shield (liftoff, response, singleton)
+         Shield:
+            >> X-Frame-Options: SAMEORIGIN
+            >> Permissions-Policy: interest-cohort=()
+            >> X-Content-Type-Options: nosniff
+         Templating:
+            >> directory: templates
+            >> engines: ["hbs"]
+         Rocket has launched from http://127.0.0.1:8000
+
+   .. step:: Open the web application
+
+      Open http://127.0.0.1:8000 in your web browser. The initial
+      landing page displays all restaurants in the ``sample_restaurants.restaurants``
+      collection:
+
+      .. figure:: /figures/rocket-landing.png
+         :alt: The landing page that displays all restaurants
+
+      Then, click the :guilabel:`Browse Filtered` button to view restaurants in Queens that
+      have ``"Moon"`` in their name:
+
+      .. figure:: /figures/rocket-filtered.png
+         :alt: The web page that displays the filtered restaurants
+
+   .. step:: Test the API endpoints
+
+      You can also test the underlying API endpoints directly
+      by running the following commands from your terminal:
+
+      .. code-block:: bash
+
+         curl http://127.0.0.1:8000/restaurants
+         curl http://127.0.0.1:8000/restaurants/browse
+
+      These endpoints return the same data displayed in the web interface, formatted as JSON
+      documents.
+
+Congratulations on completing the Quick Start tutorial! After you complete
+these steps, you have a Rust and Rocket web application that
+connects to your MongoDB deployment, runs queries on sample restaurant data,
+and displays the results on a locally hosted web interface.
+
+Additional Resources
+--------------------
+
+To learn more about Rust, Rocket, and MongoDB, see the following resources:
+
+- `Rocket <https://rocket.rs/>`__ documentation
+- :driver:`MongoDB Rust Driver </rust/current>` documentation  
+- `Serde <https://serde.rs/>`__ serialization framework
+- `Handlebars <https://handlebarsjs.com/>`__ templating language
