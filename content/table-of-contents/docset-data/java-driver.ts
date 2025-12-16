@@ -693,6 +693,11 @@ const tocData: TocItem[] = [
             contentSite: 'java',
             url: '/docs/drivers/java/sync/:version/integrations/panache',
           },
+          {
+            label: 'Testcontainers Integration Testing',
+            contentSite: 'java',
+            url: '/docs/drivers/java/sync/:version/integrations/testcontainers',
+          },
         ],
       },
       {

@@ -1,0 +1,250 @@
+.. _java-testcontainers:
+
+==============================================================
+Integration Testing with Java and MongoDB Using Testcontainers
+==============================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: integration testing, docker, testcontainers, spring boot, containers, automation
+   :description: Learn how to use Testcontainers with MongoDB for integration testing in Java and Spring Boot applications using Docker containers.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+**Testcontainers** is a Java library that uses Docker containers
+to simplify integration testing. It creates temporary database
+instances that run during your tests and removes them automatically
+when tests finish.
+
+This tutorial shows you how to use Testcontainers with MongoDB in
+both standard Java and Spring Boot applications.
+
+Integration Testing and Testcontainers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Integration testing checks how different parts of your application
+work together. Unlike unit tests that validate individual pieces of
+code, integration tests verify that your code correctly interacts
+with external systems, such as databases or APIs.
+
+Testcontainers performs the following steps when running tests:
+
+1. **Before tests**: Creates the container, loads the database, and
+   creates collections
+#. **During tests**: Runs your test code
+#. **After tests**: Removes the container and frees resources
+
+Tests that use Testcontainers run the same way on any computer and any operating
+system, and each test uses its own database instance. You can also switch
+between different database versions when necessary.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before you begin, install the following:
+
+- Java version 22. To download, see the `Oracle website
+  <https://www.oracle.com/java/technologies/downloads/>`__.
+- Maven version 3.9.6. To download, see the `Maven website
+  <https://maven.apache.org/download.cgi>`__.
+- Docker version 26.0.0. To download, see the `Docker website
+  <https://www.docker.com/>`__.
+
+You must also add the following dependencies to your application's ``pom.xml``
+file:
+
+.. code-block:: xml
+
+   <dependencyManagement>
+     <dependencies>
+
+       <!-- MongoDB Java Driver BOM -->
+       <dependency>
+         <groupId>org.mongodb</groupId>
+         <artifactId>mongodb-driver-bom</artifactId>
+         <type>pom</type>
+         <scope>import</scope>
+       </dependency>
+
+       <!-- Testcontainers BOM -->
+       <dependency>
+         <groupId>org.testcontainers</groupId>
+         <artifactId>testcontainers-bom</artifactId>
+         <type>pom</type>
+         <scope>import</scope>
+       </dependency>
+
+       <!-- JUnit BOM -->
+       <dependency>
+         <groupId>org.junit</groupId>
+         <artifactId>junit-bom</artifactId>
+         <type>pom</type>
+         <scope>import</scope>
+       </dependency>
+
+     </dependencies>
+   </dependencyManagement>
+
+Use Testcontainers with Java
+-----------------------------
+
+The following example tests a query that finds movies with IMDb
+ratings above 7.0. To view the complete code, see the `GitHub
+repository
+<https://github.com/mongodb-developer/testcontainers-with-mongodb-and-java>`__.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create the Container
+
+      The following code creates a MongoDB container. The
+      ``@Container`` annotation starts the container before tests and
+      stops it after tests finish:
+
+      .. code-block:: java
+
+         @Container
+         private static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:7.0.0");
+
+   .. step:: Add Test Data
+
+      The following code connects to the container and adds sample
+      movies:
+
+      .. code-block:: java
+
+         @BeforeAll
+         public void setup() {
+             String uri = mongoDBContainer.getConnectionString();
+             mongoClient = MongoClients.create(uri);
+             database = mongoClient.getDatabase("testdb");
+             collection = database.getCollection("testCollection");
+
+             // Insert sample data
+             Document doc1 = new Document("title", "Inception").append("imdb", new Document("rating", 8.8));
+             Document doc2 = new Document("title", "The Room").append("imdb", new Document("rating", 3.7));
+             Document doc3 = new Document("title", "The Dark Knight").append("imdb", new Document("rating", 9.0));
+
+             collection.insertMany(List.of(doc1, doc2, doc3));
+         }
+
+   .. step:: Write the Test
+
+      The following code runs a query for movies with an ``imdb.rating`` field value
+      greater than ``7`` and checks the results:
+
+      .. code-block:: java
+
+         @Test
+         void testMoviesWithHighRating() {
+             List<Document> resultDocuments = new ArrayList<>();
+             try (MongoCursor<Document> cursor = collection.find(Filters.gt("imdb.rating", 7))
+                     .projection(new Document("title", 1).append("_id", 0))
+                     .iterator()) {
+                 while (cursor.hasNext()) {
+                     Document doc = cursor.next();
+                     System.out.println(doc.toJson());
+                     resultDocuments.add(doc);
+                 }
+             }
+
+             assertEquals(2, resultDocuments.size());
+             for (Document doc : resultDocuments) {
+                 assertTrue(doc.containsKey("title"));
+                 assertFalse(doc.containsKey("_id"));
+             }
+         }
+
+      This test verifies the following:
+
+      - The query returns exactly 2 documents
+      - Each document has a ``title`` field
+      - Each document excludes the ``_id`` field
+
+Use Testcontainers with Spring Boot
+-----------------------------------
+
+The following example uses code from the `Spring Boot MongoDB
+Aggregations repository
+<https://github.com/mongodb-developer/spring-boot-mongodb-aggregations>`__
+to test a ``findAll()`` method.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create the Container
+
+      The following code creates a MongoDB container:
+
+      .. code-block:: java
+
+         @Container
+         public static MongoDBContainer mongoDBContainer = new MongoDBContainer(DockerImageName.parse("mongo:7.0.0"));
+
+   .. step:: Configure Spring Boot
+
+      The following code configures Spring Boot to use the test
+      database:
+
+      .. code-block:: java
+
+         @DynamicPropertySource
+         static void setProperties(DynamicPropertyRegistry registry) {
+             registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
+             registry.add("spring.data.mongodb.database", () -> "testdb");
+         }
+
+         @BeforeAll
+         public static void setUpAll() {
+             String mongoUri = mongoDBContainer.getConnectionString();
+             mongoClient = MongoClients.create(mongoUri);
+         }
+
+         @BeforeEach
+         public void setUp() {
+             salesRepository.save(createMockSales());
+         }
+
+         private Sales createMockSales() {
+             Item item1 = new Item("Item1", Arrays.asList("Tag1", "Tag2"), new BigDecimal("19.99"), 2);
+             Item item2 = new Item("Item2", Arrays.asList("Tag3", "Tag4"), new BigDecimal("29.99"), 1);
+             List<Item> items = Arrays.asList(item1, item2);
+
+             Customer customer = new Customer("Male", 30, "customer@example.com", 5);
+
+             return new Sales(new ObjectId(), new Date(), items, "Store1", customer, true, "Online");
+         }
+
+   .. step:: Write the Test
+
+      The following code tests the ``findAll()`` method:
+
+      .. code-block:: java
+
+         @Test
+         public void testFindAll() {
+             List<Sales> salesList = salesRepository.findAll();
+             assertThat(salesList).isNotEmpty();
+             assertThat(salesList.size()).isEqualTo(1);
+             Sales sales = salesList.get(0);
+             assertThat(sales.getStoreLocation()).isEqualTo("Store1");
+             assertThat(sales.getCustomer().getEmail()).isEqualTo("customer@example.com");
+             assertThat(sales.getItems()).hasSize(2);
+         }
+
+      This test verifies the following:
+       
+      - The query returns exactly 2 documents
+      - Each document has a ``title`` field
+      - Each document excludes the ``_id`` field
