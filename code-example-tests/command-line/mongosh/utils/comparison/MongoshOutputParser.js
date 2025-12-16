@@ -157,11 +157,11 @@ class MongoshOutputParser {
     // This handles mongosh's Map output format from bulkWrite operations
     result = this.normalizeMapLiterals(result);
 
-    // Convert single-quoted strings to double-quoted
-    result = result.replace(/'([^']*)'/g, (match, content) => {
-      const escapedContent = content.replace(/"/g, '\\"');
-      return `"${escapedContent}"`;
-    });
+    // Convert single-quoted strings to double-quoted using a state machine.
+    // This properly handles:
+    // - Single-quoted strings with embedded double quotes (escape them)
+    // - Double-quoted strings with embedded apostrophes (leave them alone)
+    result = MongoshOutputParser.convertSingleToDoubleQuotes(result);
 
     // Quote unquoted keys (must be preceded by {, [, comma, or start of line)
     result = result.replace(
@@ -266,6 +266,75 @@ class MongoshOutputParser {
     for (let i = replacements.length - 1; i >= 0; i--) {
       const { original, replacement } = replacements[i];
       result = result.replace(original, replacement);
+    }
+
+    return result;
+  }
+
+  /**
+   * Converts single-quoted strings to double-quoted strings using a state machine.
+   * Properly handles:
+   * - Single-quoted strings containing double quotes (escapes them)
+   * - Double-quoted strings containing apostrophes (leaves them unchanged)
+   * - Escaped characters within strings
+   *
+   * @param {string} str - Input string with mixed quote styles
+   * @returns {string} String with all single-quoted strings converted to double-quoted
+   */
+  static convertSingleToDoubleQuotes(str) {
+    let result = '';
+    let i = 0;
+
+    while (i < str.length) {
+      const char = str[i];
+
+      if (char === '"') {
+        // Start of a double-quoted string - copy it verbatim
+        result += char;
+        i++;
+        while (i < str.length) {
+          const innerChar = str[i];
+          result += innerChar;
+          if (innerChar === '\\' && i + 1 < str.length) {
+            // Escaped character - copy the next char too
+            i++;
+            result += str[i];
+          } else if (innerChar === '"') {
+            // End of double-quoted string
+            break;
+          }
+          i++;
+        }
+        i++;
+      } else if (char === "'") {
+        // Start of a single-quoted string - convert to double-quoted
+        result += '"';
+        i++;
+        while (i < str.length) {
+          const innerChar = str[i];
+          if (innerChar === '\\' && i + 1 < str.length) {
+            // Escaped character - copy both chars
+            result += innerChar;
+            i++;
+            result += str[i];
+          } else if (innerChar === "'") {
+            // End of single-quoted string
+            break;
+          } else if (innerChar === '"') {
+            // Double quote inside single-quoted string - escape it
+            result += '\\"';
+          } else {
+            result += innerChar;
+          }
+          i++;
+        }
+        result += '"';
+        i++;
+      } else {
+        // Regular character - copy it
+        result += char;
+        i++;
+      }
     }
 
     return result;

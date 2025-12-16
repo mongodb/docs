@@ -162,6 +162,88 @@ describe('MongoshOutputParser', () => {
       expect(result.data[0].deleteResults).toBeInstanceOf(Map);
       expect(result.data[0].deleteResults.size).toBe(0);
     });
+
+    test('should handle strings with embedded apostrophes', () => {
+      const input = `{
+  consensus: "One of Hollywood's greatest critical and commercial successes."
+}`;
+
+      const result = MongoshOutputParser.parse(input);
+
+      expect(result.success).toBe(true);
+      expect(result.data[0].consensus).toBe("One of Hollywood's greatest critical and commercial successes.");
+    });
+
+    test('should handle strings with embedded quotes (like story titles)', () => {
+      // This test reproduces the error from the hint test - the writer string contains
+      // embedded double quotes which, after normalization, break the parser.
+      const input = `{
+  writers: [
+    'Stephen King (short story "Rita Hayworth and Shawshank Redemption")',
+    'Frank Darabont (screenplay)'
+  ]
+}`;
+
+      const result = MongoshOutputParser.parse(input);
+
+      expect(result.success).toBe(true);
+      expect(result.data[0].writers[0]).toBe('Stephen King (short story "Rita Hayworth and Shawshank Redemption")');
+    });
+
+    test('should handle complex movie document like the hint test output', () => {
+      // Exact sample from the hint test output file
+      const input = `[
+  {
+    _id: ObjectId('573a1399f29313caabceeb20'),
+    fullplot: 'Andy Dufresne is a young and successful banker whose life changes drastically.',
+    imdb: { rating: 9.3, votes: 1521105, id: 111161 },
+    year: 1994,
+    genres: [ 'Crime', 'Drama' ],
+    rated: 'R',
+    title: 'The Shawshank Redemption',
+    writers: [
+      'Stephen King (short story "Rita Hayworth and Shawshank Redemption")',
+      'Frank Darabont (screenplay)'
+    ]
+  }
+]`;
+
+      const result = MongoshOutputParser.parse(input);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].title).toBe('The Shawshank Redemption');
+    });
+
+    test('should handle double-quoted strings containing apostrophes', () => {
+      // This is the key failing case from the hint test:
+      // When a string uses double quotes (because it contains apostrophes inside),
+      // the single-quote-to-double-quote conversion regex incorrectly matches
+      // apostrophes within the double-quoted string.
+      const input = `{
+  consensus: "One of Hollywood's greatest critical and commercial successes."
+}`;
+
+      const result = MongoshOutputParser.parse(input);
+
+      expect(result.success).toBe(true);
+      expect(result.data[0].consensus).toBe("One of Hollywood's greatest critical and commercial successes.");
+    });
+
+    test('should handle mix of single and double quoted strings with apostrophes', () => {
+      // This reproduces the exact pattern from the hint test output file:
+      // Some fields use single quotes, others use double quotes (containing apostrophes)
+      const input = `{
+  title: 'The Godfather: Part II',
+  consensus: "Francis Ford Coppola's continuation of Mario Puzo's saga."
+}`;
+
+      const result = MongoshOutputParser.parse(input);
+
+      expect(result.success).toBe(true);
+      expect(result.data[0].title).toBe('The Godfather: Part II');
+      expect(result.data[0].consensus).toBe("Francis Ford Coppola's continuation of Mario Puzo's saga.");
+    });
   });
 
   describe('parseExpectedOutput', () => {
