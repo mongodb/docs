@@ -15,6 +15,9 @@ import { Pagination } from './Pagination';
 import { getPagination } from '../utils/get-pagination';
 import Button from '@leafygreen-ui/button';
 import { generateProductUpdatesSlug } from '@/app/products/updates/utils/generate-product-updates-slug';
+import type { RichLinkVariantName } from '@lg-chat/rich-links';
+import { RichLink } from '@lg-chat/rich-links';
+import LeafyGreenProvider, { useDarkModeContext } from '@leafygreen-ui/leafygreen-provider';
 import { stripHtml } from '../utils/strip-html';
 
 const containerStyle = css`
@@ -210,6 +213,33 @@ const tabletButtonStyle = css`
   }
 `;
 
+const linksStyle = css`
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  min-width: 0;
+  max-width: 100%;
+`;
+
+export enum LinkTag {
+  Docs = 'Docs',
+  Blog = 'Blog',
+  Tutorial = 'Tutorial',
+  Press = 'Press',
+  Web = 'Web',
+  GitHub = 'GitHub',
+}
+
+const mapLinkTagToRichLinkVariant = (label: LinkTag): RichLinkVariantName => {
+  if (label === LinkTag.Blog || label == LinkTag.Docs) return label;
+
+  if (label === LinkTag.GitHub) return 'Code';
+
+  return 'Website';
+};
+
 interface SubscribeButtonProps {
   className: string;
   selectedFilters: Record<FilterCategory, string[]>;
@@ -254,6 +284,8 @@ const Updates = ({ updates }: UpdatesProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { contextDarkMode: darkMode = false } = useDarkModeContext();
+
   const [searchTerm, setSearchTerm] = useState('');
 
   // Initialize filters from URL params
@@ -580,6 +612,31 @@ const Updates = ({ updates }: UpdatesProps) => {
                   <Body className={cx(newsItemDateStyle)}>{date}</Body>
                   <div className={cx(newsItemTitleStyle)}>{update.title}</div>
                   {descriptionText && <div className={cx(newsItemDescriptionStyle)}>{truncatedDescription}</div>}
+                  <div className={cx(linksStyle)}>
+                    <LeafyGreenProvider darkMode={darkMode} baseFontSize={14}>
+                      {update.link_with_label &&
+                        update.link_with_label.length > 0 &&
+                        [...update.link_with_label]
+                          .sort((a, b) => {
+                            // Prioritize blogs - if one is Blog and the other isn't, Blog comes first
+                            if (a.label === LinkTag.Blog && b.label !== LinkTag.Blog) return -1;
+                            if (b.label === LinkTag.Blog && a.label !== LinkTag.Blog) return 1;
+                            // Otherwise maintain original order
+                            return 0;
+                          })
+                          .slice(0, 2)
+                          .map((link) => (
+                            <RichLink
+                              key={link.link.href}
+                              href={link.link.href}
+                              variant={mapLinkTagToRichLinkVariant(link.label as LinkTag)}
+                              badgeLabel={link.label}
+                            >
+                              {link.link.title}
+                            </RichLink>
+                          ))}
+                    </LeafyGreenProvider>
+                  </div>
                 </div>
               );
             })}

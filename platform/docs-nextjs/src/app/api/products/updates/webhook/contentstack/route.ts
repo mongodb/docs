@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { withCORS } from '@/app/lib/with-cors';
 import envConfig from '@/utils/env-config';
-import { validateBearerToken } from '@/utils/validate-token';
 import { generateProductUpdatesSlug } from '@/app/products/updates/utils/generate-product-updates-slug';
 
 interface ContentstackWebhookPayload {
@@ -17,7 +16,7 @@ interface ContentstackWebhookPayload {
       uid: string;
       locale: string;
       title: string;
-      multi_line: string | null;
+      description: string | null;
       tags: string[];
       tags_category: string[];
       tags_offerings: string[];
@@ -123,20 +122,6 @@ export async function OPTIONS() {
 
 export async function POST(request: NextRequest) {
   try {
-    // TODO: Revisit this once we have a support for adding auth to endpoints.
-    // // Validate Bearer token authentication
-    // const authHeader = request.headers.get('authorization');
-    // const expectedToken = envConfig.CONTENTSTACK_WEBHOOK_TOKEN;
-
-    // if (!expectedToken) {
-    //   console.warn('CONTENTSTACK_WEBHOOK_TOKEN is not set in environment variables');
-    //   return withCORS(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
-    // }
-
-    // if (!validateBearerToken(authHeader, expectedToken)) {
-    //   return withCORS(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
-    // }
-
     // Get request body
     let body: ContentstackWebhookPayload;
     try {

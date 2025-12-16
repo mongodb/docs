@@ -7,8 +7,7 @@ export interface ProductUpdateEntry {
   uid: string;
   title: string;
   created_at: string; // "2025-09-17T14:01:31.391Z"
-  multi_line: string;
-  description?: string; // Rich text field as HTML string
+  description: string; // Rich text field as HTML string
   is_featured: boolean;
   tags: string[];
   tags_category?: string[];

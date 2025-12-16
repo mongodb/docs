@@ -2,16 +2,6 @@
 import type { ProductUpdateEntry } from '../services/contentstack';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
-export enum LinkTag {
-  Docs = 'Docs',
-  Blog = 'Blog',
-  Tutorial = 'Tutorial',
-  Press = 'Press',
-  Web = 'Web',
-  GitHub = 'GitHub',
-}
-
 import Icon from '@leafygreen-ui/icon';
 import { palette } from '@leafygreen-ui/palette';
 import { Body, H3 } from '@leafygreen-ui/typography';

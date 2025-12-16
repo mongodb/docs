@@ -29,7 +29,7 @@ export const mockedUpdate = {
       },
     },
   ],
-  multi_line:
+  description:
     "What it is: \nSQL Interface for Enterprise Advanced provides direct SQL connectivity to self-managed MongoDB deployments through standard ODBC and JDBC connections. It uses the SQL Schema Builder CLI to generate comprehensive JSON schemas and translates SQL queries into MongoDB operations in real-time.\n\nWho it's for:\nThis is built for data analysts, data scientists, and data engineers who are SQL experts but need access to MongoDB data. It's designed for teams running self-managed MongoDB deployments who want to avoid learning MQL or building custom ETL pipelines.\n\nWhy it matters:\nSQL Interface eliminates the friction between SQL expertise and MongoDB's document model. Teams can leverage their existing skills and tools to access live MongoDB data without maintaining ETL processes or dealing with outdated information. This enables self-service analytics and faster decision-making while preserving operational workflows.\n\nHow to get started:\nCheck out the link to our documentation below for configuration options and best practices, or head over to the Download Center to get the SQL Schema Builder CLI and drivers for your deployment.",
   tags: [],
   tags_category: ['Data Services'],
