@@ -10,7 +10,7 @@
   `RFC2818 <https://datatracker.ietf.org/doc/html/rfc2818>`_
 
 Key Usage and Extended Key Usage are X.509 extensions that strictly
-define and restrict the usage of the key associated with a
+define and restrict the use of the key associated with a
 certificate. Both of these extensions are optional. If
 ``tlsCertificateKeyFile`` or ``tlsClusterFile`` point to certificates
 that omit these extensions, no restrictions apply to using the
