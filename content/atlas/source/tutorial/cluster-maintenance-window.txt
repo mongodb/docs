@@ -135,11 +135,6 @@ View and Configure Maintenance Window
 
 .. tabs::
 
-   .. tab:: {+atlas-cli+}
-      :tabid: atlascli
-
-      .. include:: /includes/extracts/atlas-maintenanceWindows-describe-and-update.rst
-
    .. tab:: {+atlas-ui+}
       :tabid: ui
 
@@ -162,6 +157,11 @@ View and Configure Maintenance Window
       #. Click :guilabel:`Save` to keep your changes or click
          :guilabel:`Cancel` to discard them.
 
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. include:: /includes/extracts/atlas-maintenanceWindows-describe-and-update.rst
+
 Clear Your Maintenance Window Configuration Settings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -171,60 +171,139 @@ maintenance window settings.
 
 .. tabs::
 
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      To clear the configured maintenance window using the
+      {+atlas-ui+}, toggle the :guilabel:`Set Maintenance Window`
+      setting to :guilabel:`Off`.
+
    .. tab:: {+atlas-cli+}
       :tabid: atlascli
 
       .. include:: /includes/extracts/atlas-maintenanceWindows-clear.rst
 
-   .. tab:: {+atlas-ui+}
-      :tabid: ui
-
-      To clear the configured maintenance window using the 
-      {+atlas-ui+}, toggle the :guilabel:`Set Maintenance Window` setting to :guilabel:`Off`.
-
 Respond to Required Maintenance
 -------------------------------
 
-When maintenance is required, |service|:
+When maintenance is required:
 
-- Displays a banner in your project's cluster list showing the date and
-  time when the maintenance is scheduled.
+- {+service+} displays a banner in your project's cluster list showing
+  the date and time when the maintenance is scheduled.
 
-- Between 48 and 72 hours before the scheduled maintenance, sends a notification
-  email to users with the :authrole:`Project Owner` role and updates the {+atlas-ui+}
-  to display the option to defer maintenance for one week.
+- Between 48 and 72 hours before the scheduled maintenance,
+  {+service+} sends an email to users with the :authrole:`Project
+  Owner` role and updates the {+atlas-ui+} to display the option to
+  begin maintenance immediately or to defer maintenance for one week.
 
   .. note::
 
      To configure how you receive scheduled maintenance window
-     notifications, see :ref:`Configure a Maintenance Window Alert <configure-mw-alert>`.
+     notifications, see :ref:`Configure a Maintenance Window Alert
+     <configure-mw-alert>`.
+
+.. cluster-maintenance-begin-now:
+
+Begin Maintenance Now
+~~~~~~~~~~~~~~~~~~~~~
 
 .. tabs::
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      To begin maintenance immediately:
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Click the banner. A modal window titled
+	    :guilabel:`Scheduled Maintenance Operations` appears. This
+	    window describes the content of the currently scheduled
+	    maintenace operation.
+
+         .. step:: Click the :guilabel:`Begin Now` button. In the
+            :guilabel:`Start Cluster Maintenance Now` modal, confirm by
+            clicking :guilabel:`Yes, start my maintenance now.`
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. include:: /includes/extracts/atlas-maintenanceWindows-update.rst
+
+      :gold:`IMPORTANT:` To trigger maintenance immediately, pass the
+      ``--startASAP`` option.
+
+      .. code-block:: Bash
+
+         # Trigger immediate maintenance for the project with the ID
+         # 5e2211c17a3e5a48f5497de3:
+
+         atlas maintenanceWindows update --startASAP --projectId 5e2211c17a3e5a48f5497de3 --output json
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: atlasapi
+
+      {+service+} provides the :oas-bump-atlas-op:`Update One
+      Maintenance Window for One Project endpoint
+      <updategroupmaintenancewindow>`. You can trigger maintenance
+      immediately by passing in the optional ``startASAP`` field with
+      a value of ``true``.
+
+      .. code-block:: bash
+
+	 curl --user "${PUBLIC_KEY}:${PRIVATE_KEY}" \
+	   --digest --include \
+	   --header "Accept: application/vnd.atlas.2025-03-12+json" \
+	   --header "Content-Type: application/json" \
+	   -X PATCH "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/maintenanceWindow" \
+	   --data '
+	       {
+		 "autoDeferOnceEnabled": true,
+		 "dayOfWeek": 42,
+		 "hourOfDay": 42,
+		 "protectedHours": {
+		   "endHourOfDay": 42,
+		   "startHourOfDay": 42
+		 },
+		 "startASAP": true
+	       }'         
+
+Defer Maintenance
+~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      To defer scheduled maintenance:
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Click the banner. A modal window titled
+	    :guilabel:`Scheduled Maintenance Operations` appears. This
+	    window describes the content of the currently scheduled
+	    maintenace operation.
+
+         .. step:: Click the :guilabel:`Defer 1 Week` button. In the
+            :guilabel:`Defer Maintenance to Next Week` modal, confirm by
+            clicking :guilabel:`Yes, defer maintenance until next week.`
 
    .. tab:: {+atlas-cli+}
       :tabid: atlascli
 
       .. include:: /includes/extracts/atlas-maintenanceWindows-defer.rst
 
-   .. tab:: {+atlas-ui+}
-      :tabid: ui
+   .. tab:: {+atlas-admin-api+}
+      :tabid: atlasapi
 
-      With this information, you can choose one of three options in the
-      {+atlas-ui+}:
+      {+service+} provides the :oas-bump-atlas-op:`Defer One
+      Maintenance Window for One Project endpoint
+      <defergroupmaintenancewindow>`.
 
-      1. Do nothing. The maintenance occurs during your scheduled
-         maintenance window.
-
-      2. Select :guilabel:`Begin Maintenance Now`. The scheduled
-         maintenance starts immediately. If you choose this option,
-         |service| asks you to confirm it in a separate modal.
-
-      3. Select :guilabel:`Defer Maintenance for One Week`. The
-         scheduled maintenance starts during your preferred
-         maintenance window one week after the given scheduled
-         maintenance date and time. If you choose this option, |service| asks you to confirm it in a separate modal.
-
-         .. include:: /includes/fact-defer-maintenance-max.rst
+      .. include:: /includes/fact-defer-maintenance-max.rst
 
 Maintenance Version Upgrades during Maintenance Windows
 -------------------------------------------------------
