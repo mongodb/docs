@@ -1,0 +1,3 @@
+{
+    $unwind : "$directors"
+},

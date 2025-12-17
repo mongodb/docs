@@ -70,4 +70,5 @@ describe("mongosh aggregation pipeline tutorial tests", () => {
       .withDbName(dbName)
       .shouldMatch("aggregation/pipelines/join-multi-field/output.sh");
   });
+
 });

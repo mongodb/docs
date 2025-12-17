@@ -1,0 +1,22 @@
+[
+  { title: 'David Golder' },
+  { title: 'Comradeship' },
+  { title: 'è Nous la Libertè' },
+  { title: 'The Red Head' },
+  { title: 'Le grand jeu' },
+  { title: 'Maria Chapdelaine' },
+  { title: 'Les Misèrables' },
+  { title: 'Toni' },
+  { title: 'Carnival in Flanders' },
+  { title: 'The Lower Depths' },
+  { title: 'Mayerling' },
+  { title: 'The Story of a Cheat' },
+  { title: 'Harvest' },
+  { title: 'The Pearls of the Crown' },
+  { title: 'Dance Program' },
+  { title: 'Hotel du Nord' },
+  { title: 'Port of Shadows' },
+  { title: 'La fin du jour' },
+  { title: 'The Rules of the Game' },
+  { title: "The Well-Digger's Daughter" }
+]

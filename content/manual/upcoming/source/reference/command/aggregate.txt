@@ -315,53 +315,38 @@ Example
 Rather than run the :dbcommand:`aggregate` command directly, most
 users should use the :method:`db.collection.aggregate()` helper
 provided in :binary:`~bin.mongosh` or the equivalent helper in
-their driver. In 2.6 and later, the
-:method:`db.collection.aggregate()` helper always returns a cursor.
+their driver. 
 
 Except for the first two examples which demonstrate the command 
 syntax, the examples in this page use the
 :method:`db.collection.aggregate()` helper.
 
+.. include:: /includes/sample-data-usage.rst
+
 Aggregate Data with Multi-Stage Pipeline
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A collection ``articles`` contains documents such as the following:
+The ``movies`` collection in the ``sample_mflix`` database contains documents 
+like these:
 
-.. code-block:: javascript
+.. include:: /includes/sample-data-additional-fields-note.rst
 
-   {
-      _id: ObjectId("52769ea0f3dc6ead47c9a1b2"),
-      author: "abc123",
-      title: "zzz",
-      tags: [ "programming", "database", "mongodb" ]
-   }
+.. include:: /includes/agg-sample-documents.rst
 
 The following example performs an :dbcommand:`aggregate` operation on
-the ``articles`` collection to calculate the count of each distinct
-element in the ``tags`` array that appears in the collection.
+the ``movies`` collection to calculate the count of each distinct
+genre that appears in the collection.
 
-.. code-block:: javascript
-
-   db.runCommand( {
-      aggregate: "articles", 
-      pipeline: [
-         { $project: { tags: 1 } },
-         { $unwind: "$tags" },
-         { $group: { _id: "$tags", count: { $sum : 1 } } }
-      ],
-      cursor: { }
-   } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/run-cmd-pipeline/run-pipeline.snippet.run-cmd-pipeline.js
+   :language: javascript
+   :category: usage example
 
 In :binary:`~bin.mongosh`, this operation can use the
-:method:`db.collection.aggregate()` helper as in the following:
+:method:`db.collection.aggregate()` helper as in the following example:
 
-.. code-block:: javascript
-
-   db.articles.aggregate( [
-      { $project: { tags: 1 } },
-      { $unwind: "$tags" },
-      { $group: { _id: "$tags", count: { $sum : 1 } } }
-   ] )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/project-unwind-group/run-pipeline.snippet.project-unwind-group.js
+   :language: javascript
+   :category: usage example
 
 Use $currentOp on an Admin Database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -370,17 +355,9 @@ The following example runs a pipeline with two stages on the admin
 database. The first stage runs the :pipeline:`$currentOp` operation 
 and the second stage filters the results of that operation. 
 
-.. code-block:: javascript
-
-   db.adminCommand( { 
-      aggregate : 1, 
-      pipeline : [ { 
-         $currentOp : { allUsers : true, idleConnections : true } }, { 
-         $match : { shard : "shard01" } 
-         } 
-      ], 
-      cursor : { } 
-   } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/currentOp/run-pipeline.snippet.current-op-agg.js
+   :language: javascript
+   :category: usage example
 
 .. note::
 
@@ -400,21 +377,12 @@ Return Information on the Aggregation Operation
 The following aggregation operation sets the optional field ``explain``
 to ``true`` to return information about the aggregation operation.
 
-.. code-block:: javascript
-
-   db.orders.aggregate([
-         { $match: { status: "A" } },
-         { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
-         { $sort: { total: -1 } }
-      ],
-      { explain: true }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/explain-field/run-pipeline.snippet.agg-explain-field.js
+   :language: javascript
+   :category: usage example
 
 .. note:: The ``explain`` output is subject to change between releases.
 
-.. seealso::
-
-   :method:`db.collection.aggregate()` method
 
 
 Interaction with ``allowDiskUseByDefault``
@@ -424,10 +392,6 @@ Interaction with ``allowDiskUseByDefault``
 
 .. include:: /includes/extracts/4.2-changes-usedDisk.rst
 
-.. seealso::
-
-   - :method:`db.collection.aggregate()`
-   - :doc:`/core/aggregation-pipeline-limits`
 
 
 Aggregate Data Specifying Batch Size
@@ -436,16 +400,9 @@ Aggregate Data Specifying Batch Size
 To specify an *initial* batch size, specify the ``batchSize`` in the
 ``cursor`` field, as in the following example:
 
-.. code-block:: javascript
-
-   db.orders.aggregate( [
-         { $match: { status: "A" } },
-         { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
-         { $sort: { total: -1 } },
-         { $limit: 2 }
-      ],
-      { cursor: { batchSize: 0 } }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/batch-size/run-pipeline.snippet.agg-batch-size.js
+   :language: javascript
+   :category: usage example
       
 .. include:: /includes/batch-size-aggregate.rst
 
@@ -454,115 +411,53 @@ Specify a Collation
 
 .. include:: /includes/extracts/collation-description.rst
 
-A collection ``myColl`` has the following documents:
-
-.. code-block:: javascript
-
-   { _id: 1, category: "café", status: "A" }
-   { _id: 2, category: "cafe", status: "a" }
-   { _id: 3, category: "cafE", status: "a" }
-
-The following aggregation operation includes the :ref:`collation`
-option:
-
-.. code-block:: javascript
-
-   db.myColl.aggregate(
-      [ { $match: { status: "A" } }, { $group: { _id: "$category", count: { $sum: 1 } } } ],
-      { collation: { locale: "fr", strength: 1 } }
-   );
-
+.. include:: /includes/collation-agg-example.rst
+   
 For descriptions on the collation fields, see
 :ref:`collation-document-fields`.
 
 Hint an Index
 ~~~~~~~~~~~~~
 
-Create a collection ``foodColl`` with the following documents:
-
-.. code-block:: javascript
-
-   db.foodColl.insertMany( [
-      { _id: 1, category: "cake", type: "chocolate", qty: 10 },
-      { _id: 2, category: "cake", type: "ice cream", qty: 25 },
-      { _id: 3, category: "pie", type: "boston cream", qty: 20 },
-      { _id: 4, category: "pie", type: "blueberry", qty: 15 }
-   ] )
-
-Create the following indexes:
-
-.. code-block:: javascript
-
-   db.foodColl.createIndex( { qty: 1, type: 1 } );
-   db.foodColl.createIndex( { qty: 1, category: 1 } );
-
-The following aggregation operation includes the ``hint`` option to
-force the usage of the specified index:
-
-.. code-block:: javascript
-
-   db.foodColl.aggregate(
-      [ { $sort: { qty: 1 }}, { $match: { category: "cake", qty: 10  } }, { $sort: { type: -1 } } ],
-      { hint: { qty: 1, category: 1 } }
-   )
+.. include:: /includes/hint-index-agg-example.rst
 
 Override Default Read Concern
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To override the default read concern level, use the ``readConcern``
-option. The :dbcommand:`getMore` command uses the ``readConcern`` level
-specified in the originating :dbcommand:`aggregate` command.
-
-.. include:: /includes/extracts/4.2-changes-linearizable-agg.rst
-
-The following operation on a replica set specifies a :doc:`read concern
-</reference/read-concern>` of :readconcern:`"majority"` to read the
-most recent copy of the data confirmed as having been written to a
-majority of the nodes.
-
-.. important::
-
-   - .. include:: /includes/fact-aggregate-readConcern.rst
-
-   - .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
-
-
-.. code-block:: javascript
-
-   db.restaurants.aggregate(
-      [ { $match: { rating: { $lt: 5 } } } ],
-      { readConcern: { level: "majority" } }
-   )
-
-.. include:: /includes/usage-read-concern-majority.rst
+.. include:: /includes/override-readconcern-agg.rst
 
 .. _aggregate-let-example:
 
 Use Variables in ``let`` 
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 5.0
-
 .. |let-option| replace:: :ref:`let <aggregate-let-option>`
 
 .. include:: /includes/let-variables-match-note.rst
 
-.. include:: /includes/let-variables-example.rst
+The ``movies`` collection in the ``sample_mflix`` database contains documents 
+like this one:
 
 .. code-block:: javascript
+   :copyable: false
 
-   db.runCommand( {
-      aggregate: db.cakeSales.getName(),
-      pipeline: [
-         { $match: {
-              $expr: { $gt: [ "$salesTotal", "$$targetTotal" ] }
-         } },
-       ],
-       cursor: {},
-       let: { targetTotal: 3000 }
-   } )
+   {
+      title: "The Shawshank Redemption", 
+      year: 1994,
+      rated: "R",
+      imdb: { rating: 9.3, votes: 1513145, id: 111161 },
+      runtime: 142
+   }
 
+The following example uses the ``let`` option to define variables that can be used 
+in the pipeline. This aggregation finds movies with high ratings and long runtimes:
 
-.. seealso::
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/let-option-run-cmd/run-pipeline.snippet.let-opt-run-cmd.js
+   :language: javascript
+   :category: usage example
 
-   :method:`db.collection.aggregate()` 
+Learn More
+----------
+
+- :method:`db.collection.aggregate()`
+- :ref:`<agg-pipeline-limits>`

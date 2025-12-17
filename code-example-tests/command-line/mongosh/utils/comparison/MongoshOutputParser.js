@@ -643,4 +643,3 @@ class MongoshOutputParser {
 }
 
 module.exports = { MongoshOutputParser };
-

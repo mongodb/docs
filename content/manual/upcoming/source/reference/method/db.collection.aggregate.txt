@@ -188,44 +188,32 @@ Query Settings
 Examples
 --------
 
-The following examples use the collection ``orders`` that contains the
-following documents:
+.. include:: /includes/sample-data-usage.rst
 
-.. code-block:: javascript
+.. include:: /includes/sample-data-additional-fields-note.rst
 
-   db.orders.insertMany( [
-      { _id: 1, cust_id: "abc1", ord_date: ISODate("2012-11-02T17:04:11.102Z"), status: "A", amount: 50 },
-      { _id: 2, cust_id: "xyz1", ord_date: ISODate("2013-10-01T17:04:11.102Z"), status: "A", amount: 100 },
-      { _id: 3, cust_id: "xyz1", ord_date: ISODate("2013-10-12T17:04:11.102Z"), status: "D", amount: 25 },
-      { _id: 4, cust_id: "xyz1", ord_date: ISODate("2013-10-11T17:04:11.102Z"), status: "D", amount: 125 },
-      { _id: 5, cust_id: "abc1", ord_date: ISODate("2013-11-12T17:04:11.102Z"), status: "A", amount: 25 }
-   ] )
+.. include:: /includes/agg-sample-documents.rst
 
 Group by and Calculate a Sum
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following aggregation operation selects documents with status equal
-to ``"A"``, groups the matching documents by the ``cust_id`` field and
-calculates the ``total`` for each ``cust_id`` field from the sum of the
-``amount`` field, and sorts the results by the ``total`` field in
-descending order:
+The following aggregation operation:
 
-.. code-block:: javascript
+- Selects movies with an IMDB rating greater than 8.5
+- Groups the matching movies by the ``year`` field
+- Calculates the ``averageRating`` for each ``year`` from the average of the
+  ``imdb.rating`` field
+- Sorts the results by the ``averageRating`` field in descending order
 
-   db.orders.aggregate( [
-      { $match: { status: "A" } },
-      { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
-      { $sort: { total: -1 } }
-   ] )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/match-group-sort-limit/run-pipeline.snippet.match-group-sort-limit.js
+   :language: javascript
+   :category: usage example
 
 The operation returns a cursor with the following documents:
 
-.. code-block:: javascript
-
-   [
-      { _id: "xyz1", total: 100 },
-      { _id: "abc1", total: 75 }
-   ]
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/match-group-sort-limit/output.sh
+   :language: json
+   :copyable: false
 
 .. include:: /includes/note-mongo-shell-automatically-iterates-cursor.rst
 
@@ -238,18 +226,14 @@ The following example uses :method:`db.collection.explain()` to view
 detailed information regarding the execution plan of the aggregation
 pipeline.
 
-.. code-block:: javascript
-
-   db.orders.explain().aggregate( [
-      { $match: { status: "A" } },
-      { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
-      { $sort: { total: -1 } }
-   ] )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/explain/run-pipeline.snippet.agg-explain.js
+   :language: javascript
+   :category: usage example
 
 The operation returns a document that details the processing of the
 aggregation pipeline. For example, the document may show, among other
 details, which index, if any, the operation used. [#agg-index-filters]_
-If the ``orders`` collection is a sharded collection, the document
+If the ``movies`` collection is a sharded collection, the document
 also shows the division of labor between the shards and the merge
 operation, and for targeted queries, the targeted shards.
 
@@ -290,19 +274,9 @@ syntax for the ``cursor`` option:
 For example, the following aggregation operation specifies the
 *initial* batch size of ``0`` for the cursor:
 
-.. code-block:: javascript
-
-   db.orders.aggregate(
-                        [
-                          { $match: { status: "A" } },
-                          { $group: { _id: "$cust_id", total: { $sum: "$amount" } } },
-                          { $sort: { total: -1 } },
-                          { $limit: 2 }
-                        ],
-                        {
-                          cursor: { batchSize: 0 }
-                        }
-                      )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/batch-size/run-pipeline.snippet.agg-batch-size.js
+   :language: javascript
+   :category: usage example
 
 .. include:: /includes/batch-size-aggregate.rst
 
@@ -313,44 +287,7 @@ Specify a Collation
 
 .. include:: /includes/extracts/collation-description.rst
 
-.. include:: /includes/collation-data-setup.rst
-
-The following aggregation operation includes the :ref:`collation
-<collation>` option:
-
-.. io-code-block::
-   :copyable: true
-
-   .. input::
-      :language: javascript
-
-      db.restaurants.aggregate(
-         [
-            { $match: { status: "Open" } },
-            {
-               $group: {
-                  _id: "$category",
-                  count: { $sum: 1 }
-               }
-            }
-         ],
-         { collation: { locale: "fr", strength: 1 } }
-      )
-
-   .. output::
-      :language: javascript
-
-      [ { _id: 'café', count: 3 } ]
-
-The aggregation specifies a collation with ``strength: 1``, which
-means the collation ignores differences between case and letter
-variants. As a result:
-
-- The ``$match`` filter matches all documents in the collection and
-  passes those documents to the ``$group`` stage.
-  
-- The ``$group`` stage ignores differences in letter variants in the
-  ``category`` field and puts all documents in a single group.
+.. include:: /includes/collation-agg-example.rst
 
 .. note::
 
@@ -362,93 +299,46 @@ For descriptions on the collation fields, see
 Hint an Index
 ~~~~~~~~~~~~~
 
-Create a collection ``food`` with the following documents:
-
-.. code-block:: javascript
-
-   db.food.insertMany( [
-      { _id: 1, category: "cake", type: "chocolate", qty: 10 },
-      { _id: 2, category: "cake", type: "ice cream", qty: 25 },
-      { _id: 3, category: "pie", type: "boston cream", qty: 20 },
-      { _id: 4, category: "pie", type: "blueberry", qty: 15 }
-   ] )
-
-Create the following indexes:
-
-.. code-block:: javascript
-
-   db.food.createIndex( { qty: 1, type: 1 } );
-   db.food.createIndex( { qty: 1, category: 1 } );
-
-The following aggregation operation includes the ``hint`` option to
-force the usage of the specified index:
-
-.. code-block:: javascript
-
-   db.food.aggregate(
-      [ { $sort: { qty: 1 }}, { $match: { category: "cake", qty: 10  } }, { $sort: { type: -1 } } ],
-      { hint: { qty: 1, category: 1 } }
-   )
+.. include:: /includes/hint-index-agg-example.rst
 
 Override ``readConcern``
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use the ``readConcern`` option to specify the read concern for
-the operation.
-
-.. include:: /includes/extracts/4.2-changes-linearizable-agg.rst
-
-The following operation on a replica set specifies a
-:doc:`/reference/read-concern` of :readconcern:`"majority"` to read the
-most recent copy of the data confirmed as having been written to a
-majority of the nodes.
-
-.. note::
-
-   - .. include:: /includes/usage-read-concern-majority.rst
-
-   - .. include:: /includes/fact-aggregate-readConcern.rst
-
-   - .. include:: /includes/fact-readConcern-most-recent-data-in-node.rst
-
-.. code-block:: javascript
-
-   db.restaurants.aggregate(
-      [ { $match: { rating: { $lt: 5 } } } ],
-      { readConcern: { level: "majority" } }
-   )
-
+.. include:: /includes/override-readconcern-agg.rst
 
 Specify a Comment
 ~~~~~~~~~~~~~~~~~
 
-A collection named ``movies`` contains documents formatted as such:
+The ``movies`` collection in the ``sample_mflix`` sample dataset contains 
+documents similar to this one:
 
 .. code-block:: javascript
+   :copyable: false
 
-   db.movies.insertOne(
-      {
-         _id: ObjectId("599b3b54b8ffff5d1cd323d8"),
-         title: "Jaws",
-         year: 1975,
-         imdb: "tt0073195"
-      }
-   )
+   { 
+      title: 'Forrest Gump', 
+      year: 1994, 
+      genres: [ 'Drama', 'Romance' ], 
+      runtime: 142,
+      imdb: { rating: 8.8, votes: 1087227, id: 109830 },
+      directors: [ 'Robert Zemeckis' ],
+      cast: [ 'Tom Hanks', 'Rebecca Williams', 'Sally Field', 'Michael Conner Humphreys' ],
+   }
 
-The following aggregation operation finds movies created in 1995 and includes
+The following aggregation operation finds movies created in 1994 and includes
 the ``comment`` option to provide tracking information in the ``logs``,
 the ``db.system.profile`` collection, and ``db.currentOp``.
 
-.. code-block:: javascript
-
-   db.movies.aggregate( [ { $match: { year : 1995 } } ], { comment : "match_all_movies_from_1995" } ).pretty()
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/comment/run-pipeline.snippet.comment-agg.js
+   :language: javascript
+   :category: usage example
 
 On a system with profiling enabled, you can then query the ``system.profile``
 collection to see all recent similar aggregations, as shown below:
 
 .. code-block:: javascript
 
-   db.system.profile.find( { "command.aggregate": "movies", "command.comment" : "match_all_movies_from_1995" } ).sort( { ts : -1 } ).pretty()
+   db.system.profile.find( { "command.aggregate": "movies", "command.comment" : "match_three_movies_from_1994" } ).sort( { ts : -1 } ).pretty()
 
 This will return a set of profiler results in the following format:
 
@@ -462,11 +352,12 @@ This will return a set of profiler results in the following format:
        "pipeline" : [
          {
            "$match" : {
-             "year" : 1995
+             "year" : 1994
            }
-         }
+         },
+         { "$limit": 3 }
        ],
-       "comment" : "match_all_movies_from_1995",
+       "comment" : "match_three_movies_from_1994",
        "cursor" : {
 
        },
@@ -485,19 +376,10 @@ process ID, thread ID, client hostname, and the user who issued the command.
 Use Variables in ``let`` 
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 5.0
-
 .. include:: /includes/let-variables-match-note.rst
 
 .. include:: /includes/let-variables-example.rst
 
-.. code-block:: javascript
-
-   db.cakeSales.aggregate(
-      [
-         { $match: {
-            $expr: { $gt: [ "$salesTotal", "$$targetTotal" ] }
-         } }
-      ],
-      { let: { targetTotal: 3000 } }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/let-agg-method/run-pipeline.snippet.let-agg-method.js
+   :language: javascript
+   :category: usage example
