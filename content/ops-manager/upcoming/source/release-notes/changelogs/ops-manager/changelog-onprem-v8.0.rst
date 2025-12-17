@@ -1,3 +1,36 @@
+.. _opsmgr-server-8.0.18:
+
+|onprem| Server 8.0.18
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-12-16*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`108.0.18.8921-1 <mongodb-108.0.18.8921-1>`.
+- Adds support for |oidc| user authentication custom CA certificates.
+- Introduces a new ``mms.user.bypassInviteForUsers`` flag to allow invites to be bypassed 
+  for new and existing users, and deprecates ``mms.user.bypassInviteForExistingUsers``.
+- Updates the Project Read Only role to grant access to the :guilabel:`Real Time` 
+  metrics tab.
+- Backports the ``mms-automation`` upgrade to go1.24 for ops-manager branches.
+- Improves log rotation to handle files with incorrect permissions and prevent the 
+  log rotator from becoming unresponsive.
+
+Bug Fixes
+~~~~~~~~~
+
+- Prevents agent versions from being sent back to |onprem| to reduce configuration 
+  size and network issues.
+- Fixes an issue where ``MakeBackupDataAvailable`` does not delete copied files.
+- Fixes the following |cve|\s:
+
+  - `CVE-2025-53864 <https://nvd.nist.gov/vuln/detail/CVE-2025-53864>`__
+  - `CVE-2025-11226 <https://nvd.nist.gov/vuln/detail/CVE-2025-11226>`__
+  - `GHSA-25qh-j22f-pwp8 <https://github.com/advisories/GHSA-25qh-j22f-pwp8>`__
+  - `CVE-2025-64718 <https://nvd.nist.gov/vuln/detail/CVE-2025-64718>`__
+
 .. _opsmgr-server-8.0.17:
 
 |onprem| Server 8.0.17
