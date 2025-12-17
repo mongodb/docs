@@ -1,3 +1,33 @@
+.. _opsmgr-server-7.0.21:
+
+|onprem| Server 7.0.21
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-12-16*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`107.0.21.8817-1 <mongodb-107.0.21.8817-1>`.
+- Updates the Project Read Only role to grant access to the :guilabel:`Real Time` 
+  metrics tab.
+- Backports the ``mms-automation`` upgrade to go1.24 for ops-manager branches.
+- Improves log rotation to handle files with incorrect permissions and prevent the 
+  log rotator from becoming unresponsive.
+
+Bug Fixes
+~~~~~~~~~
+
+- Prevents agent versions from being sent back to |onprem| when custom agent 
+  download URLs are defined to reduce automation configuration size and prevent 
+  max-size errors.
+- Restores RHEL 7 RPM and tar.gz agent downloads in Ops Manager 7.0.
+- Fixes the following |cve|\s:
+
+  - `CVE-2025-11226 <https://nvd.nist.gov/vuln/detail/CVE-2025-11226>`__
+  - `GHSA-25qh-j22f-pwp8 <https://github.com/advisories/GHSA-25qh-j22f-pwp8>`__
+  - `CVE-2025-64718 <https://nvd.nist.gov/vuln/detail/CVE-2025-64718>`__
+
 .. _opsmgr-server-7.0.20:
 
 |onprem| Server 7.0.20
@@ -12,7 +42,8 @@ Improvements
 - Implements a :ref:`Telemetry <om-telemetry-overview>` report to collect and send 
   |onprem| usage data to MongoDB, with controls to enable or disable telemetry 
   through the |onprem| UI or API.
-- Addresses `CVE-2025-12383 <https://www.cve.org/CVERecord?id=CVE-2025-12383>`__ by updating the Jersey libraries to 3.1.10.
+- Addresses `CVE-2025-12383 <https://www.cve.org/CVERecord?id=CVE-2025-12383>`__ 
+  by updating the Jersey libraries to 3.1.10.
 
 Bug Fixes
 ~~~~~~~~~
