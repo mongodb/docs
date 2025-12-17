@@ -1,7 +1,7 @@
 import type { TocItem } from '../types';
 
-const versionsBeforeV8_3 = ['v7.0', 'v8.0', 'v8.1', 'v8.2'];
 const versionsBeforeV8_2 = ['v7.0', 'v8.0', 'v8.1'];
+const versionsBeforeV8_3 = ['v7.0', 'v8.0', 'v8.1', 'v8.2'];
 
 const tocData: TocItem[] = [
   {
@@ -276,6 +276,12 @@ const tocData: TocItem[] = [
             label: 'abortReshardCollection',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/abortReshardCollection',
+          },
+          {
+            label: 'abortRewriteCollection',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/command/abortRewriteCollection',
+            versions: { excludes: versionsBeforeV8_3 }
           },
           {
             label: 'abortUnshardCollection',
