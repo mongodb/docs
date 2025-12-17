@@ -25,8 +25,7 @@ namespace Insert
             var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             var provider = "local";
             var localMasterKeyPath = "master-key.txt";
-            string localMasterKeyBase64Read = File.ReadAllText(localMasterKeyPath);
-            var localMasterKeyBytes = Convert.FromBase64String(localMasterKeyBase64Read);
+            var localMasterKeyBytes = File.ReadAllBytes(localMasterKeyPath);
             var localOptions = new Dictionary<string, object>
             {
                 { "key", localMasterKeyBytes }
@@ -42,7 +41,7 @@ namespace Insert
                { "bsonType", "object" },
                {
                    "encryptMetadata",
-                   new BsonDocument("keyId", new BsonArray(new[] { new BsonBinaryData(Convert.FromBase64String(keyId), BsonBinarySubType.UuidStandard) }))
+                   new BsonDocument("keyId", new BsonArray(new[] { new BsonBinaryData(Guid.Parse(keyId).ToByteArray(), BsonBinarySubType.UuidStandard) }))
                },
                {
                    "properties",

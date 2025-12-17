@@ -20,17 +20,14 @@ namespace Key
             {
                 var bytes = new byte[96];
                 randomNumberGenerator.GetBytes(bytes);
-                var localMasterKeyBase64Write = Convert.ToBase64String(bytes);
-                Console.WriteLine(localMasterKeyBase64Write);
-                File.WriteAllText("master-key.txt", localMasterKeyBase64Write);
+                File.WriteAllBytes("master-key.txt", bytes);
             }
             // end-local-cmk
 
             // start-kmsproviders
             var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             var provider = "local";
-            string localMasterKeyBase64Read = File.ReadAllText("master-key.txt");
-            var localMasterKeyBytes = Convert.FromBase64String(localMasterKeyBase64Read);
+            var localMasterKeyBytes = File.ReadAllBytes("master-key.txt");
             var localOptions = new Dictionary<string, object>
             {
                 { "key", localMasterKeyBytes }
@@ -72,8 +69,7 @@ namespace Key
             var clientEncryption = new ClientEncryption(clientEncryptionOptions);
             var dataKeyOptions = new DataKeyOptions();
             var dataKeyId = clientEncryption.CreateDataKey(provider, dataKeyOptions, CancellationToken.None);
-            var dataKeyIdBase64 = Convert.ToBase64String(GuidConverter.ToBytes(dataKeyId, GuidRepresentation.Standard));
-            Console.WriteLine($"DataKeyId [base64]: {dataKeyIdBase64}");
+            Console.WriteLine($"DataKeyId: {dataKeyId}");
             // end-create-dek
         }
     }

@@ -13,12 +13,15 @@
       .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/local/reader/src/main/java/com/mongodb/csfle/MakeDataKey.java
          :start-after: start-local-cmk
          :end-before: end-local-cmk
-         :language: java
+         :language: javascript
          :dedent:
+
+      In addition to byte strings, you can also use a Base64-encoded string as a
+      local key.
 
       .. include:: /includes/queryable-encryption/qe-warning-local-keys.rst
 
-      .. include:: /includes/in-use-encryption/cmk-bash.rst
+      .. include:: /includes/in-use-encryption/cmk-csfle-bash.rst
 
       .. see:: Complete Code
       
