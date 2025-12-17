@@ -39,7 +39,7 @@
    .. step:: Create a Private Service Connect Access in Confluent Coud
     
       Follow the instructions on the official 
-      :ref:`Confluent Cloud documentation<https://docs.confluent.io/cloud/current/networking/private-links/gcp-private-service-connect.html#add-a-private-service-connect-access-in-ccloud>` to obtain your project's Service Attachment URI(s)
+      :ref:`Confluent Cloud documentation <https://docs.confluent.io/cloud/current/networking/private-links/gcp-private-service-connect.html#add-a-private-service-connect-access-in-ccloud>` to obtain your project's Service Attachment URI(s)
       and DNS Domain.
 
    .. step:: Select your project type
