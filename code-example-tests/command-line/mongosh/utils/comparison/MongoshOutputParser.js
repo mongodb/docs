@@ -169,21 +169,10 @@ class MongoshOutputParser {
       '$1"$2"$3'
     );
 
-    // Quote unquoted ellipsis used as property values (e.g., { _id: ... , count: ... })
-    // This must come after key quoting but before trailing comma removal
-    // Match: colon, optional whitespace, three dots, followed by comma, whitespace, or closing brace
-    result = result.replace(
-      /:\s*\.\.\.(\s*[,\}\]])/g,
-      ': "..."$1'
-    );
-
-    // Quote standalone ellipsis in arrays (e.g., [ { ... }, ... ] where the last ... is an array element)
-    // Match: line with only whitespace and ... that appears after a comma or opening bracket
-    // This converts [ ..., ... ] to [ ..., "..." ]
-    result = result.replace(
-      /,(\s*)\.\.\./g,
-      ',$1"..."'
-    );
+    // Quote unquoted ellipsis used as property values or array elements.
+    // This must be done in a string-aware manner to avoid corrupting ellipsis
+    // that appear inside quoted strings (e.g., plot text ending with "...").
+    result = this.quoteUnquotedEllipsis(result);
 
     // Remove trailing commas
     result = result
@@ -348,6 +337,68 @@ class MongoshOutputParser {
         i++;
       } else {
         // Regular character - copy it
+        result += char;
+        i++;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Quotes unquoted ellipsis (...) that appear as property values or array elements.
+   * This method is string-aware and will NOT modify ellipsis that appear inside
+   * quoted strings (e.g., a plot description ending with "...").
+   *
+   * Handles two patterns:
+   * 1. Property values: { key: ... } becomes { key: "..." }
+   * 2. Array elements: [item, ...] becomes [item, "..."]
+   *
+   * @param {string} str - Input string (after quote conversion)
+   * @returns {string} String with unquoted ellipsis converted to quoted strings
+   */
+  static quoteUnquotedEllipsis(str) {
+    let result = '';
+    let i = 0;
+
+    while (i < str.length) {
+      const char = str[i];
+
+      if (char === '"') {
+        // Inside a double-quoted string - copy verbatim until closing quote
+        result += char;
+        i++;
+        while (i < str.length) {
+          const innerChar = str[i];
+          result += innerChar;
+          if (innerChar === '\\' && i + 1 < str.length) {
+            // Escaped character - copy the next char too
+            i++;
+            result += str[i];
+          } else if (innerChar === '"') {
+            // End of string
+            break;
+          }
+          i++;
+        }
+        i++;
+      } else if (char === '.' && str.substring(i, i + 3) === '...') {
+        // Found potential ellipsis outside a string
+        // Check if this is an unquoted ellipsis that needs quoting
+        // Look ahead to see what follows the ellipsis
+        const afterEllipsis = str.substring(i + 3);
+        const followedByDelimiter = /^[\s,\}\]]/.test(afterEllipsis);
+
+        if (followedByDelimiter) {
+          // This is an unquoted ellipsis - quote it
+          result += '"..."';
+          i += 3;
+        } else {
+          // Not a standalone ellipsis, just copy the dot
+          result += char;
+          i++;
+        }
+      } else {
         result += char;
         i++;
       }

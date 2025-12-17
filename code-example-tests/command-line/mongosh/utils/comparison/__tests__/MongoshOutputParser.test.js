@@ -275,6 +275,55 @@ describe('MongoshOutputParser', () => {
       expect(result.hasOmittedFields).toBe(false);
       expect(result.data[0]).not.toHaveProperty('...');
     });
+
+    test('should preserve ellipsis inside quoted strings', () => {
+      // This tests that ellipsis inside string values are NOT treated as
+      // truncation markers. The ",...'" pattern at the end of a string value
+      // should remain intact after normalization.
+      const input = `{
+  plot: 'What do you love the most?", "What scares you the most?",...',
+  title: 'Test Movie'
+}`;
+
+      const result = MongoshOutputParser.parseExpectedOutput(input);
+
+      expect(result.success).toBe(true);
+      expect(result.data[0].plot).toBe(
+        'What do you love the most?", "What scares you the most?",...'
+      );
+      expect(result.data[0].title).toBe('Test Movie');
+    });
+
+    test('should preserve ellipsis in double-quoted strings', () => {
+      // Test with double-quoted strings containing ellipsis
+      const input = `{
+  description: "This is a long description that ends with...",
+  name: 'Test'
+}`;
+
+      const result = MongoshOutputParser.parseExpectedOutput(input);
+
+      expect(result.success).toBe(true);
+      expect(result.data[0].description).toBe(
+        'This is a long description that ends with...'
+      );
+    });
+
+    test('should handle multiple ellipsis patterns in one document', () => {
+      // Complex case with ellipsis both inside strings and as markers
+      const input = `{
+  plot: 'The story continues...',
+  summary: 'A tale of...',
+  title: 'Movie'
+}`;
+
+      const result = MongoshOutputParser.parseExpectedOutput(input);
+
+      expect(result.success).toBe(true);
+      expect(result.data[0].plot).toBe('The story continues...');
+      expect(result.data[0].summary).toBe('A tale of...');
+      expect(result.data[0].title).toBe('Movie');
+    });
   });
 });
 
