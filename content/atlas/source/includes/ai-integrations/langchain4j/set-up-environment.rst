@@ -40,11 +40,6 @@
                 <artifactId>langchain4j-voyage-ai</artifactId>
                 <version>1.1.0-beta7</version>
             </dependency>
-            <dependency>
-                <groupId>org.mongodb</groupId>
-                <artifactId>mongodb-driver-sync</artifactId>
-                <version>5.4.0</version>
-            </dependency>
 
       #. Next, add a ``dependencyManagement`` entry below your
          dependency list for the LangChain4j Bill of Materials (BOM):
