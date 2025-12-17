@@ -1,8 +1,9 @@
 .. _pymongo-arrow-quick-start:
+.. _pymongo-arrow-install:
 
-===========
-Quick Start
-===========
+=============================
+Get Started with PyMongoArrow
+=============================
 
 .. contents:: On this page
    :local:
@@ -15,26 +16,145 @@ Quick Start
    :values: reference
  
 .. meta::
-   :keywords: tutorial, introduction, setup, begin  
-   :description: Explore how to use PyMongoArrow for data manipulation in MongoDB, including inserting, querying, and writing data to various formats like Parquet and CSV.
+   :keywords: tutorial, introduction, setup, begin, download, update
+   :description: Explore how to install PyMongoArrow and use it for data manipulation in MongoDB, including inserting, querying, and writing data to various formats like Parquet and CSV.
 
 This tutorial is intended as an introduction to working with
 **{+driver-short+}**. The tutorial assumes the reader is familiar with basic
 `PyMongo <https://pymongo.readthedocs.io/en/stable/tutorial.html>`__ and
 `MongoDB <https://docs.mongodb.com>`__ concepts.
 
-Prerequisites
--------------
+Install {+driver-short+}
+--------------------
 
-Ensure that you have the {+driver-short+} distribution
-:ref:`installed <pymongo-arrow-install>`. In the Python shell, the following should
-run without raising an exception:
+.. tip:: Compatibility
+
+   For information about compatibility with PyMongo, PyArrow, and your operating system,
+   see the :driver:`Compatibility </compatibility/?driver-language=python&python-driver-framework=arrow>`
+   page.
+
+You can install **{+driver-short+}** in three ways:
+
+- Pip 
+- Conda
+- From source
+
+
+Install with Pip
+~~~~~~~~~~~~~~~~
+
+We recommend using pip to install {+driver-short+} on all platforms.
+{+driver-short+} is available on `PyPI <http://pypi.python.org/pypi/pymongo/>`_.
+
+.. code-block:: sh
+
+   $ python -m pip install pymongoarrow
+
+To get a specific version of pymongo:
+
+.. code-block:: sh
+
+   $ python -m pip install pymongoarrow=={+patch-version-number+}
+
+To upgrade using pip:
+
+.. code-block:: sh
+   
+   $ python -m pip install --upgrade pymongoarrow
+
+.. important:: 
+
+   If the install fails because of an error, such as ``ValueError: Could
+   not find "libbson-1.0" library``, it means that ``pip`` failed to find a
+   suitable wheel for your platform. We recommend first ensuring you have
+   ``pip`` >= 20.3 installed. To upgrade ``pip``, run the following shell command:
+
+   .. code-block:: python
+
+      $ python -m pip install --upgrade pip
+
+You can then try to re-install ``pymongoarrow``.
+
+We currently distribute wheels for macOS, Windows, and Linux on x86_64
+architectures.
+
+To test your installation, run the following code in the Python shell. If {+driver-short+}
+is correctly installed, you won't see any errors or exceptions.
 
 .. code-block:: python
 
    >>> import pymongoarrow as pma
 
-This tutorial also assumes that a MongoDB instance is running on the
+Install with Conda
+~~~~~~~~~~~~~~~~~~
+
+PyMongoArrow is available for ``conda`` users by running the following shell
+command:
+
+.. code-block:: python
+
+   $ conda install --channel conda-forge pymongoarrow
+
+To test your installation, run the following code in the Python shell. If {+driver-short+}
+is correctly installed, you won't see any errors or exceptions.
+
+.. code-block:: python
+
+   >>> import pymongoarrow as pma
+
+Install from Source
+~~~~~~~~~~~~~~~~~~~
+
+If you can't use the above options to install ``pymongoarrow`` on your
+system, you can install from source. To learn how, see the `Contributing Guide
+<https://github.com/mongodb-labs/mongo-arrow/blob/main/bindings/python/CONTRIBUTING.md#installing-from-source>`__.
+
+Dependencies
+^^^^^^^^^^^^
+
+Installing from source on Linux requires the following dependencies: 
+
+- GCC version 12 or later
+- CMake
+- pkg-config
+
+To use {+driver-short+} with a PyMongo feature that requires an optional
+dependency, you must set the dependency as an option when you install PyMongo.
+
+.. note:: 
+
+   To learn more about PyMongo's optional dependencies, see
+   `Dependencies
+   <https://pymongo.readthedocs.io/en/stable/installation.html#dependencies>`__
+   in the PyMongo documentation.
+
+For example, to use {+driver-short+} with Client-Side Field Level Encryption,
+you must install PyMongo with the ``encryption`` option in addition to installing
+{+driver-short+}:
+
+.. code-block:: sh
+
+   $ python -m pip install 'pymongo[encryption]' pymongoarrow
+
+Applications using {+driver-short+} APIs that return query result-sets
+as ``pandas.DataFrame`` instances, such as ``~pymongoarrow.api.find_pandas_all()``,
+must also have ``pandas`` installed:
+
+.. code-block:: sh
+
+   $ python -m pip install pandas
+
+To test your installation, run the following code in the Python shell. If {+driver-short+}
+is correctly installed, you won't see any errors or exceptions.
+
+.. code-block:: python
+
+   >>> import pymongoarrow as pma
+
+Install MongoDB
+---------------
+
+This tutorial assumes that a MongoDB instance is running on the
 default host and port. After you have `downloaded and installed
 <https://docs.mongodb.com/manual/installation/>`__ MongoDB, you can start
 it as shown in the following code example:
@@ -43,33 +163,10 @@ it as shown in the following code example:
 
    $ mongod
 
-Extending PyMongo
-~~~~~~~~~~~~~~~~~
+Insert Sample Data
+------------------
 
-The ``pymongoarrow.monkey`` module provides an interface to patch PyMongo
-in place, and add {+driver-short+} functionality directly to
-``Collection`` instances:
-
-.. code-block:: python
-
-   from pymongoarrow.monkey import patch_all
-   patch_all()
-
-After you run the ``monkey.patch_all()`` method, new instances of
-the ``Collection`` class will contain the {+driver-short+} APIs--
-for example, the ``pymongoarrow.api.find_pandas_all()`` method.
-
-.. note::
-  
-   You can also use any of the {+driver-short+} APIs
-   by importing them from the ``pymongoarrow.api`` module. If you do,
-   you must pass the instance of the ``Collection`` on which the operation is to be
-   run as the first argument when calling the API method.
-
-Test Data
-~~~~~~~~~
-
-The following code uses PyMongo to add sample data to your cluster:
+Run the following code to insert sample data into your cluster:
 
 .. code-block:: python
 
@@ -82,8 +179,8 @@ The following code uses PyMongo to add sample data to your cluster:
      {'_id': 3, 'amount': 3,  'last_updated': datetime(2021, 3, 10, 18, 43, 9), 'account': {'name': 'Customer3', 'account_number': 3}, 'txns': ['A', 'B', 'C']},
      {'_id': 4, 'amount': 0,  'last_updated': datetime(2021, 2, 25, 3, 50, 31), 'account': {'name': 'Customer4', 'account_number': 4}, 'txns': ['A', 'B', 'C', 'D']}])
 
-Defining the Schema
--------------------
+Define the Schema
+-----------------
 
 {+driver-short+} relies on a data schema to marshall
 query result sets into tabular form. If you don't provide this schema, {+driver-short+}
@@ -112,7 +209,7 @@ first-class support for these documents:
    polars_df = client.db.data.find_polars_all({'amount': {'$gt': 0}}, schema=schema)
 
 .. tip::
-  
+
    {+driver-short+} includes multiple permissible type-identifiers for each supported BSON
    type. For a full list of these data types and their associated type-identifiers, see
    :ref:`<pymongo-arrow-data-types>`.
@@ -142,7 +239,7 @@ Or as a ``polars.DataFrame`` instance:
 Or as a NumPy ``arrays`` object:
 
 .. code-block:: python
-  
+
    ndarrays = client.db.data.find_numpy_all({'amount': {'$gt': 0}}, schema=schema)
 
 When using NumPy, the return value is a dictionary where the keys are field
@@ -185,7 +282,7 @@ descending order:
    ndarrays = client.db.data.aggregate_numpy_all(pipeline)
 
 .. tip::
-  
+
    For more information about aggregation pipelines, see the
    :manual:`MongoDB Server documentation </core/aggregation-pipeline/>`.
 
@@ -209,7 +306,7 @@ You can use the ``write()`` method to write objects of the following types to Mo
    write(coll, ndarrays)
 
 .. note::
-  
+
    NumPy arrays are specified as ``dict[str, ndarray]``.
 
 Ignore Empty Values
@@ -280,7 +377,7 @@ For example, to write the table referenced by the variable ``arrow_table`` to a 
 file named ``example.parquet``, run the following code:
 
 .. code-block:: python
-  
+
    import pyarrow.parquet as pq
    pq.write_table(arrow_table, 'example.parquet')
 
@@ -305,3 +402,50 @@ The Polars API is a mix of the two preceding examples:
 
    Nested data is supported for parquet read and write operations, but is not well
    supported by Arrow or Pandas for CSV read and write operations.
+
+Extending PyMongo
+-----------------
+
+The ``pymongoarrow.monkey`` module provides an interface to patch PyMongo
+in place, and add {+driver-short+} functionality directly to
+``Collection`` instances:
+
+.. code-block:: python
+
+   from pymongoarrow.monkey import patch_all
+   patch_all()
+
+After you run the ``monkey.patch_all()`` method, new instances of
+the ``Collection`` class will contain the {+driver-short+} APIs--
+for example, the ``pymongoarrow.api.find_pandas_all()`` method.
+
+.. note::
+
+   You can also use any of the {+driver-short+} APIs
+   by importing them from the ``pymongoarrow.api`` module. If you do,
+   you must pass the instance of the ``Collection`` on which the operation is to be
+   run as the first argument when calling the API method.
+
+Troubleshooting
+---------------
+
+Why Do I Get an ``undefined symbol`` Error When Installing {+driver-short+} from Source?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+driver-short+} raises this error when GCC version 12 or later is
+not installed in your Linux environment. If you experience this error,
+ensure that you have GCC version 12 or later installed.
+
+Why Do I Get ``ModuleNotFoundError: No module named 'polars'`` When Using {+driver-short+}?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+driver-short+} raises this error when an application attempts to use a {+driver-short+} API
+that returns query result-sets as a ``polars.DataFrame`` instance without
+having ``polars`` installed in the Python environment. Since ``polars`` is not
+a direct dependency of {+driver-short+}, it's not automatically installed when
+you install ``pymongoarrow``. You must install ``polars`` separately with the
+following shell command:
+
+.. code-block:: sh
+
+   $ python -m pip install polars

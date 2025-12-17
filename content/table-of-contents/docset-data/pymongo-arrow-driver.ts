@@ -13,29 +13,9 @@ const tocData: TocItem[] = [
         url: '/docs/languages/python/pymongo-arrow-driver/:version/',
       },
       {
-        label: 'Previous Versions',
+        label: 'Get Started',
         contentSite: 'pymongo-arrow',
-        url: '/docs/languages/python/pymongo-arrow-driver/:version/previous-versions',
-      },
-      {
-        label: 'Install & Upgrade',
-        contentSite: 'pymongo-arrow',
-        url: '/docs/languages/python/pymongo-arrow-driver/:version/installation',
-      },
-      {
-        label: 'Quick Start',
-        contentSite: 'pymongo-arrow',
-        url: '/docs/languages/python/pymongo-arrow-driver/:version/quick-start',
-      },
-      {
-        label: "What's New",
-        contentSite: 'pymongo-arrow',
-        url: '/docs/languages/python/pymongo-arrow-driver/:version/whats-new',
-      },
-      {
-        label: 'Compare to PyMongo',
-        contentSite: 'pymongo-arrow',
-        url: '/docs/languages/python/pymongo-arrow-driver/:version/comparison',
+        url: '/docs/languages/python/pymongo-arrow-driver/:version/get-started',
       },
       {
         label: 'Data Types',
@@ -48,6 +28,28 @@ const tocData: TocItem[] = [
         url: '/docs/languages/python/pymongo-arrow-driver/:version/schemas',
       },
       {
+        label: 'Reference',
+        contentSite: 'pymongo-arrow',
+        collapsible: true,
+        items: [
+          {
+            label: 'Release Notes',
+            contentSite: 'pymongo-arrow',
+            url: '/docs/languages/python/pymongo-arrow-driver/:version/reference/release-notes',
+          },
+          {
+            label: 'Compare to PyMongo',
+            contentSite: 'pymongo-arrow',
+            url: '/docs/languages/python/pymongo-arrow-driver/:version/reference/comparison',
+          },
+          {
+            label: 'Versions 0.4 to 1.2',
+            contentSite: 'pymongo-arrow',
+            url: '/docs/languages/python/pymongo-arrow-driver/:version/reference/previous-versions',
+          },
+        ],
+      },
+      {
         label: 'Compatibility',
         contentSite: 'drivers',
         url: '/docs/drivers/compatibility/?driver-language=python&python-driver-framework=arrow',
@@ -55,12 +57,12 @@ const tocData: TocItem[] = [
       {
         label: 'API Documentation',
         isExternal: true,
-        url: 'https://mongo-arrow.readthedocs.io/en/1.8.0/api/index.html',
+        url: 'https://mongo-arrow.readthedocs.io/en/stable/api/index.html',
       },
       {
-        label: 'FAQ',
+        label: 'Issues & Help',
         contentSite: 'pymongo-arrow',
-        url: '/docs/languages/python/pymongo-arrow-driver/:version/faq',
+        url: '/docs/languages/python/pymongo-arrow-driver/:version/issues-and-help',
       },
     ],
   },
