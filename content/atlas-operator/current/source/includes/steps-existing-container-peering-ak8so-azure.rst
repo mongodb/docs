@@ -1,4 +1,4 @@
-a. Specify the :setting:`spec.networkPeers` parameter in 
+a. Specify the :ref:`spec.networkPeers <atlasproject-spec-networkpeers>` parameter in 
    the :ref:`atlasproject-custom-resource`. Replace the following placeholders with your values:
 
    .. list-table::

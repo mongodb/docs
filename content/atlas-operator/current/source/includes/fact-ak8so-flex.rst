@@ -14,16 +14,16 @@
   existing {+Serverless-instances+} are deprecated as of early February 2025.
 
 - For your existing {+Serverless-instances+}, you can choose to replace
-  references to :setting:`spec.serverlessSpec` in the :ref:`AtlasDeployment <atlasdeployment-custom-resource>`
-  with the configuration for :setting:`spec.flexSpec`. Or, you can
+  references to :ref:`spec.serverlessSpec <atlasdeployment-spec-serverlessspec>` in the :ref:`AtlasDeployment <atlasdeployment-custom-resource>`
+  with the configuration for :ref:`spec.flexSpec <atlasdeployment-spec-flexspec>`. Or, you can
   continue using the same spec. Managing a deployment via the ``spec.serverlessSpec``
   in the ``AtlasDeployment`` Custom Resource will continue to work even
   once |service| automatically migrates these existing {+clusters+} to
   {+Flex-clusters+} in March 2025.
 
 - For your existing ``M2`` and ``M5`` {+clusters+}, you can choose to replace
-  references to :setting:`spec.deploymentSpec` in the ``AtlasDeployment``
-  Custom Resource with the configuration for :setting:`spec.flexSpec`. Or, you can
+  references to :ref:`spec.deploymentSpec <atlasdeployment-spec-deploymentspec>` in the ``AtlasDeployment``
+  Custom Resource with the configuration for :ref:`spec.flexSpec <atlasdeployment-spec-flexspec>`. Or, you can
   continue using the same spec. Managing a deployment via the ``spec.deploymentSpec``
   in the ``AtlasDeployment`` Custom Resource will continue to work even
   once |service| automatically migrates these existing ``M2`` and ``M5`` {+clusters+}
@@ -38,12 +38,12 @@
   that you might notice after the automigration, make the following changes
   to your CRD configurations:
 
-  - Remove the :setting:`spec.deploymentSpec.replicationSpecs.zoneName` setting.
+  - Remove the :ref:`spec.deploymentSpec.replicationSpecs.zoneName <atlasdeployment-spec-deploymentspec-replicationspecs>` setting.
 
-  - Remove any of the :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs`
+  - Remove any of the :ref:`spec.deploymentSpec.replicationSpecs.regionConfigs <atlasdeployment-spec-deploymentspec-replicationspecs-regionconfigs>`
     settings after the first set of settings.
 
-  - Specify ``replicaset`` only in the :setting:`spec.deploymentSpec.clusterType`.
+  - Specify ``replicaset`` only in the :ref:`spec.deploymentSpec.clusterType <atlasdeployment-spec-deploymentspec>`.
 
   Alternatively, replace references to ``spec.deploymentSpec``
   in the :ref:`AtlasDeployment <atlasdeployment-custom-resource>` with the configuration for

@@ -1,5 +1,5 @@
-a. Add the :setting:`spec.encryptionAtRest.awsKms` object to 
-   the :setting:`spec.encryptionAtRest` array in the
+a. Add the :ref:`spec.encryptionAtRest.awsKms <atlasproject-spec-encryptionatrest-awskms>` object to 
+   the :ref:`spec.encryptionAtRest <atlasproject-spec-encryptionatrest>` array in the
    :ref:`atlasproject-custom-resource`, including the
    following parameters:
 

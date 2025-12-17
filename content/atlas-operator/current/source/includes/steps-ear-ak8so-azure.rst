@@ -1,5 +1,5 @@
-a. Add the :setting:`spec.encryptionAtRest.azureKeyVault` object to 
-   the :setting:`spec.encryptionAtRest` array in the
+a. Add the :ref:`spec.encryptionAtRest.azureKeyVault <atlasproject-spec-encryptionatrest-azurekeyvault>` object to 
+   the :ref:`spec.encryptionAtRest <atlasproject-spec-encryptionatrest>` array in the
    :ref:`atlasproject-custom-resource`, including the
    following parameters:
 
