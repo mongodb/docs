@@ -37,6 +37,7 @@ const deprecatedVersions = [
   'v2.26',
   'v2.27',
   'v2.28',
+  'v2.29',
 ];
 
 const versions = new Versions(allVersions, deprecatedVersions, namedVersions);
