@@ -134,11 +134,20 @@ steps:
 
 # Notify Slack of build/deploy status
 - name: notify-slack
-  image: plugins/slack
-  settings:
-    webhook:
+  image: alpine/curl
+  environment:
+    SLACK_WEBHOOK:
       from_secret: slack_webhook_url
-    template: "OpenAPI Tests Deploy: {{build.status}} | Branch: {{build.branch}} | Build: {{build.link}}"
+  commands:
+  - |
+    if [ "$DRONE_BUILD_STATUS" = "success" ]; then
+      STATUS_MSG="✅ *OpenAPI Tests Deploy Succeeded*"
+    else
+      STATUS_MSG="❌ *OpenAPI Tests Deploy Failed*"
+    fi
+    curl -X POST -H 'Content-type: application/json' \
+      --data "{\"text\": \"$STATUS_MSG\n*Repo:* $DRONE_REPO_NAME\n*Branch:* $DRONE_BRANCH\n*Commit:* ${DRONE_COMMIT_SHA:0:7}\n*Author:* $DRONE_COMMIT_AUTHOR\n*Build:* <$DRONE_BUILD_LINK|#$DRONE_BUILD_NUMBER>\"}" \
+      "$SLACK_WEBHOOK"
   when:
     status:
     - success

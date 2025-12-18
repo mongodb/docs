@@ -6,8 +6,8 @@ WORKDIR /app
 # Copy package files first (for better Docker layer caching)
 COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including devDependencies for Jest/Babel)
+RUN npm ci
 
 # Copy configuration files
 COPY babel.config.cjs jest.config.cjs ./

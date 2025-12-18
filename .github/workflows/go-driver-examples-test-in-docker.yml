@@ -1,15 +1,18 @@
 name: Go Driver Code Examples - Test Against Local/Docker
 
 on:
+  schedule:
+    # Run monthly on the 1st at 9am UTC
+    - cron: '0 9 1 * *'
   pull_request:
     paths:
-      - "code-example-tests/go/driver/**" # IMPORTANT: update if project structure changes
+      - code-example-tests/go/driver/** # IMPORTANT: update if project structure changes
 
 jobs:
   run:
     runs-on: ubuntu-latest
     env:
-      PROJECT_PATH: "code-example-tests/go/driver/" # IMPORTANT: update if project structure changes
+      PROJECT_PATH: code-example-tests/go/driver/ # IMPORTANT: update if project structure changes
 
     steps:
       - uses: actions/checkout@v4
@@ -45,3 +48,17 @@ jobs:
         run: |
           cd ${{ env.PROJECT_PATH }}tests
           go test -v -p 1 ./...
+
+      - name: Notify Slack on scheduled run failure
+        if: failure() && github.event_name == 'schedule'
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{
+              "channel": "#docs-devdocs-notifications",
+              "username": "Code Examples Bot",
+              "icon_emoji": ":warning:",
+              "text": "⚠️ *Go Driver* monthly code examples test failed!\n*Workflow:* ${{ github.workflow }}\n*Run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }' \
+            "$SLACK_WEBHOOK"

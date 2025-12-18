@@ -1,9 +1,12 @@
 name: Java Driver - Sync - Code Examples - Test Against Local/Docker
 
 on:
+  schedule:
+    # Run monthly on the 1st at 9am UTC
+    - cron: '0 9 1 * *'
   pull_request:
     paths:
-      - "code-example-tests/java/driver-sync/**"
+      - code-example-tests/java/driver-sync/**
 
 jobs:
   run:
@@ -40,3 +43,17 @@ jobs:
           export CONNECTION_STRING="mongodb://localhost:27017/?directConnection=true"
           cd code-example-tests/java/driver-sync/
           mvn test
+
+      - name: Notify Slack on scheduled run failure
+        if: failure() && github.event_name == 'schedule'
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{
+              "channel": "#docs-devdocs-notifications",
+              "username": "Code Examples Bot",
+              "icon_emoji": ":warning:",
+              "text": "⚠️ *Java Driver Sync* monthly code examples test failed!\n*Workflow:* ${{ github.workflow }}\n*Run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }' \
+            "$SLACK_WEBHOOK"
