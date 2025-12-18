@@ -92,3 +92,20 @@ How to use:
 Important notes:
 - This prompt is most effective for smaller, well-defined tasks. 
 - When creating the PR, select 10gen/cloud-docs as the branch to push to if working off of master.
+
+## Tutorial Converter
+**File**: `convert-to-tutorial.prompt.md`
+
+This prompt takes in content that has already been converted to RST and
+modifies it so that the tone and format of the doc better fit our standard
+tutorials.
+
+Example prompt: "Convert this document into a standardized tutorial"
+
+Before using:
+- Convert the document to .rST by using `convert-to-rst.prompt.md`
+
+Instructions:
+- You can run this in CoPilot Edit or Agent mode
+- Once the prompt executes, CoPilot will then prompt you on whether you want
+to save the output into a file (optional)
