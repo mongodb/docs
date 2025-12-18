@@ -249,6 +249,11 @@ const tocData: TocItem[] = [
         contentSite: 'docs',
         url: '/docs/:version/data-modeling/design-patterns/archive',
       },
+      {
+        label: 'Single Collection',
+        contentSite: 'docs',
+        url: '/docs/:version/data-modeling/design-patterns/single-collection',
+      },
     ],
   },
   {

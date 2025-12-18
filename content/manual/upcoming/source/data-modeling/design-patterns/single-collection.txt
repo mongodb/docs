@@ -1,0 +1,156 @@
+.. _data-modeling-single-collection-pattern:
+
+=========================
+Single Collection Pattern
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Create a data model that uses an array of :ref:`references 
+<data-modeling-referencing>` to group related documents of different types into 
+a single collection. The Single Collection Pattern can be especially useful for 
+modeling many-to-many relationships with only one copy of the data. This pattern 
+can reduce data duplication in use cases where the cost of duplication is a 
+concern.
+
+The following characteristics define the Single Collection Pattern:
+
+- Stores all frequently accessed documents together in a single collection.
+
+- Stores relationships between documents as pointers or structures 
+  within each document. 
+
+- Maps the relationships between documents via indexes on the field or array. 
+  This index supports the retrieval of related documents in a single query 
+  without the use of database join operations. 
+
+Consider using the Single Collection Pattern when modeling systems with 
+high-velocity operations, low-latency requirements, and frequent write 
+operations. By breaking the document into smaller parts, rather 
+than large embedded documents, the database can perform smaller write 
+operations and improve performance.
+
+About this Task
+---------------
+
+In the following example, an application allows students to see the status of 
+the classes they enroll in for the semester. The system may need to frequently 
+update several fields for each class, such as the  ``current_topic``, 
+``upcoming_session_summary``, or ``next_class_time``. To avoid duplicating
+information for multiple students taking the same class, we want to keep 
+students and classes as separate document entities in the same collection. 
+
+Example
+-------
+
+Consider the following example schemas for a class and student. To model their 
+relationship, the class and student documents contain the ``links`` array. This 
+array includes the ``doc_type`` and ``target`` fields to reference the 
+relationship between the student and class entities. 
+
+Class document:
+
+.. code-block:: javascript
+   :copyable: true
+   :emphasize-lines: 29 - 35
+
+   {
+       _id : "CS101-001",
+       doc_type : "class",
+       class_name : "Introduction to Programming",
+       course_id : "CS101",
+       instructor : {
+           name : "Dr. Emily Smith",
+           email : "emily.smith@example.com",
+           office_hours : "Tuesdays and Thursdays 2:00 PM - 4:00 PM"
+       },
+       semester : "Spring 2025",
+       schedule : [
+           {
+               day_time : "Monday 10:00 AM - 11:30 AM",
+               location : "Room 101, Science Building"
+           },
+           {
+               day_time : "Wednesday 10:00 AM - 11:30 AM",
+               location : "Room 101, Science Building"
+           },
+           {
+               day_time : "Friday 10:00 AM - 11:30 AM",
+               location : "Room 101, Science Building"
+           }
+       ],
+       current_topic : "Loops and Iterations",
+       next_class_time : "2025-01-09T10:00:00Z",
+       upcoming_session_summary : "We will explore different types of loops (for, while) and how to use them effectively in Python.",
+       links : [
+           { target : "CS101-001", doc_type : "class" },
+           { target : "S10023", doc_type : "student" },
+           { target : "S12345", doc_type : "student" },
+           ...
+           { target : "S12355", doc_type : "student" }
+       ]
+   }
+
+Student document: 
+
+.. code-block:: javascript
+    :copyable: true
+    :emphasize-lines: 19-23
+
+    {
+        _id : "S12345",
+        doc_type : "student", 
+        name : "Jane Doe",
+        major : "Computer Science",
+        semester : "Spring 2025",
+        registered_classes : [
+            { 
+                course_id : "CS101",
+                class_instance_id : "CS101-001",
+                class_name : "Introduction to Programming"
+            },
+            {
+                course_id : "MATH201",
+                class_instance_id : "MATH201-002",
+                class_name : "Calculus II"
+            }
+        ],
+        links : [
+            { target : "CS101-001", doc_type : "class" },
+            { target : "MATH201-002", doc_type : "class" },
+            { target : "S12345", doc_type : "student" }
+        ]
+    }
+
+To optimize queries, index the ``links`` field: 
+
+.. code-block:: javascript
+   :copyable: true
+
+   db.students_classes.createIndex({ "links.target": 1, "links.doc_type": 1 })
+
+Now, you can query for a student's information and all the classes they take 
+without having to perform any join operations:
+
+.. code-block:: javascript
+   :copyable: true
+
+   db.students_classes.find({ "links.target": "S12345" })
+
+Similarly, you can query for all registered students in a given class: 
+
+.. code-block:: javascript
+   :copyable: true
+
+   db.students_classes.find({ "doc_type": "student", "links.target": "CS101-001" })
+
+Learn More
+----------
+
+- :ref:`data-modeling-concepts`
+
+- :ref:`data-modeling-best-practices`
