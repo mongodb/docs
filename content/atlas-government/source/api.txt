@@ -22,33 +22,136 @@ except that it uses the following base URL:
 
    https://cloud.mongodbgov.com/api/atlas/v2
 
-|cloudgov-short| authenticates |api| requests with ``SHA-256`` using 
-:atlas:`HTTP Digest Authentication </api/#std-label-api-authentication>`.
+To use the |cloudgov| |api| to manage your clusters, you
+must authenticate your |api| requests. The 
+|cloudgov| |api| accepts the following authentication methods: 
+
+- Service account access tokens ({+oauth-2+})
+- API keys ({+http-digest+})
 
 Example Usage
 -------------
 
-This ``curl`` example retrieves database users for a project:
+This ``curl`` example retrieves database users for a project. Select the appropriate
+tab for your preferred method of authentication:
 
-.. code-block:: shell
+.. tabs::
 
-   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-     --header "Accept: application/json" \
-     --header "Content-Type: application/json" \
-     --header "Accept: application/vnd.atlas.2023-01-01+json" \ # update date to desired API version
-     --include \
-     --request GET "https://cloud.mongodbgov.com/api/atlas/v2/groups/{PROJECT-ID}/databaseUsers?pretty=true"
+   .. tab:: Service Account
+      :tabid: serviceaccount
 
-- You can find your ``PROJECT-ID`` in your :guilabel:`Project Settings`.
+      To make an |api| request using a service account, use the service account to generate
+      an access token, then use the access token in your request:
 
-- You can generate an |api| key pair in your organization's 
-  :guilabel:`Access Manager`, under the :guilabel:`API Keys` tab.
+      .. procedure::  
+         :style: normal 
+
+         .. step:: Retrieve the client secret for your service account.
+
+            Locate the client secret beginning with ``mdb_sa_sk_`` that you saved 
+            immediately after :ref:`creating the service account <see-org-api-keys>`. 
+            If you didn't save the client secret, you must generate a new client secret.
+
+         .. step:: Encode the client ID and secret in base64.
+
+            For example, run:
+
+            .. code:: sh
+
+               echo -n {CLIENT-ID}:{CLIENT-SECRET} | base64
+
+         .. step:: Request an access token.
+
+            .. important:: 
+
+               The access token is valid for 1 hour (3600 seconds). You can't refresh an access token.
+               When this access token expires, repeat this step to generate a new one.   
+
+            Replace ``{BASE64-AUTH}`` in the following example with the output from the 
+            preceding step, then run:
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: 
+                  :language: sh
+                  :linenos: 
+
+                  curl --request POST \                                                                             
+                     --url https://cloud.mongodbgov.com/api/oauth/token \
+                     --header 'accept: application/json' \
+                     --header 'cache-control: no-cache' \
+                     --header 'authorization: Basic {BASE64-AUTH}' \                                 
+                     --header 'content-type: application/x-www-form-urlencoded' \
+                     --data 'grant_type=client_credentials'
+
+               .. output::
+                  :language: sh
+                  :visible: false
+
+                  {"access_token":"eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCIsImtpZCI6ImYyZjE2YmE4LTkwYjUtNDRlZS1iMWYwLTRkNWE2OTllYzVhNyJ9.eyJpc3MiOiJodHRwczovL2Nsb3VkLWRldi5tb25nb2RiLmNvbSIsImF1ZCI6ImFwaTovL2FkbWluIiwic3ViIjoibWRiX3NhX2lkXzY2MjgxYmM2MDNhNzFhNDMwYjkwNmVmNyIsImNpZCI6Im1kYl9zYV9pZF82NjI4MWJjNjAzYTcxYTQzMGI5MDZlZjciLCJhY3RvcklkIjoibWRiX3NhX2lkXzY2MjgxYmM2MDNhNzFhNDMwYjkwNmVmNyIsImlhdCI6MTcxMzkwNTM1OSwiZXhwIjoxNzEzOTA4OTU5LCJqdGkiOiI4ZTg1MTM3YS0wZGU1LTQ0N2YtYTA0OS1hMmVmNTIwZGJhNTIifQ.AZSFvhcjwVcJYmvW6E_K5UnDmeiX2sJgL27vo5ElzeBuPawRciKkn6ervZ6IpUTx2HHllGgAAMmhaP9B66NywhfjAXC697X9KcOzm81DTtvDjLrFeRSc_3vFmeGvfUKKXljEdWBnbmwCwtBlO5SJuBxb1V5swAl-Sbq9Ymo4NbyepSnF","expires_in":3600,"token_type":"Bearer"}%
+
+         .. step:: Make an |api| call.
+
+            Replace ``{ACCESS-TOKEN}`` in the following example with the output from the 
+            preceding step. 
+
+            The following sample ``GET`` request :oas-bump-atlas-op:`returns all projects <listgroups>` 
+            in your organization:
+ 
+            .. code-block:: sh
+
+               curl --request GET \
+                  --url https://cloudgov.mongodb.com/api/atlas/v2/groups \
+                  --header 'Authorization: Bearer {ACCESS-TOKEN}' \
+                  --header 'Accept: application/vnd.atlas.2023-02-01+json' \
+                  --header 'Content-Type: application/json'
+
+            The following sample ``POST`` request takes a request body and
+            :oas-bump-atlas-op:`creates a project <creategroup>` named 
+            ``MyProject`` in your organization:
+
+            .. code-block:: sh
+
+               curl --header 'Authorization: Bearer {ACCESS-TOKEN}' \
+                  --header "Content-Type: application/json" \
+                  --header "Accept: application/vnd.atlas.2023-02-01+json" \
+                  --include \
+                  --request POST "https://cloudgov.mongodb.com/api/atlas/v2/groups" \
+                  --data '
+                     {
+                        "name": "MyProject",
+                        "orgId": "5a0a1e7e0f2912c554080adc"
+                     }'
+
+   .. tab:: API Key
+      :tabid: apikey
+
+      To make an |api| request using |api| keys, replace ``{PUBLIC-KEY}:{PRIVATE-KEY}``
+      with your |api| keys and run:
+
+      .. code-block:: shell
+
+         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+           --header "Accept: application/json" \
+           --header "Content-Type: application/json" \
+           --header "Accept: application/vnd.atlas.2025-03-12+json" \ # update date to desired API version
+           --include \
+           --request GET "https://cloud.mongodbgov.com/api/atlas/v2/groups/{PROJECT-ID}/databaseUsers?pretty=true"
+
+      - You can find your ``PROJECT-ID`` in your :guilabel:`Project Settings`.
+
+      - You can generate an |api| key pair in your organization's 
+        :guilabel:`Access Manager`, under the :guilabel:`API Keys` tab.
 
 See the Atlas Documentation
 ---------------------------
 
 - To learn more about using the |api|, see the 
   :atlas:`Atlas API </api/>`.
+
+- To learn more about authenticating to the |api| with service accounts 
+  or |api| keys, see :ref:`api-authentication`.
 
 - To configure the API, see 
   :atlas:`Configure Atlas API Access </configure-api-access/>`.

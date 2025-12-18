@@ -6,6 +6,10 @@
      - Commercial |service|
      - AtlasGov
 
+   * - API authentication (API keys and service accounts) 
+     - :icon-fa5:`check`
+     - :icon-fa5:`check`
+
    * - |service| Data Federation
      - :icon-fa5:`check`
      -

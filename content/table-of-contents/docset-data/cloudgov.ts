@@ -117,19 +117,6 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/government/api',
       },
       {
-        label: ' Programmatic Access',
-        contentSite: 'cloudgov',
-        url: '/docs/atlas/government/programmatic-access',
-        collapsible: true,
-        items: [
-          {
-            label: 'API',
-            contentSite: 'cloudgov',
-            url: '/docs/atlas/government/api',
-          },
-        ],
-      },
-      {
         label: 'Subscriptions and Billing',
         contentSite: 'cloudgov',
         url: '/docs/atlas/government/billing',
