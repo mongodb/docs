@@ -8,4 +8,6 @@
    :oas-bump-atlas-op:`creating <creategroupcluster>` or 
    :oas-bump-atlas-op:`modifying <updategroupcluster>` a 
    cluster with the API, be sure to specify your desired cluster class 
-   by name with the ``providerSettings.instanceSizeName`` attribute.
+   by name with the
+   ``replicationSpecs[n].regionConfigs[m].electableSpecs.instanceSize``
+   attribute.
