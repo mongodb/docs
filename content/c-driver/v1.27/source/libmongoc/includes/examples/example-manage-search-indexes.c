@@ -54,7 +54,7 @@ main (int argc, char *argv[])
    {
       // There is a server-side limitation that prevents multiple search indexes
       // from being created with the same name, definition and collection name.
-      // Atlas search index management operations are asynchronous. Dropping a
+      // MongoDB Search index management operations are asynchronous. Dropping a
       // collection may not result in the index being dropped immediately. Use a
       // randomly generated collection name to avoid errors.
       bson_oid_t oid;
@@ -99,7 +99,7 @@ main (int argc, char *argv[])
    }
 
    {
-      // Create an Atlas Search Index ... begin
+      // Create a MongoDB Search Index ... begin
       bson_t cmd;
       // Create command.
       {
@@ -118,11 +118,11 @@ main (int argc, char *argv[])
       }
       printf ("Created index: \"test-index\"\n");
       bson_destroy (&cmd);
-      // Create an Atlas Search Index ... end
+      // Create a MongoDB Search Index ... end
    }
 
    {
-      // List Atlas Search Indexes ... begin
+      // List MongoDB Search Indexes ... begin
       const char *pipeline_str = BSON_STR ({"pipeline" : [ {"$listSearchIndexes" : {}} ]});
       bson_t pipeline;
       ASSERT (bson_init_from_json (&pipeline, pipeline_str, -1, &error));
@@ -142,11 +142,11 @@ main (int argc, char *argv[])
       }
       bson_destroy (&pipeline);
       mongoc_cursor_destroy (cursor);
-      // List Atlas Search Indexes ... end
+      // List MongoDB Search Indexes ... end
    }
 
    {
-      // Update an Atlas Search Index ... begin
+      // Update a MongoDB Search Index ... begin
       bson_t cmd;
       // Create command.
       {
@@ -163,11 +163,11 @@ main (int argc, char *argv[])
       }
       printf ("Updated index: \"test-index\"\n");
       bson_destroy (&cmd);
-      // Update an Atlas Search Index ... end
+      // Update a MongoDB Search Index ... end
    }
 
    {
-      // Drop an Atlas Search Index ... begin
+      // Drop a MongoDB Search Index ... begin
       bson_t cmd;
       // Create command.
       {
@@ -181,7 +181,7 @@ main (int argc, char *argv[])
       }
       printf ("Dropped index: \"test-index\"\n");
       bson_destroy (&cmd);
-      // Drop an Atlas Search Index ... end
+      // Drop a MongoDB Search Index ... end
    }
 
    // Drop created collection.
