@@ -522,7 +522,7 @@ const tocData: TocItem[] = [
                 versions: { excludes: outdatedVersions },
               },
               {
-                label: 'Version 3.0',
+                label: 'Version 3.x',
                 contentSite: 'csharp',
                 url: '/docs/drivers/csharp/:version/reference/upgrade/v3',
                 versions: { excludes: outdatedVersions },
