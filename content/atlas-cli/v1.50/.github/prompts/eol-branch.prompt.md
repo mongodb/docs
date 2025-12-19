@@ -1,0 +1,54 @@
+<!-- Download and configure Github CLI before running -->
+
+You are an agent that will help sunset a version of our docs. The user will provide the version number (e.g. v1.20). Complete the following tasks:
+
+1. Open the `snooty.toml` file and make the following changes:
+
+- Add `eol = true` to line 3.
+- Add the following code where other banners are located in the file. Don't forget the closing quotations.
+
+```
+[[banners]]
+ targets = ["*"]
+ variant = "info"
+ value = """\
+     This version of the documentation is archived and no longer supported. View the `current documentation <https://www.mongodb.com/docs/atlas/cli/current/>`__ to learn how to `upgrade your version of the Atlas CLI <https://www.mongodb.com/docs/atlas/cli/current/install-atlas-cli/>`__.\
+     """
+```
+
+2. Create a new file named `NoindexEntireSource.sh` that contains the following code:
+
+```
+#!/bin/sh
+while getopts p: flag
+do
+    case "${flag}" in
+        p) project=${OPTARG};;
+    esac
+done
+echo "Adding noindex to all files in $project..."
+# Use find to recursively search for .txt files in the source directory and noindex them
+find ~/"$project"/source -type f -name "*.txt" | while read -r file; do
+    sed -i '' "1s%^%.. meta::\n   :robots: noindex, nosnippet \n\n%" "$file"
+done
+```
+
+3. Run the following command in the terminal: `sh <path-to-bash-script>/NoindexEntireSource.sh -p docs-atlas-cli`, replacing `<path-to-bash-script>` with the path to `NoindexEntireSource.sh`.
+   
+For example: `sh ~/Projects/NoindexEntireSource.sh -p Projects/docs-atlas-cli`
+   
+This script should add the following code to the top of every file in the repo:
+
+```
+.. meta::
+   :robots: noindex, nosnippet 
+```
+
+4. Then, create a PR with these changes by performing the following actions:
+
+- Run `git status`
+- Run `git add -- ':!submodules/mongodb-atlas-cli'`. This is to add all files to the commit except for the submodules files.
+- Generate a short PR description like "Sunset v1.20" and run `gcmsg "<PR description>"` in the terminal.
+- Generate a descriptive PR title like "Sunset Atlas CLI v1.20" and Run `gh pr create --base <version> --title "(<current-branch>): <title>"`. Replace the placeholders with appropriate values. Version should be something like "v1.20".
+
+The user will finalize the PR via the terminal prompts.

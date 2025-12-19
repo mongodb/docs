@@ -15,7 +15,7 @@ atlas clusters onlineArchives create
 Create an online archive for a collection in the specified cluster.
 
 You can create an online archive for an M10 or larger cluster.
-		
+
 To learn more about online archives, see https://www.mongodb.com/docs/atlas/online-archive/overview/.
 
 To use this command, you must authenticate with a user account, a service account, or an API key with the Project Data Access Admin role.

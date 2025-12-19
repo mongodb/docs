@@ -1,0 +1,125 @@
+.. _acli-independent-shard-scaling:
+
+===================================
+Configure Independent Shard Scaling 
+===================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+For {+atlas-cli+} commands that you use to deploy and manage |service|
+clusters on the cloud, you can configure how the cluster handles
+resource scaling by using the ``--autoScalingMode`` option.
+You can use this option  for the following commands to specify whether
+the cluster nodes scale together or independently:
+
+- :ref:`atlas-setup`
+- | :ref:`atlas-deployments-setup`
+  | :ref:`atlas-deployments-delete`
+  | :ref:`atlas-deployments-list` 
+  | :ref:`atlas-deployments-pause`
+  | :ref:`atlas-deployments-start` 
+- | :ref:`atlas-clusters-create` 
+  | :ref:`atlas-clusters-update`
+  | :ref:`atlas-clusters-describe` 
+  | :ref:`atlas-clusters-list`
+  | :ref:`atlas-clusters-watch` 
+  | :ref:`atlas-clusters-pause`
+  | :ref:`atlas-clusters-start` 
+  | :ref:`atlas-clusters-delete`
+
+The ``--autoScalingMode`` option takes the following values: 
+
+.. collapsible::
+   :heading: clusterWideScaling
+   :sub_heading: Indicates that cluster nodes scale together across all shards.
+   :expanded: false
+
+   .. code-block:: javascript
+      :copyable: false 
+      
+      atlas setup --clusterName symmetricShardCluster --provider AWS --autoScalingMode clusterWideScaling --projectId 5e2211c17a3e5a48f5497de3 --tier M10
+
+   For clusters configured with ``clusterWideScaling``, the |json|
+   output looks similar to the following: 
+
+   .. code-block:: json 
+      :caption: Sample clusterWideScaling Output 
+
+      {
+        "clusterType": "SHARDED",
+        "name": "symmetricShardCluster",
+        "diskSizeGB": 0,
+        "replicationSpecs": [
+          {
+            "id": "internalId",
+            "numShards": 2,
+            "regionConfigs": [
+              {
+                "electableSpecs": { ... },the 
+                "readOnlySpecs": { ... },
+                ...
+              }
+            ],
+            "zoneName": "string"
+          }
+        ],
+        ...
+      }
+
+   To learn more about the output, see the `getCluster <https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/2024-10-23/#tag/Clusters/operation/getCluster>`__
+   endpoint. If you omit the ``--autoScalingMode`` option, the command defaults to
+   ``clusterWideScaling`` mode. 
+
+.. collapsible::
+   :heading: independentShardScaling
+   :sub_heading: Indicates that cluster nodes scale independently.
+   :expanded: false
+
+   .. code-block:: javascript
+      :copyable: false 
+      
+      atlas setup --clusterName asymmetricShardCluster --provider AWS --autoScalingMode independentShardScaling --projectId 5e2211c17a3e5a48f5497de3 --tier M10 
+  
+   For clusters configured with ``independentShardScaling``, the
+   |json| output looks similar to the following: 
+
+   .. code-block:: json 
+      :caption: Sample independentShardScaling Output 
+
+      {
+        "clusterType": "SHARDED",
+        "name": "asymmetricShardCluster",
+        "replicationSpecs": [
+          {
+            "id": "externalId",
+            "regionConfigs": [
+              {
+                "electableSpecs": {
+                    "diskSizeGB": 10,
+                    ...
+                },
+                "readOnlySpecs":  {
+                    "diskSizeGB": 10,
+                    ...
+                },
+              }
+            ],
+            "zoneId": "string",// for GET/UPDATE
+            "zoneName": "string"
+          },
+          ...
+        ]
+      }
+
+   The |json| output includes the ``replicationSpecs``
+   object that describes the properties of a single shard. The
+   ``replicationSpecs``  elements define the number of shards
+   instead of the ``numShards`` field. The ``diskSizeGB`` field is
+   inside each shard's ``replication_specs.regionConfig`` object.
+   The ``zoneId`` field that identifies the zone for Global cluster
+   is returned in the output. To learn more about the output, see
+   the :oas-bump-atlas-op:`getCluster <getgroupcluster>` endpoint.
