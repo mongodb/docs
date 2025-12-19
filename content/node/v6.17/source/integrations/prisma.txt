@@ -25,6 +25,11 @@ Prisma is an open source Object Relational Mapper (ORM) for Node.js. It supports
 and TypeScript, but it is primarily used with TypeScript to help you write readable and type-safe
 code.
 
+.. warning:: MongoDB Support for Prisma ORM v7
+
+   The {+driver-long+} does not yet support Prisma ORM version 7. Use the latest
+   available version 6.x release of Prisma ORM when working with MongoDB.
+
 Schemas
 ~~~~~~~
 
@@ -43,8 +48,27 @@ you must include one document's ``_id`` field in another document. Prisma stream
 process and assists you in organizing this related data, while also maintaining referential integrity
 of the data.
 
+When you use references to model relations between collections, you can add the ``@relation``
+attribute to your Prisma schema to enable Prisma Client to access those relations, emulate
+referential actions, and help maintain referential integrity.
+
 To learn more about efficient data modeling in MongoDB, see :manual:`Reduce $lookup Operations </data-modeling/design-antipatterns/reduce-lookup-operations>`
 in the {+mdb-server+} manual.
+
+Schema Introspection
+~~~~~~~~~~~~~~~~~~~~
+
+MongoDB has a flexible schema by default. When you introspect an existing
+MongoDB database by using the ``prisma db pull`` command, Prisma samples up to
+1000 random documents from each collection to infer the schema structure.
+
+If your collection contains fields with inconsistent data types across
+documents, Prisma maps those fields to the ``Json`` type and outputs a warning.
+This enables you to read all existing data, but it reduces type safety
+benefits. To resolve this, you can manually update the data to use consistent
+types, and then run ``prisma db pull`` again to regenerate the schema with
+proper type definitions. For more information, see
+:ref:`<node-prisma-troubleshooting>`.
 
 Tutorial
 --------
@@ -144,6 +168,25 @@ This tutorial shows how to perform the following actions:
       Navigate to ``http://localhost:3000`` in your web browser to view and run
       the application. You can use the application to create, draft, publish, and delete blog posts.
       You can reference the API route definitions in the ``pages/api`` folder of the example project.
+
+.. _node-prisma-troubleshooting:
+
+Troubleshooting Type Conflicts
+------------------------------
+
+If your MongoDB collections contain fields that use inconsistent data types across documents,
+Prisma Client might throw errors when querying data that doesn't match the expected type
+from your schema. 
+
+You can perform the following actions to address this:
+
+1. Review the warnings and comments in your Prisma schema after running ``prisma db pull``
+   to identify fields that use conflicting types.
+2. Update your data to use consistent types across all documents in the collection.
+3. Run ``prisma db pull`` again to regenerate your schema that includes the corrected types.
+
+Alternatively, you can leave the field as type ``Json`` if you need to maintain
+flexibility. However, this reduces the type safety benefits that Prisma provides.
 
 Additional Resources
 --------------------
