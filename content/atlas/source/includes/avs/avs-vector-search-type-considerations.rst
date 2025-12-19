@@ -17,7 +17,7 @@ to :ref:`create <avs-create-index>` your {+avs+} index.
 
 .. _avs-types-vector-search-considerations:
 
-Considerations 
+Considerations
 --------------
 
 In a ``vectorSearch`` type index definition, you can index arrays with
@@ -482,5 +482,11 @@ The following syntax defines the ``filter`` field type:
        ...
      ]
    }
+ 
+If you want to pre-filter using fuzzy search, phrase matching, location
+filtering, and other analyzed text capabilities, create a |fts|
+:ref:`vector <bson-data-types-vector>` type index and query using the
+:ref:`$vectorSearch operator <fts-vectorSearch-ref>` in a 
+:pipeline:`$search` stage.
 
 .. include:: /includes/avs/facts/fact-avs-pre-filtering-score-impact.rst
