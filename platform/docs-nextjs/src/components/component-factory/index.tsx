@@ -141,6 +141,7 @@ import Root, { type RootProps } from '@/components/root';
 import Figure, { type FigureProps } from '@/components/figure';
 import ComposableContent, { type ComposableContentProps } from '@/components/composable-tutorial/composable-content';
 import ComposableTutorial, { type ComposableTutorialProps } from '@/components/composable-tutorial';
+import DeprecatedVersionSelector from '@/components/deprecated-version-selector';
 import SearchResults from '@/components/search-results';
 import Transition from '@/components/transition';
 import OpenAPIChangelog from '@/components/open-api-changelog';
@@ -231,7 +232,7 @@ const getComponent = (() => {
         definitionList: DefinitionList as React.ComponentType<SupportedComponentProps>,
         definitionListItem: DefinitionListItem as React.ComponentType<SupportedComponentProps>,
         deprecated: VersionModified as React.ComponentType<SupportedComponentProps>,
-        // 'deprecated-version-selector': DeprecatedVersionSelector,
+        'deprecated-version-selector': DeprecatedVersionSelector as React.ComponentType<SupportedComponentProps>,
         describe: Describe as React.ComponentType<SupportedComponentProps>,
         emphasis: Emphasis as React.ComponentType<SupportedComponentProps>,
         extract: Extract as React.ComponentType<SupportedComponentProps>,
@@ -476,6 +477,8 @@ const renderComponentWithProps = (
   } else if (ComponentType == getComponent('community-driver')) {
     const { argument, options } = nodeData as CommunityDriverPill;
     return <ComponentType argument={argument} options={options} {...propsToDrill} />;
+  } else if (ComponentType === getComponent('deprecated-version-selector')) {
+    return <DeprecatedVersionSelector />;
   } else if (ComponentType === getComponent('field')) {
     const fieldNode = nodeData as FieldNode;
     return (

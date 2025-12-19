@@ -24,10 +24,10 @@ const breadcrumbBodyStyle = css`
 
 const Breadcrumbs = () => {
   const { slug } = usePageContext();
-  const { siteBasePrefix } = useVersionContext();
+  const { siteBasePrefixWithVersion } = useVersionContext();
   const tocTree = useProcessedUnifiedToc();
 
-  const breadcrumbs = usePageBreadcrumbs(tocTree, slug, siteBasePrefix);
+  const breadcrumbs = usePageBreadcrumbs(tocTree, slug, siteBasePrefixWithVersion);
 
   return (
     <div className={cx(breadcrumbBodyStyle)}>

@@ -131,8 +131,8 @@ const findPageParent = (tree: TocItem[], targetUrl: string): [boolean, TocItem |
 export const UnifiedSidenav = () => {
   const { hideMobile, setHideMobile } = useContext(SidenavContext);
   const { slug: pageSlug } = usePageContext();
-  const { siteBasePrefix } = useVersionContext();
-  const slug = getFullSlug(pageSlug, siteBasePrefix);
+  const { siteBasePrefixWithVersion } = useVersionContext();
+  const slug = getFullSlug(pageSlug, siteBasePrefixWithVersion);
 
   // TODO: Use HeaderContext once https://jira.mongodb.org/browse/DOP-5992 is done
   // const { hasBanner } = useContext(HeaderContext);

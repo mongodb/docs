@@ -30,6 +30,7 @@ const getMockedFetch = () => global.fetch as jest.Mock;
 jest.mock('@/context/version-context', () => ({
   useVersionContext: () => ({
     siteBasePrefix: '/docs/atlas',
+    siteBasePrefixWithVersion: '/docs/atlas',
     activeVersions: {},
     setActiveVersions: jest.fn(),
     availableVersions: {},

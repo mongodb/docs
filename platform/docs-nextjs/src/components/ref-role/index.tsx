@@ -34,7 +34,7 @@ export type RefRoleProps = {
 };
 
 const RefRole = ({ nodeChildren, fileid, url, cardRef = false, showLinkArrow = false }: RefRoleProps) => {
-  const { siteBasePrefix } = useVersionContext();
+  const { siteBasePrefixWithVersion } = useVersionContext();
   // Render intersphinx target links
   const stylingClass = cardRef ? cardRefStyling : '';
   if (url) {
@@ -62,8 +62,8 @@ const RefRole = ({ nodeChildren, fileid, url, cardRef = false, showLinkArrow = f
     }
   }
 
-  if (isRelativeUrl(link) && siteBasePrefix) {
-    link = `${siteBasePrefix}/${link}`;
+  if (isRelativeUrl(link) && siteBasePrefixWithVersion) {
+    link = `${siteBasePrefixWithVersion}/${link}`;
   }
 
   return (

@@ -40,6 +40,15 @@ const getInitBranchName = (branches: BranchData[]) => {
   return branches[0]?.gitBranchName || null;
 };
 
+const getInitVersions = (branchListByProduct: AvailableVersions) => {
+  const initState: Record<string, string> = {};
+  const localStorage = getLocalValue(STORAGE_KEY);
+  for (const productName in branchListByProduct) {
+    initState[productName] = localStorage?.[productName] || getInitBranchName(branchListByProduct[productName]);
+  }
+  return initState;
+};
+
 const findBranchByGit = (gitBranchName: string, branches?: BranchData[]) => {
   if (!branches || !branches.length) {
     return;
@@ -121,6 +130,8 @@ const buildSiteBasePrefix = (pathPrefix: string | undefined, branch: string): st
 
 type VersionContextType = {
   siteBasePrefix: string;
+  siteBasePrefixWithVersion: string;
+  docsets: Docset[];
   activeVersions: ActiveVersions;
   // active version for each product is marked is {[product name]: active version} pair
   setActiveVersions: Dispatch<Partial<ActiveVersions>>;
@@ -131,6 +142,8 @@ type VersionContextType = {
 
 const VersionContext = createContext<VersionContextType>({
   siteBasePrefix: '',
+  siteBasePrefixWithVersion: '',
+  docsets: [],
   activeVersions: {},
   // active version for each product is marked is {[product name]: active version} pair
   setActiveVersions: () => {},
@@ -161,20 +174,21 @@ export const VersionContextProvider = ({ docsets, slug, env, children }: Version
   const { versions, groups } = getBranches(docsets);
   const { project, branch } = useSnootyMetadata();
 
-  const { metadata, siteBasePrefix } = useMemo(() => {
+  const { metadata, siteBasePrefix, siteBasePrefixWithVersion } = useMemo(() => {
     const repoBranches = docsets.find((docset) => docset.project === project);
-    const pathPrefix = repoBranches?.prefix?.[getRepoBranchesPrefixEnv(env)];
+    const siteBasePrefix = repoBranches?.prefix?.[getRepoBranchesPrefixEnv(env)] ?? '';
 
-    const siteBasePrefix = buildSiteBasePrefix(pathPrefix, branch);
+    const siteBasePrefixWithVersion = buildSiteBasePrefix(siteBasePrefix, branch);
 
     return {
       metadata: { project, branch },
       siteBasePrefix,
+      siteBasePrefixWithVersion,
     };
   }, [project, branch, docsets, env]);
 
   // TODO: Might need to update this once we use this branch on a stitched project (DOP-5243 dependent)
-  // TODO check whats going on here for 404 pages
+  // TODO: check whats going on here for 404 pages
   // tracks active versions across app
   const [activeVersions, setActiveVersions] = useReducer<
     React.Reducer<ActiveVersions, Partial<ActiveVersions>>,
@@ -188,6 +202,11 @@ export const VersionContextProvider = ({ docsets, slug, env, children }: Version
       mountRef.current = false;
     };
   }, [activeVersions]);
+
+  useEffect(() => {
+    setActiveVersions(getInitVersions(versions));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // handler for selecting version on multiple dropdowns
   const onVersionSelect = useCallback(
@@ -212,7 +231,6 @@ export const VersionContextProvider = ({ docsets, slug, env, children }: Version
           : targetBranch?.urlSlug || targetBranch?.urlAliases?.[0] || targetBranch?.gitBranchName;
 
       const urlTarget = getUrl(target, metadata.project, siteBasePrefix, slug);
-
       router.push(urlTarget);
     },
     [versions, metadata, siteBasePrefix, slug],
@@ -222,6 +240,8 @@ export const VersionContextProvider = ({ docsets, slug, env, children }: Version
     <VersionContext.Provider
       value={{
         siteBasePrefix,
+        siteBasePrefixWithVersion,
+        docsets,
         activeVersions,
         setActiveVersions,
         availableVersions: versions,

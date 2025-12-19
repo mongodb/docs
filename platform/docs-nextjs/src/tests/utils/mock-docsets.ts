@@ -20,10 +20,10 @@ export const mockDocsets: Docset[] = [
       },
     ],
     prefix: {
-      dotcomprd: 'https://mongodb.com/docs',
-      dotcomstg: 'https://staging.mongodb.com/docs',
-      prd: 'https://mongodb.com/docs',
-      stg: 'https://staging.mongodb.com/docs',
+      dotcomprd: '/docs',
+      dotcomstg: '/docs',
+      prd: '/docs',
+      stg: '/docs',
     },
     url: {
       dev: 'https://dev.mongodb.com/docs',
@@ -51,7 +51,16 @@ export const mockDocsets: Docset[] = [
     groups: null,
     branches: [
       {
-        gitBranchName: 'v4.11',
+        gitBranchName: 'upcoming',
+        active: true,
+        urlAliases: ['upcoming'],
+        urlSlug: 'upcoming',
+        versionSelectorLabel: 'v4.12 (upcoming)',
+        offlineUrl: '/offline/v4.12',
+        noIndexing: false,
+      },
+      {
+        gitBranchName: 'current',
         active: true,
         urlAliases: ['current'],
         urlSlug: 'current',
@@ -62,18 +71,18 @@ export const mockDocsets: Docset[] = [
       {
         gitBranchName: 'v4.9',
         active: true,
-        urlAliases: ['current'],
-        urlSlug: 'current',
+        urlAliases: [],
+        urlSlug: 'v4.9',
         versionSelectorLabel: 'v4.9',
         offlineUrl: '/offline/v4.9',
         noIndexing: false,
       },
     ],
     prefix: {
-      dotcomprd: 'https://mongodb.com/docs/languages/node',
-      dotcomstg: 'https://staging.mongodb.com/docs/languages/node',
-      prd: 'https://mongodb.com/docs/languages/node',
-      stg: 'https://staging.mongodb.com/docs/languages/node',
+      dotcomprd: '/docs/languages/node',
+      dotcomstg: '/docs/languages/node',
+      prd: '/docs/languages/node',
+      stg: '/docs/languages/node',
     },
     url: {
       dev: 'https://dev.mongodb.com/docs',

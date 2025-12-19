@@ -41,7 +41,7 @@ const CopyPageMarkdownButton = ({ className, slug }: CopyPageMarkdownButtonProps
   const [toastOpen, setToastOpen] = useState<ToastOpen>({ open: false, variant: Variant.Success });
   const [markdownText, getMarkdownText] = useState<string | null>(null);
   const href = usePathname();
-  const { siteBasePrefix } = useVersionContext();
+  const { siteBasePrefixWithVersion } = useVersionContext();
 
   // First removing the search and then the trailing slash, since we expect the URL to be available in markdown
   // i.e. https://www.mongodb.com/docs/mcp-server/get-started/?client=cursor&deployment-type=atlas ->
@@ -120,7 +120,7 @@ const CopyPageMarkdownButton = ({ className, slug }: CopyPageMarkdownButtonProps
 
   const askQuestion = () => {
     const questionText = `I have a question about the page I'm on: www.mongodb.com${assertLeadingAndTrailingSlash(
-      siteBasePrefix,
+      siteBasePrefixWithVersion,
     )}${removeLeadingSlash(slug)}`;
 
     setText(questionText);

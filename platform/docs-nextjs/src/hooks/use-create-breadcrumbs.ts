@@ -10,7 +10,7 @@ const homeCrumb = {
   path: '/docs',
 };
 
-export function usePageBreadcrumbs(tocTree: TocItem[], slug: string, siteBasePrefix: string): BreadCrumb[] {
+export function usePageBreadcrumbs(tocTree: TocItem[], slug: string, siteBasePrefixWithVersion: string): BreadCrumb[] {
   const breadcrumbs = useMemo(() => {
     if (!slug || !tocTree || tocTree.length === 0) {
       return [homeCrumb];
@@ -19,11 +19,11 @@ export function usePageBreadcrumbs(tocTree: TocItem[], slug: string, siteBasePre
     const tree = createParentFromToc(tocTree, []);
     if (!tree) return [homeCrumb];
 
-    const fullSlug = getFullSlug(slug, siteBasePrefix);
+    const fullSlug = getFullSlug(slug, siteBasePrefixWithVersion);
     const parents = findParentBreadCrumb(fullSlug, tree);
 
     return [homeCrumb, ...(parents ?? [])];
-  }, [slug, tocTree, siteBasePrefix]);
+  }, [slug, tocTree, siteBasePrefixWithVersion]);
 
   return breadcrumbs;
 }

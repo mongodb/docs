@@ -9,7 +9,7 @@ import { tocItemKey } from '@/utils/create-toc-key';
 
 import { NavTopContainer, downloadButtonStlying, ArtificialPadding } from './UnifiedSidenav';
 import { StaticNavItem, UnifiedTocNavItem } from './UnifiedTocNavItems';
-import { UnifiedVersionDropdown } from './UnifiedVersionDropdown';
+import VersionDropdown from './VersionDropdown';
 import type { TocItem } from './types';
 import DocsHomeButton from './DocsHomeButton';
 
@@ -117,7 +117,7 @@ export const DoublePannedNav = ({
             />
           ))}
         </div>
-        {currentL1?.versionDropdown && <UnifiedVersionDropdown contentSite={currentL1?.contentSite} />}
+        {currentL1?.versionDropdown && <VersionDropdown contentSite={currentL1?.contentSite} />}
         {currentL2s?.items?.length !== undefined && (
           <div className={cx(rightPane)} data-nav-pane="right">
             {showDriverBackBtn && (

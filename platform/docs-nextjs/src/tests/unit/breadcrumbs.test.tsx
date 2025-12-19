@@ -28,7 +28,7 @@ jest.mock('@/context/page-context', () => ({
 const mockSiteBasePrefix = '/docs';
 jest.mock('@/context/version-context', () => ({
   useVersionContext: () => ({
-    siteBasePrefix: mockSiteBasePrefix,
+    siteBasePrefixWithVersion: mockSiteBasePrefix,
   }),
 }));
 
