@@ -13,7 +13,7 @@
    .. wayfinding-option:: https://mongodb.github.io/mongo-csharp-driver/2.29.0/api/MongoDB.Driver/MongoDB.Driver.Core.Operations.ExplainOperation.-ctor.html
       :id: csharp
 
-   .. wayfinding-option:: https://mongoc.org/libmongoc/current/mongoc_collection_find.html#the-explain-command
+   .. wayfinding-option:: https://mongoc.org/libmongoc/1.25.4/mongoc_collection_find.html#the-explain-command
       :id: c
 
    .. wayfinding-option:: https://www.mongodb.com/docs/languages/cpp/cpp-driver/upcoming/aggregation/#explain-an-aggregation
@@ -40,7 +40,7 @@
    .. wayfinding-option:: https://mongodb.github.io/mongo-java-driver/5.2/apidocs/mongodb-driver-kotlin-sync/mongodb-driver-kotlin-sync/com.mongodb.kotlin.client/-aggregate-iterable/explain.html?query=fun%20%3CR%20:%20Any%3E%20explain(resultClass:%20Class%3CR%3E,%20verbosity:%20ExplainVerbosity?%20=%20null):%20R
       :id: kotlin-sync
 
-   .. wayfinding-option:: https://www.rubydoc.info/github/mongoid/mongoid/Mongoid%2FContextual%2FMongo:explain
+   .. wayfinding-option:: https://www.mongodb.com/docs/ruby-driver/current/aggregation/#explain-an-aggregation
       :id: mongoid
 
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/rust/current/fundamentals/run-command/#command-example
