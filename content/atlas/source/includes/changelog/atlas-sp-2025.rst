@@ -1,3 +1,29 @@
+.. _atlas-sp-20251203: 
+
+3 December 2025 Release
+------------------------
+
+- Adds support for |aws| Kinesis as a :ref:`source
+  <atlas-sp-agg-source-syntax-kinesis>` (``$source`` stage) and as a
+  :ref:`sink <sp-emit-kinesis>` (``$emit`` stage).
+- Updates :ref:`data transfer pricing <atlas-sp-processor-billing>` to
+  reflect region-specific rates for both the stream processor and
+  destination region. To learn more, see :ref:`stream processor pricing
+  <atlas-sp-processor-billing>`.
+- Updates pricing for ``SP10`` and ``SP30`` tier stream processors from
+  the :ref:`legacy worker-based model
+  <atlas-sp-architecture-workers-legacy>` to the per-processor pricing
+  model. To learn more, see :ref:`stream processor pricing
+  <atlas-sp-processor-billing>`.
+
+.. _atlas-sp-20250908:
+
+8 September 2025 Release
+------------------------
+
+- Adds support to :ref:`create a stream processor pipeline
+  <streams-manage-create>` in the {+atlas-ui+}. 
+
 .. _atlas-sp-20251029:
 
 29 October 2025 Release
@@ -5,6 +31,7 @@
 
 - Replaces the previous instance model with {+atlas-sp+} Workspaces. To learn 
   more, see :ref:`Stream Processing Tiers <atlas-sp-architecture-tiers>`.
+- Adds new stream processor tiers: ``SP2``, ``SP5``, and ``SP50``.
 
 .. _atlas-sp-20250901:
 
