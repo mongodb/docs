@@ -14,12 +14,14 @@ const allVersions = [
   'v6.18',
   'v6.19',
   'v6.20',
+  'v6.21',
+  'v7.0',
 ];
 const namedVersions = new Map<string, string>([
-  ['v6.20', 'current'],
-  ['v6.21', 'upcoming'],
+  ['v7.0', 'current'],
+  ['v7.1', 'upcoming'],
 ]);
-const deprecatedVersions = ['v6.9'];
+const deprecatedVersions = ['v6.9', 'v6.10', 'v6.11', 'v6.12'];
 
 const versions = new Versions(allVersions, deprecatedVersions, namedVersions);
 
