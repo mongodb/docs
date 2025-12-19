@@ -1,3 +1,5 @@
+:orphan:
+
 # Copyright 2009-present MongoDB, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +28,7 @@ project (hello_bson LANGUAGES C)
 # NOTE: For this to work, the CMAKE_PREFIX_PATH variable must be set to point to
 # the directory that was used as the argument to CMAKE_INSTALL_PREFIX when
 # building libbson.
+
 # -- sphinx-include-start --
 # Specify the minimum version you require.
 find_package (bson-1.0 1.7 REQUIRED)
