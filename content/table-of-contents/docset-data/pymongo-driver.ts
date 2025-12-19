@@ -202,7 +202,6 @@ const tocData: TocItem[] = [
           {
             label: 'Custom Types',
             contentSite: 'pymongo',
-            url: '/docs/languages/python/pymongo-driver/:version/data-formats/custom-types',
             collapsible: true,
             items: [
               {

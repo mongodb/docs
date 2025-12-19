@@ -281,7 +281,7 @@ const tocData: TocItem[] = [
             label: 'abortRewriteCollection',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/abortRewriteCollection',
-            versions: { excludes: versionsBeforeV8_3 }
+            versions: { excludes: versionsBeforeV8_3 },
           },
           {
             label: 'abortUnshardCollection',
