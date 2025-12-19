@@ -1,4 +1,4 @@
-|service| charges ``$.125`` per GB of data exported to the |aws| |s3|
+|service| charges ``$0.125`` per GB of data exported to the |aws| |s3|
 bucket, {+az-bs+} Container, or {+gcs+} bucket in addition to the data
 transfer cost incurred from the cloud service itself. |service|
 compresses the data before exporting. To estimate the amount of data

@@ -36,6 +36,9 @@ storage services:
 - {+az-bs+}
 - {+gcs+} buckets
 
+Additionally, {+service+} supports exporting snapshots to {+aws+} |s3|
+buckets using PrivateLink.
+
 How |service| Exports Snapshots 
 -------------------------------
 
@@ -85,7 +88,8 @@ storage service.
 :manual:`Time to Live </tutorial/expire-data>` settings. You can access these
 documents from your snapshot past their Time to Live deadline.
 
-.. include:: /includes/fact-snapshot-export-cost.rst
+To learn about snapshot export pricing, see :ref:`Snapshot Export Costs
+<snapshot-export-costs>`.
 
 Files |service| Uploads
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -382,7 +386,8 @@ You can't perform the following actions:
 - Export snapshots from {+clusters+} in |a-service| project
   with IP-restricted :ref:`Encryption at Rest
   <security-kms-encryption>` enabled.
-- Export snapshots from projects configured for
+- Export snapshots from {+clusters+} hosted on |azure| or {+gcs+}
+  in projects configured for
   :ref:`Private Endpoints <atlas-configure-private-endpoint>`.
 
 Required Access
@@ -396,257 +401,168 @@ Users with :authrole:`Organization Owner` access must add themselves as
 a ``Project Backup Manager`` or ``Project Owner`` to the project before 
 they can manage {+Cloud-Backup+} snapshots. 
 
-Prerequisites
--------------
+.. _snapshot-export-manage:
 
-To export your {+Cloud-Backup+} snapshots, you need an ``M10`` or
-higher |service| {+cluster+} with {+Cloud-Backup+} :ref:`enabled
-<backup-cloud-provider>`. In addition, to export to an object store,
-you must do the following:
-
-.. tabs:: 
-
-   .. tab:: AWS 
-      :tabid: aws
-
-      1. Configure |aws| `IAM role <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html>`__ 
-         with ``STS:AssumeRole`` that grants |service| access to your |aws| 
-         resources. To learn more about configuring |aws| access for 
-         |service|, see :ref:`set-up-unified-aws-access`.
-      #. Configure |aws| `IAM role policy <https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies.html>`__ 
-         that grants |service| write access or the ``S3:PutObject`` and 
-         ``S3:GetBucketLocation`` permissions to your |aws| resources. To 
-         learn more about configuring write access to |aws| resources, see 
-         :ref:`set-up-unified-aws-access`.
-
-         .. example:: 
-
-            .. code-block:: json
-
-               {
-                 "Version": "2012-10-17",
-                 "Statement": [
-                   {
-                     "Effect": "Allow",
-                     "Action": "s3:GetBucketLocation",
-                     "Resource": "arn:aws:s3:::bucket-name"
-                   },
-                   {
-                     "Effect": "Allow",
-                     "Action": "s3:PutObject",
-                     "Resource": "arn:aws:s3:::bucket-name/*"
-                   }
-                 ]
-               }
-
-   .. tab:: Azure 
-      :tabid: azure 
-
-      1. Set up |azure| :ref:`Service Principal with access policy
-         <manage-azure-access>` for your |service| project.
-
-      #. Assign the *Storage Blob Delegator* and *Storage Blob Data
-         Contributor* roles to your |azure| :azure:`Service Principal
-         </powershell/azure/create-azure-service-principal-azureps>`.
-
-         To assign the roles to your Service Principal, you will need
-         the following information:  
-
-         - `Service Principal ID <https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/how-to-view-managed-identity-service-principal?pivots=identity-mi-service-principal-portal>`__
-         - :azure:`Subscription ID </azure-portal/get-subscription-tenant-id>` 
-         - :azure:`Resource Group Name </azure-resource-manager/management/manage-resource-groups-portal>`
-         - :azure:`Storage Account Name </storage/common/storage-account-get-info>` 
-         - :azure:`Container Name </storage/blobs/blob-containers-portal>` 
-
-         .. list-table:: 
-            :widths: 20 80 
-            :header-rows: 1 
-                        
-            * - Role 
-              - Description
- 
-            * - Storage Blob Delegator
-              - This allows the Service Principal to sign SAS tokens to
-                access the |azure| Storage Container. To assign this
-                role, run the following command: 
-
-                .. code-block:: shell 
-                   : copyable: true 
-
-                   az role assignment create --assignee-object-id <service-principal-id> --role "Storage Blob Delegator" --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.Storage/storageAccounts/<storage-account-name>
-
-            * - Storage Blob Data Contributor
-              - This allows read, write, and delete blob access for the 
-                |azure| Storage Container. To assign this role, run the
-                following command:
-
-                .. code-block:: shell 
-                   :copyable: true 
-
-                   az role assignment create --assignee-principal-type ServicePrincipal --assignee-object-id <service-principal-id> --role "Storage Blob Data Contributor" --scope /subscriptions/<subscription-id>/resourceGroups/<resource-group-name>/providers/Microsoft.Storage/storageAccounts/<storage-account-name>/blobServices/default/containers/<container-name>
-
-   .. tab:: GCP
-      :tabid: gcp
-
-      1. :ref:`Set up Google Cloud Service access <manage-gcp-access>`.
-
-      #. Locate the ID of your |gcp| service account in |service| by following the 
-         steps in :ref:`view-gcpservice-principal`. 
-         
-      #. In your |gcp| console, add the service account ID from the previous step 
-         as a principal to your 
-         bucket's policy by following the :gcp:`Google Cloud documentation </storage/docs/access-control/using-iam-permissions#console>`.
-      
-         This grants the :gcp:`Storage Object User </storage/docs/access-control/iam-roles#storage.objectUser>` role to the service account 
-         for your specific {+gcs+} bucket.
-
-Export Management 
+Export Management
 -----------------
 
-You can create and manage snapshot exports to |aws| |s3| Buckets from the {+atlas-cli+}
-and {+atlas-admin-api+}. To create and manage snapshot exports to {+az-bs+} Containers 
-or {+gcs+} buckets, you must use the {+atlas-admin-api+}, 
-which you can access directly or by using the :atlascli:`atlas api </command/atlas-api/>`
-command with the {+atlas-cli+}.
+.. composable-tutorial::
+   :options: cloud-provider, connection-type, interface
+   :defaults: aws, public, atlas-cli
 
-.. tabs::
+   .. selected-content::
+      :selections: aws, public, atlas-cli
 
-   .. tab:: {+atlas-cli+}
-      :tabid: atlascli
+      .. include:: /includes/backup/export-prereq-generic.rst
+      .. include:: /includes/backup/export-prereq-aws-public.rst
+      .. include:: /includes/backup/export-management-public-cli.rst
 
-      .. note:: 
+   .. selected-content::
+      :selections: aws, public, atlas-api
 
-         To manage exports to {+az-bs+} or {+gcs+} Containers using the
-         {+atlas-cli+}, use the :atlascli:`atlas api </command/atlas-api/>` command to send requests to the {+atlas-admin-api+} :oas-bump-atlas-tag:`Cloud Backups <cloud-backups>` resource endpoints. 
+      .. include:: /includes/backup/export-prereq-generic.rst
+      .. include:: /includes/backup/export-prereq-aws-public.rst
 
-      Manage Export Jobs
-      ~~~~~~~~~~~~~~~~~~
+   .. selected-content::
+      :selections: aws, private-link, atlas-api
 
-      You can manage export jobs using the {+atlas-cli+} by creating or viewing export jobs.
+      .. include:: /includes/backup/export-prereq-generic.rst
+      .. include:: /includes/backup/export-prereq-aws-public.rst
 
-      Create an Export Job
-      `````````````````````
+   .. selected-content::
+      :selections: azure, public, atlas-cli
 
-      .. include:: /includes/extracts/atlas-backups-exports-jobs-create-and-watch.rst
+      .. include:: /includes/backup/export-prereq-generic.rst
+      .. include:: /includes/backup/export-prereq-azure-public.rst
+      .. include:: /includes/backup/export-management-public-cli.rst
 
-      View Export Jobs
-      `````````````````
+   .. selected-content::
+      :selections: azure, public, atlas-api
 
-      .. include:: /includes/extracts/atlas-backups-exports-jobs-describe-and-list.rst
+      .. include:: /includes/backup/export-prereq-generic.rst
+      .. include:: /includes/backup/export-prereq-azure-public.rst
 
-      Manage Export Buckets
-      ~~~~~~~~~~~~~~~~~~~~~
+   .. selected-content::
+      :selections: gcp, public, atlas-cli
 
-      You can manage export buckets using the {+atlas-cli+} by creating, viewing, or deleting export buckets.
+      .. include:: /includes/backup/export-prereq-generic.rst
+      .. include:: /includes/backup/export-prereq-gcp-public.rst
+      .. include:: /includes/backup/export-management-public-cli.rst
 
-      Create One Export Bucket
-      ````````````````````````
+   .. selected-content::
+      :selections: gcp, public, atlas-api
 
-      .. include:: /includes/extracts/atlas-backups-exports-buckets-create.rst
+      .. include:: /includes/backup/export-prereq-generic.rst
+      .. include:: /includes/backup/export-prereq-gcp-public.rst
 
-      View Export Buckets
-      ```````````````````
-
-      .. include:: /includes/extracts/atlas-backups-exports-buckets-describe-and-list.rst
-
-      Delete an Export Bucket
-      ```````````````````````
-
-      .. include:: /includes/extracts/atlas-backups-exports-buckets-delete.rst
-
-   .. tab:: {+atlas-admin-api+}
-      :tabid: api
+   .. selected-content::
+      :selections: none, none, atlas-api
 
       To grant and manage cloud provider access and to create and manage
       snapshot export jobs, the |api| that you use must have the
       :authrole:`Project Owner` role.
 
-      Manage Export Buckets 
-      ~~~~~~~~~~~~~~~~~~~~~
+   .. selected-content::
+      :selections: none, public, atlas-api
 
-      Use the following to :oas-bump-atlas-tag:`manage <cloud-backups>`
-      export Buckets or Containers.
-      
       Create One Export Bucket 
-      ````````````````````````
+      ~~~~~~~~~~~~~~~~~~~~~~~~
       
-      To grant access to |aws| |s3| Bucket, {+az-bs+} Container, or {+gcs+} bucket for
-      exporting snapshots, send a ``POST`` request to the
-      :oas-bump-atlas-tag:`Cloud Backups <cloud-backups>` resource
-      :oas-bump-atlas-op:`endpoint <creategroupbackupexportbucket>`. This enables the
-      |aws| |s3| Bucket, {+az-bs+} Container, or {+gcs+} bucket to receive |service|
-      Cloud Backup snapshots. When sending the request to grant access,
-      you must provide the following information: 
+      To grant access to an object store for exporting snapshots, send
+      a ``POST`` request to the Cloud Backups
+      :oas-bump-atlas-op:`endpoint
+      <creategroupbackupexportbucket>`. This enables the object store
+      to receive |service| Cloud Backup snapshots. When sending the
+      request to grant access, you must provide the following
+      information:
 
-      .. tabs:: 
+   .. selected-content::
+      :selections: aws, none, atlas-api
 
-         .. tab:: AWS 
-            :tabid: aws 
+      - Unique 24-hexadecimal character string that identifies the
+	unified AWS access role ID that |service| must use to 
+	access the |aws| |s3| Bucket. To learn more, see
+	:ref:`set-up-unified-aws-access`.
 
-            - Unique 24-hexadecimal character string that identifies the
-              unified AWS access role ID that |service| must use to 
-              access the |aws| |s3| Bucket. To learn more, see
-              :ref:`set-up-unified-aws-access`. 
+   .. selected-content::
+      :selections: aws, private-link, atlas-api
 
-         .. tab:: Azure 
-            :tabid: azure 
+      Create One PrivateLink Export Bucket
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-            - Unique 24-hexadecimal character string that identifies the
-              |azure| Service Principal that |service| must use to
-              access the {+az-bs+}. To learn more, see
-              :ref:`manage-azure-access`. 
-            - Service endpoint of your {+az-bs+} account. To learn more,
-              see :azure:`Azure Documentation </storage/common/storage-account-get-info?tabs=azure-cli#get-service-endpoints-for-the-storage-account>`.
+      To enable snapshot export over an |aws| Private Link connection,
+      perform the following procedure:
 
-         .. tab:: GCP 
-            :tabid: gcp
+      .. include:: /includes/backup/export-procedure-aws-pl.rst
 
-            - Unique 24-hexadecimal digit string that identifies the {+gcp+} Provider 
-              Access Role that |service| uses to access the {+gcs+} bucket.
+      Update One Export Bucket to a PrivateLink Bucket
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+      :gold:`IMPORTANT:` This feature is only available for |aws| |s3|
+      export buckets.
+
+      To update the ``requirePrivateNetworking`` value of an existing
+      |aws| |s3| bucket to which |service| exports snapshots, send a
+      ``PATCH`` request to the :oas-bump-atlas-op:`endpoint
+      <listgroupbackupexportbuckets>`:
+
+   .. selected-content::
+      :selections: azure, none, atlas-api
+
+      - Unique 24-hexadecimal character string that identifies the
+	|azure| Service Principal that |service| must use to
+	access the {+az-bs+}. To learn more, see
+	:ref:`manage-azure-access`. 
+      - Service endpoint of your {+az-bs+} account. To learn more,
+	see :azure:`Azure Documentation </storage/common/storage-account-get-info?tabs=azure-cli#get-service-endpoints-for-the-storage-account>`.
+
+   .. selected-content::
+      :selections: gcp, none, atlas-api
+
+      - Unique 24-hexadecimal digit string that identifies the {+gcp+} Provider 
+	Access Role that |service| uses to access the {+gcs+} bucket.
+
+   .. selected-content::
+      :selections: none, none, atlas-api
 
       List All Export Buckets 
-      ```````````````````````
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      To retrieve all the |aws| |s3| Buckets, {+az-bs+} Containers, or {+gcs+} buckets
-      to which |service| exports snapshots, send a ``GET`` request to 
-      the :oas-bump-atlas-tag:`Cloud Backups <cloud-backups>` resource
-      :oas-bump-atlas-op:`endpoint <listgroupbackupexportbuckets>`. 
+      To retrieve all the |aws| |s3| Buckets, {+az-bs+} Containers, or
+      {+gcs+} buckets to which |service| exports snapshots, send a
+      ``GET`` request to the Cloud Backups
+      :oas-bump-atlas-op:`endpoint <listgroupbackupexportbuckets>`.
       
       Delete One Export Bucket
-      ````````````````````````
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       
-      To delete an Export Bucket, you must first disable automatic export of snapshots to
-      the |aws| |s3| Bucket, {+az-bs+} Container, or {+gcs+} bucket for all {+clusters+}
-      in the project and then send a ``DELETE`` request to the
-      :oas-bump-atlas-tag:`Cloud Backups <cloud-backups>` resource
-      :oas-bump-atlas-op:`endpoint <deletegroupbackupexportbucket>` with the ID of the
-      Export Bucket. If necessary, send a ``GET`` request to the
-      :oas-bump-atlas-op:`endpoint <listgroupbackupexportbuckets>` to retrieve the
-      export Bucket ID.  
-      
-      Manage Export Jobs 
-      ~~~~~~~~~~~~~~~~~~
-
-      Use the following to :oas-bump-atlas-tag:`manage <cloud-backups>`
-      export jobs.
+      To delete an Export Bucket, you must first disable automatic
+      export of snapshots to the |aws| |s3| Bucket, {+az-bs+}
+      Container, or {+gcs+} bucket for all {+clusters+} in the project
+      and then send a ``DELETE`` request to the Cloud Backups
+      :oas-bump-atlas-op:`endpoint <deletegroupbackupexportbucket>`
+      with the ID of the Export Bucket. If necessary, send a ``GET``
+      request to the :oas-bump-atlas-op:`endpoint
+      <listgroupbackupexportbuckets>` to retrieve the export Bucket
+      ID.
 
       Create Snapshot Export Job
-      ``````````````````````````
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      To export one |service| backup snapshot to an |aws| |s3| Bucket, {+az-bs+} Container, or {+gcs+} bucket, send a ``POST`` request to the
-      :oas-bump-atlas-tag:`Cloud Backups <cloud-backups>` resource
-      :oas-bump-atlas-op:`endpoint <creategroupclusterbackupexport>` with the ID of
-      the snapshot to export and the ID of the |aws| |s3| Bucket, {+az-bs+} Container, or {+gcs+} bucket.
+      To export one |service| backup snapshot to an |aws| |s3| Bucket,
+      {+az-bs+} Container, or {+gcs+} bucket, send a ``POST`` request
+      to the Cloud Backups :oas-bump-atlas-op:`endpoint
+      <creategroupclusterbackupexport>` with the ID of the snapshot to
+      export and the ID of the |aws| |s3| Bucket, {+az-bs+} Container,
+      or {+gcs+} bucket.
 
       Retrieve Snapshot Export Job 
-      ````````````````````````````
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       To retrieve one snapshot export job by its ID, send a ``GET``
-      request to the :oas-bump-atlas-tag:`Cloud Backups <cloud-backups>`
-      resource :oas-bump-atlas-op:`endpoint <getgroupclusterbackupexport>` with the
-      ID of the export job. 
+      request to the Cloud Backups :oas-bump-atlas-op:`endpoint
+      <getgroupclusterbackupexport>` with the ID of the export job.
 
       To retrieve all running snapshot export jobs, send a ``GET``
-      request to the :oas-bump-atlas-tag:`Cloud Backups <cloud-backups>`
-      resource :oas-bump-atlas-op:`endpoint <listgroupclusterbackupexports>`. 
+      request to the Cloud Backups :oas-bump-atlas-op:`endpoint
+      <listgroupclusterbackupexports>`.
