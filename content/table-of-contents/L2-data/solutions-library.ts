@@ -244,7 +244,7 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-predictive-maintenance',
           },
           {
-            label: 'Transforming the Driver Experience',
+            label: 'Transform the Driver Experience',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-car-assistant',
           },
