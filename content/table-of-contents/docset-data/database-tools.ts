@@ -221,11 +221,16 @@ const tocData: TocItem[] = [
         url: '/docs/database-tools/authentication',
       },
       {
-        label: '100.13.0 Changelogs',
+        label: '100.14.0 Changelogs',
         contentSite: 'database-tools',
         url: '/docs/database-tools/release-notes/database-tools-changelog',
         collapsible: true,
         items: [
+          {
+            label: '100.13.0',
+            contentSite: 'database-tools',
+            url: '/docs/database-tools/release-notes/dbtools-100.13.0-changelog',
+          },
           {
             label: '100.12.2',
             contentSite: 'database-tools',
