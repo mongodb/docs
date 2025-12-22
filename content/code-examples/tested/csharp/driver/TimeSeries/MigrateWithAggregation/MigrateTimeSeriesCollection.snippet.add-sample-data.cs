@@ -1,0 +1,28 @@
+var sampleDocument = new BsonDocument("_id", new ObjectId("5553a998e4b02cf7151190b8"))
+    .Add("st", "x+47600-047900")
+    .Add("ts", new BsonDateTime(new DateTime(1984, 3, 5, 13, 0, 0, DateTimeKind.Utc)))
+    .Add("position", new BsonDocument("type", "Point")
+        .Add("coordinates", new BsonArray { -47.9, 47.6 }))
+    .Add("elevation", 9999)
+    .Add("callLetters", "VCSZ")
+    .Add("qualityControlProcess", "V020")
+    .Add("dataSource", "4")
+    .Add("type", "FM-13")
+    .Add("airTemperature", new BsonDocument("value", -3.1).Add("quality", "1"))
+    .Add("dewPoint", new BsonDocument("value", 999.9).Add("quality", "9"))
+    .Add("pressure", new BsonDocument("value", 1015.3).Add("quality", "1"))
+    .Add("wind", new BsonDocument("direction",
+            new BsonDocument("angle", 999)
+                .Add("quality", "9"))
+        .Add("type", "9")
+        .Add("speed", new BsonDocument("rate", 999.9).Add("quality", "9")))
+    .Add("visibility", new BsonDocument("distance", new BsonDocument("value", 999999).Add("quality", "9"))
+        .Add("variability", new BsonDocument("value", "N").Add("quality", "9")))
+    .Add("skyCondition", new BsonDocument("ceilingHeight", new BsonDocument("value", 99999)
+            .Add("quality", "9").Add("determination", "9"))
+        .Add("cavok", "N"))
+    .Add("sections", new BsonArray { "AG1" })
+    .Add("precipitationEstimatedObservation", new BsonDocument("discrepancy", "2")
+        .Add("estimatedWaterDepth", 999));
+
+await collection.InsertOneAsync(sampleDocument);

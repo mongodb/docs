@@ -1,0 +1,5 @@
+out(new Document("db", "mydatabase")
+        .append("coll", "weather_new")
+        .append("timeseries", new Document("timeField", "ts")
+                .append("metaField", "metaData")
+                .append("granularity", "seconds")))

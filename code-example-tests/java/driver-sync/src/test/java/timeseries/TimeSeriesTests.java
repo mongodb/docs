@@ -29,6 +29,8 @@ public class TimeSeriesTests {
     @AfterEach
     void tearDown() {
         database.drop();
+        // Also drop the mydatabase used by migration tests
+        mongoClient.getDatabase("mydatabase").drop();
         mongoClient.close();
     }
 
@@ -61,5 +63,18 @@ public class TimeSeriesTests {
 
         Expect.that(output)
             .shouldMatch("src/main/java/timeseries/QuickStart/TimeFieldOutput.txt");
+    }
+
+    @Test
+    @DisplayName("Test that time series migration with aggregation creates a time series collection and returns expected output")
+    void TestMigrateWithAggregation() {
+        var migrateTutorial = new timeseries.MigrateWithAggregation.Tutorial();
+        migrateTutorial.loadSampleData();
+        migrateTutorial.migrateData();
+        var output = migrateTutorial.queryNewTsCollection();
+        migrateTutorial.close();
+
+        Expect.that(output)
+            .shouldMatch("src/main/java/timeseries/MigrateWithAggregation/MigrateOutput.sh");
     }
 }
