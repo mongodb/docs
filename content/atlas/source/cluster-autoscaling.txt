@@ -890,6 +890,312 @@ To view or download only auto-scaling events:
       Deselect any that you don't want to see.
       The feed list automatically updates with each change you make.
 
+.. _effective-fields:
+
+Enhance Auto-Scaling with Effective Fields in {+terraform+}
+-----------------------------------------------------------------
+
+.. note::
+   This feature only applies to {+dedicated-clusters+} in the ``M10`` tier and upwards, and it is
+   not supported for {+Flex-clusters+}.
+
+When auto-scaling is enabled on a {+cluster+}, {+service+} automatically adjusts instance
+sizes and storage capacity based on workload. 
+
+If you use |service-terraform| for your {+cluster+} instance sizing and storage
+configurations, you can specify effective fields for a subset of {+cluster+} sizing
+values. We recommend this approach, this way: 
+
+- Spec attributes remain exactly as you defined in your {+terraform+}
+  configuration. 
+
+- Default and auto-scaled values are available separately in effective specs (for
+  example, ``effectiveElectableSpecs``), and no resource drift occurs when |service|
+  auto-scales your cluster. 
+
+- Your configuration stays clean and represents your intent, while effective specs show
+  the reality of what |service| has provisioned. 
+
+Effective fields apply only to certain node specs, as shown in the following table: 
+
+.. list-table::
+   :header-rows: 1
+
+   * - Specs
+     - Node Type
+   * - ``electableSpecs``
+     - :term:`Electable node <electable node>`
+   * - ``readOnlySpecs``
+     - :term:`Read-only node <read-only node>`
+   * - ``analyticsSpecs``
+     - :term:`Analytics node <analytics node>`
+
+You cannot use effective fields for :ref:`search nodes <fts-search-node-cost-overview>`.  
+
+Enable Effective Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. tabs::
+
+  .. tab:: API
+    :tabid: api
+
+    To enable effective fields, include the following header in the API request:
+    
+    .. code-block:: bash
+      :copyable: true
+
+      --header "Use-Effective-Instance-Fields: true"
+
+  .. tab:: Terraform
+    :tabid: terraform
+
+    Set the ``use_effective_fields`` argument to ``true`` in your resource definition for
+    the {+cluster+} as the following example shows:
+
+    .. code-block:: bash
+      :copyable: true
+
+        resource "mongodbatlas_advanced_cluster" "this" {
+            project_id           = mongodbatlas_project.this.id
+            name                 = var.cluster_name
+            cluster_type         = var.cluster_type
+            use_effective_fields = true
+            replication_specs    = var.replication_specs
+            tags                 = var.tags
+          }
+
+    To learn more, see :github:`Effective Fields Module Example <mongodb/terraform-provider-mongodbatlas/tree/master/examples/mongodbatlas_advanced_cluster/effective_fields>`. 
+
+    .. include:: /includes/facts/lifecycle-ignore-changes-admonition.rst
+
+Behavior of Effective Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Overall, effective fields behaviour falls into one of three scenarios:
+
+.. collapsible::
+  :heading: Effective fields and auto-scaling are enabled
+  :sub_heading: Spec fields store your last node configuration, while effective fields show the values
+   after latest auto-scaling event. Click to see a code example of this scenario.
+  :expanded: false 
+
+  .. note::
+     We recommend enabling effective fields as a best practice.
+
+  .. code-block:: json
+      :copyable: true
+
+      {
+      "replicationSpecs": [
+        {
+          "regionConfigs": [
+            {
+              "analyticsAutoScaling": {
+                "compute": {
+                  "maxInstanceSize": "M30",
+                  "minInstanceSize": "M10",
+                  "enabled": true,
+                  "scaleDownEnabled": true
+                },
+                "diskGB": {
+                  "enabled": true
+                }
+              },
+              "autoScaling": {
+                "compute": {
+                  "maxInstanceSize": "M30",
+                  "minInstanceSize": "M10",
+                  "enabled": true,
+                  "scaleDownEnabled": true
+                },
+                "diskGB": {
+                  "enabled": true
+                }
+              },
+              "effectiveAnalyticsSpecs": {
+                "instanceSize": "M30",
+                "diskIOPS": 3000,
+                "diskSizeGB": 100.0,
+                "ebsVolumeType": "STANDARD",
+                "nodeCount": 0
+              },
+              "effectiveElectableSpecs": {
+                "instanceSize": "M30",
+                "diskIOPS": 3000,
+                "diskSizeGB": 100.0,
+                "ebsVolumeType": "STANDARD",
+                "nodeCount": 3
+              },
+              "effectiveReadOnlySpecs": {
+                "instanceSize": "M30",
+                "diskIOPS": 3000,
+                "diskSizeGB": 100.0,
+                "ebsVolumeType": "STANDARD",
+                "nodeCount": 0
+              },
+              "electableSpecs": {
+                "instanceSize": "M20",
+                "diskSizeGB": 50.0,
+                "nodeCount": 3
+              },
+              "priority": 7,
+              "providerName": "AWS",
+              "regionName": "US_EAST_1"
+            }
+          ],
+          "zoneId": "6924a70c67695449ba5625ce",
+          "zoneName": "Zone 1"
+        }
+      ]
+    }
+
+.. collapsible::
+  :heading: Effective fields are enabled and auto-scaling is disabled
+  :sub_heading: Spec fields store your last node configuration, while effective 
+   fields show the values that |service| stores internally. Click to see a code example of
+   this scenario.
+  :expanded: false 
+
+  .. note::
+     We recommend enabling effective fields as a best practice.
+
+  .. code-block:: json
+      :copyable: true
+
+      {
+      "replicationSpecs": [
+        {
+          "regionConfigs": [
+            {
+              "effectiveAnalyticsSpecs": {
+                "instanceSize": "M30",
+                "diskIOPS": 3000,
+                "diskSizeGB": 100.0,
+                "ebsVolumeType": "STANDARD",
+                "nodeCount": 0
+              },
+              "effectiveElectableSpecs": {
+                "instanceSize": "M30",
+                "diskIOPS": 3000,
+                "diskSizeGB": 100.0,
+                "ebsVolumeType": "STANDARD",
+                "nodeCount": 3
+              },
+              "effectiveReadOnlySpecs": {
+                "instanceSize": "M30",
+                "diskIOPS": 3000,
+                "diskSizeGB": 100.0,
+                "ebsVolumeType": "STANDARD",
+                "nodeCount": 0
+              },
+              "electableSpecs": {
+                "instanceSize": "M30",
+                "diskSizeGB": 100.0,
+                "nodeCount": 3
+              },
+              "priority": 7,
+              "providerName": "AWS",
+              "regionName": "US_EAST_1"
+            }
+          ],
+          "zoneId": "6924a70c67695449ba5625ce",
+          "zoneName": "Zone 1"
+        }
+      ]
+    }
+
+.. collapsible::
+  :heading: Effective fields are disabled and auto-scaling is enabled (Not recommended)
+  :sub_heading: Effective field values always match exactly those set in the corresponding
+   specifications. Click to see a code example of this scenario.
+  :expanded: false 
+
+  .. include:: /includes/facts/lifecycle-ignore-changes-admonition.rst
+
+  .. code-block:: json
+      :copyable: true
+
+      {
+        "replicationSpecs": [
+          {
+            "regionConfigs": [
+              {
+                "analyticsAutoScaling": {
+                  "compute": {
+                    "maxInstanceSize": "M30",
+                    "minInstanceSize": "M10",
+                    "enabled": true,
+                    "scaleDownEnabled": true
+                  },
+                  "diskGB": {
+                    "enabled": true
+                  }
+                },
+                "autoScaling": {
+                  "compute": {
+                    "maxInstanceSize": "M30",
+                    "minInstanceSize": "M10",
+                    "enabled": true,
+                    "scaleDownEnabled": true
+                  },
+                  "diskGB": {
+                    "enabled": true
+                  }
+                },
+                "effectiveAnalyticsSpecs": {
+                  "instanceSize": "M30",
+                  "diskIOPS": 3000,
+                  "diskSizeGB": 100.0,
+                  "ebsVolumeType": "STANDARD",
+                  "nodeCount": 0
+                },
+                "effectiveElectableSpecs": {
+                  "instanceSize": "M30",
+                  "diskIOPS": 3000,
+                  "diskSizeGB": 100.0,
+                  "ebsVolumeType": "STANDARD",
+                  "nodeCount": 3
+                },
+                "effectiveReadOnlySpecs": {
+                  "instanceSize": "M30",
+                  "diskIOPS": 3000,
+                  "diskSizeGB": 100.0,
+                  "ebsVolumeType": "STANDARD",
+                  "nodeCount": 0
+                },
+                "analyticsSpecs": {
+                  "instanceSize": "M30",
+                  "diskIOPS": 3000,
+                  "diskSizeGB": 100.0,
+                  "ebsVolumeType": "STANDARD",
+                  "nodeCount": 0
+                },
+                "electableSpecs": {
+                  "instanceSize": "M30",
+                  "diskIOPS": 3000,
+                  "diskSizeGB": 100.0,
+                  "ebsVolumeType": "STANDARD",
+                  "nodeCount": 3
+                },
+                "readOnlySpecs": {
+                  "instanceSize": "M30",
+                  "diskIOPS": 3000,
+                  "diskSizeGB": 100.0,
+                  "ebsVolumeType": "STANDARD",
+                  "nodeCount": 0
+                },
+                "priority": 7,
+                "providerName": "AWS",
+                "regionName": "US_EAST_1"
+              }
+            ],
+            "zoneId": "6924a70c67695449ba5625ce",
+            "zoneName": "Zone 1"
+          }
+        ]
+        }
+
 .. _custom-alerts-auto-scaling-events:
 
 Configure Alerts for Auto-Scaling Events
