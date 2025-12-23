@@ -189,6 +189,83 @@ How to Create a Test File
       - Get a reference to the database specified by the ``dbName`` variable
       - Drop the database
 
+Working with MongoDB Sample Data in a Test File
+-----------------------------------------------
+
+If your example requires MongoDB sample data, you can use the
+``describeWithSampleData`` and ``itWithSampleData`` functions to
+mark the test as using sample data sets. This automatically skips the
+test if the required sample data is not available.
+
+This is a convenience function so writers don't necessarily need all of
+the sample data sets loaded to run the test suite. This tool means that
+writers won't see tests that require sample data as failures when they
+don't have the sample data loaded - they see them as skipped tests, instead.
+
+.. note::
+
+    The GitHub workflows that run the tests in CI have the sample data
+    loaded in their environment, so CI runs all tests that use sample data.
+
+    If you are writing tests that involve the sample data sets, you should
+    load the sample data and test locally to confirm your example works.
+    This functionality is only provided so other writers don't need to load
+    the sample data to run the test suite.
+
+To use the sample data checking utility, import the utility at the top
+of your test file:
+
+.. code-block:: javascript
+
+    const { describeWithSampleData, itWithSampleData } = require("../utils/sampleDataChecker.js");
+
+The following example shows how to use the ``describeWithSampleData``
+function to mark a test as using the ``sample_mflix`` sample data set:
+
+.. code-block:: javascript
+    :emphasize-lines: 2, 4, 13
+
+    // Entire test file requires sample data
+    const dbName = "sample_mflix";
+
+    describeWithSampleData('Movie Tests', () => {
+      test("Should return results specifying batch size", async () => {
+         await Expect
+            .outputFromExampleFiles([
+            "aggregation/pipelines/batch-size/run-pipeline.js"
+            ])
+            .withDbName(dbName)
+            .shouldMatch("aggregation/pipelines/batch-size/output.sh");
+      });
+    }, dbName);
+
+In this case, the test file only runs if the ``sample_mflix``
+sample data set is available. Otherwise, it skips all tests in the
+file.
+
+You can also use the ``itWithSampleData`` function to mark individual
+test cases as using sample data. The following example shows how to use
+the ``itWithSampleData`` function to mark a test as using the
+``sample_mflix`` sample data set:
+
+.. code-block:: javascript
+    :emphasize-lines: 3, 10
+
+    // Partial test suite requires sample data
+    describe("Movie Tests", () => {
+      itWithSampleData("should find movies", async () => {
+        await Expect
+            .outputFromExampleFiles([
+            "aggregation/pipelines/batch-size/run-pipeline.js"
+            ])
+            .withDbName("sample_mflix")
+            .shouldMatch("aggregation/pipelines/batch-size/output.sh");
+      }, "sample_mflix");
+    });
+
+In this case, other test cases in the file can run without the sample
+data. It only skips the test that requires the sample data.
+
 Compare Expected and Actual Output
 ----------------------------------
 

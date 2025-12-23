@@ -12,5 +12,8 @@ export default {
   transformIgnorePatterns: [
     'node_modules/(?!(mongodb)/)',
   ],
+  // Global setup/teardown for sample data checking
+  globalSetup: './jest.globalSetup.js',
+  globalTeardown: './jest.globalTeardown.js',
 };
 

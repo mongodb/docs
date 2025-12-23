@@ -1,10 +1,12 @@
 const Expect = require("../../../utils/comparison/Expect");
+const { describeWithSampleData } = require("../../../utils/sampleDataChecker");
 
 jest.setTimeout(10000);
 
-describe("mongosh sample_mflix example tests", () => {
-  const dbName = "sample_mflix";
-  
+const dbName = "sample_mflix";
+
+describeWithSampleData("mongosh sample_mflix example tests", () => {
+
   test("Should return results specifying batch size", async () => {
     await Expect
       .outputFromExampleFiles([
@@ -136,4 +138,4 @@ describe("mongosh sample_mflix example tests", () => {
       .shouldMatch("aggregation/pipelines/run-cmd-pipeline/output.sh");
   });
 
-});
+}, dbName);
