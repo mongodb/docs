@@ -810,6 +810,11 @@ Fixes the following issues:
 
 - Updates the {+mdbagent+} to :ref:`108.0.1
   <mongodb-108.0.1>`.
+- Increases the default memory allocation for the Java Heap Starting Memory 
+  (``-Xms``) and the Java Heap Maximum Memory (``-Xmx``) for the |onprem| 
+  application from 4,352 :abbr:`MB (Megabytes)` (``4352m``) to 8,096 
+  :abbr:`MB (Megabytes)` (``8096m``). To learn more, 
+  see :ref:`Troubleshooting Out of Memory Issues on Hosts <host-issue-outofmemoryerror>`.
 
 MongoDB Cluster Management
 ``````````````````````````
