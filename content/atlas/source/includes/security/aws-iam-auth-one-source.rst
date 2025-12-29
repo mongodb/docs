@@ -138,7 +138,7 @@ Connect to |service| {+Cluster+} Using AWS IAM
 To connect to |service| with your |aws| |iam| credentials using
 {+mongosh+}, provide :ref:`a connection string that specifies the
 MONGODB-AWS authentication mechanism
-<connections-string-example-mongodb-aws>`. This connection string
+<find-connection-string>`. This connection string
 format applies to all AWS IAM authentication mechanisms. 
 
 .. important::
