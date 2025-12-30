@@ -41,6 +41,10 @@ export default async function Page({ params: { path } }: PageProps) {
     changelogData = await getChangelogData();
   }
 
+  if (!pageDoc) {
+    notFound();
+  }
+
   if (pageDoc && metadata) {
     // Get locale links with custom className for Smartling
     // NOTE: this is done manual vs within generateMetadata for Smartling no-translate classes
@@ -76,7 +80,7 @@ export default async function Page({ params: { path } }: PageProps) {
 
 export async function generateMetadata({ params: { path } }: PageProps) {
   const pageDoc = (await getPageDocFromParams({ path })) as ASTDocument;
-  const snootyMetadata = (await getSnootyMetadata(pageDoc.buildId)) as DBMetadataDocument;
+  const snootyMetadata = (await getSnootyMetadata(pageDoc?.buildId ?? '')) as DBMetadataDocument;
 
   let metadata = null;
   if (pageDoc) {

@@ -10,6 +10,7 @@ import { Body } from '@leafygreen-ui/typography';
 import { theme } from '@/styles/theme';
 import Link from '@/components/link';
 import layoutStyles from '@/app/layout.module.scss';
+import { ChatbotProvider } from '@/context/chatbot-context';
 
 import { DOTCOM_BASE_URL, DOTCOM_BASE_PREFIX } from '@/constants';
 import ActionBar from '@/components/action-bar';
@@ -163,14 +164,16 @@ export const wrapperStyle = css`
 
 export default function NotFound() {
   return (
-    <div className={layoutStyles['content-container']}>
-      <ActionBar template="errorpage" sidenav={false} />
-      <div className={wrapperStyle}>
-        <div className={notFoundContainerStyle}>
-          <NotFoundImage />
-          <ErrorBoxContainer />
+    <ChatbotProvider>
+      <div className={layoutStyles['content-container']}>
+        <ActionBar template="errorpage" sidenav={false} />
+        <div className={wrapperStyle}>
+          <div className={notFoundContainerStyle}>
+            <NotFoundImage />
+            <ErrorBoxContainer />
+          </div>
         </div>
       </div>
-    </div>
+    </ChatbotProvider>
   );
 }
