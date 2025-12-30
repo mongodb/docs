@@ -23,8 +23,8 @@ RUN addgroup -g 1001 -S nodejs && \
 # Switch to non-root user
 USER nodejs
 
-# Set NODE_ENV to production
-ENV NODE_ENV=production
+# Set NODE_ENV to test so Babel uses CommonJS modules
+ENV NODE_ENV=test
 
 # Command to run the tests
 # This will be executed by the Kubernetes CronJob
