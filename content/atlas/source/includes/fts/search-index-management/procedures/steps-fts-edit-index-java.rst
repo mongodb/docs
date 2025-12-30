@@ -19,7 +19,7 @@ To edit a {+fts+} index using the :driver:`Java Driver </java/sync/current/>`:
         learn more, see :ref:`connect-via-driver`. 
 
         :gold:`IMPORTANT:` In your connection string, don't include the
-        :manual:`writeConcern </manual/reference/write-concern/>`
+        :ref:`write-concern`
         setting. 
 
       - ``<database-name>`` - The name of the database that contains the
