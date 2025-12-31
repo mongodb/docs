@@ -600,3 +600,14 @@ automatically outputs to `content/code-examples/tested/python/pymongo/aggregatio
 
 This script will automatically create the specified output path if it does not
 exist.
+
+**Note:**
+While uncommon, you might create files that you do not intend to include in the docs 
+(such as a shared class file). If this is the case, you should add the file names to the 
+`IGNORE_PATTERNS` constant in the `snip.js` file. For example, the following 
+`IGNORE_PATTERNS` constant prevents `snip.js` from copying the `example_stub.py` 
+file.
+
+```sh
+const IGNORE_PATTERNS = new Set(["example_stub.py"]);
+```
