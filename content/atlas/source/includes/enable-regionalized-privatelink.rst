@@ -1,4 +1,5 @@
-You can enable this setting only if your |service| project contains no non-sharded replica sets.
+You can enable this setting only if your |service| project does not
+contain standalone replica sets. It must only include sharded clusters.
 
 You can't disable this setting if you have: 
 
