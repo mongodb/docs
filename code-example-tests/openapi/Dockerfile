@@ -26,6 +26,5 @@ USER nodejs
 # Set NODE_ENV to test so Babel uses CommonJS modules
 ENV NODE_ENV=test
 
-# Command to run the tests
-# This will be executed by the Kubernetes CronJob
+# Command to run the tests executed by the Kubernetes CronJob
 CMD ["npm", "test"]
