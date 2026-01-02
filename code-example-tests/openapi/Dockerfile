@@ -1,7 +1,5 @@
 FROM node:20-alpine
 
-# Trigger pipeline rebuild
-
 # Set working directory
 WORKDIR /app
 

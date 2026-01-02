@@ -40,7 +40,6 @@ trigger:
     - DOP-5575
   event:
     - push
-    - tag
 
 steps:
   # Deploys docker image to production
@@ -57,20 +56,19 @@ steps:
       api_server: https://api.prod.corp.mongodb.com
       kubernetes_token:
         from_secret: prod_kubernetes_token
+
 ---
 # Pipeline for OpenAPI test suite cronjob
 kind: pipeline
 type: kubernetes
-name: openapi-tests-build
-platform:
-  arch: arm64
+name: openapi-tests-test
 
 trigger:
   branch:
     - main
   event:
     - push
-    - tag
+    - pull_request
   paths:
     - code-example-tests/openapi/**
 
@@ -82,7 +80,21 @@ steps:
       - cd code-example-tests/openapi
       - npm ci
       - npm test
+---
+depends_on: ['openapi-tests-test']
+kind: pipeline
+type: kubernetes
+name: openapi-tests-build
 
+trigger:
+  branch:
+    - main
+  event:
+    - push
+  paths:
+    - code-example-tests/openapi/**
+
+steps:
   # Build and publish Docker image for production
   - name: publish-production
     image: plugins/kaniko-ecr
@@ -104,22 +116,19 @@ depends_on: ['openapi-tests-build']
 kind: pipeline
 type: kubernetes
 name: openapi-tests-deploy
-platform:
-  arch: arm64
 
 trigger:
   branch:
     - main
   event:
     - push
-    - tag
   paths:
     - code-example-tests/openapi/**
 
 steps:
   # Deploy cronjob to production using Helm
   - name: deploy-production
-    image: public.ecr.aws/kanopy/drone-helm:v3
+    image: quay.io/mongodb/drone-helm:v3
     settings:
       chart: mongodb/cronjobs
       chart_version: 1.21.2
