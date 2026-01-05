@@ -59,9 +59,10 @@ steps:
 
 ---
 # Pipeline for OpenAPI test suite cronjob
+# Combined into a single pipeline so paths trigger applies to all steps
 kind: pipeline
 type: kubernetes
-name: openapi-tests-test
+name: openapi-tests
 
 trigger:
   branch:
@@ -80,20 +81,8 @@ steps:
       - cd code-example-tests/openapi
       - npm ci
       - npm test
----
-depends_on: ['openapi-tests-test']
-kind: pipeline
-type: kubernetes
-name: openapi-tests-build
 
-trigger:
-  branch:
-    - main
-  event:
-    - push
-
-steps:
-  # Build and publish Docker image for production
+  # Build and publish Docker image for production (only on push to main)
   - name: publish-production
     image: plugins/kaniko-ecr
     settings:
@@ -109,20 +98,11 @@ steps:
         from_secret: ecr_access_key
       secret_key:
         from_secret: ecr_secret_key
----
-depends_on: ['openapi-tests-build']
-kind: pipeline
-type: kubernetes
-name: openapi-tests-deploy
+    when:
+      event:
+        - push
 
-trigger:
-  branch:
-    - main
-  event:
-    - push
-
-steps:
-  # Deploy cronjob to production using Helm
+  # Deploy cronjob to production using Helm (only on push to main)
   - name: deploy-production
     image: quay.io/mongodb/drone-helm:v3
     settings:
@@ -136,8 +116,11 @@ steps:
       api_server: https://api.prod.corp.mongodb.com
       kubernetes_token:
         from_secret: prod_kubernetes_token
+    when:
+      event:
+        - push
 
-  # Notify Slack of build/deploy status
+  # Notify Slack of build/deploy status (only on push to main)
   - name: notify-slack
     image: alpine/curl
     environment:
@@ -154,6 +137,8 @@ steps:
           --data "{\"text\": \"$STATUS_MSG\n*Repo:* $DRONE_REPO_NAME\n*Branch:* $DRONE_BRANCH\n*Commit:* ${DRONE_COMMIT_SHA:0:7}\n*Author:* $DRONE_COMMIT_AUTHOR\n*Build:* <$DRONE_BUILD_LINK|#$DRONE_BUILD_NUMBER>\"}" \
           "$SLACK_WEBHOOK"
     when:
+      event:
+        - push
       status:
         - success
         - failure
