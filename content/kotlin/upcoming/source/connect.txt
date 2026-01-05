@@ -1,0 +1,305 @@
+.. _kotlin-connect-to-mongodb:
+.. _kotlin-connect:
+
+==================
+Connect to MongoDB
+==================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :description: Learn how to use the Kotlin driver to connect to MongoDB.
+   :keywords: client, ssl
+
+.. toctree::
+   :titlesonly:
+   :maxdepth: 1
+
+   Create a MongoClient </connect/mongoclient>
+   MongoClient Settings </connect/mongoclientsettings>
+   Choose a Connection Target </connect/connection-targets>
+   Specify Connection Options </connect/connection-options>
+   AWS Lambda <https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda>
+   Connection Troubleshooting </connect/connection-troubleshooting>
+
+Overview
+--------
+
+This page contains code examples that show how to connect your Kotlin application
+to MongoDB with various settings.
+
+.. tip::
+
+  To learn more about the connection options on this page, see the link
+  provided in each section.
+
+To use a connection example from this page, copy the code example into your
+application. Be sure to replace all placeholders in the code examples, such as ``<hostname>``, with
+the relevant values for your MongoDB deployment.
+
+.. _kotlin-connect-sample:
+
+Sample Application
+~~~~~~~~~~~~~~~~~~
+
+You can use the following sample application to test the connection code examples
+on this page:
+
+.. code-block:: kotlin
+
+   import com.mongodb.kotlin.client.coroutine.MongoClient
+   import com.mongodb.kotlin.client.coroutine.MongoDatabase
+   import kotlinx.coroutines.runBlocking
+   import org.bson.Document
+   import org.bson.BsonInt32
+   import com.mongodb.MongoException
+
+   fun main() = runBlocking {
+       // Replace the placeholder with your connection string
+       val uri = "<connection string>"
+       
+       // Create a new client and connect to the server
+       val mongoClient = MongoClient.create(uri)
+       val database: MongoDatabase = mongoClient.getDatabase("test")
+       
+       try {
+           // Send a ping to confirm a successful connection
+           val command = Document("ping", BsonInt32(1))
+           val commandResult = database.runCommand(command)
+           println("Ping response: $commandResult")
+           println("Pinged your deployment. You successfully connected to MongoDB!")
+       } catch (me: MongoException) {
+           System.err.println(me)
+       }
+   }
+
+Connection
+----------
+
+The following sections describe how to connect to different targets, such as a local
+instance of MongoDB or a cloud-hosted instance on Atlas.
+
+Local Deployment
+~~~~~~~~~~~~~~~~
+
+The following code shows how to connect to a local MongoDB deployment:
+
+.. code-block:: kotlin
+
+   val uri = "mongodb://localhost:27017/"
+   val client = MongoClient.create(uri)
+
+.. _kotlin_connect_atlas:
+
+Atlas
+~~~~~
+
+The following code shows how to connect to a deployment hosted on Atlas:
+
+.. code-block:: kotlin
+
+   import com.mongodb.kotlin.client.coroutine.MongoClient
+   import com.mongodb.MongoClientSettings
+   import com.mongodb.ConnectionString
+   import com.mongodb.ServerApi
+   import com.mongodb.ServerApiVersion
+
+   val uri = "<Atlas connection string>"
+   val serverApi = ServerApi.builder()
+       .version(ServerApiVersion.V1)
+       .strict(true)
+       .deprecationErrors(true)
+       .build()
+   val settings = MongoClientSettings.builder()
+       .applyConnectionString(ConnectionString(uri))
+       .serverApi(serverApi)
+       .build()
+   val client = MongoClient.create(settings)
+
+Replica Set
+~~~~~~~~~~~
+
+The following code shows how to connect to a replica set:
+
+.. code-block:: kotlin
+
+   val uri = "mongodb://<replica set member>:<port>/?replicaSet=<replica set name>"
+   val client = MongoClient.create(uri)
+
+Server Selection
+----------------
+
+The following code shows how to specify a server selection function:
+
+.. code-block:: kotlin
+
+   import com.mongodb.kotlin.client.coroutine.MongoClient
+   import com.mongodb.MongoClientSettings
+   import com.mongodb.ConnectionString
+
+   val uri = "mongodb://<db_username>:<db_password>@<hostname>:<port>"
+   val settings = MongoClientSettings.builder()
+       .applyConnectionString(ConnectionString(uri))
+       .serverSelector(<selector function>)
+       .build()
+   val client = MongoClient.create(settings)
+
+To learn more about customizing server selection, see
+:ref:`kotlin-server-selection`.
+
+{+stable-api+}
+--------------
+
+The following code shows how to specify {+stable-api+} settings for a connection:
+
+.. code-block:: kotlin
+
+   import com.mongodb.kotlin.client.coroutine.MongoClient
+   import com.mongodb.MongoClientSettings
+   import com.mongodb.ConnectionString
+   import com.mongodb.ServerApi
+   import com.mongodb.ServerApiVersion
+
+   val uri = "mongodb://<db_username>:<db_password>@<hostname>:<port>"
+   val serverApi = ServerApi.builder()
+       .version(ServerApiVersion.V1)
+       .build()
+   val settings = MongoClientSettings.builder()
+       .applyConnectionString(ConnectionString(uri))
+       .serverApi(serverApi)
+       .build()
+   val client = MongoClient.create(settings)
+
+To learn more about the {+stable-api+}, see :ref:`stable-api-kotlin`.
+
+Limit Server Execution Time
+----------------------------
+
+.. note:: Experimental Feature
+
+   The CSOT feature is experimental and might change in future driver
+   releases.
+
+timeoutMS Connection Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code shows how to set a client-side timeout by using the ``timeoutMS``
+connection option:
+
+.. tabs::
+
+   .. tab:: MongoClientSettings
+      :tabid: mongoclientsettings
+
+      .. code-block:: kotlin
+
+         import com.mongodb.kotlin.client.coroutine.MongoClient
+         import com.mongodb.MongoClientSettings
+         import com.mongodb.ConnectionString
+         import java.util.concurrent.TimeUnit
+
+         val uri = "mongodb://<db_username>:<db_password>@<hostname>:<port>"
+         val settings = MongoClientSettings.builder()
+             .applyConnectionString(ConnectionString(uri))
+             .timeout(200L, TimeUnit.MILLISECONDS)
+             .build()
+
+         val client = MongoClient.create(settings)
+
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      .. code-block:: kotlin
+
+         import com.mongodb.kotlin.client.coroutine.MongoClient
+
+         val uri = "mongodb://<db_username>:<db_password>@<hostname>:<port>/?timeoutMS=<timeout length>"
+         val client = MongoClient.create(uri)
+
+To learn more about client-side timeouts, see :ref:`kotlin-csot`.
+
+.. _kotlin-faq-connection-pool:
+
+Connection Pools
+----------------
+
+Every ``MongoClient`` instance has a built-in connection pool for each server
+in your MongoDB topology. Connection pools open sockets on demand to
+support concurrent MongoDB operations in your multi-threaded application.
+
+The maximum size of each connection pool is set by the ``maxPoolSize`` option, which
+defaults to ``100``. If the number of in-use connections to a server reaches
+the value of ``maxPoolSize``, the next request to that server will wait
+until a connection becomes available.
+
+Each ``MongoClient`` instance opens two additional sockets per server in your
+MongoDB topology for monitoring the server's state.
+
+For example, a client connected to a 3-node replica set opens 6
+monitoring sockets. It also opens as many sockets as needed to support
+an application's threads on each server, up to
+the value of ``maxPoolSize``. If ``maxPoolSize`` is ``100`` and the
+application only uses the primary (the default), then only the primary
+connection pool grows and there can be at most ``106`` total connections. If the
+application uses a :ref:`read preference <kotlin-read-write-pref>` to query the
+secondary nodes, their pools also grow and there can be ``306`` total connections.
+
+Additionally, connection pools are rate-limited such that each connection pool
+can only create, at maximum, the value of ``maxConnecting`` connections
+in parallel at any time. Any additional thread stops waiting in the
+following cases:
+
+- One of the existing threads finishes creating a connection, or
+  an existing connection is checked back into the pool.
+- The driver's ability to reuse existing connections improves due to
+  rate-limits on connection creation.
+
+You can set the minimum number of concurrent connections to
+each server with the ``minPoolSize`` option, which defaults to ``0``.
+The connection pool will be initialized with this number of sockets. If
+sockets are closed due to any network errors, causing the total number
+of sockets (both in use and idle) to drop below the minimum, more
+sockets are opened until the minimum is reached.
+
+You can set the maximum number of milliseconds that a connection can
+remain idle in the pool before being removed and replaced with
+the ``maxIdleTimeMS`` option, which defaults to ``0`` (no limit).
+
+The following default configuration for a ``MongoClient`` works for most
+applications:
+
+.. code-block:: kotlin
+
+   val client = MongoClient("<connection string>")
+
+Create a client once for each process, and reuse it for all
+operations. It is a common mistake to create a new client for each
+request, which is very inefficient.
+
+To support high numbers of concurrent MongoDB operations
+within one process, you can increase ``maxPoolSize``. Once the pool
+reaches its maximum size, additional threads wait for sockets
+to become available.
+
+The driver does not limit the number of threads that
+can wait for sockets to become available, and it is the application's
+responsibility to limit the size of its pool to bound queuing
+during a load spike. Threads wait for the amount of time specified in
+the ``waitQueueTimeoutMS`` option, which defaults to ``120000`` (120 seconds).
+
+A thread that waits more than the length of time defined by
+``waitQueueTimeoutMS`` for a socket raises a connection error. Use this
+option if it is more important to bound the duration of operations
+during a load spike than it is to complete every operation.
+
+When ``MongoClient.close()`` is called by any thread, the driver
+closes all idle sockets and closes all sockets that are in
+use as they are returned to the pool.

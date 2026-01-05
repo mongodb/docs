@@ -1,0 +1,345 @@
+.. _kotlin-fundamentals-sort:
+
+============
+Sort Results
+============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use **sort** operations to order your
+results from read operations with the MongoDB Kotlin driver.
+
+The sort operation orders the documents returned from your query by your specified 
+**sort criteria**. Sort criteria are the rules you pass to MongoDB that describe
+how you would like your data to be ordered. Some examples of sort criteria are:
+
+- Smallest number to largest number
+- Earliest time of day to latest time of day
+- Alphabetical order by first name 
+
+You should read this guide to learn how to perform the following
+actions:
+
+- Perform ascending sorts and descending sorts
+- Combine sort criteria
+- Sort on the text score of a :manual:`text query </core/text-search-operators/>`
+
+.. _sorts-crud-sort-sample:
+
+The examples in this guide use a sample collection that contains the following
+documents:
+  
+.. code-block:: json
+  
+   { "_id": 1, "date": "2022-01-03", "orderTotal": 17.86, "description": "1/2 lb cream cheese and 1 dozen bagels" },
+   { "_id": 2, "date": "2022-01-11", "orderTotal": 83.87, "description": "two medium vanilla birthday cakes" },
+   { "_id": 3, "date": "2022-01-11", "orderTotal": 19.49, "description": "1 dozen vanilla cupcakes" },
+   { "_id": 4, "date": "2022-01-15", "orderTotal": 43.62, "description": "2 chicken lunches and a diet coke" },
+   { "_id": 5, "date": "2022-01-23", "orderTotal": 60.31, "description": "one large vanilla and chocolate cake" },
+   { "_id": 6, "date": "2022-01-23", "orderTotal": 10.99, "description": "1 bagel, 1 orange juice, 1 muffin" }
+
+This data is modeled with the following Kotlin data class:
+
+.. literalinclude:: /examples/generated/SortTest.snippet.sort-data-model.kt
+   :language: kotlin
+
+Methods For Sorting
+-------------------
+
+You can sort results retrieved by a query, or you can sort results 
+within an aggregation pipeline.
+
+To sort your query results, use the
+``sort()`` method of a ``FindFlow`` instance. To sort your results within an 
+aggregation pipeline, use the ``Aggregates.sort()`` static factory method. Both
+of these methods receive objects that implement the ``Bson`` interface as
+arguments. For more information, see the API Documentation for the 
+`BSON interface <{+api-root+}/bson/org/bson/conversions/Bson.html>`__.
+
+You can use the ``sort()`` method of a ``FindFlow`` instance as follows:
+
+.. literalinclude:: /examples/generated/SortTest.snippet.basic-sort.kt
+   :language: kotlin
+ 
+You can use the ``Aggregates.sort()`` method within an aggregation pipeline to 
+sort the documents in the
+:ref:`sample collection <sorts-crud-sort-sample>` from smallest to
+largest value of the ``orderTotal`` field as follows:
+ 
+.. io-code-block::
+
+   .. input:: /examples/generated/SortTest.snippet.aggregation-sort.kt
+      :language: kotlin
+
+   .. output:: 
+      :language:  console
+
+      Order(id=6, date=2022-01-23, orderTotal=10.99, description=1 bagel, 1 orange juice, 1 muffin)
+      Order(id=1, date=2022-01-03, orderTotal=17.86, description=1/2 lb cream cheese and 1 dozen bagels)
+      Order(id=3, date=2022-01-11, orderTotal=19.49, description=1 dozen vanilla cupcakes)
+      Order(id=4, date=2022-01-15, orderTotal=43.62, description=2 chicken lunches and a diet coke)
+      Order(id=5, date=2022-01-23, orderTotal=60.31, description=one large vanilla and chocolate cake)
+      Order(id=2, date=2022-01-11, orderTotal=83.87, description=two medium vanilla birthday cakes)
+
+In the preceding code snippets, we specify the sort criteria using the ``Sorts``
+builder class. While it is possible to specify sort criteria using any class
+that implements the ``Bson`` interface, we recommend that you specify sort
+criteria through the ``Sorts`` builder. For more information on the ``Sorts``
+builder class, see the :ref:`Sorts builder <sorts-builders>` guide.
+
+For more information about the classes and interfaces in this section, see the
+following API Documentation:
+
+- `FindFlow <{+driver-api+}/-find-flow/index.html>`__
+- `Aggregates <{+core-api+}/client/model/Aggregates.html>`__
+- `Sorts <{+core-api+}/client/model/Sorts.html>`__
+- `BSON <{+api-root+}/bson/org/bson/conversions/Bson.html>`__
+- `Document <{+api-root+}/bson/org/bson/Document.html>`__
+
+Sorting Direction
+-----------------
+
+The direction of your sort can either be **ascending** or **descending**.
+An ascending sort orders your results from smallest to largest. A
+descending sort orders your results from largest to smallest.
+
+Here are some examples of data sorted in ascending order:
+
+- Numbers: 1, 2, 3, 43, 43, 55, 120
+- Dates: 1990-03-10, 1995-01-01, 2005-10-30, 2005-12-21 
+- Words (ASCII): Banana, Dill, carrot, cucumber, hummus
+
+Here are some examples of data sorted in descending order:
+
+- Numbers: 100, 30, 12, 12, 9, 3, 1
+- Dates: 2020-01-01, 1998-12-11, 1998-12-10, 1975-07-22 
+- Words (reverse ASCII): pear, grapes, apple, Cheese
+
+The following subsections show how to specify these sort criteria.
+
+Ascending
+~~~~~~~~~
+
+To specify an ascending sort, use the ``Sorts.ascending()`` static
+factory method. Pass the ``Sorts.ascending()`` method
+the name of the field you need to sort in ascending order.
+
+You can pass the ``sort()`` method the output of the ``Sorts.ascending()``
+method to specify an ascending sort on a field as follows:
+
+.. code-block:: kotlin
+
+   collection.find().sort(Sorts.ascending("<field name>"))
+
+The preceding ``sort()`` method returns a ``FindIterable`` object that can iterate
+over the documents in your collection, sorted from smallest to largest on the
+specified field name. 
+
+In the following code example, we use the ``ascending()`` method to sort the
+:ref:`sample collection <sorts-crud-sort-sample>`  
+by the ``orderTotal`` field:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/SortTest.snippet.ascending-sort.kt
+      :language: kotlin
+
+   .. output::
+      :language:  console
+
+      Order(id=6, date=2022-01-23, orderTotal=10.99, description=1 bagel, 1 orange juice, 1 muffin)
+      Order(id=1, date=2022-01-03, orderTotal=17.86, description=1/2 lb cream cheese and 1 dozen bagels)
+      Order(id=3, date=2022-01-11, orderTotal=19.49, description=1 dozen vanilla cupcakes)
+      Order(id=4, date=2022-01-15, orderTotal=43.62, description=2 chicken lunches and a diet coke)
+      Order(id=5, date=2022-01-23, orderTotal=60.31, description=one large vanilla and chocolate cake)
+      Order(id=2, date=2022-01-11, orderTotal=83.87, description=two medium vanilla birthday cakes)
+
+Descending
+~~~~~~~~~~
+
+To specify a descending sort, use the ``Sorts.descending()`` static factory
+method. Pass the ``Sorts.descending()`` method the name of the field you need to sort in descending order.
+
+The following code snippet shows how to specify a descending sort on the
+``orderTotal`` field and return the documents in the
+:ref:`sample collection <sorts-crud-sort-sample>`  
+in descending order:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/SortTest.snippet.descending-sort.kt
+      :language:  kotlin
+
+   .. output::
+      :language:  console
+
+      Order(id=2, date=2022-01-11, orderTotal=83.87, description=two medium vanilla birthday cakes)
+      Order(id=5, date=2022-01-23, orderTotal=60.31, description=one large vanilla and chocolate cake)
+      Order(id=4, date=2022-01-15, orderTotal=43.62, description=2 chicken lunches and a diet coke)
+      Order(id=3, date=2022-01-11, orderTotal=19.49, description=1 dozen vanilla cupcakes)
+      Order(id=1, date=2022-01-03, orderTotal=17.86, description=1/2 lb cream cheese and 1 dozen bagels)
+      Order(id=6, date=2022-01-23, orderTotal=10.99, description=1 bagel, 1 orange juice, 1 muffin)
+
+.. _sorts-crud-handling-ties:
+
+Handling Ties
+~~~~~~~~~~~~~
+
+A tie occurs when two or more documents have identical values in the field
+you are using to order your results. MongoDB does not guarantee sort order in
+the event of ties. For example, suppose we encounter a tie when applying a sort
+to the :ref:`sample collection <sorts-crud-sort-sample>` using the following
+code:
+ 
+.. literalinclude:: /examples/generated/SortTest.snippet.handle-ties-1.kt
+   :language: kotlin
+
+Since multiple documents that matched the query contain the same value
+in the ``date`` field, the documents may not be returned in a consistent order.
+
+If you need to guarantee a specific order for documents that have fields
+with identical values, you can specify additional fields to sort on in the event
+of a tie.
+
+We can specify an ascending sort on the ``date`` field followed by the
+``orderTotal`` field to return the documents in the
+:ref:`sample collection <sorts-crud-sort-sample>`  
+in the following order:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/SortTest.snippet.handle-ties-2.kt
+      :language:  kotlin
+
+   .. output:: 
+      :language:  console
+
+      Order(id=1, date=2022-01-03, orderTotal=17.86, description=1/2 lb cream cheese and 1 dozen bagels)
+      Order(id=3, date=2022-01-11, orderTotal=19.49, description=1 dozen vanilla cupcakes)
+      Order(id=2, date=2022-01-11, orderTotal=83.87, description=two medium vanilla birthday cakes)
+      Order(id=4, date=2022-01-15, orderTotal=43.62, description=2 chicken lunches and a diet coke)
+      Order(id=6, date=2022-01-23, orderTotal=10.99, description=1 bagel, 1 orange juice, 1 muffin)
+      Order(id=5, date=2022-01-23, orderTotal=60.31, description=one large vanilla and chocolate cake)
+
+Combining Sort Criteria
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To combine sort criteria, use the ``Sorts.orderBy()`` static factory
+method. This method constructs an object containing an ordered list of sort
+criteria. When performing the sort, if the previous sort criteria result in a
+tie, the sort uses the next sort criteria in the list to determine the order.
+
+In the following code snippet, we use the ``orderBy()`` method to order the data
+by performing a descending sort on the ``date`` field, and in the event of a
+tie, by performing an ascending sort on the ``orderTotal`` field. With
+these sort criteria, the code returns the documents in the :ref:`sample
+collection <sorts-crud-sort-sample>` in the following order:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/SortTest.snippet.combine-sort.kt
+      :language:  kotlin
+
+   .. output:: 
+      :language:  console
+      
+      Order(id=6, date=2022-01-23, orderTotal=10.99, description=1 bagel, 1 orange juice, 1 muffin)
+      Order(id=5, date=2022-01-23, orderTotal=60.31, description=one large vanilla and chocolate cake)
+      Order(id=4, date=2022-01-15, orderTotal=43.62, description=2 chicken lunches and a diet coke)
+      Order(id=3, date=2022-01-11, orderTotal=19.49, description=1 dozen vanilla cupcakes)
+      Order(id=2, date=2022-01-11, orderTotal=83.87, description=two medium vanilla birthday cakes)
+      Order(id=1, date=2022-01-03, orderTotal=17.86, description=1/2 lb cream cheese and 1 dozen bagels)
+
+.. _sorts-crud-text-search:
+
+Text Query
+----------
+
+You can specify the order of the results of a 
+:manual:`text query </text-search/>` by how closely the string values of
+each result's fields specified by the collection's text index match your search
+string. The text query assigns a numerical
+:manual:`text score </reference/operator/aggregation/meta/>` to
+indicate how closely each result matches the search string. Use the
+``Sorts.metaTextScore()`` static factory method to build your sort criteria to
+sort by the text score.
+
+.. important:: Make Sure to Create a Text Index
+
+   You need a :manual:`text index </core/index-text/>` on your collection to
+   perform a text query. See the server manual documentation for more
+   information on how to
+   :manual:`create a text index </core/index-text/#create-text-index>`.
+
+In the following code example, we show how you can use the
+``Sorts.metaTextScore()`` method to sort the results of a text
+search on the :ref:`sample collection <sorts-crud-sort-sample>`.
+The code example uses the :ref:`Filters <filters-builders>`,
+:ref:`Indexes <indexes-builders>`, and
+:ref:`Projections <projections-builders>` builders.
+
+The code example performs the following actions:
+
+#. Creates a text index for your
+   :ref:`sample collection <sorts-crud-sort-sample>`
+   on the ``description`` field. If you call ``createIndex()`` specifying an index that
+   already exists on the collection, the operation does not create a new index.
+#. Runs your text query for the phrase ``"vanilla"``.
+#. Projects text scores into your query results as the
+   ``score`` field.
+#. Sorts your results by text score (best match first).
+
+The data is modeled with the following Kotlin data class:
+
+.. literalinclude:: /examples/generated/SortTest.snippet.food-order-score.kt
+   :language: kotlin
+
+.. code-block:: kotlin
+
+   import com.mongodb.client.model.Sorts
+   import com.mongodb.client.model.Projections
+   import com.mongodb.client.model.Filters
+   import com.mongodb.client.model.Indexes
+
+.. io-code-block::
+
+   .. input:: /examples/generated/SortTest.snippet.text-search.kt
+      :language: kotlin
+
+   .. output:: 
+      :language:  console
+
+      OrderScore(id=3, description=1 dozen vanilla cupcakes, score=0.625)
+      OrderScore(id=5, description=one large vanilla and chocolate cake, score=0.6)
+      OrderScore(id=2, description=two medium vanilla birthday cakes, score=0.6)
+
+.. note:: Text Query Behavior in MongoDB 4.4 or Later
+
+   The structure of text querying has changed for MongoDB 4.4 or later. You no
+   longer need to project ``Projections.metaTextScore()`` into your
+   ``FindFlow`` instance in order to sort on the text score. In addition,
+   the field name you specify in a ``$meta`` text score aggregation operation
+   used in a sort is ignored. This means that the field name argument you pass
+   to ``Sorts.metaTextScore()`` is disregarded.
+
+For more information about the classes in this section, see the
+following API Documentation:
+
+- `Filters <{+core-api+}/client/model/Filters.html>`__
+- `Indexes <{+core-api+}/client/model/Indexes.html>`__
+- `Projections <{+core-api+}/client/model/Projections.html>`__
+- `MongoCollection <{+driver-api+}/-mongo-collection/index.html>`__
+
+For more information, see the
+`Sorts class <{+core-api+}/client/model/Sorts.html>`__ API Documentation.
+See the server manual documentation for more information on the :manual:`$text </reference/operator/query/text/>`
+query operator and the
+:manual:`$meta </reference/operator/aggregation/meta/>`
+aggregation pipeline operator.

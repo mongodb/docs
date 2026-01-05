@@ -1,5 +1,5 @@
 .. note::
 
-    This example connects to an instance of MongoDB using a connection URI.
+    This example connects to an instance of MongoDB by using a connection URI.
     To learn more about connecting to your MongoDB instance, see the
-    :ref:`connection guide <connect-to-mongodb>`.
+    :ref:`connection guide <kotlin-connect-to-mongodb>`.

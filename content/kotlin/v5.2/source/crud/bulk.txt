@@ -1,0 +1,302 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+.. _kotlin-fundamentals-bulkwrite:
+.. _kotlin-client-bulk-write:
+
+===============
+Bulk Operations
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use bulk operations in the
+{+driver-long+}.
+
+For individual CRUD operations, you can use the relevant method. For
+example, to insert one document and then update multiple documents, you
+can use the ``insertOne()`` method and the ``updateMany()`` method.
+
+The ``MongoClient`` performs these operations by making a request to the
+database corresponding to each operation. You can reduce the number of
+calls to the database by using bulk operations.
+
+Performing Bulk Operations
+--------------------------
+
+Bulk operations consist of a large number of write operations. To perform
+a bulk operation, pass a ``List`` containing ``WriteModel`` documents to the
+``bulkWrite()`` method. A ``WriteModel`` is a model that represents a single
+write operation.
+
+The following sections show how to create and use each variation of the ``WriteModel``
+type. The examples in each section use the following documents in the ``people`` collection:
+
+.. code-block:: json
+
+   { "_id": 1, "name": "Karen Sandoval", "age": 31 }
+   { "_id": 2, "name": "William Chin", "age": 54 }
+   { "_id": 8, "name": "Shayla Ray", "age": 20 }
+
+This data is modeled with the following Kotlin data class:
+
+.. literalinclude:: /examples/generated/BulkTest.snippet.bulk-data-model.kt
+   :language: kotlin
+
+For more information about the methods and classes mentioned in this section,
+see the following API Documentation:
+
+- `bulkWrite() <{+api+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/bulk-write.html>`__
+- `WriteModel <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/WriteModel.html>`__
+- `BulkWriteOptions <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/BulkWriteOptions.html>`__
+
+Insert Operation
+~~~~~~~~~~~~~~~~
+
+To perform an insert operation, create an ``InsertOneModel`` specifying
+the document you want to insert. To insert multiple documents, you must
+create an ``InsertOneModel`` for each document you want to insert.
+
+Example
+```````
+
+The following example creates an ``InsertOneModel`` for two documents
+describing people:
+
+.. literalinclude:: /examples/generated/BulkTest.snippet.insert-one.kt
+   :language: kotlin
+
+.. important::
+
+   When performing a ``bulkWrite()`` operation, the ``InsertOneModel`` cannot
+   insert a document with an ``_id`` that already exists in the
+   collection. In this case, the driver throws a ``MongoBulkWriteException``.
+
+   The following example tries to insert two documents where the ``_id``
+   values are ``1`` and ``3``. Since there is already a document with an ``_id``
+   of ``1`` in the collection, the operation results in an error:
+   
+   .. io-code-block::
+
+      .. input:: /examples/generated/BulkTest.snippet.bulk-write-exception.kt
+         :language:  kotlin
+
+      .. output:: 
+         :language:  console
+         
+         A MongoBulkWriteException occurred with the following message:  
+         Bulk write operation error on server sample-shard-00-02.pw0q4.mongodb.net:27017. 
+         Write errors: [BulkWriteError{index=0, code=11000, message='E11000 duplicate key 
+         error collection: crudOps.bulkWrite index: _id_ dup key: { _id: 1 }', details={}}].
+
+   To learn about why the driver didn't insert the document with the
+   ``_id`` of ``3``, see the :ref:`Order of Execution <orderOfExecution>` section.
+
+For more information about the methods and classes mentioned in this section,
+see the `InsertOneModel <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/InsertOneModel.html>`__ API Documentation. 
+
+Replace Operation
+~~~~~~~~~~~~~~~~~
+
+To perform a replace operation, create a ``ReplaceOneModel`` specifying
+a query filter for the document you want to replace and the replacement
+document.
+
+.. important::
+
+   When performing a ``bulkWrite()``, the ``ReplaceOneModel`` cannot
+   make changes that violate unique index constraints on
+   the collection. Additionally, the model does not perform the replace
+   operation if there are no matches to the query filter.
+
+Example
+```````
+
+The following example creates a ``ReplaceOneModel`` to
+replace a document where the ``_id`` is ``1`` with a document that
+contains the additional ``location`` field:
+
+.. literalinclude:: /examples/generated/BulkTest.snippet.replace-one.kt
+   :language: kotlin
+
+For more information about the methods and classes mentioned in this section,
+see the following resources:
+
+- `ReplaceOneModel <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/ReplaceOneModel.html>`__ API Documentation
+- :manual:`Unique indexes </core/index-unique/>` Server Manual Explanation
+
+Update Operation
+~~~~~~~~~~~~~~~~
+
+To perform an update operation, create an ``UpdateOneModel`` or an
+``UpdateManyModel`` that specifies a query filter and an update document.
+
+The ``UpdateOneModel`` updates the first document that matches your query
+filter and the ``UpdateManyModel`` updates all the documents that
+match your query filter.
+
+.. important::
+
+   When performing a ``bulkWrite()``, the ``UpdateOneModel`` and
+   ``UpdateManyModel`` types cannot make changes that violate unique
+   index constraints on the collection. Additionally, the models do not
+   perform update operations if there are no matches to the query
+   filter.
+
+Example
+```````
+
+The following example creates an ``UpdateOneModel`` to increment the ``age``
+field by ``1`` in a document where the ``_id`` is ``2``:
+
+.. literalinclude:: /examples/generated/BulkTest.snippet.update-one.kt
+   :language: java
+
+For more information about the methods and classes mentioned in this section,
+see the following resources:
+
+- `UpdateOneModel <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/UpdateOneModel.html>`__ API Documentation
+- `UpdateManyModel <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/UpdateManyModel.html>`__ API Documentation
+- :manual:`unique indexes </core/index-unique/>` Server Manual Explanation
+
+Delete Operation
+~~~~~~~~~~~~~~~~
+
+To perform a delete operation, create a ``DeleteOneModel`` or a
+``DeleteManyModel`` that specifies a query filter for documents you want
+to delete.
+
+The ``DeleteOneModel`` deletes the first document that matches your query
+filter and the ``DeleteManyModel`` deletes all the documents that
+match your query filter.
+
+.. important::
+
+   When performing a ``bulkWrite()``, the ``DeleteOneModel`` and
+   ``DeleteManyModel`` types do not delete any documents if there are no
+   matches to the query filter.
+
+Example
+```````
+
+The following example creates a ``DeleteOneModel`` to delete
+a document where the ``_id`` is ``1`` and a ``DeleteManyModel`` to delete
+documents where the ``age`` value is less than ``30``:
+
+.. literalinclude:: /examples/generated/BulkTest.snippet.delete.kt
+   :language: kotlin
+
+For more information about the methods and classes mentioned in this section,
+see the following API Documentation:
+
+- `DeleteOneModel <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/DeleteOneModel.html>`__
+- `DeleteManyModel <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/DeleteManyModel.html>`__
+
+.. _orderOfExecution:
+
+Order of Execution
+------------------
+
+The ``bulkWrite()`` method accepts an optional ``BulkWriteOptions`` as
+a second parameter to specify if you want to execute the bulk operations
+as ordered or unordered.
+
+Ordered Execution
+~~~~~~~~~~~~~~~~~
+
+By default, the ``bulkWrite()`` method executes bulk operations in
+order. This means that the operations execute in the order you
+added them to the list until any error occurs.
+
+Example 
+```````
+
+The following example performs these bulk operations:
+
+- An insert operation for a document where the ``name`` is
+  ``"Zaynab Omar"`` and  the ``age`` is ``37``
+- A replace operation for a document where the ``_id`` is ``1`` with a new
+  document that contains the ``location`` field
+- An update operation for a document where the ``_id`` is ``6`` to
+  change the ``name`` field
+- A delete operation for all documents that have an ``age`` value
+  greater than ``50``
+
+.. literalinclude:: /examples/generated/BulkTest.snippet.ordered.kt
+   :language: kotlin
+
+After running this example, your collection contains the following 
+document:
+
+.. code-block:: json
+   :copyable: false
+   
+   { "_id": 1, "name": "Sandy Kane", "location": "Helena, MT" }
+   { "_id": 8, "name": "Shayla Ray", "age": 20 }
+   { "_id": 6, "name": "Zaynab Hassan", "age": 37 }
+
+Unordered Execution
+~~~~~~~~~~~~~~~~~~~
+
+You can also execute bulk operations in any order by passing ``false``
+to the ``ordered()`` method on a ``BulkWriteOptions`` object. This means that
+all the write operations execute regardless of errors. If any errors occur,
+the driver reports them at the end.
+
+The following code shows how to execute a bulk operation with no order
+of execution:
+
+.. literalinclude:: /examples/generated/BulkTest.snippet.unordered.kt
+   :language: kotlin
+
+.. note::
+
+   Unordered bulk operations do not guarantee the order of execution. The
+   order may differ from the way you list them to optimize the runtime.
+   
+   In the preceding example, if the ``bulkWrite()`` method performed the
+   insert operation after the update operation, the update operation
+   would not produce changes because the document did not exist
+   at that point in time. The collection would then contain the following
+   documents:
+   
+   .. code-block:: json
+      :copyable: false
+   
+      { "_id": 1, "name": "Sandy Kane", "location": "Helena, MT" }
+      { "_id": 8, "name": "Shayla Ray", "age": 20 }
+      { "_id": 6, "name": "Zaynab Omar", "age": 37 }
+
+For more information about the methods and classes mentioned in this section,
+see the following API Documentation:
+
+- `BulkWriteOptions <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/BulkWriteOptions.html>`__
+- `ordered() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/BulkWriteOptions.html#ordered(boolean)>`__
+
+Summary
+-------
+
+To perform a bulk operation, create and pass a list of
+``WriteModel`` documents to the ``bulkWrite()`` method.
+
+There are six variations of ``WriteModel``:
+
+- ``InsertOneModel``
+- ``ReplaceOneModel``
+- ``UpdateOneModel``
+- ``UpdateManyModel``
+- ``DeleteOneModel``
+- ``DeleteManyModel``
+
+There are two ways to execute the ``bulkWrite()`` method:
+
+- Ordered, where the driver performs the write operations in order until any error occurs
+- Unordered, where the driver performs all the write operations in any order and
+  reports any errors after the operations complete

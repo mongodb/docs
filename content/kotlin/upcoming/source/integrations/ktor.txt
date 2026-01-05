@@ -1,0 +1,234 @@
+.. _kotlin-ktor:
+
+=============================================
+Create an API By Using Ktor and MongoDB Atlas
+=============================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: API, stack, application
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+`Ktor <https://ktor.io/>`__ is a {+language+}-based asynchronous web framework designed for building
+modern web applications and APIs. It offers robust support for asynchronous programming
+with {+language+} coroutines.
+
+In this tutorial, you will learn how to set up a runnable API using Ktor, the {+driver-short+},
+and MongoDB Atlas.
+
+Tutorial
+--------
+
+.. procedure::
+
+   .. step:: Verify the Prerequisites
+
+      Before you begin this tutorial, ensure that you have the following:
+      
+      - A MongoDB Atlas account with a cluster. To view instructions, see the
+        :ref:`Get Started <unified-get-started>` guide.
+      
+      - `IntelliJ IDEA <https://www.jetbrains.com/idea/>`__.
+
+   .. step:: Set Up a Ktor Project
+   
+      Create a new Ktor project by using the :ref:`Ktor Project Generator <https://start.ktor.io/>`.
+      Name the project artifact ``com.mongodb.fitness-tracker`` using
+      the text entry field. Click the :guilabel:`Configure` button and specify the following
+      options:
+
+      - **Build System**: Gradle Kotlin
+      - **Engine**: Tomcat
+      - **Configuration**: HOCON File
+   
+      Using the :guilabel:`Plugins` menu on the New Ktor Project page, add the following plugins to
+      your project:
+
+      - **Content Negotiation**: Negotiates media types between the client and server
+      - **GSON**: Provides serialization and deserialization support
+      - **Routing**: Manages incoming requests
+      - **Swagger**: Generates API documentation
+   
+      Click the :guilabel:`Generate Project` button to download a ZIP file
+      containing your new Ktor project.
+
+      Unzip the downloaded file and open the ``build.gradle.kts`` file in the root directory
+      of the project directory. Add the following plugins to the ``plugins`` block:
+
+      .. code-block:: json
+
+         plugins {
+             kotlin("jvm") version "1.9.22"
+             id("io.ktor.plugin") version "2.3.7"
+             id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
+         }
+      
+      Add the following dependencies to the ``dependencies`` block in the same file:
+
+      .. code-block:: json
+
+         dependencies {
+             implementation("io.ktor:ktor-server-core-jvm")
+             implementation("io.ktor:ktor-server-swagger-jvm")
+             implementation("io.ktor:ktor-server-content-negotiation-jvm")
+             implementation("io.ktor:ktor-serialization-gson-jvm")
+             implementation("io.ktor:ktor-server-tomcat-jvm")
+             implementation("ch.qos.logback:logback-classic:$logback_version")
+             implementation("io.ktor:ktor-server-config-yaml:2.3.8")
+            
+             // MongoDB
+             implementation("org.mongodb:mongodb-driver-kotlin-coroutine:{+full-version+}")
+             
+             // Koin dependency injection
+             implementation("io.insert-koin:koin-ktor:3.5.3")
+             implementation("io.insert-koin:koin-logger-slf4j:3.5.3")
+
+             // Client
+             implementation("io.ktor:ktor-client-core:$ktor_version")
+             implementation("io.ktor:ktor-client-cio:$ktor_version")
+         }
+
+   .. step:: Implement CRUD Operations
+
+      Create the following three packages under the ``src/main/kotlin`` directory: 
+      
+      - ``application``
+      - ``domain``
+      - ``infrastructure``
+      
+      Inside the ``domain`` package, create a new sub-package named ``entity``, then create
+      a file within ``entity`` named ``Fitness.kt``. Copy the following code into the file:
+
+      .. literalinclude:: /includes/integrations/ktor/Fitness.kt
+         :language: kotlin
+
+      The ``toResponse()`` method in the preceding code throws an error because
+      you haven't created the ``FitnessResponse`` class yet. Create ``request`` and ``response``
+      packages under the ``application/request`` packag and create two files named
+      ``FitnessRequest.kt`` and ``FitnessResponse.kt`` in the corresponding package.
+
+      Copy the following code into the ``FitnessRequest.kt`` file:
+
+      .. literalinclude:: /includes/integrations/ktor/FitnessResponse.kt
+         :language: kotlin
+
+      Copy the following code into the ``FitnessResponse.kt`` file:
+
+      .. literalinclude:: /includes/integrations/ktor/FitnessResponse.kt
+         :language: kotlin
+
+      Create a ``ports`` package under the ``domain`` package and create a file named
+      ``FitnessRepository.kt`` in the ``ports`` package. This file represents the interface
+      that will communicate with the database. Copy the following code into the ``FitnessRepository.kt``
+      file:
+
+      .. literalinclude:: /includes/integrations/ktor/FitnessRepository.kt
+         :language: kotlin
+
+      Create a ``repository`` package under the ``infrastructure`` package and create a file
+      named ``FitnessRepositoryImpl.kt`` in the ``repository`` package. This file implements
+      the methods of the interface. Copy the following code into the ``FitnessRepositoryImpl.kt``
+      file:
+
+      .. literalinclude:: /includes/integrations/ktor/FitnessRepositoryImpl.kt
+         :language: kotlin
+
+   .. step:: Configure Plugins
+
+      Paste the following code into the ``Application.kt`` file. This code performs the
+      following actions:
+
+      1. Sets up the ContentNegotiation plugin to handle JSON serialization and deserialization
+         by using the Gson formatter
+      
+      #. Enables dependency injection by using Koin
+
+      #. Configures the Swagger API route, which is available at the ``/swagger`` endpoint
+
+      .. literalinclude:: /includes/integrations/ktor/Application.kt
+         :language: kotlin
+
+      Open the ``application.conf`` file and paste in the following:
+
+      .. code-block:: json
+
+         ktor {
+             deployment {
+                 port = 8080
+             }
+             application {
+                 modules = [ com.mongodb.ApplicationKt.module ]
+             }
+             mongo {
+                 uri = ${?MONGO_URI}
+                 database = ${?MONGO_DATABASE}
+             }
+         }
+
+      Open the ``documentation.yaml`` file and paste in the following:
+
+      .. literalinclude:: /includes/integrations/ktor/documentation.yaml
+         :language: yaml
+
+      This file defines which methods our API provides through the ``/swagger-ui`` endpoint.
+
+   .. step:: Implement API Endpoints
+
+      This step implements the following API endpoints:
+
+      - **GET /fitness/{id}**: Retrieves a fitness entry by its ID
+
+      - **POST /fitness**: Creates a new fitness entry
+
+      - **PATCH /fitness/{id}**: Updates the specified fitness entry
+
+      - **DELETE /fitness/{id}**: Deletes the specified fitness entry
+
+      Create a ``routes`` package under the ``application`` package and create a file named
+      ``FitnessRoutes.kt`` in the ``routes`` package. Copy the following code into the
+      ``FitnessRoutes.kt`` file:
+
+      .. literalinclude:: /includes/integrations/ktor/FitnessRoutes.kt
+         :language: kotlin
+
+      The preceding code defines the API endpoints and their handlers.
+      
+      Before running the application, delete the ``plugins`` folder which contains
+      ``HTTP.kt``, ``Routing.kt``, and ``Serialization.kt`` files, because we have already
+      included them in the ``Application.kt`` file.
+   
+   .. step:: Run the Application
+
+      Retrieve your connection URI from your MongoDB Atlas cluster. For more information
+      on how to do this, see the :ref:`Connection URI <connection-uri>` section of the
+      Connect to MongoDB guide.
+
+      Open the ``application.conf`` file and add the following configuration values:
+
+      .. code-block::
+
+         -DMONGO_URI= <your connection URI>
+         -DMONGO_DATABASE= <your database name>
+      
+      Navigate to the ``Application.kt`` file in IntelliJ and click the :guilabel:`Run` button.
+      You can now access the API by navigating to ``http://localhost:8080/swagger-ui/``
+      in a web browser.
+
+Additional Information
+----------------------
+
+To learn more about Ktor, see the `Ktor documentation <https://ktor.io/docs/welcome.html>`__.
+
+To view the source code of this tutorial, see the :github:`Kotlin Ktor MongoDB Vector Search </ricardohsmello/kotlin-ktor-mongodb-vector-search>`
+repository on GitHub.

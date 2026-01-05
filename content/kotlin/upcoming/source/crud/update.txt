@@ -1,0 +1,221 @@
+.. _kotlin-fundamentals-change-document:
+.. _kotlin-update:
+
+================
+Update Documents
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+   Update One </usage-examples/updateOne>
+   Update Many </usage-examples/updateMany>
+
+Overview
+--------
+
+In this guide, you can learn how to update documents in a MongoDB
+collection by using the ``updateOne()`` and ``updateMany()`` methods.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide run operations on the ``paint_inventory`` collection,
+which stores documents that represent paint colors in a store's inventory. This
+collection contains the following sample documents:
+
+.. code-block:: json
+
+   { "_id": 1, "color": "red", "qty": 5, "prices": [15.99, 19.99] }
+   { "_id": 2, "color": "purple", "qty": 8, "prices": [18.99, 22.99] }
+   { "_id": 3, "color": "yellow", "qty": 0, "prices": [14.99, 17.99] }
+   { "_id": 4, "color": "green", "qty": 6, "prices": [19.99, 24.99] }
+   { "_id": 5, "color": "blue", "qty": 3, "prices": [17.99, 21.99] }
+
+The following {+language+} data class models the collection's documents:
+
+.. literalinclude:: /includes/crud/Update.kt
+   :start-after: start-data-class
+   :end-before: end-data-class
+   :language: kotlin
+   :copyable:
+   :dedent:
+
+Run an Update Operation
+-----------------------
+
+You can update documents in MongoDB by using the following methods:
+
+- ``updateOne()``, which updates *the first document* that matches the search criteria
+- ``updateMany()``, which updates *all documents* that match the search criteria
+
+Each update method requires the following parameters:
+
+- **Query filter**, which matches which documents to update. To learn
+  more about query filters, see the :ref:`kotlin-fundamentals-query`
+  guide.
+
+- **Update document**, which specifies the update operator, or the kind of update to
+  perform, and the fields and values to be updated. For a list of update
+  operators and their usages, see the :manual:`Field Update Operators </reference/operator/update-field/>`
+  in the {+mdb-server+} manual.
+
+The examples in this guide use the ``Updates`` builder, a factory class that
+provides helper methods to construct update documents. To learn more about the
+``Updates`` builder, see the :ref:`kotlin-updates-builders` guide.
+
+Update One Document
+~~~~~~~~~~~~~~~~~~~
+
+This example uses the ``updateOne()`` method to perform the
+following actions:
+
+- Matches a document in which the ``color`` field value is ``"yellow"``
+- Uses the ``Updates`` builder to increment 
+  the matching document's ``qty`` field value by ``1``
+
+.. io-code-block::
+
+   .. input:: /includes/crud/Update.kt
+      :language: kotlin
+      :start-after: start-update-one
+      :end-before: end-update-one
+      :dedent:
+
+   .. output::
+      :visible: false
+      
+      Matched document count: 1
+      Modified document count: 1
+
+.. note::
+
+   If multiple documents match the query filter passed to the
+   ``updateOne()`` method, the operation updates only the first result.
+   To control which document the operation matches, you can specify
+   a sort order. To learn more about the ``sort`` option, see the
+   :ref:`kotlin-update-customize` section.
+
+Update Many Documents
+~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``updateMany()`` method to perform the
+following actions:
+
+- Matches all documents by using an empty query filter
+- Uses the ``Updates`` builder to increase the
+  ``qty`` field value by ``20`` in all matching documents
+
+.. io-code-block::
+
+   .. input:: /includes/crud/Update.kt
+      :language: kotlin
+      :start-after: start-update-many
+      :end-before: end-update-many
+      :dedent:
+
+   .. output::
+      :visible: false
+      
+      Matched document count: 5
+      Modified document count: 5
+
+After the update operation, the documents in ``paint_inventory`` collection
+have the following values:
+
+.. code-block:: json 
+   :copyable: false
+
+   { "_id": 1, "color": "red", "qty": 25, "prices": [15.99, 19.99] }
+   { "_id": 2, "color": "purple", "qty": 28, "prices": [18.99, 22.99] }
+   { "_id": 3, "color": "yellow", "qty": 20, "prices": [14.99, 17.99] }
+   { "_id": 4, "color": "green", "qty": 26, "prices": [19.99, 24.99] }
+   { "_id": 5, "color": "blue", "qty": 23, "prices": [17.99, 21.99] }
+
+.. note::
+
+   If the query filter does not match any documents, the
+   ``updateMany()`` method makes no changes to documents in the collection.
+   You can use the ``upsert`` option to insert a new document if none
+   match. To view an example that uses this option, see :ref:`kotlin-update-upsert`.
+
+.. important::
+
+    The ``updateOne()`` and ``updateMany()`` methods cannot make changes
+    to a document that violates unique index constraints on the
+    collection. To learn more, see :manual:`Unique Indexes </core/index-unique/>`
+    in the {+mdb-server+} manual.
+
+Update Array Elements
+~~~~~~~~~~~~~~~~~~~~~
+
+To update a document's array values, use the ``Updates`` builder to
+specify the update you want to perform and the array elements to update.
+Then, call the ``updateOne()`` or ``updateMany()`` method to run the
+update operation.
+
+You can specify which array elements to update by using the following
+positional operators:
+
+- ``$``: Updates the first array element that matches the query filter.
+- ``$[]``: Updates all elements in an array.
+- ``$[<identifier>]``: Updates array elements that match a filter.
+
+The examples in this section show how to use each positional operator.
+
+Update First Matching Element
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To update the first array element that matches your query filter,
+use the positional (``$``) operator and specify the array field to
+update in your query filter.
+
+This example performs the following actions:
+
+- Matches a document that has a ``prices`` array containing the value ``15.99``
+- Uses the ``$`` positional operator to increase the first value in the matching
+  document's ``prices`` array by ``2``
+
+.. io-code-block::
+
+   .. input:: /includes/crud/Update.kt
+      :language: kotlin
+      :start-after: start-array-first
+      :end-before: end-array-first
+      :dedent:
+
+   .. output::
+      :visible: false
+      
+      Modified document count: 1
+
+Update All Elements
+^^^^^^^^^^^^^^^^^^^
+
+To update all elements in an array, use the all positional (``$[]``) operator.
+
+This example performs the following actions:
+
+- Matches a document that has a ``color`` value of ``"green"`` 
+- Uses the ``$[]`` positional operator to multiply all values in the
+  matching document's ``prices`` array by ``1.1``
+
+.. io-code-block::
+
+   .. input:: /includes/crud/Update.kt
+      :language: kotlin
+      :start-after: start-array-all
+      :end-before: end-array-all
+      :dedent:
+
+    The ``updateOne()`` and ``updateMany()`` methods cannot make changes
+    to a document that violate unique index constraints on the
+    collection. See the MongoDB server manual for more information on
+    :manual:`unique indexes </core/index-unique/>`. 

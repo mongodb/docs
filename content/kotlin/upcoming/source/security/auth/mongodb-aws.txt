@@ -1,0 +1,241 @@
+.. _mongodb-aws-auth-mechanism:
+.. _kotlin-mongodb-aws:
+
+==================================
+AWS Identity and Access Management
+==================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: amazon web services, code example, authorize
+
+Overview
+--------
+
+.. note::
+
+   The MONGODB-AWS authentication mechanism is available for MongoDB
+   deployments on MongoDB Atlas.
+
+The ``MONGODB-AWS`` authentication mechanism uses your Amazon Web Services
+Identity and Access Management (AWS IAM) credentials to authenticate your
+user. To learn more about configuring MongoDB Atlas, see the
+:atlas:`Set Up Passwordless Authentication with AWS IAM Roles </security/passwordless-authentication/#set-up-passwordless-authentication-with-aws-iam-roles>`
+guide.
+
+To instruct the driver to use this authentication mechanism, you can specify
+``MONGODB-AWS`` as a parameter in the connection string or by using
+the ``MongoCredential.createAwsCredential()`` factory method.
+
+Code Placeholders 
+~~~~~~~~~~~~~~~~~
+
+The code examples on this page use the following placeholders:
+
+* ``awsKeyId`` - value of your AWS access key ID
+* ``awsSecretKey`` - value of your AWS secret access key
+* ``atlasUri`` - network address of your MongoDB Atlas deployment
+* ``hostname`` - hostname of your MongoDB Atlas deployment
+* ``port`` - port of your MongoDB Atlas deployment
+* ``awsSessionToken`` - value of your AWS session token
+
+.. _kotlin-mongodb-aws-sdk:
+
+AWS SDK 
+-------
+
+You can use one of the AWS SDK for Java v1 or v2 to specify your credentials.
+This method offers the following features:
+
+- Multiple options for obtaining credentials
+- Credential caching which helps your application avoid rate limiting
+- Credential provider management for use with the `Elastic Kubernetes Service <https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html>`__.
+
+To use the AWS SDK for Java for ``MONGODB-AWS`` authentication, you must
+perform the following:
+
+1. Specify the authentication mechanism
+#. Add the SDK as a dependency to your project
+#. Supply your credentials using one of the methods in the credential
+   provider chain
+
+To specify the authentication mechanism by using a ``MongoCredential``,
+use the ``MongoCredential.createAwsCredential()`` factory method
+and add the ``MongoCredential`` instance to your ``MongoClient`` as shown
+in the following example:
+
+.. literalinclude:: /examples/generated/AuthTest.snippet.aws-credential.kt
+   :language: kotlin
+   :emphasize-lines: 1, 9
+
+To specify the authentication mechanism in the connection string, add
+it as a parameter as shown in the following example:
+
+.. literalinclude:: /examples/generated/AuthTest.snippet.aws-connection-string.kt
+   :language: kotlin
+
+To add the AWS SDK as a dependency to your project, see the following
+AWS documentation for the version you need:
+
+- For the **AWS SDK for Java v2**, see the `Setting Up <https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/setup.html>`__
+  guide.
+- For the **AWS SDK for Java v1**, see the `Getting Started <https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/getting-started.html>`__
+  guide.
+
+.. note::
+
+   For the AWS SDK for Java v2, the Java driver currently tests using the
+   ``software.amazon.awssdk:auth:2.30.31`` dependency.
+
+   For the AWS SDK for Java v1, the Java driver currently tests using the
+   ``com.amazonaws:aws-java-sdk-core:1.12.782`` dependency.
+
+To supply your credentials, see the following AWS documentation for the
+version you need:
+
+- To learn more about the **AWS SDK for Java v2** class the driver uses to
+  get the credentials, see the `DefaultCredentialsProvider <https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/auth/credentials/DefaultCredentialsProvider.html>`__
+  API documentation.
+
+  Learn how to supply your credentials to this class from the
+  `Use the default credential provider chain <https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/credentials.html#credentials-chain>`__
+  section.
+
+- To learn more about the **AWS SDK for Java v1** class the driver uses to
+  get the credentials, see the `DefaultAWSCredentialsProviderChain <https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/com/amazonaws/auth/DefaultAWSCredentialsProviderChain.html>`__
+  API documentation.
+
+  Learn how to supply your credentials to this class from the
+  `Using the Default Credential Provider Chain <https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default>`__
+  section.
+
+.. note::
+
+   If you include both v1 and v2 of the AWS SDK for Java in your project,
+   you must use the v2 methods to supply your credentials.
+
+.. _kotlin-mongodb-aws-env-variables:
+
+Specify Your Credentials in the Environment
+-------------------------------------------
+
+You can provide your AWS IAM credentials by instructing the driver to
+use the ``MONGODB-AWS`` authentication mechanism and by setting the
+appropriate environment variables.
+
+To use the environment variables to supply your credentials, you must perform
+the following:
+
+1. Specify the authentication mechanism
+#. Add the appropriate environment variables
+
+You can specify the authentication mechanism by using a ``MongoCredential``
+or on the connection string.
+
+To specify the authentication mechanism by using a ``MongoCredential``,
+use the ``MongoCredential.createAwsCredential()`` factory method and add the
+``MongoCredential`` instance to your ``MongoClient`` as shown in the following
+example:
+
+.. literalinclude:: /examples/generated/AuthTest.snippet.aws-credential.kt
+   :language: kotlin
+   :emphasize-lines: 1, 9
+
+To specify the authentication mechanism in the connection string, add it as a
+parameter as shown in the following example:
+
+.. literalinclude:: /examples/generated/AuthTest.snippet.aws-connection-string.kt
+   :language: kotlin
+
+The next examples show how to provide your credentials by setting environment
+variables for the following types of authentication:
+
+- Programmatic access keys
+- ECS container credentials
+- EC2 container credentials
+
+The following example shows how you can set your **programmatic access keys**
+in environment variables by using ``bash`` or a similar shell:
+
+.. code-block:: bash
+
+   export AWS_ACCESS_KEY_ID=<awsKeyId>
+   export AWS_SECRET_ACCESS_KEY=<awsSecretKey>
+   export AWS_SESSION_TOKEN=<awsSessionToken>
+
+Omit the line containing ``AWS_SESSION_TOKEN`` if you don't need an AWS
+session token for that role.
+
+To authenticate by using **ECS container credentials**, set the ECS
+endpoint relative URI in an environment variable by using ``bash`` or
+a similar shell as shown in the following example:
+
+.. code-block:: bash
+
+   export AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=<your ECS endpoint>
+
+To authenticate using **EC2 container credentials**, make sure none of the
+aforementioned environment variables are set. The driver obtains the
+credentials from the default IPv4 EC2 instance metadata endpoint.
+
+.. _kotlin-mongodb-aws-mongoclient-configuration:
+
+Specify Your Credentials in a MongoCredential
+---------------------------------------------
+
+You can supply your AWS IAM credentials to a ``MongoClient`` by using a
+``MongoCredential`` instance. To construct the ``MongoCredential`` instance
+for ``MONGODB-AWS`` authentication,  use the `createAwsCredential() <{+core-api+}/MongoCredential.html#createAwsCredential(java.lang.String,char%5B%5D)>`__
+factory method.
+
+You can supply only programmatic access keys to the
+``MongoCredential.createAwsCredential()`` method. If you need to supply ECS
+or EC2 container credentials, use the instructions in
+:ref:`<kotlin-mongodb-aws-env-variables>` or :ref:`<kotlin-mongodb-aws-sdk>`.
+
+To use the ``MongoCredential`` for ``MONGODB-AWS`` authentication, you
+must perform the following:
+
+1. Specify the authentication mechanism
+#. Supply the credentials
+
+To specify the authentication mechanism by using a ``MongoCredential``,
+use the ``MongoCredential.createAwsCredential()`` factory method
+and add the ``MongoCredential`` instance to your ``MongoClient`` as shown
+in the following example:
+
+.. literalinclude:: /examples/generated/AuthTest.snippet.aws-credential-mongo-cred.kt
+   :language: kotlin
+   :emphasize-lines: 1, 9
+
+If you need to specify an AWS session token, pass it to the
+`withMechanismProperty() <{+core-api+}/MongoCredential.html#withMechanismProperty(java.lang.String,T)>`__
+method as shown in the following example:
+
+.. literalinclude:: /examples/generated/AuthTest.snippet.aws-credential-session-token.kt
+   :language: kotlin
+   :emphasize-lines: 1, 2, 10
+
+To refresh your credentials, you can declare a ``Supplier`` lambda expression
+that returns new credentials as shown in the following example:
+
+.. literalinclude:: /examples/generated/AuthTest.snippet.aws-refresh-credentials.kt
+   :language: kotlin
+   :emphasize-lines: 4-6, 9
+
+If you must provide AWS IAM credentials in a connection string, you can add 
+it to your ``MongoClientSettings`` by calling the `applyConnectionString() <{+core-api+}/MongoClientSettings.Builder.html#applyConnectionString(com.mongodb.ConnectionString)>`__
+method:
+
+.. literalinclude:: /examples/generated/AuthTest.snippet.aws-connection-string-session-token.kt
+   :language: kotlin
+   :emphasize-lines: 2, 5
