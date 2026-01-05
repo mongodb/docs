@@ -11,7 +11,8 @@ A |multi-cluster| that uses the |k8s-op-full| consists of one
 
   .. important::
 
-     The operator cluster is also known as the operator cluster.
-     References to the operator cluster might be renamed to refer to the operator cluster in the future releases.
+     The central cluster is also known as the operator cluster.
+     References to the central cluster might be renamed to refer to the operator 
+     cluster in the future releases.
 
 - **Member clusters** host the MongoDB replica sets.
