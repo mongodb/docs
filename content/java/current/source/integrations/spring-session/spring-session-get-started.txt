@@ -1,0 +1,362 @@
+.. _spring-session-get-started:
+
+=======================================
+Get Started with {+spring-session+}
+=======================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+ 
+.. meta::
+   :description: Learn how to create a Spring application with Spring Boot that inserts data and uses MongoDB for storing user session information with Spring Session MongoDB.
+   :keywords: http session, spring boot, tutorial, session management, web session
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+In this tutorial, you can learn how to use **{+spring-session+}**
+in a Spring Boot application. {+spring-session+} is an open source
+integration maintained by MongoDB that enables applications to store
+`Spring Session <https://spring.io/projects/spring-session>`__ data
+in MongoDB.
+
+Follow this tutorial to connect a sample Spring Boot application to a MongoDB Atlas
+deployment for session storage.
+
+.. tip::
+
+   This tutorial modifies the Spring Boot application created in
+   the :ref:`Spring Data Framework Integration <java-spring-data>` tutorial.
+   The steps on this page show how to update that application to use
+   {+spring-session+}. 
+
+.. _java-spring-session-download-and-install:
+
+Set Up Your Project
+-------------------
+
+Complete the following steps to set up your Spring Boot application and
+install {+spring-session+} in your development environment.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites.
+    
+      Before you begin this tutorial, ensure that you install
+      and set up the following prerequisites:
+
+      - `JDK <https://www.oracle.com/java/technologies/javase-downloads.html>`__ 
+        version 17 or later 
+      - `Maven <https://maven.apache.org/>`__
+      - `MongoDB Atlas cluster <https://www.mongodb.com/docs/get-started/?language=java-sync>`__
+      - Integrated development environment (IDE), such as `IntelliJ IDEA <https://www.jetbrains.com/idea/download/>`__
+        or `Eclipse <https://www.eclipse.org/downloads/packages/>`__
+
+      .. note::
+
+         This tutorial shows how to install {+spring-session+} by using
+         Maven in an IDE. If you do not use an IDE, visit `Building Maven
+         <https://maven.apache.org/guides/development/guide-building-maven.html>`__
+         to learn how to set up your project.
+
+   .. step:: Create a new Spring Boot project.
+
+      Complete the :ref:`Spring Data Framework Integration <java-spring-data>`
+      tutorial to create a new Spring Boot application. You can also view and
+      clone the application code by visiting the :github:`SpringDataMongoBulkInsert
+      </mongodb-developer/SpringDataMongoBulkInsert>` repository on GitHub.
+
+      After completing this prerequisite tutorial, you have a new application that
+      uses Spring Data MongoDB to perform a bulk insert operation on a MongoDB
+      collection. 
+
+   .. step:: Update your project dependencies.
+
+      In your ``pom.xml`` file, replace your ``spring-boot-starter-parent`` dependency
+      with the following code:
+
+      .. code-block:: xml
+
+         <parent>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-parent</artifactId>
+            <version>4.0.0</version>
+            <relativePath/> <!-- Lookup parent from repository -->
+         </parent>
+
+      This ensures that your application uses Spring Boot 4.0, which is
+      compatible with Spring Session 4.0.
+
+      Then, add the following dependency to your file's dependencies
+      list to use {+spring-session+}:
+
+      .. code-block:: xml
+
+         <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-spring-session</artifactId>
+            <version>4.0.0-rc0</version>
+         </dependency>
+
+      After you configure your dependencies, ensure they are available to your
+      project by running your dependency manager and refreshing
+      the project in your IDE.
+
+.. _java-spring-session-connect-deployment:
+
+Connect to a MongoDB Deployment
+-------------------------------
+
+Complete the following steps to connect to your MongoDB deployment
+by retrieving a **connection URI**, also called a *connection string*.
+The connection URI instructs the driver on how to connect to a MongoDB deployment
+and how to behave while connected.
+
+.. procedure::
+   :style: connected
+      
+   .. step:: Find your MongoDB Atlas connection string.
+
+      To retrieve your connection string for your MongoDB deployment,
+      log into your Atlas account and navigate to the :guilabel:`Clusters` 
+      page under the :guilabel:`Database` section. Click the :guilabel:`Connect` 
+      button for your new deployment.
+
+      .. figure:: /includes/figures/atlas_connect_to_cluster.png
+         :alt: The connect button in the clusters section of the Atlas UI
+
+      If you do not already have a database user configured, MongoDB
+      prompts you to create and configure a new user.
+
+      Click the :guilabel:`Drivers` button under
+      :guilabel:`Connect to your application` and select
+      "Java" from the :guilabel:`Driver` selection menu and the version
+      that best matches the version you installed from the :guilabel:`Version`
+      selection menu.
+
+      Ensure the :guilabel:`View full code sample` option is deselected to
+      view only the connection string.
+
+   .. step:: Copy your connection string.
+
+      Click the button on the right of the connection string to copy it to
+      your clipboard, as shown in the following screenshot:
+
+      .. figure:: /includes/figures/atlas_copy_connection_string_java.png
+         :alt: The connection string copy button in the Atlas UI
+
+   .. step:: Update the password placeholder.
+
+      Paste this connection string into a file in your preferred text editor
+      and replace the ``<db_password>`` placeholder with your database user's
+      password. The connection string is already populated with your database
+      user's username.
+
+      Save this file to a safe location for use in an upcoming step.
+
+.. _java-spring-session-configure:
+
+Configure {+spring-session+}
+--------------------------------
+
+After completing the :ref:`Spring Data <java-spring-data>` tutorial and accessing
+your connection URI, you can add Spring Session
+MongoDB to your application to enable session management.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify your MongoDB connection.
+
+      Navigate to your ``application.properties`` file in the ``src/main/resources``
+      directory. Ensure that this file specifies your MongoDB database, connection
+      URI, and the number of documents to insert, as described in the :ref:`java-spring-configure-client`
+      section of the Spring Data tutorial. If configured correctly, your file contains
+      the following code:
+
+      .. literalinclude:: /includes/integrations/spring-session/application.properties
+         :language: properties
+
+      Replace the ``<connection URI>`` placeholder with the connection URI
+      that you saved in the :ref:`preceding section <java-spring-session-connect-deployment>`.
+
+   .. step:: Create your Spring Session configuration class.
+
+      Create a new file named ``SessionConfig.java`` in your project's base package directory
+      and paste the following code:
+
+      .. literalinclude:: /includes/integrations/spring-session/SessionConfig.java
+         :language: java
+
+      This configuration class enables MongoDB-backed HTTP session management for your
+      Spring Boot application.
+
+.. _java-spring-session-add-endpoints:
+
+Add Session-Aware Web Endpoints
+--------------------------------
+
+Next, add web endpoints that demonstrate session management when working
+with the product data from your Spring Data MongoDB application.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a web controller.
+
+      Create a file named ``ProductWebController.java``
+      in your project's base package directory and paste the following code:
+
+      .. literalinclude:: /includes/integrations/spring-session/ProductWebController.java
+         :language: java
+
+         ``ProductWebController.java`` is a REST controller that demonstrates session
+         functionality by interacting with your existing product data. This file
+         defines the following web endpoints:
+
+         - ``/products/search``: Searches for products in the ``bulk.products`` collection
+           and stores each search term in the user's session
+         - ``/products/history``: Retrieves search history data from the user
+           session stored in MongoDB
+
+   .. step:: Update your main application class.
+
+      Before testing the new web endpoints, update your main application
+      class to keep the application running and output information about the
+      endpoints. Replace the contents of ``SpringDataBulkInsertApplication.java``
+      with the following code:
+
+      .. literalinclude:: /includes/integrations/spring-session/SpringDataBulkInsertApplication.java
+         :language: java
+
+Run Your Application
+--------------------
+
+Finally, follow the steps in this section to run your application and
+explore the session storage functionality.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Run and test your updated application.
+
+      Run your application in your IDE, or run the following command
+      in your terminal:
+
+      .. code-block:: bash
+
+         ./mvnw spring-boot:run
+
+      Your application starts, performs the bulk insert operation, and then
+      provides web endpoints at ``http://localhost:8080``.
+
+   .. step:: Test the session functionality.
+
+      Open your web browser or use a tool like curl to test the following session-enabled endpoints:
+
+      a. **Search for products**: To query the documents inserted into the ``bulk.products``
+         collection, visit ``http://localhost:8080/products/search?name=`` and append a product
+         name to the URL. For example, you can search for documents that have a
+         ``name`` value of ``"goose"`` by visiting http://localhost:8080/products/search?name=goose.
+
+         The output contains your session ID and a list of documents
+         that match your ``name`` field query, as shown in the following sample output:
+
+         .. code-block:: json
+
+            {
+                "sessionId": "...",
+                "products": [
+                    {
+                        "name": "goose",
+                        "qty": 788,
+                        "price": 9680,
+                        "available": "...",
+                        "unavailable": "...",
+                        "skuId": "276-68-7836"
+                    },
+                    {
+                        "name": "goose",
+                        "qty": 984,
+                        "price": 2307,
+                        "available": "...",
+                        "unavailable": "...",
+                        "skuId": "068-88-9345"
+                    },
+                    ...
+                ]
+            }
+
+      b. **View search history**: To view your search history, visit http://localhost:8080/products/history.
+
+         The output contains your session ID, a list of product names you searched for, and the
+         number of total searches, as shown in the following sample output:
+
+         .. code-block:: json
+
+            {
+               "sessionId": "...",
+               "searchHistory": [
+                   "goose",
+                   "bear"
+               ],
+               "searchCount": 2
+            }
+
+   .. step:: Restart your application.
+
+      If you stop your application and run it again, MongoDB persists your
+      session data.
+      
+      Stop your application in your IDE or terminal. Then, restart it
+	  in your IDE, or run the following command in your terminal:
+
+      .. code-block:: bash
+
+         ./mvnw spring-boot:run
+
+      If you visit the http://localhost:8080/products/history URL, you can see
+      your previous search history despite the application reboot. This data is
+      still available because it was stored in MongoDB rather than in memory.
+
+      .. note:: Session Timeout
+
+         Spring Session MongoDB's default session timeout is 30 minutes.
+         If you restart your application after 30 minutes of inactivity,
+         your session expires and MongoDB no longer stores previous session
+         data.
+
+.. _java-spring-session-next-steps:
+
+Next Steps
+----------
+
+Congratulations on completing the tutorial!
+
+.. note::
+
+   If you run into issues in this tutorial, submit feedback by
+   using the :guilabel:`Rate this page` tab on the right or
+   bottom right side of this page.
+
+   .. sharedinclude:: dbx/help-links.rst
+
+In this tutorial, you updated your Spring Data MongoDB application
+to use {+spring-session+} and store user sessions in the same MongoDB deployment
+that contains your product data. The application demonstrates session management
+working alongside bulk operations and data querying.
+
+To continue developing your application, view the following resources:
+
+- :github:`{+spring-session+} source code </mongodb/mongo-spring-session>`
+- `Spring Session documentation <https://spring.io/projects/spring-session>`__
+
+.. todo: `{+spring-session+} API documentation <{+spring-session-api+}/index.hmtl>`__
