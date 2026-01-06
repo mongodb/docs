@@ -2,6 +2,7 @@ import contentstack from '@contentstack/delivery-sdk';
 import envConfig from '@/utils/env-config';
 import { normalizeDate } from '../utils/to-date';
 import { generateProductUpdatesSlug } from '@/app/products/updates/utils/generate-product-updates-slug';
+import type { FilterOptions } from '../consts/filters';
 
 export interface ProductUpdateEntry {
   uid: string;
@@ -34,6 +35,10 @@ const stack = contentstack.stack({
 let cachedEntries: ProductUpdateEntry[] | null = null;
 let lastFetchTime: number = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+let cachedFilterOptions: FilterOptions | null = null;
+let lastFilterFetchTime: number = 0;
+const FILTER_CACHE_DURATION = 24 * 60 * 60 * 1000; // 1 day
 
 export async function getProductUpdates(): Promise<ProductUpdateEntry[]> {
   const now = Date.now();
@@ -77,4 +82,54 @@ export async function getProductUpdateBySlug(slug: string): Promise<ProductUpdat
       return entrySlug === slug;
     }) || null
   );
+}
+
+export async function getFilterOptions(): Promise<FilterOptions> {
+  const now = Date.now();
+
+  // Return cached data if it's still fresh
+  if (cachedFilterOptions && now - lastFilterFetchTime < FILTER_CACHE_DURATION) {
+    return cachedFilterOptions;
+  }
+
+  try {
+    // Fetch all product updates to extract used filter values
+    const allEntries = await getProductUpdates();
+
+    // Helper function to extract all unique values used in entries for a field
+    const getUsedValuesFromEntries = (fieldName: 'tags_category' | 'tags_offerings' | 'tags_product'): string[] => {
+      const usedValues = new Set<string>();
+      allEntries.forEach((entry) => {
+        const fieldValues = entry[fieldName] || [];
+        fieldValues.forEach((value) => {
+          if (value) {
+            usedValues.add(value);
+          }
+        });
+      });
+      return Array.from(usedValues).sort();
+    };
+
+    // Map entry field names to filter categories
+    const fieldMapping: Record<keyof FilterOptions, 'tags_category' | 'tags_offerings' | 'tags_product'> = {
+      offering: 'tags_offerings',
+      category: 'tags_category',
+      product: 'tags_product',
+    };
+
+    // Build filter options from actual used values in entries
+    const filterOptions = Object.entries(fieldMapping).reduce((acc, [category, entryField]) => {
+      acc[category as keyof FilterOptions] = getUsedValuesFromEntries(entryField);
+      return acc;
+    }, {} as FilterOptions);
+
+    // Cache the results
+    cachedFilterOptions = filterOptions;
+    lastFilterFetchTime = now;
+
+    return filterOptions;
+  } catch (error) {
+    console.error('Error fetching filter options:', error);
+    throw error;
+  }
 }

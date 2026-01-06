@@ -7,8 +7,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { SearchInput } from '@leafygreen-ui/search-input';
 import { theme } from '@/styles/theme';
-import type { FilterCategory } from '../consts/filters';
-import { PRODUCT_UPDATE_FILTERS } from '../consts/filters';
+import type { FilterCategory, FilterOptions } from '../consts/filters';
 import Checkbox from '@leafygreen-ui/checkbox';
 import Icon from '@leafygreen-ui/icon';
 import { Pagination } from './Pagination';
@@ -278,9 +277,10 @@ const SubscribeButton = ({ className, selectedFilters }: SubscribeButtonProps) =
 
 interface UpdatesProps {
   updates: ProductUpdateEntry[];
+  filterOptions: FilterOptions;
 }
 
-const Updates = ({ updates }: UpdatesProps) => {
+const Updates = ({ updates, filterOptions }: UpdatesProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -323,31 +323,7 @@ const Updates = ({ updates }: UpdatesProps) => {
 
   // Helper function to get available filters for a specific category
   const getAvailableFiltersForCategory = (category: FilterCategory): string[] => {
-    const allFilters = PRODUCT_UPDATE_FILTERS[category];
-
-    return allFilters.filter((filter) => {
-      return updates.some((update) => {
-        let updateTags: string[] = [];
-
-        // Map filter categories to the corresponding tag fields
-        switch (category) {
-          case 'offering':
-            updateTags = update.tags_offerings || [];
-            break;
-          case 'category':
-            updateTags = update.tags_category || [];
-            break;
-          case 'product':
-            updateTags = update.tags_product || [];
-            break;
-          default:
-            updateTags = [];
-        }
-
-        // Check if any of the update tags match this filter (case-insensitive)
-        return updateTags.some((tag) => tag.toLowerCase() === filter.toLowerCase());
-      });
-    });
+    return filterOptions[category] || [];
   };
 
   useEffect(() => {
@@ -535,7 +511,7 @@ const Updates = ({ updates }: UpdatesProps) => {
       </Link>
       <div className={cx(updatesContainerStyle)}>
         <div className={cx(filtersContainerStyle)}>
-          {Object.entries(PRODUCT_UPDATE_FILTERS).map(([category]) => {
+          {Object.entries(filterOptions).map(([category]) => {
             const categoryKey = category as FilterCategory;
             const availableFilters = getAvailableFiltersForCategory(categoryKey);
             const limitedFilters = getLimitedFilters(availableFilters, categoryKey);

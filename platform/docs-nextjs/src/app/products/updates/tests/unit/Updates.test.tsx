@@ -1,15 +1,22 @@
 import { render, act } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
 import Updates from '../../components/Updates';
+import type { FilterOptions } from '../../consts/filters';
 
 import { mockedUpdate } from '../utils/mock-update';
+
+const mockFilterOptions: FilterOptions = {
+  offering: ['MongoDB Enterprise Advanced'],
+  category: ['Data Services'],
+  product: ['Atlas SQL Interface'],
+};
 
 describe('ProductUpdateDetail component', () => {
   beforeEach(() => {
     (useRouter as jest.Mock).mockReturnValue({ push: jest.fn() });
   });
   it('renders correctly', () => {
-    const wrapper = render(<Updates updates={[mockedUpdate]} />);
+    const wrapper = render(<Updates updates={[mockedUpdate]} filterOptions={mockFilterOptions} />);
     expect(wrapper.queryByText('Offering')).toBeInTheDocument();
     expect(wrapper.queryByText('Category')).toBeInTheDocument();
     expect(wrapper.queryByText('Product')).toBeInTheDocument();
@@ -17,7 +24,7 @@ describe('ProductUpdateDetail component', () => {
   });
 
   it('clears selected filters', () => {
-    const wrapper = render(<Updates updates={[mockedUpdate]} />);
+    const wrapper = render(<Updates updates={[mockedUpdate]} filterOptions={mockFilterOptions} />);
     expect(wrapper.queryByTestId('clear_filter_btn')).toBeInTheDocument();
 
     // Get checkboxes by role
