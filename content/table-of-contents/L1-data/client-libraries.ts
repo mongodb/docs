@@ -185,6 +185,11 @@ const tocData: TocItem[] = [
             contentSite: 'drivers',
             url: '/docs/drivers/node-frameworks/react/',
           },
+          {
+            label: 'Meteor and Vue Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/node-frameworks/meteor-vue/',
+          },
         ],
       },
       {

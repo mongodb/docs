@@ -1,0 +1,404 @@
+.. _node-meteor-vue-integration:
+
+=====================================
+Integrate MongoDB with Meteor and Vue
+=====================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: meteor, vue, web app, full-stack, code example
+   :description: Build a complete Meteor and Vue application that connects to MongoDB. Learn how to use Meteor's real-time features with Vue components.
+
+.. contents:: On this page 
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to create a full-stack **Meteor** application that uses 
+**Vue** as the front-end framework. Meteor is a JavaScript framework for creating web and
+mobile applications. This framework supports a range of front-end libraries for building
+the user interface, including Vue.
+
+The application in this tutorial consists of the following layers:
+
+- **Database layer**: MongoDB provides data storage and retrieval
+- **Application layer**: Meteor handles both client and server-side logic with integrated build tools
+- **Presentation layer**: Vue implements the user interface with reactive data binding
+
+Why Use MongoDB with Meteor and Vue?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Meteor is built on MongoDB's document model, and Meteor applications
+configure MongoDB by default. You can quickly create a full-stack application
+that stores data in MongoDB with minimal dependency installations or boilerplate
+code. 
+
+MongoDB's flexible document structure naturally aligns with JavaScript objects.
+As a result, you can work seamlessly with MongoDB data in your
+Vue components. When you use Meteor to query MongoDB, the documents you
+receive can be directly used in your Vue templates without complex data
+transformation.
+
+Additionally, Meteor provides built-in real-time data synchronization
+that automatically updates your Vue components when data changes in
+MongoDB. When one user modifies data, all connected users see
+the changes instantly in their Vue interfaces without a manual refresh or
+polling. By using MongoDB with Meteor and Vue, you can leverage Meteor's
+real-time data synchronization capabilities alongside Vue's reactive
+component system. 
+
+.. _node-meteor-vue-qs-tutorial:
+
+Quick Start Tutorial
+--------------------
+
+This tutorial shows you how to build a web application by using 
+Meteor and Vue. The application accesses sample restaurant data, queries
+the data, and displays the results on a locally hosted site. The tutorial
+also includes instructions on connecting to a MongoDB cluster hosted
+on MongoDB Atlas and accessing and displaying data from your database.
+
+.. tip::
+
+   If you prefer to connect to MongoDB by using the Node.js driver without
+   Meteor, see the :driver:`Get Started with the Node.js Driver </node/current/get-started/>`
+   guide.
+
+.. _node-meteor-vue-set-up:
+
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to install the project dependencies,
+create an Atlas cluster, and set up the application directories.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites
+
+      To create the Quick Start application, install the following software
+      in your development environment:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Prerequisite
+           - Notes
+
+         * - `Node.js <https://nodejs.org/>`__
+           - Use version 20 or later.
+  
+         * - Code editor
+           - This tutorial uses `Visual Studio Code <https://code.visualstudio.com/>`__, but you can use the editor
+             of your choice.
+  
+         * - Terminal app and shell 
+           - For MacOS users, use Terminal or a
+             similar app. For Windows users, use PowerShell.          
+
+   .. step:: Create a MongoDB Atlas cluster
+      
+      MongoDB Atlas is a fully managed cloud database service that hosts your
+      MongoDB deployments. If you do not have a MongoDB deployment, you can create a MongoDB
+      cluster for free (no credit card required) by completing the
+      `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=nodejs>`__
+      tutorial. The MongoDB Get Started tutorial also demonstrates how to load sample
+      datasets into your cluster, including the ``sample_restaurants`` database
+      that is used in this tutorial. 
+
+      To connect to your MongoDB cluster, you must use a **connection URI**. To
+      learn how to retrieve your connection URI, see the `Add your connection string
+      <https://www.mongodb.com/docs/get-started/?language=nodejs#add-your-connection-string>`__
+      section of the MongoDB Get Started tutorial.
+
+      .. tip::
+
+         Save your connection string in a secure location.
+
+   .. step:: Install Meteor
+
+      Install Meteor by running the following command in your terminal:
+
+      .. code-block:: bash
+
+         npx meteor
+
+      If you encounter any issues, refer to the `Meteor installation guide
+      <https://v3-docs.meteor.com/about/install>`__.
+
+   .. step:: Install the MongoDB Node.js Driver
+
+      Install the Node.js driver by running the following command in your terminal:
+
+      .. code-block:: bash
+
+         npm install mongodb
+
+      To learn more about installing the driver, see the :driver:`Get Started with the Node.js Driver </node/current/get-started/>`
+      guide.
+
+   .. step:: Create your Meteor project
+
+      Run the following command to create a new Meteor project with Vue:
+
+      .. code-block:: bash
+
+         meteor create --vue meteor-vue-quickstart
+         cd meteor-vue-quickstart
+
+      The ``--vue`` flag creates a Meteor project configured with Vue 3, Vite, 
+      and Tailwind CSS for styling.
+
+   .. step:: Clean up the project structure
+
+      Before adding application code, remove the unnecessary template files
+      by running the following commands from your ``meteor-vue-quickstart`` directory:
+
+      .. code-block:: bash
+
+         cd imports/ui
+         rm components/AppMenu.vue components/Hello.vue components/Info.vue views/About.vue views/Home.vue
+
+      This removes the default template components that the restaurant
+      application does not use.
+
+.. _node-meteor-vue-connect:
+
+Configure Your MongoDB Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up the project structure, follow the steps in this section
+to connect your Meteor application to MongoDB.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Provide your connection URI
+
+      Retrieve the connection URI that you saved in a :ref:`previous step <node-meteor-vue-set-up>`.
+      
+      To access the ``sample_restaurants`` database, modify your connection URI to include
+      the database name. Use the following format to update your URI:
+
+      .. code-block:: none
+
+         mongodb+srv://<username>:<password>@<cluster>/sample_restaurants?<options>
+
+      Then, set the ``MONGO_URL`` environment variable to this modified connection URI
+      by running the following command from the ``meteor-vue-quickstart`` directory:
+
+      .. code-block:: bash
+
+         export MONGO_URL="<connection URI>"
+
+      Replace the ``<connection URI>`` placeholder with your connection URI.
+
+   .. step:: Access the ``restaurants`` collection
+
+      In the ``imports/api`` directory, create a file named ``restaurantsCollection.js``
+      and paste the following code:
+
+      .. literalinclude:: /includes/node-frameworks/meteor-vue/restaurantsCollection.js
+         :caption: imports/api/restaurantsCollection.js
+         :language: js
+
+      This file accesses and exports the ``sample_restaurants.restaurants`` collection.
+
+   .. step:: Set up data publications
+
+      Create a file named ``restaurantsPublications.js`` in the ``imports/api`` directory
+      and paste the following code:
+
+      .. literalinclude:: /includes/node-frameworks/meteor-vue/restaurantsPublications.js
+         :caption: imports/api/restaurantsPublications.js
+         :language: js
+
+      This file defines Meteor publications that allow the client to subscribe 
+      to restaurant data. It includes the following publications:
+
+      - ``restaurants``: Publishes all restaurants, but limits them to ``200`` to avoid performance issues
+      - ``restaurants.filtered``: Publishes restaurants in Queens that have ``"Moon"`` in the name.
+        The ``$options`` argument specifies that this regex string matching is case-insensitive.
+
+   .. step:: Define an insert operation
+
+      Create a new directory named ``scripts``, and then create a file
+      in this directory called ``insertDemo.js``. Paste the following code
+      into ``insertDemo.js``:
+
+      .. literalinclude:: /includes/node-frameworks/meteor-vue/insertDemo.js
+         :caption: scripts/insertDemo.js
+         :language: js
+
+      This file defines a method named ``insertSampleRestaurant()``, which inserts
+      a document that stores the following fields:
+
+      - ``name``: ``"Honey Moon Coffee Shop"``
+      - ``borough``: ``"Queens"``
+      - ``cuisine``: ``"Café/Coffee/Tea"``
+
+      You will use this file to demonstrate Meteor's real-time data
+      synchronization capabilities in a future step.
+
+   .. step:: Update the server configuration
+
+      Replace the contents of ``server/main.js`` with the following code:
+
+      .. literalinclude:: /includes/node-frameworks/meteor-vue/main.js
+         :caption: server/main.js
+         :language: js
+
+      This file imports the necessary collections and publications. It also creates
+      a startup function that verifies the MongoDB connection by printing the 
+      number of documents in the ``restaurants`` collection.
+
+Configure Vue Components
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up the data layer, follow the steps in this section
+to create Vue components that display the restaurant data.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Set up routing
+
+      Navigate to the ``imports/ui/router.js`` file and paste the following code:
+
+      .. literalinclude:: /includes/node-frameworks/meteor-vue/router.js
+         :caption: imports/ui/router.js
+         :language: js
+
+      This file configures the Vue routes and determines what content to render
+      for each one. The ``/`` route displays all restaurant data, and the ``/browse`` route
+      displays filtered restaurant data.
+
+   .. step:: Create the ``Restaurant`` component
+
+      In the ``imports/ui/components`` directory, create a file named ``Restaurant.vue``
+      that contains the following code:
+
+      .. literalinclude:: /includes/node-frameworks/meteor-vue/Restaurant.vue
+         :caption: imports/ui/components/Restaurant.vue
+         :language: vue
+
+      This component displays individual restaurant information as a row in a table.
+
+   .. step:: Create the ``RestaurantList`` view
+
+      In the ``imports/ui/views`` directory, create a file named ``RestaurantList.vue``
+      that contains the following code:
+
+      .. literalinclude:: /includes/node-frameworks/meteor-vue/RestaurantList.vue
+         :caption: imports/ui/views/RestaurantList.vue
+         :language: vue
+
+      This component handles the restaurant list display and automatically switches
+      between showing all restaurants or filtered results based on the current route.
+
+   .. step:: Update the main ``App`` component
+
+      Replace the contents of ``imports/ui/App.vue`` with the following code:
+
+      .. literalinclude:: /includes/node-frameworks/meteor-vue/App.vue
+         :caption: imports/ui/App.vue
+         :language: vue
+
+      This is the main application component that includes navigation and renders
+      the appropriate child components based on the current route.
+
+Run Your Application
+~~~~~~~~~~~~~~~~~~~~
+
+Finally, follow the steps in this section to run your application and
+view the rendered restaurant data.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Start the ``Meteor`` application
+
+      Navigate to your project directory and run the following command
+      from your terminal:
+
+      .. code-block:: bash
+
+         meteor npm run start
+
+      If successful, the command output resembles the following example:
+
+      .. code-block:: bash
+         :copyable: false
+
+         [[[[[ ~/meteor-vue-quickstart ]]]]]
+
+         => Started proxy.                             
+         => Started HMR server.  
+         ...                      
+         Connected to MongoDB Atlas. Found 25368 restaurants in the collection                         
+         => Started your app.
+
+         => App running at: http://localhost:3000/
+
+   .. step:: Open the application in your browser
+
+      Open http://localhost:3000/ in your web browser. The initial
+      landing page displays a list of 200 unfiltered restaurants in the ``sample_restaurants.restaurants``
+      collection:
+
+      .. figure:: /figures/meteor-landing.png
+         :alt: The landing page that displays all restaurants
+
+      At the top of the page, click the :guilabel:`Browse Filtered` button
+      to view restaurants in Queens that have ``"Moon"`` in their name:
+
+      .. figure:: /figures/meteor-filtered.png
+         :alt: The web page that displays the filtered restaurants
+
+   .. step:: View real-time data changes
+
+      You can explore Meteor's real-time data synchronization features
+      by inserting a sample document and viewing the changes in
+      your application's front end.
+
+      Open a second terminal window and navigate to your project directory.
+      Export your MongoDB connection URI by running the same command as
+      shown in a :ref:`previous step <node-meteor-vue-connect>`:
+
+      .. code-block:: bash
+
+         export MONGO_URL="<connection URI>"
+
+      Then, run the following command to insert a sample document that has a ``name`` value of 
+      ``"Honey Moon Coffee Shop"``:
+
+      .. code-block:: bash
+
+         node scripts/insertDemo.js
+
+      You can see the new document in the :guilabel:`Filtered Restaurants` 
+      table at the http://localhost:3000/browse URL.
+
+Congratulations on completing the Quick Start tutorial!
+
+After you complete these steps, you have a Meteor and Vue web application that
+connects to your MongoDB deployment, runs queries on sample restaurant data,
+and renders the results with real-time reactivity.
+
+Additional Resources
+--------------------
+
+To learn more about Meteor, Vue, and MongoDB, view the following resources:
+
+- `Meteor <https://docs.meteor.com/>`__ documentation
+- `Vue 3 <https://vuejs.org/>`__ documentation  
+- `vue-meteor-tracker <https://www.npmjs.com/package/vue-meteor-tracker>`__ package
+- :driver:`Node.js driver </node/current/>` documentation
