@@ -313,26 +313,31 @@ const tocData: TocItem[] = [
             label: '1.15',
             contentSite: 'mongosync',
             url: '/docs/mongosync/:version/release-notes/1.15',
+            versions: { excludes: mongosyncVersions.before('v1.15') },
           },
           {
             label: '1.14',
             contentSite: 'mongosync',
             url: '/docs/mongosync/:version/release-notes/1.14',
+            versions: { excludes: mongosyncVersions.before('v1.14') },
           },
           {
             label: '1.13',
             contentSite: 'mongosync',
             url: '/docs/mongosync/:version/release-notes/1.13',
+            versions: { excludes: mongosyncVersions.before('v1.13') },
           },
           {
             label: '1.12',
             contentSite: 'mongosync',
             url: '/docs/mongosync/:version/release-notes/1.12',
+            versions: { excludes: mongosyncVersions.before('v1.12') },
           },
           {
             label: '1.11',
             contentSite: 'mongosync',
             url: '/docs/mongosync/:version/release-notes/1.11',
+            versions: { excludes: mongosyncVersions.before('v1.11') },
           },
           {
             label: '1.10',
@@ -342,7 +347,7 @@ const tocData: TocItem[] = [
           {
             label: '1.9',
             contentSite: 'mongosync',
-            url: '/docs/mongosync/:version/release-notes/1.9',
+            url: '/docs/mongosync/:version/release-notes/1.9'
           },
           {
             label: '1.8',
