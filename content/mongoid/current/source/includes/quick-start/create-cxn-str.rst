@@ -14,34 +14,42 @@ in the {+server-manual+}.
 .. procedure::
    :style: connected
 
-   .. step:: Find your MongoDB Atlas connection string
+   .. step:: Find your MongoDB Atlas connection string.
 
       To retrieve your connection string for the deployment that
-      you created in the previous step, log in to your Atlas account.
-      Then, navigate to the :guilabel:`Database` section and click the
-      :guilabel:`Connect` button for your new deployment.
+      you created in the previous step, log in to your Atlas account and 
+      navigate to the :guilabel:`Clusters` page under the :guilabel:`Database` 
+      section. Click the :guilabel:`Connect` button for your new deployment.
 
-      .. figure:: /includes/figures/atlas_connection_select_cluster.png
+      .. figure:: /includes/figures/atlas_connect_to_cluster.png
          :alt: The connect button in the clusters section of the Atlas UI
 
-      Proceed to the :guilabel:`Connect your application` section. Select
-      **{+language+}** from the :guilabel:`Driver` selection menu and
-      the most recent {+ruby-driver+} version from the
-      :guilabel:`Version` selection menu.
+      If you do not already have a database user configured, MongoDB will
+      prompt you to create and configure a new user.
 
-      Deselect the :guilabel:`View full code sample` option to view only
-      the connection string.
+      Click the :guilabel:`Drivers` button under
+      :guilabel:`Connect to your application` section and select
+      **{+language+}** from the :guilabel:`Driver` selection menu and the version
+      that best matches the version you installed from the :guilabel:`Version`
+      selection menu.
+      
+      Ensure the :guilabel:`View full code sample` option is deselected to
+      view only the connection string.
 
-   .. step:: Copy your connection string
+   .. step:: Copy your connection string.
 
       Click the button on the right of the connection string to copy it
-      to your clipboard.
+      to your clipboard, as shown in the following screenshot:
 
-   .. step:: Update the placeholders
+      .. figure:: /includes/figures/atlas_copy_connection_string_ruby.png
+         :alt: The copy button next to the connection string in the Atlas UI
 
-      Paste the connection string into a file in your preferred text editor
-      and replace the ``<username>`` and ``<password>`` placeholders with
-      your database user's username and password.
+   .. step:: Update the password placeholder.
+
+      Paste this connection string into a file in your preferred text editor
+      and replace the ``<db_password>`` placeholder with your database user's
+      password. The connection string is already populated with your database
+      user's username.
 
       Save this file to a safe location for use in the next step.
 
