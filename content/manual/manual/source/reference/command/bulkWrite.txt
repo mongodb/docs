@@ -434,7 +434,7 @@ faster.
 Examples
 --------
 
-This section contains ``bulkWrite`` command examples.
+.. include:: /includes/sample-data-usage.rst
 
 Single Namespace Bulk Write Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -444,53 +444,17 @@ The following ``bulkWrite`` example modifies a single namespace:
 .. procedure::
    :style: normal
 
-   .. step:: Create the pizzas example collection
-
-      Run:
-
-      .. include:: /includes/pizza-example-collection.rst
-
-   .. step:: Modify the pizzas example collection
+   .. step:: Modify the ``users`` collection
 
       Run the following ``bulkWrite`` command to perform insert, update,
-      and delete operations on the ``pizzas`` collection:
+      and delete operations on the ``users`` collection:
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/bulkWrite/single-namespace.js
+         :language: javascript
+         :category: usage example
 
-         db.adminCommand( {
-            bulkWrite: 1,
-
-            // The ops array contains the insert, update, and delete
-            // operations.
-            ops: [
-
-               // Specify the namespace ID index immediately after
-               // the insert, update, and delete text.
-               // For example, "insert: 0" specifies the 0 namespace ID index,
-               // which is the "test.pizzas" namespace in nsInfo at the end
-               // of the example.
-
-               // Insert a pizza.
-               { insert: 0, document: { _id: 4, type: "sausage",
-                 size: "small", price: 12 } },
-
-               // Update the price for medium pizzas.
-               { update: 0, filter: { size: "medium" },
-                 updateMods: { $set: { price: 15 } } },
-
-               // Delete the pizza with an _id of 2.
-               { delete: 0, filter: { _id: 2 } }
-            ],
-
-            // The nsInfo array contains the namespace to apply the
-            // previous operations to.
-            nsInfo: [
-               { ns: "test.pizzas" }  // Namespace ID index is 0.
-            ]
-         } )
-
-      The ``pizzas`` collection is in the default ``test`` database, so
-      the ``ns`` namespace is ``"test.pizzas"``. The namespace ID index
+      The ``users`` collection is in the ``sample_mflix`` database, so
+      the ``ns`` namespace is ``"sample_mflix.users"``. The namespace ID index
       is ``0``, which is set in the first field of the insert, update,
       and delete operations in the ``ops`` array.
 
@@ -500,27 +464,10 @@ The following ``bulkWrite`` example modifies a single namespace:
       fields and ``nErrors: 0``, indicates all operations were
       successful:
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/bulkWrite/single-namespace-output.sh
+         :language: shell
+         :category: example return object
          :copyable: false
-
-         {
-            cursor: {
-               id: Long('0'),
-               firstBatch: [
-                  { ok: 1, idx: 0, n: 1 },
-                  { ok: 1, idx: 1, n: 1, nModified: 1 },
-                  { ok: 1, idx: 2, n: 1 }
-                ],
-                ns: 'admin.$cmd.bulkWrite'
-            },
-            nErrors: 0,
-            nInserted: 1,
-            nMatched: 1,
-            nModified: 1,
-            nUpserted: 0,
-            nDeleted: 1,
-            ok: 1
-         }
 
       For details about the output fields, see the earlier
       :ref:`bulkWrite-output` section.
@@ -536,350 +483,24 @@ operations for two namespaces:
 .. procedure::
    :style: normal
 
-   .. step:: Create the pizzas example collection
-
-      If you already have the ``pizzas`` collection in your ``test``
-      database, use the :method:`db.collection.drop` method to drop it
-      first and then run:
-
-      .. include:: /includes/pizza-example-collection.rst
-
-   .. step:: Create the pizza orders example collection
-
-      Run:
-
-      .. code-block:: javascript
-
-         db.pizzaOrders.insertMany( [
-            { _id: 0, type: "pepperoni", number: 5,
-              orderDate: new Date( "2023-01-15T12:00:00Z" ) },
-            { _id: 1, type: "cheese", number: 15,
-              orderDate: new Date( "2023-01-23T11:12:32Z" ) },
-            { _id: 2, type: "vegan", number: 20,
-              orderDate: new Date( "2023-03-20T10:01:12Z" ) }
-         ] )
-
-   .. step:: Modify the example collections
+   .. step:: Modify the collections
 
       Run the following ``bulkWrite`` command to perform insert, update,
-      and delete operations on the example collections:
+      and delete operations on the ``users`` and ``sample_mflix.theaters`` collections:
 
-      .. code-block:: javascript
-
-         db.adminCommand( {
-            bulkWrite: 1,
-
-            // The ops array contains the insert, update, and delete
-            // operations.
-            ops: [
-
-               // Specify the namespace ID indexes immediately after
-               // the insert, update, and delete. For example, "insert: 0"
-               // specifies the 0 namespace ID index, which is the "test.pizzas"
-               // namespace. And, "insert: 1" specifies "test.pizzaOrders".
-
-               // Insert pizzas.
-               // Namespace ID is 0 for "test.pizzas", which
-               // is specified as "insert: 0".
-               { insert: 0, document: { _id: 5, type: "sausage",
-                 size: "small", price: 12 } },
-               { insert: 0, document: { _id: 6, type: "vegan cheese",
-                 size: "large", price: 25 } },
-
-               // Update the price for cheese pizzas.
-               { update: 0, filter: { type: "cheese" },
-                 updateMods: { $set: { price: 15 } } },
-
-               // Delete pizzas with a price less than 7.
-               { delete: 0, filter: { price: { $lt: 7 } } },
-
-               // Insert pizza orders.
-               // Namespace ID is 1 for "test.pizzaOrders".
-               { insert: 1, document: { _id: 3, type: "sausage", number: 7,
-                 orderDate: new Date( "2023-04-15T12:02:15Z" ) } },
-               { insert: 1, document: { _id: 4, type: "vegan", number: 16,
-                 orderDate: new Date( "2023-05-12T11:03:11Z" ) } },
-
-               // Update the number of pizza orders for cheese pizzas.
-               { update: 1, filter: { type: "cheese" },
-                 updateMods: { $set: { number: 50 } } },
-         
-               // Delete the pizza order with an _id of 2.
-               { delete: 1, filter: { _id: 2 } },
-
-               // Delete pizza orders placed before March 15, 2023.
-               { delete: 1, filter: { orderDate:
-                 { $lte: ISODate( "2023-03-15T00:00:00Z" ) } } }
-            ],
-
-            // Namespaces
-            nsInfo: [
-               { ns: "test.pizzas" }, // Namespace ID index is 0.
-               { ns: "test.pizzaOrders" }  // Namespace ID index is 1.
-            ]
-         } )
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/bulkWrite/multiple-namespaces.js
+         :language: javascript
+         :category: usage example
 
    .. step:: Examine the output
 
       The following ``bulkWrite`` example output indicates the
       operations were successful:
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/bulkWrite/multiple-namespaces-output.sh
+         :language: shell
+         :category: example return object
          :copyable: false
-
-         {
-            cursor: {
-               id: Long('0'),
-               firstBatch: [
-                  { ok: 1, idx: 0, n: 1 },
-                  { ok: 1, idx: 1, n: 1 },
-                  { ok: 1, idx: 2, n: 1, nModified: 1 },
-                  { ok: 1, idx: 3, n: 1 },
-                  { ok: 1, idx: 4, n: 1 },
-                  { ok: 1, idx: 5, n: 1 },
-                  { ok: 1, idx: 6, n: 1, nModified: 1 },
-                  { ok: 1, idx: 7, n: 1 },
-                  { ok: 1, idx: 8, n: 1 }
-               ],
-               ns: 'admin.$cmd.bulkWrite'
-            },
-            nErrors: 0,
-            nInserted: 4,
-            nMatched: 2,
-            nModified: 2,
-            nUpserted: 0,
-            nDeleted: 3,
-            ok: 1
-         }
-
-Operations with Errors Bulk Write Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following ``bulkWrite`` example contains operations with errors and
-operations that don't change any documents:
-
-.. procedure::
-   :style: normal
-
-   .. step:: Create the pizzas example collection
-
-      If you already have the ``pizzas`` collection in your ``test``
-      database, use the :method:`db.collection.drop` method to drop it
-      first and then run:
-
-      .. include:: /includes/pizza-example-collection.rst
-
-   .. step:: Attempt to modify the pizzas example collection
-
-      Run the following ``bulkWrite`` command to perform insert, update,
-      and delete operations on the ``pizzas`` collection:
-
-      .. code-block:: javascript
-
-         db.adminCommand( {
-            bulkWrite: 1,
-
-            // The ops array contains the insert, update, and delete
-            // operations.
-            ops: [
-
-               // The namespace ID indexes are specified immediately after
-               // the insert, update, and delete text.
-               // For example, "insert: 0" specifies the 0 namespace ID index,
-               // which is the "test.pizzas" namespace in nsInfo.
-
-               // Attempt to add a duplicate document with an
-               // _id of 1, which already exists and causes an error.
-               { insert: 0, document: { _id: 1, type: "tomato",
-                 size: "small", price: 12 } },
-
-               // Attempt to add another duplicate document.
-               { insert: 0, document: { _id: 2, type: "pepper",
-                 size: "small", price: 12 } },
-
-               // Attempt to change the price for extra large pizzas,
-               // which don't exist. This doesn't cause an error but
-               // doesn't update any documents.
-               { update: 0, filter: { size: "extra large" },
-                 updateMods: { $set: { price: 15 } } }, 
-
-               // Attempt to remove a document that doesn't exist.
-               // This doesn't cause an error but doesn't delete any documents.
-               { delete: 0, filter: { _id: 8 } }
-            ],
-
-            // The nsInfo array contains the namespace to apply the
-            // previous operations to.
-            nsInfo: [
-               { ns: "test.pizzas" }  // Namespace ID index is 0.
-            ],
-
-            // Set the ordered field to false to run the remaining operations
-            // after an operation returns an error.
-            ordered: false
-         } )
-
-   .. step:: Examine the output
-
-      The following ``bulkWrite`` example output shows the errors:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         {
-            cursor: {
-               id: Long("0"),
-               firstBatch: [
-                  {
-                     ok: 0,
-                     idx: 0,
-                     code: 11000,
-                     errmsg: 'E11000 duplicate key error collection:
-                     test.pizzas index: _id_ dup key: { _id: 1 }',
-                     keyPattern: { _id: 1 },
-                     keyValue: { _id: 1 },
-                     n: 0
-                  },
-                  {
-                     ok: 0,
-                     idx: 1,
-                     code: 11000,
-                     errmsg: 'E11000 duplicate key error collection:
-                     test.pizzas index: _id_ dup key: { _id: 2 }',
-                     keyPattern: { _id: 1 },
-                     keyValue: { _id: 2 },
-                     n: 0
-                  },
-                  { ok: 1, idx: 2, n: 0, nModified: 0 },
-                  { ok: 1, idx: 3, n: 0 }
-               ],
-               ns: 'admin.$cmd.bulkWrite'
-            },
-            nErrors: 2,
-            nInserted: 0,
-            nMatched: 0,
-            nModified: 0,
-            nUpserted: 0,
-            nDeleted: 0,
-            ok: 1
-         }
-
-      For details about the output fields, including the error codes and
-      messages, see the earlier :ref:`bulkWrite-output` section.
-
-Bulk Write Example with errorsOnly Enabled
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following ``bulkWrite`` example sets ``errorsOnly`` to ``true`` to
-only show the error output:
-
-.. procedure::
-   :style: normal
-
-   .. step:: Create the pizzas example collection
-
-      If you already have the ``pizzas`` collection in your ``test``
-      database, use the :method:`db.collection.drop` method to drop it
-      first and then run:
-
-      .. include:: /includes/pizza-example-collection.rst
-
-   .. step:: Attempt to modify the pizzas example collection
-
-      Run the following ``bulkWrite`` command to perform insert, update,
-      and delete operations on the ``pizzas`` collection with
-      ``errorsOnly`` set to ``true``:
-
-      .. code-block:: javascript
-
-         db.adminCommand( {
-            bulkWrite: 1,
-
-            // The ops array contains the insert, update, and delete
-            // operations.
-            ops: [
-
-               // The namespace ID indexes are specified immediately after
-               // the insert, update, and delete text.
-               // For example, "insert: 0" specifies the 0 namespace ID index,
-               // which is the "test.pizzas" namespace in nsInfo.
-
-               // Attempt to add a duplicate document with an
-               // _id of 1, which already exists and causes an error.
-               { insert: 0, document: { _id: 1, type: "tomato",
-                 size: "small", price: 12 } },
-
-               // Attempt to add another duplicate document.
-               { insert: 0, document: { _id: 2, type: "pepper",
-                 size: "small", price: 12 } },
-
-               // Attempt to change the price for extra large pizzas,
-               // which don't exist. This doesn't cause an error but
-               // doesn't update any documents.
-               { update: 0, filter: { size: "extra large" },
-                 updateMods: { $set: { price: 15 } } }, 
-
-               // Attempt to remove a document that doesn't exist.
-               // This doesn't cause an error but doesn't delete any documents.
-               { delete: 0, filter: { _id: 8 } }
-            ],
-
-            // The nsInfo array contains the namespace to apply the
-            // previous operations to.
-            nsInfo: [
-               { ns: "test.pizzas" }  // Namespace ID index is 0.
-            ],
-
-            // Set the ordered field to false to run the remaining operations
-            // after an operation returns an error.
-            ordered: false,
-
-            // Set the errorsOnly field to true to only output the errors.
-            errorsOnly: true
-         } )
-
-   .. step:: Examine the output
-
-      The following ``bulkWrite`` example output shows the errors:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         {
-            cursor: {
-               id: Long("0"),
-               firstBatch: [
-                  {
-                     ok: 0,
-                     idx: 0,
-                     code: 11000,
-                     errmsg: 'E11000 duplicate key error collection:
-                     test.pizzas index: _id_ dup key: { _id: 1 }',
-                     keyPattern: { _id: 1 },
-                     keyValue: { _id: 1 },
-                     n: 0
-                  },
-                  {
-                     ok: 0,
-                     idx: 1,
-                     code: 11000,
-                     errmsg: 'E11000 duplicate key error collection:
-                     test.pizzas index: _id_ dup key: { _id: 2 }',
-                     keyPattern: { _id: 1 },
-                     keyValue: { _id: 2 },
-                     n: 0
-                  },
-               ],
-               ns: 'admin.$cmd.bulkWrite'
-            },
-            nErrors: 2,
-            nInserted: 0,
-            nMatched: 0,
-            nModified: 0,
-            nUpserted: 0,
-            nDeleted: 0,
-            ok: 1
-         }
 
 Learn More
 ----------

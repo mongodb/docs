@@ -404,6 +404,14 @@ from the original document.
 Execution of Operations
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+By default, :method:`~db.collection.bulkWrite()` runs an ordered list of
+operations:
+
+- Operations run serially. 
+- If an operation has an error, that operation and
+  any following operations are not run.
+- Operations listed before the error operation are completed.
+
 The ``ordered`` parameter specifies whether
 :method:`~db.collection.bulkWrite()` will execute operations in order or not.
 By default, operations are executed in order.
@@ -535,73 +543,7 @@ Examples
 
 .. _bulkwrite-example-bulk-write-operation:
 
-Ordered Bulk Write Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-It is important that you understand :method:`~db.collection.bulkWrite()`
-operation ordering and error handling. By default,
-:method:`~db.collection.bulkWrite()` runs an ordered list of operations:
-
-- Operations run serially.
-- If an operation has an error, that operation and any following
-  operations are not run.
-- Operations listed before the error operation are completed.
-
-The :method:`~db.collection.bulkWrite()` examples use the ``pizzas``
-collection:
-
-.. include:: /includes/pizza-example-collection.rst
-
-.. include:: /includes/pizza-bulk-write-example.rst
-
-If the collection already contained a document with an ``_id`` of ``4``
-before running the previous :method:`~db.collection.bulkWrite()`
-example, the following duplicate key exception is returned for the
-second ``insertOne`` operation:
-
-.. code-block:: javascript
-   :copyable: false
-
-   writeErrors: [
-      WriteError {
-         err: {
-            index: 1,
-            code: 11000,
-            errmsg: 'E11000 duplicate key error collection: test.pizzas index: _id_ dup key: { _id: 4 }',
-            op: { _id: 4, type: 'sausage', size: 'large', price: 10 }
-         }
-      }
-   ],
-   result: BulkWriteResult {
-      result: {
-         ok: 1,
-         writeErrors: [
-            WriteError {
-               err: {
-                  index: 1,
-                  code: 11000,
-                  errmsg: 'E11000 duplicate key error collection: test.pizzas index: _id_ dup key: { _id: 4 }',
-                  op: { _id: 4, type: 'sausage', size: 'large', price: 10 }
-               }
-            }
-         ],
-         writeConcernErrors: [],
-         insertedIds: [ { index: 0, _id: 3 }, { index: 1, _id: 4 } ],
-         nInserted: 1,
-         nUpserted: 0,
-         nMatched: 0,
-         nModified: 0,
-         nRemoved: 0,
-         upserted: []
-      }
-   }
-
-Because the :method:`~db.collection.bulkWrite()` example is ordered,
-only the first ``insertOne`` operation is completed.
-
-To complete all operations that do not have errors, run
-:method:`~db.collection.bulkWrite()` with ``ordered`` set to ``false``.
-For an example, see the following section.
+.. include:: /includes/sample-data-usage.rst
 
 .. _bulkwrite-example-unordered-bulk-write:
 
@@ -618,82 +560,20 @@ In an unordered :method:`~db.collection.bulkWrite()` list of operations:
 - Operations with errors are not completed.
 - All operations without errors are completed.
 
-Continuing the ``pizzas`` collection example, drop and recreate the
-collection:
-
-.. include:: /includes/pizza-example-collection.rst
-
 In the following example:
 
 - :method:`~db.collection.bulkWrite()` runs unordered operations on
-  the ``pizzas`` collection.
-- The second ``insertOne`` operation has the same ``_id`` as the first
+  the ``users`` collection.
+- The second ``insertOne`` operation, which is commented out, has the same ``_id`` as the first
   ``insertOne``, which causes a duplicate key error.
 
-.. code-block:: javascript
-
-   try {
-      db.pizzas.bulkWrite( [
-         { insertOne: { document: { _id: 3, type: "beef", size: "medium", price: 6 } } },
-         { insertOne: { document: { _id: 3, type: "sausage", size: "large", price: 10 } } },
-         { updateOne: {
-            filter: { type: "cheese" },
-            update: { $set: { price: 8 } }
-         } },
-         { deleteOne: { filter: { type: "pepperoni"} } },
-         { replaceOne: {
-            filter: { type: "vegan" },
-            replacement: { type: "tofu", size: "small", price: 4 }
-         } }
-      ],
-      { ordered: false } )
-   } catch( error ) {
-      print( error )
-   }
-
-Example output, which includes the duplicate key error and a summary of
-the completed operations:
-
-.. code-block:: javascript
-   :copyable: false
-
-   writeErrors: [
-      WriteError {
-         err: {
-            index: 1,
-            code: 11000,
-            errmsg: 'E11000 duplicate key error collection: test.pizzas index: _id_ dup key: { _id: 3 }',
-            op: { _id: 3, type: 'sausage', size: 'large', price: 10 }
-         }
-      }
-   ],
-   result: BulkWriteResult {
-      result: {
-         ok: 1,
-         writeErrors: [
-            WriteError {
-               err: {
-                  index: 1,
-                  code: 11000,
-                  errmsg: 'E11000 duplicate key error collection: test.pizzas index: _id_ dup key: { _id: 3 }',
-                  op: { _id: 3, type: 'sausage', size: 'large', price: 10 }
-               }
-            }
-         ],
-         writeConcernErrors: [],
-         insertedIds: [ { index: 0, _id: 3 }, { index: 1, _id: 3 } ],
-         nInserted: 1,
-         nUpserted: 0,
-         nMatched: 2,
-         nModified: 2,
-         nRemoved: 1,
-         upserted: []
-      }
-   }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/bulkWrite/insert-error.js
+   :language: javascript
+   :category: usage example
 
 The second ``insertOne`` operation fails because of the duplicate key
-error. In an unordered :method:`~db.collection.bulkWrite()`, any
-operation without an error is completed.
+error. In an unordered :method:`~db.collection.bulkWrite()`, MongoDB completes any
+operation without an error. 
 
 .. _bulkwrite-write-concern-errors-in-sharded-clusters:
 
@@ -708,66 +588,15 @@ Write Concern Errors in Sharded Clusters
 Bulk Write with Write Concern Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Continuing the ``pizzas`` collection example, drop and recreate the
-collection:
-
-.. include:: /includes/pizza-example-collection.rst
-
 The following :method:`~db.collection.bulkWrite()` example runs
-operations on the ``pizzas`` collection and sets a ``"majority"``
+operations on the ``users`` collection and sets a ``"majority"``
 :ref:`write concern <wc-w>` with a 100 millisecond :ref:`timeout
 <wc-wtimeout>`:
 
-.. code-block:: javascript
-
-   try {
-      db.pizzas.bulkWrite( [
-         { updateMany: {
-            filter: { size: "medium" },
-            update: { $inc: { price: 0.1 } }
-         } },
-         { updateMany: {
-            filter: { size: "small" },
-            update: { $inc: { price: -0.25 } }
-         } },
-         { deleteMany: { filter: { size: "large" } } },
-         { insertOne: {
-            document: { _id: 4, type: "sausage", size: "small", price: 12 }
-         } } ],
-         { writeConcern: { w: "majority", wtimeout: 100 } }
-      )
-   } catch( error ) {
-      print( error )
-   }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/bulkWrite/majority-write-concern.js
+   :language: javascript
+   :category: usage example
 
 If the time for the majority of replica set members to acknowledge the
 operations exceeds ``wtimeout``, the example returns a write concern
-error and a summary of completed operations:
-
-.. code-block:: javascript
-   :copyable: false
-
-   result: BulkWriteResult {
-      result: {
-         ok: 1,
-         writeErrors: [],
-         writeConcernErrors: [
-            WriteConcernError {
-               err: {
-                  code: 64,
-                  codeName: 'WriteConcernTimeout',
-                  errmsg: 'waiting for replication timed out',
-                  errInfo: { wtimeout: true, writeConcern: [Object] }
-               }
-            }
-         ],
-         insertedIds: [ { index: 3, _id: 4 } ],
-         nInserted: 0,
-         nUpserted: 0,
-         nMatched: 2,
-         nModified: 2,
-         nRemoved: 0,
-         upserted: [],
-         opTime: { ts: Timestamp({ t: 1660329086, i: 2 }), t: Long("1") }
-      }
-   }
+error and a summary of completed operations.
