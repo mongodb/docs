@@ -129,9 +129,9 @@ const tocData: TocItem[] = [
                 url: '/docs/drivers/kotlin/coroutine/:version/crud/read-operations/distinct',
               },
               {
-                label: "Access Data From a Flow",
-                contentSite: "kotlin",
-                url: "/docs/drivers/kotlin/coroutine/:version/crud/read-operations/flow",
+                label: 'Access Data From a Flow',
+                contentSite: 'kotlin',
+                url: '/docs/drivers/kotlin/coroutine/:version/crud/read-operations/flow',
               },
               {
                 label: 'Sort Results',
@@ -166,14 +166,14 @@ const tocData: TocItem[] = [
             url: '/docs/drivers/kotlin/coroutine/:version/crud/update',
           },
           {
-            label: "Replace Documents",
-            contentSite: "kotlin",
-            url: "/docs/drivers/kotlin/coroutine/:version/crud/replace",
+            label: 'Replace Documents',
+            contentSite: 'kotlin',
+            url: '/docs/drivers/kotlin/coroutine/:version/crud/replace',
           },
           {
-            label: "Delete Documents",
-            contentSite: "kotlin",
-            url: "/docs/drivers/kotlin/coroutine/:version/crud/delete",
+            label: 'Delete Documents',
+            contentSite: 'kotlin',
+            url: '/docs/drivers/kotlin/coroutine/:version/crud/delete',
           },
           {
             label: 'Bulk Operations',
@@ -341,7 +341,7 @@ const tocData: TocItem[] = [
             contentSite: 'kotlin',
             url: '/docs/drivers/kotlin/coroutine/:version/logging-monitoring/change-streams',
           },
-        ]
+        ],
       },
       {
         label: 'Security',
@@ -394,7 +394,7 @@ const tocData: TocItem[] = [
                 contentSite: 'kotlin',
                 url: '/docs/drivers/kotlin/coroutine/:version/security/auth/kerberos',
               },
-            ]
+            ],
           },
           {
             label: 'In-Use Encryption',
@@ -406,23 +406,23 @@ const tocData: TocItem[] = [
             contentSite: 'kotlin',
             url: '/docs/drivers/kotlin/coroutine/:version/security/validate-signatures',
           },
-        ]
+        ],
       },
       {
-        label: "Third Party Integrations",
-        contentSite: "kotlin",
+        label: 'Third Party Integrations',
+        contentSite: 'kotlin',
         collapsible: true,
         items: [
           {
-            label: "Tutorial: Ktor API with MongoDB",
-            contentSite: "kotlin",
-            url: "/docs/drivers/kotlin/coroutine/:version/integrations/ktor",
+            label: 'Tutorial: Ktor API with MongoDB',
+            contentSite: 'kotlin',
+            url: '/docs/drivers/kotlin/coroutine/:version/integrations/ktor',
           },
-        ]
+        ],
       },
       {
-        label: "Reference",
-        contentSite: "kotlin",
+        label: 'Reference',
+        contentSite: 'kotlin',
         collapsible: true,
         items: [
           {
@@ -445,7 +445,7 @@ const tocData: TocItem[] = [
             contentSite: 'kotlin',
             url: '/docs/drivers/kotlin/coroutine/:version/reference/upgrade',
           },
-        ]
+        ],
       },
       {
         label: 'API Documentation',
@@ -483,7 +483,7 @@ const tocData: TocItem[] = [
         label: 'View the Source',
         isExternal: true,
         url: 'https://github.com/mongodb/mongo-java-driver',
-      }
+      },
     ],
   },
 ];

@@ -58,7 +58,7 @@ const tocData: TocItem[] = [
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/atlas-stream-processing/s3-private-link-connection',
                   },
-                                    {
+                  {
                     label: 'Kinesis Private Link Connections',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/atlas-stream-processing/kinesis-private-link-connection',

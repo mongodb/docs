@@ -347,7 +347,7 @@ const tocData: TocItem[] = [
           {
             label: '1.9',
             contentSite: 'mongosync',
-            url: '/docs/mongosync/:version/release-notes/1.9'
+            url: '/docs/mongosync/:version/release-notes/1.9',
           },
           {
             label: '1.8',
