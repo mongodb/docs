@@ -1,6 +1,12 @@
 # MongoDB Docs on Next.js
 
-Docs-Nextjs is a [Next.js](https://nextjs.org) application using app router features. It is the designated site to serve all MDB Documentation through an SSR pipeline.
+Docs-Nextjs is a [Next.js](https://nextjs.org) application using app router features. It is the designated site to serve all MDB Documentation through an ISR pipeline.
+
+## Page generation strategy
+
+- Pregenerated pages are built at deploy time and immediately available (SSG)
+- All other ISR pages are built on first request, then cached and revalidated per your revalidate setting
+- All ISR pages follow the same ISR revalidation schedule (at least how it's setup currently)
 
 ## Installation
 
@@ -29,13 +35,7 @@ Create a `.env` file using the .env.sample file provided
 First, run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
 pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.

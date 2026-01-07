@@ -3,18 +3,12 @@ import type { Root } from 'mdast';
 
 export type { Root };
 
-export interface RegisterImportArgs {
-  componentName: string;
-  importPath: string;
-}
-
 export interface EmitMdxFileArgs {
   outfilePath: string;
   mdastRoot: MdastRoot;
 }
 
 export interface ConversionContext {
-  registerImport?: (args: RegisterImportArgs) => void;
   emitMdxFile?: (args: EmitMdxFileArgs) => void;
   /** Relative path (POSIX) of the file currently being generated, e.g. '_includes/foo.mdx' */
   currentOutfilePath?: string;

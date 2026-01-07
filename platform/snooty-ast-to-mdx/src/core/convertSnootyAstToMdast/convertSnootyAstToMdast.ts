@@ -1,8 +1,7 @@
 import yaml from 'yaml';
 import { pascalCase } from 'change-case';
-import { posix as path } from 'node:path';
 import { isValueNode, isTextNode, isLiteralNode } from './types';
-import type { ConversionContext, SnootyNode, MdastNode, MdastRoot, RegisterImportArgs } from './types';
+import type { ConversionContext, SnootyNode, MdastNode, MdastRoot } from './types';
 import { convertDirectiveImage } from './convertDirectiveImage';
 import { convertDirectiveInclude } from './convertDirectiveInclude';
 import { convertDirectiveLiteralInclude } from './convertDirectiveLiteralInclude';
@@ -266,24 +265,13 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
       const childText = extractInlineDisplayText(node.children ?? []);
       if (childText) {
         ctx.collectedRefs.set(url, { title: childText, url });
-        return {
-          type: 'mdxJsxTextElement',
-          name: 'Ref',
-          attributes: [{ type: 'mdxJsxAttribute', name: 'url', value: url }],
-          children: [
-            {
-              type: 'mdxTextExpression',
-              value: `refs[${JSON.stringify(url)}].title`,
-            },
-          ],
-        };
       }
 
       return {
         type: 'mdxJsxTextElement',
-        name: 'Ref',
-        attributes: [{ type: 'mdxJsxAttribute', name: 'url', value: url }],
-        children: convertChildren({ nodes: node.children, depth, ctx }),
+        name: 'Reference',
+        attributes: [{ type: 'mdxJsxAttribute', name: 'key', value: url }],
+        children: [],
       };
     }
 
@@ -403,23 +391,18 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
       const text = extractInlineDisplayText(node.children ?? []);
       if (refname && text) {
         ctx.collectedSubstitutions.set(refname, text);
-        // Replace with inline expression reference
-        return {
-          type: 'mdxTextExpression',
-          value: `substitutions[${JSON.stringify(refname)}]`,
-        };
       }
-      // Fallback to rendering the original component if missing data
-      const subChildren = convertChildren({ nodes: node.children, depth, ctx });
+      // Create Reference component with type="substitution"
       const attributes: MdastNode[] = [];
       if (refname) {
-        attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: refname });
+        attributes.push({ type: 'mdxJsxAttribute', name: 'key', value: refname });
+        attributes.push({ type: 'mdxJsxAttribute', name: 'type', value: 'substitution' });
       }
       return {
-        type: 'mdxJsxFlowElement',
-        name: 'SubstitutionReference',
+        type: 'mdxJsxTextElement',
+        name: 'Reference',
         attributes,
-        children: subChildren,
+        children: [],
       };
     }
 
@@ -539,27 +522,16 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
 
 interface ConvertSnootyAstToMdastOptions {
   onEmitMdxFile?: ConversionContext['emitMdxFile'];
-  onRegisterImport?: ConversionContext['registerImport'];
   currentOutfilePath?: string;
 }
 
 export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnootyAstToMdastOptions): MdastRoot => {
   const metaFromDirectives: Record<string, unknown> = {};
   const contentChildren: MdastNode[] = [];
-  const includedImports = new Map<string, string>();
   const collectedSubstitutions = new Map<string, string>();
   const collectedRefs = new Map<string, { title: string; url: string }>();
 
-  const registerImport = ({ componentName, importPath }: RegisterImportArgs) => {
-    // callback mainly used for testing purposes
-    options?.onRegisterImport?.({ componentName, importPath });
-
-    if (!componentName || !importPath) return;
-    includedImports.set(componentName, importPath);
-  };
-
   const ctx: ConversionContext = {
-    registerImport,
     emitMdxFile: options?.onEmitMdxFile,
     currentOutfilePath: options?.currentOutfilePath,
     collectedSubstitutions,
@@ -586,41 +558,7 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
   if (Object.keys(frontmatterObj).length) {
     children.push({ type: 'yaml', value: yaml.stringify(frontmatterObj) });
   }
-  // Inject collected imports as ESM blocks right after frontmatter (or at top if no frontmatter)
-  const wantRefs = ctx.collectedRefs.size > 0;
-  const wantSubs = ctx.collectedSubstitutions.size > 0;
-  if (includedImports.size > 0 || wantRefs || wantSubs) {
-    const entries = Array.from(includedImports.entries());
-    const nonImage: Array<[string, string]> = [];
-    const image: Array<[string, string]> = [];
-
-    const isImagePath = (p: string): boolean => /\.(png|jpe?g|gif|svg|webp|avif)$/i.test(p);
-    for (const e of entries) {
-      (isImagePath(e[1]) ? image : nonImage).push(e);
-    }
-    // ensure images are imported last (nice formatting)
-    const ordered = [...nonImage, ...image];
-    const importLines: string[] = ordered.map(
-      ([componentName, importPath]) => `import ${componentName} from '${importPath}';`,
-    );
-
-    // Add structured imports for references if needed
-    if (wantRefs || wantSubs) {
-      const importerPosix = path.normalize(options?.currentOutfilePath || 'index.mdx');
-      const importerDir = path.dirname(importerPosix);
-      let importPath = path.relative(importerDir, '_references.json');
-      if (!importPath.startsWith('.')) importPath = `./${importPath}`;
-      const named: string[] = [];
-      if (wantRefs) named.push('refs');
-      if (wantSubs) named.push('substitutions');
-      importLines.push(`import { ${named.join(', ')} } from '${importPath}';`);
-    }
-
-    children.push({
-      type: 'mdxjsEsm',
-      value: importLines.join('\n'),
-    });
-  }
+  // Add content directly without any imports
   children.push(...contentChildren);
 
   const rootNode = { type: 'root', children } as MdastRoot;

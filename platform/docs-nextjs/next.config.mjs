@@ -1,6 +1,3 @@
-// import type { NextConfig } from "next";
-import createMDX from '@next/mdx';
-
 const nextConfig = {
   pageExtensions: ['mdx', 'tsx', 'ts'],
   trailingSlash: true,
@@ -10,7 +7,6 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@leafygreen-ui/emotion'],
   },
-  assetPrefix: '/docs/docs_static_nextjs',
   async rewrites() {
     return [
       {
@@ -50,8 +46,4 @@ const nextConfig = {
   },
 };
 
-const withMDX = createMDX({
-  /* MDX plugins/config here */
-});
-
-export default withMDX(nextConfig);
+export default nextConfig;

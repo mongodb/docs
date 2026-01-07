@@ -1,9 +1,7 @@
 import { posix as path } from 'node:path';
-import { pascalCase } from 'change-case';
 import { parseSnootyArgument } from './parseSnootyArgument';
 import { convertSnootyAstToMdast } from './convertSnootyAstToMdast';
 import type { ConversionContext, SnootyNode, MdastNode } from './types';
-import { getImporterContext } from './getImporterContext';
 import { renameIncludesToUnderscore } from './renameIncludesToUnderscore';
 
 interface ConvertDirectiveIncludeArgs {
@@ -37,18 +35,21 @@ export const convertDirectiveInclude = ({ node, ctx }: ConvertDirectiveIncludeAr
   });
   ctx.emitMdxFile?.({ outfilePath: emittedPathNormalized, mdastRoot: emittedMdast });
 
-  const baseName = path.normalize(emittedPathNormalized).split('/').pop() || '';
-  const withoutExt = baseName.replace(/\.mdx$/i, '');
-  let componentName = pascalCase(withoutExt);
-  if (/^\d/.test(componentName)) componentName = `_${componentName}`;
-
-  const { importerDir } = getImporterContext(ctx);
+  // Generate absolute path from root
   const targetPosix = emittedPathNormalized.replace(/^\/*/, '').replace(/\\+/g, '/');
-  let importPath = path.relative(importerDir, targetPosix);
-  if (!importPath.startsWith('.')) importPath = `./${importPath}`;
-  ctx.registerImport?.({ componentName, importPath });
 
-  return { type: 'mdxJsxFlowElement', name: componentName, attributes: [], children: [] } as MdastNode;
+  // Use absolute path starting from root (with leading slash)
+  let includePath = `/${targetPosix}`;
+
+  // Remove .mdx extension for cleaner component usage
+  includePath = includePath.replace(/\.mdx$/i, '');
+
+  return {
+    type: 'mdxJsxFlowElement',
+    name: 'Include',
+    attributes: [{ type: 'mdxJsxAttribute', name: 'src', value: includePath } as MdastNode],
+    children: [],
+  } as MdastNode;
 };
 
 const toMdxIncludePath = (path: string): string => {

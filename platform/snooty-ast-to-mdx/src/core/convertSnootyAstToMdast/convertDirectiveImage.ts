@@ -1,7 +1,5 @@
-import { pascalCase } from 'change-case';
 import { posix as path } from 'node:path';
 import type { ConversionContext, SnootyNode, MdastNode } from './types';
-import { getImporterContext } from './getImporterContext';
 import { parseSnootyArgument } from './parseSnootyArgument';
 import { renameIncludesToUnderscore } from './renameIncludesToUnderscore';
 
@@ -23,25 +21,19 @@ export const convertDirectiveImage = ({ node, ctx }: ConvertDirectiveImageArgs):
     return { type: 'html', value: '<!-- figure missing src -->' } as MdastNode;
   }
 
-  const { importerPosix, importerDir } = getImporterContext(ctx);
+  // Generate absolute path from the root
+  const currentOutfilePath = ctx.currentOutfilePath || 'index.mdx';
+  const importerPosix = path.normalize(currentOutfilePath);
   const targetPosix = getImportPath({ importerPosix, assetPosix });
 
-  let importPath = path.relative(importerDir, targetPosix);
-  if (!importPath.startsWith('.')) importPath = `./${importPath}`;
-
-  const baseName = targetPosix.split('/').pop() || 'image';
-  const withoutExt = baseName.replace(/\.[^.]+$/, '') || 'image';
-  let imageIdent = pascalCase(withoutExt);
-  if (/^\d/.test(imageIdent)) imageIdent = `_${imageIdent}`;
-  imageIdent = `${imageIdent}Img`;
-
-  ctx.registerImport?.({ componentName: imageIdent, importPath });
+  // Use absolute path starting from root (with leading slash)
+  const imagePath = `/${targetPosix}`;
 
   const attrs: MdastNode[] = [];
   attrs.push({
     type: 'mdxJsxAttribute',
     name: 'src',
-    value: { type: 'mdxJsxAttributeValueExpression', value: imageIdent },
+    value: imagePath,
   } as MdastNode);
   const altText = typeof node.options?.alt === 'string' ? node.options.alt : '';
   if (altText) attrs.push({ type: 'mdxJsxAttribute', name: 'alt', value: altText } as MdastNode);

@@ -56,9 +56,7 @@ describe('convertSnootyAstToMdast', () => {
     };
     const { mdx } = convertSnootyAst({ ast });
 
-    expect(mdx).toEqual(
-      `import ExampleImg from '../images/example.png';\n\n<Image src={ExampleImg} alt="Alt text" width={300} height="abc" />`,
-    );
+    expect(mdx).toEqual(`<Image src="/images/example.png" alt="Alt text" width={300} height="abc" />`);
   });
 
   it('registers image import and renders Image component', () => {
@@ -66,16 +64,9 @@ describe('convertSnootyAstToMdast', () => {
       type: 'root',
       children: [{ type: 'directive', name: 'image', argument: 'images/example.png' }],
     };
-    const onRegisterImport = jest.fn();
-    const { mdx } = convertSnootyAst({ ast, onRegisterImport });
+    const { mdx } = convertSnootyAst({ ast });
 
-    expect(onRegisterImport).toHaveBeenCalledTimes(1);
-
-    const [{ componentName, importPath }] = onRegisterImport.mock.calls[0];
-    expect(componentName).toBe('ExampleImg');
-    expect(importPath).toBe('../images/example.png');
-
-    expect(mdx).toEqual(`import ExampleImg from '../images/example.png';\n\n<Image src={ExampleImg} />`);
+    expect(mdx).toEqual(`<Image src="/images/example.png" />`);
   });
 
   it('converts include directive and calls onEmitMdxFile', () => {
@@ -96,21 +87,15 @@ describe('convertSnootyAstToMdast', () => {
       ],
     };
     const onEmitMdxFile = jest.fn();
-    const onRegisterImport = jest.fn();
-    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile, onRegisterImport });
+    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
 
     expect(onEmitMdxFile).toHaveBeenCalledTimes(1);
-    expect(onRegisterImport).toHaveBeenCalledTimes(1);
 
     const [{ outfilePath, mdastRoot }] = onEmitMdxFile.mock.calls[0];
     expect(outfilePath).toBe('included-file.mdx');
     expect(mdastRoot).toHaveProperty('type', 'root');
 
-    const [{ componentName, importPath }] = onRegisterImport.mock.calls[0];
-    expect(componentName).toBe('IncludedFile');
-    expect(importPath).toBe('./included-file.mdx');
-
-    expect(mdx).toBe(`import IncludedFile from './included-file.mdx';\n\n<IncludedFile />`);
+    expect(mdx).toBe(`<Include src="/included-file" />`);
   });
 
   it('collects substitutions and refs into root.__references', () => {

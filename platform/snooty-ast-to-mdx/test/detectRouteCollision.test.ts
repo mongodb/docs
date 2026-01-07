@@ -4,8 +4,6 @@ import { detectRouteCollisions, resolveRouteCollisions } from '../src/core/detec
 
 jest.mock('node:fs/promises');
 const mockFs = fs as jest.Mocked<typeof fs>;
-/** the return type of fs.readdir */
-type MockFsReaddirEntry = Promise<Dirent<Buffer<ArrayBufferLike>>[]>;
 
 describe('detectRouteCollision', () => {
   beforeEach(() => {
@@ -23,13 +21,13 @@ describe('detectRouteCollision', () => {
             { name: 'about.mdx', isDirectory: () => false },
             { name: 'contact.mdx', isDirectory: () => false },
             { name: 'blog', isDirectory: () => true },
-          ] as unknown as MockFsReaddirEntry;
+          ] as unknown as Dirent<NonSharedBuffer>[];
         }
         if (path === '/test/blog') {
           return [
             { name: 'post1.mdx', isDirectory: () => false },
             { name: 'post2.mdx', isDirectory: () => false },
-          ] as unknown as MockFsReaddirEntry;
+          ] as unknown as Dirent<NonSharedBuffer>[];
         }
         return [];
       });
@@ -46,10 +44,10 @@ describe('detectRouteCollision', () => {
           return [
             { name: 'about.mdx', isDirectory: () => false },
             { name: 'about', isDirectory: () => true },
-          ] as unknown as MockFsReaddirEntry;
+          ] as unknown as Dirent<NonSharedBuffer>[];
         }
         if (path === '/test/about') {
-          return [{ name: 'index.mdx', isDirectory: () => false }] as unknown as MockFsReaddirEntry;
+          return [{ name: 'index.mdx', isDirectory: () => false }] as unknown as Dirent<NonSharedBuffer>[];
         }
         return [];
       });
@@ -70,16 +68,16 @@ describe('detectRouteCollision', () => {
       // Mock fs.readdir to simulate the file structure
       mockFs.readdir.mockImplementation(async (path) => {
         if (path === '/test') {
-          return [{ name: 'docs', isDirectory: () => true }] as unknown as MockFsReaddirEntry;
+          return [{ name: 'docs', isDirectory: () => true }] as unknown as Dirent<NonSharedBuffer>[];
         }
         if (path === '/test/docs') {
           return [
             { name: 'api.mdx', isDirectory: () => false },
             { name: 'api', isDirectory: () => true },
-          ] as unknown as MockFsReaddirEntry;
+          ] as unknown as Dirent<NonSharedBuffer>[];
         }
         if (path === '/test/docs/api') {
-          return [{ name: 'index.mdx', isDirectory: () => false }] as unknown as MockFsReaddirEntry;
+          return [{ name: 'index.mdx', isDirectory: () => false }] as unknown as Dirent<NonSharedBuffer>[];
         }
         return [];
       });
@@ -102,7 +100,7 @@ describe('detectRouteCollision', () => {
         { name: 'about.mdx', isDirectory: () => false },
         { name: 'about.json', isDirectory: () => false },
         { name: 'about.png', isDirectory: () => false },
-      ] as unknown as MockFsReaddirEntry);
+      ] as unknown as Dirent<NonSharedBuffer>[]);
       // Mock fs.access to simulate no index.mdx exists
       mockFs.access.mockRejectedValue(new Error('File not found'));
 
@@ -120,7 +118,7 @@ describe('detectRouteCollision', () => {
             { name: 'about', isDirectory: () => true },
             { name: 'contact.mdx', isDirectory: () => false },
             { name: 'contact', isDirectory: () => true },
-          ] as unknown as MockFsReaddirEntry;
+          ] as unknown as Dirent<NonSharedBuffer>[];
         }
         return [];
       });
