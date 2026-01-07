@@ -47,6 +47,10 @@
   :ref:`Enable Faster Cross-Region Initial Sync for AWS Clusters
   <enable_time_based_initial_sync_aws>`. 
 
+- Changes :ref:`connection rate limits <connection-rate-limits>` for
+  ``M10`` and ``M20`` cluster tiers from 20 to 15 connections per
+  second.
+
 .. _atlas_2025_10_22:
 
 22 October 2025 Release
@@ -70,11 +74,12 @@
   If you enable auto-scaling, your cluster has the opportunity to scale up
   before write-blocking behavior activates.
 
-- Applies :ref:`connection rate limits <connection-limits>` to ``M10`` and
-  ``M20`` cluster tiers to protect cluster availability. These limits
-  restrict the number of new connections each node processes to 20 connections
-  per second. Connections exceeding these limits are queued, and if the
-  period of overload is sustained, some connections are dropped.
+- Applies :ref:`connection rate limits <connection-limits>` to ``M10``
+  and ``M20`` cluster tiers to protect cluster availability. These
+  limits restrict the number of new connections each node processes to
+  20 connections per second. Connections exceeding these limits are
+  queued, and if the period of overload is sustained, some connections
+  are dropped.
 
 
 .. _atlas_2025_08_06:
