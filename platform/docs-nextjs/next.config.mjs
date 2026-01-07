@@ -7,6 +7,7 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@leafygreen-ui/emotion'],
   },
+  assetPrefix: '/docs/docs_static_nextjs',
   async rewrites() {
     return [
       {
