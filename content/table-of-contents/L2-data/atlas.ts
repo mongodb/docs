@@ -671,7 +671,7 @@ const tocData: TocItem[] = [
       {
         label: 'Standalone Mongosync',
         contentSite: 'mongosync',
-        url: '/docs/cluster-to-cluster-sync/current/reference/mongosync/#mongosync',
+        url: 'https://www.mongodb.com/docs/mongosync/current/reference/mongosync-binary/#mongosync',
       },
       {
         label: 'Compare Migration Methods',

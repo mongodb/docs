@@ -111,13 +111,13 @@ const tocData: TocItem[] = [
           {
             label: 'mongosync',
             contentSite: 'mongosync',
-            url: '/docs/mongosync/:version/reference/mongosync',
+            url: '/docs/mongosync/:version/reference/mongosync-binary',
             collapsible: true,
             items: [
               {
                 label: 'Behavior',
                 contentSite: 'mongosync',
-                url: '/docs/mongosync/:version/reference/mongosync/mongosync-behavior',
+                url: '/docs/mongosync/:version/reference/mongosync-behavior',
               },
             ],
           },
