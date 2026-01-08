@@ -194,17 +194,17 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-            label: '',
+            label: 'mongosqld',
             contentSite: 'bi-connector',
             url: '/docs/bi-connector/:version/reference/mongosqld',
           },
           {
-            label: '',
+            label: 'mongodrdl',
             contentSite: 'bi-connector',
             url: '/docs/bi-connector/:version/reference/mongodrdl',
           },
           {
-            label: '',
+            label: 'mongotranslate',
             contentSite: 'bi-connector',
             url: '/docs/bi-connector/:version/reference/mongotranslate',
           },
@@ -265,7 +265,7 @@ const tocData: TocItem[] = [
             url: '/docs/bi-connector/:version/reference/system-variables',
           },
           {
-            label: 'Known Issues for ',
+            label: 'Known Issues for BI Connector',
             contentSite: 'bi-connector',
             url: '/docs/bi-connector/:version/reference/known-issues',
           },
@@ -288,7 +288,7 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-            label: 'Known Issues for ',
+            label: 'Known Issues for BI Connector',
             contentSite: 'bi-connector',
             url: '/docs/bi-connector/:version/reference/known-issues',
           },
