@@ -17,7 +17,7 @@ To create a {+gcp+} Confluent Private Link connection to use in your
 
       .. code-block:: bash
 
-         curl --location 'http://cloud.mongodb.com/api/atlas/v2/groups/<project_id>/streams/accountDetails?cloudProvider=gcp&regionName=<region>' \
+         curl --location 'https://cloud.mongodb.com/api/atlas/v2/groups/<project_id>/streams/accountDetails?cloudProvider=gcp&regionName=<region>' \
          --header 'Accept: application/vnd.atlas.2024-11-13+json'
 
          {
