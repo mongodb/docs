@@ -12,6 +12,7 @@ import (
 	"atlas-sdk-examples/internal/config"
 	"atlas-sdk-examples/internal/data/export"
 	"atlas-sdk-examples/internal/fileutils"
+	"atlas-sdk-examples/internal/orgutils"
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
@@ -54,9 +55,18 @@ func main() {
 		return
 	}
 
+	// Get organization name for more user-friendly filenames
+	orgName, err := orgutils.GetOrganizationName(ctx, client.OrganizationsApi, p.OrgId)
+	if err != nil {
+		// Non-critical error, continue with orgID as name
+		fmt.Printf("Warning: %v\n", err)
+		orgName = p.OrgId
+	}
+	sanitizedOrgName := orgutils.SanitizeForFilename(orgName)
+
 	// Export invoice data to be used in other systems or for reporting
 	outDir := "invoices"
-	prefix := fmt.Sprintf("historical_%s", p.OrgId)
+	prefix := fmt.Sprintf("historical_%s", sanitizedOrgName)
 
 	err = exportInvoicesToJSON(invoices, outDir, prefix)
 	if err != nil {

@@ -14,6 +14,7 @@ import (
 	"atlas-sdk-examples/internal/config"
 	"atlas-sdk-examples/internal/data/export"
 	"atlas-sdk-examples/internal/fileutils"
+	"atlas-sdk-examples/internal/orgutils"
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
@@ -53,9 +54,13 @@ func main() {
 	}
 	fmt.Printf("Found %d line items in pending invoices\n", len(details))
 
+	// Use organization name from the returned details for more user-friendly filenames
+	orgName := details[0].Org.Name
+	sanitizedOrgName := orgutils.SanitizeForFilename(orgName)
+
 	// Export invoice data to be used in other systems or for reporting
 	outDir := "invoices"
-	prefix := fmt.Sprintf("pending_%s", p.OrgId)
+	prefix := fmt.Sprintf("pending_%s", sanitizedOrgName)
 
 	err = exportInvoicesToJSON(details, outDir, prefix)
 	if err != nil {
@@ -126,6 +131,6 @@ func exportInvoicesToCSV(details []billing.Detail, outDir, prefix string) error 
 // Fetching pending invoices for organization: 5f7a9ec7d78fc03b42959328
 //
 // Found 3 line items in pending invoices
-// Exported billing data to invoices/pending_5f7a9ec7d78fc03b42959328.json
-// Exported billing data to invoices/pending_5f7a9ec7d78fc03b42959328.csv
+// Exported billing data to invoices/pending_my_organization_20260105.json
+// Exported billing data to invoices/pending_my_organization_20260105.csv
 // :state-remove-end: [copy]

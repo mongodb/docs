@@ -5,7 +5,7 @@ go 1.24
 require (
 	github.com/joho/godotenv v1.5.1
 	go.mongodb.org/atlas-sdk/v20250219001 v20250219001.1.0
-	go.mongodb.org/mongo-driver v1.17.4
+	go.mongodb.org/mongo-driver v1.17.6
 )
 
 require (

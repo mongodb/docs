@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"atlas-sdk-examples/internal/errors"
+	"atlas-sdk-examples/internal/orgutils"
 
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
 )
@@ -50,7 +51,7 @@ func CollectLineItemBillingData(ctx context.Context, sdk admin.InvoicesApi, orgS
 	}
 
 	// Get organization name
-	orgName, err := getOrganizationName(ctx, orgSdk, orgID)
+	orgName, err := orgutils.GetOrganizationName(ctx, orgSdk, orgID)
 	if err != nil {
 		// Non-critical error, continue with orgID as name
 		fmt.Printf("Warning: %v\n", err)
@@ -108,19 +109,6 @@ func processInvoices(invoices []admin.BillingInvoice, orgID, orgName string, las
 	}
 
 	return billingDetails, nil
-}
-
-// getOrganizationName fetches an organization's name for the given organization ID.
-func getOrganizationName(ctx context.Context, sdk admin.OrganizationsApi, orgID string) (string, error) {
-	req := sdk.GetOrganization(ctx, orgID)
-	org, _, err := req.Execute()
-	if err != nil {
-		return orgID, errors.FormatError("get organization details", orgID, err)
-	}
-	if org == nil {
-		return orgID, fmt.Errorf("organization response is nil for ID %s", orgID)
-	}
-	return org.GetName(), nil
 }
 
 // getValueOrDefault returns the value or a default if empty

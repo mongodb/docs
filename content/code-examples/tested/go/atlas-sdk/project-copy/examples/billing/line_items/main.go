@@ -10,6 +10,7 @@ import (
 	"atlas-sdk-examples/internal/config"
 	"atlas-sdk-examples/internal/data/export"
 	"atlas-sdk-examples/internal/fileutils"
+	"atlas-sdk-examples/internal/orgutils"
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
@@ -49,9 +50,13 @@ func main() {
 	}
 	fmt.Printf("Found %d line items in pending invoices\n", len(details))
 
+	// Use organization name from the returned details for more user-friendly filenames
+	orgName := details[0].Org.Name
+	sanitizedOrgName := orgutils.SanitizeForFilename(orgName)
+
 	// Export invoice data to be used in other systems or for reporting
 	outDir := "invoices"
-	prefix := fmt.Sprintf("pending_%s", p.OrgId)
+	prefix := fmt.Sprintf("pending_%s", sanitizedOrgName)
 
 	err = exportInvoicesToJSON(details, outDir, prefix)
 	if err != nil {

@@ -15,6 +15,7 @@ import (
 	"atlas-sdk-examples/internal/config"
 	"atlas-sdk-examples/internal/data/export"
 	"atlas-sdk-examples/internal/fileutils"
+	"atlas-sdk-examples/internal/orgutils"
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/atlas-sdk/v20250219001/admin"
@@ -57,9 +58,18 @@ func main() {
 		return
 	}
 
+	// Get organization name for more user-friendly filenames
+	orgName, err := orgutils.GetOrganizationName(ctx, client.OrganizationsApi, p.OrgId)
+	if err != nil {
+		// Non-critical error, continue with orgID as name
+		fmt.Printf("Warning: %v\n", err)
+		orgName = p.OrgId
+	}
+	sanitizedOrgName := orgutils.SanitizeForFilename(orgName)
+
 	// Export invoice data to be used in other systems or for reporting
 	outDir := "invoices"
-	prefix := fmt.Sprintf("historical_%s", p.OrgId)
+	prefix := fmt.Sprintf("historical_%s", sanitizedOrgName)
 
 	err = exportInvoicesToJSON(invoices, outDir, prefix)
 	if err != nil {
@@ -121,6 +131,6 @@ func exportInvoicesToCSV(invoices *admin.PaginatedApiInvoiceMetadata, outDir, pr
 //
 // Fetching historical invoices for organization: 5f7a9aec7d78fc03b42959328
 // Total count of invoices: 12
-// Exported invoice data to invoices/historical_5f7a9aec7d78fc03b42959328.json
-// Exported invoice data to invoices/historical_5f7a9aec7d78fc03b42959328.csv
+// Exported invoice data to invoices/historical_my_organization_20260105.json
+// Exported invoice data to invoices/historical_my_organization_20260105.csv
 // :state-remove-end: [copy]
