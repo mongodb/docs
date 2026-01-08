@@ -1092,6 +1092,11 @@ class StringComparisonStrategy {
      * Check if two values are equal after normalization.
      */
     private static boolean normalizedEquals(Object expected, Object actual) {
+        // Check for ellipsis pattern - matches anything
+        if ("...".equals(expected)) {
+            return true;
+        }
+
         // Handle numeric comparisons with different types
         if (expected instanceof Number && actual instanceof Number) {
             Number expectedNum = (Number) expected;

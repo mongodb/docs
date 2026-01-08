@@ -29,6 +29,12 @@ public static partial class FileContentsParser
     [GeneratedRegex(@"^\s*\.\.\.\s*$", RegexOptions.Compiled | RegexOptions.Multiline)]
     private static partial Regex StandaloneEllipsisRegex();
 
+    [GeneratedRegex(@":\s*\.\.\.(\s*[,\}\]])", RegexOptions.Compiled)]
+    private static partial Regex UnquotedEllipsisAsValueRegex();
+
+    [GeneratedRegex(@",(\s*)\.\.\.(\s*[,\]])", RegexOptions.Compiled)]
+    private static partial Regex UnquotedEllipsisInArrayRegex();
+
     [GeneratedRegex(@"{\s*([a-zA-Z_]\w*\s*=\s*[^,}]*(?:\s*,\s*[a-zA-Z_]\w*\s*=\s*[^,}]*)*)\s*}", RegexOptions.Compiled)]
     private static partial Regex CSharpObjectRegex();
 
@@ -95,10 +101,25 @@ public static partial class FileContentsParser
 
                 var parsed = ParseBlock(block);
 
-                // Add global ellipsis marker if detected
-                if (hasGlobalEllipsis && parsed is IDictionary<string, object> dict) dict["..."] = "...";
-
-                results.Add(parsed);
+                // If the parsed result is an array and it's the only block, unpack it
+                // This handles cases like: [{ _id: ... }, { _id: ... }]
+                if (parsed is object[] array && processedBlocks.Count == 1)
+                {
+                    foreach (var item in array)
+                    {
+                        // Add global ellipsis marker if detected
+                        if (hasGlobalEllipsis && item is IDictionary<string, object> dict)
+                            dict["..."] = "...";
+                        results.Add(item);
+                    }
+                }
+                else
+                {
+                    // Add global ellipsis marker if detected
+                    if (hasGlobalEllipsis && parsed is IDictionary<string, object> dict)
+                        dict["..."] = "...";
+                    results.Add(parsed);
+                }
             }
 
             return ParseResult.Success(results);
@@ -181,27 +202,115 @@ public static partial class FileContentsParser
     }
 
     /// <summary>
-    ///     Parses content as multiple blocks separated by blank lines.
+    ///     Parses content as multiple blocks separated by blank lines or by tracking brace balance.
+    ///     Handles multiple concatenated objects separated by newlines, similar to mongosh's splitIntoDocumentBlocks.
     /// </summary>
     private static List<string> ParseMultiBlockContent(string content)
     {
-        var blocks = content.Split(["\n\n", "\r\n\r\n"], StringSplitOptions.RemoveEmptyEntries);
-        var processedBlocks = new List<string>();
+        // First try splitting by double newlines (traditional approach)
+        var doubleNewlineSplit = content.Split(["\n\n", "\r\n\r\n"], StringSplitOptions.RemoveEmptyEntries);
 
-        foreach (var block in blocks)
+        // If we have multiple blocks from double-newline split, use that
+        if (doubleNewlineSplit.Length > 1)
         {
-            var blockTrimmed = block.Trim();
-            if (string.IsNullOrEmpty(blockTrimmed))
-                continue;
+            var processedBlocks = new List<string>();
+            foreach (var block in doubleNewlineSplit)
+            {
+                var blockTrimmed = block.Trim();
+                if (string.IsNullOrEmpty(blockTrimmed))
+                    continue;
 
-            var processedBlock = blockTrimmed == "..."
-                ? blockTrimmed // Keep standalone ellipsis as-is
-                : NormalizeSyntax(blockTrimmed);
+                var processedBlock = blockTrimmed == "..."
+                    ? blockTrimmed // Keep standalone ellipsis as-is
+                    : NormalizeSyntax(blockTrimmed);
 
-            processedBlocks.Add(processedBlock);
+                processedBlocks.Add(processedBlock);
+            }
+            return processedBlocks;
         }
 
-        return processedBlocks;
+        // Otherwise, use brace-counting approach for single-newline separated documents
+        return SplitIntoDocumentBlocks(content);
+    }
+
+    /// <summary>
+    ///     Splits content into separate document blocks by tracking brace/bracket balance.
+    ///     Handles multiple concatenated objects separated by newlines.
+    ///     Based on mongosh's splitIntoDocumentBlocks implementation.
+    /// </summary>
+    private static List<string> SplitIntoDocumentBlocks(string content)
+    {
+        var trimmed = content.Trim();
+        var lines = trimmed.Split('\n');
+        var docBlocks = new List<string>();
+        var currentBlock = new List<string>();
+        var braceCount = 0;
+        var bracketCount = 0;
+        var inDocument = false;
+
+        foreach (var line in lines)
+        {
+            var trimmedLine = line.Trim();
+            if (string.IsNullOrWhiteSpace(trimmedLine))
+                continue;
+
+            // Preserve standalone ellipsis lines as separate blocks
+            if (trimmedLine == "...")
+            {
+                docBlocks.Add("...");
+                continue;
+            }
+
+            var openBraces = CountOccurrences(line, '{');
+            var closeBraces = CountOccurrences(line, '}');
+            var openBrackets = CountOccurrences(line, '[');
+            var closeBrackets = CountOccurrences(line, ']');
+
+            // Start of a document (either object or array)
+            if (!inDocument && (trimmedLine.StartsWith('{') || trimmedLine.StartsWith('[')))
+            {
+                inDocument = true;
+                braceCount = 0;
+                bracketCount = 0;
+                currentBlock = [line];
+            }
+            else if (inDocument)
+            {
+                currentBlock.Add(line);
+            }
+
+            if (inDocument)
+            {
+                braceCount += openBraces - closeBraces;
+                bracketCount += openBrackets - closeBrackets;
+
+                // Document is complete when both brace and bracket counts are zero
+                if (braceCount == 0 && bracketCount == 0)
+                {
+                    var blockContent = string.Join('\n', currentBlock);
+                    docBlocks.Add(NormalizeSyntax(blockContent));
+                    inDocument = false;
+                    currentBlock.Clear();
+                }
+            }
+        }
+
+        // Add any remaining block
+        if (currentBlock.Count > 0)
+        {
+            var blockContent = string.Join('\n', currentBlock);
+            docBlocks.Add(NormalizeSyntax(blockContent));
+        }
+
+        return docBlocks;
+    }
+
+    /// <summary>
+    ///     Counts the number of occurrences of a character in a string.
+    /// </summary>
+    private static int CountOccurrences(string text, char character)
+    {
+        return text.Count(c => c == character);
     }
 
     /// <summary>
@@ -354,6 +463,7 @@ public static partial class FileContentsParser
         // Transform MongoDB-specific syntax to JSON in logical order
         result = TransformMongoDBConstructors(result);
         result = ConvertSingleQuotes(result);
+        result = QuoteUnquotedEllipsis(result);  // Quote unquoted ellipsis before quoting identifiers
         result = QuoteUnquotedIdentifiers(result);
 
         return result;
@@ -439,6 +549,28 @@ public static partial class FileContentsParser
 
         // Quote unquoted date strings
         result = UnquotedDateRegex().Replace(result, ": \"$1\"");
+
+        return result;
+    }
+
+    /// <summary>
+    ///     Quotes unquoted ellipsis patterns to make them valid JSON.
+    ///     This enables support for patterns like { _id: ... } and [ {...}, ... ].
+    ///     Must be called after quote conversion but before identifier quoting.
+    /// </summary>
+    private static string QuoteUnquotedEllipsis(string content)
+    {
+        var result = content;
+
+        // Quote unquoted ellipsis used as property values (e.g., { _id: ... , count: ... })
+        // Pattern: colon, optional whitespace, three dots, followed by comma, closing brace, or closing bracket
+        // Transform: ': ...' → ': "..."'
+        result = UnquotedEllipsisAsValueRegex().Replace(result, ": \"...\"$1");
+
+        // Quote standalone ellipsis in arrays (e.g., [ { ... }, ... ] where the last ... is an array element)
+        // Pattern: comma, optional whitespace, three dots, followed by comma or closing bracket
+        // Transform: ', ...' → ', "..."'
+        result = UnquotedEllipsisInArrayRegex().Replace(result, ",$1\"...\"$2");
 
         return result;
     }

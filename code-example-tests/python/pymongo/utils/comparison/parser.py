@@ -394,6 +394,63 @@ def _quote_unquoted_keys(s: str) -> str:
     return _UNQUOTED_KEY_RE.sub(r'\1"\2":', s)
 
 
+def _quote_unquoted_ellipsis(s: str) -> str:
+    """
+    Quote unquoted ellipsis (...) that appear as property values or array elements.
+
+    This function is string-aware and will NOT modify ellipsis that appear inside
+    quoted strings (e.g., a plot description ending with "...").
+
+    Handles two patterns:
+    1. Property values: { key: ... } becomes { key: "..." }
+    2. Array elements: [item, ...] becomes [item, "..."]
+
+    This aligns with mongosh commit 67d16af07bc and C# commit ddd298d9877.
+
+    Args:
+        s (str): Input string (after quote conversion)
+
+    Returns:
+        str: String with unquoted ellipsis converted to quoted strings
+
+    Design Decision: Must be called after single-to-double quote conversion but
+    before JSON parsing to prevent Python's ast.literal_eval from interpreting
+    unquoted ... as the Ellipsis object.
+    """
+    result = []
+    i = 0
+    in_string = False
+
+    while i < len(s):
+        char = s[i]
+
+        # Track whether we're inside a string
+        if char == '"' and (i == 0 or s[i - 1] != '\\'):
+            in_string = not in_string
+            result.append(char)
+            i += 1
+        elif char == '.' and not in_string and s[i:i+3] == '...':
+            # Found potential ellipsis outside a string
+            # Check if this is an unquoted ellipsis that needs quoting
+            # Look ahead to see what follows the ellipsis
+            after_ellipsis = s[i+3:i+4] if i+3 < len(s) else ''
+
+            # Check if followed by delimiter (whitespace, comma, closing brace/bracket)
+            if after_ellipsis in ('', ' ', '\t', '\n', '\r', ',', '}', ']'):
+                # This is an unquoted ellipsis - quote it
+                result.append('"..."')
+                i += 3
+            else:
+                # Not a standalone ellipsis, just copy the dot
+                result.append(char)
+                i += 1
+        else:
+            result.append(char)
+            i += 1
+
+    return ''.join(result)
+
+
 def _quote_unquoted_iso_dates(s: str) -> str:
     # Add quotes around ISO date tokens appearing after a colon if not already quoted
     def repl(m: re.Match) -> str:
@@ -847,6 +904,10 @@ def parse_expected_content(content: str) -> Tuple[Any, bool]:
     )
     s = _quote_unquoted_keys(content_no_ellipsis)
     s = _convert_single_to_double_quotes(s)
+    # Quote unquoted ellipsis BEFORE parsing to prevent ast.literal_eval from
+    # interpreting ... as Python's Ellipsis object. This must be done after
+    # quote conversion so we can properly detect string boundaries.
+    s = _quote_unquoted_ellipsis(s)
     s = _quote_unquoted_iso_dates(s)
     s = _replace_constructors_with_ejson(s)
     s = _wrap_as_array_if_jsonl_or_multiblock(s)

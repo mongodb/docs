@@ -592,8 +592,8 @@ class ExpectedOutputParser {
                 line = line.trim();
                 if (line.isEmpty()) continue;
 
-                // Handle standalone ellipsis lines
-                if (line.equals("...")) {
+                // Handle standalone ellipsis lines (both quoted and unquoted)
+                if (line.equals("...") || line.equals("\"...\"")) {
                     hasStandaloneEllipsis = true;
                     continue; // Skip adding ellipsis as a document, just mark the flag
                 }

@@ -481,19 +481,12 @@ public class ObjectComparator {
         Map<String, Object> actualMap = convertToStringKeyMap(actual);
 
         // Check for global ellipsis marker which enables omitted fields mode
-        boolean hasGlobalEllipsis = expectedMap.containsKey("...") &&
-                                   "...".equals(expectedMap.get("..."));
-
-        // Also enable global ellipsis mode if any field values are ellipsis patterns
-        // This allows partial matching when ellipsis patterns are used
-        if (!hasGlobalEllipsis) {
-            for (Object value : expectedMap.values()) {
-                if (EllipsisPatternRegistry.hasEllipsisPatterns(value)) {
-                    hasGlobalEllipsis = true;
-                    break;
-                }
-            }
-        }
+        // IMPORTANT: Only the explicit "...": "..." marker enables global ellipsis.
+        // Property-level ellipsis (e.g., "_id": "...") is a different feature that
+        // matches any value for that specific field, but does NOT allow extra fields.
+        // Global ellipsis can also be inherited from parent objects (like C# implementation).
+        boolean hasGlobalEllipsis = (expectedMap.containsKey("...") && "...".equals(expectedMap.get("...")))
+                                   || options.inheritedGlobalEllipsis();
 
         // Check for missing keys in actual - only if global ellipsis is NOT present
         if (!hasGlobalEllipsis) {
@@ -567,11 +560,16 @@ public class ObjectComparator {
 
                 String fieldPath = appendPath(basePath, key);
 
+                // If current object has global ellipsis, inherit it to nested comparisons
+                ComparisonOptions nestedOptions = hasGlobalEllipsis && !options.inheritedGlobalEllipsis()
+                    ? options.withInheritedGlobalEllipsis(true)
+                    : options;
+
                 // Use ComparisonPipeline for nested object comparisons to ensure consistent depth tracking
                 ComparisonResult fieldResult = ComparisonPipeline.create(
                     expectedValue,
                     actualValue,
-                    options,
+                    nestedOptions,
                     fieldPath,
                     currentDepth + 1
                 ).execute();

@@ -15,6 +15,10 @@ public class EllipsisPatternRegistry {
 
     /**
      * Main ellipsis pattern matching - core method used by comparison pipeline.
+     * IMPORTANT: This method is called BEFORE structural comparison to check for
+     * simple ellipsis patterns that can short-circuit the comparison.
+     * For Maps, it only returns true if it's a COMPLETE match (no extra fields or global ellipsis).
+     * Partial matches go through full structural comparison in ObjectComparator.
      */
     public static boolean matches(Object expected, Object actual, String context) {
         // Global ellipsis matches anything
@@ -28,6 +32,7 @@ public class EllipsisPatternRegistry {
         }
 
         // Map patterns with ellipsis fields
+        // Only short-circuit if it's a complete match (all fields match, no extras unless global ellipsis)
         if (expected instanceof Map<?, ?> expectedMap && actual instanceof Map<?, ?> actualMap) {
             return matchesMapPattern(expectedMap, actualMap);
         }
@@ -154,11 +159,23 @@ public class EllipsisPatternRegistry {
 
     /**
      * Simple map pattern matching - if any field has ellipsis value, that field matches anything.
+     * IMPORTANT: This method checks for COMPLETE matches only.
+     * It returns false if there are extra fields in actual (unless global ellipsis is present).
+     * This ensures that partial matches go through full structural comparison in ObjectComparator.
      */
     private static boolean matchesMapPattern(Map<?, ?> expectedMap, Map<?, ?> actualMap) {
+        // Check if expected has global ellipsis marker
+        boolean hasGlobalEllipsis = expectedMap.containsKey(ELLIPSIS) && ELLIPSIS.equals(expectedMap.get(ELLIPSIS));
+
+        // Check all expected keys
         for (Map.Entry<?, ?> entry : expectedMap.entrySet()) {
             Object key = entry.getKey();
             Object expectedValue = entry.getValue();
+
+            // Skip the global ellipsis marker itself
+            if (ELLIPSIS.equals(key)) {
+                continue;
+            }
 
             if (ELLIPSIS.equals(expectedValue)) {
                 // Ellipsis field - just check key exists
@@ -173,17 +190,31 @@ public class EllipsisPatternRegistry {
                 }
             }
         }
+
+        // Check for extra keys in actual - only allowed if global ellipsis is present
+        if (!hasGlobalEllipsis) {
+            for (Object key : actualMap.keySet()) {
+                if (!expectedMap.containsKey(key)) {
+                    return false; // Extra key found - not a complete match
+                }
+            }
+        }
+
         return true;
     }
 
     /**
      * Check for global ellipsis in file content - used by ExpectedOutputParser.
+     * Recognizes both unquoted ... and quoted "..." as standalone ellipsis markers.
      */
     public static boolean detectGlobalEllipsis(String fileContent) {
         if (fileContent == null || fileContent.isBlank()) {
             return false;
         }
-        return fileContent.lines().anyMatch(line -> ELLIPSIS.equals(line.trim()));
+        return fileContent.lines().anyMatch(line -> {
+            String trimmed = line.trim();
+            return ELLIPSIS.equals(trimmed) || "\"...\"".equals(trimmed);
+        });
     }
 
     /**

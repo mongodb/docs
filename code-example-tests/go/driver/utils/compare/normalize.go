@@ -44,6 +44,10 @@ func convertActualResults(actualResults interface{}) ([]interface{}, error) {
 
 // preprocessMongoSyntax converts MongoDB document syntax to valid JSON
 func preprocessMongoSyntax(input string) string {
+	// Convert single quotes to double quotes for JSON compatibility
+	// This must be done before other transformations
+	input = convertSingleQuotesToDouble(input)
+
 	// Handle ObjectId constructor
 	objectIdRegex := regexp.MustCompile(`ObjectId\(['"]([^'"]+)['"]\)`)
 	input = objectIdRegex.ReplaceAllString(input, `"$1"`)
@@ -66,7 +70,160 @@ func preprocessMongoSyntax(input string) string {
 	mongoDateRegex := regexp.MustCompile(`{\s*"\$date"\s*:\s*"([^"]+)"\s*}`)
 	input = mongoDateRegex.ReplaceAllString(input, `"$1"`)
 
+	// Quote unquoted ellipsis patterns in a string-aware manner
+	// This must be done to avoid corrupting ellipsis that appear inside quoted strings
+	// (e.g., plot text ending with "...")
+	input = quoteUnquotedEllipsis(input)
+
 	return input
+}
+
+// convertSingleQuotesToDouble converts single-quoted strings to double-quoted strings for JSON compatibility.
+// This handles MongoDB shell syntax where single quotes are commonly used.
+func convertSingleQuotesToDouble(str string) string {
+	var result strings.Builder
+	i := 0
+
+	for i < len(str) {
+		char := str[i]
+
+		if char == '\'' {
+			// Start of single-quoted string - convert to double quote
+			result.WriteByte('"')
+			i++
+			for i < len(str) {
+				innerChar := str[i]
+				if innerChar == '\\' && i+1 < len(str) {
+					// Escaped character - copy both the backslash and next char
+					result.WriteByte(innerChar)
+					i++
+					result.WriteByte(str[i])
+					i++
+				} else if innerChar == '\'' {
+					// End of single-quoted string - convert to double quote
+					result.WriteByte('"')
+					i++
+					break
+				} else if innerChar == '"' {
+					// Double quote inside single-quoted string needs to be escaped
+					result.WriteString(`\"`)
+					i++
+				} else {
+					result.WriteByte(innerChar)
+					i++
+				}
+			}
+		} else if char == '"' {
+			// Already a double-quoted string - copy verbatim
+			result.WriteByte(char)
+			i++
+			for i < len(str) {
+				innerChar := str[i]
+				result.WriteByte(innerChar)
+				if innerChar == '\\' && i+1 < len(str) {
+					// Escaped character - copy the next char too
+					i++
+					result.WriteByte(str[i])
+				} else if innerChar == '"' {
+					// End of string
+					break
+				}
+				i++
+			}
+			i++
+		} else {
+			result.WriteByte(char)
+			i++
+		}
+	}
+
+	return result.String()
+}
+
+// quoteUnquotedEllipsis quotes unquoted ellipsis (...) that appear as property values or array elements.
+// This function is string-aware and will NOT modify ellipsis that appear inside quoted strings
+// (e.g., a plot description ending with "...").
+//
+// Handles two patterns:
+// 1. Property values: { key: ... } becomes { key: "..." }
+// 2. Array elements: [item, ...] becomes [item, "..."]
+//
+// Based on the MongoDB Shell implementation from commit fbccfb5c64bb2a4cdf89e1873f9e4b79469e28fd
+func quoteUnquotedEllipsis(str string) string {
+	var result strings.Builder
+	i := 0
+
+	for i < len(str) {
+		char := str[i]
+
+		if char == '"' {
+			// Inside a double-quoted string - copy verbatim until closing quote
+			result.WriteByte(char)
+			i++
+			for i < len(str) {
+				innerChar := str[i]
+				result.WriteByte(innerChar)
+				if innerChar == '\\' && i+1 < len(str) {
+					// Escaped character - copy the next char too
+					i++
+					result.WriteByte(str[i])
+				} else if innerChar == '"' {
+					// End of string
+					break
+				}
+				i++
+			}
+			i++
+		} else if char == '\'' {
+			// Inside a single-quoted string - copy verbatim until closing quote
+			result.WriteByte(char)
+			i++
+			for i < len(str) {
+				innerChar := str[i]
+				result.WriteByte(innerChar)
+				if innerChar == '\\' && i+1 < len(str) {
+					// Escaped character - copy the next char too
+					i++
+					result.WriteByte(str[i])
+				} else if innerChar == '\'' {
+					// End of string
+					break
+				}
+				i++
+			}
+			i++
+		} else if char == '.' && i+2 < len(str) && str[i:i+3] == "..." {
+			// Found potential ellipsis outside a string
+			// Check if this is an unquoted ellipsis that needs quoting
+			// Look ahead to see what follows the ellipsis
+			afterEllipsis := ""
+			if i+3 < len(str) {
+				afterEllipsis = str[i+3:]
+			}
+
+			// Check if followed by delimiter (whitespace, comma, closing brace/bracket)
+			followedByDelimiter := len(afterEllipsis) == 0 ||
+				afterEllipsis[0] == ' ' || afterEllipsis[0] == '\t' ||
+				afterEllipsis[0] == '\n' || afterEllipsis[0] == '\r' ||
+				afterEllipsis[0] == ',' || afterEllipsis[0] == '}' ||
+				afterEllipsis[0] == ']'
+
+			if followedByDelimiter {
+				// This is an unquoted ellipsis - quote it
+				result.WriteString(`"..."`)
+				i += 3
+			} else {
+				// Not a standalone ellipsis, just copy the dot
+				result.WriteByte(char)
+				i++
+			}
+		} else {
+			result.WriteByte(char)
+			i++
+		}
+	}
+
+	return result.String()
 }
 
 // normalizeValue recursively normalizes values for compare

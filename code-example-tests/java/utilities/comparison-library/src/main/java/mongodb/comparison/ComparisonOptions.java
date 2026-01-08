@@ -9,7 +9,8 @@ import java.util.List;
  */
 public record ComparisonOptions(
     ComparisonType comparisonType,
-    List<String> ignoreFieldValues
+    List<String> ignoreFieldValues,
+    boolean inheritedGlobalEllipsis  // Internal flag for recursive ellipsis inheritance
 ) {
 
     // Internal performance limits - not configurable by end users
@@ -48,9 +49,19 @@ public record ComparisonOptions(
         return comparisonType == ComparisonType.UNORDERED;
     }
 
+    /**
+     * Create a new ComparisonOptions with inheritedGlobalEllipsis set to true.
+     * This is used internally when recursing into nested objects that should inherit
+     * the global ellipsis setting from their parent.
+     */
+    public ComparisonOptions withInheritedGlobalEllipsis(boolean inherited) {
+        return new ComparisonOptions(comparisonType, ignoreFieldValues, inherited);
+    }
+
     public static class Builder {
         private ComparisonType comparisonType = ComparisonType.UNORDERED;
         private List<String> ignoreFieldValues = List.of();
+        private boolean inheritedGlobalEllipsis = false;
 
         public Builder withComparisonType(ComparisonType type) {
             this.comparisonType = type;
@@ -77,10 +88,17 @@ public record ComparisonOptions(
             return this;
         }
 
+        // Internal method - not exposed to end users
+        Builder withInheritedGlobalEllipsis(boolean inherited) {
+            this.inheritedGlobalEllipsis = inherited;
+            return this;
+        }
+
         public ComparisonOptions build() {
             return new ComparisonOptions(
                 comparisonType,
-                ignoreFieldValues
+                ignoreFieldValues,
+                inheritedGlobalEllipsis
             );
         }
     }

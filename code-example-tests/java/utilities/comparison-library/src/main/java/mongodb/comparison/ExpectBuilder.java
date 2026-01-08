@@ -110,7 +110,55 @@ public class ExpectBuilder {
             return ComparisonEngine.compareWithFile(actual, expectedStr, options);
         }
 
+        // Handle multi-line strings with structured content - parse them first
+        // This ensures that patterns like "{ \"name\": \"Alice\" }\n..." are parsed
+        // into structured data before comparison, rather than being treated as pattern strings
+        // Only do this when comparing against non-string actual values
+        if (expected instanceof String expectedStr &&
+            shouldParseAsStructuredContent(expectedStr, actual)) {
+            var parseResult = ExpectedOutputParser.parseContent(expectedStr);
+            if (parseResult.isSuccess()) {
+                // Use the parsed data for comparison
+                return ContentAnalyzer.compareWithContentAnalysis(parseResult.getData(), actual, options);
+            }
+            // If parsing fails, fall through to normal string comparison
+        }
+
         // Use content-aware comparison from ContentAnalyzer
         return ContentAnalyzer.compareWithContentAnalysis(expected, actual, options);
+    }
+
+    /**
+     * Determine if a string should be parsed as structured content before comparison.
+     * This handles cases like multi-line JSON with ellipsis markers.
+     *
+     * We only parse when:
+     * 1. The expected string is multi-line
+     * 2. It looks like structured content (JSON)
+     * 3. It contains ellipsis patterns
+     * 4. The actual value is NOT a string (to avoid breaking string-to-string comparisons)
+     */
+    private boolean shouldParseAsStructuredContent(String str, Object actual) {
+        if (str == null || str.trim().isEmpty()) {
+            return false;
+        }
+
+        // Don't parse if actual is a string - let string comparison handle it
+        if (actual instanceof String) {
+            return false;
+        }
+
+        // Check if it's multi-line content
+        if (!str.contains("\n")) {
+            return false;
+        }
+
+        String trimmed = str.trim();
+
+        // Check if it looks like structured content (JSON objects/arrays)
+        boolean looksStructured = (trimmed.startsWith("{") || trimmed.startsWith("["));
+
+        // If it looks structured and contains ellipsis, parse it
+        return looksStructured && str.contains("...");
     }
 }

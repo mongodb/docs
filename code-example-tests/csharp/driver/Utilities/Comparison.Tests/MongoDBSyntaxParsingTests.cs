@@ -177,14 +177,11 @@ public class MongoDBSyntaxParsingTests
 
         var result = FileContentsParser.ParseContent(content);
 
+        // Arrays are unpacked, so we expect 2 documents
+        Assert.That(result.Data, Has.Count.EqualTo(2));
 
-        Assert.That(result.Data, Has.Count.EqualTo(1));
-
-        // The result contains one array with two documents
-        var array = (object[])result.Data![0];
-        Assert.That(array, Has.Length.EqualTo(2));
-
-        foreach (var item in array)
+        // Each item should be a document with ObjectId and Decimal128
+        foreach (var item in result.Data!)
         {
             var document = (Dictionary<string, object>)item;
             Assert.That(document["_id"], Is.TypeOf<ObjectId>());

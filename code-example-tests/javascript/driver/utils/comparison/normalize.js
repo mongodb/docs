@@ -189,13 +189,17 @@ function splitIntoDocumentBlocks(contents) {
   let braceCount = 0;
   let bracketCount = 0;
   let inDocument = false;
+  let isArray = false; // Track if the current document is an array
 
   for (const line of lines) {
     const trimmedLine = line.trim();
     if (!trimmedLine) continue;
 
-    // Skip standalone ellipsis lines (they're used for omitted fields detection)
-    if (trimmedLine === '...') continue;
+    // Skip standalone ellipsis lines ONLY if they're:
+    // 1. Outside a document (document-level ellipsis for omitted fields)
+    // 2. Inside an object (object-level ellipsis for omitted fields)
+    // Keep them if they're inside an array (array-level ellipsis as elements)
+    if (trimmedLine === '...' && (!inDocument || !isArray)) continue;
 
     const openBraces = (line.match(/\{/g) || []).length;
     const closeBraces = (line.match(/\}/g) || []).length;
@@ -208,6 +212,7 @@ function splitIntoDocumentBlocks(contents) {
       (trimmedLine.startsWith('{') || trimmedLine.startsWith('['))
     ) {
       inDocument = true;
+      isArray = trimmedLine.startsWith('[');
       braceCount = 0;
       bracketCount = 0;
       currentBlock = [line];
@@ -223,6 +228,7 @@ function splitIntoDocumentBlocks(contents) {
       if (braceCount === 0 && bracketCount === 0) {
         docBlocks.push(currentBlock.join('\n'));
         inDocument = false;
+        isArray = false;
         currentBlock = [];
       }
     }
@@ -233,6 +239,72 @@ function splitIntoDocumentBlocks(contents) {
   }
 
   return docBlocks;
+}
+
+/**
+ * Quotes unquoted ellipsis patterns in a string-aware manner.
+ * This function processes the string character by character, skipping over
+ * quoted strings to avoid transforming ellipsis that are inside string values.
+ *
+ * Transforms:
+ * - Property-level: `{ _id: ... }` → `{ _id: "..." }`
+ * - Array-level: `[..., ...]` → `["...", "..."]`
+ * - Array start: `[...]` → `["..."]`
+ *
+ * Preserves:
+ * - Ellipsis inside strings: `"story ends..."` → unchanged
+ *
+ * @param {string} str - String with potential unquoted ellipsis
+ * @returns {string} String with unquoted ellipsis converted to quoted strings
+ */
+function quoteUnquotedEllipsis(str) {
+  let result = '';
+  let i = 0;
+
+  while (i < str.length) {
+    const char = str[i];
+
+    if (char === '"') {
+      // Inside a double-quoted string - copy verbatim until closing quote
+      result += char;
+      i++;
+      while (i < str.length) {
+        const innerChar = str[i];
+        result += innerChar;
+        if (innerChar === '\\' && i + 1 < str.length) {
+          // Escaped character - copy the next char too
+          i++;
+          result += str[i];
+        } else if (innerChar === '"') {
+          // End of string
+          break;
+        }
+        i++;
+      }
+      i++;
+    } else if (char === '.' && str.substring(i, i + 3) === '...') {
+      // Found potential ellipsis outside a string
+      // Check if this is an unquoted ellipsis that needs quoting
+      // Look ahead to see what follows the ellipsis
+      const afterEllipsis = str.substring(i + 3);
+      const followedByDelimiter = /^[\s,\}\]]/.test(afterEllipsis);
+
+      if (followedByDelimiter) {
+        // This is an unquoted ellipsis - quote it
+        result += '"..."';
+        i += 3;
+      } else {
+        // Not a standalone ellipsis, just copy the dot
+        result += char;
+        i++;
+      }
+    } else {
+      result += char;
+      i++;
+    }
+  }
+
+  return result;
 }
 
 /**
@@ -258,8 +330,11 @@ function normalizeDocumentSyntax(doc) {
     return `"${escapedContent}"`;
   });
 
+  // Quote unquoted ellipsis in a string-aware manner
+  // This must be done after quote conversion but before other transformations
+  result = quoteUnquotedEllipsis(result);
+
   result = result
-    .replace(/:\s*\.\.\./g, ': "..."') // Replace ellipsis with double quotes
     .replace(/,\s*}/g, '}') // Remove trailing commas before }
     .replace(/,\s*]/g, ']') // Remove trailing commas before ]
     // $1 = prefix (start/brace/bracket/comma + whitespace), $2 = key name, $3 = colon with whitespace

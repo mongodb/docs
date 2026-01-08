@@ -70,9 +70,10 @@ class POJOIntegrationTest {
             System.out.println("POJO toString: " + actualPerson.toString());
             System.out.println("Error: " + e.getMessage());
             // Current behavior: POJOs use toString() which doesn't match JSON format
-            assertTrue(e.getMessage().contains("Person{") ||
-                      e.getMessage().contains("String content"),
-                    "Should indicate string comparison when POJO doesn't match JSON pattern");
+            // The error message should indicate a type mismatch with the POJO type
+            assertTrue(e.getMessage().contains("Person") ||
+                      e.getMessage().contains("Type mismatch"),
+                    "Should indicate type mismatch when POJO doesn't match JSON pattern");
         }
     }
 

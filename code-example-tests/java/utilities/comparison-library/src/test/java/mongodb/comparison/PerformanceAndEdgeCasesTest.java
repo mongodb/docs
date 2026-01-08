@@ -158,12 +158,12 @@ class PerformanceAndEdgeCasesTest {
         Expect.that(edgeCases).shouldMatch(edgeCases);
 
         // Test with ellipsis patterns and edge cases
-        var edgeWithEllipsis = Map.of(
-            "null", "...",
-            "emptyString", "...",
-            "unicode", "Unicode...",
-            "specialNumbers", Arrays.asList("...")
-        );
+        var edgeWithEllipsis = new HashMap<String, Object>();
+        edgeWithEllipsis.put("null", "...");
+        edgeWithEllipsis.put("emptyString", "...");
+        edgeWithEllipsis.put("unicode", "Unicode...");
+        edgeWithEllipsis.put("specialNumbers", Arrays.asList("..."));
+        edgeWithEllipsis.put("...", "..."); // Enable global ellipsis to allow extra fields
 
         Expect.that(edgeCases).shouldMatch(edgeWithEllipsis);
     }
