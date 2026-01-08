@@ -1,0 +1,299 @@
+.. _pymongo-async-migration:
+.. _pymongo-async-motor-migration:
+
+===========================
+Migrate to {+driver-async+}
+===========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: motor, async, refactor, migration, asynchronous
+
+Overview
+--------
+
+The {+driver-async+} API is a unification of {+driver-short+} and the `Motor
+library <https://www.mongodb.com/docs/drivers/motor/>`__. In this guide, you can
+identify the changes you must make to migrate an application from {+driver-short+} or
+Motor to the {+driver-async+} API.
+
+Motivation
+~~~~~~~~~~
+
+The {+driver-async+} API is designed to be a replacement for the Motor
+library. Motor was created to provide support for Tornado, with ``asyncio`` support
+added later. Because of this, Motor provides full ``asyncio`` and Tornado support,
+but still relies on a thread pool to perform network operations. In some cases,
+this might lead to performance degradation when using the Motor library. To
+address this issue, the {+driver-async+} API implements ``asyncio`` support directly
+into {+driver-short+}. In most cases, the {+driver-async+} API results in
+improved performance over Motor. To see performance benchmarks, see the
+:ref:`pymongo-async-benchmarks` section.
+
+Synchronous Versus Asynchronous
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To determine whether to migrate to the {+driver-async+} API or to continue using
+Synchronous {+driver-short+}, consider the information in this section.
+
+Synchronous {+driver-short+} is preferable if the following criteria applies to your
+application or use case:
+
+- Your application is simple in execution, or you prefer to avoid using asynchronous calls
+  in your code
+  
+- Your application relies on serial workloads or workloads with very fast
+  response times
+
+- You prefer the simplicity of synchronous logic when debugging your application
+
+Consider migrating to the {+driver-async+} API if the following criteria applies
+to your application or use case:
+
+- Your application implements large, highly concurrent workloads (on the order of
+  thousands of concurrent operations)
+
+- Your application relies on workloads that spend a long time waiting for responses or
+  writing data
+
+- Your application relies on other asynchronous libraries or frameworks, such as FastAPI
+
+.. _pymongo-async-benchmarks:
+
+Performance Benchmarks
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following table shows the performance benchmarks for different tasks
+performed with the {+driver-async+} API and the Motor library. Each task was
+performed with 10 iterations of 1000 documents each. In most
+cases, the {+driver-async+} API results in improved performance over Motor.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 20 20
+
+   * - Operation
+     - Motor Performance
+     - {+driver-async+} Performance
+   
+   * - ``TestFindManyAndEmptyCursor``
+     - 74.074 MB/s
+     - 112.490 MB/s
+   
+   * - ``TestFindManyAndEmptyCursor80Tasks``
+     - 37.181 MB/s
+     - 89.521 MB/s
+   
+   * - ``TestFindManyAndEmptyCursor8Tasks``
+     - 63.145 MB/s
+     - 97.165 MB/s
+   
+   * - ``TestFindOneByID``
+     - 3.121 MB/s
+     - 2.922 MB/s
+   
+   * - ``TestFindOneByID80Tasks``
+     - 3.789 MB/s
+     - 4.071 MB/s
+   
+   * - ``TestFindOneByID8Tasks``
+     - 3.697 MB/s
+     - 3.445 MB/s
+   
+   * - ``TestFindOneByIDUnlimitedTasks``
+     - 3.866 MB/s
+     - 4.171 MB/s
+   
+   * - ``TestGridFsDownload``
+     - 573.770 MB/s
+     - 603.578 MB/s
+   
+   * - ``TestGridFsUpload``
+     - 430.870 MB/s
+     - 444.445 MB/s
+   
+   * - ``TestLargeDocBulkInsert``
+     - 82.631 MB/s
+     - 102.105 MB/s
+   
+   * - ``TestLargeDocClientBulkInsert``
+     - 75.057 MB/s
+     - 90.345 MB/s
+   
+   * - ``TestLargeDocCollectionBulkInsert``
+     - 85.810 MB/s
+     - 101.838 MB/s
+   
+   * - ``TestLargeDocInsertOne``
+     - 84.832 MB/s
+     - 101.934 MB/s
+   
+   * - ``TestLargeDocInsertOneUnlimitedTasks``
+     - 120.389 MB/s
+     - 163.553 MB/s
+   
+   * - ``TestRunCommand``
+     - 0.036 MB/s
+     - 0.034 MB/s
+   
+   * - ``TestRunCommand80Tasks``
+     - 0.042 MB/s
+     - 0.043 MB/s
+   
+   * - ``TestRunCommand8Tasks``
+     - 0.039 MB/s
+     - 0.041 MB/s
+   
+   * - ``TestRunCommandUnlimitedTasks``
+     - 0.043 MB/s
+     - 0.042 MB/s
+   
+   * - ``TestSmallDocBulkInsert``
+     - 35.071 MB/s
+     - 38.213 MB/s
+   
+   * - ``TestSmallDocBulkMixedOps``
+     - 0.729 MB/s
+     - 0.446 MB/s
+   
+   * - ``TestSmallDocClientBulkInsert``
+     - 25.032 MB/s
+     - 25.727 MB/s
+   
+   * - ``TestSmallDocClientBulkMixedOps``
+     - 1.746 MB/s
+     - 1.723 MB/s
+   
+   * - ``TestSmallDocCollectionBulkInsert``
+     - 34.144 MB/s
+     - 37.666 MB/s
+   
+   * - ``TestSmallDocInsertOne``
+     - 0.539 MB/s
+     - 0.572 MB/s
+   
+   * - ``TestSmallDocInsertOneUnlimitedTasks``
+     - 0.740 MB/s
+     - 0.786 MB/s
+
+Migrate From Motor
+------------------
+
+.. warning:: Motor Deprecation
+   
+   Motor will be deprecated on May 14th, 2026. We strongly recommend that Motor users migrate to
+   the {+driver-async+} API while Motor is still supported.
+
+The {+driver-async+} API functions similarly to the Motor library, but allows
+for improved latency and throughput due to directly using Python ``asyncio`` instead
+of delegating work to a thread pool. In most cases, you can directly migrate
+existing Motor applications to {+driver-async+} by using ``AsyncMongoClient`` in
+place of ``MotorClient``, and changing the application's import statements to
+import from ``pymongo``.
+
+The following example shows the difference in imports to use a client for
+read and write operations in Motor compared to {+driver-async+}:
+
+.. code-block:: python
+
+   # Motor client import
+   from motor.motor_asyncio import AsyncIOMotorClient
+
+   # {+driver-async+} client import
+   from pymongo import AsyncMongoClient
+
+To see a list of the asynchronous methods available in the {+driver-async+}
+API, see the :ref:`pymongo-async-methods` section. To learn about the versions of Motor
+that correspond to {+driver-short+}, see the :driver:`Compatibility
+</compatibility/?driver-language=python&python-driver-framework=pymongo>`
+page.
+
+The following section shows the method signature changes that you must implement
+in your application when migrating from Motor to the {+driver-async+} API.
+
+Method Signature Changes
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following Motor method signatures behave differently in the {+driver-async+} API:
+
+- ``AsyncMongoClient.__init__()`` does not accept an ``io_loop`` parameter.
+- ``AsyncCursor.each()`` does not exist in the {+driver-async+} API.
+- ``MotorGridOut.stream_to_handler()`` does not exist in the {+driver-async+} API.
+- ``AsyncCursor.to_list(0)`` is not valid in the {+driver-async+} API. Use
+  ``to_list(None)`` instead.
+- ``MongoClient`` is thread safe and can be used by many threads, however, an
+  ``AsyncMongoClient`` is not thread safe and should only be used by a single
+  event loop.
+
+.. warning::
+
+   Motor users may experience a degradation of performance when switching to the
+   {+driver-async+} API. This is due to the {+driver-async+} API using native
+   ``asyncio`` tasks instead of thread-based executors. Thread-based executors
+   have similar performance characteristics to the synchronous driver, but slower.
+   This means they perform better for workloads that do not fit the preceding criteria
+   for the {+driver-async+} API.
+
+   If you are experiencing performance slowdown, identify whether the {+driver-async+} API
+   is necessary for your usecase. If you determine your use case is better served by
+   synchronous {+driver-short+}, consider using the synchronous driver
+   with ``asyncio.loop.run_in_executor()`` for asynchronous compatibility. To learn more, see
+   the `Event Loop API documentation <https://docs.python.org/3/library/asyncio-eventloop.html#asyncio.loop.run_in_executor>`__.
+
+.. _pymongo-to-async-guide:
+
+Migrate from {+driver-short+}
+-----------------------------
+
+The {+driver-async+} API behaves similarly to {+driver-short+}, but
+all methods that perform network operations are coroutines and must be awaited.
+To migrate from {+driver-short+} to {+driver-async+}, you must update your code
+in the following ways:
+
+- Replace all uses of ``MongoClient`` with ``AsyncMongoClient``.
+- Add the ``await`` keyword to all asynchronous method calls.
+- If you call an asynchronous method inside a function, mark the function as ``async``.
+
+Keep the following points in mind when migrating from synchronous {+driver-short+}
+to the {+driver-async+} API:
+
+- To convert an ``AsyncCursor`` to a list, you must use the asynchronous ``cursor.to_list()``
+  method.
+- The ``AsyncCollection.find()`` method in the {+driver-async+} API is synchronous, but
+  returns an ``AsyncCursor``. To iterate through the cursor, you must use an ``async for``
+  loop.
+- The ``AsyncMongoClient`` object does not support the ``connect`` keyword argument.
+- You cannot share ``AsyncMongoClient`` objects across threads or event loops.
+- To access a property or method of a result returned by an asynchronous call, you must
+  properly wrap the call in parentheses, as shown in the following example:
+
+  .. code-block:: python
+     
+     id = (await posts.insert_one(doc)).inserted_id 
+
+.. _pymongo-async-methods:
+
+Asynchronous Methods
+--------------------
+
+For a complete list of asynchronous methods available in the {+driver-async+} API,
+see the `API documentation <{+api-root+}pymongo/asynchronous/index.html>`__.
+
+.. note::
+
+   Any methods not listed in the preceding API documentation are synchronous.
+
+Additional Information
+----------------------
+
+To learn more about asynchronous Python, see the `Python asyncio documentation
+<https://docs.python.org/3/library/asyncio.html>`__.

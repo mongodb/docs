@@ -1,0 +1,698 @@
+.. _pymongo-type-codecs:
+
+============================
+Encode Data with Type Codecs
+============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: class, code examples
+
+Overview
+--------
+
+This guide explains how to use {+driver-short+} to encode and decode custom types.
+
+Default Type Codecs
+~~~~~~~~~~~~~~~~~~~
+
+{+driver-short+} includes several built-in type codecs that you can optionally use. These
+built-in type codecs handle common data types automatically. For example, the driver
+provides ``DecimalEncoder`` and ``DecimalDecoder`` classes that enable encoding and
+decoding of Python's ``decimal.Decimal`` type to and from BSON Decimal128 values.
+
+The ``DecimalEncoder`` class converts Python ``decimal.Decimal`` values to BSON
+``Decimal128`` values. The ``DecimalDecoder`` class converts BSON ``Decimal128`` values to
+Python ``decimal.Decimal`` values.
+
+The following code uses the ``DecimalEncoder`` class to encode the decimal ``1.0``:
+
+.. code-block:: python
+   
+   opts = CodecOptions(type_registry=TypeRegistry([DecimalEncoder()]))
+   bson.encode({"d": decimal.Decimal('1.0')}, codec_options=opts)
+
+The following code uses the ``DecimalDecoder`` class to decode BSON data:
+
+.. code-block:: python
+   
+   opts = CodecOptions(type_registry=TypeRegistry([DecimalDecoder()]))
+   bson.decode(data, codec_options=opts)
+
+Encode a Custom Type
+--------------------
+
+You might need to define a custom type if you want to store a data type that
+the driver can't natively serialize. For example, attempting
+to save an instance of ``Enum`` with {+driver-short+} results in an
+``InvalidDocument`` exception, as shown in the following code example. Select the
+:guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding code:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: python
+
+            from enum import Enum
+
+            class Status(Enum):
+                ACTIVE = "active"
+                INACTIVE = "inactive"
+
+            status = Status.ACTIVE
+
+            db["coll"].insert_one({"status": status})  
+
+         .. output::
+            :language: shell
+
+            Traceback (most recent call last):
+            ...
+            bson.errors.InvalidDocument: Invalid document {'status': <Status.ACTIVE:
+            'active'>, '_id': ObjectId('68bb6144862a5cfb94a9fd48')} | cannot encode
+            object: <Status.ACTIVE: 'active'>, of type: <enum 'Status'>
+
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: python
+
+            from enum import Enum
+
+            class Status(Enum):
+                ACTIVE = "active"
+                INACTIVE = "inactive"
+
+            status = Status.ACTIVE
+
+            await db["coll"].insert_one({"status": status})  
+
+         .. output::
+            :language: shell
+
+            Traceback (most recent call last):
+            ...
+            bson.errors.InvalidDocument: Invalid document {'status': <Status.ACTIVE:
+            'active'>, '_id': ObjectId('68bb6144862a5cfb94a9fd48')} | cannot encode
+            object: <Status.ACTIVE: 'active'>, of type: <enum 'Status'>
+
+The following sections show how to define a custom type for this ``Enum`` type.
+
+Define a Type Codec Class
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To encode a custom type, you must first define a **type codec.** A type codec
+describes how an instance of a custom type is
+converted to and from a type that the ``bson`` module can already encode.
+
+When you define a type codec, your class must inherit from one of the base classes in the
+``codec_options`` module. The following table describes these base classes, and when
+and how to implement them:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 10 20
+
+   * - Base Class
+     - When to Use
+     - Members to Implement
+ 
+   * - ``codec_options.TypeEncoder``
+     - Inherit from this class to define a codec that
+       encodes a custom Python type to a known BSON type.
+     - - ``python_type`` attribute: The custom Python type that's encoded by this type codec
+       - ``transform_python()`` method: Function that transforms a custom type value into a type
+         that BSON can encode
+
+   * - ``codec_options.TypeDecoder``
+     - Inherit from this class to define a codec that
+       decodes a specified BSON type into a custom Python type.
+     - - ``bson_type`` attribute: The BSON type that's decoded by this type codec
+       - ``transform_bson()`` method: Function that transforms a standard BSON type value
+         into the custom type
+  
+   * - ``codec_options.TypeCodec``
+     - Inherit from this class to define a codec that
+       can both encode and decode a custom type.
+     - - ``python_type`` attribute: The custom Python type that's encoded by this type codec
+       - ``bson_type`` attribute: The BSON type that's decoded by this type codec
+       - ``transform_bson()`` method: Function that transforms a standard BSON type value
+         into the custom type
+       - ``transform_python()`` method: Function that transforms a custom type value into a type
+         that BSON can encode
+
+Because the example ``EnumCodec`` custom type can be converted to and from a
+``str`` instance, you must define how to encode and decode this type.
+Therefore, the ``Enum`` type codec class must inherit from
+the ``TypeCodec`` base class:
+
+.. code-block:: python
+
+   from bson.codec_options import TypeCodec
+
+   class EnumCodec(TypeCodec):
+       python_type = Status
+       bson_type = str
+       
+       def transform_python(self, value):
+           return value.value
+       
+       def transform_bson(self, value):
+           try:
+               return Status(value)
+           except ValueError:
+               return value
+
+Add Codec to the Type Registry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After defining a custom type codec, you must add it to {+driver-short+}'s **type registry**,
+the list of types the driver can encode and decode.
+To do so, create an instance of the ``TypeRegistry`` class, passing in an instance
+of your type codec class inside a list. If you create multiple custom codecs, you can
+pass them all to the ``TypeRegistry`` constructor.
+
+The following code examples adds an instance of the ``EnumCodec`` type codec to
+the type registry:
+
+.. code-block:: python
+
+   from bson.codec_options import TypeRegistry
+    
+   enum_codec = EnumCodec()
+   type_registry = TypeRegistry([enum_codec])
+
+.. note::
+
+   Once instantiated, registries are immutable and the only way to add codecs
+   to a registry is to create a new one.
+
+Get a Collection Reference
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Finally, define a ``codec_options.CodecOptions`` instance, passing your ``TypeRegistry``
+object as a keyword argument. Pass your ``CodecOptions`` object to the
+``get_collection()`` method to obtain a collection that can use your custom type:
+
+.. code-block:: python
+
+  from bson.codec_options import CodecOptions
+  
+  codec_options = CodecOptions(type_registry=type_registry)
+  collection = database.get_collection("test", codec_options=codec_options)
+
+You can then encode and decode instances of the ``Status`` class. Select the
+:guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding code:
+
+.. tabs::
+   
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: python
+
+            import pprint
+      
+            collection.insert_one({"status": Status.ACTIVE})
+            my_doc = collection.find_one({"status": "active"})
+            pprint.pprint(my_doc)
+
+         .. output::
+            :language: shell
+      
+            {'_id': ObjectId('...'), 'status': <Status.ACTIVE: 'active'>}
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: python
+
+            import pprint
+      
+            await collection.insert_one({"status": Status.ACTIVE})
+            my_doc = await collection.find_one({"status": "active"})
+            pprint.pprint(my_doc)
+
+         .. output::
+            :language: shell
+      
+            {'_id': ObjectId('...'), 'status': <Status.ACTIVE: 'active'>}
+
+To see how MongoDB stores an instance of the custom type,
+create a new collection object without the customized codec options, then use it
+to retrieve the document containing the custom type. The following example shows
+that {+driver-short+} stores an instance of the ``Status`` class as a ``str``
+value. Select the :guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the
+corresponding code:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: python
+
+            import pprint
+
+            new_collection = database.get_collection("test")
+            pprint.pprint(new_collection.find_one())
+
+         .. output::
+            :language: shell
+
+            {'_id': ObjectId('...'), 'status': 'active'}
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: python
+
+            import pprint
+
+            new_collection = database.get_collection("test")
+            pprint.pprint(await new_collection.find_one())
+
+         .. output::
+            :language: shell
+
+            {'_id': ObjectId('...'), 'status': 'active'}
+
+Encode a Subtype
+----------------
+
+You might also need to encode one or more types that inherit from your custom type.
+Consider the following subtype of the ``Status`` enum class, which contains a method to
+check if the status represents an active state:
+
+.. code-block:: python
+
+   class ExtendedStatus(Enum):
+       ACTIVE = "active"
+       INACTIVE = "inactive"
+       PENDING = "pending"
+       
+       def is_active(self):
+           return self == ExtendedStatus.ACTIVE
+
+If you try to save an instance of the ``ExtendedStatus`` class without first registering a type
+codec for it, {+driver-short+} raises an error. Select the
+:guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding code:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: python
+
+            collection.insert_one({"status": ExtendedStatus.ACTIVE})
+
+         .. output::
+            :language: shell
+
+            Traceback (most recent call last):
+            ...
+            bson.errors.InvalidDocument: Invalid document {'status': <ExtendedStatus.ACTIVE: 'active'>, '_id': ObjectId('...')} | cannot encode object: <ExtendedStatus.ACTIVE: 'active'>, of type: <enum 'ExtendedStatus'>
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: python
+
+            await collection.insert_one({"status": ExtendedStatus.ACTIVE})
+
+         .. output::
+            :language: shell
+
+            Traceback (most recent call last):
+            ...
+            bson.errors.InvalidDocument: Invalid document {'status': <ExtendedStatus.ACTIVE: 'active'>, '_id': ObjectId('...')} | cannot encode object: <ExtendedStatus.ACTIVE: 'active'>, of type: <enum 'ExtendedStatus'>
+
+To encode an instance of the ``ExtendedStatus`` class, you must define a type codec for
+the class. This type codec must inherit from the parent class's codec, ``EnumCodec``,
+as shown in the following example:
+
+.. code-block:: python
+
+   class ExtendedStatusCodec(EnumCodec):
+       @property
+       def python_type(self):
+           # The Python type encoded by this type codec
+           return ExtendedStatus
+
+You can then add the subclass's type codec to the type registry and encode instances
+of the custom type. Select the
+:guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding code:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: python
+
+            import pprint
+            from bson.codec_options import CodecOptions
+
+            extended_status_codec = ExtendedStatusCodec()
+            type_registry = TypeRegistry([enum_codec, extended_status_codec])
+            codec_options = CodecOptions(type_registry=type_registry)
+
+            collection = database.get_collection("test", codec_options=codec_options)
+            collection.insert_one({"status": ExtendedStatus.ACTIVE})
+      
+            my_doc = collection.find_one()
+            pprint.pprint(my_doc)
+
+         .. output::
+            :language: shell
+
+            {'_id': ObjectId('...'), 'status': <Status.ACTIVE: 'active'>}
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: python
+
+            import pprint
+            from bson.codec_options import CodecOptions
+
+            extended_status_codec = ExtendedStatusCodec()
+            type_registry = TypeRegistry([enum_codec, extended_status_codec])
+            codec_options = CodecOptions(type_registry=type_registry)
+
+            collection = database.get_collection("test", codec_options=codec_options)
+            await collection.insert_one({"status": ExtendedStatus.ACTIVE})
+      
+            my_doc = await collection.find_one()
+            pprint.pprint(my_doc)
+
+         .. output::
+            :language: shell
+
+            {'_id': ObjectId('...'), 'status': <Status.ACTIVE: 'active'>}
+
+.. note::
+  
+   The ``transform_bson()`` method of the ``EnumCodec`` class results in
+   these values being decoded as ``Status``, not ``ExtendedStatus``.
+
+Define a Fallback Encoder
+-------------------------
+
+You can also register a **fallback encoder**, a callable to encode types not recognized
+by BSON and for which no type codec has been registered.
+The fallback encoder accepts an unencodable
+value as a parameter and returns a BSON-encodable value.
+
+The following fallback encoder encodes Python's ``Enum`` type to a ``str``:
+
+.. code-block:: python
+
+   from enum import Enum
+
+   def fallback_encoder(value):
+       if isinstance(value, Enum):
+           return value.value
+       return value
+
+After declaring a fallback encoder, perform the following steps:
+
+- Construct a new instance of the ``TypeRegistry`` class. Use the ``fallback_encoder``
+  keyword argument to pass in the fallback encoder.
+- Construct a new instance of the ``CodecOptions`` class. Use the ``type_registry``
+  keyword argument to pass in the ``TypeRegistry`` instance.
+- Call the ``get_collection()`` method. Use the ``codec_options`` keyword argument
+  to pass in the ``CodecOptions`` instance.
+
+The following code example shows this process:
+
+.. code-block:: python
+
+   type_registry = TypeRegistry(fallback_encoder=fallback_encoder)
+   codec_options = CodecOptions(type_registry=type_registry)
+   collection = db.get_collection("test", codec_options=codec_options)
+
+You can then use this reference to a collection to store instances of the ``Status``
+class. Select the :guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the
+corresponding code:
+
+.. tabs::
+   
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: python
+
+            import pprint
+
+            collection.insert_one({"status": Status.ACTIVE})
+            my_doc = collection.find_one()
+            pprint.pprint(my_doc)
+
+         .. output::
+            :language: shell
+
+            {'_id': ObjectId('...'), 'status': 'active'}
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: python
+
+            import pprint
+
+            await collection.insert_one({"status": Status.ACTIVE})
+            my_doc = await collection.find_one()
+            pprint.pprint(my_doc)
+
+         .. output::
+            :language: shell
+
+            {'_id': ObjectId('...'), 'status': 'active'}
+
+.. note::
+
+  Fallback encoders are invoked *after* attempts to encode the given value
+  with standard BSON encoders and any configured type encoders have failed.
+  Therefore, in a type registry configured with a type encoder and fallback
+  encoder that both target the same custom type, the behavior specified in
+  the type encoder takes precedence.
+
+Encode Unknown Types
+~~~~~~~~~~~~~~~~~~~~
+.. TODO: consider new example
+
+Because fallback encoders don't need to declare the types that they encode
+beforehand, you can use them in cases where a ``TypeEncoder`` doesn't work.
+For example, you can use a fallback encoder to save arbitrary objects to MongoDB.
+Consider the following arbitrary custom types:
+
+.. code-block:: python
+
+  class MyStringType(object):
+      def __init__(self, value):
+          self.__value = value
+
+      def __repr__(self):
+          return "MyStringType('%s')" % (self.__value,)
+
+
+  class MyNumberType(object):
+      def __init__(self, value):
+          self.__value = value
+
+      def __repr__(self):
+          return "MyNumberType(%s)" % (self.__value,)
+
+You can define a fallback encoder that handles enum instances by converting them
+to their string values, or pickles other objects for storage. The following
+example shows how to handle different types of custom objects:
+
+.. code-block:: python
+
+   import pickle
+   from enum import Enum
+
+   def fallback_pickle_encoder(value):
+       if isinstance(value, Enum):
+           return value.value
+       return pickle.dumps(value).decode('latin-1')
+
+   class PickledStringDecoder(TypeDecoder):
+       bson_type = str
+
+       def transform_bson(self, value):
+           try:
+               # Try to unpickle the string value
+               return pickle.loads(value.encode('latin-1'))
+           except:
+               # If unpickling fails, return the original string
+               return value
+
+You can then use the fallback encoder in a type registry to encode and decode your custom types. Select the
+:guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding code:
+
+.. tabs::
+   
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: python
+
+            from bson.codec_options import CodecOptions,TypeRegistry
+
+            codec_options = CodecOptions(
+               type_registry=TypeRegistry(
+                  fallback_encoder=fallback_pickle_encoder
+            )
+            )
+
+            collection = db.get_collection("test", codec_options=codec_options)
+            collection.insert_one(
+               {"_id": 1, "str": MyStringType("hello world"), "num": MyNumberType(2)}
+            )
+            my_doc = collection.find_one()
+
+            print(isinstance(my_doc["str"], MyStringType))
+            print(isinstance(my_doc["num"], MyNumberType))
+
+         .. output::
+            :language: shell
+
+            True
+            True
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: python
+
+            from bson.codec_options import CodecOptions,TypeRegistry
+
+            codec_options = CodecOptions(
+               type_registry=TypeRegistry(
+                  fallback_encoder=fallback_pickle_encoder
+            )
+            )
+
+            collection = db.get_collection("test", codec_options=codec_options)
+            await collection.insert_one(
+               {"_id": 1, "str": MyStringType("hello world"), "num": MyNumberType(2)}
+            )
+            my_doc = await collection.find_one()
+
+            print(isinstance(my_doc["str"], MyStringType))
+            print(isinstance(my_doc["num"], MyNumberType))
+
+         .. output::
+            :language: shell
+
+            True
+            True
+
+Limitations
+-----------
+
+{+driver-short+} type codecs and fallback encoders have the following
+limitations:
+
+- You can't customize the encoding behavior of Python types that {+driver-short+}
+  already understands, like ``int`` and ``str``.
+  If you try to instantiate a type registry with one or more codecs that act
+  upon a built-in type, {+driver-short+} raises a ``TypeError``. This limitation also
+  applies to all subtypes of the standard types.
+
+- You can't chain type encoders. A custom type value, once
+  transformed by a codec's ``transform_python()`` method, *must* result in a
+  type that is either BSON-encodable by default, or can be
+  transformed by the fallback encoder into something BSON-encodable. It
+  *cannot* be transformed a second time by a different type codec.
+
+- The ``Database.command()`` method doesn't apply custom
+  type decoders while decoding the command response document.
+
+- The ``gridfs`` class doesn't apply custom type encoding or decoding to any
+  documents it receives or returns.
+
+API Documentation
+-----------------
+
+For more information about encoding and decoding custom types,
+see the following API documentation:
+
+- `TypeCodec <{+api-root+}bson/codec_options.html#bson.codec_options.TypeCodec>`__
+- `TypeEncoder <{+api-root+}bson/codec_options.html#bson.codec_options.TypeEncoder>`__
+- `TypeDecoder <{+api-root+}bson/codec_options.html#bson.codec_options.TypeDecoder>`__
+- `TypeRegistry <{+api-root+}bson/codec_options.html#bson.codec_options.TypeRegistry>`__
+- `CodecOptions <{+api-root+}bson/codec_options.html#bson.codec_options.CodecOptions>`__
+- `Decimal128 <{+api-root+}bson/decimal128.html>`__

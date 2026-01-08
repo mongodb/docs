@@ -1,0 +1,255 @@
+.. _pymongo-write-transactions:
+
+============
+Transactions
+============
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ACID, write, consistency, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} driver to perform
+**transactions**. Transactions allow you to run a series of operations that do 
+not change any data until the transaction is committed. If any operation in 
+the transaction returns an error, the driver cancels the transaction and discards 
+all data changes before they ever become visible.
+
+In MongoDB, transactions run within logical **sessions**. A
+session is a grouping of related read or write operations that you intend to run 
+sequentially. Sessions allow you to run operations in an
+**ACID-compliant transaction**, which is a transaction that meets an expectation
+of atomicity, consistency, isolation, and durability. MongoDB guarantees that the 
+data involved in your transaction operations remains consistent, even if the 
+operations encounter unexpected errors.
+
+When using {+driver-short+}, you can create a new session from a
+``MongoClient`` instance as a ``ClientSession`` type. We recommend that you reuse
+your ``MongoClient`` for multiple sessions and transactions instead of
+creating a new client each time.
+
+.. warning::
+
+   Use a ``ClientSession`` only with the ``MongoClient`` (or associated
+   ``MongoDatabase`` or ``MongoCollection``) that created it. Using a
+   ``ClientSession`` with a different ``MongoClient`` results in operation
+   errors.
+
+Causal Consistency
+~~~~~~~~~~~~~~~~~~
+
+MongoDB enables **causal consistency** in client sessions.
+The causal consistency model guarantees that operations within a session
+run in a causal order. Clients observe results that are consistent
+with the causal relationships, or the dependencies between
+operations. For example, if you perform a series of operations where
+one operation logically depends on the result of another, any subsequent
+reads reflect the dependent relationship.
+
+.. note::
+   
+   A client session enables causal consistency even if it does not perform a transaction.
+
+The following table describes the guarantees that causally
+consistent sessions provide:
+
+.. list-table::
+   :widths: 40 60
+   :header-rows: 1
+
+   * - Guarantee
+     - Description
+
+   * - Read your writes
+     - Read operations reflect the results of preceding write operations.
+
+   * - Monotonic reads
+     - Read operations do not return results that reflect an earlier data state than
+       a preceding read operation.
+
+   * - Monotonic writes
+     - If a write operation must precede other write operations, the driver
+       runs this write operation first.
+
+       For example, if you call ``insert_one()`` to insert a document, then call
+       ``update_one()`` to modify the inserted document, the driver runs the 
+       insert operation first.
+
+   * - Writes follow reads
+     - If a write operation must follow other read operations, the driver runs
+       the read operations first.
+
+       For example, if you call ``find()`` to retrieve a document, then call
+       ``delete_one()`` to delete the retrieved document, the driver runs the find
+       operation first.
+
+In a causally consistent session, MongoDB guarantees causal consistency between only the
+following operations:
+
+- Read operations that have a ``majority`` read concern
+- Write operations that have a ``majority`` write concern
+
+.. tip::
+
+   To learn more about the concepts mentioned in this section, see the 
+   following {+mdb-server+} manual entries:
+
+   - :manual:`Causal Consistency </core/read-isolation-consistency-recency/#causal-consistency>`
+   - :manual:`Causal Consistency and Read and Write Concerns </core/causal-consistency-read-write-concerns/>`
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants.restaurants`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:ref:`<pymongo-get-started>` tutorial.
+
+Methods
+-------
+
+After you start a session by using the ``start_session()`` method, you can manage 
+the session state by using the following methods provided by the returned ``ClientSession``:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``start_transaction()``
+     - | Starts a new transaction, configured with the given options, on
+         this session. Returns an error if there is already
+         a transaction in progress for the session. To learn more about
+         this method, see the :manual:`startTransaction() page
+         </reference/method/Session.startTransaction/>`  in the Server manual.
+       |
+       | **Parameters**: ``read_concern``, ``write_concern``, ``read_preference``, ``max_commit_time_ms``
+       | **Return Type**: ``ContextManager``
+
+   * - ``abort_transaction()``
+     - | Ends the active transaction for this session. Returns an
+         error if there is no active transaction for the session or the
+         transaction has been committed or ended. To learn more about
+         this method, see the :manual:`abortTransaction() page
+         </reference/method/Session.abortTransaction/>`  in the Server manual.
+       |
+
+   * - ``commit_transaction()``
+     - | Commits the active transaction for this session. Returns an
+         error if there is no active transaction for the session or if the
+         transaction was ended. To learn more about
+         this method, see the :manual:`commitTransaction() page
+         </reference/method/Session.commitTransaction/>`  in the Server manual.
+
+   * - ``with_transaction()``
+     - | Starts a transaction on this session and runs ``callback`` once, then
+         commits the transaction. In the event of an exception, this method may retry
+         the commit or the entire transaction, which may invoke the callback multiple 
+         times by a single call to ``with_transaction()``.
+       |
+       | **Parameters**: ``callback``, ``read_concern``, ``write_concern``, ``read_preference``, ``max_commit_time_ms``
+       | **Return Value**: The result of the ``callback`` function
+
+   * - ``end_session()``
+     - | Finishes this session. If a transaction has started, this method aborts it.
+         Returns an error if there is no active session to end.
+
+A ``ClientSession`` also has methods to retrieve session
+properties and modify mutable session properties. To learn more about these
+methods, see the :ref:`API documentation <api-docs-transaction>`.
+
+Example
+-------
+
+The following example shows how you can create a session, create a
+transaction, and commit a multi-document insert operation through the
+following steps:
+
+1. Create a session from the client by using the ``start_session()`` method.
+#. Use the ``with_transaction()`` method to start a transaction.
+#. Insert multiple documents. The ``with_transaction()`` method runs the
+   insert operation and commits the transaction. If any operation results in
+   errors, ``with_transaction()`` cancels the transaction. This method
+   ensures that the session closes properly when the block exits.
+#. Close the connection to the server by using the ``client.close()`` method.
+
+Select the :guilabel:`Synchronous` or :guilabel:`Asynchronous` tab to see the corresponding
+code:
+
+.. tabs::
+   
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. literalinclude:: /includes/write/transaction.py
+         :start-after: start-transaction
+         :end-before: end-transaction
+         :language: python
+         :copyable:
+         :dedent:
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. literalinclude:: /includes/write/transaction-async.py
+         :start-after: start-transaction
+         :end-before: end-transaction
+         :language: python
+         :copyable:
+         :dedent:
+
+If you require more control over your transactions, you can use the ``start_transaction()``
+method. You can use this method with the ``commit_transaction()`` and ``abort_transaction()``
+methods described in the preceding section to manually manage the transaction lifecycle.
+
+.. note:: Parallel Operations Not Supported
+
+   {+driver-short+} does not support running parallel operations within a single transaction.
+
+   If you're using {+mdb-server+} v8.0 or later, you can perform write operations on multiple
+   namespaces within a single transaction by calling the ``bulk_write()`` method on a ``MongoClient``
+   instance. For more information, see the :ref:`pymongo-bulk-write` guide.
+
+Additional Information
+----------------------
+
+To learn more about the concepts mentioned in this guide, see the following pages in 
+the Server manual:
+
+- :manual:`Transactions </core/transactions/>`
+- :manual:`Server Sessions </reference/server-sessions>`
+- :manual:`Read Isolation, Consistency, and Recency </core/read-isolation-consistency-recency/#causal-consistency>`
+
+To learn more about ACID compliance, see the :website:`What are ACID
+Properties in Database Management Systems? </basics/acid-transactions>`
+article on the MongoDB website.
+
+.. _api-docs-transaction:
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the types or methods discussed in this
+guide, see the following API documentation:
+
+- `ClientSession <{+api-root+}pymongo/client_session.html#pymongo.client_session.ClientSession>`__
+- `WriteConcern <{+api-root+}pymongo/write_concern.html#pymongo.write_concern.WriteConcern>`__
+- `abort_transaction() <{+api-root+}pymongo/client_session.html#pymongo.client_session.ClientSession.abort_transaction>`__
+- `commit_transaction() <{+api-root+}pymongo/client_session.html#pymongo.client_session.ClientSession.commit_transaction>`__
+- `end_session() <{+api-root+}pymongo/client_session.html#pymongo.client_session.ClientSession.end_session>`__
+- `start_transaction() <{+api-root+}pymongo/client_session.html#pymongo.client_session.ClientSession.start_transaction>`__
+- `with_transaction() <{+api-root+}pymongo/client_session.html#pymongo.client_session.ClientSession.with_transaction>`__
+- `insert_one() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.insert_one>`__
