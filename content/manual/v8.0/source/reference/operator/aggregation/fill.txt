@@ -884,6 +884,69 @@ Examples
             }
          ]
 
+      .. _fill-example-interpolating-new-values:
+
+      Interpolate Identical Values in Different Partitions
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. versionchanged:: 8.0
+
+      .. include:: /includes/fill-linear-method.rst
+
+      Create the following ``restaurantReviewsMultiple`` collection that
+      contains the following documents, which store restaurant review scores on
+      identical dates:
+
+      .. code-block:: javascript
+
+         db.restaurantReviewsMultiple.insertMany( [
+            {
+               date: ISODate("2021-03-08"),
+               restaurant: "Steve's Pizza",
+               score: 90
+            },
+            {
+               date: ISODate("2021-03-08"),
+               restaurant: "Sally's Deli",
+               score: 75
+            }
+         ] )
+
+      The following aggregation example uses ``"linear"`` to interpolate
+      the identical dates in the different partitions:
+
+      .. code-block:: javascript
+
+         db.restaurantReviewsMultiple.aggregate( [
+            {
+               $fill: {
+                  sortBy: { date: 1 },
+                  partitionBy: { "restaurant": "$restaurant" },
+                  output: { "score": { method: "linear" } }
+               }
+            }
+         ] )
+
+      Starting in MongoDB 8.0, the example returns the following output:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         [
+            {
+               _id: ObjectId("620559f4394d47411658b590"),
+               date: ISODate("2021-03-08T00:00:00.000Z"),
+               restaurant: "Sally's Deli",
+               score: 75
+            },
+            {
+               _id: ObjectId("620559f4394d47411658b58f"),
+               date: ISODate("2021-03-08T00:00:00.000Z"),
+               restaurant: "Steve's Pizza",
+               score: 90
+            }
+         ]
+
    .. tab:: 
       :tabid: nodejs
 
