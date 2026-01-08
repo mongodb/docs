@@ -355,6 +355,11 @@ const tocData: TocItem[] = [
             contentSite: 'pymongo',
             url: '/docs/languages/python/pymongo-driver/:version/integrations/fastapi-integration',
           },
+          {
+            label: 'Tutorial: Test and Package a Python Library',
+            contentSite: 'pymongo',
+            url: '/docs/languages/python/pymongo-driver/:version/integrations/test-package-library',
+          },
         ],
       },
       {
