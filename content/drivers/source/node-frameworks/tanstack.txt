@@ -1,0 +1,469 @@
+.. _node-tanstack-start-integration:
+
+=====================================
+Integrate MongoDB with TanStack Start
+=====================================
+
+.. facet::
+    :name: genre
+    :values: tutorial
+
+.. meta::
+    :keywords: tanstack, tanstack start, web app, tutorial, full stack, code example
+    :description: Build a complete TanStack Start application that connects to MongoDB. Learn how to use TanStack Query with MongoDB to query data.
+
+.. contents:: On this page
+    :local:
+    :backlinks: none
+    :depth: 2
+    :class: singlecol
+
+Overview
+--------
+
+This guide demonstrates how to build a modern web application with TanStack Start and
+MongoDB. TanStack Start is a full-stack framework that integrates frontend and backend 
+development by using React and popular libraries like TanStack Router and TanStack Query from the TanStack 
+ecosystem.
+
+The application in this tutorial consists of the following layers:
+
+- **Database Layer**: MongoDB stores and retrieves data.
+- **Server Layer**: TanStack Start provides the API endpoints and logic to connect your frontend to your MongoDB database.
+- **Data Management Layer**: TanStack Query manages server-side state on the frontend, unifying the logic for data fetching, loading states, and error handling.
+- **Presentation Layer**: React implements the UI by using the TanStack Query data.
+
+Why Use MongoDB in a TanStack Start Application?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB's document model stores data as JSON-like documents, making it easy to work with
+JavaScript objects without complex mapping. This aligns with TanStack Start's
+React components and TypeScript interfaces.
+
+TanStack Query handles the data layer efficiently by caching MongoDB responses, managing
+loading states, and synchronizing data across components. This eliminates manual state
+management and reduces redundant database calls.
+
+This combination works well for applications that need the following features:
+
+- Flexible data structures that can evolve over time
+- Real-time data updates with minimal client-side code
+- Type safety from database to UI
+- Efficient caching and background data synchronization
+
+..  _node_tanstack-start-qs-tutorial:
+
+Quick Start Tutorial
+--------------------
+
+This tutorial guides you through building a TanStack Start application that integrates
+with MongoDB. The application accesses sample restaurant data and displays the results on
+a locally hosted site. It includes instructions on connecting your MongoDB cluster 
+hosted on MongoDB Atlas and accessing and displaying information from your database.
+
+.. tip::
+
+    If you prefer to connect to MongoDB by using the Node.js driver without TanStack Start,
+    see the :driver:`Get Started with the Node.js Driver </node/current/get-started/>` guide.
+
+.. _node-tanstack-start-set-up:
+
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to install project dependencies, create an Atlas cluster,
+and set up the application directories.
+
+.. procedure::
+    :style: connected
+
+    .. step:: Verify the prerequisites
+
+        To create the Quick Start application, ensure you have the following software 
+        installed:
+
+        .. list-table::
+            :header-rows: 1
+
+            * - Prerequisite
+              - Notes
+
+            * - `Node.js <https://nodejs.org/>`__
+              - Use version 20 or later.
+
+            * - Code Editor
+              - This tutorial uses `Visual Studio Code <https://code.visualstudio.com/>`__, but you can use the editor of your choice.
+
+            * - Terminal
+              - For MacOS users, use Terminal or similar app. For Windows users, use PowerShell.
+
+    .. step:: Create a MongoDB Atlas cluster
+       
+        MongoDB Atlas is a fully managed cloud database service that hosts your MongoDB
+        deployments. If you do not have a MongoDB deployment, create a free cluster 
+        (no credit card required) by completing the 
+        `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=nodejs>`__ tutorial.
+        The MongoDB Get Started tutorial also demonstrates how to load sample databases into
+        your cluster, including the ``sample_restaurants`` database that is used in this
+        tutorial.
+                
+        To connect to your cluster, you must use a **connection URI**. To retrieve your
+        connection URI, follow the instructions in the 
+        :atlas:`Connect to Your Cluster </tutorial/connect-to-your-cluster/>`
+        tutorial in the Atlas documentation.
+
+        .. tip::
+            
+            Save your connection URI in a secure location.
+
+    .. step:: Create the project skeleton
+
+        Use the official TanStack Start CLI to initialize the project skeleton.
+        Open your terminal and navigate to your desired project directory.
+
+        Run the initialization command:
+
+        .. code-block:: bash
+
+            npm create @tanstack/start@latest
+
+        Configuration Prompts
+        ^^^^^^^^^^^^^^^^^^^^^
+
+        The installation wizard guides you through the setup. Select the following options:
+
+        .. list-table::
+            :header-rows: 1
+
+            * - Prompt
+              - Input
+              - Action
+
+            * - What would you like to name your project?
+              - Your desired project name
+              - Type the name, press Enter
+
+            * - Would you like to use Tailwind CSS?
+              - Yes
+              - Type Y, press Enter
+
+            * - Select a toolchain
+              - Default (None)
+              - Select None, press Enter
+
+            * - Select your deployment adapter
+              - Default: (Nitro)
+              - Press Enter
+
+            * - What add-ons would you like for your project?
+              - None
+              - Press Enter (TanStack Query will be installed manually)
+
+            * - Would you like any examples?
+              - None
+              - Press Enter
+
+        After installation completes, navigate into your project directory.
+
+    .. step:: Configure Vite for MongoDB compatibility
+
+        TanStack Start uses Vite as the build tool. By default, 
+        Vite attempts to bundle dependencies for the browser. However, 
+        the Node.js Driver relies on `mongodb-client-encryption`, a 
+        server-side native module that causes errors when Vite bundles 
+        it for browser environments.
+
+        To prevent this, configure Vite to exclude the 
+        `mongodb-client-encryption` module from optimization and 
+        server-side rendering.
+
+        Navigate to ``vite.config.ts`` in your project root and 
+        replace the contents with the following code:
+
+        .. literalinclude:: /includes/node-frameworks/tanstack/vite.config.ts
+            :caption: vite.config.ts
+            :language: typescript
+        
+    .. step:: Install MongoDB & TanStack Query
+
+        Install the Node.js Driver to allow the server code to connect to the database 
+        and install TanStack Query to manage data fetching on the frontend.
+
+        Run the following command in your project root:
+
+        .. code-block:: bash
+
+            npm install mongodb @tanstack/react-query
+
+    .. step:: Clean up the project structure
+
+        The installation wizard created files you do not need. To keep the
+        project clean and avoid auto-import confusion, delete the ``data`` and ``demo``
+        directories.
+
+        Run the following commands in your project root:
+
+        .. code-block:: bash
+            
+            rm -rf src/data
+            rm -rf src/routes/demo
+    
+.. _node_tanstack_start-configure-the-backend:
+
+Configure the Back End
+~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up the project structure, follow the steps in this section to set up 
+the backend.
+
+.. procedure::
+    :style: connected
+
+    .. step:: Configure your environment variable
+
+        Create a ``.env`` file at the root of your project to securely store your
+        connection URI.
+
+        Run the following command in your project root:
+
+        .. code-block:: bash
+
+            touch .env
+
+        Open the ``.env`` file and add your connection URI:
+
+        .. code-block:: bash
+
+            MONGODB_URI=<Your Connection URI>
+
+        .. note::
+
+            Replace ``<Your Connection URI>`` with the connection URI you 
+            received from MongoDB Atlas.
+
+    .. step:: Create the database connection
+
+        Create a dedicated TypeScript file to initialize the MongoDB client.
+
+        Run the following commands in your project root to create the file
+        structure:
+
+        .. code-block:: bash
+
+            mkdir -p src/lib
+            touch src/lib/db.ts
+
+
+        Open ``src/lib/db.ts`` and paste the following code:
+
+        .. literalinclude:: /includes/node-frameworks/tanstack/db.ts
+            :caption: src/lib/db.ts
+            :language: typescript
+
+        This file contains the ``connectToDatabase()`` function that connects to 
+        your MongoDB cluster, and to the ``sample_restaurants`` database. The 
+        ``sample_restaurants`` database contains restaurant data from New York City 
+        including fields like restaurant name, cuisine type, borough, and 
+        address information.
+
+    .. step:: Create the server functions
+
+        TanStack Start uses server functions to run code securely on the server. 
+        Create a dedicated file to handle the database queries.
+
+        Run the following commands in your project root to create 
+        a ``restaurants.ts`` file:
+
+        .. code-block:: bash
+            
+            mkdir -p src/server
+            touch src/server/restaurants.ts
+
+        Open ``src/server/restaurants.ts`` and paste the following code:
+
+        .. literalinclude:: /includes/node-frameworks/tanstack/restaurants.ts
+            :caption: src/server/restaurants.ts
+            :language: typescript
+
+        This file contains two functions, 
+        ``getAllRestaurants()`` and ``getRestaurantsByBorough()``. These two
+        functions query your MongoDB cluster and return the requested
+        data.
+
+.. _node_tanstack_configure-the-frontend:
+
+Configure the Front End
+~~~~~~~~~~~~~~~~~~~~~~~
+            
+After setting up the database and server layer, follow the steps in this section to
+complete the data management and presentation layer.
+
+.. procedure::
+    :style: connected
+
+    .. step:: Create the header component
+
+        Navigate to ``src/components/Header.tsx`` and replace the content with the 
+        following code:
+
+        .. literalinclude:: /includes/node-frameworks/tanstack/Header.tsx
+            :caption: src/components/Header.tsx
+            :language: react
+
+        This component renders the header above the restaurant results, and contains the 
+        browse link and logo. These allow you to navigate between routes.
+
+    .. step:: Create the restaurant list component
+
+        Run the following command from your project root to create the
+        ``RestaurantList`` component:
+
+        .. code-block:: bash
+
+            touch src/components/RestaurantList.tsx
+
+        Paste the following code into ``src/components/RestaurantList.tsx``:         
+
+        .. literalinclude:: /includes/node-frameworks/tanstack/RestaurantList.tsx
+            :caption: src/components/RestaurantList.tsx
+            :language: react
+
+        This component handles the display of the restaurants. The query data is handled 
+        as props, and the props are displayed within a table.
+
+    .. step:: Configure application routing
+  
+        Navigate to ``src/routes/__root.tsx``. Replace the contents of ``__root.tsx`` 
+        with the following code:
+
+        .. literalinclude:: /includes/node-frameworks/tanstack/__root.tsx
+            :caption: src/routes/__root.tsx
+            :language: react
+
+        This file is a wrapper around your entire application. The code uses a
+        ``QueryClientProvider`` to ensure TanStack Query manages the data state.
+
+    .. step:: Configure the home page
+
+        Navigate to ``src/routes/index.tsx``. Replace the contents of ``index.tsx``
+        with the following code:
+        
+        .. literalinclude:: /includes/node-frameworks/tanstack/index.tsx
+            :caption: src/routes/index.tsx
+            :language: react
+        
+        This route displays the results of the ``getAllRestaurants()`` by using the 
+        ``Header`` and ``RestaurantList`` components.
+
+    .. step:: Create the browse page
+
+        Run the following command from your project root to create the
+        ``browse.tsx`` route.
+
+        .. code-block:: bash
+
+            touch src/routes/browse.tsx
+
+        Paste the following code into ``src/routes/browse.tsx``:
+
+        .. literalinclude:: /includes/node-frameworks/tanstack/browse.tsx
+            :caption: src/routes/browse.tsx
+            :language: react
+
+        This page displays a filtered query of the ``sample_restaurants`` database.
+        It displays all the restaurants in Queens with ``Moon`` in their name. It also
+        uses the ``Header`` and ``RestaurantList`` components.
+
+        .. note::
+
+            You may have red underline warnings in your IDE on the ``createFileRoute`` 
+            lines until you run the server. This is normal. TanStack Router generates 
+            the necessary TypeScript type definitions for your routes when you first 
+            run the application with ``npm run dev``. After the server starts, 
+            the warnings will disappear.
+
+    .. step:: Verify your file structure
+
+        Before continuing, ensure your file tree closely matches the structure below.
+        You can safely ignore any additional project files.
+        
+        .. code-block:: text
+            :copyable: false
+            
+            your-app/
+            ├─ node_modules/
+            ├─ public/
+            ├─ src/
+            │  ├─ components/
+            │  │  ├─ Header.tsx <-- Logo and browse link
+            │  │  ├─ RestaurantList.tsx <-- Table that displays results of DB query
+            │  ├─ routes/
+            │  │  ├─ __root.tsx <-- Application wrapper
+            │  │  ├─ browse.tsx <-- Browse page, holds results of getRestaurantsByBorough()
+            │  │  ├─ index.tsx <-- Home page, holds results of getAllRestaurants()
+            │  ├─ server/
+            │  │  ├─ restaurants.ts <--- Server functions
+            │  ├─ lib/
+            │  │  ├─ db.ts <--- Database connection
+            ├─ .env <-- Connection URI
+
+.. _node-tanstack-run-your-application:
+
+Run Your Application
+~~~~~~~~~~~~~~~~~~~~
+
+Follow the remaining steps to start the server and view the rendered restaurant data.
+
+.. procedure::
+    :style: connected
+
+    .. step:: Start the server
+
+        Run the following command in your project root to start the development server:
+
+        .. code-block::  bash
+
+            npm run dev
+
+        If successful, the command outputs the following information in the terminal:
+
+        .. code-block:: text
+            :copyable: false
+
+            VITE v7.2.4  ready in 939 ms
+
+            ➜  Local:   http://localhost:3000/
+            ➜  Network: use --host to expose
+            ➜  press h + enter to show help 
+
+    .. step:: Open the application 
+
+        Open ``http://localhost:3000/`` in your browser. The initial landing page 
+        displays all of the restaurants in the ``sample_restaurants`` database.
+
+        .. figure:: /figures/tanstack-landing.png
+            :alt: The landing app that displays all restaurants in the sample_restaurants database
+
+    .. step:: View the browse page
+
+        Click the :guilabel:`Browse` link in the header to view a filtered list of 
+        restaurants in Queens with ``Moon`` in the name.
+
+        .. figure:: /figures/tanstack-filtered.png
+            :alt: The browse page displays filtered restaurants from the sample_restaurants database.
+
+Congratulations on completing the Quick Start tutorial!
+
+After you complete these steps, you will have a TanStack Start application that connects
+to your MongoDB deployment, runs queries on sample restaurant data, and renders the 
+results with real-time reactivity. 
+
+Additional Resources
+--------------------
+
+To learn more about TanStack Start, the TanStack ecosystem and MongoDB, view the 
+following resources: 
+
+- `TanStack Start <https://tanstack.com/start/latest>`__ documentation
+- `TanStack <https://tanstack.com/>`__ documentation
+- :driver:`Node.js driver </node/current/>` documentation

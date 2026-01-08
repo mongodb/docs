@@ -190,6 +190,11 @@ const tocData: TocItem[] = [
             contentSite: 'drivers',
             url: '/docs/drivers/node-frameworks/meteor-vue/',
           },
+          {
+            label: 'TanStack Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/node-frameworks/tanstack/',
+          },
         ],
       },
       {
