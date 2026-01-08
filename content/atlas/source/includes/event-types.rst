@@ -45,7 +45,7 @@
    * - ``ADD_HOST_TO_REPLICA_SET_AUDIT``
      - .. _atlas_event_add_host_to_replica_set_audit:
 
-       Host added to replica set
+       Mongo process is being monitored
      - yes
 
    * - ``ADMIN_CLUSTER_LOCK_UPDATED``
@@ -58,6 +58,12 @@
      - .. _atlas_event_admin_note_updated:
 
        Admin updated admin note for project
+     - no
+
+   * - ``ADMIN_OVERRIDE_PAYMENT_METHOD_DELETED``
+     - .. _atlas_event_admin_override_payment_method_deleted:
+
+       Admin Override payment method deleted
      - no
 
    * - ``AGENT_API_KEY_CREATED``
@@ -119,6 +125,12 @@
 
        Alert configuration enabled
      - no
+
+   * - ``ALERT_HOST_SSH_SESSION_STARTED``
+     - .. _atlas_event_alert_host_ssh_session_started:
+
+       A MongoDB employee started an SSH session started for a host in this Atlas project.
+     - yes
 
    * - ``ALERT_UNACKNOWLEDGED_AUDIT``
      - .. _atlas_event_alert_unacknowledged_audit:
@@ -670,6 +682,12 @@
      - .. _atlas_event_backup_deployment_deleted:
 
        Backup deployment deleted
+     - no
+
+   * - ``BACKUP_IMPORT_CHANGE``
+     - .. _atlas_event_backup_import_change:
+
+       Backup import status changed
      - no
 
    * - ``BACKUP_SUPPORTED``
@@ -1236,11 +1254,29 @@
        An instance in the cluster was manually stopped and started
      - yes
 
+   * - ``CLUSTER_INSTANCE_SWAPPED``
+     - .. _atlas_event_cluster_instance_swapped:
+
+       An instance in the cluster was manually swapped
+     - no
+
+   * - ``CLUSTER_INSTANCE_SWAP_CLEARED``
+     - .. _atlas_event_cluster_instance_swap_cleared:
+
+       An instance swap in the cluster was manually cleared
+     - no
+
    * - ``CLUSTER_INSTANCE_UPDATE_REQUESTED``
      - .. _atlas_event_cluster_instance_update_requested:
 
        An instance update in the cluster was manually requested
      - yes
+
+   * - ``CLUSTER_INSTANCE_VM_REBOOT_CLEARED``
+     - .. _atlas_event_cluster_instance_vm_reboot_cleared:
+
+       An instance VM reboot in the cluster was manually cleared
+     - no
 
    * - ``CLUSTER_INSTANCE_VM_RESTART_CLEARED``
      - .. _atlas_event_cluster_instance_vm_restart_cleared:
@@ -1452,10 +1488,16 @@
        Cluster storage engine has been updated
      - no
 
+   * - ``CLUSTER_SYSTEMD_OVERRIDES_CHANGED``
+     - .. _atlas_event_cluster_systemd_overrides_changed:
+
+       Cluster systemd slice overrides changed
+     - no
+
    * - ``CLUSTER_TAGS_MODIFIED``
      - .. _atlas_event_cluster_tags_modified:
 
-       Tag(s) were added or modified
+       Tag(s) were added or modified on a cluster
      - yes
 
    * - ``CLUSTER_UNBLOCK_WRITE``
@@ -2088,6 +2130,12 @@
        Credit issued
      - no
 
+   * - ``CREDIT_MOVED``
+     - .. _atlas_event_credit_moved:
+
+       Credit moved
+     - no
+
    * - ``CREDIT_PULLED_FWD``
      - .. _atlas_event_credit_pulled_fwd:
 
@@ -2277,7 +2325,7 @@
    * - ``DATA_LAKE_QUERY_LOGS_DOWNLOADED``
      - .. _atlas_event_data_lake_query_logs_downloaded:
 
-       Query logs downloaded for Data Lake Tenant
+       User downloaded query logs for Data Lake Tenant.
      - no
 
    * - ``DATA_PROCESSING_REGION_UPDATED``
@@ -2571,7 +2619,7 @@
    * - ``FEDERATED_DATABASE_QUERY_LOGS_DOWNLOADED``
      - .. _atlas_event_federated_database_query_logs_downloaded:
 
-       Query logs downloaded for Federated Database Instance
+       User downloaded query logs for Federated Database Instance.
      - no
 
    * - ``FEDERATED_DATABASE_REMOVED``
@@ -3036,6 +3084,18 @@
        Host is exposed to the public Internet
      - yes
 
+   * - ``HOST_EXTERNAL_LOG_SINK_EXPORT_DOWN``
+     - .. _atlas_event_host_external_log_sink_export_down:
+
+       Log export is unable to export logs on this host
+     - yes
+
+   * - ``HOST_EXTERNAL_LOG_SINK_EXPORT_RESUMED``
+     - .. _atlas_event_host_external_log_sink_export_resumed:
+
+       Log export has resumed on this host
+     - no
+
    * - ``HOST_HAS_INDEX_SUGGESTIONS``
      - .. _atlas_event_host_has_index_suggestions:
 
@@ -3063,7 +3123,7 @@
    * - ``HOST_MONGOT_PAUSE_INITIAL_SYNC``
      - .. _atlas_event_host_mongot_pause_initial_sync:
 
-       Mongot paused initial sync because disk utilization is too high.
+       Mongot paused initial sync
      - yes
 
    * - ``HOST_MONGOT_RECOVERED_OOM``
@@ -3088,6 +3148,12 @@
      - .. _atlas_event_host_mongot_sufficient_disk_space:
 
        Mongot is no longer at risk of replication stopping
+     - no
+
+   * - ``HOST_MONGOT_UNPAUSE_INITIAL_SYNC``
+     - .. _atlas_event_host_mongot_unpause_initial_sync:
+
+       Mongot unpaused initial sync
      - no
 
    * - ``HOST_NOT_ENOUGH_DISK_SPACE``
@@ -3624,6 +3690,12 @@
        Maintenance has been auto-deferred
      - yes
 
+   * - ``MAINTENANCE_COMPLETED``
+     - .. _atlas_event_maintenance_completed:
+
+       Maintenance window completed
+     - yes
+
    * - ``MAINTENANCE_IN_ADVANCED``
      - .. _atlas_event_maintenance_in_advanced:
 
@@ -3783,7 +3855,7 @@
    * - ``MONGODB_LOGS_DOWNLOADED``
      - .. _atlas_event_mongodb_logs_downloaded:
 
-       Logs downloaded for Atlas host
+       User downloaded logs for a host in this Atlas project.
      - no
 
    * - ``MONGODB_ROLE_ADDED``
@@ -3837,7 +3909,19 @@
    * - ``MONGOSQLD_LOGS_DOWNLOADED``
      - .. _atlas_event_mongosqld_logs_downloaded:
 
-       Logs downloaded for BI Connector
+       User downloaded logs for a BI Connector instance in this project.
+     - no
+
+   * - ``MONGOTUNE_ALERT``
+     - .. _atlas_event_mongotune_alert:
+
+       Intelligent Workload Management
+     - yes
+
+   * - ``MONGOTUNE_INFO``
+     - .. _atlas_event_mongotune_info:
+
+       Intelligent Workload Management
      - no
 
    * - ``MONGOTUNE_WRITE_BLOCK_POLICY_ELIGIBLE``
@@ -3855,7 +3939,7 @@
    * - ``MONGOT_LOGS_DOWNLOADED``
      - .. _atlas_event_mongot_logs_downloaded:
 
-       Logs downloaded for Search process
+       User downloaded logs for a Search process in this project.
      - no
 
    * - ``MONITORING_AGENT_DOWN``
@@ -3868,6 +3952,18 @@
      - .. _atlas_event_monitoring_agent_overrides:
 
        Admin set monitoring agent overrides
+     - no
+
+   * - ``MONITORING_AGENT_REBALANCE_FLAG``
+     - .. _atlas_event_monitoring_agent_rebalance_flag:
+
+       Admin flagged or cleared monitoring agent rebalance
+     - no
+
+   * - ``MONITORING_AGENT_REBALANCE_TRIGGERED``
+     - .. _atlas_event_monitoring_agent_rebalance_triggered:
+
+       Admin triggered immediate monitoring agent rebalance
      - no
 
    * - ``MONITORING_AGENT_UP``
@@ -4119,7 +4215,7 @@
    * - ``ONLINE_ARCHIVE_QUERY_LOGS_DOWNLOADED``
      - .. _atlas_event_online_archive_query_logs_downloaded:
 
-       Query logs downloaded for Online Archive
+       User downloaded query logs for Online Archive.
      - no
 
    * - ``ONLINE_ARCHIVE_UPDATED``
@@ -4210,6 +4306,18 @@
      - .. _atlas_event_org_baas_eol_extension_pending:
 
        Extension request for App Services products is pending
+     - no
+
+   * - ``ORG_BANK_ACCOUNT_ADDED``
+     - .. _atlas_event_org_bank_account_added:
+
+       Bank account was added
+     - no
+
+   * - ``ORG_BANK_ACCOUNT_UPDATED``
+     - .. _atlas_event_org_bank_account_updated:
+
+       Bank account information was updated
      - no
 
    * - ``ORG_CLUSTERS_DELETED``
@@ -4577,6 +4685,18 @@
 
        Organization users do not have MFA enabled
      - yes
+
+   * - ``ORG_WALLET_ADDED``
+     - .. _atlas_event_org_wallet_added:
+
+       Wallet was added
+     - no
+
+   * - ``ORG_WALLET_UPDATED``
+     - .. _atlas_event_org_wallet_updated:
+
+       Wallet information was updated
+     - no
 
    * - ``OS_MAINTENANCE``
      - .. _atlas_event_os_maintenance:
@@ -5067,7 +5187,7 @@
    * - ``REMOVE_HOST_FROM_REPLICA_SET_AUDIT``
      - .. _atlas_event_remove_host_from_replica_set_audit:
 
-       Host removed from replica set
+       Mongo process is not being monitored as it has been unresponsive for a period of time
      - yes
 
    * - ``REPLICATION_OPLOG_WINDOW_HEALTHY``
@@ -5604,6 +5724,12 @@
        Shadow cluster recording status updated
      - no
 
+   * - ``SHADOW_CLUSTER_REPLAY_STATUS_UPDATE``
+     - .. _atlas_event_shadow_cluster_replay_status_update:
+
+       Shadow cluster replay status updated
+     - no
+
    * - ``SNAPSHOT_DELETED_AUDIT``
      - .. _atlas_event_snapshot_deleted_audit:
 
@@ -5752,6 +5878,12 @@
      - .. _atlas_event_stream_tenant_deleted:
 
        Stream Processing Workspace deleted
+     - no
+
+   * - ``STREAM_TENANT_OPERATIONAL_LOGS``
+     - .. _atlas_event_stream_tenant_operational_logs:
+
+       Stream Processing Workspace operational logs downloaded
      - no
 
    * - ``STREAM_TENANT_UPDATED``
