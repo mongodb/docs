@@ -4,6 +4,11 @@
 Cursors
 =======
 
+.. meta::
+   :description: Learn about cursors in MongoDB. Cursors point to the
+      results of a query and let you iterate over database results one
+      batch at a time.
+
 .. default-domain:: mongodb
 
 .. contents:: On this page
@@ -12,49 +17,46 @@ Cursors
    :depth: 1
    :class: singlecol
 
-A :term:`cursor` is a pointer to the results of a :ref:`query<read-operations-queries>`. 
-Cursors allow you to iterate over database results one batch at a time.
+A :term:`cursor` points to the results of a :ref:`query
+<read-operations-queries>`. Cursors let you iterate over database
+results one batch at a time.
 
 Use Cases
 ---------
 
-When you execute ``find()`` and ``aggregate()`` methods using :binary:`~bin.mongosh` 
-or a :driver:`driver </>`, they return a cursor containing a batch of results. 
-You can access the resulting documents by manually iterating the cursor or 
-using the :method:`~cursor.toArray()` method. For more information, see 
+The ``find()`` and ``aggregate()`` methods return a cursor with a batch
+of results. Iterate the cursor manually or use :method:`~cursor.toArray()`
+to access documents. For more information, see
 :ref:`<read-operations-cursors>`.
 
-If you are accessing a :ref:`capped collection <manual-capped-collection>`, 
-you can use a tailable cursor that retrieves new documents as they are inserted 
-into the collection. For more information, see 
-:ref:`<tailable-cursors-landing-page>`.
+For :ref:`capped collections <manual-capped-collection>`, use a
+tailable cursor to retrieve documents as they are inserted. For more
+information, see :ref:`<tailable-cursors-landing-page>`.
 
 .. _cursor-behaviors:
 
 Behavior
 --------
 
-Cursors created within a :ref:`client session <read-isolation-consistency-recency>` 
-are closed in the following scenarios:
+MongoDB closes cursors created within a :ref:`client session
+<read-isolation-consistency-recency>` when:
 
 - The client exhausts the cursor.
-- A user manually closes the cursor.
-- A user manually terminates the session.
+- You manually close the cursor.
+- You manually terminate the session.
 - The :ref:`session <server-sessions>` times out.
 
-The :parameter:`cursorTimeoutMillis` parameter specifies the timeout for idle
-cursors and has a default value of 10 minutes. MongoDB times out idle cursors
-created outside of sessions after this threshold. MongoDB extends the cursor
-timeout each time the cursor returns a new batch. To manually close a cursor,
-use :dbcommand:`killCursors`.
+:parameter:`cursorTimeoutMillis` sets the timeout for idle cursors
+(default: 10 minutes). MongoDB closes idle cursors outside sessions
+after this time. Returning a batch extends the timeout. Use
+:dbcommand:`killCursors` to close cursors manually.
 
-The server session timeout is specified by the :parameter:`localLogicalSessionTimeoutMinutes` 
-parameter and has a default value of 30 minutes. To extend a session beyond 30 minutes, 
-use :dbcommand:`refreshSessions`. To manually terminate a session, use 
-:dbcommand:`killSessions`.
+:parameter:`localLogicalSessionTimeoutMinutes` sets the session timeout
+(default: 30 minutes). Use :dbcommand:`refreshSessions` to extend a
+session and :dbcommand:`killSessions` to end it.
 
-If a cursor is opened outside of a session, MongoDB drivers and :binary:`~bin.mongosh` 
-create an implicit session and associate it with the operation. 
+Drivers and :binary:`~bin.mongosh` create implicit sessions for cursors
+opened outside explicit sessions. 
 
 .. _cursor-isolation:
 .. _cursor-concurrent-updates:
@@ -69,7 +71,6 @@ Cursor Results for Non-Existent ``mongos`` Databases
 
 .. include:: /includes/fact-mongos-db-agg-validation.rst
 
-
 Get Started
 -----------
 
@@ -82,46 +83,39 @@ Get Started
 Details
 -------
 
-When you run a :dbcommand:`find` or :dbcommand:`aggregate` operation,
-the database executes a query until it finds enough documents 
-to fill a :ref:`batch <cursor-batches>`. When a batch is filled, the query
-pauses. The paused query on the server is referred to as a *cursor* 
-and the ID associated with the paused query is a *cursor ID*.
+:dbcommand:`find` and :dbcommand:`aggregate` operations execute until
+they fill a :ref:`batch <cursor-batches>`. The query then pauses. This
+paused query is a *cursor*, identified by a *cursor ID*.
 
-The database returns the resulting batch and cursor ID to the client. MongoDB 
-drivers and ``mongosh`` store this data in a client-side cursor instance.
-If there are more matching documents when you reach the end of a batch, the 
-client-side cursor automatically retrieves the next batch from the server using 
-:dbcommand:`getMore`. To see how many results remain in the current batch, use 
-:method:`cursor.objsLeftInBatch()`. To check if there are any results remaining
-in the current batch or on the server, use :method:`cursor.hasNext()`.
+The database returns the batch and cursor ID. Drivers and ``mongosh``
+store this in a client-side cursor. If more documents exist, the cursor
+retrieves the next batch via :dbcommand:`getMore`. Use
+:method:`cursor.objsLeftInBatch()` to check remaining batch results and
+:method:`cursor.hasNext()` to check for more results.
 
 .. _cursor-batches:
 
 Cursor Batches
 ~~~~~~~~~~~~~~
 
-Cursors return results in batches. The amount of data in a batch must be smaller 
-than the :ref:`maximum BSON document size <limit-bson-document-size>` (16 MiB). To 
-specify the maximum number of documents allowed in a batch, see :method:`cursor.batchSize()`. 
-By default, the batch size for ``find()`` and ``aggregate()`` operations is ``101``.
-Subsequent :dbcommand:`getMore` operations issued against the resulting cursor 
-have no default batch size, so they are limited only by the 16 mebibyte 
+Cursors return results in batches, limited by the 16 MiB :ref:`maximum
+BSON document size <limit-bson-document-size>`. Use
+:method:`cursor.batchSize()` to set the document limit. ``find()`` and
+``aggregate()`` default to a batch size of ``101``. Subsequent
+:dbcommand:`getMore` operations have no default limit, only the 16 MiB
 message size.
 
 Sorting
 ~~~~~~~
 
-For queries that include a sort operation *without* an index, the
-server must load all the documents in memory to perform the sort
-before returning any results.
+Queries with a sort operation *without* an index must load all
+documents into memory before returning results.
 
 Cursor Information
 ~~~~~~~~~~~~~~~~~~
 
-The :method:`db.serverStatus()` method returns a document that includes
-a ``metrics`` field. The ``metrics`` field contains a ``metrics.cursor`` 
-field with detailed cursor information. To learn more, see :serverstatus:`metrics.cursor`.
+:method:`db.serverStatus()` returns cursor metrics in the
+``metrics.cursor`` field. See :serverstatus:`metrics.cursor`.
 
 Learn More
 ----------
