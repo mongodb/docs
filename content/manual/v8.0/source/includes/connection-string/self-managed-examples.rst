@@ -1,9 +1,3 @@
-Additional Connection String Examples
--------------------------------------
-
-The following examples show connection strings for common connection
-targets.
-
 admin Database Running Locally
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
