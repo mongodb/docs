@@ -1,6 +1,7 @@
-Planning and designing your schema is best done early in your
-application development process. Starting your application with good
-data modeling practices helps prevent performance issues as your application 
-grows. When you follow data modeling best practices early and appropriately, you 
-can achieve better performance and make it easier to scale your application in 
-the future.
+Plan and design your schema early in the development process.
+This helps prevent performance issues as your application grows.
+
+MongoDB's flexible schema allows you to design your schema iteratively.
+However, it can still be difficult to modify large-scale schemas that 
+are used in production. Depending on your application, you may want 
+to establish a simple schema to cover basic functionality before optimizing.

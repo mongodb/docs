@@ -1,7 +1,4 @@
 Your schema validation needs depend on how users use your application.
-MongoDB's flexible schema makes it easy to evolve your data model, especially 
-in the early stages of development. However, as your data model stabilizes, 
-schema validation can be a helpful way to ensure the data looks as intended. 
 Schema validation is most useful for an established application where you have a 
 good sense of how to organize your data. 
 
