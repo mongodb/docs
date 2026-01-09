@@ -915,10 +915,6 @@ interface InstruqtNode extends Directive<InstruqtOptions> {
   argument: TextNode[];
 }
 
-interface GuideNextNode extends Directive {
-  name: 'guide-next';
-}
-
 type ASTNode =
   | AbbrRoleNode
   | AdmonitionNode
@@ -950,7 +946,6 @@ type ASTNode =
   | FigureNode
   | FootnoteNode
   | FootnoteReferenceNode
-  | GuideNextNode
   | HeadingNode
   | HighlightNode
   | ImageNode
@@ -1037,7 +1032,6 @@ export type {
   FigureNode,
   FootnoteNode,
   FootnoteReferenceNode,
-  GuideNextNode,
   HeadingNode,
   HeadingNodeSelectorIds,
   HeadingOption,

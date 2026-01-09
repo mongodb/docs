@@ -9,7 +9,7 @@ export const appendTrailingPunctuation = (nodes: ASTNode[]) => {
     const currNode = nodes[i];
     const nextNode = nodes[i + 1];
     const hasDanglingSibling = isTextNode(nextNode) && nextNode.value.length === 1 && !nextNode.value.match(/\s/);
-    // TODO: if issues arise, instead of matching for non-whitespace, we might consider checking FOR certain singular punctuation
+    // Note: If issues arise, instead of matching for non-whitespace, we might consider checking FOR certain singular punctuation
     // ie: regex match for  .?!,:;)*"']}`
 
     if ((isReferenceNode(currNode) || isRefRoleNode(currNode)) && hasDanglingSibling) {

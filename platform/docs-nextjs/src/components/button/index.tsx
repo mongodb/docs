@@ -8,7 +8,6 @@ import type { ButtonNode } from '@/types/ast';
 import ComponentFactory from '@/components/component-factory';
 import type { LinkProps } from '@/components/link';
 
-// TODO: include mapping of colors to use against button 'variant' attributes
 const buttonStyling = css`
   &.button {
     color: #ffffff;

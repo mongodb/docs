@@ -187,8 +187,6 @@ async function getSlackChannelIds({
     );
   }
 
-  // TODO: If this becomes more frequent
-  // we can create a collection for maintaining
   const specialCases = ['spark-connector'];
   const removeChannelId = '#docs-feedback';
 
@@ -240,7 +238,6 @@ async function createSlackMessage(
   const { title, slug, url } = page;
   const { averageRating, totalRatings } = pageMetrics;
 
-  // TODO: can we get rid of this? Shouldn't type always be screenshot
   const screenshotAttachment = feedback.attachments.filter((a) => a.type === 'screenshot')[0] as S3ScreenshotAttachment;
   const text = `(${category}) Feedback for ${title}`;
   // Primary Message

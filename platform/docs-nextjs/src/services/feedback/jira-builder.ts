@@ -46,7 +46,6 @@ export function buildJiraDescription(feedback: FeedbackDocument) {
   if (feedback.user.email) {
     description.push(`*User Email:* ${feedback.user.email}`);
   }
-  //TODO can we remove this? All attachments should be screenshots
   const screenshotAttachment = feedback.attachments.filter((a: Attachment) => a.type === 'screenshot')[0];
   if (screenshotAttachment) {
     description.push(`*Screenshot:* [Download from S3|${(screenshotAttachment as S3ScreenshotAttachment).url}]`);

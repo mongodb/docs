@@ -8,8 +8,7 @@ import type { ParagraphNode } from '@/types/ast';
 const typedMockData = mockData as ParagraphNode;
 const typedMockDataFormat = mockDataFormat as ParagraphNode;
 
-// TODO: Can be used once Link & Reference components are handled!!
-describe.skip('Paragraph unit tests', () => {
+describe('Paragraph unit tests', () => {
   it('renders correctly', () => {
     const tree = render(<Paragraph nodeChildren={typedMockData.children} />);
     expect(tree.asFragment()).toMatchSnapshot();

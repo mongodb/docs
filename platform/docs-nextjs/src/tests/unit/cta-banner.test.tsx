@@ -11,7 +11,6 @@ jest.mock('@/utils/use-snooty-metadata', () => ({
   useSnootyMetadata: jest.fn(),
 }));
 
-//TODO: uncomment snapshot tests once Next migration is complete
 beforeAll(() => {
   mockLocation({ hash: '' });
   (useSnootyMetadata as jest.Mock).mockImplementation(() => ({ project: 'docs-node', branch: 'v4.9' }));

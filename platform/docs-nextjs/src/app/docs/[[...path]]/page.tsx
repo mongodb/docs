@@ -2,16 +2,17 @@ import { log } from '@/utils/logger';
 import { notFound } from 'next/navigation';
 import { getSnootyMetadata } from '@/services/db/snooty-metadata';
 import { getAllDocsetsWithVersionsCached } from '@/services/db/docsets';
-import { type ASTDocument, getPageDocFromParams } from '@/services/db/pages';
+import { getPageDocFromParams } from '@/services/db/pages';
 import { getPageMetadata, getLocaleLinks } from '@/utils/seo';
 import type { DBMetadataDocument } from '@/services/db/snooty-metadata';
 import { fetchAllAssets } from '@/services/db/assets';
 import { CustomTemplate } from './custom-template';
 import { cookies } from 'next/headers';
-import envConfig from '@/utils/env-config';
+import envConfig, { Environments } from '@/utils/env-config';
 import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
 import type { ServerSideChangelogData } from '@/types/openapi';
 import { getChangelogData } from '@/services/db/openapi';
+import type { Docset } from '@/types/data';
 
 interface PageProps {
   params: {
@@ -79,12 +80,13 @@ export default async function Page({ params: { path } }: PageProps) {
 }
 
 export async function generateMetadata({ params: { path } }: PageProps) {
-  const pageDoc = (await getPageDocFromParams({ path })) as ASTDocument;
+  const [pageDoc, docsets] = await Promise.all([getPageDocFromParams({ path }), getAllDocsetsWithVersionsCached()]);
   const snootyMetadata = (await getSnootyMetadata(pageDoc?.buildId ?? '')) as DBMetadataDocument;
+  const docset = docsets.find((docset: Docset) => docset.project === snootyMetadata.project);
 
   let metadata = null;
-  if (pageDoc) {
-    metadata = getPageMetadata({ pageDoc, snootyMetadata });
+  if (pageDoc && docset) {
+    metadata = getPageMetadata({ pageDoc, snootyMetadata, docset });
   }
   return metadata;
 }

@@ -1,19 +1,26 @@
 import { render, screen } from '@testing-library/react';
+import { palette } from '@leafygreen-ui/palette';
 import SiteBanner from '@/components/banner/site-banner';
 import type { SiteBannerContent } from '@/components/banner/site-banner/types';
 import * as BannerContext from '@/components/banner/site-banner/banner-context'; // match component import
+import * as BannerService from '@/services/db/banner';
+import { tick } from '../utils';
 
 jest.mock('@/components/banner/site-banner/banner-context', () => {
   const actual = jest.requireActual('@/components/banner/site-banner/banner-context');
   return { ...actual, useSiteBanner: jest.fn() };
 });
 
+jest.mock('@/services/db/banner', () => ({
+  getBannerData: jest.fn(),
+}));
+
 const useSiteBanner = BannerContext.useSiteBanner as unknown as jest.Mock;
 
 beforeEach(() => {
   jest.resetAllMocks();
   // Default so tests that don't override still work
-  useSiteBanner.mockReturnValue({ bannerData: null });
+  useSiteBanner.mockReturnValue({ bannerData: null, hasBanner: true });
 });
 
 const mockBannerContent: SiteBannerContent = {
@@ -28,6 +35,10 @@ const mockBannerContent: SiteBannerContent = {
 describe('SiteBanner component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
   it('renders without a banner image', () => {
     // bannerContent state should remain null
@@ -88,47 +99,29 @@ describe('SiteBanner component', () => {
     expect(screen.getByText('NEW')).toBeInTheDocument();
   });
 
-  // TODO: re-implement once header component is implemented
+  it('renders with a banner image (snapshot)', async () => {
+    jest.useFakeTimers();
+    (BannerService.getBannerData as jest.Mock).mockResolvedValueOnce(mockBannerContent);
+    useSiteBanner.mockReturnValue({ bannerData: mockBannerContent, hasBanner: true });
+    const wrapper = render(<SiteBanner />);
+    await tick();
+    expect(wrapper.asFragment()).toMatchSnapshot();
+  });
 
-  // it.skip("renders with a banner image", async () => {
-  // 	jest.useFakeTimers();
-  // 	const BannerUtil = require("../../plugins/utils/banner");
-  // 	jest
-  // 		.spyOn(BannerUtil, "fetchBanner")
-  // 		.mockResolvedValueOnce(() => mockBannerContent);
-  // 	const wrapper = render(
-  // 		<HeaderContext.Provider
-  // 			value={{ hasBanner: true, totalHeaderHeight: "" }}
-  // 		>
-  // 			<SiteBanner />
-  // 		</HeaderContext.Provider>,
-  // 	);
-  // 	await tick();
-  // 	expect(wrapper.asFragment()).toMatchSnapshot();
-  // });
-
-  // it.skip("renders with custom text", async () => {
-  // 	jest.useFakeTimers();
-  // 	const bannerContent = {
-  // 		isEnabled: true,
-  // 		altText: mockBannerContent.altText,
-  // 		bgColor: palette.green.dark3,
-  // 		text: "This is custom banner text",
-  // 		pillText: "DOP",
-  // 		url: mockBannerContent.url,
-  // 	};
-  // 	const BannerUtil = require("../../plugins/utils/banner");
-  // 	jest
-  // 		.spyOn(BannerUtil, "fetchBanner")
-  // 		.mockResolvedValueOnce(() => bannerContent);
-  // 	const wrapper = render(
-  // 		<HeaderContext.Provider
-  // 			value={{ hasBanner: true, totalHeaderHeight: "" }}
-  // 		>
-  // 			<SiteBanner />
-  // 		</HeaderContext.Provider>,
-  // 	);
-  // 	await tick();
-  // 	expect(wrapper.asFragment()).toMatchSnapshot();
-  // });
+  it('renders with custom text (snapshot)', async () => {
+    jest.useFakeTimers();
+    const bannerContent: SiteBannerContent = {
+      isEnabled: true,
+      altText: mockBannerContent.altText,
+      bgColor: palette.green.dark3,
+      text: 'This is custom banner text',
+      pillText: 'DOP',
+      url: mockBannerContent.url,
+    };
+    (BannerService.getBannerData as jest.Mock).mockResolvedValueOnce(bannerContent);
+    useSiteBanner.mockReturnValue({ bannerData: bannerContent, hasBanner: true });
+    const wrapper = render(<SiteBanner />);
+    await tick();
+    expect(wrapper.asFragment()).toMatchSnapshot();
+  });
 });

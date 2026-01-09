@@ -147,17 +147,11 @@ const VersionDropdown = ({ contentSite = null }: VersionDropdownProps) => {
   // The Select component expects urlSlug (e.g., 'current') but activeVersions contains gitBranchName
   const activeVersionValue = (() => {
     const gitBranchName = activeVersions[project];
-    console.log('gitBranchName', gitBranchName);
     if (!gitBranchName) return '';
     // Find the branch that matches the gitBranchName and return its urlSlug
     const branch = branches?.find((b) => b.gitBranchName === gitBranchName);
-    console.log('branch', branch);
     return branch?.urlSlug || gitBranchName; // Fallback to gitBranchName if not found
   })();
-
-  console.log('activeVersionValue', activeVersionValue);
-  console.log('activeVersions', activeVersions);
-  console.log('project', project);
 
   return (
     <Select

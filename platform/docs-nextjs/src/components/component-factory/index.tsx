@@ -219,15 +219,12 @@ const getComponent = (() => {
         button: Button as React.ComponentType<SupportedComponentProps>,
         card: Card as React.ComponentType<SupportedComponentProps>,
         'card-group': CardGroup as React.ComponentType<SupportedComponentProps>,
-        // chapter: Chapter,
-        // chapters: Chapters,
         code: Code as React.ComponentType<SupportedComponentProps>,
         collapsible: Collapsible as React.ComponentType<SupportedComponentProps>,
         'community-driver': CommunityPillLink as React.ComponentType<SupportedComponentProps>,
         'composable-tutorial': ComposableTutorial as React.ComponentType<SupportedComponentProps>,
-        // 'io-code-block': CodeIO,
+        // 'io-code-block': CodeIO, // TODO: DOP-6492
         cond: Cond as React.ComponentType<SupportedComponentProps>,
-        // container: Container,
         'cta-banner': CTABanner as React.ComponentType<SupportedComponentProps>,
         definitionList: DefinitionList as React.ComponentType<SupportedComponentProps>,
         definitionListItem: DefinitionListItem as React.ComponentType<SupportedComponentProps>,
@@ -242,7 +239,6 @@ const getComponent = (() => {
         footnote: Footnote as React.ComponentType<SupportedComponentProps>,
         footnote_reference: FootnoteReference as React.ComponentType<SupportedComponentProps>,
         glossary: Glossary as React.ComponentType<SupportedComponentProps>,
-        // 'guide-next': GuideNext,
         heading: Heading as React.ComponentType<SupportedComponentProps>,
         hlist: HorizontalList as React.ComponentType<SupportedComponentProps>,
         image: Image as React.ComponentType<SupportedComponentProps>,
@@ -255,16 +251,13 @@ const getComponent = (() => {
         listItem: ListItem as React.ComponentType<SupportedComponentProps>,
         'list-table': ListTable as React.ComponentType<SupportedComponentProps>,
         literal: Literal as React.ComponentType<SupportedComponentProps>,
-        // literal_block: LiteralBlock,
         literalinclude: Include as React.ComponentType<SupportedComponentProps>,
-        // 'method-selector': MethodSelector,
         only: Cond as React.ComponentType<SupportedComponentProps>,
         'openapi-changelog': OpenAPIChangelog as React.ComponentType<SupportedComponentProps>,
         paragraph: Paragraph as React.ComponentType<SupportedComponentProps>,
         procedure: Procedure as React.ComponentType<SupportedComponentProps>,
         ref_role: RefRole as React.ComponentType<SupportedComponentProps>,
         reference: Reference as React.ComponentType<SupportedComponentProps>,
-        // release_specification: ReleaseSpecification,
         root: Root as React.ComponentType<SupportedComponentProps>,
         rubric: Rubric as React.ComponentType<SupportedComponentProps>,
         'search-results': SearchResults as React.ComponentType<SupportedComponentProps>,
@@ -272,10 +265,10 @@ const getComponent = (() => {
         see: SeeAlso as React.ComponentType<SupportedComponentProps>,
         seealso: SeeAlso as React.ComponentType<SupportedComponentProps>,
         'selected-content': ComposableContent as React.ComponentType<SupportedComponentProps>,
-        // sharedinclude: Include,
+        sharedinclude: Include as React.ComponentType<SupportedComponentProps>,
         strong: Strong as React.ComponentType<SupportedComponentProps>,
-        // superscript: Superscript,
-        // subscript: Subscript,
+        superscript: Superscript as React.ComponentType<SupportedComponentProps>,
+        subscript: Subscript as React.ComponentType<SupportedComponentProps>,
         substitution_reference: SubstitutionReference as React.ComponentType<SupportedComponentProps>,
         tabs: Tabs as React.ComponentType<SupportedComponentProps>,
         'tabs-selector': TabSelectors as React.ComponentType<SupportedComponentProps>,
@@ -321,7 +314,6 @@ function getComponentType(
       | undefined;
   }
 
-  // TODO: return {componentType: ComponentType, props: SpreadComponentProps}
   return ComponentType;
 }
 
@@ -751,21 +743,9 @@ const ComponentFactory = (props: ComponentFactoryProps) => {
 
     const ComponentType = getComponentType(type, name);
 
-    // TODO: remove this when we have all components implemented
     if (!ComponentType) {
-      return (
-        <span className={'component-container'}>
-          Component for {type} {name ? `"${name}" ` : ''}not yet implemented
-          <br />
-          <span>
-            {isParentNode(nodeData) &&
-              nodeData.children.length > 0 &&
-              nodeData.children.map((child, index) => <ComponentFactory nodeData={child} key={`${slug}-${index}`} />)}
-          </span>
-        </span>
-      );
-      // console.warn(`${type} ${name ? `"${name}" ` : ''}not yet implemented${slug ? ` on page ${slug}` : ''}`);
-      // return null;
+      console.warn(`${type} ${name ? `"${name}" ` : ''}not yet implemented${slug ? ` on page ${slug}` : ''}`);
+      return null;
     }
 
     return renderComponentWithProps(ComponentType, type, name, nodeData, props);

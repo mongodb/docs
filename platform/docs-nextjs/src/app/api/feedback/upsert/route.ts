@@ -54,7 +54,6 @@ export async function POST(request: NextRequest) {
       id: user.id,
       email: user.email,
     },
-    // TODO change this to empty string instead?
     comment: comment ? comment : undefined,
     category: category,
     rating: rating,
@@ -125,7 +124,6 @@ async function insertFeedbackDocument(feedback: FeedbackDocument): Promise<Updat
 
 function constructFingerprint(request: NextRequest): Fingerprint {
   const httpUserAgent = request.headers.get('user-agent');
-  //TODO: Should we use a localhost fallback for local development?
   const remoteIPAddress = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
 
   return {

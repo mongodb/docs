@@ -11,8 +11,7 @@ beforeAll(() => {
   mockLocation({ hash: '' });
 });
 
-// TODO: Remove .skip once listItems and refs are migrated
-it.skip('renders correctly', () => {
+it('renders correctly', () => {
   const tree = render(<BlockQuote nodeChildren={typedMockData.children} />);
   expect(tree.asFragment()).toMatchSnapshot();
 });

@@ -8,8 +8,7 @@ import { useSiteBanner } from '@/components/banner/site-banner/banner-context';
 
 const Header = () => {
   const unifiedNavProperty = 'DOCS';
-  const { bannerData } = useSiteBanner();
-  const hasBanner = bannerData?.isEnabled && bannerData.url && (bannerData.imgPath || bannerData.text);
+  const { hasBanner } = useSiteBanner();
 
   // TODO: language selection
   return (

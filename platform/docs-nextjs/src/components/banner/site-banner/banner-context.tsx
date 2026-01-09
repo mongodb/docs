@@ -5,10 +5,12 @@ import type { SiteBannerContent } from './types';
 
 interface SiteBannerContextValue {
   bannerData: SiteBannerContent | null;
+  hasBanner: boolean;
 }
 
 const SiteBannerContext = createContext<SiteBannerContextValue>({
   bannerData: null,
+  hasBanner: false,
 });
 
 interface SiteBannerProviderProps {
@@ -17,7 +19,9 @@ interface SiteBannerProviderProps {
 }
 
 function SiteBannerProvider({ children, bannerData }: SiteBannerProviderProps) {
-  return <SiteBannerContext.Provider value={{ bannerData }}>{children}</SiteBannerContext.Provider>;
+  const hasBanner = !!bannerData && !!bannerData.url && !!(bannerData.imgPath || bannerData.text);
+
+  return <SiteBannerContext.Provider value={{ bannerData, hasBanner }}>{children}</SiteBannerContext.Provider>;
 }
 
 function useSiteBanner() {

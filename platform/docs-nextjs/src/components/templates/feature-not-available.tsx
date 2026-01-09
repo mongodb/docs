@@ -9,6 +9,7 @@ import { theme } from '@/styles/theme';
 import Breadcrumbs from '@/components/breadcrumbs';
 import { DOTCOM_BASE_URL } from '@/constants';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 const StyledMain = styled.main`
   max-width: 100vw;
@@ -91,8 +92,17 @@ const FeatureNotAvailContainer = styled.div`
   }
 `;
 
-// TODO: Much better type checks for the data on this page/component
 const FeatureNotAvailable = () => {
+  const router = useRouter();
+
+  const goBack = () => {
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      router.push('/docs');
+    }
+  };
+
   return (
     <StyledMain>
       <div className="body">
@@ -104,11 +114,7 @@ const FeatureNotAvailable = () => {
               We&rsquo;re sorry, this page isn&rsquo;t available in the version you selected.
             </H2>
             <LinkContainer>
-              <Button
-                // href={withPrefix(selfCrumbPath)}
-                variant="default"
-                className={cx(buttonStyling)}
-              >
+              <Button variant="default" className={cx(buttonStyling)} onClick={goBack}>
                 Go back to previous page
               </Button>
             </LinkContainer>

@@ -70,9 +70,6 @@ export const getCollection = async <Type extends Document>(
   return client.db(dbName).collection<Type>(collectionName);
 };
 
-// ============================================================
-// TODO: revisit this logic when deploying Next on Netlify.
-// see if we have to clear sockets to MDB connections, or if Netlify handles these
 async function clearClient(signal?: string) {
   if (signal) {
     log({ message: `${signal} received. Closing MongoDB connection...` });

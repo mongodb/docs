@@ -99,9 +99,6 @@ const Code = ({
 
   const customActionButtonList: JSX.Element[] = [];
 
-  // https://jira.mongodb.org/browse/DOP-6259
-  // TODO: offline docs version on nextjs
-
   if (sourceSpecified) {
     customActionButtonList.push(
       <IconButton aria-label="View full source in new tab" href={source}>

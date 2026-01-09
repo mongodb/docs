@@ -22,6 +22,7 @@ import { getFullSlug } from '@/utils/get-full-slug';
 import { DoublePannedNav } from './DoublePannedNav';
 import { AccordionNavPanel } from './AccordionNav';
 import type { TocItem } from './types';
+import { useSiteBanner } from '../banner/site-banner/banner-context';
 
 export const ArtificialPadding = styled('div')`
   height: 15px;
@@ -134,9 +135,7 @@ export const UnifiedSidenav = () => {
   const { siteBasePrefixWithVersion } = useVersionContext();
   const slug = getFullSlug(pageSlug, siteBasePrefixWithVersion);
 
-  // TODO: Use HeaderContext once https://jira.mongodb.org/browse/DOP-5992 is done
-  // const { hasBanner } = useContext(HeaderContext);
-  const hasBanner = false;
+  const { hasBanner } = useSiteBanner();
   const topValues = useStickyTopValues({ eol: false, isAbsolute: true, hasBanner });
   const pathname = usePathname();
   const hash = typeof window !== 'undefined' ? window.location.hash : '';

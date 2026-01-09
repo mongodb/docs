@@ -19,6 +19,7 @@ import { disabledStyle } from '@/components/button/styles';
 import Permalink from '@/components/permalink';
 import Contents from '@/components/contents';
 import CopyPageMarkdownButton from '@/components/widgets/markdown-widget';
+import TabSelectors from '@/components/tabs/tab-selectors';
 
 const titleMarginStyle = css`
   margin-top: ${theme.size.default};
@@ -107,7 +108,7 @@ const Heading = ({ nodeChildren, sectionDepth = 1, id = '', className, as, ...re
   const { hasDrawer, isOpen, setIsOpen } = useInstruqt();
   const hasSelectors = selectors && Object.keys(selectors).length > 0;
   const shouldShowLabButton = isPageTitle && hasDrawer;
-  const { page, template } = usePageContext();
+  const { page, template, tabsMainColumn } = usePageContext();
   const hasMethodSelector = page?.options?.['has_method_selector'];
   const shouldShowMobileHeader = !!(isPageTitle && isTabletOrMobile && hasSelectors && !hasMethodSelector);
   const showRating = !(template === 'product-landing');
@@ -120,10 +121,7 @@ const Heading = ({ nodeChildren, sectionDepth = 1, id = '', className, as, ...re
         wrapper={(children) => (
           <HeadingContainer>
             {children}
-            <ChildContainer>
-              {/* TODO: Uncomment when TabSelectors is implemented */}
-              {/* {hasSelectors && !tabsMainColumn && <TabSelectors rightColumn={true} />} */}
-            </ChildContainer>
+            <ChildContainer>{hasSelectors && !tabsMainColumn && <TabSelectors rightColumn={true} />}</ChildContainer>
           </HeadingContainer>
         )}
       >
@@ -187,13 +185,7 @@ const Heading = ({ nodeChildren, sectionDepth = 1, id = '', className, as, ...re
           </ConditionalWrapper>
         </ConditionalWrapper>
       </ConditionalWrapper>
-      {isPageTitle && isTabletOrMobile && showRating && (
-        <>
-          {/* TODO: Uncomment below when TimeRequired and MultiPageTutorials is implemented */}
-          {/* <TimeRequired /> */}
-          <Contents className={contentsStyle} />
-        </>
-      )}
+      {isPageTitle && isTabletOrMobile && showRating && <Contents className={contentsStyle} />}
     </>
   );
 };

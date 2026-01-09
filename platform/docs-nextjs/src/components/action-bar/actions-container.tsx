@@ -12,6 +12,7 @@ import { chatbotMobileButtonStyling } from './styles';
 import DarkModeDropdown from './dark-mode-dropdown';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { useChatbotModal } from '@/context/chatbot-context';
+import { currentScrollPosition } from '@/utils/current-scroll-position';
 
 const Chatbot = dynamic(() => import('mongodb-chatbot-ui').then((mod) => mod), {
   ssr: false,
@@ -32,9 +33,13 @@ const UIContainer = () => {
     : 'https://knowledge.staging.corp.mongodb.com/api/v1';
 
   const openChatbot = () => {
-    // TODO: report analytics DOP-6213
-    reportAnalytics('Chatbot button clicked');
-    setChatbotClicked((currVal) => !currVal);
+    reportAnalytics('CTA Click', {
+      position: 'secondary nav',
+      label: 'Ask MongoDB AI',
+      scroll_position: currentScrollPosition(),
+      tagbook: 'true',
+    });
+    setChatbotClicked(true);
   };
 
   return (

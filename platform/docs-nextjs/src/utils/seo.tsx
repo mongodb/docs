@@ -8,6 +8,11 @@ import { getNestedValue } from '@/utils/get-nested-value';
 import { getLocaleMapping } from '@/utils/locale';
 import { getMetaFromDirective } from '@/utils/get-meta-from-directive';
 import { assertLeadingSlash } from '@/utils/assert-leading-slash';
+import type { Docset, RemoteMetadata } from '@/types/data';
+import { assertTrailingSlash } from './assert-trailing-slash';
+import { normalizePath } from './normalize-path';
+import type { Environments } from './env-config';
+import { generateVersionedPrefix } from './generate-versioned-prefix';
 
 const DEFAULT_TWITTER_SITE = '@mongodb';
 const metaUrl = `https://www.mongodb.com/docs/assets/meta_generic.png`;
@@ -15,9 +20,11 @@ const metaUrl = `https://www.mongodb.com/docs/assets/meta_generic.png`;
 export const getPageMetadata = ({
   pageDoc,
   snootyMetadata,
+  docset,
 }: {
   pageDoc: ASTDocument;
   snootyMetadata: DBMetadataDocument;
+  docset: Docset;
 }) => {
   const slug = pageDoc.filename.split('.')[0];
   const lookup = slug === '/' ? 'index' : slug;
@@ -34,17 +41,26 @@ export const getPageMetadata = ({
       ? 'MongoDB Documentation - Homepage'
       : `${pageTitle ? `${pageTitle} - ` : ''}${siteTitle} - MongoDB Docs`;
 
-  const { description, robots, keywords, canonical, twitter } = getMetaFromDirective({ rootNode: pageDoc.ast });
+  const {
+    description,
+    robots,
+    keywords,
+    canonical: metaCanonical,
+    twitter,
+  } = getMetaFromDirective({ rootNode: pageDoc.ast });
 
-  // TODO: after DOP-6293 version context
-  // get robots from reposBranches (robots can be from the branch or from page)
-  // also get canonical from reposBranches and docset data
+  // Retrieves the canonical URL based on certain situations
+  // i.e. eol'd, non-eol'd, snooty.toml or ..metadata:: directive (highest priority)
+  const canonical = getCanonicalUrl({ metadata: snootyMetadata, metaCanonical, docset, slug });
+  const noIndexing = docset.branches.find((br) => br.gitBranchName === snootyMetadata.branch)?.noIndexing ?? false;
+  const nosnippet = !!robots?.includes('nosnippet');
+  const noindex = !noIndexing || !!robots?.includes('noindex');
 
   const metadata = {
     metadataBase: new URL(DOTCOM_BASE_URL),
     title,
     alternates: {
-      canonical: new URL(DOTCOM_BASE_URL), // see todo above
+      canonical,
       // Note: languages are handled separately with custom className via getLocaleLinks
     },
     twitter: {
@@ -67,8 +83,11 @@ export const getPageMetadata = ({
     },
     description,
     keywords,
-    canonical, // see todo above
-    robots,
+    canonical,
+    robots: {
+      index: !noindex,
+      nosnippet,
+    },
   };
 
   return metadata;
@@ -101,4 +120,53 @@ export const getLocaleLinks = (pageDoc: ASTDocument) => {
   }
 
   return hrefLangLinks;
+};
+
+const getCanonicalUrl = ({
+  metadata,
+  metaCanonical,
+  docset,
+  slug,
+}: {
+  metadata: RemoteMetadata;
+  metaCanonical?: string;
+  docset: Docset;
+  slug: string;
+}) => {
+  // Check to see if the canonical is provided from the meta directive
+  if (metaCanonical) {
+    // a canonical from a directive is highest ranked
+    return metaCanonical;
+  }
+
+  const urlSlug =
+    docset.branches.find((branch) => branch.gitBranchName === metadata.branch)?.urlSlug ?? metadata.branch;
+  const env = (process.env.DB_ENV ?? 'dev') as Environments;
+  const siteBasePrefix = docset.prefix[getRepoBranchesPrefixEnv(env)];
+  const pathPrefix = generateVersionedPrefix(siteBasePrefix, urlSlug);
+
+  // Use default logic assuming there is no canonical provided from the meta directive
+  let canonical = `${DOTCOM_BASE_URL}${normalizePath(`${pathPrefix}/${slug === '/' ? '' : slug}`)}`;
+
+  // else we check for EOL
+  if (metadata.eol && metadata.canonical) {
+    // if a canonical is provided by the writers
+    canonical = metadata.canonical;
+  }
+
+  canonical = assertTrailingSlash(canonical);
+  return canonical.toLowerCase();
+};
+
+export const getRepoBranchesPrefixEnv = (env: Environments) => {
+  switch (env) {
+    case 'dotcomprd':
+      return 'dotcomprd';
+    case 'production':
+      return 'prd';
+    case 'dev':
+    case 'dotcomstg':
+    default:
+      return 'dotcomstg';
+  }
 };

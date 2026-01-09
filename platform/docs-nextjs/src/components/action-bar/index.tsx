@@ -18,7 +18,6 @@ interface ActionBarProps {
 }
 
 const getContainerStyling = (template: string) => {
-  // TODO: support for other templates
   let containerClassname,
     searchContainerClassname,
     fakeColumns = false;

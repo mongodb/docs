@@ -11,6 +11,7 @@ import type { ASTNode } from '@/types/ast';
 import { DEPRECATED_PROJECTS } from '@/components/contents';
 import type { BaseTemplateProps } from '.';
 import { isParentNode } from '@/types/ast-utils';
+import FeedbackRating from '../widgets/feedback-widget';
 
 export const CONTENT_MAX_WIDTH = 1200;
 
@@ -231,11 +232,12 @@ const ProductLandingTemplate = ({ children }: BaseTemplateProps) => {
   const { project } = useSnootyMetadata();
   const isGuides = project === 'guides';
   const isRealm = project === 'realm';
-  const hasMaxWidthParagraphs = isString(pageOptions?.['pl-max-width-paragraphs'])
-    ? ['', 'true'].includes(pageOptions['pl-max-width-paragraphs'])
-    : false;
+  const hasMaxWidthParagraphs =
+    pageOptions && isString(pageOptions?.['pl-max-width-paragraphs'])
+      ? ['', 'true'].includes(pageOptions['pl-max-width-paragraphs'])
+      : false;
   const hasLightHero = page && isRealm && REALM_LIGHT_HERO_PAGES.includes(page.fileid);
-  // TODO: This won't work with Next... After Banner is implemented, we need to revisit this.
+  // TODO: DOP-6420 This won't work with Next... After Banner is implemented, we need to revisit this.
   // shallow copy children, and search for existence of banner
   // const shallowChildren = (Array.isArray(children) ? children : [children]).reduce<ASTNode[]>((res, child) => {
   //   const copiedChildren = child.props.nodeData?.children?.map((childNode: ASTNode) => stripChildren(childNode)) ?? [];
@@ -262,8 +264,7 @@ const ProductLandingTemplate = ({ children }: BaseTemplateProps) => {
         <>
           <hr className={cx(hrStyling)} />
           <div className={cx(ratingStyling)}>
-            {/* TODO: DOP-5978 feedback rating component */}
-            {/* <FeedbackRating slug={slug} className={formstyle} classNameContainer={formContainer} position="body" /> */}
+            <FeedbackRating className={formstyle} classNameContainer={formContainer} position="body" />
           </div>
         </>
       )}

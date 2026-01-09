@@ -16,6 +16,7 @@ import type { Environments } from '@/utils/env-config';
 import type { BranchData, Docset, Group } from '@/types/data';
 import { getUrl } from '@/utils/url-utils';
 import { assertTrailingSlash } from '@/utils/assert-trailing-slash';
+import { getRepoBranchesPrefixEnv } from '@/utils/seo';
 
 export type ActiveVersions = Record<string, string>;
 export type AvailableVersions = Record<string, BranchData[]>;
@@ -187,8 +188,6 @@ export const VersionContextProvider = ({ docsets, slug, env, children }: Version
     };
   }, [project, branch, docsets, env]);
 
-  // TODO: Might need to update this once we use this branch on a stitched project (DOP-5243 dependent)
-  // TODO: check whats going on here for 404 pages
   // tracks active versions across app
   const [activeVersions, setActiveVersions] = useReducer<
     React.Reducer<ActiveVersions, Partial<ActiveVersions>>,
@@ -252,17 +251,4 @@ export const VersionContextProvider = ({ docsets, slug, env, children }: Version
       {children}
     </VersionContext.Provider>
   );
-};
-
-const getRepoBranchesPrefixEnv = (env: Environments) => {
-  switch (env) {
-    case 'dotcomprd':
-      return 'dotcomprd';
-    case 'production':
-      return 'prd';
-    case 'dev':
-    case 'dotcomstg':
-    default:
-      return 'dotcomstg';
-  }
 };

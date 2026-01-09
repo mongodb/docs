@@ -7,6 +7,7 @@ const config = {
 
   testMatch: ['<rootDir>/src/**/*.test.(ts|tsx)'],
 
+  setupFiles: ['<rootDir>/src/tests/setup-env.ts'],
   setupFilesAfterEnv: ['<rootDir>/src/tests/test-setup.ts'],
 
   snapshotSerializers: ['@emotion/jest/serializer'],

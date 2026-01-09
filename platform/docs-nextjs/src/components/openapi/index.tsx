@@ -26,6 +26,7 @@ import {
   spanHttpCss,
   themeOption,
 } from './styles';
+import DocsHomeButton from '../unified-sidenav/DocsHomeButton';
 
 // Important notes:
 // The contents of this file are (unfortunately) a hacky and brittle way of getting Redoc's React component to
@@ -129,8 +130,7 @@ const borderStyles = css`
 const MenuTitleContainer = ({ pageTitle }: { pageTitle: string }) => {
   return (
     <>
-      {/* TODO: Add DocsHomeButton when ready for unified TOC */}
-      {/* <DocsHomeButton hideDarkModeToggle={true} /> */}
+      <DocsHomeButton />
       <hr className={cx(borderStyles)} />
       <MenuTitle>{pageTitle}</MenuTitle>
     </>

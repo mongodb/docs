@@ -558,12 +558,11 @@ const SearchResults = () => {
                   <>
                     <Pagination
                       className={paginationStyling}
-                      // TODO use router.push instead of new URLSearchParams?
-                      currentPage={parseInt(new URLSearchParams(search).get('page') || '1')}
+                      currentPage={Number(searchParams.get('page') ?? 1)}
                       numTotalItems={searchCount}
                       onForwardArrowClick={onPageClick.bind(null, true)}
                       onBackArrowClick={onPageClick.bind(null, false)}
-                      shouldDisableBackArrow={new URLSearchParams(search).get('page') === '1'}
+                      shouldDisableBackArrow={searchParams.get('page') === '1'}
                       shouldDisableForwardArrow={searchResults.length > 0 && searchResults.length < 10}
                     ></Pagination>
                   </>

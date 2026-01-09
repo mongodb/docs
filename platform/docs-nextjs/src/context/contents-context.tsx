@@ -30,7 +30,6 @@ const ContentsProvider = ({ children, headingNodes = [] }: { children: ReactNode
   const activeHeadingId = useActiveHeading(headingNodes);
   const [activeSelectorIds, setActiveSelectorIds] = useState<ActiveSelectorIds>({});
 
-  // TODO: DOP-6242: replacement for useSnootyMetadata
   const { project } = useSnootyMetadata();
   // The guides site is the only site that takes advantage of headings, but never uses the Contents component
   const showContentsComponent = project !== 'guides';
