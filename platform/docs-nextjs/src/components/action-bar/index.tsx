@@ -56,8 +56,6 @@ const ActionBar = ({ template, sidenav, className }: ActionBarProps) => {
   const { fakeColumns, searchContainerClassname, containerClassname } = getContainerStyling(template);
   const { hideMobile, setHideMobile } = useSidenavContext();
 
-  // const { darkMode } = useDarkMode();
-
   return (
     <div className={[actionBarStyling['action-bar'], containerClassname, className].join(' ')}>
       {fakeColumns && <div></div>}

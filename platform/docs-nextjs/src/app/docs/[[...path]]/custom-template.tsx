@@ -113,7 +113,7 @@ export const CustomTemplate = ({
     >
       {renderSidenav && <UnifiedSidenav />}
       <div className={layoutStyles['content-container']}>
-        <ActionBar template="document" sidenav={true} />
+        <ActionBar template={template} sidenav={true} />
         <Template pageOptions={pageDoc.ast.options} slug={pageDoc.filename}>
           <ComponentFactory nodeData={pageDoc.ast} slug={pageDoc.page_path} key={pageDoc.page_id} />
         </Template>

@@ -10,6 +10,9 @@ import type { BaseTemplateProps } from '.';
 
 const CONTENT_MAX_WIDTH = 1440;
 
+// This must match the grid stylings in @/styles/mixins.module.scss
+// If changes occur here, they must be changed there to keep the styles in sync.
+// A mixin cannot be used here because Emotion doesn't support SCSS mixins.
 export const gridStyling = `
 // Use leftmost and rightmost grid columns as "margins" to allow the hero image
 // to span across the page while remaining as part of the document flow
