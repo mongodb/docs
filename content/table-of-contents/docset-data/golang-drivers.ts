@@ -89,6 +89,12 @@ const tocData: TocItem[] = [
             url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/',
             versions: { excludes: outdatedVersions },
           },
+          {
+            label: 'Tutorial: Go with AWS Lambda',
+            contentSite: 'golang',
+            url: '/docs/drivers/go/:version/connect/go-lambda',
+            versions: { excludes: outdatedVersions },
+          },
         ],
       },
       {
