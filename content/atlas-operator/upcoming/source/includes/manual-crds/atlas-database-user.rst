@@ -31,7 +31,7 @@ AtlasDatabaseUser is the Schema for the Atlas Database User API
 
    * -  ``spec``
      - object
-     - ``AtlasDatabaseUserSpec`` defines the desired state of Database User in Atlas
+     - ``AtlasDatabaseUserSpec`` defines the target state of Database User in Atlas
        *Validations*:
 
        - (has(self.``externalProjectRef``) && !has(self.``projectRef``)) || (!has(self.``externalProjectRef``) && has(self.``projectRef``)): must define only one project reference through ``externalProjectRef`` or ``projectRef``
@@ -49,7 +49,7 @@ AtlasDatabaseUser is the Schema for the Atlas Database User API
 AtlasDatabaseUser.spec
 ~~~~~~~~~~~~~~~~~~~~~~
 
-AtlasDatabaseUserSpec defines the desired state of Database User in Atlas
+AtlasDatabaseUserSpec defines the target state of Database User in Atlas
 
 .. list-table::
    :header-rows: 1
@@ -360,8 +360,8 @@ AtlasDatabaseUserStatus defines the observed state of AtlasProject
 
    * -  ``observedGeneration``
      - integer
-     - ``ObservedGeneration`` indicates the generation of the resource specification that the Atlas Operator is aware of.
-       The Atlas Operator updates this field to the 'metadata.generation' as soon as it starts reconciliation of the resource.
+     - ``ObservedGeneration`` indicates the generation of the resource specification of which the Atlas Operator is aware.
+       The Atlas Operator updates this field to the value of 'metadata.generation' as soon as it starts reconciliation of the resource.
        *Format*: int64
      - false
 
@@ -388,7 +388,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``status``
      - string
-     - Status of the condition, one of True, False, Unknown.
+     - Status of the condition; one of True, False, Unknown.
      - true
 
    * -  ``type``
@@ -405,7 +405,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``message``
      - string
-     - A human readable ``message`` indicating details about the transition.
+     - A ``message`` providing details about the transition.
      - false
 
    * -  ``reason``

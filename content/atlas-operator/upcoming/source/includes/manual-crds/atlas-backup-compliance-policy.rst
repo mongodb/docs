@@ -31,12 +31,12 @@ The AtlasBackupCompliancePolicy is a configuration that enforces specific backup
 
    * -  ``spec``
      - object
-     - ``AtlasBackupCompliancePolicySpec`` is the specification of the desired configuration of backup compliance policy
+     - ``AtlasBackupCompliancePolicySpec`` is the specification of the desired backup compliance policy configuration.
      - false
 
    * -  ``status``
      - object
-     -  
+     - ``BackupCompliancePolicyStatus`` defines the observed state of ``AtlasBackupCompliancePolicy``.
      - false
 
 .. _atlasbackupcompliancepolicy-spec: 
@@ -44,7 +44,7 @@ The AtlasBackupCompliancePolicy is a configuration that enforces specific backup
 AtlasBackupCompliancePolicy.spec
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-AtlasBackupCompliancePolicySpec is the specification of the desired configuration of backup compliance policy
+AtlasBackupCompliancePolicySpec is the specification of the desired backup compliance policy configuration.
 
 .. list-table::
    :header-rows: 1
@@ -57,17 +57,17 @@ AtlasBackupCompliancePolicySpec is the specification of the desired configuratio
 
    * -  ``authorizedEmail``
      - string
-     - Email address of the user who authorized to update the Backup Compliance Policy settings.
+     - Email address of the user authorized to update Backup Compliance Policy settings.
      - true
 
    * -  ``authorizedUserFirstName``
      - string
-     - First name of the user who authorized to updated the Backup Compliance Policy settings.
+     - First name of the user authorized to update the Backup Compliance Policy settings.
      - true
 
    * -  ``authorizedUserLastName``
      - string
-     - Last name of the user who authorized to updated the Backup Compliance Policy settings.
+     - Last name of the user authorized to update the Backup Compliance Policy settings.
      - true
 
    * -  ``copyProtectionEnabled``
@@ -77,7 +77,7 @@ AtlasBackupCompliancePolicySpec is the specification of the desired configuratio
 
    * -  ``encryptionAtRestEnabled``
      - boolean
-     - Flag that indicates whether Encryption at Rest using Customer Key Management is required for all clusters with a Backup Compliance Policy.
+     - Flag that indicates whether to require Encryption at Rest using Customer Key Management for all clusters with a Backup Compliance Policy.
      - false
 
    * -  ``onDemandPolicy``
@@ -87,7 +87,7 @@ AtlasBackupCompliancePolicySpec is the specification of the desired configuratio
 
    * -  ``overwriteBackupPolicies``
      - boolean
-     - Flag that indicates whether to overwrite non-complying backup policies with the new data protection settings or not.
+     - Flag that indicates whether to overwrite non-complying backup policies with the new data protection settings.
      - false
 
    * -  ``pointInTimeEnabled``
@@ -97,7 +97,8 @@ AtlasBackupCompliancePolicySpec is the specification of the desired configuratio
 
    * -  ``restoreWindowDays``
      - integer
-     - Number of previous days that you can restore back to with Continuous Cloud Backup with a Backup Compliance Policy. This parameter applies only to Continuous Cloud Backups with a Backup Compliance Policy.
+     - Number of previous days from which you can restore with Continuous Cloud Backup with a Backup Compliance Policy.
+       This parameter applies only to Continuous Cloud Backups with a Backup Compliance Policy.
      - false
 
    * -  ``scheduledPolicyItems``
@@ -148,14 +149,14 @@ AtlasBackupCompliancePolicy.spec.scheduledPolicyItems
 
    * -  ``frequencyInterval``
      - integer
-     - Desired frequency of the new backup policy item specified by ``FrequencyType``. A value of 1 specifies the first instance of the corresponding ``FrequencyType``.
-       The only accepted value you can set for frequency interval with NVMe clusters is 12.
+     - Frequency of the new backup policy item specified by ``FrequencyType``. A value of 1 specifies the first instance of the corresponding ``FrequencyType``.
+       You can set ``FrequencyInterval`` only to 12 for NVMe clusters.
        *Enum*: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 40
      - true
 
    * -  ``frequencyType``
      - enum
-     - Frequency associated with the backup policy item. You cannot specify multiple hourly and daily backup policy items.
+     - Frequency associated with the backup policy item. You can specify only one each of hourly or daily backup policy items.
        *Enum*: hourly, daily, weekly, monthly, yearly
      - true
 
@@ -176,6 +177,8 @@ AtlasBackupCompliancePolicy.spec.scheduledPolicyItems
 AtlasBackupCompliancePolicy.status
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+BackupCompliancePolicyStatus defines the observed state of AtlasBackupCompliancePolicy.
+
 .. list-table::
    :header-rows: 1
    :widths: 25 10 65 10
@@ -192,8 +195,8 @@ AtlasBackupCompliancePolicy.status
 
    * -  ``observedGeneration``
      - integer
-     - ``ObservedGeneration`` indicates the generation of the resource specification that the Atlas Operator is aware of.
-       The Atlas Operator updates this field to the 'metadata.generation' as soon as it starts reconciliation of the resource.
+     - ``ObservedGeneration`` indicates the generation of the resource specification of which the Atlas Operator is aware.
+       The Atlas Operator updates this field to the value of 'metadata.generation' as soon as it starts reconciliation of the resource.
        *Format*: int64
      - false
 
@@ -215,7 +218,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``status``
      - string
-     - Status of the condition, one of True, False, Unknown.
+     - Status of the condition; one of True, False, Unknown.
      - true
 
    * -  ``type``
@@ -232,7 +235,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``message``
      - string
-     - A human readable ``message`` indicating details about the transition.
+     - A ``message`` providing details about the transition.
      - false
 
    * -  ``reason``

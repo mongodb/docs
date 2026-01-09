@@ -29,18 +29,20 @@ AtlasOrgSettings
 
    * -  ``spec``
      - object
-     -  
+     - ``AtlasOrgSettingsSpec`` defines the desired state of ``AtlasOrgSettings``.
      - false
 
    * -  ``status``
      - object
-     -  
+     - ``AtlasOrgSettingsStatus`` defines the observed state of ``AtlasOrgSettings``.
      - false
 
 .. _atlasorgsettings-spec: 
 
 AtlasOrgSettings.spec
 ~~~~~~~~~~~~~~~~~~~~~
+
+AtlasOrgSettingsSpec defines the desired state of AtlasOrgSettings.
 
 .. list-table::
    :header-rows: 1
@@ -128,6 +130,8 @@ ConnectionSecretRef is the name of the Kubernetes Secret which contains the info
 
 AtlasOrgSettings.status
 ~~~~~~~~~~~~~~~~~~~~~~~
+
+AtlasOrgSettingsStatus defines the observed state of AtlasOrgSettings.
 
 .. list-table::
    :header-rows: 1

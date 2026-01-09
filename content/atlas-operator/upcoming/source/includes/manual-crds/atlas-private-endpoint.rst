@@ -314,8 +314,8 @@ AtlasPrivateEndpointStatus is the most recent observed status of the AtlasPrivat
 
    * -  ``observedGeneration``
      - integer
-     - ``ObservedGeneration`` indicates the generation of the resource specification that the Atlas Operator is aware of.
-       The Atlas Operator updates this field to the 'metadata.generation' as soon as it starts reconciliation of the resource.
+     - ``ObservedGeneration`` indicates the generation of the resource specification of which the Atlas Operator is aware.
+       The Atlas Operator updates this field to the value of 'metadata.generation' as soon as it starts reconciliation of the resource.
        *Format*: int64
      - false
 
@@ -362,7 +362,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``status``
      - string
-     - Status of the condition, one of True, False, Unknown.
+     - Status of the condition; one of True, False, Unknown.
      - true
 
    * -  ``type``
@@ -379,7 +379,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``message``
      - string
-     - A human readable ``message`` indicating details about the transition.
+     - A ``message`` providing details about the transition.
      - false
 
    * -  ``reason``
@@ -446,10 +446,10 @@ GCPForwardingRule is the most recent observed status the GCP forwarding rules co
 
    * -  ``name``
      - string
-     -  
+     - Human-readable label that identifies the Google Cloud consumer forwarding rule that you created.
      - false
 
    * -  ``status``
      - string
-     -  
+     - State of the ``MongoDB`` Atlas endpoint group.
      - false

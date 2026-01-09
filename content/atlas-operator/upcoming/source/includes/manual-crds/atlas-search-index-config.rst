@@ -31,18 +31,20 @@ AtlasSearchIndexConfig is the Schema for the AtlasSearchIndexConfig API
 
    * -  ``spec``
      - object
-     -  
+     - ``AtlasSearchIndexConfigSpec`` defines the target state of ``AtlasSearchIndexConfig``.
      - false
 
    * -  ``status``
      - object
-     -  
+     - ``AtlasSearchIndexConfigStatus`` defines the observed state of ``AtlasSearchIndexConfig``.
      - false
 
 .. _atlassearchindexconfig-spec: 
 
 AtlasSearchIndexConfig.spec
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+AtlasSearchIndexConfigSpec defines the target state of AtlasSearchIndexConfig.
 
 .. list-table::
    :header-rows: 1
@@ -174,6 +176,8 @@ Tokenizer that you want to use to create tokens. Tokens determine how Atlas Sear
 AtlasSearchIndexConfig.status
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+AtlasSearchIndexConfigStatus defines the observed state of AtlasSearchIndexConfig.
+
 .. list-table::
    :header-rows: 1
    :widths: 25 10 65 10
@@ -190,8 +194,8 @@ AtlasSearchIndexConfig.status
 
    * -  ``observedGeneration``
      - integer
-     - ``ObservedGeneration`` indicates the generation of the resource specification that the Atlas Operator is aware of.
-       The Atlas Operator updates this field to the 'metadata.generation' as soon as it starts reconciliation of the resource.
+     - ``ObservedGeneration`` indicates the generation of the resource specification of which the Atlas Operator is aware.
+       The Atlas Operator updates this field to the value of 'metadata.generation' as soon as it starts reconciliation of the resource.
        *Format*: int64
      - false
 
@@ -213,7 +217,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``status``
      - string
-     - Status of the condition, one of True, False, Unknown.
+     - Status of the condition; one of True, False, Unknown.
      - true
 
    * -  ``type``
@@ -230,7 +234,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``message``
      - string
-     - A human readable ``message`` indicating details about the transition.
+     - A ``message`` providing details about the transition.
      - false
 
    * -  ``reason``

@@ -31,7 +31,7 @@ AtlasNetworkPeering is the Schema for the AtlasNetworkPeering API
 
    * -  ``spec``
      - object
-     - ``AtlasNetworkPeeringSpec`` defines the desired state of ``AtlasNetworkPeering``
+     - ``AtlasNetworkPeeringSpec`` defines the target state of ``AtlasNetworkPeering``.
        *Validations*:
 
        - (has(self.``externalProjectRef``) && !has(self.``projectRef``)) || (!has(self.``externalProjectRef``) && has(self.``projectRef``)): must define only one project reference through ``externalProjectRef`` or ``projectRef``
@@ -58,7 +58,7 @@ AtlasNetworkPeering is the Schema for the AtlasNetworkPeering API
 AtlasNetworkPeering.spec
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-AtlasNetworkPeeringSpec defines the desired state of AtlasNetworkPeering
+AtlasNetworkPeeringSpec defines the target state of AtlasNetworkPeering.
 
 .. list-table::
    :header-rows: 1
@@ -359,8 +359,8 @@ Not the one included in the AtlasProject
 
    * -  ``observedGeneration``
      - integer
-     - ``ObservedGeneration`` indicates the generation of the resource specification that the Atlas Operator is aware of.
-       The Atlas Operator updates this field to the 'metadata.generation' as soon as it starts reconciliation of the resource.
+     - ``ObservedGeneration`` indicates the generation of the resource specification of which the Atlas Operator is aware.
+       The Atlas Operator updates this field to the value of 'metadata.generation' as soon as it starts reconciliation of the resource.
        *Format*: int64
      - false
 
@@ -387,7 +387,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``status``
      - string
-     - Status of the condition, one of True, False, Unknown.
+     - Status of the condition; one of True, False, Unknown.
      - true
 
    * -  ``type``
@@ -404,7 +404,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``message``
      - string
-     - A human readable ``message`` indicating details about the transition.
+     - A ``message`` providing details about the transition.
      - false
 
    * -  ``reason``

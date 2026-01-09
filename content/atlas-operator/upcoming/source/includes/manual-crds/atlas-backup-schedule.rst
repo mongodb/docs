@@ -31,12 +31,12 @@ AtlasBackupSchedule is the Schema for the atlasbackupschedules API.
 
    * -  ``spec``
      - object
-     - ``AtlasBackupScheduleSpec`` defines the desired state of ``AtlasBackupSchedule``.
+     - ``AtlasBackupScheduleSpec`` defines the target state of ``AtlasBackupSchedule``.
      - false
 
    * -  ``status``
      - object
-     -  
+     - ``BackupScheduleStatus`` defines the observed state of ``AtlasBackupSchedule``.
      - false
 
 .. _atlasbackupschedule-spec: 
@@ -44,7 +44,7 @@ AtlasBackupSchedule is the Schema for the atlasbackupschedules API.
 AtlasBackupSchedule.spec
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-AtlasBackupScheduleSpec defines the desired state of AtlasBackupSchedule.
+AtlasBackupScheduleSpec defines the target state of AtlasBackupSchedule.
 
 .. list-table::
    :header-rows: 1
@@ -204,6 +204,8 @@ Export policy for automatically exporting cloud backup snapshots to AWS bucket.
 AtlasBackupSchedule.status
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+BackupScheduleStatus defines the observed state of AtlasBackupSchedule.
+
 .. list-table::
    :header-rows: 1
    :widths: 25 10 65 10
@@ -225,8 +227,8 @@ AtlasBackupSchedule.status
 
    * -  ``observedGeneration``
      - integer
-     - ``ObservedGeneration`` indicates the generation of the resource specification that the Atlas Operator is aware of.
-       The Atlas Operator updates this field to the 'metadata.generation' as soon as it starts reconciliation of the resource.
+     - ``ObservedGeneration`` indicates the generation of the resource specification of which the Atlas Operator is aware.
+       The Atlas Operator updates this field to the value of 'metadata.generation' as soon as it starts reconciliation of the resource.
        *Format*: int64
      - false
 
@@ -248,7 +250,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``status``
      - string
-     - Status of the condition, one of True, False, Unknown.
+     - Status of the condition; one of True, False, Unknown.
      - true
 
    * -  ``type``
@@ -265,7 +267,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``message``
      - string
-     - A human readable ``message`` indicating details about the transition.
+     - A ``message`` providing details about the transition.
      - false
 
    * -  ``reason``

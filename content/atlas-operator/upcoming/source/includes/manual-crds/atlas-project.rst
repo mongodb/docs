@@ -31,7 +31,7 @@ AtlasProject is the Schema for the atlasprojects API
 
    * -  ``spec``
      - object
-     - ``AtlasProjectSpec`` defines the desired state of Project in Atlas
+     - ``AtlasProjectSpec`` defines the target state of Project in Atlas
      - false
 
    * -  ``status``
@@ -44,7 +44,7 @@ AtlasProject is the Schema for the atlasprojects API
 AtlasProject.spec
 ~~~~~~~~~~~~~~~~~
 
-AtlasProjectSpec defines the desired state of Project in Atlas
+AtlasProjectSpec defines the target state of Project in Atlas
 
 .. list-table::
    :header-rows: 1
@@ -922,12 +922,13 @@ AwsKms specifies AWS KMS configuration details and whether Encryption at Rest is
 
    * -  ``enabled``
      - boolean
-     -  
+     - Specifies whether Encryption at Rest is ``enabled`` for an Atlas project.
+       To disable Encryption at Rest, pass only this parameter with a value of false. When you disable Encryption at Rest, Atlas also removes the configuration details.
      - false
 
    * -  ``region``
      - string
-     -  
+     - The ``AWS`` ``region`` in which the ``AWS`` customer master key exists.
      - false
 
    * -  ``secretRef``
@@ -937,7 +938,7 @@ AwsKms specifies AWS KMS configuration details and whether Encryption at Rest is
 
    * -  ``valid``
      - boolean
-     -  
+     - Specifies whether the encryption key set for the provider is ``valid`` and may be used to encrypt and decrypt data.
      - false
 
 .. _atlasproject-spec-encryptionatrest-awskms-secretref: 
@@ -984,22 +985,23 @@ AzureKeyVault specifies Azure Key Vault configuration details and whether Encryp
 
    * -  ``azureEnvironment``
      - string
-     -  
+     - The Azure environment where the Azure account credentials reside. Valid values are the following: ``AZURE``, ``AZURE_CHINA``, ``AZURE_GERMANY``
      - false
 
    * -  ``clientID``
      - string
-     -  
+     - The Client ``ID``, also known as the application ``ID``, for an Azure application associated with the Azure ``AD`` tenant.
      - false
 
    * -  ``enabled``
      - boolean
-     -  
+     - Specifies whether Encryption at Rest is ``enabled`` for an Atlas project.
+       To disable Encryption at Rest, pass only this parameter with a value of false. When you disable Encryption at Rest, Atlas also removes the configuration details.
      - false
 
    * -  ``resourceGroupName``
      - string
-     -  
+     - The name of the Azure Resource group that contains an Azure Key Vault.
      - false
 
    * -  ``secretRef``
@@ -1009,7 +1011,7 @@ AzureKeyVault specifies Azure Key Vault configuration details and whether Encryp
 
    * -  ``tenantID``
      - string
-     -  
+     - The unique identifier for an Azure ``AD`` tenant within an Azure subscription.
      - false
 
 .. _atlasproject-spec-encryptionatrest-azurekeyvault-secretref: 
@@ -1056,7 +1058,8 @@ GoogleCloudKms specifies GCP KMS configuration details and whether Encryption at
 
    * -  ``enabled``
      - boolean
-     -  
+     - Specifies whether Encryption at Rest is ``enabled`` for an Atlas project.
+       To disable Encryption at Rest, pass only this parameter with a value of false. When you disable Encryption at Rest, Atlas also removes the configuration details.
      - false
 
    * -  ``secretRef``
@@ -1130,12 +1133,13 @@ at https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-reso
 
    * -  ``enabled``
      - boolean
-     -  
+     - Flag that indicates whether someone has activated the Prometheus integration.
      - false
 
    * -  ``flowName``
      - string
-     -  
+     - ``DEPRECATED``: Flowdock flow name.
+       This field has been removed from Atlas, and has no effect.
      - false
 
    * -  ``licenseKeyRef``
@@ -1155,7 +1159,8 @@ at https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-reso
 
    * -  ``orgName``
      - string
-     -  
+     - ``DEPRECATED``: Flowdock organization name.
+       This field has been removed from Atlas, and has no effect.
      - false
 
    * -  ``passwordRef``
@@ -1909,8 +1914,8 @@ AtlasProjectStatus defines the observed state of AtlasProject
 
    * -  ``observedGeneration``
      - integer
-     - ``ObservedGeneration`` indicates the generation of the resource specification that the Atlas Operator is aware of.
-       The Atlas Operator updates this field to the 'metadata.generation' as soon as it starts reconciliation of the resource.
+     - ``ObservedGeneration`` indicates the generation of the resource specification of which the Atlas Operator is aware.
+       The Atlas Operator updates this field to the value of 'metadata.generation' as soon as it starts reconciliation of the resource.
        *Format*: int64
      - false
 
@@ -1948,7 +1953,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``status``
      - string
-     - Status of the condition, one of True, False, Unknown.
+     - Status of the condition; one of True, False, Unknown.
      - true
 
    * -  ``type``
@@ -1965,7 +1970,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``message``
      - string
-     - A human readable ``message`` indicating details about the transition.
+     - A ``message`` providing details about the transition.
      - false
 
    * -  ``reason``
@@ -2394,52 +2399,53 @@ AtlasProject.status.cloudProviderIntegrations
 
    * -  ``atlasAssumedRoleExternalId``
      - string
-     -  
+     - Unique external ``ID`` that ``MongoDB`` Atlas uses when it assumes the ``IAM`` role in your Amazon Web Services account.
      - true
 
    * -  ``providerName``
      - string
-     -  
+     - Human-readable label that identifies the cloud provider of the role.
      - true
 
    * -  ``atlasAWSAccountArn``
      - string
-     -  
+     - Amazon Resource Name that identifies the Amazon Web Services user account that ``MongoDB`` Atlas uses when it assumes the Identity and Access Management role.
      - false
 
    * -  ``authorizedDate``
      - string
-     -  
+     - Date and time when someone authorized this role for the specified cloud service provider. This parameter expresses its value in the ``ISO`` 8601 timestamp format in ``UTC``.
      - false
 
    * -  ``createdDate``
      - string
-     -  
+     - Date and time when someone created this role for the specified cloud service provider. This parameter expresses its value in the ``ISO`` 8601 timestamp format in ``UTC``.
      - false
 
    * -  ``errorMessage``
      - string
-     -  
+     - Application error message returned.
      - false
 
    * -  ``featureUsages``
      - []object
-     -  
+     - List that contains application features associated with this Amazon Web Services Identity and Access Management role.
      - false
 
    * -  ``iamAssumedRoleArn``
      - string
-     -  
+     - Amazon Resource Name that identifies the Amazon Web Services Identity and Access Management role that ``MongoDB`` Cloud assumes when it accesses resources in your ``AWS`` account.
      - false
 
    * -  ``roleId``
      - string
-     -  
+     - Unique 24-hexadecimal digit string that identifies the role.
      - false
 
    * -  ``status``
      - string
-     -  
+     - Provision ``status`` of the service account.
+       Values are ``IN_PROGRESS``, ``COMPLETE``, ``FAILED``, or ``NOT_INITIATED``.
      - false
 
 .. _atlasproject-status-cloudproviderintegrations-featureusages: 
@@ -2458,12 +2464,12 @@ AtlasProject.status.cloudProviderIntegrations.featureUsages
 
    * -  ``featureId``
      - string
-     -  
+     - Identifying characteristics about the data lake linked to this Amazon Web Services Identity and Access Management role.
      - false
 
    * -  ``featureType``
      - string
-     -  
+     - Human-readable label that describes one ``MongoDB`` Cloud feature linked to this Amazon Web Services Identity and Access Management role.
      - false
 
 .. _atlasproject-status-customroles: 
@@ -2694,17 +2700,17 @@ AtlasProject.status.privateEndpoints.endpoints
 
    * -  ``endpointName``
      - string
-     -  
+     - Human-readable label that identifies the Google Cloud consumer forwarding rule that you created.
      - true
 
    * -  ``ipAddress``
      - string
-     -  
+     - One Private Internet Protocol version 4 (IPv4) address to which this Google Cloud consumer forwarding rule resolves.
      - true
 
    * -  ``status``
      - string
-     -  
+     - State of the ``MongoDB`` Atlas endpoint group when ``MongoDB`` Cloud received this request.
      - true
 
 .. _atlasproject-status-prometheus: 
@@ -2726,12 +2732,12 @@ including the prometheusDiscoveryURL
 
    * -  ``prometheusDiscoveryURL``
      - string
-     -  
+     - ``URL`` from which Prometheus fetches the targets.
      - false
 
    * -  ``scheme``
      - string
-     -  
+     - Protocol ``scheme`` used for Prometheus requests.
      - false
 
 .. _atlasproject-status-teams: 

@@ -31,18 +31,20 @@ AtlasFederatedAuth is the Schema for the Atlasfederatedauth API
 
    * -  ``spec``
      - object
-     -  
+     - ``AtlasFederatedAuthSpec`` defines the target state of ``AtlasFederatedAuth``.
      - false
 
    * -  ``status``
      - object
-     -  
+     - ``AtlasFederatedAuthStatus`` defines the observed state of ``AtlasFederatedAuth``.
      - false
 
 .. _atlasfederatedauth-spec: 
 
 AtlasFederatedAuth.spec
 ~~~~~~~~~~~~~~~~~~~~~~~
+
+AtlasFederatedAuthSpec defines the target state of AtlasFederatedAuth.
 
 .. list-table::
    :header-rows: 1
@@ -173,13 +175,15 @@ AtlasFederatedAuth.spec.roleMappings.roleAssignments
    * -  ``role``
      - enum
      - The ``role`` in Atlas that should be given to group members.
-       *Enum*: ``ORG_MEMBER``, ``ORG_READ_ONLY``, ``ORG_BILLING_ADMIN``, ``ORG_GROUP_CREATOR``, ``ORG_OWNER``, ``ORG_BILLING_READ_ONLY``, ``ORG_TEAM_MEMBERS_ADMIN``, ``GROUP_AUTOMATION_ADMIN``, ``GROUP_BACKUP_ADMIN``, ``GROUP_MONITORING_ADMIN``, ``GROUP_OWNER``, ``GROUP_READ_ONLY``, ``GROUP_USER_ADMIN``, ``GROUP_BILLING_ADMIN``, ``GROUP_DATA_ACCESS_ADMIN``, ``GROUP_DATA_ACCESS_READ_ONLY``, ``GROUP_DATA_ACCESS_READ_WRITE``, ``GROUP_CHARTS_ADMIN``, ``GROUP_CLUSTER_MANAGER``, ``GROUP_SEARCH_INDEX_EDITOR``, ``GROUP_DATABASE_ACCESS_ADMIN``, ``GROUP_BACKUP_MANAGER``, ``GROUP_STREAM_PROCESSING_OWNER``, ``ORG_STREAM_PROCESSING_ADMIN``, ``GROUP_OBSERVABILITY_VIEWER``
+       *Enum*: ``ORG_MEMBER``, ``ORG_READ_ONLY``, ``ORG_BILLING_ADMIN``, ``ORG_GROUP_CREATOR``, ``ORG_OWNER``, ``ORG_BILLING_READ_ONLY``, ``GROUP_OWNER``, ``GROUP_READ_ONLY``, ``GROUP_DATA_ACCESS_ADMIN``, ``GROUP_DATA_ACCESS_READ_ONLY``, ``GROUP_DATA_ACCESS_READ_WRITE``, ``GROUP_CLUSTER_MANAGER``, ``GROUP_SEARCH_INDEX_EDITOR``, ``GROUP_DATABASE_ACCESS_ADMIN``, ``GROUP_BACKUP_MANAGER``, ``GROUP_STREAM_PROCESSING_OWNER``, ``ORG_STREAM_PROCESSING_ADMIN``, ``GROUP_OBSERVABILITY_VIEWER``
      - false
 
 .. _atlasfederatedauth-status: 
 
 AtlasFederatedAuth.status
 ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+AtlasFederatedAuthStatus defines the observed state of AtlasFederatedAuth.
 
 .. list-table::
    :header-rows: 1
@@ -197,8 +201,8 @@ AtlasFederatedAuth.status
 
    * -  ``observedGeneration``
      - integer
-     - ``ObservedGeneration`` indicates the generation of the resource specification that the Atlas Operator is aware of.
-       The Atlas Operator updates this field to the 'metadata.generation' as soon as it starts reconciliation of the resource.
+     - ``ObservedGeneration`` indicates the generation of the resource specification of which the Atlas Operator is aware.
+       The Atlas Operator updates this field to the value of 'metadata.generation' as soon as it starts reconciliation of the resource.
        *Format*: int64
      - false
 
@@ -220,7 +224,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``status``
      - string
-     - Status of the condition, one of True, False, Unknown.
+     - Status of the condition; one of True, False, Unknown.
      - true
 
    * -  ``type``
@@ -237,7 +241,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``message``
      - string
-     - A human readable ``message`` indicating details about the transition.
+     - A ``message`` providing details about the transition.
      - false
 
    * -  ``reason``

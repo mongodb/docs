@@ -31,12 +31,12 @@ AtlasTeam is the Schema for the Atlas Teams API
 
    * -  ``spec``
      - object
-     - ``TeamSpec`` defines the desired state of a Team in Atlas.
+     - ``TeamSpec`` defines the target state of a Team in Atlas.
      - true
 
    * -  ``status``
      - object
-     -  
+     - ``TeamStatus`` defines the observed state of ``AtlasTeam``.
      - false
 
 .. _atlasteam-spec: 
@@ -44,7 +44,7 @@ AtlasTeam is the Schema for the Atlas Teams API
 AtlasTeam.spec
 ~~~~~~~~~~~~~~
 
-TeamSpec defines the desired state of a Team in Atlas.
+TeamSpec defines the target state of a Team in Atlas.
 
 .. list-table::
    :header-rows: 1
@@ -70,6 +70,8 @@ TeamSpec defines the desired state of a Team in Atlas.
 AtlasTeam.status
 ~~~~~~~~~~~~~~~~
 
+TeamStatus defines the observed state of AtlasTeam.
+
 .. list-table::
    :header-rows: 1
    :widths: 25 10 65 10
@@ -91,8 +93,8 @@ AtlasTeam.status
 
    * -  ``observedGeneration``
      - integer
-     - ``ObservedGeneration`` indicates the generation of the resource specification that the Atlas Operator is aware of.
-       The Atlas Operator updates this field to the 'metadata.generation' as soon as it starts reconciliation of the resource.
+     - ``ObservedGeneration`` indicates the generation of the resource specification of which the Atlas Operator is aware.
+       The Atlas Operator updates this field to the value of 'metadata.generation' as soon as it starts reconciliation of the resource.
        *Format*: int64
      - false
 
@@ -119,7 +121,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``status``
      - string
-     - Status of the condition, one of True, False, Unknown.
+     - Status of the condition; one of True, False, Unknown.
      - true
 
    * -  ``type``
@@ -136,7 +138,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``message``
      - string
-     - A human readable ``message`` indicating details about the transition.
+     - A ``message`` providing details about the transition.
      - false
 
    * -  ``reason``

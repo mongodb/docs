@@ -31,12 +31,12 @@ AtlasBackupPolicy is the Schema for the atlasbackuppolicies API
 
    * -  ``spec``
      - object
-     - ``AtlasBackupPolicySpec`` defines the desired state of ``AtlasBackupPolicy``
+     - ``AtlasBackupPolicySpec`` defines the target state of ``AtlasBackupPolicy``.
      - false
 
    * -  ``status``
      - object
-     -  
+     - ``BackupPolicyStatus`` defines the observed state of ``AtlasBackupPolicy``.
      - false
 
 .. _atlasbackuppolicy-spec: 
@@ -44,7 +44,7 @@ AtlasBackupPolicy is the Schema for the atlasbackuppolicies API
 AtlasBackupPolicy.spec
 ~~~~~~~~~~~~~~~~~~~~~~
 
-AtlasBackupPolicySpec defines the desired state of AtlasBackupPolicy
+AtlasBackupPolicySpec defines the target state of AtlasBackupPolicy.
 
 .. list-table::
    :header-rows: 1
@@ -76,14 +76,14 @@ AtlasBackupPolicy.spec.items
 
    * -  ``frequencyInterval``
      - integer
-     - Desired frequency of the new backup policy item specified by ``FrequencyType``. A value of 1 specifies the first instance of the corresponding ``FrequencyType``.
-       The only accepted value you can set for frequency interval with NVMe clusters is 12.
+     - Frequency of the new backup policy item specified by ``FrequencyType``. A value of 1 specifies the first instance of the corresponding ``FrequencyType``.
+       You can set ``FrequencyInterval`` only to 12 for NVMe clusters.
        *Enum*: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 40
      - true
 
    * -  ``frequencyType``
      - enum
-     - Frequency associated with the backup policy item. You cannot specify multiple hourly and daily backup policy items.
+     - Frequency associated with the backup policy item. You can specify only one each of hourly or daily backup policy items.
        *Enum*: hourly, daily, weekly, monthly, yearly
      - true
 
@@ -103,6 +103,8 @@ AtlasBackupPolicy.spec.items
 
 AtlasBackupPolicy.status
 ~~~~~~~~~~~~~~~~~~~~~~~~
+
+BackupPolicyStatus defines the observed state of AtlasBackupPolicy.
 
 .. list-table::
    :header-rows: 1
@@ -125,8 +127,8 @@ AtlasBackupPolicy.status
 
    * -  ``observedGeneration``
      - integer
-     - ``ObservedGeneration`` indicates the generation of the resource specification that the Atlas Operator is aware of.
-       The Atlas Operator updates this field to the 'metadata.generation' as soon as it starts reconciliation of the resource.
+     - ``ObservedGeneration`` indicates the generation of the resource specification of which the Atlas Operator is aware.
+       The Atlas Operator updates this field to the value of 'metadata.generation' as soon as it starts reconciliation of the resource.
        *Format*: int64
      - false
 
@@ -148,7 +150,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``status``
      - string
-     - Status of the condition, one of True, False, Unknown.
+     - Status of the condition; one of True, False, Unknown.
      - true
 
    * -  ``type``
@@ -165,7 +167,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``message``
      - string
-     - A human readable ``message`` indicating details about the transition.
+     - A ``message`` providing details about the transition.
      - false
 
    * -  ``reason``

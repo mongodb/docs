@@ -31,7 +31,7 @@ AtlasDeployment is the Schema for the atlasdeployments API
 
    * -  ``spec``
      - object
-     - ``AtlasDeploymentSpec`` defines the desired state of ``AtlasDeployment``.
+     - ``AtlasDeploymentSpec`` defines the target state of ``AtlasDeployment``.
        Only one of ``DeploymentSpec``, ``AdvancedDeploymentSpec`` and ``ServerlessSpec`` should be defined.
        *Validations*:
 
@@ -52,7 +52,7 @@ AtlasDeployment is the Schema for the atlasdeployments API
 AtlasDeployment.spec
 ~~~~~~~~~~~~~~~~~~~~
 
-AtlasDeploymentSpec defines the desired state of AtlasDeployment.
+AtlasDeploymentSpec defines the target state of AtlasDeployment.
 Only one of DeploymentSpec, AdvancedDeploymentSpec and ServerlessSpec should be defined.
 
 .. list-table::
@@ -253,7 +253,7 @@ Configuration for the advanced (v1.5) deployment API https://www.mongodb.com/doc
 
    * -  ``mongoDBVersion``
      - string
-     -  
+     - Version of ``MongoDB`` that the cluster runs.
      - false
 
    * -  ``paused``
@@ -489,12 +489,12 @@ AtlasDeployment.spec.deploymentSpec.replicationSpecs.regionConfigs
 
    * -  ``analyticsSpecs``
      - object
-     -  
+     - Hardware specifications for analytics nodes deployed in the region.
      - false
 
    * -  ``autoScaling``
      - object
-     - ``AdvancedAutoScalingSpec`` configures your deployment to automatically scale its storage
+     - Options that determine how this cluster handles resource scaling.
      - false
 
    * -  ``backingProviderName``
@@ -507,7 +507,7 @@ AtlasDeployment.spec.deploymentSpec.replicationSpecs.regionConfigs
 
    * -  ``electableSpecs``
      - object
-     -  
+     - Hardware specifications for nodes deployed in the region.
      - false
 
    * -  ``priority``
@@ -525,7 +525,7 @@ AtlasDeployment.spec.deploymentSpec.replicationSpecs.regionConfigs
 
    * -  ``readOnlySpecs``
      - object
-     -  
+     - Hardware specifications for read only nodes deployed in the region.
      - false
 
    * -  ``regionName``
@@ -538,6 +538,8 @@ AtlasDeployment.spec.deploymentSpec.replicationSpecs.regionConfigs
 
 AtlasDeployment.spec.deploymentSpec.replicationSpecs.regionConfigs.analyticsSpecs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Hardware specifications for analytics nodes deployed in the region.
 
 .. list-table::
    :header-rows: 1
@@ -579,7 +581,7 @@ AtlasDeployment.spec.deploymentSpec.replicationSpecs.regionConfigs.analyticsSpec
 AtlasDeployment.spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-AdvancedAutoScalingSpec configures your deployment to automatically scale its storage
+Options that determine how this cluster handles resource scaling.
 
 .. list-table::
    :header-rows: 1
@@ -663,6 +665,8 @@ Flag that indicates whether disk auto-scaling is enabled. The default is true.
 AtlasDeployment.spec.deploymentSpec.replicationSpecs.regionConfigs.electableSpecs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Hardware specifications for nodes deployed in the region.
+
 .. list-table::
    :header-rows: 1
    :widths: 25 10 65 10
@@ -702,6 +706,8 @@ AtlasDeployment.spec.deploymentSpec.replicationSpecs.regionConfigs.electableSpec
 
 AtlasDeployment.spec.deploymentSpec.replicationSpecs.regionConfigs.readOnlySpecs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Hardware specifications for read only nodes deployed in the region.
 
 .. list-table::
    :header-rows: 1
@@ -833,8 +839,12 @@ Index specifications for the collection's fields.
      - Required
 
    * -  ``dynamic``
-     - boolean
-     - Flag that indicates whether the index uses ``dynamic`` or static mappings. Required if mapping.fields is omitted.
+     - ``JSON``
+     - Indicates whether the index uses static, default dynamic, or configurable ``dynamic`` mappings.
+       Set to **true** to enable ``dynamic`` mapping with default type set or define object to specify the name of the configured type sets for ``dynamic`` mapping.
+       If you specify configurable ``dynamic`` mappings, you must define the referred type sets in the **``typeSets``** field.
+       Set to **false** to use only static mappings through **mappings.fields**.
+       See https://www.mongodb.com/docs/atlas/atlas-search/define-field-mappings/#configure-a-typeset for more details.
      - false
 
    * -  ``fields``
@@ -1519,12 +1529,13 @@ AtlasDeploymentStatus defines the observed state of AtlasDeployment.
 
    * -  ``customZoneMapping``
      - object
-     -  
+     - List that contains key value pairs to map zones to geographic regions.
+       These pairs map an ``ISO`` 3166-1a2 location code, with an ``ISO`` 3166-2 subdivision code when possible, to a unique 24-hexadecimal string that identifies the custom zone.
      - false
 
    * -  ``managedNamespaces``
      - []object
-     -  
+     - List that contains a namespace for a Global Cluster. ``MongoDB`` Atlas manages this cluster.
      - false
 
    * -  ``mongoDBVersion``
@@ -1540,24 +1551,25 @@ AtlasDeploymentStatus defines the observed state of AtlasDeployment.
 
    * -  ``observedGeneration``
      - integer
-     - ``ObservedGeneration`` indicates the generation of the resource specification that the Atlas Operator is aware of.
-       The Atlas Operator updates this field to the 'metadata.generation' as soon as it starts reconciliation of the resource.
+     - ``ObservedGeneration`` indicates the generation of the resource specification of which the Atlas Operator is aware.
+       The Atlas Operator updates this field to the value of 'metadata.generation' as soon as it starts reconciliation of the resource.
        *Format*: int64
      - false
 
    * -  ``replicaSets``
      - []object
-     -  
+     - Details that explain how ``MongoDB`` Cloud replicates data on the specified ``MongoDB`` database.
+       This array has one object per shard representing node configurations in each shard. For replica sets there is only one object representing node configurations.
      - false
 
    * -  ``searchIndexes``
      - []object
-     - ``SearchIndexes`` contains a list of search indexes statuses configured for a project
+     - ``SearchIndexes`` contains a list of search indexes statuses configured for a project.
      - false
 
    * -  ``serverlessPrivateEndpoints``
      - []object
-     -  
+     - ``ServerlessPrivateEndpoints`` contains a list of private endpoints configured for the serverless deployment.
      - false
 
    * -  ``stateName``
@@ -1584,7 +1596,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``status``
      - string
-     - Status of the condition, one of True, False, Unknown.
+     - Status of the condition; one of True, False, Unknown.
      - true
 
    * -  ``type``
@@ -1601,7 +1613,7 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
 
    * -  ``message``
      - string
-     - A human readable ``message`` indicating details about the transition.
+     - A ``message`` providing details about the transition.
      - false
 
    * -  ``reason``
@@ -1691,7 +1703,7 @@ to which you deployed this cluster's nodes.
 
    * -  ``srvShardOptimizedConnectionString``
      - string
-     -  
+     - Private endpoint-aware connection string optimized for sharded clusters that uses the ``mongodb+srv://`` protocol to connect to ``MongoDB`` Cloud through a private endpoint.
      - false
 
    * -  ``type``
@@ -1743,6 +1755,9 @@ Endpoint through which you connect to Atlas
 AtlasDeployment.status.customZoneMapping
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+List that contains key value pairs to map zones to geographic regions.
+These pairs map an ISO 3166-1a2 location code, with an ISO 3166-2 subdivision code when possible, to a unique 24-hexadecimal string that identifies the custom zone.
+
 .. list-table::
    :header-rows: 1
    :widths: 25 10 65 10
@@ -1754,17 +1769,18 @@ AtlasDeployment.status.customZoneMapping
 
    * -  ``customZoneMapping``
      - map[string]string
-     -  
+     - List that contains key value pairs to map zones to geographic regions.
+       These pairs map an ``ISO`` 3166-1a2 location code, with an ``ISO`` 3166-2 subdivision code when possible, to a unique 24-hexadecimal string that identifies the custom zone.
      - false
 
    * -  ``zoneMappingErrMessage``
      - string
-     -  
+     - Error message for failed Custom Zone Mapping.
      - false
 
    * -  ``zoneMappingState``
      - string
-     -  
+     - Status of the Custom Zone Mapping.
      - false
 
 .. _atlasdeployment-status-managednamespaces: 
@@ -1783,47 +1799,50 @@ AtlasDeployment.status.managedNamespaces
 
    * -  ``collection``
      - string
-     -  
+     - Human-readable label of the ``collection`` to manage for this Global Cluster.
      - true
 
    * -  ``db``
      - string
-     -  
+     - Human-readable label of the database to manage for this Global Cluster.
      - true
 
    * -  ``customShardKey``
      - string
-     -  
+     - Database parameter used to divide the collection into shards. Global clusters require a compound shard key.
+       This compound shard key combines the location parameter and the user-selected custom key.
      - false
 
    * -  ``errMessage``
      - string
-     -  
+     - Error message for a failed Managed Namespace.
      - false
 
    * -  ``isCustomShardKeyHashed``
      - boolean
-     -  
+     - Flag that indicates whether someone hashed the custom shard key for the specified collection.
+       If you set this value to false, ``MongoDB`` Atlas uses ranged sharding.
      - false
 
    * -  ``isShardKeyUnique``
      - boolean
-     -  
+     - Flag that indicates whether someone hashed the custom shard key. If this parameter returns false, this cluster uses ranged sharding.
      - false
 
    * -  ``numInitialChunks``
      - integer
-     -  
+     - Minimum number of chunks to create initially when sharding an empty collection with a hashed shard key.
      - false
 
    * -  ``presplitHashedZones``
      - boolean
-     -  
+     - Flag that indicates whether ``MongoDB`` Cloud should create and distribute initial chunks for an empty or non-existing collection.
+       ``MongoDB`` Atlas distributes data based on the defined zones and zone ranges for the collection.
      - false
 
    * -  ``status``
      - string
-     -  
+     - Status of the Managed Namespace.
      - false
 
 .. _atlasdeployment-status-replicasets: 
@@ -1842,12 +1861,12 @@ AtlasDeployment.status.replicaSets
 
    * -  ``id``
      - string
-     -  
+     - Unique 24-hexadecimal digit string that identifies the replication object for a shard in a Cluster.
      - true
 
    * -  ``zoneName``
      - string
-     -  
+     - Human-readable label that describes the zone this shard belongs to in a Global Cluster.
      - false
 
 .. _atlasdeployment-status-searchindexes: 
@@ -1866,22 +1885,22 @@ AtlasDeployment.status.searchIndexes
 
    * -  ``ID``
      - string
-     -  
+     - Unique 24-hexadecimal digit string that identifies this Atlas Search index.
      - true
 
    * -  ``message``
      - string
-     -  
+     - Details on the status of the search index.
      - true
 
    * -  ``name``
      - string
-     -  
+     - Human-readable label that identifies this index.
      - true
 
    * -  ``status``
      - string
-     -  
+     - Condition of the search index.
      - true
 
 .. _atlasdeployment-status-serverlessprivateendpoints: 
