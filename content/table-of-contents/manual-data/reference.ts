@@ -953,14 +953,8 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
-        label: 'Native Methods',
-        contentSite: 'docs',
-        url: '/docs/:version/reference/method/js-native',
-      },
-      {
         label: 'Atlas Search Index',
         contentSite: 'docs',
-        url: '/docs/:version/reference/method/js-atlas-search',
         collapsible: true,
         items: [
           {
@@ -988,7 +982,6 @@ const tocData: TocItem[] = [
       {
         label: 'Atlas Stream Processing',
         contentSite: 'docs',
-        url: '/docs/:version/reference/method/js-atlas-streams',
         collapsible: true,
         items: [
           {
@@ -1041,7 +1034,6 @@ const tocData: TocItem[] = [
       {
         label: 'Collections',
         contentSite: 'docs',
-        url: '/docs/:version/reference/method/js-collection',
         collapsible: true,
         items: [
           {
@@ -1289,7 +1281,6 @@ const tocData: TocItem[] = [
       {
         label: 'Cursors',
         contentSite: 'docs',
-        url: '/docs/:version/reference/method/js-cursor',
         collapsible: true,
         items: [
           {
@@ -1467,7 +1458,6 @@ const tocData: TocItem[] = [
       {
         label: 'Databases',
         contentSite: 'docs',
-        url: '/docs/:version/reference/method/js-database',
         collapsible: true,
         items: [
           {
@@ -1670,7 +1660,6 @@ const tocData: TocItem[] = [
       {
         label: 'Query Plan Caches',
         contentSite: 'docs',
-        url: '/docs/:version/reference/method/js-plan-cache',
         collapsible: true,
         items: [
           {
@@ -1703,7 +1692,6 @@ const tocData: TocItem[] = [
       {
         label: 'Bulk Operations',
         contentSite: 'docs',
-        url: '/docs/:version/reference/method/js-bulk',
         collapsible: true,
         items: [
           {
@@ -1816,7 +1804,6 @@ const tocData: TocItem[] = [
       {
         label: 'User Management',
         contentSite: 'docs',
-        url: '/docs/:version/reference/method/js-user-management',
         collapsible: true,
         items: [
           {
@@ -1884,7 +1871,6 @@ const tocData: TocItem[] = [
       {
         label: 'Role Management',
         contentSite: 'docs',
-        url: '/docs/:version/reference/method/js-role-management',
         collapsible: true,
         items: [
           {
@@ -1942,7 +1928,6 @@ const tocData: TocItem[] = [
       {
         label: 'Replication',
         contentSite: 'docs',
-        url: '/docs/:version/reference/method/js-replication',
         collapsible: true,
         items: [
           {
@@ -2020,7 +2005,6 @@ const tocData: TocItem[] = [
       {
         label: 'Sharding',
         contentSite: 'docs',
-        url: '/docs/:version/reference/method/js-sharding',
         collapsible: true,
         items: [
           {
@@ -2289,7 +2273,6 @@ const tocData: TocItem[] = [
       {
         label: 'Object Constructors',
         contentSite: 'docs',
-        url: '/docs/:version/reference/method/js-constructor',
         collapsible: true,
         items: [
           {
@@ -2367,7 +2350,6 @@ const tocData: TocItem[] = [
       {
         label: 'Connections',
         contentSite: 'docs',
-        url: '/docs/:version/reference/method/js-connection',
         collapsible: true,
         items: [
           {
@@ -2478,7 +2460,6 @@ const tocData: TocItem[] = [
       {
         label: 'In-Use Encryption',
         contentSite: 'docs',
-        url: '/docs/:version/reference/method/js-client-side-field-level-encryption',
         collapsible: true,
         items: [
           {

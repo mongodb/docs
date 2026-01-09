@@ -31,8 +31,12 @@
 
        .. versionadded:: 5.0
 
+   * - :method:`sh.abortUnshardCollection()`
+     - Aborts an :ref:`unsharding operation <sharding-resharding>` that is in progress.
+
    * - :method:`sh.addShard()`
      - Adds a :term:`shard` to a sharded cluster.
+ 
 
    * - :method:`sh.addShardTag()`
      - This method aliases to :method:`sh.addShardToZone()`.
