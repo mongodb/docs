@@ -55,6 +55,17 @@ pipeline stage with the following prototype form:
      "$emit": {
        "connectionName": "<registered-connection>",
        "topic": "<target-topic>" | <expression>,
+       "schemaRegistry": {
+	 "connectionName": "<schema-registry-name>",
+	 "valueSchema": {
+	   type: "<schema-type>",
+	   schema: <schema-name>,
+	   options: {
+	     subjectNameStrategy: "<topic-name-strategy>",
+	     autoRegisterSchemas: true
+	   }
+	 }
+       },       
        "config": {
          "acks": <number-of-acknowledgements>,
          "compression_type": "<compression-type>",
@@ -90,6 +101,76 @@ The ``$emit`` stage takes a document with the following fields:
      - string or expression
      - Required 
      - Name of the {+kafka+} topic to emit messages to.
+
+   * - ``schemaRegistry``
+     - document 
+     - Optional
+     - Document enabling the use of a `Schema Registry
+       <https://docs.confluent.io/platform/current/schema-registry/index.html>`__
+       to support writing to an `Avro-serialized
+       <https://avro.apache.org/docs/>`__ source.
+
+       To enable this feature, you must create a :ref:`Schema Registry
+       connection <atlas-sp-add-connection>`.
+
+   * - ``schemaRegistry.connectionName``
+     - string 
+     - Conditional
+     - Name of the Schema Registry connection to use for Avro deserialization.
+
+   * - ``schemaRegistry.valueSchema``
+     - document | expression
+     - Conditional
+     - Document defining the properties of your serialization
+       schema, or an expression that evaluates to such.
+
+   * - ``schemaRegistry.valueSchema.type``
+     - string
+     - Conditional
+     - The type of serialization for which to use the Schema
+       Registry. {+atlas-sp+} currently supports ``"avro"``
+       serialization through Schema Registry connections.
+
+   * - ``schemaRegistry.valueSchema.schema``
+     - document
+     - Conditional
+     - Document defining your `Schema Declaration
+       <https://avro.apache.org/docs/1.12.0/specification/#schema-declaration>`__.
+
+   * - ``schemaRegistry.valueSchema.options``
+     - document
+     - Optional
+     - Document defining optional configuration parameters for your
+       schema registry connection.
+
+   * - ``schemaRegistry.valueSchema.options.autoRegisterSchemas``
+     - boolean
+     - Optional
+     - Toggle determining whether or not to automatically register
+       schemas when processing documents with unrecognized schemas. If
+       set to false, documents with unrecognized schemas are sent to
+       the :ref:`dead letter queue <atlas-sp-dlq>`.
+
+       Defaults to ``true``.
+
+   * - ``schemaRegistry.valueSchema.options.subjectNameStrategy``
+     - string
+     - Conditional
+     - Method of determining the subject name of automatically
+       registered schemas. Must be one of the following:
+
+       - ``"TopicNameStrategy"``: Uses the Kafka ``{topic}`` name as
+         the subject name.
+       - ``"RecordNameStrategy"``: Uses the Avro record name as the
+         subject name.
+       - ``"TopicRecordNameStrategy"``: Uses a composite of the Kafka
+         ``{topic}`` name and Avro record name as the subject name.
+
+       Defaults to ``"TopicNameStrategy"``. You can set this parameter
+       only if
+       ``schemaRegistry.valueSchema.options.autoRegisterSchemas`` is
+       set to ``true``.
+	 
 
    * - ``config``
      - document 
