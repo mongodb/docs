@@ -1,6 +1,0 @@
-- :pipeline:`$currentOp`
-- :pipeline:`$indexStats`
-- :pipeline:`$listLocalSessions`
-- :pipeline:`$listSessions`
-- :pipeline:`$planCacheStats`
-- :pipeline:`$search`

@@ -1,6 +1,0 @@
-- :pipeline:`$addFields`
-- :pipeline:`$set`
-- :pipeline:`$project`
-- :pipeline:`$unset`
-- :pipeline:`$replaceRoot`
-- :pipeline:`$replaceWith`
