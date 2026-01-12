@@ -398,6 +398,12 @@ export const tocData: TocItem[] = [
         ],
       },
       {
+        label: 'Third-Party Integrations',
+        contentSite: 'rust',
+        url: '/docs/drivers/rust/:version/integrations',
+        versions: { excludes: outdatedVersions },
+      },
+      {
         label: 'API Documentation',
         contentSite: 'rust',
         url: '/docs/drivers/rust/:version/api',
