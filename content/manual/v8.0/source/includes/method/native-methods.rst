@@ -1,39 +1,3 @@
-.. _native-in-mongosh:
-
-=============================
-Native Methods in ``mongosh``
-=============================
-
-.. default-domain:: mongodb
-
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 1
-   :class: singlecol
-
-The methods listed in this section are :binary:`mongosh` functional
-replacements for the native methods that were available in the legacy 
-``mongo`` shell. These methods are not exact replacements: output 
-formats and some functionality may differ from the corresponding 
-legacy methods.
-
-In addition to these methods, the `mongocompat snippet
-<https://github.com/mongodb-labs/mongosh-snippets/blob/main/snippets/mongocompat/index.js>`__
-provides access to legacy :binary:`mongo` shell APIs.
-
-.. note::
-
-   In the following table ``<path>`` and ``<filename>`` are strings and
-   should be in quotes.
-
-   .. code-block:: javascript
-      :copyable: false
-
-      // process.chdir( <path> )
-
-      process.chdir( "./data/incoming" )
-
 .. list-table::
    :widths: 30,70
    :header-rows: 1

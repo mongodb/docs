@@ -85,7 +85,7 @@
        For more details, see :ref:`transactions-operations-ddl`.
 
    * - | :method:`db.collection.bulkWrite()`
-       | Various :doc:`/reference/method/js-bulk`
+       | Various :ref:`bulk-operation-methods`
      - 
      - If run on a non-existing collection, the collection is implicitly 
        created.
