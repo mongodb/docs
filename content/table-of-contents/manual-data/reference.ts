@@ -460,6 +460,12 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/command/split',
           },
           {
+            label: 'startShardDraining',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/command/startShardDraining',
+            versions: { excludes: versionsBeforeV8_3 },
+          },
+          {
             label: 'transitionFromDedicatedConfigServer',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/transitionFromDedicatedConfigServer',
