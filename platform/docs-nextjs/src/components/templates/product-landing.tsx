@@ -6,12 +6,9 @@ import { isString } from 'lodash';
 import { theme } from '@/styles/theme';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { usePageContext } from '@/context/page-context';
-import { findKeyValuePair } from '@/utils/find-key-value-pair';
-import type { ASTNode } from '@/types/ast';
 import { DEPRECATED_PROJECTS } from '@/components/contents';
+import FeedbackRating from '@/components/widgets/feedback-widget';
 import type { BaseTemplateProps } from '.';
-import { isParentNode } from '@/types/ast-utils';
-import FeedbackRating from '../widgets/feedback-widget';
 
 export const CONTENT_MAX_WIDTH = 1200;
 
@@ -151,7 +148,7 @@ const wrapperStyles = css`
     }
 
     [role='alert'] {
-      grid-column: 2 / 3;
+      grid-column: 2 / 4;
       grid-row: banner;
       align-items: center;
     }
@@ -219,16 +216,8 @@ const wrapperStyles = css`
 
 const REALM_LIGHT_HERO_PAGES = ['index.txt'];
 
-function stripChildren<T extends ASTNode>(node: T): Omit<T, 'children'> {
-  if (isParentNode(node)) {
-    const { children, ...rest } = node;
-    return rest;
-  }
-  return node;
-}
-
 const ProductLandingTemplate = ({ children }: BaseTemplateProps) => {
-  const { page, options: pageOptions } = usePageContext();
+  const { page, options: pageOptions, hasBanner } = usePageContext();
   const { project } = useSnootyMetadata();
   const isGuides = project === 'guides';
   const isRealm = project === 'realm';
@@ -237,16 +226,6 @@ const ProductLandingTemplate = ({ children }: BaseTemplateProps) => {
       ? ['', 'true'].includes(pageOptions['pl-max-width-paragraphs'])
       : false;
   const hasLightHero = page && isRealm && REALM_LIGHT_HERO_PAGES.includes(page.fileid);
-  // TODO: DOP-6420 This won't work with Next... After Banner is implemented, we need to revisit this.
-  // shallow copy children, and search for existence of banner
-  // const shallowChildren = (Array.isArray(children) ? children : [children]).reduce<ASTNode[]>((res, child) => {
-  //   const copiedChildren = child.props.nodeData?.children?.map((childNode: ASTNode) => stripChildren(childNode)) ?? [];
-  //   res = res.concat(copiedChildren);
-  //   return res;
-  // }, []);
-  const shallowChildren: ASTNode[] = [];
-
-  const bannerNode = findKeyValuePair([{ children: shallowChildren }], 'name', 'banner');
 
   return (
     <main
@@ -255,7 +234,7 @@ const ProductLandingTemplate = ({ children }: BaseTemplateProps) => {
         isGuides ? guidesStyles : notGuidesStyles,
         hasLightHero && hasLightHeroStyles,
         !hasMaxWidthParagraphs && maxWidthParagraphsStyles,
-        !!bannerNode && hasBannerStyles,
+        hasBanner && hasBannerStyles,
         'product-landing-template',
       )}
     >

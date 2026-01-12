@@ -1,4 +1,5 @@
 'use client';
+import { useEffect } from 'react';
 import LeafyBanner, { Variant as LeafyVariant } from '@leafygreen-ui/banner';
 import { css, cx } from '@leafygreen-ui/emotion';
 import { getCurrLocale } from '@/utils/locale';
@@ -6,6 +7,7 @@ import ComponentFactory from '@/components/component-factory';
 import type { ASTNode, BannerNode } from '@/types/ast';
 import { baseBannerStyle } from '@/components/banner/styles/banner-item-style';
 import { styleMapDark, styleMapLight } from './styles/banner-item-style';
+import { usePageContext } from '@/context/page-context';
 
 export const alertMap = {
   info: LeafyVariant.Info,
@@ -64,9 +66,15 @@ export interface BannerOptions {
 }
 
 const Banner = ({ nodeChildren, options, ...rest }: BannerProps) => {
+  const { setHasBanner } = usePageContext();
   const children = nodeChildren;
   // Get the current locale (language + region) i.e. es-US, fr-FR
   const locale = getCurrLocale();
+
+  // If Banner on page, set hasBanner to be true
+  useEffect(() => {
+    setHasBanner(true);
+  }, [setHasBanner]);
 
   // if banner has option locale, then only render the banner for said translated page.
   const locales = typeof options?.locale === 'string' ? options.locale.split(',') : undefined;

@@ -12,7 +12,7 @@ import type { Docset, RemoteMetadata } from '@/types/data';
 import { VersionContextProvider } from '@/context/version-context';
 import { ContentsProvider } from '@/context/contents-context';
 import { MetadataProvider } from '@/utils/use-snooty-metadata';
-import { PageContext } from '@/context/page-context';
+import { PageContextProvider } from '@/context/page-context';
 import { TabProvider } from '@/context/tabs-context';
 import { FootnoteProvider } from '@/components/footnote/footnote-context';
 import type { PageTemplateType } from '@/types/ast';
@@ -62,14 +62,12 @@ const RootProvider = ({
       <CookiesProvider cookies={cookies}>
         <VersionContextProvider docsets={docsets} slug={getPageSlug(page.filename)} env={env}>
           <UnifiedTocProvider>
-            <PageContext.Provider
-              value={{
-                page: page.ast,
-                slug: getPageSlug(page.filename),
-                template,
-                tabsMainColumn: page.ast.options?.['tabs-selector-position'] === 'main',
-                options: page.ast.options,
-              }}
+            <PageContextProvider
+              page={page.ast}
+              slug={getPageSlug(page.filename)}
+              template={template}
+              tabsMainColumn={page.ast.options?.['tabs-selector-position'] === 'main'}
+              options={page.ast.options}
             >
               {/* Initialize HeadingContext at page level for h1 */}
               <HeadingContextProvider sectionDepth={0}>
@@ -89,7 +87,7 @@ const RootProvider = ({
                   </ContentsProvider>
                 </FootnoteProvider>
               </HeadingContextProvider>
-            </PageContext.Provider>
+            </PageContextProvider>
           </UnifiedTocProvider>
         </VersionContextProvider>
       </CookiesProvider>
