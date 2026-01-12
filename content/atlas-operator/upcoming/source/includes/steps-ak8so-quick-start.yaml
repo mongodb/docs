@@ -8,51 +8,71 @@ content: |
 ---
 
 stepnum: 2
-title: "Create API keys for your organization."
-ref: create-api-keys-ak8so
+title: "Install |ak8so|."
+ref: install-ak8so
 content: |
 
-  .. note::
+  Choose one of the following methods to install |ak8so|:
+
+  .. tabs::
+
+     .. tab:: {+atlas-cli+}
+        :tabid: atlascli
+
+        To install |ak8so| using the {+atlas-cli+}, run the following command:
   
-     You need the following public API key, private API key, and the 
-     organization ID information to configure |ak8so| access to 
-     |service|.
+        .. important::
 
-  :ref:`create-org-api-key` and configure the :guilabel:`API Access List`.
+           The {+atlas-cli+} creates an |api| key but cannot detect your cluster's outbound IP. 
+           Use the ``--ipAccessList`` flag to allowlist your |k8s| cluster's IP or CIDR block 
+           so |ak8so| can communicate with {+service+}.
 
-  .. include:: /includes/fact-ak8so-api-key-permission.rst
+        .. code-block::
+   
+           atlas kubernetes operator install --ipAccessList <IP_OR_CIDR> [options]
+
+        This command automatically:
+
+        - Creates a new |api| key in your {+service+} organization.
+        - Adds your provided IP/CIDR to the |api| key's :ref:`IP access list <access-list>`.
+        - Installs |ak8so| into your |k8s| cluster by fetching the manifests from GitHub.
+        
+        To learn more about the command syntax and parameters, see the {+atlas-cli+} 
+        documentation for :atlascli:`atlas kubernetes operator install </command/atlas-kubernetes-operator-install/>`.
+
+     .. tab:: kubectl
+        :tabid: kubectl
+        
+        To install |ak8so| using ``kubectl``, follow these steps:
+
+        a. Replace ``<VERSION>`` with the latest :ref:`release number <ak8so-changelog>`
+           and run one of the following commands:
+      
+           - If you want |ak8so| to watch all the |k8s-nss| in the |k8s| 
+             cluster, run:
+
+             .. code-block:: sh
+
+                kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/refs/heads/main/releases/v<VERSION>/deploy/all-in-one.yaml
+  
+           - If you want |ak8so| to watch only its |k8s-ns|, install 
+             the configuration files from the ``deploy/namespaced`` directory:
+
+             .. code-block:: sh
+
+                kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/v<VERSION>/deploy/namespaced/crds.yaml
+
+             .. code-block:: sh
+
+                kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/v<VERSION>/deploy/namespaced/namespaced-config.yaml
+
+        b. Create an |api| key with :authrole:`Organization Project Creator` or 
+           :authrole:`Project Owner` permissions by following the procedure in 
+           :ref:`create-org-api-key`.
 
 ---
 
 stepnum: 3
-title: "Deploy |ak8so|."
-ref: deploy-ak8so
-content: |
-
-  In one of the following scenarios, replace ``<version>`` with the 
-  latest :ref:`release number <ak8so-changelog>`:
-  
-  - If you want |ak8so| to watch all the |k8s-nss| in the |k8s| 
-    cluster, run the following command:
-
-    .. code-block:: sh
-
-       kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/refs/heads/main/releases/v<version>/deploy/all-in-one.yaml
-  
-  - If you want |ak8so| to watch only its |k8s-ns|, you must install 
-    the configuration files from the ``deploy/namespaced`` directory:
-
-    .. code-block:: sh
-
-       kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/v<version>/deploy/namespaced/crds.yaml
-
-    .. code-block:: sh
-
-       kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/v<version>/deploy/namespaced/namespaced-config.yaml
-
----
-
-stepnum: 4
 title: "Create a secret with your API keys and organization ID."
 ref: create-ak8so-api-key-secret
 content: |
@@ -76,7 +96,7 @@ content: |
 
 ---
 
-stepnum: 5
+stepnum: 4
 title: "Create the ``AtlasProject`` custom resource."
 ref: create-atlasproject
 content: |
@@ -107,7 +127,7 @@ content: |
            comment: "Adding your IP to Atlas access list"
      EOF
 ---     
-stepnum: 6
+stepnum: 5
 title: "Create the ``AtlasDeployment`` custom resource."
 ref: create-atlasdeployment
 content: |
@@ -174,7 +194,7 @@ content: |
   :ref:`{+Serverless-instance+} example <ak8so-serverless-instance>`.
 
 ---     
-stepnum: 7
+stepnum: 6
 title: "Create a secret with a password to log into the |service| cluster database."
 ref: create-ak8so-password-secret
 content: |
@@ -194,7 +214,7 @@ content: |
      
 ---
 
-stepnum: 8
+stepnum: 7
 title: "Create the ``AtlasDatabaseUser`` custom resource."
 ref: create-atlasdatabaseuser
 content: |
@@ -226,7 +246,7 @@ content: |
      EOF
 
 ---
-stepnum: 9
+stepnum: 8
 title: "Check the status of your database user."
 ref: check-database-user-status
 content: |
@@ -245,7 +265,7 @@ content: |
      kubectl get atlasdatabaseusers my-database-user -o=jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
 
 ---
-stepnum: 10
+stepnum: 9
 title: "Retrieve the secret that |ak8so| created to connect to the cluster."
 ref: retrieve-ak8so-secret
 content: |
