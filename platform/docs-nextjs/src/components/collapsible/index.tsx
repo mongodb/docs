@@ -6,7 +6,7 @@ import Icon from '@leafygreen-ui/icon';
 import IconButton from '@leafygreen-ui/icon-button';
 import { cx } from '@leafygreen-ui/emotion';
 import { Body } from '@leafygreen-ui/typography';
-import { HeadingContextProvider } from '@/context/heading-context';
+import { HeadingContextProvider, useHeadingContext } from '@/context/heading-context';
 import { useHash } from '@/hooks/use-hash';
 import { isBrowser } from '@/utils/is-browser';
 import { reportAnalytics } from '@/utils/report-analytics';
@@ -20,10 +20,11 @@ import { collapsibleStyle, headerContainerStyle, headerStyle, iconStyle, innerCo
 export interface CollapsibleProps {
   nodeChildren: ASTNode[];
   options?: CollapsibleOptions;
-  sectionDepth?: number;
 }
 
-const Collapsible = ({ options = {}, sectionDepth = 1, nodeChildren, ...rest }: CollapsibleProps) => {
+const Collapsible = ({ options = {}, nodeChildren, ...rest }: CollapsibleProps) => {
+  // Get depth from context (automatically incremented by parent sections)
+  const { sectionDepth } = useHeadingContext();
   const { id, heading, expanded, sub_heading: subHeading } = options;
   const hash = useHash();
 
@@ -81,17 +82,14 @@ const Collapsible = ({ options = {}, sectionDepth = 1, nodeChildren, ...rest }: 
   }, [childrenHashIds, hash, open]);
 
   return (
-    <HeadingContextProvider ignoreNextHeading={true} heading={heading}>
+    <HeadingContextProvider ignoreNextHeading={true} heading={heading} sectionDepth={sectionDepth}>
       <Box aria-expanded={open} className={cx('collapsible', collapsibleStyle)}>
         <Box className={cx(headerContainerStyle)}>
           <Box>
-            {/* Adding 1 to reflect logic in parser, but want to show up as H2 for SEO reasons */}
-            <Heading
-              className={cx(headerStyle)}
-              sectionDepth={sectionDepth + 1}
-              id={id ?? ''}
-              nodeChildren={[headingNodeData]}
-            />
+            {/* Heading uses context depth, wrapped in provider to increment for the heading itself */}
+            <HeadingContextProvider sectionDepth={sectionDepth + 1}>
+              <Heading className={cx(headerStyle)} id={id ?? ''} nodeChildren={[headingNodeData]} />
+            </HeadingContextProvider>
             <Body baseFontSize={13}>{subHeading}</Body>
           </Box>
           <IconButton
@@ -105,7 +103,7 @@ const Collapsible = ({ options = {}, sectionDepth = 1, nodeChildren, ...rest }: 
         </Box>
         <Box className={cx(innerContentStyle)}>
           {nodeChildren.map((c, i) => (
-            <ComponentFactory nodeData={c} key={i} sectionDepth={sectionDepth} {...rest}></ComponentFactory>
+            <ComponentFactory nodeData={c} key={i} {...rest}></ComponentFactory>
           ))}
         </Box>
       </Box>

@@ -25,6 +25,7 @@ import { CookiesProvider } from '@/context/cookies-context';
 import { ChangelogDataProvider } from '@/context/changelog-context';
 import type { ServerSideChangelogData } from '@/types/openapi';
 import { ChatbotProvider } from '@/context/chatbot-context';
+import { HeadingContextProvider } from '@/context/heading-context';
 
 const getPageSlug = (fileName: ASTDocument['filename']) => {
   return fileName === 'index' ? '/' : fileName.replace('.txt', '');
@@ -70,21 +71,24 @@ const RootProvider = ({
                 options: page.ast.options,
               }}
             >
-              <FootnoteProvider pageNodes={pageNodes}>
-                <ContentsProvider headingNodes={headingNodes}>
-                  <SidenavContextProvider>
-                    <TabProvider selectors={page.ast.options?.selectors} defaultTabs={page.ast.options?.default_tabs}>
-                      <InstruqtProvider hasLabDrawer={!!page.ast.options?.instruqt}>
-                        <ImageContextProvider value={assets}>
-                          <ChatbotProvider>
-                            <ChangelogDataProvider changelogData={changelogData}>{children}</ChangelogDataProvider>
-                          </ChatbotProvider>
-                        </ImageContextProvider>
-                      </InstruqtProvider>
-                    </TabProvider>
-                  </SidenavContextProvider>
-                </ContentsProvider>
-              </FootnoteProvider>
+              {/* Initialize HeadingContext at page level for h1 */}
+              <HeadingContextProvider sectionDepth={0}>
+                <FootnoteProvider pageNodes={pageNodes}>
+                  <ContentsProvider headingNodes={headingNodes}>
+                    <SidenavContextProvider>
+                      <TabProvider selectors={page.ast.options?.selectors} defaultTabs={page.ast.options?.default_tabs}>
+                        <InstruqtProvider hasLabDrawer={!!page.ast.options?.instruqt}>
+                          <ImageContextProvider value={assets}>
+                            <ChatbotProvider>
+                              <ChangelogDataProvider changelogData={changelogData}>{children}</ChangelogDataProvider>
+                            </ChatbotProvider>
+                          </ImageContextProvider>
+                        </InstruqtProvider>
+                      </TabProvider>
+                    </SidenavContextProvider>
+                  </ContentsProvider>
+                </FootnoteProvider>
+              </HeadingContextProvider>
             </PageContext.Provider>
           </UnifiedTocProvider>
         </VersionContextProvider>

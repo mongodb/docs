@@ -19,6 +19,7 @@ import { disabledStyle } from '@/components/button/styles';
 import Permalink from '@/components/permalink';
 import Contents from '@/components/contents';
 import CopyPageMarkdownButton from '@/components/widgets/markdown-widget';
+import { useHeadingContext } from '@/context/heading-context';
 import TabSelectors from '@/components/tabs/tab-selectors';
 
 const titleMarginStyle = css`
@@ -80,13 +81,14 @@ function toHeadingTag(n: number): HeadingTag {
 export type HeadingProps = {
   nodeChildren: HeadingNode['children'];
   id?: string;
-  sectionDepth?: number;
   slug?: string;
   as?: number;
   className?: string;
 };
 
-const Heading = ({ nodeChildren, sectionDepth = 1, id = '', className, as, ...rest }: HeadingProps) => {
+const Heading = ({ nodeChildren, id = '', className, as, ...rest }: HeadingProps) => {
+  // Get depth from context (automatically incremented by parent sections)
+  const { sectionDepth } = useHeadingContext();
   const templatesWithNoMarkdown = [
     'blank',
     'drivers-index',

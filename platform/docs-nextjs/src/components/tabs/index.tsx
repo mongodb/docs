@@ -118,6 +118,7 @@ const Tabs = ({ nodeChildren, options, ...rest }: TabsProps) => {
   const { activeTabs, selectors, setActiveTab } = useContext(TabContext);
   const { setActiveTabToHashTab } = useContext(TabHashContext);
   const { options: pageOptions } = useContext(PageContext);
+  const { sectionDepth } = useHeadingContext();
 
   const tabIds = nodeChildren.map((child) => getTabId(child));
   const tabsetName = options?.tabset || generateAnonymousTabsetName(tabIds);
@@ -218,6 +219,7 @@ const Tabs = ({ nodeChildren, options, ...rest }: TabsProps) => {
               <LeafyTab data-tabid={tabId} key={tabId} name={tabTitle}>
                 <HeadingContextProvider
                   heading={lastHeading ? `${lastHeading} - ${getPlaintext(tab.argument)}` : getPlaintext(tab.argument)}
+                  sectionDepth={sectionDepth}
                 >
                   <TabHashProvider tabName={tabsetName} tabId={tabId} switchToParentTab={switchToParentTab}>
                     <div className={cx(tabContentStyling, isProductLanding ? productLandingTabContentStyling : '')}>

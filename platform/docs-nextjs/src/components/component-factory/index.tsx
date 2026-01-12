@@ -321,7 +321,6 @@ export type ComponentFactoryProps = {
   nodeData: ASTNode;
   page?: RootNode;
   slug?: string;
-  sectionDepth?: number;
   /** Only used in RefRole */
   cardRef?: boolean;
   /** Only used in Link and RefRole */
@@ -414,7 +413,6 @@ const renderComponentWithProps = (
   // Add all props that are needed at unknown depths
   const propsToDrill = {
     slug: props.slug,
-    sectionDepth: props.sectionDepth,
     skipPTag: props.skipPTag,
   };
 
