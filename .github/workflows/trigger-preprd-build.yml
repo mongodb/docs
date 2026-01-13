@@ -9,17 +9,32 @@ on:
 
 env:
   NETLIFY_ACCESS_TOKEN: ${{ secrets.NETLIFY_ACCESS_TOKEN }}
+
 jobs:
   trigger-preprd-build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@d648c2dd069001a242c621c8306af467f150e99d
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+          cache-dependency-path: content/table-of-contents/pnpm-lock.yaml
+
       - name: Install dependencies for table-of-contents
-        run: npm install
+        run: pnpm install
         working-directory: ./content/table-of-contents
+
       - name: Trigger Netlify Preprd Build
         run: |
           # Triggering the deploy all flow for preprd sites
-          npm run api:build -- --branch=preprd --aprd 
+          pnpm run api:build --branch=preprd --aprd 
         working-directory: ./content/table-of-contents

@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Check if any staged files are in content/table-of-contents/
+STAGED_TOC_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep "^content/table-of-contents/" || true)
+
+if [ -n "$STAGED_TOC_FILES" ]; then
+  # Check if pnpm is installed
+  if ! command -v pnpm &> /dev/null; then
+    echo "WARNING pnpm is required for table-of-contents changes but is not installed."
+    echo "   Install it with: npm install -g pnpm"
+    echo "   Skipping check:fix..."
+    exit 0
+  fi
+
+  echo "Running check:fix on table-of-contents changes..."
+  cd content/table-of-contents
+  pnpm check:fix
+  cd ../..
+  
+  echo "$STAGED_TOC_FILES" | xargs git add
+  echo "table-of-contents check:fix complete"
+fi

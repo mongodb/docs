@@ -4,14 +4,14 @@ This directory contains the API build functionality for managing MongoDB documen
 
 ## Overview
 
-The `npm run api:build` command triggers a build deployment for the MongoDB VSCode documentation site. It sets up environment variables, creates a build hook, triggers the build, and then cleans up the hook.
+The `pnpm run api:build` command triggers a build deployment for the MongoDB VSCode documentation site. It sets up environment variables, creates a build hook, triggers the build, and then cleans up the hook.
 
 ## Prerequisites
 
 Before running the API build, ensure you have:
 
 1. **Node.js** installed (version 16 or higher)
-2. **npm** package manager
+2. **pnpm** package manager
 3. **Netlify Access Token** - You'll need to set up your environment variables
 
 ### Environment Setup
@@ -32,7 +32,7 @@ To get your Netlify access token:
 Install the required dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
 ## Usage
@@ -40,7 +40,7 @@ npm install
 ### Basic Command
 
 ```bash
-npm run api:build -- --branch <branch-name>
+pnpm run api:build --branch <branch-name>
 ```
 
 ### Branch Option
@@ -51,13 +51,13 @@ The `--branch` (or `-b`) option is **required** and specifies which branch to us
 
 ```bash
 # Deploy from main branch
-npm run api:build -- --branch main
+pnpm run api:build --branch main
 
 # Deploy from a feature branch
-npm run api:build -- --branch feat/new-feature
+pnpm run api:build --branch feat/new-feature
 
 # Using the short alias
-npm run api:build -- -b main
+pnpm run api:build -b main
 ```
 
 ### Manual vs Automated Execution
@@ -119,7 +119,7 @@ If something goes wrong, the script will display error information to help you t
 To see all available options and help:
 
 ```bash
-npm run api:build -- --help
+pnpm run api:build --help
 ```
 
 This will display:
@@ -131,7 +131,7 @@ This will display:
 For development purposes, you can also run the API in watch mode:
 
 ```bash
-npm run api:dev
+pnpm run api:dev
 ```
 
 This will watch for file changes and automatically restart the development server.
@@ -148,12 +148,12 @@ The project uses **Jest** as the testing framework with **ts-jest** for TypeScri
 
 #### Run All Tests
 ```bash
-npm test
+pnpm test
 ```
 
 #### Run Tests in Watch Mode
 ```bash
-npm run test:watch
+pnpm run test:watch
 ```
 
 This will automatically re-run tests when files change, making it ideal for development.
@@ -165,28 +165,28 @@ The project uses **Biome** for both linting and code formatting, providing fast 
 #### Linting Commands
 ```bash
 # Check for linting issues
-npm run lint
+pnpm run lint
 
 # Fix linting issues automatically
-npm run lint:fix
+pnpm run lint:fix
 ```
 
 #### Formatting Commands
 ```bash
 # Check code formatting
-npm run format
+pnpm run format
 
 # Fix formatting issues automatically
-npm run format:fix
+pnpm run format:fix
 ```
 
 #### Combined Check
 ```bash
 # Run both linting and formatting checks
-npm run check
+pnpm run check
 
 # Fix both linting and formatting issues
-npm run check:fix
+pnpm run check:fix
 ```
 
 ### Test Coverage
@@ -209,11 +209,20 @@ Tests are automatically triggered in the following scenarios:
 
 
 #### CI/CD Pipeline Steps
-1. **Install Dependencies**: Installs npm packages using Node.js 24
-2. **Lint & Format Check**: Runs `npm run lint && npm run format` to ensure code quality
-3. **Test Execution**: Runs `npm run test` to execute the full test suite
+1. **Install Dependencies**: Installs pnpm packages using Node.js 24
+2. **Lint & Format Check**: Runs `pnpm run lint && pnpm run format` to ensure code quality
+3. **Test Execution**: Runs `pnpm run test` to execute the full test suite
 
 ### Configuration Files
 
 - **GitHub Actions**: `.github/workflows/toc-test.yml` - Defines the CI/CD pipeline for all things relating to testing.
 
+## Git Hooks
+
+This project uses a pre-commit hook to automatically run `pnpm check:fix` on any changes to files in `content/table-of-contents/`. This ensures code quality before commits.
+
+### How It Works
+
+1. When you run `pnpm install` in this directory, the `prepare` script configures git to use the `.husky/` folder for hooks
+2. The pre-commit hook only runs when files in `content/table-of-contents/` are staged
+3. It will automatically fix any linting/formatting issues and re-stage the fixed files

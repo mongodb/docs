@@ -1,4 +1,4 @@
-name: Test
+name: ToC Formatting and Linting
 
 on:
   push:
@@ -10,6 +10,7 @@ on:
   pull_request:
     branches:
       - main
+      - 'feature/**'
     paths:
       - 'content/table-of-contents/**'
 
@@ -26,19 +27,28 @@ jobs:
       NPM_EMAIL: ${{ secrets.NPM_EMAIL }}
 
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v1
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@d648c2dd069001a242c621c8306af467f150e99d
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: 'pnpm'
+          cache-dependency-path: content/table-of-contents/pnpm-lock.yaml
 
       - name: Install
-        run: npm install
+        run: pnpm install
         working-directory: ./content/table-of-contents
 
       - name: Lint & Format
-        run: npm run lint && npm run format
+        run: pnpm run lint && pnpm run format
         working-directory: ./content/table-of-contents
 
       - name: Test
-        run: npm run test
+        run: pnpm run test
         working-directory: ./content/table-of-contents

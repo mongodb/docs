@@ -1,12 +1,13 @@
 name: Trigger branch builds on ToC Changes
 
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - main
       - 'feature/**'
     paths:
       - 'content/table-of-contents/**'
+
 
 permissions:
   contents: write
@@ -31,6 +32,11 @@ jobs:
           # This ensures we get the PR content for the path check
           ref: ${{ github.event.pull_request.head.sha }}
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@d648c2dd069001a242c621c8306af467f150e99d
+        with:
+          version: 10
+
       - name: Create temporary branch
         run: |
           BRANCH_NAME="${{ needs.get-branch-name.outputs.branch_name }}"
@@ -39,13 +45,20 @@ jobs:
           # Fetch only the specific branch we need rather than fetching the entire set of branches and tags
           git fetch origin $BRANCH_NAME || true
           
-          # Push the current HEAD (with PR changes) to a new branch using full refspec
-          # using --force-with-lease to allow pushes to happen to an existing branch
-          # this happens when someone makes a change to their pre-existing PR.
-          git push origin HEAD:refs/heads/$BRANCH_NAME --force-with-lease
+          # Push the current HEAD (with PR changes) to the temp branch
+          # Using --force since this is a temporary branch managed by this workflow
+          # and we always want it to match the current PR HEAD
+          git push origin HEAD:refs/heads/$BRANCH_NAME --force
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+          cache-dependency-path: content/table-of-contents/pnpm-lock.yaml
 
       - name: Install dependencies for table-of-contents
-        run: npm install
+        run: pnpm install
         working-directory: ./content/table-of-contents
 
       - name: Trigger Netlify Branch Build
@@ -53,5 +66,5 @@ jobs:
           BRANCH_NAME="${{ needs.get-branch-name.outputs.branch_name }}"
           echo "The temp branch is: $BRANCH_NAME"
           # Triggering the branch deploy for $BRANCH_NAME
-          npm run api:build -- --branch=$BRANCH_NAME
+          pnpm run api:build --branch=$BRANCH_NAME
         working-directory: ./content/table-of-contents
