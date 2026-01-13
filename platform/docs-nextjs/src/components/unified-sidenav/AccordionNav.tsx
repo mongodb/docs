@@ -121,7 +121,6 @@ export const AccordionNavPanel = ({
                   {...navItem}
                   level={1}
                   key={tocItemKey(navItem)}
-                  group={true}
                   isStatic={false}
                   slug={slug}
                   currentL2s={currentL2s}
@@ -139,7 +138,6 @@ export const AccordionNavPanel = ({
                   {...navItems}
                   level={1}
                   key={tocItemKey(navItems)}
-                  group={true}
                   isStatic={true}
                   slug={slug}
                   currentL2s={currentL2s}

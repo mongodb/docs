@@ -180,7 +180,7 @@ const DeprecatedVersionSelector = () => {
         );
         if (!isEmpty(reposBranchesMap)) setReposMap(reposBranchesMap);
       } catch (error) {
-        console.error(`ERROR: could not access docsets for deprecated version dropdown data.`);
+        console.error(`ERROR: could not access docsets for deprecated version dropdown data. `, error);
       }
     };
     createReposMap();

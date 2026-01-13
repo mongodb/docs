@@ -85,7 +85,7 @@ const Contents = ({ className }: { className?: string }) => {
   if (filteredNodes.length === 0 || !showContentsComponent) {
     return (
       <div className={className}>
-        <FeedbackRating className={formStyle} />
+        <FeedbackRating className={formStyle} position="right column" />
       </div>
     );
   }
@@ -97,7 +97,7 @@ const Contents = ({ className }: { className?: string }) => {
   return (
     <>
       {!isTabletOrMobile && shouldProjShowFW && (
-        <FeedbackRating className={formStyle} classNameContainer={formContainer} />
+        <FeedbackRating className={formStyle} classNameContainer={formContainer} position="right column" />
       )}
       <div className={cx(className, styledContentList)}>
         <ContentsList label={label}>
@@ -113,7 +113,7 @@ const Contents = ({ className }: { className?: string }) => {
         </ContentsList>
       </div>
       {isTabletOrMobile && shouldProjShowFW && !hideFWOnMobile && (
-        <FeedbackRating className={formStyle} classNameContainer={formContainer} />
+        <FeedbackRating className={formStyle} classNameContainer={formContainer} position="body" />
       )}
     </>
   );

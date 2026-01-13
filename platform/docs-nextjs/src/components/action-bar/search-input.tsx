@@ -13,6 +13,7 @@ import { theme } from '@/styles/theme';
 import { isBrowser } from '@/utils/is-browser';
 import { searchIconStyling, searchInputStyling, StyledInputContainer, StyledSearchBoxRef } from './styles';
 import { reportAnalytics } from '@/utils/report-analytics';
+import { currentScrollPosition } from '@/utils/current-scroll-position';
 
 export const PLACEHOLDER_TEXT = `Search MongoDB Docs`;
 const PLACEHOLDER_TEXT_MOBILE = 'Search';
@@ -74,9 +75,11 @@ const SearchInput = ({ className }: SearchInputProps) => {
   }, [searchParams]);
 
   const onSubmit = () => {
-    reportAnalytics('Search bar used', {
-      type: 'docs-search',
-      query: searchValue,
+    reportAnalytics('Search', {
+      position: 'secondary nav',
+      label: `search value: ${searchValue}`,
+      scroll_position: currentScrollPosition(),
+      tagbook: 'true',
     });
     inputRef.current?.blur();
     router.push(`/docs/search/?q=${searchValue}`);
@@ -94,7 +97,12 @@ const SearchInput = ({ className }: SearchInputProps) => {
             setSearchValue(e.target.value);
           }}
           onFocus={() => {
-            reportAnalytics('Search bar focused');
+            reportAnalytics('Click', {
+              position: 'secondary nav',
+              position_context: 'Search bar selected',
+              scroll_position: currentScrollPosition(),
+              tagbook: 'true',
+            });
           }}
           onSubmit={onSubmit}
           ref={inputRef}

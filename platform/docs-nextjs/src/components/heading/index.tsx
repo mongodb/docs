@@ -19,6 +19,8 @@ import { disabledStyle } from '@/components/button/styles';
 import Permalink from '@/components/permalink';
 import Contents from '@/components/contents';
 import CopyPageMarkdownButton from '@/components/widgets/markdown-widget';
+import { currentScrollPosition } from '@/utils/current-scroll-position';
+import { reportAnalytics } from '@/utils/report-analytics';
 import { useHeadingContext } from '@/context/heading-context';
 import TabSelectors from '@/components/tabs/tab-selectors';
 
@@ -115,6 +117,17 @@ const Heading = ({ nodeChildren, id = '', className, as, ...rest }: HeadingProps
   const shouldShowMobileHeader = !!(isPageTitle && isTabletOrMobile && hasSelectors && !hasMethodSelector);
   const showRating = !(template === 'product-landing');
   const showCopyMarkdown = !templatesWithNoMarkdown.includes(template ?? '') && isPageTitle;
+  const OpenInteractiveTutorialLabel = 'Open Interactive Tutorial';
+
+  const interactiveOnClick = () => {
+    reportAnalytics('Click', {
+      position: 'body',
+      label: OpenInteractiveTutorialLabel,
+      scroll_position: currentScrollPosition(),
+      tagbook: 'true',
+    });
+    setIsOpen(true);
+  };
 
   return (
     <>
@@ -137,10 +150,10 @@ const Heading = ({ nodeChildren, id = '', className, as, ...rest }: HeadingProps
                 role="button"
                 className={cx(labButtonStyling, disabledStyle)}
                 disabled={isOpen}
-                onClick={() => setIsOpen(true)}
+                onClick={() => interactiveOnClick()}
                 leftGlyph={<Icon glyph="Code" />}
               >
-                {'Open Interactive Tutorial'}
+                {OpenInteractiveTutorialLabel}
               </Button>
             </div>
           )}

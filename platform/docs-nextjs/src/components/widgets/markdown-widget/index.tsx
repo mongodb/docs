@@ -1,13 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { SplitButton, Justify } from '@leafygreen-ui/split-button';
+import { SplitButton } from '@leafygreen-ui/split-button';
 import { Size } from '@leafygreen-ui/button';
 import { Toast, ToastProvider, Variant } from '@leafygreen-ui/toast';
 import { MenuItem } from '@leafygreen-ui/menu';
 import Icon from '@leafygreen-ui/icon';
 import { css, cx } from '@leafygreen-ui/emotion';
-import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
 import { removeTrailingSlash } from '@/utils/remove-trailing-slash';
 import { assertLeadingAndTrailingSlash } from '@/utils/assert-trailing-and-leading-slash';

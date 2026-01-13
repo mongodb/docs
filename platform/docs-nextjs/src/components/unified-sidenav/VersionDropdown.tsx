@@ -126,7 +126,7 @@ const VersionDropdown = ({ contentSite = null }: VersionDropdownProps) => {
         onVersionSelect(project, value);
       }
     },
-    [onVersionSelect, project],
+    [onVersionSelect, project], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   if ((branches?.length ?? 0) < 1) {

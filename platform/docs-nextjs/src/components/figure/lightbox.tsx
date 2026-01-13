@@ -89,12 +89,14 @@ const Lightbox = ({ argument, name, nodeChildren, options, ...rest }: FigureProp
     <>
       <LightboxWrapper figwidth={figureWidth}>
         <div onClick={openModal} role="button" tabIndex={-1}>
+          {/* eslint-disable-next-line jsx-a11y/alt-text -- alt is handled via options.alt */}
           <Image argument={argument} options={options} {...rest} />
           <LightboxCaption>{CAPTION_TEXT}</LightboxCaption>
         </div>
         <CaptionLegend {...rest} nodeChildren={nodeChildren} />
       </LightboxWrapper>
       <StyledModal size={ModalSize.Large} open={open} setOpen={setOpen}>
+        {/* eslint-disable-next-line jsx-a11y/alt-text -- alt is handled via options.alt */}
         <Image argument={argument} options={options} />
       </StyledModal>
     </>

@@ -19,6 +19,7 @@ import { getLanguage } from '@/utils/get-language';
 // import { STRUCTURED_DATA_CLASSNAME, SoftwareSourceCodeSd } from '../../utils/structured-data';
 import { CodeContext } from './code-context';
 import { baseCodeStyle, borderCodeStyle, lgStyles } from './style';
+import { currentScrollPosition } from '@/utils/current-scroll-position';
 
 const codeContainerStyle = css`
   ${baseCodeStyle}
@@ -121,7 +122,12 @@ const Code = ({
   }
 
   const reportCodeCopied = useCallback(() => {
-    reportAnalytics('CodeblockCopied', { code });
+    reportAnalytics('Click', {
+      position: 'codeblock',
+      label: 'codeblock copied: ' + code,
+      scroll_position: currentScrollPosition(),
+      tagbook: 'true',
+    });
   }, [code]);
 
   const softwareSourceCodeSd = useMemo(() => {

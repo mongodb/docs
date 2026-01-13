@@ -100,7 +100,7 @@ const ScreenshotSelect = styled(Button)`
   }
 `;
 
-const ScreenshotButton = ({ size = 'default', ...props }) => {
+const ScreenshotButton = ({ ...props }) => {
   const { setScreenshotTaken, selectedRating, isScreenshotButtonClicked, setIsScreenshotButtonClicked, setDetachForm } =
     useFeedbackContext();
   const [currElemState, setCurrElemState] = useState<Element | null>(null);
@@ -273,6 +273,7 @@ const ScreenshotButton = ({ size = 'default', ...props }) => {
       {isScreenshotButtonClicked && (
         <Portal>
           <>
+            {/* eslint-disable-next-line @next/next/no-img-element -- images are pre-optimized via build pipeline */}
             <img
               className={cx(fwInstructionsId, instructionsPanelStyling)}
               src={'/screenshotCTA.svg'}
@@ -380,9 +381,12 @@ const ScreenshotButton = ({ size = 'default', ...props }) => {
 
       <ScreenshotSelect
         onClick={takeNewScreenshot}
-        leftGlyph={<img src={glyphImage} alt="Screenshot Button" />}
         size="small"
         {...props}
+        leftGlyph={
+          /* eslint-disable-next-line @next/next/no-img-element -- images are pre-optimized via build pipeline */
+          <img src={glyphImage} alt="Screenshot Button" />
+        }
       >
         {selectedRating && selectedRating < 4 ? SCREENSHOT_BUTTON_TEXT_LOW : SCREENSHOT_BUTTON_TEXT}
       </ScreenshotSelect>

@@ -8,6 +8,8 @@ import LinkComponent from '@/components/link';
 import ComponentFactory from '@/components/component-factory';
 import { isRelativeUrl } from '@/utils/is-relative-url';
 import { useVersionContext } from '@/context/version-context';
+import { scrollActiveSidenavIntoView } from '@/utils/scroll-active-sidenav-into-view';
+
 const cardRefStyling = css`
   background: ${palette.gray.light3};
   border-radius: ${theme.size.tiny};
@@ -67,7 +69,16 @@ const RefRole = ({ nodeChildren, fileid, url, cardRef = false, showLinkArrow = f
   }
 
   return (
-    <LinkComponent className={cx(stylingClass)} to={link} showLinkArrow={showLinkArrow}>
+    <LinkComponent
+      className={cx(stylingClass)}
+      to={link}
+      showLinkArrow={showLinkArrow}
+      onClick={() => {
+        setTimeout(() => {
+          scrollActiveSidenavIntoView();
+        }, 1000); // TODO: DOP-6454: set this delay to 100 once loading with mdx
+      }}
+    >
       {nodeChildren.map((node, i) => (
         <ComponentFactory key={i} nodeData={node} />
       ))}

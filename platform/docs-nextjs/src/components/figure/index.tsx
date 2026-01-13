@@ -38,6 +38,7 @@ const Figure = ({ argument, options, name, nodeChildren, ...rest }: FigureProps)
       )}
       style={{ width: figWidth || 'auto' }}
     >
+      {/* eslint-disable-next-line jsx-a11y/alt-text -- alt is handled via options.alt */}
       <Image argument={argument} options={options} {...rest} />
       <CaptionLegend nodeChildren={nodeChildren} {...rest} />
     </div>

@@ -162,7 +162,7 @@ export const UnifiedSidenav = () => {
     setShowDriverBackBtn(isDriver);
     setCurrentL1(updatedL1s);
     setCurrentL2s(updatedL2s);
-  }, [tree]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tree, slug]);
 
   // close navigation panel on mobile screen, but leaves open if they click on a twisty
   useEffect(() => {

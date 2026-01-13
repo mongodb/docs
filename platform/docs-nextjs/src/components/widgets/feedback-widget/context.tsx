@@ -183,7 +183,7 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
       const res = await upsertFeedback(payload);
       setFeedbackId(res);
     } catch (e) {
-      console.error('Error while creating new feedback');
+      console.error('Error while creating new feedback', e);
     }
   };
 

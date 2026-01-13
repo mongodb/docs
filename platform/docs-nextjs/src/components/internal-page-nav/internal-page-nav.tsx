@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { glyphs } from '@leafygreen-ui/icon';
 import { css, cx } from '@leafygreen-ui/emotion';
 import { theme } from '@/styles/theme';
@@ -20,8 +21,13 @@ import { assertLeadingSlash } from '@/utils/assert-leading-slash';
 
 interface FlatItem {
   label: string;
-  url: string;
+  url?: string;
   contentSite?: string;
+  group?: boolean;
+  versions?: {
+    includes?: string[];
+    excludes?: string[];
+  };
 }
 
 const containerStyling = css`
@@ -99,22 +105,30 @@ function findGroupForUrl(toc: TocItem[], currentUrl: string): TocItem | null {
   return null;
 }
 
-function flattenGroupItems(items: TocItem[], flat: FlatItem[] = []): FlatItem[] {
+function flattenGroupItems(
+  items: TocItem[],
+  flat: FlatItem[] = [],
+  parentVersions?: { includes?: string[]; excludes?: string[] },
+): FlatItem[] {
   for (const item of items) {
     if (item.isExternal) {
       // Skips external links
       continue;
     }
 
-    if (item.url) {
-      flat.push({
-        label: item.label,
-        url: item.url,
-        contentSite: item.contentSite,
-      });
-    }
+    // Inherit parent's version constraints if child doesn't have its own
+    const effectiveVersions = item.versions || parentVersions;
+
+    flat.push({
+      label: item.label,
+      url: item.url,
+      contentSite: item.contentSite,
+      group: item.group,
+      versions: effectiveVersions,
+    });
+
     if (item.items) {
-      flattenGroupItems(item.items, flat);
+      flattenGroupItems(item.items, flat, effectiveVersions);
     }
   }
   return flat;
@@ -143,9 +157,43 @@ function getTargetSlug(
   }
 }
 
+// Function to check if tocItem is displayed in the current version
+function isTocItemValidForVersion(
+  tocItem: FlatItem,
+  activeVersions: ActiveVersions,
+  availableVersions: AvailableVersions,
+): boolean {
+  if (!tocItem.url) return false; // If no URL, not valid
+  if (!tocItem.versions) return true; // If no versions constraint, always valid
+  if (!tocItem.contentSite) return false; // This is case shouldn't exist, but just in case
+  if (tocItem.url.startsWith('http')) return false; // If external link, not valid for internal page navigation
+
+  const contentSite = tocItem.contentSite;
+  const activeVersion = (availableVersions[contentSite] || []).find(
+    (version) =>
+      version.gitBranchName === activeVersions[contentSite] ||
+      version.urlSlug === activeVersions[contentSite] ||
+      version?.urlAliases?.includes(activeVersions[contentSite]),
+  );
+
+  // Check excludes first - if active version is excluded, tocItem is invalid
+  if (tocItem.versions.excludes && activeVersion) {
+    if (tocItem.versions.excludes.includes(activeVersion.urlSlug)) {
+      return false;
+    }
+  }
+
+  // Check includes - if includes array exists, active version must be in it
+  if (tocItem.versions.includes && activeVersion) {
+    return tocItem.versions.includes.includes(activeVersion.urlSlug);
+  }
+
+  // If only excludes exist and we passed that check, or no constraints
+  return true;
+}
+
 function getPrevUnified(
-  toc: TocItem[],
-  currentUrl: string,
+  flattenedData: { flat: FlatItem[]; index: number } | null,
   activeVersions: ActiveVersions,
   availableVersions: AvailableVersions,
 ): {
@@ -154,58 +202,132 @@ function getPrevUnified(
   contentSite: string | undefined | null;
   linkTitle: string;
 } | null {
-  const group = findGroupForUrl(toc, currentUrl);
+  if (!flattenedData) return null;
+  const { flat, index } = flattenedData;
 
-  if (!group) return null;
+  let tocItem: FlatItem | null = null;
+  for (let i = index - 1; i >= 0; i--) {
+    const candidate = flat[i];
 
-  const flat = flattenGroupItems(group.items || []);
-  const index = flat.findIndex((item) => removeTrailingSlash(item.url) === removeTrailingSlash(currentUrl));
+    if (candidate.group) {
+      break;
+    }
 
-  const node = index > 0 ? flat[index - 1] : null;
+    if (isTocItemValidForVersion(candidate, activeVersions, availableVersions)) {
+      tocItem = candidate;
+      break;
+    }
+  }
+
+  if (!tocItem || !tocItem.url) return null;
 
   return {
-    targetSlug: node ? getTargetSlug(node.url, node.contentSite, activeVersions, availableVersions) : null,
-    pageTitle: node ? node.label : null,
-    contentSite: node ? node.contentSite : null,
+    targetSlug: getTargetSlug(tocItem.url, tocItem.contentSite, activeVersions, availableVersions),
+    pageTitle: tocItem.label,
+    contentSite: tocItem.contentSite,
     linkTitle: 'Previous Section',
   };
 }
 
 function getNextUnified(
-  toc: TocItem[],
-  currentUrl: string,
+  flattenedData: { flat: FlatItem[]; index: number } | null,
   activeVersions: ActiveVersions,
   availableVersions: AvailableVersions,
 ): {
   targetSlug: string | null;
   pageTitle: string | null;
+  contentSite: string | undefined | null;
   linkTitle: string;
 } | null {
-  const group = findGroupForUrl(toc, currentUrl);
-  if (!group) return null;
+  if (!flattenedData) return null;
+  const { flat, index } = flattenedData;
 
-  const flat = flattenGroupItems(group.items || []);
-  const index = flat.findIndex((item) => removeTrailingSlash(item.url) === removeTrailingSlash(currentUrl));
+  let tocItem: FlatItem | null = null;
+  for (let i = index + 1; i < flat.length; i++) {
+    const candidate = flat[i];
 
-  const node = index >= 0 && index < flat.length - 1 ? flat[index + 1] : null;
+    if (candidate.group) {
+      break;
+    }
+
+    if (isTocItemValidForVersion(candidate, activeVersions, availableVersions)) {
+      tocItem = candidate;
+      break;
+    }
+  }
+  if (!tocItem || !tocItem.url) return null;
 
   return {
-    targetSlug: node ? getTargetSlug(node.url, node.contentSite, activeVersions, availableVersions) : null,
-    pageTitle: node ? node.label : null,
+    targetSlug: getTargetSlug(tocItem.url, tocItem.contentSite, activeVersions, availableVersions),
+    pageTitle: tocItem.label,
+    contentSite: tocItem.contentSite,
     linkTitle: 'Next Section',
   };
 }
 
+/**
+ * Flattens the TOC group containing the current URL and finds the index of the current page.
+ *
+ * Ensures that the returned URL is displayed in the current version.
+ *
+ * @param {TocItem[]} toc - The full table of contents tree
+ * @param {string} currentUrl - The URL of the current page
+ * @param {ActiveVersions} activeVersions - Map of active versions per content site
+ * @param {AvailableVersions} availableVersions - Map of available version data per content site
+ *
+ * @returns {{ flat: FlatItem[]; index: number } | null} Object containing:
+ *   - flat: Flattened array of TOC items in the same group as current page
+ *   - index: Position of current page in the flat array (-1 if not found)
+ *   Returns null if the current URL is not found in any group
+ */
+const getFlattenedTocData = (
+  toc: TocItem[],
+  currentUrl: string,
+  activeVersions: ActiveVersions,
+  availableVersions: AvailableVersions,
+): { flat: FlatItem[]; index: number } | null => {
+  const group = findGroupForUrl(toc, currentUrl);
+  if (!group) return null;
+
+  const flat = flattenGroupItems(group.items || []);
+
+  // Find the index that matches URL and is valid for current version
+  let index = -1;
+  for (let i = 0; i < flat.length; i++) {
+    const item = flat[i];
+    if (item.url && removeTrailingSlash(item.url) === removeTrailingSlash(currentUrl)) {
+      // If no versions constraint, this is the correct one
+      if (!item.versions) {
+        index = i;
+        break;
+      }
+      // If has versions constraint, check if it's valid for current version
+      if (isTocItemValidForVersion(item, activeVersions, availableVersions)) {
+        index = i;
+        break;
+      }
+    }
+  }
+
+  return { flat, index };
+};
+
 const InternalPageNav = () => {
   const { tocTree } = useUnifiedToc();
   const { project } = useSnootyMetadata();
-  const { availableVersions, activeVersions, siteBasePrefix } = useVersionContext();
+  const { availableVersions, activeVersions, siteBasePrefixWithVersion } = useVersionContext();
   const { slug } = usePageContext();
-  const noVersionPathPrefix = assertLeadingSlash(replaceVersionInPath(siteBasePrefix, availableVersions[project]));
+  const noVersionPathPrefix = assertLeadingSlash(
+    replaceVersionInPath(siteBasePrefixWithVersion, availableVersions[project]),
+  );
   const fullSlug = slug === '/' ? noVersionPathPrefix : assertTrailingSlash(noVersionPathPrefix) + slug;
 
-  const prevPage = getPrevUnified(tocTree, fullSlug, activeVersions, availableVersions);
-  const nextPage = getNextUnified(tocTree, fullSlug, activeVersions, availableVersions);
+  const flattenedData = useMemo(() => {
+    return getFlattenedTocData(tocTree, fullSlug, activeVersions, availableVersions);
+  }, [tocTree, fullSlug, activeVersions, availableVersions]);
+
+  const prevPage = getPrevUnified(flattenedData, activeVersions, availableVersions);
+  const nextPage = getNextUnified(flattenedData, activeVersions, availableVersions);
 
   const handleClick = (direction: string) => {
     reportAnalytics('CTA Click', {

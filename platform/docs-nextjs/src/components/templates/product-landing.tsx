@@ -17,7 +17,6 @@ const formstyle = css`
   left: 0;
   bottom: 0;
   margin-top: ${theme.size.tiny};
-
   @media ${theme.screenSize.upToLarge} {
     position: fixed;
     top: 0;
@@ -30,7 +29,6 @@ const formstyle = css`
 
 const formContainer = css`
   position: relative;
-
   @media ${theme.screenSize.tablet} {
     z-index: 1;
   }

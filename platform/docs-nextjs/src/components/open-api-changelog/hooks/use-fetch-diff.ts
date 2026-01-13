@@ -55,7 +55,7 @@ export const useFetchDiff = ({
     };
 
     fetchDiff();
-  }, [resourceVersionOne, resourceVersionTwo, mostRecentDiff, setIsLoading, setToastOpen]);
+  }, [resourceVersionOne, resourceVersionTwo, mostRecentDiff, setIsLoading, setToastOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     diff,

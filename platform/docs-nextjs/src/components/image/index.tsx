@@ -135,7 +135,8 @@ const Image = ({ argument, options, className }: ImageProps) => {
 
   const src = makeBase64String(imageToRender);
 
-  return <img {...imageProps} src={src} />;
+  // eslint-disable-next-line @next/next/no-img-element -- images are pre-optimized via build pipeline
+  return <img {...imageProps} src={src} alt={altText} />;
 };
 
 export default Image;

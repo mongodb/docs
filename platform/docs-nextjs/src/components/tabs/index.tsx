@@ -18,6 +18,7 @@ import { TabContext } from '@/context/tabs-context';
 import { TabHashContext, TabHashProvider } from '@/context/tabs-hash-context';
 import { useHash } from '@/hooks/use-hash';
 import { PageContext } from '@/context/page-context';
+import { currentScrollPosition } from '@/utils/current-scroll-position';
 
 const TAB_BUTTON_SELECTOR = 'button[role="tab"]';
 
@@ -170,12 +171,7 @@ const Tabs = ({ nodeChildren, options, ...rest }: TabsProps) => {
       }
       const tabId = tabIds[index];
       const priorAnchorOffset = scrollAnchorRef.current ? getPosition(scrollAnchorRef.current).y : undefined;
-
       setActiveTab({ [tabsetName]: tabId });
-      reportAnalytics('Tab Selected', {
-        tabId,
-        tabSet: tabsetName,
-      });
 
       // Delay preserving scroll behavior by 40ms to allow other tabset content bodies to render
       window.setTimeout(() => {
@@ -216,7 +212,22 @@ const Tabs = ({ nodeChildren, options, ...rest }: TabsProps) => {
                 : tabId;
 
             return (
-              <LeafyTab data-tabid={tabId} key={tabId} name={tabTitle}>
+              <LeafyTab
+                data-tabid={tabId}
+                key={tabId}
+                name={tabTitle}
+                onClick={(event) => {
+                  const translatedLabel = event.currentTarget.textContent?.trim() || getPlaintext(tab.argument);
+                  reportAnalytics('Click', {
+                    position: 'body',
+                    position_context: 'Tab',
+                    label: getPlaintext(tab.argument),
+                    label_text_displayed: translatedLabel,
+                    scroll_position: currentScrollPosition(),
+                    tagbook: 'true',
+                  });
+                }}
+              >
                 <HeadingContextProvider
                   heading={lastHeading ? `${lastHeading} - ${getPlaintext(tab.argument)}` : getPlaintext(tab.argument)}
                   sectionDepth={sectionDepth}

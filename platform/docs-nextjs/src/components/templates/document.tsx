@@ -20,7 +20,7 @@ const MAX_CONTENT_WIDTH_LARGE_SCREEN = '884px';
 export const DOCUMENT_TEMPLATE_MAX_WIDTH_VALUE = `(${MAX_CONTENT_WIDTH} + ${theme.size.xlarge} * 2) + (${MAX_ON_THIS_PAGE_WIDTH} + 5px + ${theme.size.medium})`;
 export const DOCUMENT_TEMPLATE_MAX_WIDTH_VALUE_LARGE_SCREEN = `(${MAX_CONTENT_WIDTH_LARGE_SCREEN} + ${theme.size.xlarge} * 2) + (${MAX_ON_THIS_PAGE_WIDTH} + 5px + ${theme.size.medium})`;
 
-export default function DocumentTemplate({ children, slug, pageOptions }: BaseTemplateProps) {
+export default function DocumentTemplate({ children, pageOptions }: BaseTemplateProps) {
   const { tabsMainColumn } = usePageContext();
   const hasMethodSelector = pageOptions?.has_method_selector;
 

@@ -97,7 +97,7 @@ export const l2ItemStyling = ({ level, isAccordion }: { level: number; isAccordi
 
   ${isAccordion
     ? css`
-        padding-left: calc(50px + ${(level - 1) * 25}px);
+        padding-left: calc(20px + ${(level - 1) * 25}px);
       `
     : css`
         padding-left: calc(${theme.size.default} + ${(level - 1) * 25}px);

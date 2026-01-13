@@ -143,7 +143,7 @@ export type OpenAPIProps = {
   options: OpenAPINode['options'];
 };
 
-const OpenAPI = ({ argument, nodeChildren, options, ...rest }: OpenAPIProps) => {
+const OpenAPI = ({ argument: _argument, nodeChildren, options, ...rest }: OpenAPIProps) => {
   const usesRST = options?.['uses-rst'];
   const topValues = useStickyTopValues();
   const { options: pageOptions } = usePageContext();

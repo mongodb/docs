@@ -7,6 +7,7 @@
 
 'use client';
 
+import { useEffect } from 'react';
 import type { ASTDocument } from '@/services/db/pages';
 import type { Docset, RemoteMetadata } from '@/types/data';
 import { VersionContextProvider } from '@/context/version-context';
@@ -25,6 +26,7 @@ import { CookiesProvider } from '@/context/cookies-context';
 import { ChangelogDataProvider } from '@/context/changelog-context';
 import type { ServerSideChangelogData } from '@/types/openapi';
 import { ChatbotProvider } from '@/context/chatbot-context';
+import { scrollActiveSidenavIntoView } from '@/utils/scroll-active-sidenav-into-view';
 import { HeadingContextProvider } from '@/context/heading-context';
 
 const getPageSlug = (fileName: ASTDocument['filename']) => {
@@ -56,6 +58,16 @@ const RootProvider = ({
 }: RootProviderProps) => {
   const pageNodes = page.ast.children || [];
   const headingNodes = page.ast.options?.headings || [];
+
+  // Scroll active sidenav item into view on initial page load
+  useEffect(() => {
+    // Small delay to ensure sidenav DOM is fully rendered
+    const timeoutId = setTimeout(() => {
+      scrollActiveSidenavIntoView();
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   return (
     <MetadataProvider value={metadata}>

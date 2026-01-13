@@ -166,29 +166,6 @@ export const UnifiedTocNavItem = ({
     );
   }
 
-  // groups are for adding a static header, these can also be collapsible
-  if (group) {
-    return (
-      <>
-        <SideNavGroup header={label} collapsible={collapsible} className={cx(groupHeaderStyling({ isAccordion }))}>
-          {versionDropdown && <VersionDropdown contentSite={contentSite} />}
-          {items?.map((tocItem) => (
-            <UnifiedTocNavItem
-              {...tocItem}
-              level={level}
-              key={tocItemKey(tocItem)}
-              slug={slug}
-              isAccordion={isAccordion}
-              setCurrentL2s={setCurrentL2s}
-              setCurrentL1={setCurrentL1}
-              setShowDriverBackBtn={setShowDriverBackBtn}
-            />
-          ))}
-        </SideNavGroup>
-      </>
-    );
-  }
-
   const handleClick = (event: React.MouseEvent) => {
     // Allows for the showSubNav nodes to have their own L2 panel
     const target = event.currentTarget as HTMLElement;
@@ -216,6 +193,29 @@ export const UnifiedTocNavItem = ({
   const isVersionExcluded =
     contentSite && versions?.excludes && versions.excludes?.includes(activeVersions[contentSite]);
   const isVersionAllowed = !versions || isVersionIncluded || (isVersionExcluded !== undefined && !isVersionExcluded);
+
+  // groups are for adding a static header, these can also be collapsible
+  if (isVersionAllowed && group) {
+    return (
+      <>
+        <SideNavGroup header={label} collapsible={collapsible} className={cx(groupHeaderStyling({ isAccordion }))}>
+          {versionDropdown && <VersionDropdown contentSite={contentSite} />}
+          {items?.map((tocItem) => (
+            <UnifiedTocNavItem
+              {...tocItem}
+              level={isAccordion ? level + 1 : level}
+              key={tocItemKey(tocItem)}
+              slug={slug}
+              isAccordion={isAccordion}
+              setCurrentL2s={setCurrentL2s}
+              setCurrentL1={setCurrentL1}
+              setShowDriverBackBtn={setShowDriverBackBtn}
+            />
+          ))}
+        </SideNavGroup>
+      </>
+    );
+  }
 
   // collapsible is for items that have nested links
   if (collapsible && isVersionAllowed) {
@@ -376,6 +376,7 @@ export const StaticNavItem = ({
     <SideNavItem
       active={isActive}
       aria-label={label}
+      data-l1-tab={'true'}
       contentSite={contentSite}
       hideExternalIcon={true}
       as={isUnifiedTOCInDevMode ? (undefined as never) : LinkComponent}

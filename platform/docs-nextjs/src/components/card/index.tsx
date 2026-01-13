@@ -18,6 +18,8 @@ import { getSuitableIcon } from '@/utils/get-suitable-icon';
 import type { CardNode } from '@/types/ast';
 import { usePageContext } from '@/context/page-context';
 import { useVersionContext } from '@/context/version-context';
+import { reportAnalytics } from '@/utils/report-analytics';
+import { currentScrollPosition } from '@/utils/current-scroll-position';
 
 const cardBaseStyles = css`
   display: flex;
@@ -138,7 +140,23 @@ const bodyStyling = css`
   }
 `;
 
-const onCardClick = (url: string, router: ReturnType<typeof useRouter>) => {
+const onCardClick = (
+  router: ReturnType<typeof useRouter>,
+  url?: string,
+  headline?: string,
+  element?: HTMLElement | null,
+) => {
+  if (!url) return;
+  const headlineElement = element?.querySelector('[data-headline]') as HTMLElement;
+  const translatedLabel = headlineElement?.textContent?.trim() || headline;
+  reportAnalytics('Click', {
+    position: 'body',
+    position_context: 'Card',
+    label: headline,
+    label_text_displayed: translatedLabel,
+    scroll_position: currentScrollPosition(),
+    tagbook: 'true',
+  });
   return isRelativeUrl(url) ? router.push(url) : (window.location.href = url);
 };
 
@@ -196,7 +214,15 @@ const Card = ({
   });
 
   return (
-    <LeafyGreenCard className={cx(styling)} onClick={url ? () => onCardClick(url, router) : undefined}>
+    <LeafyGreenCard
+      className={cx(styling)}
+      onClick={
+        url
+          ? (event: React.MouseEvent<HTMLDivElement>) =>
+              onCardClick(router, url, headline, event.currentTarget as HTMLElement)
+          : undefined
+      }
+    >
       {icon && (
         <Image
           src={iconSrc}
@@ -213,7 +239,11 @@ const Card = ({
         {tag && <CommunityPillLink variant="green" text={tag} />}
         <div>
           {headline && (
-            <Body className={cx(headingStyling({ isCompact, isExtraCompact, isLargeIconStyle }))} weight="medium">
+            <Body
+              className={cx(headingStyling({ isCompact, isExtraCompact, isLargeIconStyle }))}
+              weight="medium"
+              data-headline
+            >
               {headline}
             </Body>
           )}

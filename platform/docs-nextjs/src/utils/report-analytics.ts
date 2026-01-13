@@ -9,7 +9,6 @@ export const reportAnalytics = (eventName: string, data?: object) => {
     return;
   }
   try {
-    console.log('Reporting analytics:', eventName, data);
     (window as SegmentWindow).segment!.track(eventName, data ?? {});
   } catch (err) {
     console.error(`Error reporting analytics: ${eventName}`, err);

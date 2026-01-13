@@ -7,6 +7,8 @@ import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import type { ButtonNode } from '@/types/ast';
 import ComponentFactory from '@/components/component-factory';
 import type { LinkProps } from '@/components/link';
+import { reportAnalytics } from '@/utils/report-analytics';
+import { currentScrollPosition } from '@/utils/current-scroll-position';
 
 const buttonStyling = css`
   &.button {
@@ -50,6 +52,17 @@ const Button = ({
       size={size}
       darkMode={darkModeProp ?? darkMode}
       variant={variant}
+      onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+        const translatedArgument = event.currentTarget.textContent?.trim() || argument;
+        reportAnalytics('CTA Click', {
+          position: 'body',
+          position_context: `button`,
+          label: argument,
+          label_text_displayed: translatedArgument,
+          scroll_position: currentScrollPosition(),
+          tagbook: 'true',
+        });
+      }}
       rightGlyph={rightGlyph ? <Icon glyph={rightGlyph} /> : undefined}
       {...componentProps}
     >
