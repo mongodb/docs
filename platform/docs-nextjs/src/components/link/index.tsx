@@ -198,7 +198,6 @@ const LinkComponent = ({
   const strippedUrl = to?.replace(/(^https:\/\/)|(www\.)/g, '');
   const isMDBLink = strippedUrl.includes('mongodb.com');
   const showExtIcon = showExternalIcon ?? (!anchor && !isMDBLink && !hideExternalIcon);
-  const target = !showExtIcon ? '_self' : undefined;
 
   if (to && isRelativeUrl(to) && !anchor) {
     to = assertLeadingAndTrailingSlash(to);
@@ -208,7 +207,7 @@ const LinkComponent = ({
         className={cx(linkStyling(THEME_STYLES[siteTheme]), className)}
         onClick={onClick}
         href={to}
-        target={target}
+        target={!showExtIcon ? '_self' : undefined}
         {...anchorProps}
       >
         {children}
@@ -217,12 +216,14 @@ const LinkComponent = ({
     );
   }
 
+  const target = showExtIcon || openInNewTab ? '_blank' : '_self';
+
   return (
     <LGLink
       href={to}
       className={cx(lgLinkStyling, className)}
       hideExternalIcon={false}
-      target={openInNewTab ? '_blank' : target}
+      target={target}
       onClick={onClick}
       {...anchorProps}
     >
