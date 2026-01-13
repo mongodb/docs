@@ -8,8 +8,7 @@ import type { DBMetadataDocument } from '@/services/db/snooty-metadata';
 import { fetchAllAssets } from '@/services/db/assets';
 import { CustomTemplate } from './custom-template';
 import { cookies } from 'next/headers';
-import envConfig, { Environments } from '@/utils/env-config';
-import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
+import envConfig from '@/utils/env-config';
 import type { ServerSideChangelogData } from '@/types/openapi';
 import { getChangelogData } from '@/services/db/openapi';
 import type { Docset } from '@/types/data';
@@ -21,7 +20,7 @@ interface PageProps {
 }
 
 export default async function Page({ params: { path } }: PageProps) {
-  const cookieStore: ReadonlyRequestCookies = cookies();
+  const cookieStore = cookies();
   const cookieArray = cookieStore.getAll();
 
   // Convert array of cookie objects to key-value pairs object
