@@ -155,8 +155,8 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Explore Partner Ecosystem',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/reference/partner-integrations/explore-ecosystem',
+        isExternal: true,
+        url: 'https://cloud.mongodb.com/ecosystem',
       },
       {
         label: 'Render',
