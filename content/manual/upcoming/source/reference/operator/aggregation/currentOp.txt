@@ -1,7 +1,7 @@
 .. _current-op-agg:
 
 ==============================
-$currentOp (aggregation stage)
+$currentOp (Aggregation Stage)
 ==============================
 
 .. meta::
@@ -26,21 +26,13 @@ Definition
    for each operation or session. To run ``$currentOp``, use
    the :method:`db.aggregate()` helper on the ``admin`` database.
 
-   The ``$currentOp`` aggregation stage is preferred over the
-   :dbcommand:`currentOp` command and its :binary:`~bin.mongosh`
-   helper method :method:`db.currentOp()`. Because the
-   :dbcommand:`currentOp` command and :method:`db.currentOp()` helper
-   method return the results in a single document, the total size of the
-   :dbcommand:`currentOp` result set is subject to the maximum 16MB BSON
-   size limit for documents. The ``$currentOp`` stage returns a
-   cursor over a stream of documents, each of which reports a single
-   operation. Each operation document is subject to the 16MB BSON limit,
-   but unlike the :dbcommand:`currentOp` command, there is no limit on
-   the overall size of the result set.
-
-   ``$currentOp`` also enables you to perform arbitrary
+   :pipeline:`$currentOp` also enables you to perform arbitrary
    transformations of the results as the documents pass through the
    pipeline.
+
+.. note::
+
+   .. include:: /includes/fact-currentOp-aggregation-stage.rst
 
 Syntax
 ~~~~~~
@@ -228,7 +220,7 @@ Examples
 
 .. tabs-drivers::
 
-   .. tab:: 
+   .. tab:: Shell
       :tabid: shell
 
       Inactive Sessions 
@@ -574,7 +566,66 @@ Examples
 
       .. include:: /includes/currentOp-query-analyzer-output.rst
 
-   .. tab::
+      .. _collection-connections-currentOp-stage:
+
+      Count Collection Connections
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      
+      You can use :pipeline:`$currentOp` to determine which collections are utilizing more
+      connections in a {+cluster+}, enabling you to identify active client connections
+      and their associated operations.
+
+      Consider the following example:
+      
+      This pipeline groups per client, user, and namespace,
+      counting active and inactive connections, then sorts by total.
+      
+      .. code-block:: javascript
+
+         // Groups per client, user, and namespace; counts active/inactive
+         // connections; then sorts by total connections per group.
+         db.getSiblingDB("admin").aggregate( [
+            { $currentOp: { allUsers: true, idleConnections: true, idleSessions: true } },
+            { $project: {
+               "_id": 0,
+               client: { $arrayElemAt: [ { $split: ["$client", ":"] }, 0 ] },
+               curr_active: { $cond: [ { $eq: ["$active", true] }, 1, 0 ] },
+               curr_inactive: { $cond: [ { $eq: ["$active", false] }, 1, 0 ] },
+               db_user: "$effectiveUsers.user",
+               ns: "$ns"
+            } },
+            { $match: { client: { $ne: null }, db_user: { $ne: null } } },
+            { $group: {
+               _id: { client: "$client", user: "$db_user", ns: "$ns" },
+               curr_active: { $sum: "$curr_active" },
+               curr_inactive: { $sum: "$curr_inactive" },
+               total: { $sum: 1 }
+            } },
+            { $sort: { total: -1 } }
+         ] )
+
+      This code provides a list of active and inactive connections grouped by client
+      IP address and namespace (which includes the database and collection name) like the
+      following example:
+
+      .. code-block:: javascript
+
+         [
+         {
+            "_id": { "client": "192.168.1.10", "user": ["appUser"], "ns": "db1.collA" },
+            "curr_active": 3,
+            "curr_inactive": 1,
+            "total": 4
+         },
+         {
+            "_id": { "client": "192.168.1.11", "user": ["reportUser"], "ns": "db2.collB" },
+            "curr_active": 0,
+            "curr_inactive": 2,
+            "total": 2
+         }
+         ]
+
+   .. tab:: Node.js
       :tabid: nodejs
 
       To use the {+node-driver-full+} to add a ``$currentOp`` stage to an
