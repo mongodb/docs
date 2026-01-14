@@ -5,8 +5,21 @@
       .. tab:: Quickstart
          :tabid: quickstart
 
-         To enable the {+sql-interface+} with an |service|-managed {+fdi+}:
+         This page guides you through using the :guilabel:`Quickstart` 
+         configuration to create an |service|-managed {+fdi+} for use with 
+         the {+sql-interface+}.
 
+         .. important:: Quickstart Cloud Provider
+
+            The :guilabel:`Quickstart` configuration option automatically uses
+            {+aws+} as the {+fdi+} cloud provider. Once a {+fdi+} is created,
+            its cloud provider cannot be changed.
+            
+            We recommend selecting the same cloud provider that hosts your data
+            for your {+fdi+}. To use a cloud provider other than {+aws+}, refer
+            to the instructions in the :guilabel:`Advanced Configuration` tab.
+
+         To enable the {+sql-interface+} with an |service|-managed {+fdi+}:
 
          a. .. include:: /includes/nav/list-db-deployments-page.rst
 
