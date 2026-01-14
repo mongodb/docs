@@ -38,5 +38,4 @@ a star rating.
 
 ## Contributing
 
-We are not currently accepting public contributions to this repository at this
-time.
+We are not currently accepting public contributions to this repository at this time.
