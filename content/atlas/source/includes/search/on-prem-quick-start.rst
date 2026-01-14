@@ -107,13 +107,17 @@ Procedure
 
                echo|set /p="mongotPassword" > pwfile
 
+            .. include:: /includes/security/windows-password-permissions.rst 
+
          .. tab:: Windows PowerShell
             :tabid: windows-2
 
             .. code-block:: shell
-
-               [System.IO.File]::WriteAllText("pwfile", "mongotPassword")    
-         
+               
+               [System.IO.File]::WriteAllText("pwfile", "mongotPassword")
+            
+            .. include:: /includes/security/windows-password-permissions.rst 
+          
       .. note:: 
 
          - If you change the ``mongot`` password, you must also update the
