@@ -9,11 +9,11 @@
 
 defaults:
   exclude:
-  - "**/.env"
-  - "**/node_modules/**"
+    - '**/.env'
+    - '**/node_modules/**'
   deprecation_check:
     enabled: true
-    file: "deprecated_examples.json"
+    file: 'deprecated_examples.json'
 
 # ============================================================================
 # WORKFLOW CONFIGURATION
@@ -22,31 +22,47 @@ defaults:
 # See [Copy Files Automatically to Another Repo](https://www.mongodb.com/docs/meta/grove/copy-files/) for the full documentation.
 
 workflows:
+  # --------------------------------------------------------------------------
+  # Go SDK Project Examples → Artifact Repo (Architecture Center)
+  # --------------------------------------------------------------------------
+  - name: 'atlas-sdk-go-project-examples'
+    destination:
+      repo: 'mongodb/atlas-architecture-go-sdk'
+      branch: 'main'
 
-# --------------------------------------------------------------------------
-# Go SDK Project Examples → Artifact Repo (Architecture Center)
-# --------------------------------------------------------------------------
-- name: "atlas-sdk-go-project-examples"
-  destination:
-    repo: "mongodb/atlas-architecture-go-sdk"
-    branch: "main"
+    transformations:
+      - glob:
+          pattern: 'content/code-examples/tested/go/atlas-sdk/project-copy/**'
+          transform: '${relative_path}'
 
-  transformations:
-  - glob:
-      pattern: "content/code-examples/tested/go/atlas-sdk/project-copy/**/*"
-      transform: "${relative_path}"
+    commit_strategy:
+      type: 'pull_request'
+      pr_title: 'Update Atlas SDK Go examples from ${source_repo} PR ${pr_number}'
+      pr_body: |
+        Automated update of Atlas SDK Go project examples
 
-  commit_strategy:
-    type: "pull_request"
-    pr_title: "Update Atlas SDK Go examples from ${source_repo} PR ${pr_number}"
-    pr_body: |
-      Automated update of Atlas SDK Go project examples
+        - Source: ${source_repo}
+        - Source PR: #${pr_number}
+        - Commit: ${commit_sha}
 
-      - Source: ${source_repo}
-      - Source PR: #${pr_number}
-      - Commit: ${commit_sha}
+        **Changes:**
+        - Files updated: ${file_count}
+      commit_message: 'Automated copy from ${source_repo} PR #${pr_number}'
+      auto_merge: false
 
-      **Changes:**
-      - Files updated: ${file_count}
-    commit_message: "Automated copy from ${source_repo} PR #${pr_number}"
-    auto_merge: false
+  # --------------------------------------------------------------------------
+  # Jupyter Notebook → Artifact Repo (Docs Notebooks)
+  # --------------------------------------------------------------------------
+  - name: 'docs-notebooks'
+    destination:
+      repo: 'mongodb/docs-notebooks'
+      branch: 'main'
+
+    transformations:
+      - glob:
+          pattern: 'ext-source/docs-notebooks/**'
+          transform: '${relative_path}'
+
+    commit_strategy:
+      type: 'direct'
+      commit_message: 'Automated copy from ${source_repo} PR #${pr_number}' # Automated copy from docs-mongodb-internal PR #1234
