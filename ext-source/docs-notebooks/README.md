@@ -1,7 +1,7 @@
 # MongoDB Documentation Notebooks
 
 This repository contains Jupyter Notebooks that follow
-tutorials and code examples in the official [MongoDB Vector Search documentation](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/) and [Voyage AI documentation](http://dochub.mongodb.org/core/voyage-landing). You can run, download, and modify these notebooks as you learn how to use MongoDB Vector Search and Voyage AI models for your use case.
+tutorials and code examples in the official [MongoDB Vector Search documentation](https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/) and [Voyage AI documentation](https://www.mongodb.com/docs/voyageai/). You can run, download, and modify these notebooks as you learn how to use MongoDB Vector Search and Voyage AI models for your use case.
 
 ## Overview
 

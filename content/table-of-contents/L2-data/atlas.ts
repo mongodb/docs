@@ -973,9 +973,9 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/billing/data-transfer-costs',
       },
       {
-        label: "AI Models",
-        contentSite: "voyageai",
-        url: "/docs/voyageai/billing",
+        label: 'AI Models',
+        contentSite: 'voyageai',
+        url: '/docs/voyageai/billing',
       },
       {
         label: 'Stream Processing',
@@ -1629,9 +1629,9 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: "Embedding and Reranking API",
-        contentSite: "voyageai",
-        url: "http://dochub.mongodb.org/core/voyage-api-keys",
+        label: 'Embedding and Reranking API',
+        contentSite: 'voyageai',
+        url: '/docs/voyageai/api-reference/overview/',
       },
       {
         label: 'MongoDB Cloud Status API',

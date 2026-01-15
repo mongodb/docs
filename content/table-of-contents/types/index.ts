@@ -239,7 +239,7 @@ export type DocSite =
   | 'mcp-server'
   | 'mongodb-shell'
   | 'mongodb-vscode'
-  | "voyageai"
+  | 'voyageai'
   | 'mongoid'
   | 'node'
   | 'ops-manager'

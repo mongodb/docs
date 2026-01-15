@@ -52,6 +52,7 @@ const DocSitesTesting = [
   'guides',
   'spark-connector',
   'visual-studio-extension',
+  'voyageai',
   'landing',
 ];
 

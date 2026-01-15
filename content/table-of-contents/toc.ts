@@ -39,8 +39,8 @@ export const toc: L1TocItem[] = [
   },
   {
     label: 'AI Models',
-    contentSite: "voyageai",
-    url: "/docs/voyageai/",
+    contentSite: 'voyageai',
+    url: '/docs/voyageai/',
     items: VoyageData,
   },
   {

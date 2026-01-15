@@ -128,9 +128,9 @@ const tocData: TocItem[] = [
     items: VectorSearchData,
   },
   {
-    label: "Time Series",
-    contentSite: "docs",
-    url: "/docs/:version/core/timeseries-collections",
+    label: 'Time Series',
+    contentSite: 'docs',
+    url: '/docs/:version/core/timeseries-collections',
     collapsible: true,
     items: TimeSeriesData,
   },
