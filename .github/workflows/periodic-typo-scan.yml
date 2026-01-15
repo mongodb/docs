@@ -252,35 +252,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Check if there's already an open failure issue
-          EXISTING_ISSUE=$(gh issue list --label "typo-bot-failure" --state open --json number --jq '.[0].number' || echo "")
-          
-          if [ -z "$EXISTING_ISSUE" ]; then
+          EXISTING=$(gh issue list --label "typo-bot-failure" --state open --json number --jq 'length')
+          if [ "$EXISTING" = "0" ]; then
             gh issue create \
-              --title "⚠️ Periodic Typo Scan Failed - $(date +%Y-%m-%d)" \
-              --body "## Workflow Failure Alert
-
-The periodic typo scan workflow failed on **$(date -u '+%Y-%m-%d %H:%M UTC')**.
-
-### Details
-- **Run ID:** ${{ github.run_id }}
-- **Run URL:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-### Possible Causes
-- Missing \`.cspell/\` configuration directory
-- No documentation files found in \`content/\`
-- cspell configuration errors
-- Network/infrastructure issues
-
-### Next Steps
-1. Check the [workflow run logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
-2. Verify the \`.cspell/\` directory and config exist
-3. Re-run the workflow manually once fixed
-
-/cc @emetozar" \
+              --title "Typo Scan Failed - Run ${{ github.run_id }}" \
+              --body "The periodic typo scan workflow failed. Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} /cc @emetozar" \
               --label "typo-bot-failure" \
-              --label "automated" \
               --assignee "emetozar"
-          else
-            echo "Failure issue #$EXISTING_ISSUE already exists, not creating duplicate"
           fi
