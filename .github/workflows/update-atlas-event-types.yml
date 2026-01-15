@@ -80,41 +80,70 @@ jobs:
           rm -f content/tools/atlas-event-types-generator/temp-output.rst current-content.rst
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: |
-            Update Atlas event types - ${{ env.events_changed == 'true' && 'Events changed' || 'Timestamp refresh' }}
-          branch: update-atlas-event-types-${{ github.run_number }}
-          delete-branch: true
-          title: |
-            Update Atlas Event Types - ${{ env.events_changed == 'true' && 'Events Changed' || 'Timestamp Refresh' }}
-          body: |
-            ## Atlas Event Types Update
-            
-            **Run Date:** ${{ github.event.schedule && 'Scheduled' || 'Manual' }} - $(TZ='America/New_York' date '+%B %d, %Y at %I:%M %p %Z')
-            **Events Changed:** ${{ env.events_changed == 'true' && 'Yes ✅' || 'No - Timestamp only' }}
-            
-            This automated PR updates the Atlas event types documentation from the MongoDB Atlas API.
-            
-            ${{ env.events_changed == 'true' && '### Changes Detected\nThe event types list has been updated with new or modified events from the Atlas API.' || '### No Changes\nNo changes were detected in the event types. The timestamp has been refreshed to reflect the latest check.' }}
-            
-            ---
-            
-            @jwilliams-mongo Please review this automated update.
-            
-            <details>
-            <summary>About this automation</summary>
-            
-            This workflow runs every Thursday at 1:15 PM Eastern and:
-            1. Fetches the latest event types from the MongoDB Atlas Admin API
-            2. Generates an updated event types table
-            3. Updates the timestamp at the top of the include file
-            4. Creates this PR for review
-            
-            Event types file: `content/atlas/source/includes/event-types.rst`
-            </details>
-          labels: |
-            automated
-            documentation
-          reviewers: jwilliams-mongo
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Set git config
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Create branch name
+          BRANCH_NAME="update-atlas-event-types-${{ github.run_number }}"
+          
+          # Create and checkout new branch
+          git checkout -b $BRANCH_NAME
+          
+          # Stage and commit changes
+          git add content/atlas/source/includes/event-types.rst
+          
+          if [ "${{ env.events_changed }}" = "true" ]; then
+            git commit -m "Update Atlas event types - Events changed"
+            PR_TITLE="Update Atlas Event Types - Events Changed"
+            CHANGES_TEXT="### Changes Detected\nThe event types list has been updated with new or modified events from the Atlas API."
+          else
+            git commit -m "Update Atlas event types - Timestamp refresh"
+            PR_TITLE="Update Atlas Event Types - Timestamp Refresh"
+            CHANGES_TEXT="### No Changes\nNo changes were detected in the event types. The timestamp has been refreshed to reflect the latest check."
+          fi
+          
+          # Push branch
+          git push origin $BRANCH_NAME
+          
+          # Create PR body
+          TIMESTAMP=$(TZ='America/New_York' date '+%B %d, %Y at %I:%M %p %Z')
+          RUN_TYPE="${{ github.event.schedule && 'Scheduled' || 'Manual' }}"
+          EVENTS_STATUS="${{ env.events_changed == 'true' && 'Yes ✅' || 'No - Timestamp only' }}"
+          
+          PR_BODY="## Atlas Event Types Update
+
+**Run Date:** ${RUN_TYPE} - ${TIMESTAMP}
+**Events Changed:** ${EVENTS_STATUS}
+
+This automated PR updates the Atlas event types documentation from the MongoDB Atlas API.
+
+${CHANGES_TEXT}
+
+---
+
+@jwilliams-mongo Please review this automated update.
+
+<details>
+<summary>About this automation</summary>
+
+This workflow runs every Thursday at 1:15 PM Eastern and:
+1. Fetches the latest event types from the MongoDB Atlas Admin API
+2. Generates an updated event types table
+3. Updates the timestamp at the top of the include file
+4. Creates this PR for review
+
+Event types file: \`content/atlas/source/includes/event-types.rst\`
+</details>"
+          
+          # Create PR using gh CLI
+          gh pr create \
+            --title "$PR_TITLE" \
+            --body "$PR_BODY" \
+            --base ${{ github.ref_name }} \
+            --head $BRANCH_NAME \
+            --label "automated,documentation" \
+            --reviewer jwilliams-mongo
