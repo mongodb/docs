@@ -17,7 +17,6 @@ import {
   FeatureNotAvailableTemplate,
 } from '@/components/templates';
 import ActionBar from '@/components/action-bar';
-import Header from '@/components/header';
 import layoutStyles from '@/app/layout.module.scss';
 import ProductLandingTemplate from '@/components/templates/product-landing';
 import type { PageTemplateType } from '@/types/ast';
@@ -112,7 +111,6 @@ export const CustomTemplate = ({
       changelogData={changelogData}
       template={template}
     >
-      <Header eol={metadata?.eol ?? false} />
       {renderSidenav && <UnifiedSidenav />}
       <div className={layoutStyles['content-container']}>
         <ActionBar template={template} sidenav={true} />
