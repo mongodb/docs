@@ -12,7 +12,14 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends('next/core-web-vitals', 'next/typescript', 'plugin:prettier/recommended'),
   {
-    ignores: ['.next/**/*', 'node_modules/**/*', 'dist/**/*', 'build/**/*', '**/toc-data/data.copied.ts'],
+    ignores: [
+      '.next/**/*',
+      'node_modules/**/*',
+      'dist/**/*',
+      'build/**/*',
+      '**/toc-data/data.copied.ts',
+      'public/**/*',
+    ],
   },
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
