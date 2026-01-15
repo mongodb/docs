@@ -7,6 +7,7 @@ namespace Tests.Aggregation.Pipelines;
 public class TutorialTests
 {
     private IMongoClient _client;
+    private string examplesFolder;
 
     [SetUp]
     [Description("Initializes the MongoDB client before each test")]
@@ -15,6 +16,7 @@ public class TutorialTests
         var connectionString = Env.GetString("CONNECTION_STRING",
             "Env variable not found. Verify you have a .env file with a valid connection string.");
         _client = new MongoClient(connectionString);
+        examplesFolder = $"{Directory.GetCurrentDirectory()}/../../../../Examples/Aggregation/OutputFiles/";
     }
 
     [Test]
@@ -24,10 +26,7 @@ public class TutorialTests
         var example = new Examples.Aggregation.Pipelines.Filter.Tutorial();
         example.LoadSampleData();
         var results = example.PerformAggregation();
-
-        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../";
-        var outputLocation = "Aggregation/OutputFiles/FilterTutorialOutput.txt";
-        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        var fullPath = examplesFolder + "FilterTutorialOutput.txt";
 
         Expect.That(fullPath)
             .WithOrderedSort()
@@ -42,9 +41,7 @@ public class TutorialTests
         example.LoadSampleData();
         var results = example.PerformAggregation();
 
-        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../";
-        var outputLocation = "Aggregation/OutputFiles/GroupTutorialOutput.txt";
-        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        var fullPath = examplesFolder + "GroupTutorialOutput.txt";
 
         Expect.That(fullPath)
             .WithOrderedSort()
@@ -60,9 +57,7 @@ public class TutorialTests
         example.LoadSampleData();
         var results = example.PerformAggregation();
 
-        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../";
-        var outputLocation = "Aggregation/OutputFiles/UnwindTutorialOutput.txt";
-        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        var fullPath = examplesFolder + "UnwindTutorialOutput.txt";
 
         Expect.That(fullPath).ShouldMatch(results);
     }
@@ -75,9 +70,7 @@ public class TutorialTests
         example.LoadSampleData();
         var results = example.PerformAggregation();
 
-        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../";
-        var outputLocation = $"Aggregation/OutputFiles/JoinTutorialOutput.txt";
-        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        var fullPath = examplesFolder + "JoinTutorialOutput.txt";
 
         Expect.That(fullPath)
             .WithOrderedSort()
@@ -92,9 +85,7 @@ public class TutorialTests
         example.LoadSampleData();
         var results = example.PerformAggregation();
 
-        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../";
-        var outputLocation = $"Aggregation/OutputFiles/JoinMultifieldTutorialOutput.txt";
-        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        var fullPath = examplesFolder + "JoinMultifieldTutorialOutput.txt";
 
         Expect.That(fullPath)
             .WithOrderedSort()

@@ -87,7 +87,7 @@
          :language: csharp
          :category: syntax example
 
-      .. output:: /code-examples/tested/csharp/driver/TimeSeries/QuickStart/MetaFieldQueryOutput.txt
+      .. output:: /code-examples/tested/csharp/driver/TimeSeries/OutputFiles/MetaFieldQueryOutput.txt
          :language: text
 
    To query the ``timeField`` for a time span:
@@ -99,5 +99,5 @@
          :language: csharp
          :category: syntax example
 
-      .. output:: /code-examples/tested/csharp/driver/TimeSeries/QuickStart/TimeFieldQueryOutput.txt
+      .. output:: /code-examples/tested/csharp/driver/TimeSeries/OutputFiles/TimeFieldQueryOutput.txt
          :language: text

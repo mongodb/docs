@@ -29,8 +29,8 @@ public class MigrateTests
         await example.LoadSampleData();
         var results = example.CreateMetadataField();
 
-        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../";
-        var outputLocation = "TimeSeries/OutputFiles/MigrateAggOutput.txt";
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
+        var outputLocation = "Examples/TimeSeries/OutputFiles/MigrateAggOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
         Expect.That(fullPath).ShouldMatch(results);

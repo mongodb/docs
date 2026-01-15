@@ -18,7 +18,7 @@ This example creates an aggregation pipeline that:
       :language: csharp
       :category: syntax example
 
-   .. output:: /code-examples/tested/csharp/driver/TimeSeries/CreateQuery/AggregationOutput.txt
+   .. output:: /code-examples/tested/csharp/driver/Aggregation/OutputFiles/AggregationOutput.txt
       :language: text
 
 For more information on running aggregations using the C# Driver, see

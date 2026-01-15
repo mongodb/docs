@@ -13,7 +13,7 @@ the ``_id`` field from the results. It returns a ``List<BsonDocument>``.
       :language: csharp
       :category: syntax example
 
-   .. output:: /code-examples/tested/csharp/driver/TimeSeries/CreateQuery/FindOneOutput.txt
+   .. output:: /code-examples/tested/csharp/driver/TimeSeries/OutputFiles/FindOneOutput.txt
       :language: text
 
 For more information on querying your collection, see

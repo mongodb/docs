@@ -33,7 +33,7 @@ public class MixedEllipsisLevelsTests
         Assert.That(firstDoc, Is.Not.Null);
         Assert.That(firstDoc["_id"], Is.EqualTo("..."), "Property-level ellipsis should be preserved");
         Assert.That(firstDoc["name"], Is.EqualTo("Carl"));
-        
+
         // The key question: Does standalone '...' add a global ellipsis marker?
         Assert.That(firstDoc.ContainsKey("..."), Is.True, "Should have global ellipsis marker from standalone '...'");
         Assert.That(firstDoc["..."], Is.EqualTo("..."));
@@ -41,7 +41,7 @@ public class MixedEllipsisLevelsTests
         var secondDoc = result.Data[1] as Dictionary<string, object>;
         Assert.That(secondDoc, Is.Not.Null);
         Assert.That(secondDoc["status"], Is.EqualTo("active"));
-        
+
         // Second document should also get the global ellipsis marker
         Assert.That(secondDoc.ContainsKey("..."), Is.True, "Should also have global ellipsis marker");
         Assert.That(secondDoc["..."], Is.EqualTo("..."));
@@ -63,7 +63,7 @@ public class MixedEllipsisLevelsTests
         Assert.That(doc, Is.Not.Null);
         Assert.That(doc["_id"], Is.EqualTo("..."));
         Assert.That(doc["name"], Is.EqualTo("Carl"));
-        
+
         // Without standalone '...', should NOT have global ellipsis marker
         Assert.That(doc.ContainsKey("..."), Is.False, "Should NOT have global ellipsis marker without standalone '...'");
     }

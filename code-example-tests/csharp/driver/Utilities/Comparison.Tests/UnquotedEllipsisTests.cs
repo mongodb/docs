@@ -48,7 +48,7 @@ public class UnquotedEllipsisTests
 
         Assert.That(result.IsSuccess, Is.True, $"Parse failed: {result.Error}");
         Assert.That(result.Data, Is.Not.Null);
-        
+
         // Should have 3 elements: two objects and the ellipsis string
         Assert.That(result.Data.Count, Is.EqualTo(3));
 

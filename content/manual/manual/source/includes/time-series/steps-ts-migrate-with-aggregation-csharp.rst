@@ -72,5 +72,5 @@
             :language: csharp
             :category: usage example
 
-         .. output:: /code-examples/tested/csharp/driver/TimeSeries/MigrateWithAggregation/MigrateAggOutput.txt
+         .. output:: /code-examples/tested/csharp/driver/TimeSeries/OutputFiles/MigrateAggOutput.txt
             :language: json

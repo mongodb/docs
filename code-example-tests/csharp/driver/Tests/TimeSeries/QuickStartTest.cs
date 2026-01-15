@@ -27,8 +27,8 @@ public class QuickStartTest
         example.LoadSampleData();
         var results = example.RunMetaFieldQuery();
 
-        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../";
-        var outputLocation = $"TimeSeries/OutputFiles/MetaFieldOutput.txt";
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
+        var outputLocation = $"Examples/TimeSeries/OutputFiles/MetaFieldOutput.txt";
         var fullPath = $"{solutionRoot}{outputLocation}";
 
         Expect.That(fullPath).ShouldMatch(results);
@@ -42,8 +42,8 @@ public class QuickStartTest
         example.LoadSampleData();
         var results = example.RunTimeFieldQuery();
 
-        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../";
-        var outputLocation = $"TimeSeries/OutputFiles/TimeFieldQueryOutput.txt";
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
+        var outputLocation = $"Examples/TimeSeries/OutputFiles/TimeFieldQueryOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
         Expect.That(fullPath)

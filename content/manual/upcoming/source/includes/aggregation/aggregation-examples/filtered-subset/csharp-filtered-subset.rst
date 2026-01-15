@@ -88,7 +88,7 @@ following code to your application:
       ordered from youngest to oldest. The results omit the ``_id`` and ``Address``
       fields.
 
-      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Pipelines/Filter/FilterTutorialOutput.txt
+      .. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/OutputFiles/FilterTutorialOutput.txt
          :language: text
          :copyable: false
          :category: example return object
