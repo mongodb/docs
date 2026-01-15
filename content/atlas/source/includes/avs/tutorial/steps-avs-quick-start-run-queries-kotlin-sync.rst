@@ -10,7 +10,7 @@
       #. Copy and paste the following sample query into the
          ``atlasVectorSearchQuery.kt`` file:
 
-         .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query-sync.kt
+         .. literalinclude:: /includes/avs/pipeline-stage/examples/basic-query-sync.kt
             :language: kotlin
             :linenos:
 
@@ -28,6 +28,6 @@
       Run the ``atlasVectorSearchQuery.kt`` file in your IDE.
       The output should resemble the following:
 
-      .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query-nodejs-output.js
+      .. literalinclude:: /includes/avs/pipeline-stage/examples/basic-query-nodejs-output.js
          :language: js
          :linenos:

@@ -8,7 +8,7 @@
       Create a file named ``VectorQuery.scala``. Copy and paste the following
       code into the file.
 
-      .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query.scala
+      .. literalinclude:: /includes/avs/pipeline-stage/examples/basic-query.scala
          :language: scala
          :copyable: true
          :caption: VectorQuery.scala
@@ -45,6 +45,6 @@
 
             sbt:quick-start> ~run
         
-         .. output:: /includes/avs/pipeline-stage-examples/basic-query-nodejs-output.js 
+         .. output:: /includes/avs/pipeline-stage/examples/basic-query-nodejs-output.js 
             :language: js
             :linenos: 

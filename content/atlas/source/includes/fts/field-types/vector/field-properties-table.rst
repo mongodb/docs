@@ -59,9 +59,7 @@ The |fts| |fts-field-type| type takes the following parameters:
    * - ``quantization``
      - String
      - Optional
-     - .. _fields-quantization:
-
-       Type of automatic vector quantization for your vectors. Use
+     - Type of automatic vector quantization for your vectors. Use
        this setting only if your embeddings are ``float`` or ``double``
        vectors. 
        

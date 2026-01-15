@@ -8,10 +8,10 @@ public class DeleteIndex {
 
     public static void main(String[] args) {
 
-        // Replace the placeholder with your Atlas connection string
+        // Replace the placeholder with your connection string
         String uri = "<connectionString>";
 
-        // Connect to your Atlas cluster
+        // Connect to your cluster
         try (MongoClient mongoClient = MongoClients.create(uri)) {
 
             // Set the namespace

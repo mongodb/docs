@@ -10,7 +10,7 @@
       #. Copy and paste the following sample query into the 
          ``BasicQuery.java`` file:
 
-         .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query.java
+         .. literalinclude:: /includes/avs/pipeline-stage/examples/basic-query.java
             :language: java
             :linenos:
 
@@ -36,6 +36,6 @@
             javac BasicQuery.java
             java BasicQuery
 
-         .. output:: /includes/avs/pipeline-stage-examples/basic-query-java-output.js 
+         .. output:: /includes/avs/pipeline-stage/examples/basic-query-java-output.js 
             :language: js
             :linenos: 

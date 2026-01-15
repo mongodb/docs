@@ -1,6 +1,6 @@
 const { MongoClient } = require("mongodb");
 
-// connect to your Atlas deployment
+// connect to your deployment
 const uri =  "<connectionString>";
 
 const client = new MongoClient(uri);

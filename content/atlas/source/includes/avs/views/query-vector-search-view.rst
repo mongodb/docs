@@ -4,7 +4,7 @@
 
    a. Save the following embeddings in a file named ``query-embeddings.js``:
 
-      .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query-embeddings.js 
+      .. literalinclude:: /includes/avs/pipeline-stage/examples/basic-query-embeddings.js 
          :language: javascript
          :copyable: true 
 

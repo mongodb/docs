@@ -2,7 +2,7 @@ from pymongo.mongo_client import MongoClient
 from pymongo.operations import SearchIndexModel
 
 def create_indexes():
-     # Connect to your Atlas deployment
+     # Connect to your deployment
      uri = "<connectionString>"
      client = MongoClient(uri)
 

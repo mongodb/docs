@@ -38,7 +38,7 @@
         movie's plot. The index definition:
             
         - Specifies ``1536`` :term:`vector dimensions <vector>`.
-        - Measures :ref:`similarity <fields-similarity>` using ``dotProduct`` similarity.
+        - Measures :ref:`similarity <avs-similarity-functions>` using ``dotProduct`` similarity.
 
         This field mapping is required for the :ref:`third use case <avs-unionwith-use-cases>`.
 
@@ -47,7 +47,7 @@
         movie's plot. The index definition:
             
         - Specifies ``2048`` :term:`vector dimensions <vector>`.
-        - Measures :ref:`similarity <fields-similarity>` using ``dotProduct`` similarity.
+        - Measures :ref:`similarity <avs-similarity-functions>` using ``dotProduct`` similarity.
 
         This field mapping is required all the queries in this tutorial. 
 
@@ -56,6 +56,6 @@
         title of the movie. The index definition:
             
         - Specifies ``2048`` :term:`vector dimensions <vector>`.
-        - Measures :ref:`similarity <fields-similarity>` using ``dotProduct`` similarity.
+        - Measures :ref:`similarity <avs-similarity-functions>` using ``dotProduct`` similarity.
 
         This field mapping is required for the :ref:`second use case <avs-unionwith-use-cases>`.

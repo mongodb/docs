@@ -12,10 +12,10 @@ int main(void) {
 
   mongoc_init();
 
-  // Replace the placeholder with your Atlas connection string
+  // Replace the placeholder with your connection string
   client =  mongoc_client_new("<connection-string>");
 
-  // Connect to your Atlas cluster
+  // Connect to your cluster
   collection = mongoc_client_get_collection (client, database_name, collection_name);
 
   bson_t cmd;

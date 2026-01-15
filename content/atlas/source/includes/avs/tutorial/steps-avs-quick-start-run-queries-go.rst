@@ -10,7 +10,7 @@
       #. Copy and paste the following sample query into the
          ``atlas_vector_search_quick_start.go`` file:
 
-         .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query.go
+         .. literalinclude:: /includes/avs/pipeline-stage/examples/basic-query.go
             :language: go
             :linenos:
 
@@ -35,6 +35,6 @@
 
             go run atlas_vector_search_quick_start.go
 
-         .. output:: /includes/avs/pipeline-stage-examples/basic-query-nodejs-output.js
+         .. output:: /includes/avs/pipeline-stage/examples/basic-query-nodejs-output.js
             :language: js
             :linenos:

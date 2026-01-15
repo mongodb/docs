@@ -21,7 +21,7 @@
          :stub-columns: 1 
 
          * - ``<connectionString>``
-           - Your |service| connection string. To learn more, see :ref:`connect-via-driver`.
+           - Cluster connection string. To learn more, see :ref:`connect-via-driver`.
 
          * - ``<databaseName>``
            - The name of the database that contains the collection.

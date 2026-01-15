@@ -10,7 +10,7 @@
       #. Copy and paste the following sample query into the
          ``atlas-vector-search-quick-start.php`` file:
 
-         .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query.php
+         .. literalinclude:: /includes/avs/pipeline-stage/examples/basic-query.php
             :language: php
             :copyable: true
             :emphasize-lines: 6
@@ -38,6 +38,6 @@
 
             php atlas-vector-search-quick-start.php
 
-         .. output:: /includes/avs/pipeline-stage-examples/basic-query-nodejs-output.js
+         .. output:: /includes/avs/pipeline-stage/examples/basic-query-nodejs-output.js
             :language: js
             :linenos:

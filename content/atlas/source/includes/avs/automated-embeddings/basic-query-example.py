@@ -10,7 +10,7 @@ pipeline = [
       'index': 'movies_automated_embeddings',
       'path': 'fullplot',
       'query': "young heroes caught in epic struggles between light and darkness",
-      'numCandidates': 1000,
+      'numCandidates': 100,
       'limit': 10
     },
   },

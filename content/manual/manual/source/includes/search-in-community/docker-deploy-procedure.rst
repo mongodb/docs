@@ -25,10 +25,10 @@
 
          docker network create search-community
 
-   .. step:: (*Optional*) Download the MongoDB Docker image.
+   .. step:: Optional. Download the MongoDB Docker image if you haven't installed MongoDB Community Edition.
 
-      To download the MongoDB Docker image, run the following 
-      command:
+      If you have already installed MongoDB Community Edition, skip this step. Otherwise, 
+      to download the MongoDB Docker image, run the following command:
 
       .. code-block:: shell
 
@@ -90,7 +90,7 @@
                
                [System.IO.File]::WriteAllText("passwordFile", "mongotPassword")   
 
-   .. step:: Create your mongod configuration file.
+   .. step:: Create your ``mongod`` configuration file.
 
       .. _create-mongod-config-docker:
 
@@ -158,38 +158,82 @@
       - Replace ``<your-mongot-username>`` with a username for your ``mongot`` user
       - Replace ``<your-mongot-password>`` with the password that you specified in
         your ``passwordFile`` in step 5.
-      - Run the command
+      - Run the command:
 
-      .. code-block:: shell
+        .. code-block:: shell
 
-         db.createUser(
-            {
+           db.createUser(
+             {
                user: <mongot_username>,
                pwd: <mongot_password>,
                roles: [ "searchCoordinator"]
-            }
-         )
+             }
+           )
 
       For more information on creating users, see :ref:`create-users`.
+
+   .. step:: *Optional*. Create the |api| key files endpoint service |api| keys. 
+
+      If you created the |api| keys for :ref:`automated embedding <avs-auto-embeddings>`, 
+      create a credentials files for ``mongot`` to connect to the endpoint service. 
+
+      a. Run the following command to create files called
+         ``voyage-api-query-key`` and ``voyage-api-indexing-key`` after 
+         replacing ``<your-voyage-api-query-key>`` and 
+         ``<your-voyage-api-indexing-key>`` with your valid |voyage| |api| 
+         keys: 
+
+         .. code-block:: shell
+
+            printf "<your-voyage-api-query-key>" > voyage-api-query-key
+            printf "<your-voyage-api-indexing-key>" > voyage-api-indexing-key
+
+      #. Set the permissions on the |api| key file to ``400``.
+
+         .. code-block:: shell
+
+            chmod 400 voyage-api-query-key 
+            chmod 400 voyage-api-indexing-key
+
+      .. note:: 
+
+         The ``mongot`` process uses these |api| keys to generate
+         embeddings at index-time and query-time. Although you can use 
+         the same key for both, we recommend using different |api| keys from 
+         different |service| projects.
 
    .. step:: Specify your search configuration options.
 
       .. _mongot-search-config:
 
       You can configure ``mongot`` with a YAML configuration file. You must
-      specify the username that you specified in the previous step as the
-      ``syncSource.replicaSet.username``. You must also specify the
-      ``passwordFile`` that you created in the previous step as the
-      ``syncSource.replicaSet.passwordFile``. 
-
-      For more information
-      on ``mongot`` configuration options, see
-      :ref:`mongot-configuration-options`. 
+      specify the following: 
       
-      For example, you can adapt the settings to your local 
-      configuration as shown below:
+      - Username that you specified in a prior step as the 
+        ``syncSource.replicaSet.username``. 
+      - ``passwordFile`` that you created in a prior step as the
+        ``syncSource.replicaSet.passwordFile``. 
 
-      .. include:: /includes/search-in-community/sample-mongot-conf-docker.rst
+      You must also specify additional settings if you want :ref:`automated 
+      embeddeings <avs-auto-embeddings>`. For more information on all the 
+      ``mongot`` configuration options, see :ref:`mongot-configuration-options`. 
+      
+      For example, you can adapt the settings to your local configuration as shown 
+      below:
+
+      .. collapsible::
+         :heading: Search and Vector Search without Automated Embedding
+         :sub_heading: Sample configuration for deploying mongot without support for automated embedding.
+         :expanded: false
+
+         .. include:: /includes/search-in-community/sample-mongot-conf-docker.rst
+
+      .. collapsible::
+         :heading: Search and Vector Search with Automated Embedding
+         :sub_heading: Sample configuration for deploying mongot with support for automated embedding.
+         :expanded: false
+
+         .. include:: /includes/search-in-community/sample-mongot-with-auto-embed-conf-docker.rst
 
       Save your file to ``mongot.config`` or your preferred file location.
 
@@ -197,36 +241,51 @@
 
    .. step:: Start the mongot process.
 
-      To start the Search in Community binary, ``mongot``:
+      To start the Search in Community binary, ``mongot``, replace the following placeholder 
+      values and then run the command:
 
-      - Replace ``</path/to/data/mongot>`` with the path to the local
-        directory for the mounted volume to store ``mongot`` data
-      - Replace ``</path/to/mongot.conf>`` with the path to the
-        ``mongot`` configuration file that you created in the previous step.
-      - Replace ``</path/to/passwordFile>`` with the path to the password file you created.
+      .. list-table:: 
+         :stub-columns: 1 
+
+         * - ``</path/to/data/mongot>`` 
+           - Path to the local directory for the mounted volume to store 
+             ``mongot`` data.
+         * - ``</path/to/mongot.conf>`` 
+           - Path to the ``mongot`` configuration file that you created.
+         * - ``</path/to/passwordFile>`` 
+           - Path to the password file you created.
+         * - ``</path/to/voyage-api-indexing-key>``
+           - (Optional) Path to the |api| key file for indexing.
+         * - ``</path/to/voyage-api-query-key>``
+           - (Optional) Path to the |api| key file for querying.
 
       .. code-block:: shell
 
          docker run --rm \
             --name mongot-community \
             -v </path/to/data/mongot>:/data/mongot \
-            -v </path/to/mongot.conf>:/mongot-community/config.default.yml \
+            -v </path/to/mongot.conf>:/mongot-community/config.default.yml \ 
             -v </path/to/passwordFile>:/passwordFile:ro \
+            -v </path/to/voyage-api-indexing-key>:/etc/mongot/voyage-api-indexing-key:ro \
+            -v </path/to/voyage-api-query-key>:/etc/mongot/voyage-api-query-key:ro \
             --network search-community \
             -p 8080:8080 \
             -p 9946:9946 \
-            mongodb/mongodb-community-search:latest
-
+            mongodb/mongodb-community-search:latest \
+            --internalListAllIndexesForTesting=true
 
       This command:
 
       - Mounts the volume.
       - Mounts a configuration file from a local volume.
+      - Mounts the password file.
       - Mounts the keyfile from a local volume.
-      - Specifies the port range
-      - Exposes the metrics port
+      - Mounts the |api| credentials files from a local volume.
+      - Specifies the port range.
+      - Exposes the metrics port.
+      - Configures the system to return index status (if you set the 
+        ``internalListAllIndexesForTesting`` flag to ``true``).
       - Starts the container on the ``search-community`` Docker
-        network with a container named ``mongot-community``
+        network with a container named ``mongot-community``.
 
    .. include:: /includes/search-in-community/verify-mongot-health.rst
-      

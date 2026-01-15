@@ -6,7 +6,7 @@
 
    .. code-block:: shell 
 
-      curl localhost:8080
+      curl localhost:8080/health
 
    The endpoint returns one of the following in the response: 
 

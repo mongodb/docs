@@ -12,10 +12,10 @@ import (
 func main() {
 	ctx := context.Background()
 
-	// Replace the placeholder with your Atlas connection string
+	// Replace the placeholder with your connection string
 	const uri = "<connectionString>"
 
-	// Connect to your Atlas cluster
+	// Connect to your cluster
 	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(clientOptions)
 	if err != nil {

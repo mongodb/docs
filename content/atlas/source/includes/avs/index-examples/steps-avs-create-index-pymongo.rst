@@ -37,7 +37,7 @@
          :stub-columns: 1 
 
          * - ``<connectionString>``
-           - |service| connection string. To learn more, see :ref:`connect-via-driver`.
+           - Cluster connection string. To learn more, see :ref:`connect-via-driver`.
 
          * - ``<databaseName>``
            - Database that contains the collection for which you want to create the index.

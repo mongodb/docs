@@ -19,7 +19,7 @@ a. Install the MongoDB C Driver.
       
    Copy and paste the following lines into the ``CMakeLists.txt`` file:
 
-   .. include:: /includes/avs/pipeline-stage-examples/cmakelists-txt-c.rst
+   .. include:: /includes/avs/pipeline-stage/examples/cmakelists-txt-c.rst
 
 #. Define the index.
 

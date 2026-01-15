@@ -3,7 +3,7 @@ using MongoDB.Driver;
 using System;
 using System.Threading;
 
-// Connect to your Atlas deployment
+// connect to your deployment
 private const string MongoConnectionString = "<connectionString>";
 var client = new MongoClient(MongoConnectionString);
 

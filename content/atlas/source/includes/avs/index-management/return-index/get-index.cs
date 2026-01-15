@@ -11,7 +11,7 @@ public class IndexService
     {
         try
         {
-            // Connect to your Atlas deployment
+            // connect to your deployment
             var client = new MongoClient(MongoConnectionString);
 
             // Access your database and collection

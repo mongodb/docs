@@ -14,7 +14,19 @@ const tocData: TocItem[] = [
   {
     label: 'Create Embeddings',
     contentSite: 'cloud-docs',
-    url: '/docs/atlas/atlas-vector-search/create-embeddings',
+    collapsible: true,
+    items: [
+      {
+        label: 'Automated',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/atlas-vector-search/crud-embeddings/create-embeddings-automatic',
+      },
+      {
+        label: 'Manual',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/atlas-vector-search/crud-embeddings/create-embeddings-manual',
+      },
+    ],
   },
   {
     label: 'Queries & Indexes',

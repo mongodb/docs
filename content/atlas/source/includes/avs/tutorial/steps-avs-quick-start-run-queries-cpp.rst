@@ -10,7 +10,7 @@
       #. Copy and paste the following sample query into the
          ``atlas_vector_search_quick_start.cpp`` file:
 
-         .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query.cpp
+         .. literalinclude:: /includes/avs/pipeline-stage/examples/basic-query.cpp
             :language: cpp
             :caption: atlas_vector_search_quick_start.cpp
             :emphasize-lines: 16
@@ -52,6 +52,6 @@
 
                ./query_quick_start
 
-            .. output:: /includes/avs/pipeline-stage-examples/basic-query-nodejs-output.js
+            .. output:: /includes/avs/pipeline-stage/examples/basic-query-nodejs-output.js
                :language: js
                :linenos:

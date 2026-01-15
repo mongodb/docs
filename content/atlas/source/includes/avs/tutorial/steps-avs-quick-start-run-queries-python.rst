@@ -14,7 +14,7 @@
             NOTE: If you edit this Python file, also update the Jupyter Notebook
             at https://github.com/mongodb/docs-notebooks/blob/main/get-started/quick-start.ipynb
 
-         .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query.py 
+         .. literalinclude:: /includes/avs/pipeline-stage/examples/basic-query.py 
             :language: python
             :linenos:
 
@@ -39,6 +39,6 @@
      
             python atlas-vector-search-quick-start.py
         
-         .. output:: /includes/avs/pipeline-stage-examples/basic-query-python-output.js
+         .. output:: /includes/avs/pipeline-stage/examples/basic-query-python-output.js
             :language: js
             :linenos: 

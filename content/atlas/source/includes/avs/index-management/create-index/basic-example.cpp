@@ -14,10 +14,10 @@ int main() {
   try {
     mongocxx::instance inst{};
 
-    // Replace the placeholder with your Atlas connection string
+    // Replace the placeholder with your connection string
     const auto uri = mongocxx::uri{"<connection-string>"};
 
-    // Connect to your Atlas cluster
+    // Connect to your cluster
     mongocxx::client conn{uri};
     auto db = conn["sample_mflix"];
     auto collection = db["embedded_movies"];

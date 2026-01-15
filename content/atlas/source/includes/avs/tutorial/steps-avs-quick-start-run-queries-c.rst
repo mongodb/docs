@@ -8,7 +8,7 @@
     a. Create a file named ``atlas-vector-search-quick-start.c`` and 
        copy and paste the following sample query into the file:
 
-       .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query.c
+       .. literalinclude:: /includes/avs/pipeline-stage/examples/basic-query.c
           :language: c
           :caption: atlas-vector-search-quick-start.c
           :emphasize-lines: 24
@@ -45,6 +45,6 @@
           cmake --build . 
           ./atlas-vector-search-quick-start
 
-       .. output:: /includes/avs/pipeline-stage-examples/basic-query-c-output.js
+       .. output:: /includes/avs/pipeline-stage/examples/basic-query-c-output.js
             :language: js
             :linenos:

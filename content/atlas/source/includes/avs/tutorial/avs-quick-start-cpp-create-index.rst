@@ -19,7 +19,7 @@ a. Install the MongoDB C++ Driver.
       
    Copy and paste the following lines into the ``CMakeLists.txt`` file:
 
-   .. include:: /includes/avs/pipeline-stage-examples/cmakelists-txt.rst
+   .. include:: /includes/avs/pipeline-stage/examples/cmakelists-txt.rst
 
 #. Define the index.
 

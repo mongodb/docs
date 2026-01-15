@@ -9,7 +9,7 @@ use mongodb::options::ClientOptions;
 use mongodb::SearchIndexType::VectorSearch;
 
 pub(crate) fn vector_index() {
-    // Replace the placeholder with your Atlas connection string
+    // Replace the placeholder with your connection string
     let uri = "<connection_string>";
 
     // Create a new client and connect to the server

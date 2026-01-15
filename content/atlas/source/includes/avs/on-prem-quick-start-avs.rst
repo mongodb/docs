@@ -1,15 +1,10 @@
-.. _community-search-quick-start:
-
-This quick start demonstrates how to deploy MongoDB Search and MongoDB Vector
-Search in Docker, load sample data into the MongoDB cluster, create a vector search index
+This quick start demonstrates how to deploy |fts| and {+avs+} in Docker,
+load sample data into the MongoDB cluster, create a vector search index 
 for the sample data, and run vector search queries against the sample data.
 
 *Time required: 20 minutes*
 
-About This Task
----------------
-
-This quick start walks you through the following steps:
+The quick start walks you through the following steps:
 
 1. Deploy MongoDB and ``mongot`` in Docker. 
 
@@ -49,6 +44,20 @@ Before you begin, you must complete the following prerequisites:
 - Download Docker Compose
 - Download the ``curl`` command 
 - Download ``mongosh`` locally or have access to it through Docker
+
+Optionally, create |voyage| |api| key from the :ref:`{+atlas-ui+}
+<voyage-api-keys>` or directly from :voyage-docs:`Voyage AI
+</api-key-and-installation>` to configure {+avs+} to 
+:ref:`automatically generate embeddings <avs-auto-embeddings>` for text 
+fields in your collection.
+
+.. note:: 
+
+   Your provider endpoint for generating embeddings depends on
+   whether you create the |api| key from the {+atlas-ui+} or
+   directly from |voyage|. 
+
+.. _community-search-quick-start:
 
 Configure MongoDB Community Edition
 -----------------------------------
@@ -130,6 +139,32 @@ Configure MongoDB Community Edition
          - Most text editors automatically add newlines to files when you
            edit files manually. 
 
+   .. step:: If you want to use Automated Embedding in {+avs+}, set up the credentials file for |api| authentication. 
+
+      Create a credentials file for ``mongot`` to connect to |voyage| if you 
+      want {+avs+} to automatically generate embeddings for text fields in 
+      your collection.
+      
+      a. Run the following command after replacing ``<your-voyage-api-key>``
+         with your valid |voyage| |api| key to create two files named
+         ``voyage-api-indexing-key`` and ``voyage-api-query-key``: 
+
+         .. code-block:: shell
+
+            echo -n "<your-voyage-api-key>" > voyage-api-indexing-key
+            echo -n "<your-voyage-api-key>" > voyage-api-query-key
+
+      #. Set the permissions on the |api| key file to ``400``.
+
+         .. code-block:: shell
+
+            chmod 400 voyage-api-indexing-key 
+            chmod 400 voyage-api-query-key
+
+      .. note:: 
+
+         The ``mongot`` process uses these |api| keys to generate embeddings.
+
    .. step:: Set up your configuration files
 
       Create the following configuration files in your project folder and paste
@@ -140,6 +175,7 @@ Configure MongoDB Community Edition
          :expanded: false
          
          .. code-block:: shell
+            :linenos:
 
             services:
                mongod:
@@ -164,6 +200,10 @@ Configure MongoDB Community Edition
 
                mongot:
                   image: mongodb/mongodb-community-search:latest
+                  entrypoint:
+                     - /mongot-community/mongot
+                     - --config=/mongot-community/config.default.yml
+                     - --internalListAllIndexesForTesting=true
                   container_name: mongot-community-pupr
                   networks:
                      - search-community
@@ -171,6 +211,8 @@ Configure MongoDB Community Edition
                      - mongot_data:/data/mongot
                      - ./mongot.conf:/mongot-community/config.default.yml
                      - ./pwfile:/mongot-community/pwfile:ro
+                     - ./voyage-api-query-key:/mongot-community/voyage-api-query-key:ro # Omit if you don't want Automated Embedding
+                     - ./voyage-api-indexing-key:/mongot-community/voyage-api-indexing-key:ro # Omit if you don't want Automated Embedding
                   depends_on:
                      - mongod
                   ports:
@@ -199,6 +241,7 @@ Configure MongoDB Community Edition
             authorize ``mongot`` through the ``searchCoordinator`` role. 
          
          .. code-block:: shell
+            :linenos:
    
             #!/bin/bash
             set -e
@@ -211,18 +254,18 @@ Configure MongoDB Community Edition
             mongosh --eval "
             const adminDb = db.getSiblingDB('admin');
             try {
-            adminDb.createUser({
-               user: 'mongotUser',
-               pwd: 'mongotPassword',
-               roles: [{ role: 'searchCoordinator', db: 'admin' }]
-            });
-            print('User mongotUser created successfully');
+               adminDb.createUser({
+                  user: 'mongotUser',
+                  pwd: 'mongotPassword',
+                  roles: [{ role: 'searchCoordinator', db: 'admin' }]
+               });
+               print('User mongotUser created successfully');
             } catch (error) {
-            if (error.code === 11000) {
-               print('User mongotUser already exists');
-            } else {
-               print('Error creating user: ' + error);
-            }
+               if (error.code === 11000) {
+                  print('User mongotUser already exists');
+               } else {
+                  print('Error creating user: ' + error);
+               }
             }
             "
 
@@ -254,6 +297,7 @@ Configure MongoDB Community Edition
             :manual:`Self-Managed Security <core/self-managed-security>`. 
                
          .. code-block:: shell 
+            :linenos:
    
             # mongod.conf
             storage:
@@ -275,17 +319,28 @@ Configure MongoDB Community Edition
       .. collapsible::
          :heading: mongot.conf 
          :expanded: false
+
+         .. note:: 
+
+            The ``providerEndpoint`` value depends on whether you create the 
+            keys from {+atlas-ui+} or |voyage|. The value must be: 
+
+            - ``https://ai.mongodb.com/v1/embeddings`` for keys generated from the 
+              {+atlas-ui+}
+            - ``https://api.voyageai.com/v1/embeddings`` for keys generated from 
+              |voyage|
                
          .. code-block:: shell
+            :linenos:
 
             syncSource:
                replicaSet:
                   hostAndPort: "mongod.search-community:27017"
-                  username: mongotUser
-                  passwordFile: /mongot-community/pwfile
-                  authSource: admin
+                  username: "mongotUser"
+                  passwordFile: "/mongot-community/pwfile"
+                  authSource: "admin"
                   tls: false
-                  readPreference: primaryPreferred
+                  readPreference: "primaryPreferred"
             storage:
                dataPath: "data/mongot"
             server:
@@ -293,6 +348,11 @@ Configure MongoDB Community Edition
                   address: "mongot.search-community:27028"
                   tls:
                      mode: "disabled"
+            embedding:
+               queryKeyFile: "/mongot-community/voyage-api-query-key"
+               indexingKeyFile: "/mongot-community/voyage-api-indexing-key"
+               providerEndpoint: "https://ai.mongodb.com/v1/embeddings"
+               isAutoEmbeddingViewWriter: true
             metrics:
                enabled: true
                address: "mongot.search-community:9946"
@@ -329,55 +389,3 @@ Configure MongoDB Community Edition
 
          The initialization is complete when the logs return ``MongoDB
          initialization completed``.
-
-Create a MongoDB Vector Search Index
-------------------------------------
-
-.. procedure:: 
-   :style: normal  
-
-   .. step:: Connect to the {+cluster+} using {+mongosh+}.
-
-         Open {+mongosh+} in a terminal window and connect to your |service|
-         {+cluster+}. For detailed instructions on connecting, see
-         :ref:`Connect via mongosh <connect-mongo-shell>`.
-
-   .. step:: Switch to the database that contains the collection for which you want to create the index. 
-
-         .. example:: 
-
-            .. io-code-block:: 
-               :copyable: true 
-
-               .. input:: 
-                  :language: shell
-                  
-                  use sample_mflix 
-
-               .. output:: 
-                  :language: shell 
-
-                  switched to db sample_mflix
-
-   .. step:: Run the :method:`db.collection.createSearchIndex()` method.
-
-         .. literalinclude:: /includes/avs/index-management/create-index/basic-example-mongosh.sh  
-            :language: shell
-            :copyable: true 
-            :linenos:
-
-         .. include:: /includes/avs/tutorial/avs-quick-start-basic-index-description.rst
-
-Run a Vector Search Query
--------------------------
-
-.. include:: /includes/avs/tutorial/steps-avs-quick-start-run-queries-mongosh.rst
-
-Learn More
-----------
-
-To learn how to create indexes and run queries against the sample data
-and against your own data, see the following documentation:
-
-- :ref:`MongoDB Search <what-is-fts>`
-- :ref:`MongoDB Vector Search <avs-overview>`

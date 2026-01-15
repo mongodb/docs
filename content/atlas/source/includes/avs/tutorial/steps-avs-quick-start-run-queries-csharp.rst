@@ -10,7 +10,7 @@
       #. Copy and paste the following sample query into the 
          ``DatabaseService.cs`` file:
 
-         .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query-db-service.cs
+         .. literalinclude:: /includes/avs/pipeline-stage/examples/basic-query-db-service.cs
             :language: csharp
             :caption: DatabaseService.cs
             :emphasize-lines: 11
@@ -52,6 +52,6 @@
 
             dotnet run query-quick-start.csproj
 
-         .. output:: /includes/avs/pipeline-stage-examples/basic-query-csharp-output.js
+         .. output:: /includes/avs/pipeline-stage/examples/basic-query-csharp-output.js
             :language: js
             :linenos:

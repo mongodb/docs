@@ -1,0 +1,29 @@
+db.listingsAndReviews.aggregate([
+  {
+    "$vectorSearch": {
+      "index": "vector_index",
+      "path": "summary",
+      "filter": {    
+        "bedrooms": { "$gte": 3 },
+        "address.country": { "$in": ["United States"] }      
+      },
+      "query": {
+        "text": "close to amusement parks"
+      },
+      "model": "voyage-4",
+      "numCandidates": 100,
+      "limit": 10
+    }
+  },
+  {
+    "$project": {
+      "_id": 0,
+      "name": 1,
+      "summary": 1,
+      "address": 1,
+      "price": 1,
+      "bedrooms": 1,
+      "score": { $meta: "vectorSearchScore" }
+    }
+  }
+])

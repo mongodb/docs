@@ -1,0 +1,273 @@
+:tabs-selector-position: main
+
+.. facet::
+   :name: programming_language
+   :values: javascript/typescript, python
+
+.. _avs-auto-embeddings:
+
+============================================================================================
+How to Automatically Generate Vector Embeddings for Text Data in Your Collection and Queries         
+============================================================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Learn how to create vector embeddings automatically for vector search at index- and query-time by using a Voyage AI embedding model.
+   :keywords: vector embeddings, embedding model, vector database, vector search, semantic search, generative search, sample dataset, code example, node.js, python, compass, mongosh
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. dismissible-skills-card::
+   :skill: RAG with MongoDB
+   :url: https://learn.mongodb.com/skills?openTab=gen+ai
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can deploy {+avs+} and enable intelligent, AI-powered semantic search 
+on your text data through automated embedding in {+avs+} indexes. MongoDB's 
+automated embedding capabilities transform the traditionally complex process 
+of vector search implementation into a single-step solution. Instead of 
+managing separate embedding infrastructure, model selection, and integration 
+code, you can now implement semantic search through simple field configuration.
+
+When you configure {+avs+} indexes, it automatically generates vector 
+embeddings for text data in your collection, using your selection of a 
+state-of-the-art |voyage| embedding model, keeps the embeddings in sync 
+as your data changes, and also supports use of natural language text 
+queries. These vector embeddings capture meaningful relationships in 
+your data and allow for searching based on intent rather than keywords. 
+
+Overview  
+--------
+
+With a simple configuration change, you can enable semantic search, :ref:`RAG 
+<avs-rag>`, and memory for AI Agents, without writing embedding code, 
+managing model infrastructure, or handling vector pipelines. That is, when 
+:ref:`deploying the MongoDB Community Edition with the MongoDB Search 
+and Vector Search process <install-mdb-community-edition>`, ``mongot``, 
+you can provide the :ref:`Voyage AI API keys <voyage-api-key-for-auto-embed>` 
+to use for generating embeddings, ideally one for indexing operations and 
+another for query operations from different projects. 
+
+After deployment:
+
+a. From your collection, choose the text field for which you want to enable 
+   the semantic search.
+#. From the list of available embedding models, choose an embedding model.
+#. In your {+avs+} index definition, configure automated embeddings using 
+   the ``autoEmbed`` type. 
+
+To learn more about configuring {+avs+} index for automated embedding, see 
+:ref:`avs-index-for-auto-embed`. 
+
+{+avs+} automatically generates embeddings for existing and new documents 
+that you insert or update by using the |api| keys that you specified while 
+initializing MongoDB Community Edition. 
+
+.. note:: 
+
+   The generated embeddings are stored in a separate system collection on 
+   the same cluster.
+
+For querying, use the ``query.text`` option in the :pipeline:`$vectorSearch` 
+pipeline stage. {+avs+} generates embeddings for the text query using the 
+same embedding model in the index definition. You can specify a different 
+embedding model using the ``model`` option in the :pipeline:`$vectorSearch` 
+pipeline stage, but the specified embedding model must be compatible with 
+the embedding model used at index-time. {+avs+} uses the query API key that 
+you provided during MongoDB Community initialization to generate the 
+embeddings at query-time. To learn more, see :ref:`avs-auto-embed:-run-query`.
+
+You will incur charges for generating embeddings using the |api| keys. To 
+learn more, see :ref:`costs-for-auto-embed`. 
+
+To automate embeddings and run a sample query, see :ref:`auto-embed-get-started`.
+
+.. _voyage-api-key-for-auto-embed:
+
+|voyage| |api| Keys
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/avs/index/about-api-key.rst
+
+.. _auto-embed-supported-models:
+
+Supported Embedding Models 
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+avs+} integrates with |voyage|'s state-of-the-art embedding models, 
+each optimized for specific use-case:
+
+.. include:: /includes/avs/automated-embeddings/supported-models.rst
+
+.. _costs-for-auto-embed:
+
+Costs 
+~~~~~
+
+.. include:: /includes/avs/automated-embeddings/about-auto-embed-costs.rst
+
+Limitations 
+~~~~~~~~~~~
+
+While in Preview, automated embedding functionality is not yet available 
+for the following deployment types: 
+
+- |service| clusters
+- Local |service| deployments using the {+atlas-cli+}
+- MongoDB Enterprise Edition 
+
+The feature is only available for |fts| and {+avs+} :ref:`deployments
+using Docker, tarball, or a package manager <install-mdb-community-edition>` 
+and for :ref:`deployments <k8s-deploy-search-resources>` using the MongoDB 
+Controllers for Kubernetes Operator with MongoDB 8.2 or later Community
+Edition.
+
+.. _auto-embed-get-started:
+
+Get Started 
+-----------
+
+Use the following tutorial to learn how to configure {+avs+} to
+automatically generate vector embeddings. Specifically, you perform the 
+following actions: 
+
+1. Index the field or fields in your collection that contain text data 
+   for which you want to automatically generate embeddings at index-time.
+#. Run a text query against the indexed fields using automatically
+   generated embeddings at query-time. 
+
+This tutorial uses the :ref:`sample_airbnb.listingsAndReviews
+<sample-airbnb>` namespace to demonstrate how to index a text field,
+``summary``, in the collection for automatically generating embeddings
+at index-time and run a text query against the indexed field,
+``summary``, using embeddings generated at query-time.
+
+.. composable-tutorial::
+   :options: interface, language
+   :defaults: driver, python
+
+   Prerequisites 
+   ~~~~~~~~~~~~~
+
+   To complete this tutorial, you must have the following:
+
+   - Self-managed deployment of MongoDB v8.2 or later Community Edition
+     with |fts| and {+avs+}
+
+     To learn more, see :ref:`Install MongoDB Community Edition
+     <install-mdb-community-edition>`. 
+
+   - Valid |voyage| |api| key or keys
+
+     To learn more, see :ref:`voyage-api-key-for-auto-embed`.
+
+   .. selected-content::
+      :selections: compass, None 
+
+      - |compass|
+
+   .. selected-content::
+      :selections: mongosh, None 
+
+      - {+mongosh+}
+
+   .. selected-content::
+      :selections: driver, nodejs 
+
+      - :driver:`Node.js driver </node/current/>` v7.0 or later
+
+   .. selected-content::
+      :selections: driver, python 
+
+      - :driver:`PyMongo driver </pymongo/>` v4.16 or later
+
+   .. _avs-index-for-auto-embed:
+
+   Index a Text Field 
+   ~~~~~~~~~~~~~~~~~~ 
+
+   The index definition that you create in this tutorial indexes the
+   following fields in the ``sample_airbnb.listingsAndReviews``
+   collection:
+
+   - ``summary`` field as the ``autoEmbed`` type to automatically
+     generate embeddings for the text data in the field using the
+     ``voyage-4`` embedding model.
+   - ``address.country`` field as the ``filter`` type to prefilter the
+     data for the semantic search using the string value in the field. 
+   - ``bedroom`` field as the ``filter`` type to prefilter the data for
+     the semantic search using the numeric value in the field. 
+
+   To create this index:
+
+   .. selected-content::
+      :selections: compass, None 
+
+      .. include:: /includes/avs/create-embeddings/automated/steps-create-index-compass.rst
+
+   .. selected-content::
+      :selections: mongosh, None 
+
+      .. include:: /includes/avs/create-embeddings/automated/steps-create-index-mongosh.rst
+
+   .. selected-content::
+      :selections: driver, nodejs 
+
+      .. include:: /includes/avs/create-embeddings/automated/steps-create-index-nodejs.rst
+
+   .. selected-content::
+      :selections: driver, python 
+
+      .. include:: /includes/avs/create-embeddings/automated/steps-create-index-python.rst
+
+   .. _avs-auto-embed:-run-query:
+
+   Run a Text Query 
+   ~~~~~~~~~~~~~~~~
+
+   The query in this tutorial does the following:
+   
+   1. Runs against the the indexed ``summary`` field in the
+      ``sample_airbnb.listingsAndReviews`` collection.
+   
+   #. Prefilters the properties using the following criteria: 
+
+      - Properties that have ``3`` or more ``bedrooms``.
+      - Properties in the ``country`` named ``United States``.
+   
+   #. Performs a semantic search for properties that are ``close to
+      amusement parks`` using the embeddings automatically generated
+      with the ``voyage-4`` embedding model. The query: 
+      
+      - Considers up to ``100`` nearest neighbors.
+      - Limits the results to ``10`` documents.
+
+   To run this query:
+
+   .. selected-content::
+      :selections: compass, None 
+
+      .. include:: /includes/avs/create-embeddings/automated/steps-run-query-compass.rst
+
+   .. selected-content::
+      :selections: mongosh, None 
+
+      .. include:: /includes/avs/create-embeddings/automated/steps-run-query-mongosh.rst
+
+   .. selected-content::
+      :selections: driver, nodejs 
+
+      .. include:: /includes/avs/create-embeddings/automated/steps-run-query-nodejs.rst
+
+   .. selected-content::
+      :selections: driver, python 
+
+      .. include:: /includes/avs/create-embeddings/automated/steps-run-query-python.rst

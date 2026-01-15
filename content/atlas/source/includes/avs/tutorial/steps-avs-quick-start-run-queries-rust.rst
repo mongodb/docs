@@ -16,7 +16,7 @@
             .. tab:: 
                :tabid: Asynchronous API
 
-               .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query-async.rs 
+               .. literalinclude:: /includes/avs/pipeline-stage/examples/basic-query-async.rs 
                   :language: rust
                   :copyable: true
                   :caption: basic_query.rs
@@ -26,7 +26,7 @@
             .. tab:: 
                :tabid: Synchronous API
 
-               .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query-sync.rs 
+               .. literalinclude:: /includes/avs/pipeline-stage/examples/basic-query-sync.rs 
                   :language: rust
                   :copyable: true
                   :caption: basic_query.rs
@@ -66,6 +66,6 @@
       
                cargo run
          
-            .. output:: /includes/avs/pipeline-stage-examples/basic-query-python-output.js
+            .. output:: /includes/avs/pipeline-stage/examples/basic-query-python-output.js
                :language: js
                :linenos: 

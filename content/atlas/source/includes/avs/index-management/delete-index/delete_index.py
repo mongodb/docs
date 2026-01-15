@@ -1,6 +1,6 @@
 from pymongo.mongo_client import MongoClient
 
-# Connect to your Atlas deployment
+# Connect to your deployment
 uri = "<connectionString>"
 client = MongoClient(uri)
 

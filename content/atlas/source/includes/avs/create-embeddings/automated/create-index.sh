@@ -1,0 +1,22 @@
+db.listingsAndReviews.createSearchIndex(
+  "vector_index",
+  "vectorSearch", 
+  {
+    "fields": [
+      {
+        "type": "autoEmbed",
+        "modality": "text",
+        "path": "summary",
+        "model": "voyage-4"
+      },
+      {
+        "type": "filter",
+        "path": "address.country"
+      },
+      {
+        "type": "filter",
+        "path": "bedrooms"
+      }
+    ]
+  }
+);

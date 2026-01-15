@@ -49,11 +49,11 @@
       .. io-code-block::
          :copyable: true 
 
-         .. input:: /includes/avs/pipeline-stage-examples/basic-query-quickstart.sh
+         .. input:: /includes/avs/pipeline-stage/examples/basic-query-quickstart.sh
             :language: json
             :linenos: 
 
-         .. output:: /includes/avs/pipeline-stage-examples/basic-query-shell-output.js
+         .. output:: /includes/avs/pipeline-stage/examples/basic-query-shell-output.js
             :language: js
             :linenos:   
          

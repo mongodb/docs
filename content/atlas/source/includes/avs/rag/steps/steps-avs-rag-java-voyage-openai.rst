@@ -156,7 +156,7 @@
          your vector data. The method converts the API-provided array of floats
          to a BSON array of doubles to use when querying your collection.
 
-      .. literalinclude:: /includes/avs/create-embeddings/EmbeddingProviderVoyageRag.java
+      .. literalinclude:: /includes/avs/create-embeddings/manual/EmbeddingProviderVoyageRag.java
          :language: java
          :caption: EmbeddingProvider.java
 

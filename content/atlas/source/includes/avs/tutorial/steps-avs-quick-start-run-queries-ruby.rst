@@ -39,7 +39,7 @@
       #. Copy and paste the following sample query into the
          ``atlas_vector_search_quick_start.rb`` file:
 
-         .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query.rb
+         .. literalinclude:: /includes/avs/pipeline-stage/examples/basic-query.rb
             :language: ruby
             :linenos:
 
@@ -65,6 +65,6 @@
 
             bundle exec ruby atlas_vector_search_quick_start.rb
 
-         .. output:: /includes/avs/pipeline-stage-examples/basic-query-nodejs-output.js
+         .. output:: /includes/avs/pipeline-stage/examples/basic-query-nodejs-output.js
             :language: js
             :linenos:

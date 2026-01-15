@@ -2,7 +2,7 @@
 
 require 'vendor/autoload.php';
 
-// Replace the placeholder with your Atlas connection string
+// Replace the placeholder with your connection string
 $uri = "<connectionString>";
 $client = new MongoDB\Client($uri);
 $collection = $client->sample_mflix->embedded_movies;

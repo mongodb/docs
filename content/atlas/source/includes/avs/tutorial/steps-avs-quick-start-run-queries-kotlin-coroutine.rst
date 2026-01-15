@@ -10,7 +10,7 @@
       #. Copy and paste the following sample query into the
          ``atlasVectorSearchQuery.kt`` file:
 
-         .. literalinclude:: /includes/avs/pipeline-stage-examples/basic-query-coroutine.kt
+         .. literalinclude:: /includes/avs/pipeline-stage/examples/basic-query-coroutine.kt
             :language: kotlin
             :linenos:
 

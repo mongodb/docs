@@ -7,13 +7,13 @@ using System.Threading;
 
 public class IndexService
 {
-    // Replace the placeholder with your Atlas connection string
+    // Replace the placeholder with your connection string
     private const string MongoConnectionString = "<connection-string>";
     public void CreateVectorIndex()
     {
         try
         {
-            // Connect to your Atlas cluster
+            // Connect to your cluster
             var client = new MongoClient(MongoConnectionString);
             var database = client.GetDatabase("sample_mflix");
             var collection = database.GetCollection<BsonDocument>("embedded_movies");
