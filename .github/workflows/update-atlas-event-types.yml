@@ -114,17 +114,16 @@ jobs:
           RUN_TYPE="${{ github.event.schedule && 'Scheduled' || 'Manual' }}"
           EVENTS_STATUS="${{ env.events_changed == 'true' && 'Yes ✅' || 'No - Timestamp only' }}"
           
-          # Create PR using gh CLI
-          gh pr create \
-            --title "$PR_TITLE" \
-            --body "## Atlas Event Types Update
+          # Create PR body file
+          cat > pr_body.md << 'EOF'
+## Atlas Event Types Update
 
-**Run Date:** ${RUN_TYPE} - ${TIMESTAMP}
-**Events Changed:** ${EVENTS_STATUS}
+**Run Date:** RUN_TYPE_PLACEHOLDER - TIMESTAMP_PLACEHOLDER
+**Events Changed:** EVENTS_STATUS_PLACEHOLDER
 
 This automated PR updates the Atlas event types documentation from the MongoDB Atlas API.
 
-${CHANGES_TEXT}
+CHANGES_TEXT_PLACEHOLDER
 
 ---
 
@@ -139,8 +138,20 @@ This workflow runs every Thursday at 1:15 PM Eastern and:
 3. Updates the timestamp at the top of the include file
 4. Creates this PR for review
 
-Event types file: \`content/atlas/source/includes/event-types.rst\`
-</details>" \
+Event types file: `content/atlas/source/includes/event-types.rst`
+</details>
+EOF
+          
+          # Replace placeholders
+          sed -i "s|RUN_TYPE_PLACEHOLDER|${RUN_TYPE}|g" pr_body.md
+          sed -i "s|TIMESTAMP_PLACEHOLDER|${TIMESTAMP}|g" pr_body.md
+          sed -i "s|EVENTS_STATUS_PLACEHOLDER|${EVENTS_STATUS}|g" pr_body.md
+          sed -i "s|CHANGES_TEXT_PLACEHOLDER|${CHANGES_TEXT}|g" pr_body.md
+          
+          # Create PR using gh CLI
+          gh pr create \
+            --title "$PR_TITLE" \
+            --body-file pr_body.md \
             --base ${{ github.ref_name }} \
             --head $BRANCH_NAME \
             --label "automated,documentation" \
