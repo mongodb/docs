@@ -31,7 +31,7 @@
   }
 
   const fetchEmbeddings = async (query: string) => {
-    const apiUrl = "https://api.voyageai.com/v1/embeddings";  
+    const apiUrl = "https://ai.mongodb.com/v1/embeddings";  
     const apiKey = process.env.VOYAGEAI_API_KEY;
     const requestBody = {  
       input: query,

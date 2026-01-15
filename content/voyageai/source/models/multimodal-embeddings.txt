@@ -1,0 +1,356 @@
+:tabs-selector-position: main
+
+.. _voyage-multimodal-embeddings:
+
+=====================
+Multimodal Embeddings
+=====================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn about Voyage AI's multimodal embedding models for text, image, and video retrieval.
+   :keywords: multimodal embeddings, voyage-multimodal-3.5, voyage-multimodal-3, text and image embeddings, video embeddings, image search
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Multimodal embedding models transform unstructured data from multiple
+modalities into a shared vector space. Voyage multimodal embedding
+models support text, images, and video, such as figures, photos, slide
+decks, document screenshots, and video clips. This removes the need for text
+extraction or ETL pipelines.
+
+Unlike multimodal models like CLIP, which process text, images, and video
+separately, Voyage multimodal embedding models vectorize inputs
+containing interleaved text, images, and video. CLIP's architecture prevents
+it from being usable in mixed-modality searches, as text, image, and video
+vectors often align with irrelevant items of the same modality.
+Voyage multimodal embedding models reduce this bias by processing all
+inputs through a single backbone.
+
+Available Models
+----------------
+
+.. include:: /includes/tables/multimodal-embeddings-table.rst
+
+.. collapsible::
+   :heading: Older Models
+   :sub_heading: The following older models are still accessible from our API, but we recommend using the new models above for better quality and efficiency.
+   :expanded: false
+
+   .. include:: /includes/tables/older-multimodal-models-table.rst
+
+Tutorial
+--------
+
+For a tutorial on using multimodal embeddings, 
+see :ref:`voyage-semantic-search`.
+
+Usage
+-----
+
+.. composable-tutorial::
+   :options: client
+   :defaults: python
+
+   .. selected-content::
+      :selections: python
+
+      You can access {+voyage+} multimodal embeddings in Python through the
+      ``voyageai`` package. Install the ``voyageai`` package, set up
+      the API key, and use the ``voyageai.Client.multimodal_embed()``
+      function to vectorize your inputs.
+
+      .. code-block:: python
+
+         voyageai.Client.multimodal_embed(
+             inputs: List[dict] or List[List[Union[str, PIL.Image.Image]]],
+             model: str,
+             input_type: Optional[str] = None,
+             truncation: Optional[bool] = True
+         )
+
+      .. collapsible::
+         :heading: Parameters
+         :sub_heading: View the parameters for the multimodal_embed method.
+         :expanded: false
+
+         .. include:: /includes/tables/multimodal-embeddings-parameters.rst
+
+      .. collapsible::
+         :heading: Response
+         :sub_heading: View the response for the multimodal_embed method.
+         :expanded: false
+
+         This method returns a ``MultimodalEmbeddingsObject``, which contains the following attributes:
+
+         .. include:: /includes/tables/multimodal-embeddings-returns.rst
+
+      Example
+      ~~~~~~~
+
+      .. code-block:: python
+
+         import voyageai
+         import PIL
+
+         vo = voyageai.Client()
+         # This will automatically use the environment variable VOYAGE_API_KEY.
+         # Alternatively, you can use vo = voyageai.Client(api_key="<model-api-key>")
+
+         # Example input containing a text string and PIL image object
+         inputs = [
+             ["This is a banana.", PIL.Image.open('banana.jpg')]
+         ]
+
+         # Vectorize inputs
+         result = vo.multimodal_embed(inputs, model="voyage-multimodal-3.5")
+         print(result.embeddings)
+
+      .. note::
+         
+         In order to run this example, you must have an image file 
+         named ``banana.jpg`` in the same directory.
+
+   .. selected-content::
+      :selections: typescript
+
+      You can access {+voyage+} multimodal embeddings in JavaScript or TypeScript
+      by sending HTTP requests using the Fetch API or other HTTP clients.
+
+      Example
+      ~~~~~~~
+
+      .. code-block:: javascript
+
+         const fs = require('fs');
+         const apiKey = process.env.VOYAGE_API_KEY;
+         const url = "https://ai.mongodb.com/v1/multimodalembeddings";
+
+         const headers = {
+             "Authorization": `Bearer ${apiKey}`,
+             "Content-Type": "application/json"
+         };
+
+         // Read and encode image to base64
+         const imageBuffer = fs.readFileSync('banana.jpg');
+         const base64Image = imageBuffer.toString('base64');
+
+         const data = {
+             inputs: [
+                 {
+                     content: [
+                         { type: "text", text: "This is a banana." },
+                         { type: "image_base64", image_base64: base64Image }
+                     ]
+                 }
+             ],
+             model: "voyage-multimodal-3.5"
+         };
+
+         const response = await fetch(url, {
+             method: "POST",
+             headers: headers,
+             body: JSON.stringify(data)
+         });
+
+         const result = await response.json();
+
+      .. note::
+         
+         In order to run this example, you must have an image file 
+         named ``banana.jpg`` in the same directory.
+
+   .. selected-content::
+      :selections: java
+
+      You can access {+voyage+} multimodal embeddings in Java by sending HTTP
+      requests using the built-in ``HttpClient`` or other HTTP libraries.
+
+      Example
+      ~~~~~~~
+
+      .. code-block:: java
+
+         import java.net.URI;
+         import java.net.http.HttpClient;
+         import java.net.http.HttpRequest;
+         import java.net.http.HttpResponse;
+         import java.nio.file.Files;
+         import java.nio.file.Paths;
+         import java.util.Base64;
+
+         String apiKey = System.getenv("VOYAGE_API_KEY");
+         String url = "https://ai.mongodb.com/v1/multimodalembeddings";
+
+         // Read and encode image to base64
+         byte[] imageBytes = Files.readAllBytes(Paths.get("banana.jpg"));
+         String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+
+         String jsonBody = String.format("""
+             {
+                 "inputs": [
+                     {
+                         "content": [
+                             {"type": "text", "text": "This is a banana."},
+                             {"type": "image_base64", "image_base64": "%s"}
+                         ]
+                     }
+                 ],
+                 "model": "voyage-multimodal-3.5"
+             }
+             """, base64Image);
+
+         HttpClient client = HttpClient.newHttpClient();
+         HttpRequest request = HttpRequest.newBuilder()
+             .uri(URI.create(url))
+             .header("Authorization", "Bearer " + apiKey)
+             .header("Content-Type", "application/json")
+             .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+             .build();
+
+         HttpResponse<String> response = client.send(request,
+             HttpResponse.BodyHandlers.ofString());
+         System.out.println(response.body());
+
+      .. note::
+         
+         In order to run this example, you must have an image file 
+         named ``banana.jpg`` in the same directory.
+
+   .. selected-content::
+      :selections: go
+
+      You can access {+voyage+} multimodal embeddings in Go by sending HTTP
+      requests using the standard ``net/http`` package.
+
+      Example
+      ~~~~~~~
+
+      .. code-block:: go
+
+         package main
+
+         import (
+             "bytes"
+             "encoding/base64"
+             "encoding/json"
+             "fmt"
+             "io"
+             "net/http"
+             "os"
+         )
+
+         func main() {
+             apiKey := os.Getenv("VOYAGE_API_KEY")
+             url := "https://ai.mongodb.com/v1/multimodalembeddings"
+
+             // Read and encode image to base64
+             imageData, _ := os.ReadFile("banana.jpg")
+             base64Image := base64.StdEncoding.EncodeToString(imageData)
+
+             requestBody := map[string]interface{}{
+                 "inputs": []map[string]interface{}{
+                     {
+                         "content": []map[string]string{
+                             {"type": "text", "text": "This is a banana."},
+                             {"type": "image_base64", "image_base64": base64Image},
+                         },
+                     },
+                 },
+                 "model": "voyage-multimodal-3.5",
+             }
+
+             jsonData, _ := json.Marshal(requestBody)
+
+             req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+             req.Header.Set("Authorization", "Bearer "+apiKey)
+             req.Header.Set("Content-Type", "application/json")
+
+             client := &http.Client{}
+             resp, _ := client.Do(req)
+             defer resp.Body.Close()
+
+             body, _ := io.ReadAll(resp.Body)
+             fmt.Println(string(body))
+         }
+
+      .. note::
+         
+         In order to run this example, you must have an image file 
+         named ``banana.jpg`` in the same directory.
+
+   .. selected-content::
+      :selections: curl
+
+      You can access {+voyage+} multimodal embeddings with cURL by sending 
+      a POST request to the endpoint ``https://ai.mongodb.com/v1/multimodalembeddings``.
+
+      In the REST API, each input is represented as a dictionary with a
+      ``"content"`` key, whose value is a list of content items. Each
+      content item is a dictionary with a ``"type"`` field (either
+      ``"text"`` or ``"image_base64"``) and the corresponding content:
+
+      - For text: ``{"type": "text", "text": "your text here"}``
+      - For images: ``{"type": "image_base64", "image_base64": "base64_encoded_image_data"}``
+
+      Example
+      ~~~~~~~
+
+      .. tabs::
+
+         .. tab:: Text and Image
+            :tabid: text-image
+
+            .. code-block:: bash
+
+               curl \
+                 --request POST 'https://ai.mongodb.com/v1/multimodalembeddings' \
+                 --header "Authorization: Bearer $VOYAGE_API_KEY" \
+                 --header "Content-Type: application/json" \
+                 --data '{
+                   "inputs": [
+                     {
+                       "content": [
+                         {"type": "text", "text": "This is a banana."},
+                         {"type": "image_base64", "image_base64": "<base64_encoded_image>"}
+                       ]
+                     }
+                   ],
+                   "model": "voyage-multimodal-3.5",
+                   "input_type": "document"
+                 }'
+
+         .. tab:: Multiple Inputs
+            :tabid: multiple-inputs
+
+            .. code-block:: bash
+
+               curl \
+                 --request POST 'https://ai.mongodb.com/v1/multimodalembeddings' \
+                 --header "Authorization: Bearer $VOYAGE_API_KEY" \
+                 --header "Content-Type: application/json" \
+                 --data '{
+                   "inputs": [
+                     {
+                       "content": [
+                         {"type": "text", "text": "First document with text and image."},
+                         {"type": "image_base64", "image_base64": "<base64_encoded_image_1>"}
+                       ]
+                     },
+                     {
+                       "content": [
+                         {"type": "text", "text": "Second document."},
+                         {"type": "image_base64", "image_base64": "<base64_encoded_image_2>"}
+                       ]
+                     }
+                   ],
+                   "model": "voyage-multimodal-3.5"
+                 }'
+                 

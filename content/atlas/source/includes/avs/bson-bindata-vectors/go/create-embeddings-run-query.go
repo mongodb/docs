@@ -65,7 +65,7 @@ func generateAndConvertEmbeddings(apiKey, text string) (map[string]bson.Binary, 
 
 // Fetch embeddings using Voyage AI Embedding REST API
 func fetchEmbeddingsFromVoyageAPI(apiKey, text, outputDType string) map[string]interface{} {
-	url := "https://api.voyageai.com/v1/embeddings"
+	url := "https://ai.mongodb.com/v1/embeddings"
 
 	requestBody := map[string]interface{}{
 		"input":            []string{text},

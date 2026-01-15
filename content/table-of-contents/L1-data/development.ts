@@ -1,7 +1,7 @@
-import AtlasStreamingData from '../L2-data/atlas-streaming';
-
-import DatabaseManualData from '../L2-data/database-manual';
-import ReleaseNotesData from '../L2-data/release-notes';
+import DatabaseManualData from "../L2-data/database-manual";
+import AtlasStreamingData from "../L2-data/atlas-streaming";
+import AIMLData from "../L2-data/ai-ml";
+import ReleaseNotesData from "../L2-data/release-notes";
 import type { TocItem } from '../types';
 
 const tocData: TocItem[] = [
@@ -11,6 +11,12 @@ const tocData: TocItem[] = [
     group: true,
     versionDropdown: true,
     items: DatabaseManualData,
+  },
+  {
+    label: "Build AI Applications",
+    contentSite: "docs",
+    group: true,
+    items: AIMLData
   },
   {
     label: 'Streaming Data',

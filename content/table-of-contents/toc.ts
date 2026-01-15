@@ -3,6 +3,7 @@ import ClientLibData from './L1-data/client-libraries';
 import DevelopmentData from './L1-data/development';
 import ManagementData from './L1-data/management';
 import ToolsData from './L1-data/tools';
+import VoyageData from './L1-data/voyageai';
 import type { L1TocItem } from './types';
 
 // These are the L1 items for the Unified ToC
@@ -35,6 +36,12 @@ export const toc: L1TocItem[] = [
     contentSite: 'landing',
     url: '/docs/tools-and-connectors',
     items: ToolsData,
+  },
+  {
+    label: 'AI Models',
+    contentSite: "voyageai",
+    url: "/docs/voyageai/",
+    items: VoyageData,
   },
   {
     label: 'Atlas Architecture Center',

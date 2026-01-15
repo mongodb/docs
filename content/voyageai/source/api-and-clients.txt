@@ -1,0 +1,297 @@
+:tabs-selector-position: main
+
+.. _voyage-api-and-clients:
+.. _voyage-api-client:
+
+============================
+Accessing {+voyageai+} Models
+============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can access {+voyageai+} models by using the
+{+voyage-api+}, which is available through |service-full|.
+Use the following methods to access the API:
+
+- :ref:`REST API <voyage-rest-api>`: for language-agnostic access.
+- :ref:`Python client <voyage-python-client>`: official client for ease of use.
+
+This page summarizes how to access the API.
+For full details about the API, including rate limits and usage tiers, 
+see the :ref:`API Reference <voyage-api-overview>`.
+
+API Keys
+--------
+
+The {+voyage-api+} uses API keys to monitor
+usage and manage permissions. To create and manage your {+model-api-keys+},
+use the MongoDB {+atlas-ui+}. For instructions, see :ref:`voyage-api-keys`.
+
+.. _voyage-rest-api:
+
+REST API
+--------
+
+The following examples demonstrate how to call the embedding service 
+through the REST API. The API supports cURL, as well as HTTP requests from
+any programming language.
+
+Authentication is handled through the :ref:`model API Key <voyage-api-keys>`,
+which you must include in the authorization header of every API request
+as a Bearer token.
+
+To learn more, see the `full API specification 
+<http://dochub.mongodb.org/core/voyage-api-spec>`__.
+
+.. composable-tutorial::
+   :options: client-curl-default
+   :defaults: curl
+
+   .. selected-content::
+      :selections: curl
+
+      .. include:: /includes/curl-embeddings-example.rst
+
+   .. selected-content::
+      :selections: python
+
+      .. important::
+
+         We recommend the :ref:`Python client <voyage-python-client>` 
+         for ease of use. The following example is only provided for reference.
+
+      .. code-block:: python
+
+         import os
+         import requests
+
+         api_key = os.environ.get("VOYAGE_API_KEY")
+         url = "https://ai.mongodb.com/v1/embeddings"
+
+         headers = {
+             "Authorization": f"Bearer {api_key}",
+             "Content-Type": "application/json"
+         }
+
+         data = {
+             "input": [
+                 "MongoDB is redefining what a database is in the AI era.",
+                 "Voyage AI embedding and reranking models are state-of-the-art."
+             ],
+             "model": "voyage-4-large"
+         }
+
+         response = requests.post(url, headers=headers, json=data)
+         result = response.json()
+
+   .. selected-content::
+      :selections: typescript
+
+      .. code-block:: typescript
+
+         const apiKey = process.env.VOYAGE_API_KEY;
+         const url = "https://ai.mongodb.com/v1/embeddings";
+
+         const headers = {
+             "Authorization": `Bearer ${apiKey}`,
+             "Content-Type": "application/json"
+         };
+
+         const data = {
+             input: [
+                 "MongoDB is redefining what a database is in the AI era.",
+                 "Voyage AI embedding and reranking models are state-of-the-art."
+             ],
+             model: "voyage-4-large"
+         };
+
+         const response = await fetch(url, {
+             method: "POST",
+             headers: headers,
+             body: JSON.stringify(data)
+         });
+
+         const result = await response.json();
+
+   .. selected-content::
+      :selections: java
+
+      .. code-block:: java
+
+         import java.net.URI;
+         import java.net.http.HttpClient;
+         import java.net.http.HttpRequest;
+         import java.net.http.HttpResponse;
+
+         String apiKey = System.getenv("VOYAGE_API_KEY");
+         String url = "https://ai.mongodb.com/v1/embeddings";
+
+         String jsonBody = """
+             {
+                 "input": [
+                     "MongoDB is redefining what a database is in the AI era.",
+                     "Voyage AI embedding and reranking models are state-of-the-art."
+                 ],
+                 "model": "voyage-4-large"
+             }
+             """;
+
+         HttpClient client = HttpClient.newHttpClient();
+         HttpRequest request = HttpRequest.newBuilder()
+             .uri(URI.create(url))
+             .header("Authorization", "Bearer " + apiKey)
+             .header("Content-Type", "application/json")
+             .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+             .build();
+
+         HttpResponse<String> response = client.send(request,
+             HttpResponse.BodyHandlers.ofString());
+         String result = response.body();
+
+   .. selected-content::
+      :selections: go
+
+      .. code-block:: go
+
+         package main
+
+         import (
+             "bytes"
+             "encoding/json"
+             "io"
+             "net/http"
+             "os"
+         )
+
+         func main() {
+             apiKey := os.Getenv("VOYAGE_API_KEY")
+             url := "https://ai.mongodb.com/v1/embeddings"
+
+             requestBody := map[string]interface{}{
+                 "input": []string{
+                     "MongoDB is redefining what a database is in the AI era.",
+                     "Voyage AI embedding and reranking models are state-of-the-art.",
+                 },
+                 "model": "voyage-4-large",
+             }
+
+             jsonData, _ := json.Marshal(requestBody)
+
+             req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+             req.Header.Set("Authorization", "Bearer "+apiKey)
+             req.Header.Set("Content-Type", "application/json")
+
+             client := &http.Client{}
+             resp, _ := client.Do(req)
+             defer resp.Body.Close()
+
+             _, _ = io.ReadAll(resp.Body)
+         }
+
+.. _voyage-python-client:
+
+Python Client
+-------------
+
+To install the official Python package using ``pip``:
+
+.. code-block:: bash
+
+   pip install --upgrade voyageai
+
+Use the ``--upgrade`` or  ``-U`` option to install the latest version of
+the package. This gives you access to the most recent features and bug
+fixes. For model-specific parameters, see the usage examples for each
+:ref:`model page <voyage-text-embeddings>`.
+
+.. important::
+
+   You must use version 0.3.7 or later of the Python client library.
+   This version adds support for the {+voyage-api+}.
+
+The ``voyageai.Client`` class provides a synchronous interface to
+invoke Voyage's API. Create a client object and use it to access
+Voyage AI models.
+
+.. example::
+
+   The following example shows how to initialize the client with
+   custom settings and generate embeddings:
+
+   .. code-block:: python
+
+      import voyageai
+
+      # Initialize the client with custom settings
+      vo = voyageai.Client(
+          api_key="<model-api-key>",  # Or use VOYAGE_API_KEY environment variable
+          max_retries=3,              # Retry up to 3 times on rate limit errors
+          timeout=30                  # Timeout after 30 seconds
+      )
+
+      # Generate embeddings
+      result = vo.embed(
+          texts=["MongoDB is redefining what a database is in the AI era."],
+          model="voyage-4-large"
+      )
+
+      print(f"Embedding dimension: {len(result.embeddings[0])}")
+      print(f"Total tokens used: {result.total_tokens}")
+
+The following table describes the parameters you can pass when initializing
+the client:
+
+.. list-table::
+ :widths: 15 10 5 70
+ :header-rows: 1
+
+ * - Parameter
+   - Type
+   - Required
+   - Description
+ * - ``api_key``
+   - String
+   - No
+   - :ref:`Model API key <voyage-api-keys>`. Defaults to None.
+     
+     If None, the client searches for the API key in 
+     the following order:
+
+     - ``voyageai.api_key_path``, path to the file containing the key
+     - environment variable ``VOYAGE_API_KEY_PATH``, which can be set
+       to the path to the file containing the key
+     - ``voyageai.api_key``, an attribute of the voyageai module, which
+       can be used to store the key
+     - environment variable ``VOYAGE_API_KEY``
+
+     .. include:: /includes/facts/python-client-api-key-routing.rst
+
+ * - ``max_retries``
+   - Integer
+   - No
+   - Maximum number of retries for each API request in case of rate 
+     limit errors or temporary server unavailability. Defaults to 0.
+     
+     The client employs a wait-and-retry strategy to handle such errors and raises 
+     an exception upon reaching the maximum retry limit. By default, 
+     the client does not retry.
+
+ * - ``timeout``
+   - Integer
+   - No
+   - Maximum time in seconds to wait for a response from the API before 
+     aborting the request. Defaults to None.
+     
+     If the specified timeout is exceeded, the 
+     request is terminated and a timeout exception is raised. By 
+     default, no timeout constraint is enforced.
+
+ * - ``base_url``
+   - String
+   - No
+   - Custom base URL for API requests. By default, the client automatically
+     detects the correct endpoint based on the provided API key.

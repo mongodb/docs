@@ -1,0 +1,181 @@
+.. _voyage-api-overview:
+
+====================================
+{+voyage-api+} Overview
+====================================
+
+.. meta::
+   :description: Use the Embedding and Reranking API to access Voyage AI embedding and reranking models.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The {+voyage-api+} provides programmatic access to
+the latest Voyage AI embedding and reranking models through a RESTful 
+interface. This page provides an overview of the API and its features.
+
+For detailed information and parameters, see the `API specification 
+<http://dochub.mongodb.org/core/voyage-api-spec>`__.
+
+API Key Management
+------------------
+
+You use :atlas:`MongoDB Atlas </>` to manage API keys for the {+voyage-api+}.
+This includes creating and managing your model API keys across your
+organization and projects, monitoring usage, and configuring rate limits.
+
+To learn more, see :ref:`voyage-api-keys`.
+
+.. include:: /includes/facts/note-model-api-key.rst
+
+Authentication
+--------------
+
+All requests to the {+voyage-api+} must include an
+``Authorization`` header with your model API key using the Bearer token format.
+
+.. code-block:: http
+
+   Authorization: Bearer VOYAGE_API_KEY
+
+When you use a client SDK, you set the API key when constructing a 
+client, and the SDK sends the header on your behalf with every request. 
+When you integrate directly with the API, you must send this header 
+yourself.
+
+JSON
+----
+
+All entities are represented in JSON. 
+The following rules and conventions apply:
+
+Content Type Request Header
+  When you send JSON to the server with a POST request, 
+  specify the ``Content-Type: application/json`` header. 
+  Client SDKs handle this automatically.
+
+Invalid Requests
+  If you attempt to create a request with invalid JSON, 
+  incorrect data types, or constraint violations 
+  (such as exceeding token limits or batch sizes), 
+  the server responds with a ``400`` status code and 
+  an error message describing the issue.
+
+Field Names for Fields with Numbers
+  Fields that contain numeric values are named to 
+  disambiguate the unit being used. For example, 
+  token counts are specified in fields like ``total_tokens`` 
+  and ``output_dimension`` to clarify the measurement unit.
+
+.. _voyage-rate-limits-overview:
+.. _voyage-api-rate-limits:
+
+Rate Limits and Usage Tiers
+---------------------------
+
+The {+voyage-api+} implements rate limiting to ensure
+fair usage and optimal performance. Rate limits are applied per API key
+and measured in two dimensions. Your rate limits increase as you advance
+through :ref:`usage tiers <voyage-api-usage-tiers>`.
+
+- **TPM (Tokens Per Minute)**: Maximum number of tokens processed per minute
+- **RPM (Requests Per Minute)**: Maximum number of API requests per minute
+
+If you exceed the rate limit, the API returns a ``429`` (Rate Limit Exceeded)
+HTTP status code.
+
+.. tabs::
+
+   .. tab:: Free Trial
+      :tabid: free-trial
+
+      Free trial rate limits without a payment method are 3 RPM and 10K TPM.
+      To qualify for higher rate limits, add a payment method to your account.
+
+   .. tab:: Usage Tier 1
+      :tabid: usage-tier-1
+
+      .. include:: /includes/rate-limits/list-table-tier1.rst
+
+   .. tab:: Usage Tier 2
+      :tabid: usage-tier-2
+
+      The rate limits for Usage Tier 2 are twice those of Usage Tier 1.
+
+      .. include:: /includes/rate-limits/list-table-tier2.rst
+
+   .. tab:: Usage Tier 3
+      :tabid: usage-tier-3
+
+      The rate limits for Usage Tier 3 are three times those of Usage Tier 1.
+
+      .. include:: /includes/rate-limits/list-table-tier3.rst
+
+To learn more about usage tiers, see :ref:`voyage-api-usage-tiers`.
+
+To set custom rate limits for your organization, use the 
+Atlas UI. To learn more, see :ref:`voyage-rate-limits`.
+
+
+Making Requests
+---------------
+
+The following example demonstrates how you can use ``cURL`` to make a request 
+to the embedding service. You can also use an HTTP client in any
+programming language to access the API.
+
+For additional usage examples, see the following resources:
+
+- :ref:`voyage-api-and-clients` for HTTP request and client SDK examples
+- :ref:`Model <voyage-text-embeddings>` pages for model-specific usage.
+-  `API specification <http://dochub.mongodb.org/core/voyage-api-spec>`__ for full details on all API endpoints.
+
+.. include:: /includes/curl-embeddings-example.rst
+
+Errors
+------
+
+To learn more about errors returned by the API, see the
+`API specification <http://dochub.mongodb.org/core/voyage-api-spec>`__.
+
+Best Practices
+--------------
+
+Consider the following best practices when you use the API:
+
+.. _voyage-input-type:
+
+Specifying Input Type
+~~~~~~~~~~~~~~~~~~~~~
+
+For semantic search and retrieval tasks, set the ``input_type`` to 
+``query`` or ``document`` to optimize how Voyage AI models create the 
+vectors. Do not omit this parameter. 
+
+The parameter adds the following prompts to your input before
+generating embeddings:
+
+- ``query``: "Represent the query for retrieving supporting documents: "
+- ``document``: "Represent the document for retrieval: "
+
+.. example::
+
+   ``input_type="query"`` transforms "When is Apple's
+   conference call scheduled?" into "Represent the query for retrieving
+   supporting documents: When is Apple's conference call scheduled?"
+
+Troubleshooting
+~~~~~~~~~~~~~~~
+
+If you're using the Python client, you must use version 0.3.7 or later.
+To check the version of your Python client installation, run the following command in your
+terminal:
+
+.. code-block:: shell
+
+   python -c "import voyageai; print(voyageai.__version__)"

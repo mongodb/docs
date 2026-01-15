@@ -1,0 +1,207 @@
+.. _voyage-tokenization:
+
+============
+Tokenization
+============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Given an input, the first step of the embedding and reranking
+process is to split it into a list of :term:`tokens`. Our servers
+automatically perform this tokenization step when you call the API.
+The :ref:`Python client <voyage-python-client>` includes
+methods that allow you to try the tokenizer before calling the API.
+
+``tokenize`` Method
+-------------------
+
+Use the ``tokenize`` method to tokenize a list of texts for a specific model.
+
+.. example::
+
+   .. io-code-block::
+
+      .. input::
+         :language: python
+
+         import voyageai
+
+         # Initialize client (uses VOYAGE_API_KEY environment variable)
+         vo = voyageai.Client()
+
+         texts = [
+             "The Mediterranean diet emphasizes fish, olive oil, and vegetables, believed to reduce chronic diseases.",
+             "Photosynthesis in plants converts light energy into glucose and produces essential oxygen."
+         ]
+
+         # Tokenize the texts
+         tokenized = vo.tokenize(texts, model="voyage-4-large")
+         for i in range(len(texts)):
+             print(tokenized[i].tokens)
+
+      .. output::
+         :language: python
+
+         ['The', 'ĠMediterranean', 'Ġdiet', 'Ġemphasizes', 'Ġfish', ',', 'Ġolive', 'Ġoil', ',', 'Ġand', 'Ġvegetables', ',', 'Ġbelieved', 'Ġto', 'Ġreduce', 'Ġchronic', 'Ġdiseases', '.']
+         ['Photos', 'ynthesis', 'Ġin', 'Ġplants', 'Ġconverts', 'Ġlight', 'Ġenergy', 'Ġinto', 'Ġglucose', 'Ġand', 'Ġproduces', 'Ġessential', 'Ġoxygen', '.']
+
+.. collapsible::
+   :heading: Parameters
+   :sub_heading: View the parameters for the tokenize method.
+   :expanded: false
+
+   .. include:: /includes/tables/tokenize-parameters.rst
+
+.. collapsible::
+   :heading: Response
+   :sub_heading: View the response for the tokenize method.
+   :expanded: false
+
+   This method returns a list of ``tokenizers.Encoding`` objects:
+
+   .. include:: /includes/tables/tokenize-returns.rst
+
+
+``count_tokens`` Method
+-----------------------
+
+Use the ``count_tokens`` method to count the number of tokens in a list of texts for a specific model.
+
+.. example::
+
+   .. io-code-block::
+
+      .. input::
+         :language: python
+
+         import voyageai
+
+         # Initialize client (uses VOYAGE_API_KEY environment variable)
+         vo = voyageai.Client()
+
+         texts = [
+             "The Mediterranean diet emphasizes fish, olive oil, and vegetables, believed to reduce chronic diseases.",
+             "Photosynthesis in plants converts light energy into glucose and produces essential oxygen."
+         ]
+
+         # Count total tokens
+         total_tokens = vo.count_tokens(texts, model="voyage-4-large")
+         print(total_tokens)
+
+      .. output::
+         :language: python
+
+         32
+
+.. collapsible::
+   :heading: Parameters
+   :sub_heading: View the parameters for the count_tokens method.
+   :expanded: false
+
+   .. include:: /includes/tables/count-tokens-parameters.rst
+
+.. collapsible::
+   :heading: Response
+   :sub_heading: View the response for the count_tokens method.
+   :expanded: false
+
+   This method returns an integer:
+
+   .. include:: /includes/tables/count-tokens-returns.rst
+
+``count_usage`` Method
+----------------------
+
+Use the ``count_usage`` method to count the number of 
+tokens and pixels in a list of inputs for a specific model.
+
+.. note::
+
+   Voyage embedding models have :ref:`context length limits
+   <voyage-text-embeddings>`. If your text exceeds the limit,
+   truncate the text before calling the API, or specify the
+   ``truncation`` argument to ``True``.
+
+.. example::
+
+   .. io-code-block::
+
+      .. input::
+         :language: python
+
+         import voyageai
+         import PIL
+
+         # Initialize client (uses VOYAGE_API_KEY environment variable)
+         vo = voyageai.Client()
+
+         # Create input with text and image
+         inputs = [
+             ["This is a banana.", PIL.Image.open('banana.jpg')]
+         ]
+
+         # Count tokens and pixels
+         usage = vo.count_usage(inputs, model="voyage-multimodal-3.5")
+         print(usage)
+
+      .. output::
+         :language: python
+
+         {'text_tokens': 5, 'image_pixels': 2000000, 'total_tokens': 3576}
+
+.. collapsible::
+   :heading: Parameters
+   :sub_heading: View the parameters for the count_usage method.
+   :expanded: false
+
+   .. include:: /includes/tables/count-usage-parameters.rst
+
+.. collapsible::
+   :heading: Response
+   :sub_heading: View the response for the count_usage method.
+   :expanded: false
+
+   This method returns a dictionary containing the following attributes:
+
+   .. include:: /includes/tables/count-usage-returns.rst
+
+Considerations
+--------------
+
+Consider the following when using the tokenizer:
+
+- Modern NLP models typically convert a text string into a list of
+  tokens. Frequent words, such as "you" and "apple," are tokens by
+  themselves. In contrast, rare or long words are broken into
+  multiple tokens, for example, "uncharacteristically" is dissected
+  into four tokens, "un", "character", "ist", and "ically". One word
+  roughly corresponds to 1.2 to 1.5 tokens on average, depending on
+  the complexity of the domain. 
+  
+  The tokens produced by our tokenizer
+  have an average of 5 characters, suggesting that you can roughly
+  estimate the number of tokens by dividing the number of
+  characters in the text string by 5. To determine the exact number
+  of tokens, use the ``count_tokens()`` method.
+
+-  Voyage's tokenizers are also available on `Hugging Face
+   <https://huggingface.co/voyageai>`__. You can access the tokenizer
+   associated with a particular model by using the following code:
+
+   .. code-block:: python
+
+      from transformers import AutoTokenizer
+
+      tokenizer = AutoTokenizer.from_pretrained('voyageai/voyage-4-large')
+
+-  ``tiktoken`` is a popular open-source tokenizer.
+   Voyage models use different tokenizers. Therefore, our tokenizer 
+   generates a different list of tokens for
+   a given text compared to ``tiktoken``. Statistically, the number
+   of tokens produced by our tokenizer is on average 1.1 to 1.2 times
+   that of ``tiktoken``. To determine the exact number of tokens, use
+   the ``count_tokens()`` method.

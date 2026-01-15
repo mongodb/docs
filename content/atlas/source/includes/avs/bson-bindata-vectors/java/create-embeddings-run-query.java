@@ -35,7 +35,7 @@ public class CreateEmbeddingsAndRunQuery {
     private static final String QUERY_TEXT = "<QUERY-TEXT>";
   
     // Voyage AI API Endpoint  
-    private static final String VOYAGE_API_URL = "https://api.voyageai.com/v1/embeddings";  
+    private static final String VOYAGE_API_URL = "https://ai.mongodb.com/v1/embeddings";  
   
     // Timeout values for API requests  
     private static final int CONNECTION_TIMEOUT = 30;  

@@ -1,0 +1,361 @@
+.. _voyage-billing:
+
+==================================================
+Manage Billing for the {+voyage-api+}
+==================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Manage billing settings, view invoices and costs, and configure payment methods for your Voyage AI models in the Atlas UI.
+   :keywords: Atlas, Atlas UI, Voyage AI, API key usage, usage monitoring, billing, pricing, AI models billing, Voyage tokens
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can manage payments and billing for the {+voyage-api-full+}
+through the billing and payments interface in the {+atlas-ui+}.
+|service| sends billing charges to the |service| account linked to
+your {+model-api-keys+}.
+
+.. _voyage-billing-overview:
+
+Overview
+--------
+
+MongoDB uses a pay-as-you-go pricing model and charges for
+usage based on consumption:
+
+- For text-based models, charges apply per :term:`token <tokens>`.
+- For multimodal models that process images and videos, charges apply
+  per pixel.
+
+You configure billing settings at the organization level, which apply
+to all projects within that organization. You can examine costs and
+billing for your {+model-api-keys+} per project in the {+atlas-ui+}.
+
+For {+model-api-keys+} usage, |service|:
+
+- Tracks your usage of tokens and pixels on the :guilabel:`Usage` page. 
+  To learn more, see :ref:`voyage-monitor-usage`.
+- Provides detailed cost breakdowns through the :ref:`Cost Explorer <cost-explorer>`. 
+- Displays your current monthly costs on the :guilabel:`Invoices` page. 
+  To learn more, see :ref:`atlas-invoices`.
+
+To learn more about billing in |service|, 
+see the :ref:`{+service+} documentation <atlas-billing>`.
+
+.. note::
+
+   The Public Preview does not support prepaid credits for the
+   {+voyage-api+}. This is subject to change.
+
+Required Access
+~~~~~~~~~~~~~~~
+
+- To view billing information, you must have
+  :authrole:`Organization Billing Viewer` access or higher.
+
+- To configure billing settings, such as the payment method and
+  billing profile, you must have :authrole:`Organization Owner`
+  or :authrole:`Organization Billing Admin` access.
+
+Rate Limits
+~~~~~~~~~~~
+
+The {+voyage-api-full+} enforces rate limits based on requests per
+minute (RPM) and tokens per minute (TPM). MongoDB sets limits at the
+organization level, but you can configure lower limits at the project
+level. Higher rate limit tiers are available based on payment history
+and spending. To learn more, see :ref:`voyage-rate-limits`.
+
+.. _voyage-pricing:
+
+Model Pricing
+~~~~~~~~~~~~~
+
+.. include:: /includes/billing/voyage-pricing.rst
+
+.. _voyage-billing-methods:
+.. _voyage-set-payment-method:
+
+
+
+.. _voyage-api-usage-tiers:
+
+Usage Tiers
+-----------
+
+As your API usage and spending increase, you are automatically graduated
+to higher usage tiers with increased :ref:`rate limits
+<voyage-rate-limits-overview>`. Your organization is assigned to a usage
+tier based on cumulative spending since account creation. Once you
+qualify for a tier, you remain at that tier unless your organization is
+:ref:`unlinked <voyage-org-linking>` from a parent organization.
+
+Your organization's rate limits automatically increase when you move to
+the next usage tier based on the following criteria:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Usage Tier
+     - Requirements to Advance
+   * - Free trial
+     - Add a payment method to move to Usage Tier 1.
+   * - Usage tier 1
+     - Spend at least $100 since account creation to move to Usage
+       Tier 2.
+   * - Usage tier 2
+     - Spend at least $1,000 since account creation to move to Usage
+       Tier 3.
+   * - Usage tier 3
+     - If you still need a higher rate limit, please request a rate
+       limit increase.
+
+       - Atlas customers with a `paid support plan
+         <https://www.mongodb.com/services/support/atlas-support-plans>`__:
+         Submit a support ticket through the `MongoDB Support portal
+         <https://www.mongodb.com/services/support>`__.
+       - All other customers: Email contact@voyageai.com.
+
+To manage your usage in real-time, you can view your organization's
+usage and spending in the Atlas UI. To learn more, see
+:ref:`voyage-monitor-usage`.
+
+.. _voyage-org-tier-determination:
+
+How Usage Tiers are Determined
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When determining an organization's usage tier, {+service+} follows a priority
+order:
+
+1. If the child organization has an established tier, that tier is used.
+2. If the child organization does not yet have a tier but is :ref:`linked <voyage-org-linking>`
+   to a parent organization, {+service+} checks the parent's tier.
+3. If the parent organization also does not have an established tier,
+   {+service+} evaluates the parent's payment method status:
+
+   - Organizations with an active payment method default to **Tier 1**.
+   - Organizations without a payment method default to the **Free Tier**.
+
+.. _voyage-org-linking:
+
+Organization Linking and Tier Inheritance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When a child organization is linked to a parent organization, the
+child organization inherits the parent's usage tier if the parent's tier is
+higher than the child's current tier. To learn how to link organizations, see
+:ref:`cross-org-billing`.
+
+The following rules apply when linking and unlinking organizations:
+
+.. tabs::
+
+   .. tab:: Linking Organizations
+      :tabid: linking-organizations
+
+      When organization linking occurs, {+service+} evaluates both the parent and
+      child organization tiers and sets the child's tier to the maximum of the two.
+      This ensures:
+
+      - The child organization is never at a lower tier than its parent.
+      - The child organization is never downgraded if it has already achieved a
+        higher tier independently.
+
+      .. example::
+
+         If a child organization is at Tier 2 and is linked to a parent
+         organization at Tier 1, the child organization remains at Tier 2.
+
+         If a child organization is at Tier 1 and is linked to a parent
+         organization at Tier 3, the child organization is upgraded to Tier 3.
+
+   .. tab:: Unlinking Organizations
+      :tabid: unlinking-organizations
+
+      When an organization is unlinked from its parent, the child organization's
+      tier is re-evaluated based on its own lifetime spend and payment method status.
+
+      Unlike the linking scenario, unlinking allows for tier downgrades:
+
+      - If the child organization's individual spend history does not qualify it for
+        its current tier, the tier is adjusted downward to match what the
+        organization has earned on its own.
+      - Organizations without a payment method and without qualifying spend are
+        placed in the Free Tier after unlinking.
+
+      .. example::
+
+         If a child organization inherited Tier 3 from its parent but has only
+         spent $50 on its own, unlinking will downgrade the child organization to
+         the Free Tier (if no payment method is attached) or Tier 1 (if a payment
+         method is attached).
+
+Manage Billing
+--------------
+
+To access billing, log into the {+atlas-ui+}, navigate to your
+organization, and click the :guilabel:`Billing` icon in the upper-right
+corner of your screen. The :guilabel:`Billing > Overview` page 
+includes the following:
+
+- The :guilabel:`Pending Invoice`, which includes
+  :guilabel:`Net Month-to-Date Amount`, showing the total amount due
+  for your usage so far this month. It also shows the
+  :guilabel:`Month-to-Date Usage`, including whether usage went up or
+  down compared to this time last month, the usage for
+  :guilabel:`This Time Last Month`, the :guilabel:`Billing Period`, and
+  the :guilabel:`Invoice Date`. Click :guilabel:`View Pending Invoice`
+  to view details.
+
+- The :guilabel:`Last Invoice`, which shows the :guilabel:`Amount Due`,
+  :guilabel:`Total Usage`, :guilabel:`Billing Period`, and
+  :guilabel:`Invoice Date`. Click :guilabel:`View Invoice` to view
+  details.
+
+.. tip::
+
+   To understand how your usage translates to costs, use the
+   :ref:`Cost Explorer <cost-explorer>` in the {+atlas-ui+} and filter
+   by AI model. MongoDB derives costs from metering data and updates them
+   every 24 hours. To learn more, see :ref:`voyage-monitor-usage`.
+
+Your billing profile for |service| is the same as the billing profile
+for your {+model-api-keys+}. To view or edit your billing profile, see
+:ref:`{+service+} Billing <atlas-billing>`.
+
+Payment Method
+~~~~~~~~~~~~~~
+
+To pay for your {+voyage-api+} usage, use your configured
+payment method. MongoDB accepts the following payment methods 
+through the |service| console:
+
+- Credit card
+- `PayPal <https://www.paypal.com/us/home>`__
+
+To set your payment method for your {+model-api-keys+} in |service|,
+see :ref:`Atlas Payment Methods <atlas-billing-methods>`.
+
+Through :website:`MongoDB Sales </contact/atlas>`, you can pay using:
+
+- A currency other than USD
+- A method other than a credit card or PayPal
+
+.. important::
+
+   To confirm your credit card information, |service| charges $1.00
+   when you first connect a credit card to your account. After
+   |service| confirms your information, it refunds the $1.00 charge.
+   If you encounter any issues with connecting a credit card to your
+   account, reach out to your card provider or banking institution.
+   Verify whether they declined the initial charge, which would prevent
+   |service| from confirming your information.
+
+.. _examine-voyage-invoices:
+
+Manage Invoices
+---------------
+
+For each of your invoices, including your current invoice, you can:
+
+- View the payment amount due, the total cost of your usage for the
+  billing period, and your billing information.
+- Export the invoice details to PDF or CSV.
+- Explore invoice cost visualization charts that show total usage costs
+  by service, such as the {+model-api-keys+}.
+- Review usage summaries by project and by service, such as the
+  {+model-api-keys+}.
+- Examine payment and usage details that explain usage, as well as paid
+  and pending charges for the {+model-api-keys+}.
+
+To learn more, see :ref:`examine-invoices`.
+
+.. _voyage-view-billing:
+
+View Invoices
+~~~~~~~~~~~~~
+
+To view the most recent and pending charges for your {+model-api-keys+}
+in an organization:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/usage/steps-view-billing-org-level.rst
+
+You can also access billing information directly from the :guilabel:`Usage` page
+by clicking the :guilabel:`View Invoice` button.
+
+.. _voyage-billing-page-features:
+
+Invoice Page Features
+~~~~~~~~~~~~~~~~~~~~~
+
+On the :guilabel:`Invoices` page in |service|, you can view your
+billing invoices for your {+model-api-keys+}.
+
+The :guilabel:`Invoice` page displays the following columns:
+
+- :guilabel:`Payment Status`: Shows ``PENDING`` or ``SUCCESSFUL``.
+- :guilabel:`Invoice Date`: Shows the date when |service| generates
+  the invoice.
+- :guilabel:`Invoice Period`: Shows the billing period for the invoice.
+  For example, you might see a usage summary for the billing period of
+  ``December 1, 2025 - January 1, 2026``.
+- :guilabel:`Total Cost`: Shows your total monthly charges in your
+  selected currency. The total monthly charges include the billed
+  amount and any applicable taxes, but don't include any payments you
+  made.
+
+  For example, the :guilabel:`Total Cost` column might show
+  ``$29.98 (month-to-date)``. This indicates that your total charges
+  for the month so far are $29.98, including taxes, but doesn't
+  reflect any payments you might have made.
+
+- :guilabel:`Download`: Provides an icon for downloading the invoice.
+  You can download your :guilabel:`Usage Summary` in PDF or CSV format.
+  The :guilabel:`Usage Summary` shows a detailed breakdown of daily
+  usage activity for your {+model-api-keys+}.
+
+For example, your {+model-api-keys+} invoice may show the following information:
+
+.. code-block:: text
+   :copyable: false
+
+   Usage Summary Number: 692cff3069022138575632aa
+   Organization: MyVoyageOrg
+
+   This usage summary is for the billing period December 1, 2025 - January 1, 2026.
+   Total Usage 29.98 credits
+   
+   Summary By Project
+   
+   ProjectA - 69268bd3878d033ecba8b582 5.42 credits
+   ProjectB - 69268f47abcc0a315b1e027c 10.27 credits
+   ProjectC - 6917a27c2e1a031d66d61650 14.29 credits
+
+   Total Usage 29.98 credits
+
+   Summary By Service
+
+   AI Models
+
+   Voyage Embedding 3.5 - Text - API Service 80.523 million tokens @ 0.06 credits / million tokens 4.83 credits
+   Voyage Embedding 3.5 - Text Lite - API S... 67.553 million tokens @ 0.02 credits / million tokens 1.34 credits
+   Voyage Embedding 2 - Finance - API Service 91.482 million tokens @ 0.12 credits / million tokens 10.98 credits
+   Voyage Embedding 2 - Law - API Service 79.624 million tokens @ 0.12 credits / million tokens 9.55 credits
+   Voyage Embedding 2 - Code - API Service 27.274 million tokens @ 0.12 credits / million tokens 3.28 credits
+
+   Total Usage 29.98 Credits

@@ -13,7 +13,7 @@ if (!apiKey || apiKey === "<VOYAGE-API-KEY>") {
 }  
   
 // Define the Voyage AI REST API endpoint  
-const apiEndpoint = "https://api.voyageai.com/v1/embeddings";  
+const apiEndpoint = "https://ai.mongodb.com/v1/embeddings";  
   
 /**  
  * Fetch embeddings using Voyage AI REST API for a specific output data type  

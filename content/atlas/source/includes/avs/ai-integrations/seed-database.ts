@@ -93,7 +93,7 @@ async function createEmployeeSummary(employee: Employee): Promise<string> {
 }
 
 const fetchEmbeddings = async (records: { pageContent: string }[]) => {
-  const apiUrl = "https://api.voyageai.com/v1/embeddings";  
+  const apiUrl = "https://ai.mongodb.com/v1/embeddings";  
   const apiKey = process.env.VOYAGEAI_API_KEY;
   
   const inputs = records.map(record => record.pageContent); 

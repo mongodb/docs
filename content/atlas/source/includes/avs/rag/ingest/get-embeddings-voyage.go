@@ -21,7 +21,7 @@ func GetEmbeddings(docs []string) [][]float32 {
 		return nil
 	}
 
-	url := "https://api.voyageai.com/v1/embeddings"
+	url := "https://ai.mongodb.com/v1/embeddings"
 
 	// Prepare request body according to the API specification
 	requestBody := map[string]interface{}{

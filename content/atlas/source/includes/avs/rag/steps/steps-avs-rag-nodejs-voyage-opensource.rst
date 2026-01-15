@@ -63,7 +63,7 @@
 
       The ``getEmbedding()`` function generates vector embeddings by 
       using the ``voyage-3-large`` embedding model
-      from `Voyage AI <https://docs.voyageai.com/docs/embeddings>`__.
+      from :ref:`Voyage AI <voyage-landing>`.
 
       .. tip::
 

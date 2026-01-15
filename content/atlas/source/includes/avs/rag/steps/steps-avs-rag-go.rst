@@ -105,7 +105,7 @@
                :tabid: voyage-ai
 
                This code uses the ``voyage-3-large`` embedding model from
-               `Voyage AI <https://docs.voyageai.com/docs/embeddings>`__ to generate vector embeddings.
+               :ref:`Voyage AI <voyage-landing>` to generate vector embeddings.
 
                .. literalinclude:: /includes/avs/rag/ingest/ingest-data-voyage.go
                   :language: go

@@ -1,2 +1,1 @@
-A Voyage AI API Key. To create an account and API Key, see 
-the `Voyage AI website <https://dashboard.voyageai.com/organization/api-keys>`__.
+A |voyage| |api| key. To create an |api| key, see :ref:`voyage-api-keys`. 

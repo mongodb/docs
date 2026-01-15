@@ -159,8 +159,7 @@
             :tabid: voyage-ai
 
             This code defines two methods to generate embeddings for a given input using the
-            `voyage-3-large
-            <https://docs.voyageai.com/docs/embeddings>`__
+            :ref:`voyage-3-large <voyage-models>`
             embedding model from |voyage|:
 
             - **Multiple Inputs**: The ``getEmbeddings()`` method accepts an

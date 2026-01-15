@@ -1,0 +1,286 @@
+.. _voyage-flexible-dims-quantization:
+
+====================================
+Flexible Dimensions and Quantization
+====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Voyage AI embedding models support flexible dimensions and quantization
+to help you optimize storage and search costs for your vector-based
+applications. This page explains how to use these features to reduce
+costs while maintaining high retrieval quality.
+
+.. cta-banner::
+   :url:  https://colab.research.google.com/drive/1JcIZ3dHLjsuxwgXsGTL79VwawMl9XXYt
+   :icon: Code
+
+   Learn about flexible dimensions and quantization through an interactive tutorial in `Google Colab <https://colab.research.google.com/drive/1JcIZ3dHLjsuxwgXsGTL79VwawMl9XXYt>`__.
+
+Overview
+--------
+
+When working with large-scale vector search applications, such as code
+retrieval across massive repositories, storage and computational costs
+can be significant. These costs scale linearly with the following factors:
+
+- **Embedding dimensionality**: The number of dimensions in each vector
+- **Precision**: The number of bits used to encode each number in the vector
+
+By reducing either or both of these factors, you can dramatically lower
+costs without significantly impacting retrieval quality. Voyage AI models
+support two complementary techniques to achieve this:
+
+- :ref:`Matryoshka embeddings <voyage-matryoshka-embeddings>`: Allows you to use smaller versions of your
+  embeddings by truncating to fewer dimensions
+- :ref:`Quantization <voyage-quantization>`: Reduces the precision of each number in your embeddings
+  from 32-bit floats to lower-precision formats
+
+These techniques are enabled through `Matryoshka learning
+<https://arxiv.org/abs/2205.13147>`__ and `quantization-aware training
+<https://arxiv.org/abs/1702.00758>`__, which train the models to maintain
+quality even with reduced dimensions or quantized values.
+
+.. _voyage-matryoshka-embeddings:
+
+Matryoshka Embeddings
+---------------------
+
+Matryoshka embeddings are a special type of vector embedding that contains
+multiple valid embeddings of different sizes nested within a single vector.
+This gives you the flexibility to choose the dimensionality that best balances
+your performance and cost requirements.
+
+The latest Voyage embedding models generate Matryoshka
+embeddings and support multiple output dimensions directly through the
+``output_dimension`` parameter. To learn more, see
+:ref:`voyage-models`.
+
+How Matryoshka Embeddings Work
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With Matryoshka learning, a single embedding contains a nested family of
+embeddings at various lengths. For example, a 2048-dimensional Voyage
+embedding contains valid embeddings at multiple shorter lengths:
+
+- The first 256 dimensions form a valid 256-dimensional embedding
+- The first 512 dimensions form a valid 512-dimensional embedding
+- The first 1024 dimensions form a valid 1024-dimensional embedding
+- All 2048 dimensions form the full-fidelity embedding
+
+Each shorter version provides slightly lower retrieval quality than the
+full embedding, but requires less storage and computational resources.
+
+How to Truncate Matryoshka Embeddings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Truncate Matryoshka embeddings by keeping the leading subset of dimensions.
+The following example demonstrates how to truncate 1024-dimensional vectors
+to 256 dimensions:
+
+.. code-block:: python
+
+   import voyageai
+   import numpy as np
+
+   def embd_normalize(v: np.ndarray) -> np.ndarray:
+       # Normalize rows of a 2D array to unit vectors
+       row_norms = np.linalg.norm(v, axis=1, keepdims=True)
+       if np.any(row_norms == 0):
+           raise ValueError("Cannot normalize rows with a norm of zero.")
+       return v / row_norms
+
+   vo = voyageai.Client()
+
+   # Generate 1024-dimensional embeddings
+   embd = vo.embed(['Sample text 1', 'Sample text 2'], model='voyage-4-large').embeddings
+
+   # Truncate to 256 dimensions and normalize
+   short_dim = 256
+   resized_embd = embd_normalize(np.array(embd)[:, :short_dim]).tolist()
+
+.. _voyage-quantization:
+
+Quantization
+------------
+
+Quantization reduces the precision of embeddings by converting high-precision
+floating-point numbers into lower-precision formats. This process can
+dramatically reduce storage and computational costs while maintaining strong
+retrieval quality.
+
+The latest Voyage embedding models are trained using
+`quantization-aware training
+<https://arxiv.org/abs/1702.00758>`__, which means they maintain high
+retrieval quality even when quantized. To learn more, see
+:ref:`voyage-models`.
+
+.. note::
+    
+   Many databases that support vector storage and retrieval also
+   support quantized embeddings, including MongoDB.
+   To learn more about quantization in MongoDB Vector Search, see
+   :ref:`avs-quantization`.
+
+How Quantization Works
+~~~~~~~~~~~~~~~~~~~~~~
+
+Quantization reduces the precision of embeddings by representing each dimension
+with fewer bits than the standard 32-bit floating-point format. Instead of using
+4 bytes per dimension, quantized embeddings use:
+
+- **8-bit integers** (1 byte per dimension): Reduces storage by 4x
+- **Binary** (1 bit per dimension): Reduces storage by 32x
+
+Despite this dramatic reduction in size, quantization-aware trained models like
+Voyage's maintain high retrieval quality. Supported Voyage models enable quantization 
+by specifying the output data type with the ``output_dtype`` parameter:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Data Type
+     - Description
+
+   * - ``float``
+     - Each returned embedding is a list of 32-bit (4-byte) `single-precision
+       floating-point
+       <https://en.wikipedia.org/wiki/Single-precision_floating-point_format>`__
+       numbers. This is the **default** and provides the highest precision and
+       retrieval accuracy.
+
+   * - ``int8`` and ``uint8``
+     - Each returned embedding is a list of 8-bit (1-byte) integers ranging
+       from -128 to 127 and 0 to 255, respectively.
+
+   * - ``binary`` and ``ubinary``
+     - Each returned embedding is a list of 8-bit integers that represent
+       bit-packed, quantized single-bit embedding values: ``int8`` for
+       ``binary`` and ``uint8`` for ``ubinary``. The length of the returned
+       list of integers is **1/8** of the actual dimension of the embedding.
+       The ``binary`` type uses the :ref:`offset binary <offset-binary>`
+       method, explained below.
+
+.. example:: Understanding binary quantization
+
+   1. Consider the following embedding values:
+
+      .. code-block::
+
+         -0.0396, 0.0062, -0.0745, -0.0390, 0.0046, 0.0003, -0.0850, 0.0399
+
+   #. Binary quantization converts each value to a single bit, using the following rules:
+
+      - Values less than ``0`` are converted to ``0``
+      - Values greater than or equal to ``0`` are converted to ``1``
+
+      .. code-block::
+
+         0, 1, 0, 0, 1, 1, 0, 1
+
+   #. The eight bits pack into one 8-bit integer: ``01001101``.
+      This integer converts to ``77`` in decimal.
+
+   #. To convert to the final output type, apply the following conversions:
+
+      .. list-table::
+         :widths: 20 40 40
+         :header-rows: 1
+
+         * - Output Type
+           - Conversion Method
+           - Result
+
+         * - ``ubinary``
+           - ``uint8``: Use the value directly as unsigned integer.
+           - ``77``
+
+         * - ``binary``
+           - ``int8``: Apply the :ref:`offset binary <offset-binary>` method by subtracting ``128``.
+           - ``-51`` (which equals ``77 - 128``)
+
+.. _offset-binary:
+
+Offset Binary
+~~~~~~~~~~~~~
+
+`Offset binary <https://en.wikipedia.org/wiki/Offset_binary>`__ is a method
+for representing signed integers in binary form. Voyage AI uses this method
+for the ``binary`` output type to encode bit-packed binary embeddings as
+signed integers (``int8``).
+
+The offset binary method works by adding or subtracting an offset value:
+
+- When converting **to** binary: Add ``128`` to the signed integer before encoding
+- When converting **from** binary: Subtract ``128`` from the integer after decoding
+
+For 8-bit signed integers (range ``-128`` to ``127``), the offset is always ``128``.
+
+.. example:: Signed integer to binary
+
+   To represent ``-32`` as an 8-bit binary number:
+
+   1. Add the offset (``128``) to ``-32``, resulting in ``96``.
+   2. Convert ``96`` to binary: ``01100000``.
+
+.. example:: Binary to signed integer
+
+   To determine the signed integer from the 8-bit binary number ``01010101``:
+
+   1. Convert it directly to an integer: ``85``.
+   2. Subtract the offset (``128``) from ``85``, resulting in ``-43``.
+
+How to Use Quantization with Voyage AI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can convert float embeddings to binary format manually or unpack binary
+embeddings back to individual bits. The following examples demonstrate both
+operations:
+
+.. tabs::
+
+   .. tab:: Convert Float to Binary & Ubinary
+      :tabid: convert-binary
+
+      .. code-block:: python
+
+         import numpy as np
+         import voyageai
+
+         vo = voyageai.Client()
+
+         # Generate float embeddings
+         embd_float = vo.embed('Sample text 1', model='voyage-4-large', output_dimension=2048).embeddings[0]
+
+         # Compute 512-dimensional bit-packed binary and ubinary embeddings from 2048-dimensional float embeddings
+         embd_binary_calc = (np.packbits(np.array(embd_float) > 0, axis=0) - 128).astype(np.int8).tolist() # Quantize, binary offset
+         embd_binary_512_calc = embd_binary_calc[0:64] # Truncate. Binary is 1/8 length of embedding dimension.
+
+         embd_ubinary_calc = (np.packbits(np.array(embd_float) > 0, axis=0)).astype(np.uint8).tolist() # Quantize, binary offset
+         embd_ubinary_512_calc = embd_ubinary_calc[0:64] # Truncate. Binary is 1/8 length of embedding dimension.
+
+   .. tab:: Unpack Binary & Ubinary
+      :tabid: unpack-binary
+
+      .. code-block:: python
+
+         import numpy as np
+         import voyageai
+
+         vo = voyageai.Client()
+
+         # Generate binary embeddings
+         embd_binary = vo.embed('Sample text 1', model='voyage-4-large', output_dtype='binary', output_dimension=2048).embeddings[0]
+         embd_ubinary = vo.embed('Sample text 1', model='voyage-4-large', output_dtype='ubinary', output_dimension=2048).embeddings[0]
+
+         # Unpack bits
+         embd_binary_bits = [format(x, f'08b') for x in np.array(embd_binary) + 128] # List of (bits) strings
+         embd_binary_unpacked = [bit == '1' for bit in ''.join(embd_binary_bits)] # List of booleans
+
+         embd_ubinary_bits = [format(x, f'08b') for x in np.array(embd_ubinary)] # List of (bits) strings
+         embd_ubinary_unpacked = [bit == '1' for bit in ''.join(embd_ubinary_bits)] # List of booleans

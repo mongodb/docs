@@ -59,7 +59,7 @@ func main() {
 
 // Fetch embeddings using Voyage AI REST API
 func fetchEmbeddingsFromVoyage(texts []string, apiKey string, model string, outputDType string) ([]map[string]interface{}, error) {
-	url := "https://api.voyageai.com/v1/embeddings"
+	url := "https://ai.mongodb.com/v1/embeddings"
 
 	// Prepare request body
 	requestBody := map[string]interface{}{

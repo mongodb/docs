@@ -21,7 +21,7 @@ public class GenerateAndConvertEmbeddings {
     private static final Logger logger = LoggerFactory.getLogger(GenerateAndConvertEmbeddings.class);  
   
     // Configuration settings  
-    private static final String VOYAGE_API_URL = "https://api.voyageai.com/v1/embeddings"; // Voyage AI API URL  
+    private static final String VOYAGE_API_URL = "https://ai.mongodb.com/v1/embeddings"; // Voyage AI API URL  
     private static final String VOYAGE_API_KEY = System.getenv("VOYAGE_API_KEY");         // Voyage API key  
     private static final String MONGODB_URI = System.getenv("MONGODB_URI");               // MongoDB connection URI  
   

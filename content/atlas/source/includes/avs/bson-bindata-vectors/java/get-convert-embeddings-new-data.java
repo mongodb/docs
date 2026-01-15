@@ -22,7 +22,7 @@ public class GenerateAndConvertEmbeddings {
     );  
   
     // Configuration settings
-    private static final String VOYAGE_API_URL = "https://api.voyageai.com/v1/embeddings";  
+    private static final String VOYAGE_API_URL = "https://ai.mongodb.com/v1/embeddings";  
     private static final int CONNECTION_TIMEOUT = 30;  
     private static final int READ_TIMEOUT = 60;  
   

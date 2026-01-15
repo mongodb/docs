@@ -14,7 +14,7 @@ public class AIService
 {
     private static readonly string? VoyageApiKey = Environment.GetEnvironmentVariable("VOYAGE_API_KEY");
     private static readonly string EmbeddingModelName = "voyage-3-large";
-    private static readonly string ApiEndpoint = "https://api.voyageai.com/v1/embeddings";
+    private static readonly string ApiEndpoint = "https://ai.mongodb.com/v1/embeddings";
     
     public async Task<Dictionary<string, float[]>> GetEmbeddingsAsync(string[] texts)
     {

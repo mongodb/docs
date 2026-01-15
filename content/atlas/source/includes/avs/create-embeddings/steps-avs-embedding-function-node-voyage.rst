@@ -44,8 +44,7 @@
          .. tip::
 
             To learn more, see `Voyage Typescript Library 
-            <https://www.npmjs.com/package/voyageai>`__ and
-            `embedding models <https://docs.voyageai.com/docs/embeddings>`__.
+            <https://www.npmjs.com/package/voyageai>`__ and :ref:`embedding models <voyage-models>`.
 
       #. Save the file.
 

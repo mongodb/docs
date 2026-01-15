@@ -18,7 +18,7 @@
 
    .. code-block:: python 
 
-       go get go.mongodb.org/mongo-driver/v2/mongo
+      go get go.mongodb.org/mongo-driver/v2/mongo
     
    You must install :driver:`Go </go/current/>` v2.1 or later
    driver. If necessary, you can also install libraries from your
@@ -33,7 +33,8 @@
       embedding model provider's API key, if necessary.
        
       For using embeddings from |voyage|, set up the ``VOYAGE_API_KEY``
-      environment variable. 
+      environment variable. To learn how to get your API key, see 
+      :ref:`voyage-api-keys`. 
 
       .. code-block:: 
 

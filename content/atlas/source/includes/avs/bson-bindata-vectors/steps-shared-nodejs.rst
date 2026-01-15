@@ -38,7 +38,8 @@
       embedding model provider's API key, if necessary.
        
       For using embeddings from |voyage|, set up the ``VOYAGE_API_KEY``
-      environment variable. 
+      environment variable. To learn how to get your API key, see 
+      :ref:`voyage-api-keys`.
 
       .. code-block:: 
 

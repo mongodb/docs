@@ -114,7 +114,7 @@ func fetchSummariesFromMongoDB(uri string) ([]string, error) {
 
 // Fetch embeddings using Voyage AI REST API
 func fetchEmbeddingsFromVoyage(apiKey string, texts []string, outputDType string) ([]map[string]interface{}, error) {
-	url := "https://api.voyageai.com/v1/embeddings"
+	url := "https://ai.mongodb.com/v1/embeddings"
 
 	requestBody := map[string]interface{}{
 		"input":            texts,
