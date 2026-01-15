@@ -74,7 +74,7 @@ public sealed class FileValidationBuilder : IBuilder
         {
             var result = ShouldMatch(actualOutput);
         }
-        catch (ComparisonException ce)
+        catch (ComparisonException)
         {
             return new ComparisonSuccess();
         }
@@ -160,7 +160,7 @@ public sealed class FileValidationBuilder : IBuilder
         if (expectedData.Count == 1 && actualOutput is not IEnumerable<object>)
             return (expectedData[0], actualOutput ?? new object());
 
-        // If expected has single item that is an array and actual is also an array, 
+        // If expected has single item that is an array and actual is also an array,
         // unwrap the expected to compare arrays directly
         if (expectedData.Count == 1 &&
             expectedData[0] is IEnumerable<object> expectedArray &&

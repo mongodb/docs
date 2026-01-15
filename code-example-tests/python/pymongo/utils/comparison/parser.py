@@ -322,9 +322,10 @@ def _detect_and_strip_global_ellipsis(content: str) -> tuple[str, bool]:
     """
     Detect and remove global ellipsis markers from content.
 
-    Global ellipsis markers are standalone "..." lines that indicate the entire
-    output should be treated as a wildcard match. This is different from property-level
-    or array-level ellipsis patterns which are embedded within data structures.
+    Global ellipsis markers are standalone "..." lines that appear OUTSIDE of
+    documents (i.e., between documents or at the start/end of the file).
+    This is different from property-level ellipsis patterns which appear
+    INSIDE documents and indicate omitted fields.
 
     Args:
         content (str): Raw content to process
@@ -332,22 +333,48 @@ def _detect_and_strip_global_ellipsis(content: str) -> tuple[str, bool]:
     Returns:
         tuple[str, bool]: (content_without_ellipsis, has_global_ellipsis)
 
-    Design Decision: Global ellipsis is detected by finding lines that contain
-    only "..." (with optional whitespace). This distinguishes it from ellipsis
-    used within data structures like {"field": "..."}or ["...", "other"].
+    Design Decision: Global ellipsis is detected by finding standalone "..."
+    lines that are outside of any document (brace/bracket count is zero).
+    Ellipsis inside documents should be preserved and converted to "...": "..."
+    to indicate omitted fields.
 
     Impact on Comparison: When global ellipsis is detected, the comparison
     engine treats the entire expected content as a wildcard, bypassing all
-    structural validation. This is useful for examples where the exact output
-    format isn't important, only that the operation succeeds.
+    structural validation.
     """
     lines = content.splitlines()
     has_global = False
     kept_lines = []
+    brace_count = 0
+    bracket_count = 0
 
     for line in lines:
-        if line.strip() == "...":
-            has_global = True
+        stripped = line.strip()
+
+        # Count braces and brackets for this line (before processing)
+        # to determine if we're inside a document
+        for char in line:
+            if char == '{':
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+            elif char == '[':
+                bracket_count += 1
+            elif char == ']':
+                bracket_count -= 1
+
+        # Check if this is a standalone ellipsis line
+        if stripped == "...":
+            # Determine if we're inside a document
+            # Check if the counts are both 0 AFTER processing
+            # If they're 0, we're at document boundary, so it's global ellipsis
+            # If not 0, we're inside a document, so it's field-level ellipsis
+            if brace_count == 0 and bracket_count == 0:
+                # Global ellipsis - strip it and mark
+                has_global = True
+            else:
+                # Inside a document - keep it (will be converted to "...": "...")
+                kept_lines.append(line)
         else:
             kept_lines.append(line)
 
@@ -449,6 +476,95 @@ def _quote_unquoted_ellipsis(s: str) -> str:
             i += 1
 
     return ''.join(result)
+
+
+def _convert_standalone_ellipsis_to_field(s: str) -> str:
+    """
+    Convert standalone "..." on its own line to "...": "..." for omitted fields marker.
+
+    This enables support for patterns like:
+        { ok: 1, ... }
+    where `...` at the end of a document indicates more fields may exist.
+
+    After _quote_unquoted_ellipsis runs, the ... becomes "...". This function
+    then converts a standalone "..." on its own line (inside an OBJECT, not array) to
+    the key-value pair "...": "..." which the comparison engine recognizes
+    as an omitted fields marker.
+
+    IMPORTANT: This should NOT convert "..." inside arrays, as that's array-level
+    ellipsis which should remain as a simple string value.
+
+    Args:
+        s (str): Input string (after _quote_unquoted_ellipsis)
+
+    Returns:
+        str: String with standalone "..." in objects converted to "...": "..."
+    """
+    lines = s.splitlines(keepends=True)
+    result = []
+    brace_count = 0
+    bracket_count = 0
+
+    for line in lines:
+        stripped = line.strip()
+
+        # Check if this is a standalone "..." line BEFORE updating counts
+        is_standalone_ellipsis = stripped == '"..."' or stripped == '"...",'
+
+        # Determine if we're inside an object (brace_count > bracket_count means
+        # the innermost container is an object, not an array)
+        # We need to check the context BEFORE this line
+        inside_object = brace_count > 0 and brace_count > bracket_count
+
+        # Update counts for this line
+        in_string = False
+        for char in line:
+            if char == '"':
+                in_string = not in_string
+            elif not in_string:
+                if char == '{':
+                    brace_count += 1
+                elif char == '}':
+                    brace_count -= 1
+                elif char == '[':
+                    bracket_count += 1
+                elif char == ']':
+                    bracket_count -= 1
+
+        # Convert standalone "..." to "...": "..." only if inside an object
+        if is_standalone_ellipsis and inside_object:
+            # Preserve leading whitespace and trailing comma if present
+            leading_ws = line[:len(line) - len(line.lstrip())]
+            has_comma = stripped.endswith(',')
+            if has_comma:
+                result.append(f'{leading_ws}"...": "...",\n')
+            else:
+                result.append(f'{leading_ws}"...": "..."\n')
+        else:
+            result.append(line)
+
+    return ''.join(result)
+
+
+def _remove_trailing_commas(s: str) -> str:
+    """
+    Remove trailing commas for valid JSON.
+
+    Handles cases like:
+        { "ok": 1, } -> { "ok": 1 }
+        [ "item", ] -> [ "item" ]
+
+    Args:
+        s (str): Input string
+
+    Returns:
+        str: String with trailing commas removed
+    """
+    # Remove trailing commas before }
+    s = re.sub(r',(\s*)\}', r'\1}', s)
+    # Remove trailing commas before ]
+    s = re.sub(r',(\s*)\]', r'\1]', s)
+    return s
 
 
 def _quote_unquoted_iso_dates(s: str) -> str:
@@ -908,8 +1024,12 @@ def parse_expected_content(content: str) -> Tuple[Any, bool]:
     # interpreting ... as Python's Ellipsis object. This must be done after
     # quote conversion so we can properly detect string boundaries.
     s = _quote_unquoted_ellipsis(s)
+    # Convert standalone "..." on its own line to "...": "..." for omitted fields marker
+    s = _convert_standalone_ellipsis_to_field(s)
     s = _quote_unquoted_iso_dates(s)
     s = _replace_constructors_with_ejson(s)
+    # Remove trailing commas for valid JSON
+    s = _remove_trailing_commas(s)
     s = _wrap_as_array_if_jsonl_or_multiblock(s)
     try:
         data = json.loads(s)

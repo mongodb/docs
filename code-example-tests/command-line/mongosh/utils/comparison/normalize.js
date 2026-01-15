@@ -201,8 +201,9 @@ function splitIntoDocumentBlocks(contents) {
     const trimmedLine = line.trim();
     if (!trimmedLine) continue;
 
-    // Skip standalone ellipsis lines (they're used for omitted fields detection)
-    if (trimmedLine === '...') continue;
+    // Skip standalone ellipsis lines ONLY when between documents (not inside one)
+    // When inside a document, ellipsis indicates omitted fields and should be preserved
+    if (trimmedLine === '...' && !inDocument) continue;
 
     const openBraces = (line.match(/\{/g) || []).length;
     const closeBraces = (line.match(/\}/g) || []).length;
@@ -266,7 +267,9 @@ function normalizeDocumentSyntax(doc) {
   });
 
   result = result
-    .replace(/:\s*\.\.\./g, ': "..."') // Replace ellipsis with double quotes
+    .replace(/:\s*\.\.\./g, ': "..."') // Replace ellipsis values (e.g., `_id: ...`) with quoted string
+    // Convert standalone `...` on its own line to `"...": "..."` for omitted fields marker
+    .replace(/^(\s*)\.\.\.(\s*)$/gm, '$1"...": "..."$2')
     .replace(/,\s*}/g, '}') // Remove trailing commas before }
     .replace(/,\s*]/g, ']') // Remove trailing commas before ]
     // $1 = prefix (start/brace/bracket/comma + whitespace), $2 = key name, $3 = colon with whitespace

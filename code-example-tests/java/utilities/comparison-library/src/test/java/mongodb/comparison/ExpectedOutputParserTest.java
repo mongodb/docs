@@ -232,4 +232,28 @@ class ExpectedOutputParserTest {
         assertTrue(firstObject.containsKey("ticker"), "Should contain ticker field");
         assertEquals("MDB", firstObject.get("ticker"));
     }
+
+    @Test
+    void testStandaloneEllipsisAtFieldLevelIndicatesOmittedFields() {
+        // Writer scenario: using `...` at the end of a document to indicate more fields are omitted
+        // This pattern should be converted to `"...": "..."` for the comparison engine
+        var content = """
+            {
+                "nErrors": 0,
+                "ok": 1,
+                ...
+            }
+            """;
+
+        var result = ExpectedOutputParser.parseContent(content);
+
+        assertTrue(result.isSuccess(), "Should successfully parse document with standalone ellipsis");
+        assertTrue(result.getData() instanceof Map, "Should be parsed as a Map");
+
+        @SuppressWarnings("unchecked")
+        var data = (Map<String, Object>) result.getData();
+        assertEquals(0, data.get("nErrors"), "Should contain nErrors field");
+        assertEquals(1, data.get("ok"), "Should contain ok field");
+        assertTrue(data.containsKey("..."), "Should contain ellipsis marker for omitted fields");
+    }
 }

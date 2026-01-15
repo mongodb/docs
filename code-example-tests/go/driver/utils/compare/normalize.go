@@ -75,6 +75,34 @@ func preprocessMongoSyntax(input string) string {
 	// (e.g., plot text ending with "...")
 	input = quoteUnquotedEllipsis(input)
 
+	// Convert standalone ellipsis on its own line to "...": "..." to indicate omitted fields
+	// This enables support for patterns like { ok: 1, ... } where ... indicates more fields exist
+	input = convertStandaloneEllipsisToField(input)
+
+	// Remove trailing commas for valid JSON
+	input = removeTrailingCommas(input)
+
+	return input
+}
+
+// convertStandaloneEllipsisToField converts standalone `"..."` on its own line to `"...": "..."`
+// This is used when writers use `...` at the end of a document to indicate omitted fields.
+func convertStandaloneEllipsisToField(input string) string {
+	// Match standalone "..." on its own line (with optional surrounding whitespace)
+	standaloneEllipsisRegex := regexp.MustCompile(`(?m)^(\s*)"\.\.\."\s*$`)
+	return standaloneEllipsisRegex.ReplaceAllString(input, `$1"...": "..."`)
+}
+
+// removeTrailingCommas removes trailing commas before closing braces and brackets for valid JSON
+func removeTrailingCommas(input string) string {
+	// Remove trailing commas before }
+	trailingCommaBeforeBrace := regexp.MustCompile(`,(\s*)\}`)
+	input = trailingCommaBeforeBrace.ReplaceAllString(input, `$1}`)
+
+	// Remove trailing commas before ]
+	trailingCommaBeforeBracket := regexp.MustCompile(`,(\s*)\]`)
+	input = trailingCommaBeforeBracket.ReplaceAllString(input, `$1]`)
+
 	return input
 }
 

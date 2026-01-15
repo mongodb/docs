@@ -29,7 +29,7 @@ public enum ArrayComparisonMode
 public record ComparisonOptions
 {
     public ArrayComparisonMode ArrayMode { get; set; } = ArrayComparisonMode.Unordered;
-    public List<string>? IgnoredFields { get; set; } = new List<string>();
+    public List<string> IgnoredFields { get; set; } = new List<string>();
     public int TimeoutSeconds { get; set; } = 30;
     public bool InheritedGlobalEllipsis { get; set; } = false;
 

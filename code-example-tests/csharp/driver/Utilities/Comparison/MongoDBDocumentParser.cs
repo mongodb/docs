@@ -35,6 +35,11 @@ public static partial class FileContentsParser
     [GeneratedRegex(@",(\s*)\.\.\.(\s*[,\]])", RegexOptions.Compiled)]
     private static partial Regex UnquotedEllipsisInArrayRegex();
 
+    // Matches standalone `...` on its own line inside a document to indicate omitted fields
+    // Converts `...` (with optional surrounding whitespace) to `"...": "..."`
+    [GeneratedRegex(@"^(\s*)\.\.\.\s*$", RegexOptions.Compiled | RegexOptions.Multiline)]
+    private static partial Regex StandaloneEllipsisAsFieldRegex();
+
     [GeneratedRegex(@"{\s*([a-zA-Z_]\w*\s*=\s*[^,}]*(?:\s*,\s*[a-zA-Z_]\w*\s*=\s*[^,}]*)*)\s*}", RegexOptions.Compiled)]
     private static partial Regex CSharpObjectRegex();
 
@@ -465,7 +470,19 @@ public static partial class FileContentsParser
         result = ConvertSingleQuotes(result);
         result = QuoteUnquotedEllipsis(result);  // Quote unquoted ellipsis before quoting identifiers
         result = QuoteUnquotedIdentifiers(result);
+        result = RemoveTrailingCommas(result);   // Remove trailing commas for valid JSON
 
+        return result;
+    }
+
+    /// <summary>
+    ///     Removes trailing commas before closing braces and brackets for valid JSON.
+    /// </summary>
+    private static string RemoveTrailingCommas(string content)
+    {
+        // Remove trailing commas before } and ]
+        var result = Regex.Replace(content, @",(\s*)}", "$1}");
+        result = Regex.Replace(result, @",(\s*)]", "$1]");
         return result;
     }
 
@@ -571,6 +588,12 @@ public static partial class FileContentsParser
         // Pattern: comma, optional whitespace, three dots, followed by comma or closing bracket
         // Transform: ', ...' → ', "..."'
         result = UnquotedEllipsisInArrayRegex().Replace(result, ",$1\"...\"$2");
+
+        // Quote standalone ellipsis on its own line to indicate omitted fields
+        // Pattern: standalone `...` on its own line (inside a document, not between documents)
+        // Transform: `...` → `"...": "..."`
+        // This enables support for patterns like { ok: 1, ... } where ... indicates more fields exist
+        result = StandaloneEllipsisAsFieldRegex().Replace(result, "$1\"...\": \"...\"");
 
         return result;
     }

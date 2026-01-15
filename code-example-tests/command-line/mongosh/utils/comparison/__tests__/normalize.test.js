@@ -73,14 +73,14 @@ describe('normalize', () => {
       test('should normalize ObjectId to string', () => {
         const oid = new ObjectId('507f1f77bcf86cd799439011');
         const result = normalizeItem(oid);
-        
+
         expect(result).toBe('507f1f77bcf86cd799439011');
       });
 
       test('should normalize Decimal128 to string', () => {
         const decimal = new Decimal128('123.45');
         const result = normalizeItem(decimal);
-        
+
         expect(result).toBe('123.45');
       });
     });
@@ -89,13 +89,13 @@ describe('normalize', () => {
       test('should normalize Date object to ISO string', () => {
         const date = new Date('2023-01-01T12:00:00.000Z');
         const result = normalizeItem(date);
-        
+
         expect(result).toBe('2023-01-01T12:00:00.000Z');
       });
 
       test('should normalize ISO date string to consistent format', () => {
         const result = normalizeItem('2023-01-01T12:00:00Z');
-        
+
         expect(result).toBe('2023-01-01T12:00:00.000Z');
       });
 
@@ -108,33 +108,33 @@ describe('normalize', () => {
     describe('arrays', () => {
       test('should normalize array elements', () => {
         const result = normalizeItem([1, 'hello', true]);
-        
+
         expect(result).toEqual([1, 'hello', true]);
       });
 
       test('should preserve ellipsis in arrays', () => {
         const result = normalizeItem([1, '...', 3]);
-        
+
         expect(result).toEqual([1, '...', 3]);
       });
 
       test('should normalize nested arrays', () => {
         const result = normalizeItem([[1, 2], [3, 4]]);
-        
+
         expect(result).toEqual([[1, 2], [3, 4]]);
       });
 
       test('should normalize MongoDB types in arrays', () => {
         const oid = new ObjectId('507f1f77bcf86cd799439011');
         const result = normalizeItem([oid, 'text']);
-        
+
         expect(result).toEqual(['507f1f77bcf86cd799439011', 'text']);
       });
 
       test('should normalize dates in arrays', () => {
         const date = new Date('2023-01-01T12:00:00.000Z');
         const result = normalizeItem([date, 'text']);
-        
+
         expect(result).toEqual(['2023-01-01T12:00:00.000Z', 'text']);
       });
     });
@@ -142,27 +142,27 @@ describe('normalize', () => {
     describe('objects', () => {
       test('should normalize object properties', () => {
         const result = normalizeItem({ name: 'Alice', age: 30 });
-        
+
         expect(result).toEqual({ name: 'Alice', age: 30 });
       });
 
       test('should preserve object-level ellipsis', () => {
         const result = normalizeItem({ '...': '...' });
-        
+
         expect(result).toEqual({ '...': '...' });
       });
 
       test('should normalize MongoDB types in objects', () => {
         const oid = new ObjectId('507f1f77bcf86cd799439011');
         const result = normalizeItem({ _id: oid, name: 'Alice' });
-        
+
         expect(result).toEqual({ _id: '507f1f77bcf86cd799439011', name: 'Alice' });
       });
 
       test('should normalize dates in objects', () => {
         const date = new Date('2023-01-01T12:00:00.000Z');
         const result = normalizeItem({ created: date, name: 'Alice' });
-        
+
         expect(result).toEqual({ created: '2023-01-01T12:00:00.000Z', name: 'Alice' });
       });
 
@@ -171,7 +171,7 @@ describe('normalize', () => {
           user: { name: 'Alice', age: 30 },
           metadata: { version: 1 },
         });
-        
+
         expect(result).toEqual({
           user: { name: 'Alice', age: 30 },
           metadata: { version: 1 },
@@ -184,7 +184,7 @@ describe('normalize', () => {
           _id: '...',
           age: 30,
         });
-        
+
         expect(result).toEqual({
           name: 'Alice',
           _id: '...',
@@ -197,7 +197,7 @@ describe('normalize', () => {
       test('should normalize deeply nested structure', () => {
         const oid = new ObjectId('507f1f77bcf86cd799439011');
         const date = new Date('2023-01-01T12:00:00.000Z');
-        
+
         const result = normalizeItem({
           users: [
             { _id: oid, name: 'Alice', created: date },
@@ -208,7 +208,7 @@ describe('normalize', () => {
             timestamp: date,
           },
         });
-        
+
         expect(result).toEqual({
           users: [
             { _id: '507f1f77bcf86cd799439011', name: 'Alice', created: '2023-01-01T12:00:00.000Z' },
@@ -224,7 +224,7 @@ describe('normalize', () => {
       test('should handle arrays of arrays with mixed types', () => {
         const oid = new ObjectId('507f1f77bcf86cd799439011');
         const result = normalizeItem([[oid, 'text'], ['...', 123]]);
-        
+
         expect(result).toEqual([['507f1f77bcf86cd799439011', 'text'], ['...', 123]]);
       });
     });
@@ -234,7 +234,7 @@ describe('normalize', () => {
     test('should parse single object', () => {
       const contents = `{ name: 'Alice', age: 30 }`;
       const result = preprocessFileContents(contents);
-      
+
       expect(result).toHaveLength(1);
       expect(result[0]).toContain('"name"');
       expect(result[0]).toContain('"Alice"');
@@ -244,7 +244,7 @@ describe('normalize', () => {
       const contents = `{ name: 'Alice' }
 { name: 'Bob' }`;
       const result = preprocessFileContents(contents);
-      
+
       expect(result).toHaveLength(2);
       expect(result[0]).toContain('"Alice"');
       expect(result[1]).toContain('"Bob"');
@@ -253,7 +253,7 @@ describe('normalize', () => {
     test('should handle trailing commas', () => {
       const contents = `{ name: 'Alice', age: 30, }`;
       const result = preprocessFileContents(contents);
-      
+
       expect(result[0]).not.toContain(',}');
       expect(result[0]).toContain('}');
     });
@@ -261,7 +261,7 @@ describe('normalize', () => {
     test('should quote unquoted keys', () => {
       const contents = `{ name: 'Alice', age: 30 }`;
       const result = preprocessFileContents(contents);
-      
+
       expect(result[0]).toContain('"name"');
       expect(result[0]).toContain('"age"');
     });
@@ -269,7 +269,7 @@ describe('normalize', () => {
     test('should handle ellipsis values', () => {
       const contents = `{ _id: ..., name: 'Alice' }`;
       const result = preprocessFileContents(contents);
-      
+
       expect(result[0]).toContain('"..."');
     });
 
@@ -278,10 +278,38 @@ describe('normalize', () => {
 ...
 { name: 'Bob' }`;
       const result = preprocessFileContents(contents);
-      
+
       expect(result).toHaveLength(2);
       expect(result[0]).toContain('"Alice"');
       expect(result[1]).toContain('"Bob"');
+    });
+
+    test('should handle standalone ellipsis at field level to indicate omitted fields', () => {
+      // Writer scenario: using `...` at the end of a document to indicate more fields are omitted
+      // This pattern should be converted to `"...": "..."` for the comparison engine
+      const contents = `{
+  nErrors: 0,
+  ok: 1,
+  ...
+}`;
+      const result = preprocessFileContents(contents);
+
+      expect(result).toHaveLength(1);
+      // The standalone `...` should be converted to a valid JSON key-value pair
+      // This allows the comparison engine to recognize it as an omitted fields marker
+      expect(result[0]).toContain('"..."');
+      expect(result[0]).toContain('"...": "..."');
+
+      // Verify the result can be parsed as valid JavaScript
+      expect(() => {
+        // eslint-disable-next-line no-eval
+        eval('(' + result[0] + ')');
+      }).not.toThrow();
+
+      // Verify the parsed result has the ellipsis marker
+      // eslint-disable-next-line no-eval
+      const parsed = eval('(' + result[0] + ')');
+      expect(parsed['...']).toBe('...');
     });
 
     test('should handle multi-line objects', () => {
@@ -293,7 +321,7 @@ describe('normalize', () => {
   }
 }`;
       const result = preprocessFileContents(contents);
-      
+
       expect(result).toHaveLength(1);
       expect(result[0]).toContain('"name"');
       expect(result[0]).toContain('"address"');
@@ -306,7 +334,7 @@ describe('normalize', () => {
   { name: 'Bob' }
 ]`;
       const result = preprocessFileContents(contents);
-      
+
       expect(result).toHaveLength(1);
       expect(result[0]).toContain('[');
       expect(result[0]).toContain('"Alice"');
@@ -318,21 +346,21 @@ describe('normalize', () => {
 
 { name: 'Bob' }`;
       const result = preprocessFileContents(contents);
-      
+
       expect(result).toHaveLength(2);
     });
 
     test('should handle ISO date strings', () => {
       const contents = `{ created: 2023-01-01T12:00:00Z }`;
       const result = preprocessFileContents(contents);
-      
+
       expect(result[0]).toContain('Date("2023-01-01T12:00:00Z")');
     });
 
     test('should escape double quotes in single-quoted strings', () => {
       const contents = `{ message: 'She said "hello"' }`;
       const result = preprocessFileContents(contents);
-      
+
       expect(result[0]).toContain('\\"hello\\"');
     });
 
@@ -343,7 +371,7 @@ describe('normalize', () => {
   },
 }`;
       const result = preprocessFileContents(contents);
-      
+
       expect(result[0]).not.toContain(',}');
     });
   });

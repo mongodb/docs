@@ -196,6 +196,32 @@ public class FileContentsParserTests
 
     }
 
+    [Test]
+    [Description("Tests that standalone ellipsis at field level inside a document indicates omitted fields")]
+    public void ParseText_StandaloneEllipsisAtFieldLevel_IndicatesOmittedFields()
+    {
+        // Writer scenario: using `...` at the end of a document to indicate more fields are omitted
+        // This pattern should be converted to `"...": "..."` for the comparison engine
+        var expectedWithOmittedFields = """
+            {
+                nErrors: 0,
+                ok: 1,
+                ...
+            }
+            """;
+
+        var actualResult = new Dictionary<string, object>
+        {
+            ["nErrors"] = 0,
+            ["ok"] = 1,
+            ["extraField1"] = "value1",
+            ["extraField2"] = 42
+        };
+
+        // The standalone `...` should allow extra fields in the actual result
+        Expect.That(actualResult).ShouldMatch(expectedWithOmittedFields);
+    }
+
     /// <summary>
     ///     Tests for parser error handling scenarios.
     ///     These tests ensure the parser provides helpful error messages when parsing fails.

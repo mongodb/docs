@@ -142,5 +142,33 @@ describe('normalize.js', () => {
       // The parser wraps it as Date() constructor
       expect(processed[0]).toContain('Date("2021-99-99T99:99:99Z")');
     });
+
+    it('handles standalone ellipsis at field level to indicate omitted fields', () => {
+      // Writer scenario: using `...` at the end of a document to indicate more fields are omitted
+      // This pattern should be converted to `"...": "..."` for the comparison engine
+      const input = `{
+  nErrors: 0,
+  ok: 1,
+  ...
+}`;
+      const result = preprocessFileContents(input);
+
+      expect(result).toHaveLength(1);
+      // The standalone `...` should be converted to a valid JSON key-value pair
+      // This allows the comparison engine to recognize it as an omitted fields marker
+      expect(result[0]).toContain('"..."');
+      expect(result[0]).toContain('"...": "..."');
+
+      // Verify the result can be parsed as valid JavaScript
+      expect(() => {
+        // eslint-disable-next-line no-eval
+        eval('(' + result[0] + ')');
+      }).not.toThrow();
+
+      // Verify the parsed result has the ellipsis marker
+      // eslint-disable-next-line no-eval
+      const parsed = eval('(' + result[0] + ')');
+      expect(parsed['...']).toBe('...');
+    });
   });
 });

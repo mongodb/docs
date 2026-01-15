@@ -866,7 +866,8 @@ class ExpectedOutputParser {
         // Step 6: Add quotes to unquoted keys (do this last to avoid interfering with quoted values)
         content = UNQUOTED_KEY_PATTERN.matcher(content).replaceAll("$1\"$2\":");
 
-        // Debug output for development
+        // Step 7: Remove trailing commas for valid JSON
+        content = removeTrailingCommas(content);
 
         return content;
     }
@@ -875,6 +876,7 @@ class ExpectedOutputParser {
      * Normalize bare ellipsis patterns to valid JSON.
      * Handles cases like: "runtime": ... -> "runtime": "..."
      * And standalone ellipsis in arrays: [item, ...] -> [item, "..."]
+     * And standalone ellipsis on its own line to indicate omitted fields
      */
     private static String normalizeBareEllipsis(String content) {
         // Pattern 1: Value ellipsis - "key": ... -> "key": "..."
@@ -888,6 +890,23 @@ class ExpectedOutputParser {
         // Pattern 3: Array element ellipsis at start - [    ...    ] -> [    "..."    ]
         content = content.replaceAll("(\\[\\s*)\\.\\.\\.(?=\\s*[,\\]])", "$1\"...\"");
 
+        // Pattern 4: Standalone ellipsis on its own line to indicate omitted fields
+        // Converts `...` on its own line to `"...": "..."` for the comparison engine
+        // This enables support for patterns like { ok: 1, ... } where ... indicates more fields exist
+        content = content.replaceAll("(?m)^(\\s*)\\.\\.\\.\\s*$", "$1\"...\": \"...\"");
+
+        return content;
+    }
+
+    /**
+     * Remove trailing commas for valid JSON.
+     * Handles cases like: { "ok": 1, } -> { "ok": 1 }
+     */
+    private static String removeTrailingCommas(String content) {
+        // Remove trailing commas before }
+        content = content.replaceAll(",(\\s*)}", "$1}");
+        // Remove trailing commas before ]
+        content = content.replaceAll(",(\\s*)]", "$1]");
         return content;
     }
 

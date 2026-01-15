@@ -195,11 +195,11 @@ function splitIntoDocumentBlocks(contents) {
     const trimmedLine = line.trim();
     if (!trimmedLine) continue;
 
-    // Skip standalone ellipsis lines ONLY if they're:
-    // 1. Outside a document (document-level ellipsis for omitted fields)
-    // 2. Inside an object (object-level ellipsis for omitted fields)
-    // Keep them if they're inside an array (array-level ellipsis as elements)
-    if (trimmedLine === '...' && (!inDocument || !isArray)) continue;
+    // Skip standalone ellipsis lines ONLY when between documents (not inside one)
+    // When inside a document (object or array), preserve ellipsis for:
+    // - Object: indicates omitted fields (will be converted to "...": "...")
+    // - Array: indicates omitted elements (will be converted to "...")
+    if (trimmedLine === '...' && !inDocument) continue;
 
     const openBraces = (line.match(/\{/g) || []).length;
     const closeBraces = (line.match(/\}/g) || []).length;
@@ -239,6 +239,82 @@ function splitIntoDocumentBlocks(contents) {
   }
 
   return docBlocks;
+}
+
+/**
+ * Converts standalone `"..."` on its own line inside objects to `"...": "..."`
+ * to indicate omitted fields. This is context-aware and only converts inside
+ * objects, not arrays.
+ *
+ * This enables support for patterns like:
+ * { ok: 1, ... } where ... indicates more fields may exist
+ *
+ * @param {string} str - String with potential standalone ellipsis lines
+ * @returns {string} String with standalone ellipsis converted to key-value pairs inside objects
+ */
+function convertStandaloneEllipsisToField(str) {
+  const lines = str.split('\n');
+  const result = [];
+  // Track nesting: positive = more { than }, negative = more [ than {
+  // We use a stack to track whether we're in an object or array context
+  const contextStack = []; // 'object' or 'array'
+
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const line = lines[lineIndex];
+    // Check if this line is a standalone "..." (with optional whitespace and comma)
+    const standaloneMatch = line.match(/^(\s*)"\.\.\."\s*(,?)(\s*)$/);
+
+    if (standaloneMatch) {
+      // Count braces/brackets to determine current context
+      // We need to look at what's on the stack based on all previous lines
+      let currentContext = contextStack.length > 0 ? contextStack[contextStack.length - 1] : null;
+
+      if (currentContext === 'object') {
+        // We're inside an object, convert to key-value pair
+        // Check if we need to add a comma (if there's no comma and more content follows)
+        let comma = standaloneMatch[2];
+        if (!comma) {
+          // Look ahead to see if there's more content (non-closing-brace content)
+          for (let i = lineIndex + 1; i < lines.length; i++) {
+            const nextLine = lines[i].trim();
+            if (nextLine.length === 0) continue; // Skip empty lines
+            if (nextLine.startsWith('}') || nextLine.startsWith(']')) {
+              // Next meaningful line is a closing brace/bracket, no comma needed
+              break;
+            }
+            // There's more content, add a comma
+            comma = ',';
+            break;
+          }
+        }
+        result.push(`${standaloneMatch[1]}"...": "..."${comma}${standaloneMatch[3]}`);
+      } else {
+        // We're inside an array or at top level, keep as-is
+        result.push(line);
+      }
+    } else {
+      result.push(line);
+    }
+
+    // Update context stack based on this line (excluding strings)
+    let inString = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"' && (i === 0 || line[i - 1] !== '\\')) {
+        inString = !inString;
+      } else if (!inString) {
+        if (char === '{') {
+          contextStack.push('object');
+        } else if (char === '[') {
+          contextStack.push('array');
+        } else if (char === '}' || char === ']') {
+          contextStack.pop();
+        }
+      }
+    }
+  }
+
+  return result.join('\n');
 }
 
 /**
@@ -333,6 +409,11 @@ function normalizeDocumentSyntax(doc) {
   // Quote unquoted ellipsis in a string-aware manner
   // This must be done after quote conversion but before other transformations
   result = quoteUnquotedEllipsis(result);
+
+  // Convert standalone `"..."` on its own line to `"...": "..."` to indicate omitted fields
+  // This enables support for patterns like { ok: 1, ... } where ... indicates more fields exist
+  // This is context-aware and only converts inside objects, not arrays
+  result = convertStandaloneEllipsisToField(result);
 
   result = result
     .replace(/,\s*}/g, '}') // Remove trailing commas before }

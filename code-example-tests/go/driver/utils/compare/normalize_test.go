@@ -1,10 +1,12 @@
 package compare
 
 import (
-	"go.mongodb.org/mongo-driver/v2/bson"
+	"encoding/json"
 	"reflect"
 	"testing"
 	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func TestMongoDBTypeNormalization(t *testing.T) {
@@ -122,4 +124,41 @@ func TestBsonDToMap(t *testing.T) {
 	if !reflect.DeepEqual(result, expected) {
 		t.Errorf("Expected %v, got %v", expected, result)
 	}
+}
+
+func TestStandaloneEllipsisAtFieldLevel(t *testing.T) {
+	// Writer scenario: using `...` at the end of a document to indicate more fields are omitted
+	// The standalone `...` on its own line should be converted to `"...": "..."` for the comparison engine
+	input := `{
+  "nErrors": 0,
+  "ok": 1,
+  ...
+}`
+	result := preprocessMongoSyntax(input)
+
+	// The result should contain "...": "..." to mark omitted fields
+	if !containsString(result, `"..."`) {
+		t.Errorf("Expected result to contain quoted ellipsis marker, got: %s", result)
+	}
+
+	// The result should be valid JSON that can be parsed
+	var parsed map[string]interface{}
+	if err := parseJSON(result, &parsed); err != nil {
+		t.Errorf("Failed to parse preprocessed result as JSON: %v\nResult: %s", err, result)
+	}
+
+	// The parsed object should have the ellipsis marker
+	if _, ok := parsed["..."]; !ok {
+		t.Errorf("Expected parsed object to contain '...' key, got: %v", parsed)
+	}
+}
+
+// Helper function to check if a string contains another string
+func containsString(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(s) > 0 && (s[0:len(substr)] == substr || containsString(s[1:], substr)))
+}
+
+// Helper function to parse JSON
+func parseJSON(s string, v interface{}) error {
+	return json.Unmarshal([]byte(s), v)
 }
