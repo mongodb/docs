@@ -129,43 +129,86 @@ To install the package for this component:
 Usage
 ~~~~~
 
+.. include:: /includes/ai-integrations/fact-automated-embedding-preview.rst
+
+.. tabs::
+
+   .. tab:: Manual Embedding
+      :tabid: manual-embed
+
+      .. code-block:: python
+
+         from langgraph.store.mongodb import MongoDBStore, create_vector_index_config
+         from langchain_voyageai import VoyageAIEmbeddings
+
+         # Vector search index configuration with client-side embedding
+         index_config = create_vector_index_config(
+             embed = VoyageAIEmbeddings(),
+             dims = <dimensions>,
+             fields = ["<field-name>"],
+             filters = ["<filter-field-name>", ...] # Optional
+         )
+
+         # Store memories in MongoDB collection
+         with MongoDBStore.from_conn_string(
+              conn_string=MONGODB_URI,
+              db_name="<database-name>",
+              collection_name="<collection-name>",
+              index_config=index_config
+          ) as store:
+              store.put(
+                  namespace=("user", "memories"),
+                  key=f"memory_{hash(content)}",
+                  value={"content": content}
+              )
+
+   .. tab:: Automated Embedding
+      :tabid: auto-embed
+
+      To use automated embedding, pass an ``AutoEmbeddings`` instance
+      to the ``embed`` parameter in the index configuration. This
+      enables MongoDB to generate and manage embedding vectors
+      automatically.
+
+      .. code-block:: python
+
+         from langgraph.store.mongodb import MongoDBStore, create_vector_index_config
+         from langchain_mongodb import AutoEmbeddings
+
+         # Vector search index configuration with server-side auto embedding
+         index_config = create_vector_index_config(
+             embed = AutoEmbeddings(model_name="voyage-4"),
+             fields = ["<field-name>"],
+             filters = ["<filter-field-name>", ...] # Optional
+         )
+
+         # Store memories - text is embedded server-side
+         with MongoDBStore.from_conn_string(
+              conn_string=MONGODB_URI,
+              db_name="<database-name>",
+              collection_name="<collection-name>",
+              index_config=index_config
+          ) as store:
+              store.put(
+                  namespace=("user", "memories"),
+                  key=f"memory_{hash(content)}",
+                  value={"content": content}
+              )
+
+Retrieving and deleting memories:
+
 .. code-block:: python
-
-   from langgraph.store.mongodb import MongoDBStore, create_vector_index_config
-   from langchain_voyageai import VoyageAIEmbeddings
-
-   # Optional vector search index configuration for the memory collection
-   index_config = create_vector_index_config(
-       embed = VoyageAIEmbeddings(),
-       dims = <dimensions>,
-       fields = ["<field-name>"],
-       filters = ["<filter-field-name>", ...] # Optional list of fields that can filtered during search
-       # Other fields...
-   )
-
-   # Store memories in MongoDB collection
-   with MongoDBStore.from_conn_string(
-        conn_string=MONGODB_URI,
-        db_name="<database-name>",
-        collection_name="<collection-name>",
-        index_config=index_config # If specified, automatically embeds and indexes the field value
-    ) as store:
-        store.put(
-            namespace=("user", "memories"), # Namespace for the memories
-            key=f"memory_{hash(content)}",  # Unique identifier for each memory
-            value={"content": content}      # Document data that contains the memory content
-        )
 
    # Retrieve memories from MongoDB collection
    with MongoDBStore.from_conn_string(
        conn_string=MONGODB_URI,
        db_name="<database-name>",
        collection_name="<collection-name>",
-       index_config=index_config # If specified, uses vector search to retrieve memories. Otherwise, uses metadata filtering
-   ) as store: 
+       index_config=index_config
+   ) as store:
         results = store.search(
             ("user", "memories"),
-            query="<query-text">,
+            query="<query-text>",
             limit=3
         )
         for result in results:
@@ -211,13 +254,17 @@ Usage
 
       * - ``index_config``
         - Optional
-        - Vector search index configuration. For example:
+        - Vector search index configuration. The ``embed`` parameter accepts
+          either an embedding model for client-side embedding or an
+          ``AutoEmbeddings`` instance for server-side auto embedding.
+
+          For example:
 
           .. code-block:: python
 
              index_config = create_vector_index_config(
-                 embed = <embedding-model>,
-                 dims = <dimensions>,
+                 embed = <embedding-model-or-AutoEmbeddings>,
+                 dims = <dimensions>,  # Not required for auto embedding
                  fields = ["<field-name>"], # field to embed
                  filters = ["<filter-field-name>", ...], # optional
                  name = "<index-name>" # optional, defaults to 'vector_index'

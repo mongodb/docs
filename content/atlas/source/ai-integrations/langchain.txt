@@ -58,7 +58,7 @@ the ``langchain-mongodb`` package:
 Vector Store
 ------------
 
-``MongoDBAtlasVectorSearch`` is a `vector store 
+``MongoDBAtlasVectorSearch`` is a `vector store
 <https://python.langchain.com/docs/how_to/#vector-stores>`__
 that allows you to store and retrieve vector embeddings from a
 collection in MongoDB. You can use this component to store
@@ -69,9 +69,11 @@ This component requires an :ref:`{+avs+} Index <avs-types-vector-search>`.
 Usage
 ~~~~~
 
+.. include:: /includes/ai-integrations/fact-automated-embedding-preview.rst
+
 .. tabs::
 
-   .. tab:: Preferred Usage
+   .. tab:: Manual Embedding
       :tabid: uri
 
       The quickest way to instantiate your vector store is to
@@ -91,6 +93,40 @@ Usage
            index_name = "vector_index",                      # Name of the vector search index
            # Other optional parameters...
          )
+
+   .. tab:: Automated Embedding
+      :tabid: auto-embed
+
+      To use automated embedding, pass an ``AutoEmbeddings`` instance
+      to the ``embedding`` parameter. This enables MongoDB to generate
+      and manage embedding vectors automatically.
+
+      With automated embedding:
+
+      - No client-side embedding computation is required
+      - Raw text is sent directly to MongoDB
+      - Embedding vectors are generated server-side
+      - The ``embedding_key`` field is not stored in documents
+
+      .. code-block:: python
+
+         from langchain_mongodb.vectorstores import MongoDBAtlasVectorSearch
+         from langchain_mongodb import AutoEmbeddings
+
+         # Instantiate the vector store with auto embedding
+         vector_store = MongoDBAtlasVectorSearch.from_connection_string(
+           connection_string = "<connection-string>",              # MongoDB cluster URI
+           namespace = "<database-name>.<collection-name>",        # Database and collection name
+           embedding = AutoEmbeddings(model_name="voyage-4"),      # Enable auto embedding
+           index_name = "vector_index",                            # Name of the vector search index
+           # Other optional parameters...
+         )
+
+         # Add documents - text is embedded server-side
+         vector_store.add_documents(documents=docs)
+
+         # Search - queries are embedded server-side
+         results = vector_store.similarity_search("search query")
 
    .. tab:: Other Methods
      :tabid: other
@@ -171,8 +207,9 @@ Usage
 
       * - ``embedding``
         - Required
-        - The embedding model to use. You can use any embedding model 
-          `supported in LangChain <https://python.langchain.com/docs/integrations/text_embedding/>`__.
+        - The embedding model to use. You can use any embedding model
+          `supported in LangChain <https://python.langchain.com/docs/integrations/text_embedding/>`__
+          or an ``AutoEmbeddings`` instance for server-side auto embedding.
 
       * - ``index_name``
         - Optional
@@ -204,6 +241,10 @@ Usage
       * - ``auto_index_timeout``
         - Optional
         - Timeout in seconds to wait for an auto-created vector search index to be ready.
+
+      * - ``vector_index_options``
+        - Optional
+        - A dictionary of additional options for configuring the vector search index.
 
       * - ``**kwargs``
         - Optional
