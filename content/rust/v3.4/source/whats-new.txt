@@ -1,0 +1,376 @@
+.. _rust-whats-new:
+
+==========
+What's New
+==========
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: update, new feature, deprecation, upgrade, driver v2.6, driver v2.7, driver v2.8, driver v3.4
+   :description: Discover new features, improvements, and fixes in recent versions of the MongoDB Rust Driver.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Learn about new features, improvements, and fixes introduced in the
+following versions of the {+driver-long+}:
+
+* :ref:`Version 3.4 <rust-version-3.4>`
+* :ref:`Version 3.3 <rust-version-3.3>`
+* :ref:`Version 3.2 <rust-version-3.2>`
+* :ref:`Version 3.1 <rust-version-3.1>`
+* :ref:`Version 3.0.1 <rust-version-3.0.1>`
+* :ref:`Version 3.0 <rust-version-3.0>`
+* :ref:`Version 2.8 <rust-version-2.8>`
+* :ref:`Version 2.7 <rust-version-2.7>`
+* :ref:`Version 2.6 <rust-version-2.6>`
+
+.. _rust-version-3.4:
+
+What's New in 3.4
+-----------------
+
+The {+driver-short+} v3.4 release includes the following features,
+improvements, and fixes:
+
+- Introduces type-safe {+search+} query construction through the
+  ``atlas_search`` module. This feature provides compile-time validation,
+  IDE support, and a fluent builder pattern for constructing {+search+}
+  queries. To learn more about type-safe {+search+} queries, see the
+  :ref:`rust-atlas-search-type-safe` section of the :ref:`rust-atlas-search`
+  guide.
+
+- Adds support for tracing database commands and driver operations for
+  `OpenTelemetry <https://opentelemetry.io/>`__. 
+
+- Adds support for text indexes for automatic and explicit queryable encryption. 
+  To learn more about Queryable Encryption, see the
+  :manual:`Queryable Encryption </core/queryable-encryption/>` section of the
+  {+server+} manual.
+
+To learn more about this release, see the 
+`v3.4 Release Notes <{+driver-source+}/releases/tag/v3.4.1>`__ on GitHub.
+
+.. _rust-version-3.3:
+
+What's New in 3.3
+-----------------
+
+The {+driver-short+} v3.3 release includes the following features,
+improvements, and fixes:
+
+- :red:`Important:` This release drops support for MongoDB
+  Server version 4.0 and raises the minimum supported version to 4.2. We
+  recommend making changes to your application to accommodate breaking changes.
+  See the :manual:`Release Notes </release-notes/>` section in the Server manual to
+  learn more about upgrading.
+
+- Introduces support for version 3.0 of the BSON crate. By default, the driver
+  uses version 2.15 for backwards compatibility. To use version 3.0, add the
+  ``bson-3`` feature to the ``features`` list for the driver crate in your
+  project's ``Cargo.toml``. BSON 3.0 updates several APIs in
+  backwards-incompatible ways. The following changes might require updates to
+  your application:
+
+  - Introduces a unified ``bson::error::Error`` type that consolidates error
+    handling across the crate with consistent fields and granular error information.
+
+  - Adds ``&CStr`` and ``CString`` types for BSON keys and regular expressions
+    to prevent null byte issues that previously caused panics. The following example
+    shows how to update your code by using the ``&CStr`` and ``CString`` types:
+
+    .. code-block:: rust
+       :copyable: true
+
+       let mut computed_key = "foo".to_owned();
+       computed_key.push_str("bar");
+       // Non-static values need to be checked at runtime
+       let computed_key = CString::try_from(computed_key)?;
+       let doc_buf = rawdoc! {
+          // String literal keys in `rawdoc!` are implicitly checked at compile-time.
+          "hello": "world",
+          computed_key: 42,
+          "regex": Regex {
+              // `&CStr` implements many common traits like `ToOwned`
+              pattern: cstr!("needle").to_owned(),
+              options: cstr!("").to_owned(),
+          }
+       };
+       // `append` keys must now be a `&CStr` or `CString`.
+       doc_buf.append(cstr!("a key"), "a value");
+
+  - Provides all conversions between raw types and their reference types via
+    standard library traits.
+
+  - Makes ``serde`` an optional feature that is disabled by default. Serialization
+    and deserialization functions now have ``serialize_to`` or ``deserialize_from``
+    prefixes for clarity.
+
+  - Simplifies UTF-8 lossy decoding with the ``Utf8Lossy`` wrapper type and
+    new conversion methods.
+
+  - Updates ``serde`` helper functions to work with the ``serde_as`` annotation
+    from the ``serde_with`` crate for more flexible type conversions. For more
+    information, see :ref:`rust-serialization`.
+
+  - For detailed instructions migrating from BSON 2.x to BSON 3.0, see the `Migrating from 2.x to 3.0 guide
+    <{+driver-source+}/blob/main/migration-3.0.md>`__ on GitHub.
+    
+To learn more about this release, see the `v3.3 Release Notes
+<{+driver-source+}/releases/tag/v3.3.0>`__ on GitHub.
+
+.. _rust-version-3.2:
+
+What's New in 3.2
+-----------------
+
+The {+driver-short+} v3.2 release includes the following features,
+improvements, and fixes:
+
+- :red:`Important:` The next minor release will drop support for MongoDB
+  Server version 4.0 and raise the minimum supported version to 4.2. We
+  recommend making changes to your application to accommodate breaking changes.
+  See the :manual:`Release Notes </release-notes/>` section in the Server manual to
+  learn more about upgrading.
+
+- Increases the Minimum Supported Rust Version to 1.71.1. To learn more
+  about driver compatibility, see the :driver:`Compatibility </compatibility/?driver-language=rust>`
+  page.
+
+- Marks the in-use encryption feature as stable with the same backwards
+  compatibility guarantees as the driver. The feature flag is named
+  ``in-use-encryption``. This is a policy change and the API is not
+  changed from the previous release.
+
+- Allows SRV hostnames with fewer than three parts.
+
+- Allows you to supply a sort option when performing update operations.
+
+- Adds OIDC authentication support for Kubernetes environments.
+  
+  To use OIDC to authenticate from a Kubernetes environment, set the
+  ``authMechanismProperties`` connection option to ``ENVIRONMENT:k8s``
+  in your connection string. You can use this feature when connecting to
+  an environment running in Amazon's Elastic Kubernetes Service, Google
+  Kubernetes Engine, or Azure Kubernetes Service.
+
+To learn more about this release, see the `v3.2 Release Notes
+<{+driver-source+}/releases/tag/v3.2.0>`__ on GitHub.
+
+.. _rust-version-3.1:
+
+What's New in 3.1
+-----------------
+
+The {+driver-short+} v3.1 release includes the following features,
+improvements, and fixes:
+
+- Adds support for more than one Key Management Service (KMS) provider of the same type.
+  To learn more about KMS providers, see
+  :manual:`Queryable Encryption </core/queryable-encryption/>` in the {+server+}
+  manual.
+- Adds support for v2 of the Queryable Encryption range protocol. Range indexes for
+  Queryable Encryption are now GA.
+- Adds the ``type`` field to the ``SearchIndexModel`` type to allow
+  programmatic creation of {+search+} and {+vector-search+} indexes. To learn
+  more, see the :ref:`rust-atlas-search-indexes` guide.
+- Implements the Happy Eyeballs algorithm for managing
+  TCP connections. To learn more about this algorithm, see the Rust documentation
+  for the `happy_eyeballs <https://docs.rs/happy_eyeballs/0.2.0/happy_eyeballs/>`__ crate.
+- The driver publishes a ``TopologyDescriptionChangedEvent`` event when a topology
+  closes.
+
+To learn more about this release, see the `v3.1 Release Notes <{+driver-source+}/releases/tag/v3.1.0>`__
+on GitHub.
+
+.. _rust-version-3.0.1:
+
+What's New in 3.0.1
+---------------------
+
+The {+driver-short+} v3.0.1 release includes the following features,
+improvements, and fixes:
+
+- Fixes an issue in which aggregations wouldn't compile when run within explicit
+  sessions and also implemented custom types.
+
+- Fixes an issue in which the ``Collection::watch()`` method didn't use the type
+  parameter of the ``Collection`` instance it was run on.
+
+To learn more about this release, see the `v3.0.1 Release Notes <{+driver-source+}/releases/tag/v3.0.1>`__
+on GitHub.
+
+.. _rust-version-3.0:
+
+What's New in 3.0
+-----------------
+
+The {+driver-short+} v3.0 release includes the following features, improvements, and fixes:
+
+- Implements a fluent API, which introduces the following syntax changes for passing options and
+  starting sessions:
+
+  - To set asynchronous method options, chain option builder methods directly to the method call
+    instead of passing an options struct parameter.
+  
+  - To set synchronous method options, chain option builder methods to the method call, then
+    call the ``run()`` method.
+  
+  - If you must construct a separate options struct, chain the ``with_options()``
+    method to the method call and pass your options struct as a parameter.
+
+  - To start a session, chain the ``session()`` method to the method call instead of using a separate
+    method that has a ``_with_session`` suffix.
+
+- Adds support for bulk write operations. To learn more about these operations, see the 
+  :ref:`rust-bulk-guide` guide.
+
+- Introduces the ``EventHandler`` type to reduce the amount of boilerplate code required for event monitoring. 
+  For examples that use the ``EventHandler`` type, see the guides in the :ref:`Monitoring <rust-cluster-monitoring>` section.
+
+- Removes support for the ``async-std`` asynchronous runtime. To learn more about this change, see
+  the :ref:`rust-runtimes-configure-async` section of the Asynchronous and Synchronous APIs guide.
+
+- Requires the use of a ``compat`` feature if a {+driver-short+} application is compiled with
+  the ``no-default-features`` command line flag. The ``rustls`` and ``dns-resolution`` features
+  are now optional.
+
+- Removes support for the ``bson-*`` driver features. You can select these features by including
+  ``bson`` as a direct dependency in your application.
+
+- Removes support for read and write concern constants. Instead, use helper methods to set ``ReadConcern`` and
+  ``WriteConcern`` values.
+
+- Adds ``Send + Sync`` constraints to the ``Collection<T>`` type.
+
+- Removes the ``ClientOptions::compressor`` field if no compressor features are enabled.
+
+- Changes the type of ``ReadPreferenceOptions`` fields. These fields now have a ``Option<ReadPreferenceOptions>`` type.
+
+- Removes the ``CollectionOptions::human_readable_serialization`` option. Instead, use the ``bson::HumanReadable``
+  wrapper type to serialize user data into human-readable form.
+
+- Adds support for value conversion through the ``Into`` trait for all option struct builders.
+
+- Renames the ``comment_bson`` field to ``comment`` for ``AggregateOptions``, ``FindOptions``, and ``FindOneOptions``
+  structs. 
+
+To learn more about this release, see the `v3.0 Migration Guide
+<{+driver-source+}/blob/main/migration-3.0.md>`__
+on GitHub.
+
+.. _rust-version-2.8:
+
+What's New in 2.8
+-----------------
+
+The {+driver-short+} v2.8 release includes the following features,
+improvements, and fixes:
+
+- Adds MongoDB {+search+} index management methods. To learn more about
+  these methods, see the :ref:`rust-atlas-search-indexes` guide.
+
+- Improves network connectivity and operation reliability by implementing the
+  following behaviors:
+
+  - Performs retries on a greater range of error types that the driver
+    encounters.
+
+  - Avoids retries for ``mongos`` instances experiencing
+    network connectivity issues.
+
+To learn more about this release, see the
+`v2.8.0 Release Highlights
+<{+driver-source+}/releases/tag/v2.8.0>`__
+on GitHub.
+
+.. _rust-version-2.7:
+
+What's New in 2.7
+-----------------
+
+The {+driver-short+} v2.7 release includes the following features,
+improvements, and fixes:
+
+- Adds the ``human_readable_serialization`` option to the
+  ``CollectionOptions`` struct. This option instructs the
+  driver to serialize values passed to CRUD methods as a human-readable
+  format. The default value of this option is ``false``.
+
+  .. warning::
+
+     If you set the value of ``human_readable_serialization`` to
+     ``true``, your insert operations might run more slowly.
+
+- Adds the ``run_cursor_command()`` method to run a database command and
+  retrieve the response as a ``Cursor`` type. To learn more, see the
+  :ref:`rust-run-command` guide.
+
+- Adds SDAM event logging when you use the ``tracing-unstable`` feature
+  flag.
+
+- Adds the following configurations for ``Client`` and connection management:
+
+  - ``max_connecting``: an option that you can set in a ``ClientOptions``
+    struct to specify how many connections you can establish in
+    parallel. To learn more about this option, see
+    :ref:`rust-performance-pool` in the Performance Considerations
+    guide.
+
+  - ``Client::warm_connection_pool()``: a method that you can use to create
+    new connections in the connection pool to provide more
+    predictable performance. When you use this method, the driver
+    attempts to create connections up to the number specified in the
+    ``min_pool_size`` setting.
+
+  - ``Client::shutdown()``: a method that you can use to stop background
+    tasks and wait for handlers to drop. This method can be helpful if
+    you use event handlers to reference external resources, as these
+    handlers might be used in tasks even after the ``Client`` is
+    closed.
+
+To learn more about this release, see the
+`v2.7.0 Release Highlights
+<{+driver-source+}/releases/tag/v2.7.0>`__
+on GitHub.
+
+.. _rust-version-2.6:
+
+What's New in 2.6
+-----------------
+
+The {+driver-short+} v2.6 release includes the following features,
+improvements, and fixes:
+
+- Supports AWS Identity and Access Management
+  (IAM) roles for service accounts, such as Elastic Kubernetes
+  Service (EKS) accounts.
+
+- Supports GCP-attached service accounts when using the Cloud Key
+  Management System (KMS).
+
+- Supports fetching on-demand CSFLE credentials from the Azure KMS.
+
+- Implements the ``FromStr`` trait for the ``Namespace`` struct.
+  This change allows you to parse a string that includes a database and
+  collection name, such as ``"testdb.testcollection"`` into a
+  ``Namespace`` instance.
+
+- Includes the ``server_id`` in a ``ConnectionInfo`` struct as an
+  ``i64`` type.
+
+- Removes most type constraints on values referenced by a ``Cursor``.
+
+- Updates the ``libmongocrypt`` version in the driver dependencies in
+  order to use the Queryable Encryption feature with equality queries.
+
+To learn more about this release, see the
+`v2.6.0 Release Highlights
+<{+driver-source+}/releases/tag/v2.6.0>`__
+on GitHub.

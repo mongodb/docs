@@ -1,0 +1,139 @@
+.. _rust-runtimes:
+
+=================================
+Asynchronous and Synchronous APIs
+=================================
+
+.. meta::
+   :description: Learn to configure and use the MongoDB Rust Driver's asynchronous and synchronous APIs, including examples and setup instructions for both runtimes.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn about the {+driver-short+}'s :ref:`asynchronous <rust-runtimes-configure-async>`
+and :ref:`synchronous <rust-runtimes-configure-sync>` APIs. This guide explains how to enable the available APIs
+and structure your code to use each.
+
+The {+driver-short+} supports the ``tokio`` asynchronous runtime crate, which is the default
+runtime.
+
+The driver also includes a synchronous API for use cases that require blocking, or when parallelism
+is not necessary. You can select the synchronous API by adding feature flags to the ``mongodb`` dependency
+in your ``Cargo.toml`` file.
+
+This guide includes the following sections:
+
+- :ref:`rust-runtimes-configure-async` shows how to configure your application to use the
+  ``tokio`` asynchronous runtime
+
+- :ref:`rust-runtimes-configure-sync` shows how to configure your application to use the
+  ``sync`` and ``tokio-sync`` synchronous runtimes
+
+- :ref:`rust-runtimes-configure-both` shows how to enable both the asynchronous and synchronous
+  runtimes APIs in your application
+
+- :ref:`rust-addtl-info-runtimes` provides links to resources and API documentation for types
+  and methods mentioned in this guide
+
+.. _rust-runtimes-configure-async:
+
+Configure the Asynchronous Runtime
+----------------------------------
+
+The driver uses the ``tokio`` runtime by default, so you can use this runtime without specifying any
+feature flags in your project's ``Cargo.toml`` file. For more information on installing the driver
+and configuring your ``Cargo.toml`` file, see the :ref:`rust-quick-start-download-and-install` step
+of the Quick Start.
+
+.. important::
+
+   Beginning in {+driver-short+} v3.0, the ``tokio`` runtime is the only asynchronous runtime crate that
+   the driver supports. Previous versions of the driver also support the ``async-std`` runtime crate.
+   
+   If your application uses the ``async-std`` runtime, you can start a ``tokio`` runtime in the same
+   application by creating a ``Runtime`` struct instance and wrapping driver operations with the ``Runtime::spawn()``
+   method. Ensure that you use the same ``Runtime`` instance for instantiating a ``Client`` and calling
+   driver methods on that ``Client`` instance.
+   
+   For an example that instantiates a ``Runtime`` and calls the ``spawn()`` method, see the `tokio documentation
+   <https://docs.rs/tokio/latest/tokio/runtime/struct.Runtime.html#examples-2>`__.
+
+Tokio Runtime Example
+~~~~~~~~~~~~~~~~~~~~~
+
+The following code uses the ``task`` module from the ``tokio`` crate
+to create separate, concurrent tasks for multiple data operations:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/runtimes-tokio.rs
+   :language: rust
+   :dedent:
+
+.. _rust-runtimes-configure-sync:
+
+Configure the Synchronous API
+-----------------------------
+
+The driver also provides a blocking, synchronous API.
+To use the ``tokio`` synchronous API, add the ``"sync"`` feature flag to
+the ``mongodb`` dependency, as shown in the following example:
+
+.. code-block:: toml
+
+   [dependencies.mongodb]
+   version = "{+version+}"
+   features = ["sync"]
+
+Synchronous Code Example
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+When using the synchronous API, use types from the ``mongodb::sync`` module to perform operations.
+The following code uses the ``sync`` module to insert data into a collection using the synchronous API.
+When the ``insert_one`` method runs inside the ``for`` loop, the driver waits for each request to complete before continuing.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/runtimes-sync.rs
+   :language: rust
+   :dedent:
+
+.. _rust-runtimes-configure-both:
+
+Use Both Asynchronous and Synchronous APIs
+------------------------------------------
+
+You can use both asynchronous and synchronous APIs in the same application.
+For example, to enable both ``tokio`` runtimes, you can add the ``tokio`` dependency
+to your dependencies list and add the ``"sync"`` flag to the ``mongodb`` dependency:
+
+.. code-block:: toml
+
+   [dependencies]
+   futures = "0.3.28"
+   tokio = {version = "1.32.0", features = ["full"]}
+
+   [dependencies.mongodb]
+   version = "{+version+}"
+   features = ["sync"]
+
+.. _rust-addtl-info-runtimes:
+
+Additional Information
+----------------------
+
+For more information about the concepts in this guide, see the following pages:
+
+- :ref:`Performance Considerations <rust-performance>`
+- `Asynchronous Programming in Rust <https://rust-lang.github.io/async-book/>`__
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `Client <{+api+}/struct.Client.html>`__
+- `sync <{+api+}/sync/index.html>`__

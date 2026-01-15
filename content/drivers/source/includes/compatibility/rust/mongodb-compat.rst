@@ -13,7 +13,7 @@ The following table shows compatibility between the Rust driver and {+mdb-server
      - MongoDB 4.4
      - MongoDB 4.2
 
-   * - 3.1 to 3.4 [#2.5-onwards-limitation]_
+   * - 3.1 to 3.5 [#2.5-onwards-limitation]_
      - ✓
      - ✓
      - ✓
