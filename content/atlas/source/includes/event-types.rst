@@ -1,3 +1,5 @@
+.. Last updated: January 09, 2026 at 03:15 PM EST
+
 .. list-table::
    :header-rows: 1
    :widths: 40 35 10

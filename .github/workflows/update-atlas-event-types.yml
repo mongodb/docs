@@ -1,0 +1,120 @@
+name: Update Atlas Event Types
+
+on:
+  schedule:
+    # Runs every Thursday at 1:15 PM Eastern (18:15 UTC in EST, 19:15 UTC in EDT)
+    # Using 18:15 UTC to cover EST timezone
+    - cron: '15 18 * * 4'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-event-types:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        working-directory: content/tools/atlas-event-types-generator
+        run: npm install
+
+      - name: Get latest Atlas API version
+        run: |
+          # Fetch the versions API and extract the latest version from versions.2.0 array
+          LATEST_VERSION=$(curl -s https://cloud.mongodb.com/api/openapi/versions | jq -r '.versions."2.0" | last')
+          echo "ATLAS_API_VERSION=$LATEST_VERSION" >> $GITHUB_ENV
+          echo "Using Atlas API version: $LATEST_VERSION"
+
+      - name: Generate event types
+        working-directory: content/tools/atlas-event-types-generator
+        env:
+          # Service Account (preferred - use these secrets)
+          ATLAS_CLIENT_ID: ${{ secrets.DOCS_GEN_ATLAS_CLIENT_ID }}
+          ATLAS_CLIENT_SECRET: ${{ secrets.DOCS_GEN_ATLAS_CLIENT_SECRET }}
+          # API Key (fallback - only used if service account secrets not set)
+          ATLAS_PUBLIC_KEY: ${{ secrets.ATLAS_PUBLIC_KEY }}
+          ATLAS_PRIVATE_KEY: ${{ secrets.ATLAS_PRIVATE_KEY }}
+          ATLAS_API_VERSION: ${{ env.ATLAS_API_VERSION }}
+        run: |
+          node event-types-generator.js > temp-output.rst
+
+      - name: Update event types file with timestamp
+        run: |
+          # Generate timestamp
+          TIMESTAMP=$(TZ='America/New_York' date '+%B %d, %Y at %I:%M %p %Z')
+          
+          # Check if events have changed
+          tail -n +2 content/atlas/source/includes/event-types.rst > current-content.rst || touch current-content.rst
+          
+          # Compare the new output (skip timestamp line if it exists)
+          if diff -q content/tools/atlas-event-types-generator/temp-output.rst current-content.rst > /dev/null 2>&1; then
+            echo "events_changed=false" >> $GITHUB_ENV
+            echo "No changes in event types, updating timestamp only"
+            
+            # Keep existing content, only update timestamp
+            echo ".. Last updated: $TIMESTAMP" > content/atlas/source/includes/event-types.rst
+            echo "" >> content/atlas/source/includes/event-types.rst
+            cat current-content.rst >> content/atlas/source/includes/event-types.rst
+          else
+            echo "events_changed=true" >> $GITHUB_ENV
+            echo "Event types have changed, updating content and timestamp"
+            
+            # Update with new content and timestamp
+            echo ".. Last updated: $TIMESTAMP" > content/atlas/source/includes/event-types.rst
+            echo "" >> content/atlas/source/includes/event-types.rst
+            cat content/tools/atlas-event-types-generator/temp-output.rst >> content/atlas/source/includes/event-types.rst
+          fi
+          
+          # Clean up temp files
+          rm -f content/tools/atlas-event-types-generator/temp-output.rst current-content.rst
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            Update Atlas event types - ${{ env.events_changed == 'true' && 'Events changed' || 'Timestamp refresh' }}
+          branch: update-atlas-event-types-${{ github.run_number }}
+          delete-branch: true
+          title: |
+            Update Atlas Event Types - ${{ env.events_changed == 'true' && 'Events Changed' || 'Timestamp Refresh' }}
+          body: |
+            ## Atlas Event Types Update
+            
+            **Run Date:** ${{ github.event.schedule && 'Scheduled' || 'Manual' }} - $(TZ='America/New_York' date '+%B %d, %Y at %I:%M %p %Z')
+            **Events Changed:** ${{ env.events_changed == 'true' && 'Yes ✅' || 'No - Timestamp only' }}
+            
+            This automated PR updates the Atlas event types documentation from the MongoDB Atlas API.
+            
+            ${{ env.events_changed == 'true' && '### Changes Detected\nThe event types list has been updated with new or modified events from the Atlas API.' || '### No Changes\nNo changes were detected in the event types. The timestamp has been refreshed to reflect the latest check.' }}
+            
+            ---
+            
+            @jwilliams-mongo Please review this automated update.
+            
+            <details>
+            <summary>About this automation</summary>
+            
+            This workflow runs every Thursday at 1:15 PM Eastern and:
+            1. Fetches the latest event types from the MongoDB Atlas Admin API
+            2. Generates an updated event types table
+            3. Updates the timestamp at the top of the include file
+            4. Creates this PR for review
+            
+            Event types file: `content/atlas/source/includes/event-types.rst`
+            </details>
+          labels: |
+            automated
+            documentation
+          reviewers: jwilliams-mongo
