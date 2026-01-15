@@ -1,0 +1,1 @@
+db.users.insertOne( { name: "Arya Stark" } )

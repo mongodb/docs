@@ -38,13 +38,13 @@ To create a sparse index, use the :method:`db.collection.createIndex()`
 method with the ``sparse`` option set to ``true``.
 
 For example, the following operation in :binary:`~bin.mongosh` creates a
-sparse index on the ``xmpp_id`` field of the ``addresses`` collection:
+sparse index on the ``plot`` field of the ``movies`` collection:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/create-1.js
+   :language: javascript
+   :category: usage example
 
-   db.addresses.createIndex( { "xmpp_id": 1 }, { sparse: true } )
-
-The index does not index documents that do not include the ``xmpp_id``
+The index does not index documents that do not include the ``plot``
 field.
 
 .. note::
@@ -65,8 +65,8 @@ If a sparse index would result in an incomplete result set for queries
 and sort operations, MongoDB will not use that index unless a
 :method:`~cursor.hint()` explicitly specifies the index.
 
-For example, the query ``{ x: { $exists: false } }`` will not use a
-sparse index on the ``x`` field unless explicitly hinted. See
+For example, the query ``{ plot: { $exists: false } }`` will not use a
+sparse index on the ``plot`` field unless explicitly hinted. See
 :ref:`sparse-index-incomplete-results` for an example that details the
 behavior.
 
@@ -107,90 +107,56 @@ Examples
 Create a Sparse Index On A Collection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider a collection ``scores`` that contains the following documents:
+The following example creates a sparse index on the field ``password``:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/create-2.js
+   :language: javascript
+   :category: usage example
 
-   { "_id" : ObjectId("523b6e32fb408eea0eec2647"), "userid" : "newbie" }
-   { "_id" : ObjectId("523b6e61fb408eea0eec2648"), "userid" : "abby", "score" : 82 }
-   { "_id" : ObjectId("523b6e6ffb408eea0eec2649"), "userid" : "nina", "score" : 90 }
+Then, the following query on the ``users`` collection uses the sparse
+index to return the documents that have the ``password`` field:
 
-The collection has a sparse index on the field ``score``:
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/query-1.js
+   :language: javascript
+   :category: usage example
 
-.. code-block:: javascript
-
-   db.scores.createIndex( { score: 1 } , { sparse: true } )
-
-Then, the following query on the ``scores`` collection uses the sparse
-index to return the documents that have the ``score`` field less than
-(:query:`$lt`) ``90``:
-
-.. code-block:: javascript
-
-   db.scores.find( { score: { $lt: 90 } } )
-
-Because the document for the userid ``"newbie"`` does not contain the
-``score`` field and thus does not meet the query criteria, the query
-can use the sparse index to return the results:
-
-.. code-block:: javascript
-
-   { "_id" : ObjectId("523b6e61fb408eea0eec2648"), "userid" : "abby", "score" : 82 }
+If a user does not contain the
+``password`` field, the query does not return that user. 
 
 .. _sparse-index-incomplete-results:
 
 Sparse Index On A Collection Cannot Return Complete Results
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider a collection ``scores`` that contains the following documents:
+Consider the ``movies`` collection where some documents do not have a ``plot``
+field.
 
-.. code-block:: javascript
+The following example creates a sparse index on the field ``plot``:
 
-   { "_id" : ObjectId("523b6e32fb408eea0eec2647"), "userid" : "newbie" }
-   { "_id" : ObjectId("523b6e61fb408eea0eec2648"), "userid" : "abby", "score" : 82 }
-   { "_id" : ObjectId("523b6e6ffb408eea0eec2649"), "userid" : "nina", "score" : 90 }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/create-1.js
+   :language: javascript
+   :category: usage example
 
-The collection has a sparse index on the field ``score``:
+Consider the following query to return **all** documents in the ``movies``
+collection, sorted by the ``plot`` field:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/query-2.js
+   :language: javascript
+   :category: usage example
 
-   db.scores.createIndex( { score: 1 } , { sparse: true } )
-
-Because the document for the userid ``"newbie"`` does not contain the
-``score`` field, the sparse index does not contain an entry for that
-document.
-
-Consider the following query to return **all** documents in the ``scores``
-collection, sorted by the ``score`` field:
-
-.. code-block:: javascript
-
-   db.scores.find().sort( { score: -1 } )
-
-Even though the sort is by the indexed field, MongoDB will **not**
-select the sparse index to fulfill the query in order to return
-complete results:
-
-.. code-block:: javascript
-
-   { "_id" : ObjectId("523b6e6ffb408eea0eec2649"), "userid" : "nina", "score" : 90 }
-   { "_id" : ObjectId("523b6e61fb408eea0eec2648"), "userid" : "abby", "score" : 82 }
-   { "_id" : ObjectId("523b6e32fb408eea0eec2647"), "userid" : "newbie" }
+Even though the sort is by the indexed field, if some documents in the
+``movies`` collection do not have a ``plot`` field, MongoDB does **not** select
+the sparse index to fulfill the query in order to return complete results.
 
 To use the sparse index, explicitly specify the index with
 :method:`~cursor.hint()`:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/query-3.js
+   :language: javascript
+   :category: usage example
 
-   db.scores.find().sort( { score: -1 } ).hint( { score: 1 } )
-
-The use of the index results in the return of only those documents with
-the ``score`` field:
-
-.. code-block:: javascript
-
-   { "_id" : ObjectId("523b6e6ffb408eea0eec2649"), "userid" : "nina", "score" : 90 }
-   { "_id" : ObjectId("523b6e61fb408eea0eec2648"), "userid" : "abby", "score" : 82 }
+This query only returns documents in the ``movies`` collection that contain the
+``plot`` field. 
 
 .. seealso::
 
@@ -201,46 +167,26 @@ the ``score`` field:
 Sparse Index with Unique Constraint
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider a collection ``scores`` that contains the following documents:
+The following operation creates an index with a :ref:`unique constraint
+<index-type-unique>` and sparse filter on the ``password`` field in the
+``users``:
 
-.. code-block:: javascript
-
-   { "_id" : ObjectId("523b6e32fb408eea0eec2647"), "userid" : "newbie" }
-   { "_id" : ObjectId("523b6e61fb408eea0eec2648"), "userid" : "abby", "score" : 82 }
-   { "_id" : ObjectId("523b6e6ffb408eea0eec2649"), "userid" : "nina", "score" : 90 }
-
-You could create an index with a :ref:`unique constraint
-<index-type-unique>` and sparse filter on the ``score`` field using
-the following operation:
-
-.. code-block:: javascript
-
-   db.scores.createIndex( { score: 1 } , { sparse: true, unique: true } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/create-4.js
+   :language: javascript
+   :category: usage example
 
 This index *would permit* the insertion of documents that had unique
-values for the ``score`` field *or* did not include a ``score`` field.
-As such, given the existing documents in the ``scores`` collection, the
+values for the ``password`` field *or* did not include a ``password`` field.
+As such, given the existing documents in the ``users`` collection, the
 index permits the following :doc:`insert operations
 </tutorial/insert-documents>`:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/insert.js
+   :language: javascript
+   :category: usage example
 
-   db.scores.insertMany( [
-      { "userid": "newbie", "score": 43 },
-      { "userid": "abby", "score": 34 },
-      { "userid": "nina" }
-   ] )
-
-However, the index *would not permit* the addition of the following
-documents since documents already exists with ``score`` value of ``82``
-and ``90``:
-
-.. code-block:: javascript
-
-   db.scores.insertMany( [
-      { "userid": "newbie", "score": 82 },
-      { "userid": "abby", "score": 90 }
-   ] )
+However, the index *would not permit* the addition of the 
+documents that contain email addresses that already exist in the collection.
 
 .. _sparse-and-non-sparse_example:
 

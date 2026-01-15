@@ -1,0 +1,1 @@
+db.movies.find( { genres: "Drama" }, { title: 1 } ).limit(5)

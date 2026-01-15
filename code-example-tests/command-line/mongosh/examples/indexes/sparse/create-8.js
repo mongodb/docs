@@ -1,0 +1,1 @@
+db.users.createIndex( { password : 1 }, { name: "basic_index" } )

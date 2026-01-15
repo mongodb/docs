@@ -1,0 +1,1 @@
+db.movies.createIndex( { plot: 1 } , { sparse: true } )

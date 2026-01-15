@@ -1,0 +1,1 @@
+db.users.createIndex( { password : 1 }, { name: "sparse_index", sparse: true } )

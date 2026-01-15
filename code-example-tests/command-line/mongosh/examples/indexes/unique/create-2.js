@@ -1,0 +1,1 @@
+db.users.createIndex( { name: 1, email: 1, password: 1 }, { unique: true } )

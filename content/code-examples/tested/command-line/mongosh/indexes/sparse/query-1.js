@@ -1,0 +1,1 @@
+db.users.find( { password: { $exists: true } } ).sort({ password: 1 }).limit(5)

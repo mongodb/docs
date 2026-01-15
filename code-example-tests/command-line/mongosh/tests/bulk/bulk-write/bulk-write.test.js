@@ -5,6 +5,79 @@ describe("bulkWrite examples", () => {
    const dbName = "sample_mflix";
 
    /**
+    * Comprehensive cleanup function to revert all write operations from all tests.
+    * This ensures the database is in a clean state before and after each test.
+    */
+   const cleanupAllBulkWriteTests = () => {
+      const mongoUri = process.env.CONNECTION_STRING;
+
+      const cleanupCommands = `
+         db = db.getSiblingDB('${dbName}');
+         
+         // Clean up all test users
+         db.users.deleteMany({ email: { \\$in: ['cersei.l@example.com', 'sansa.s@example.com'] } });
+         db.users.deleteOne({ _id: ObjectId('67a1b2c3d4e5f6a7b8c9d0e1') });
+         db.users.deleteOne({ _id: ObjectId('67a1b2c3d4e5f6a7b8c9d0e2') });
+         db.users.deleteOne({ _id: ObjectId('67a1b2c3d4e5f6a7b8c9d0e3') });
+         db.users.deleteOne({ _id: ObjectId('67a1b2c3d4e5f6a7b8c9d0e7') });
+         db.users.deleteOne({ _id: ObjectId('67a1b2c3d4e5f6a7b8c9d0e8') });
+         db.users.deleteOne({ _id: ObjectId('67a1b2c3d4e5f6a7b8c9d0e9') });
+         
+         // Restore Ned Stark's email
+         db.users.updateOne({ name: 'Ned Stark' }, { \\$set: { email: 'sean_bean@gameofthron.es' } });
+         
+         // Restore original users if they were deleted/replaced
+         db.users.deleteOne({ name: 'Catelyn Stark' });
+         db.users.insertOne({ _id: ObjectId('59b99db5cfa9a34dcd7885b9'), name: 'Catelyn Stark', email: 'michelle_fairley@gameofthron.es', password: '\\$2b\\$12\\$fiaTH5Sh1zKNFX2i/FTEreWGjxoJxvmV7XL.qlfqCr8CwOxK.mZWS' });
+         
+         db.users.deleteOne({ name: 'Robb Stark' });
+         db.users.insertOne({ _id: ObjectId('59b99dbacfa9a34dcd7885c2'), name: 'Robb Stark', email: 'richard_madden@gameofthron.es', password: '\\$2b\\$12\\$XPLvWQW7tjWc/PX9jMVRnO8w.lR6hv144ee8pc8nDsWIAWxfwxHzy' });
+         
+         // Only restore Ned if missing (from insert-error test)
+         if (db.users.countDocuments({ _id: ObjectId('59b99db4cfa9a34dcd7885b6') }) === 0) {
+            db.users.insertOne({ _id: ObjectId('59b99db4cfa9a34dcd7885b6'), name: 'Ned Stark', email: 'sean_bean@gameofthron.es', password: '\\$2b\\$12\\$UREFwsRUoyF0CRqGNK0LzO0HM/jLhgUCNNIJ9RJAqMUQ74crlJ1Vu' });
+         }
+         
+         // Remove test fields from Stark users
+         db.users.updateMany({ name: { \\$regex: /Stark\\$/ } }, { \\$unset: { house: 1, verified: 1, title: 1 } });
+         
+         // Restore theater data
+         db.theaters.updateOne({ theaterId: 1000 }, { \\$set: { 'location.address.street1': '340 W Market', 'location.address.city': 'Bloomington' } });
+         db.theaters.updateMany({ theaterId: { \\$lt: 1010 } }, { \\$unset: { status: 1 } });
+         
+         // Restore deleted/modified theaters
+         db.theaters.deleteOne({ _id: ObjectId('59a47286cfa9a3a73e51e72c') });
+         db.theaters.insertOne({ _id: ObjectId('59a47286cfa9a3a73e51e72c'), theaterId: 1000, location: { address: { street1: '340 W Market', city: 'Bloomington', state: 'MN', zipcode: '55425' }, geo: { type: 'Point', coordinates: [-93.24565, 44.85466] } } });
+         
+         // Restore VT theaters if deleted
+         if (db.theaters.countDocuments({ _id: ObjectId('59a47287cfa9a3a73e51eae6') }) === 0) {
+            db.theaters.insertOne({ _id: ObjectId('59a47287cfa9a3a73e51eae6'), theaterId: 360, location: { address: { street1: '26 Cypress St', city: 'Williston', state: 'VT', zipcode: '05495' }, geo: { type: 'Point', coordinates: [-73.108429, 44.443977] } } });
+         }
+         if (db.theaters.countDocuments({ _id: ObjectId('59a47287cfa9a3a73e51ec9c') }) === 0) {
+            db.theaters.insertOne({ _id: ObjectId('59a47287cfa9a3a73e51ec9c'), theaterId: 8159, location: { address: { street1: '1200 Airport Drive', street2: null, city: 'S. Burlington', state: 'VT', zipcode: '5403' }, geo: { type: 'Point', coordinates: [-73.154758, 44.469108] } } });
+         }
+      `;
+
+      const command = `mongosh "${mongoUri}" --eval "${cleanupCommands}"`;
+
+      try {
+         execSync(command, { encoding: "utf8" });
+      } catch (error) {
+         console.error(`Failed to clean up bulk write test data:`, error.message);
+      }
+   };
+
+   // Run cleanup before each test to ensure clean state
+   beforeEach(() => {
+      cleanupAllBulkWriteTests();
+   });
+
+   // Run cleanup after each test to restore database state
+   afterEach(() => {
+      cleanupAllBulkWriteTests();
+   });
+
+   /**
     * Cleanup function to revert write operations from write-getMongo.js
     */
    const cleanupGetMongoBulkWriteData = () => {
@@ -27,7 +100,7 @@ describe("bulkWrite examples", () => {
    const cleanupInsert = () => {
       const mongoUri = process.env.CONNECTION_STRING;
 
-      const cleanupCommands = `db = db.getSiblingDB('${dbName}'); db.users.deleteOne({ _id: ObjectId('67a1b2c3d4e5f6a7b8c9d0e2') }); db.users.deleteOne({ _id: ObjectId('67a1b2c3d4e5f6a7b8c9d0e3') }); db.users.updateOne({ name: 'Ned Stark' }, { \\$unset: { email: 1 } });`;
+      const cleanupCommands = `db = db.getSiblingDB('${dbName}'); db.users.deleteOne({ _id: ObjectId('67a1b2c3d4e5f6a7b8c9d0e2') }); db.users.deleteOne({ _id: ObjectId('67a1b2c3d4e5f6a7b8c9d0e3') }); db.users.updateOne({ name: 'Ned Stark' }, { \\$set: { email: 'sean_bean@gameofthron.es' } });`;
 
       const command = `mongosh "${mongoUri}" --eval "${cleanupCommands}"`;
 
@@ -120,8 +193,6 @@ describe("bulkWrite examples", () => {
          .withDbName(dbName)
          .withIgnoredFields("insertedId")
          .shouldMatch(outputFile);
-
-      cleanupGetMongoBulkWriteData();
    });
 
    test("Should return confirmation of a bulk write insert operation", async () => {
@@ -134,8 +205,6 @@ describe("bulkWrite examples", () => {
          .withDbName(dbName)
          .withIgnoredFields("insertedId")
          .shouldMatch(outputFile);
-
-      cleanupInsert();
    });
 
    test("Should return confirmation a bulk write insert operation with 1 insert and 2 modified", async () => {
@@ -148,8 +217,6 @@ describe("bulkWrite examples", () => {
          .withDbName(dbName)
          .withIgnoredFields("insertedId")
          .shouldMatch(outputFile);
-
-      cleanupInsertError();
    });
 
    test("Should return confirmation of a bulk write insert operation with write concern set", async () => {
@@ -162,8 +229,6 @@ describe("bulkWrite examples", () => {
          .withDbName(dbName)
          .withIgnoredFields("insertedId")
          .shouldMatch(outputFile);
-
-      cleanupMajorityWriteConcern();
    });
 
    test("Should return confirmation of a bulk write insert on a single namespace", async () => {
@@ -176,8 +241,6 @@ describe("bulkWrite examples", () => {
          .withDbName(dbName)
          .withIgnoredFields("insertedId")
          .shouldMatch(outputFile);
-
-      cleanupSingleNamespace();
    });
 
    test("Should return confirmation of a bulk write insert on multiple namespaces", async () => {
@@ -190,8 +253,6 @@ describe("bulkWrite examples", () => {
          .withDbName(dbName)
          .withIgnoredFields("insertedId")
          .shouldMatch(outputFile);
-
-      cleanupMultipleNamespaces();
    });
 
 });

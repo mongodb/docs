@@ -1,0 +1,1 @@
+db.users.find( { name: "Ned Stark", email: { $exists: false } } )

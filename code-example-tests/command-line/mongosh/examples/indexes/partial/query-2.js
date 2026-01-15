@@ -1,0 +1,1 @@
+db.users.find( { name: "Ned Stark", password: { $exists: false } } )

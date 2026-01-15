@@ -1,0 +1,1 @@
+db.movies.find( { title: "The Three Musketeers", genres: ["Action", "Adventure", "Comedy"], rated: "PG" }, { writers: 1 } )

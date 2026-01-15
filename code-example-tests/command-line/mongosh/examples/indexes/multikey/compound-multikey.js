@@ -1,0 +1,1 @@
+db.movies.createIndex( { genres: 1, title: 1 } )

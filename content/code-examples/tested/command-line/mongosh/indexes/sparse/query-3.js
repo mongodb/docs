@@ -1,0 +1,1 @@
+db.movies.find().sort( { plot: -1 } ).hint( { plot: 1 } ).limit(5)
