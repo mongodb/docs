@@ -98,6 +98,14 @@ SUCCESS MESSAGES WHEN YOU HAVE FAILING TESTS. The user hates that. Just iterate
 until you have resolved test failures - don't call a partial implementation
 with a mix of passing and failing tests "complete" or "successful."
 
+### Project-Specific Testing Patterns
+
+Some projects have additional documentation for common test patterns and
+troubleshooting:
+
+- **mongosh**: See `code-example-tests/command-line/mongosh/TESTING-PATTERNS.md`
+  for mongosh-specific test patterns, the Expect API, and common failure fixes.
+
 ## When working on platform
 
 Platform has not yet defined any instructions.
