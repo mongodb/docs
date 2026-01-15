@@ -1,0 +1,218 @@
+name: Monthly Typo Scan
+
+on:
+  schedule:
+    # Run at 3:00 AM UTC on the 1st of every month
+    - cron: '0 3 1 * *'
+  workflow_dispatch:
+    inputs:
+      create_pr:
+        description: 'Create PR with fixes'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  scan-and-fix-typos:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install cspell
+        run: npm install -g cspell@latest
+      
+      - name: Run spell check (future-proof scan)
+        id: spellcheck
+        run: |
+          # Create temp file list - includes all doc formats
+          find content -type f \( -name "*.txt" -o -name "*.rst" -o -name "*.md" -o -name "*.mdx" \) \
+            ! -path "*/includes/*" \
+            ! -path "*/node_modules/*" \
+            ! -path "*/.git/*" \
+            ! -path "*/changelogs/*" \
+            > /tmp/files-to-scan.txt
+          
+          # Run cspell and save full output
+          cspell "content/**/*.txt" "content/**/*.rst" "content/**/*.md" "content/**/*.mdx" \
+            --config .cspell/cspell.json \
+            --no-progress 2>&1 | grep "fix:" > /tmp/typo-output.txt || true
+          
+          TYPO_COUNT=$(wc -l < /tmp/typo-output.txt | tr -d ' ')
+          echo "typo_count=$TYPO_COUNT" >> $GITHUB_OUTPUT
+          
+          # Generate simple PR report (just project + count)
+          echo "## 🔤 Monthly Typo Fixes" > typo-report.md
+          echo "" >> typo-report.md
+          echo "**Scan date:** $(date -u '+%Y-%m-%d %H:%M UTC')" >> typo-report.md
+          echo "" >> typo-report.md
+          
+          if [ "$TYPO_COUNT" -gt 0 ]; then
+            echo "### Typos Fixed by Project" >> typo-report.md
+            echo "" >> typo-report.md
+            echo "| Project | Typos Fixed |" >> typo-report.md
+            echo "|---------|-------------|" >> typo-report.md
+            
+            # Count by project (second folder in path)
+            cat /tmp/typo-output.txt | cut -d'/' -f2 | sort | uniq -c | sort -rn | while read count project; do
+              echo "| **$project** | $count |" >> typo-report.md
+            done
+            
+            echo "" >> typo-report.md
+            echo "---" >> typo-report.md
+            echo "" >> typo-report.md
+            echo "**Total: $TYPO_COUNT typos fixed**" >> typo-report.md
+          else
+            echo "✅ No typos found!" >> typo-report.md
+          fi
+          
+          # Save full output for artifact
+          cp /tmp/typo-output.txt typo-full-list.txt
+      
+      - name: Auto-fix common typos
+        if: steps.spellcheck.outputs.typo_count > 0
+        run: |
+          # Fix typos in all doc files (.txt, .rst, .md, .mdx)
+          find content -type f \( -name "*.txt" -o -name "*.rst" -o -name "*.md" -o -name "*.mdx" \) \
+            ! -path "*/includes/*" \
+            ! -path "*/changelogs/*" \
+            -exec sed -i \
+            -e 's/reccomendations/recommendations/g' \
+            -e 's/inefficent/inefficient/g' \
+            -e 's/compatibilty/compatibility/g' \
+            -e 's/obssessed/obsessed/g' \
+            -e 's/collecion/collection/g' \
+            -e 's/individally/individually/g' \
+            -e 's/mininum/minimum/g' \
+            -e 's/prefered/preferred/g' \
+            -e 's/pipleline/pipeline/g' \
+            -e 's/thresold/threshold/g' \
+            -e 's/neccessary/necessary/g' \
+            -e 's/propogate/propagate/g' \
+            -e 's/specifed/specified/g' \
+            -e 's/Farenheit/Fahrenheit/g' \
+            -e 's/exisiting/existing/g' \
+            -e 's/authetication/authentication/g' \
+            -e 's/seperate/separate/g' \
+            -e 's/indentifier/identifier/g' \
+            -e 's/parition/partition/g' \
+            -e 's/sevice/service/g' \
+            -e 's/similiar/similar/g' \
+            -e 's/recomend/recommend/g' \
+            -e 's/acknowleged/acknowledged/g' \
+            -e 's/Dependecies/Dependencies/g' \
+            -e 's/recieves/receives/g' \
+            -e 's/Apperance/Appearance/g' \
+            -e 's/indepedent/independent/g' \
+            -e 's/embeded/embedded/g' \
+            -e 's/calcualted/calculated/g' \
+            -e 's/Synthax/Syntax/g' \
+            -e 's/Onlice/Online/g' \
+            -e 's/ecah/each/g' \
+            -e 's/limiatations/limitations/g' \
+            -e 's/Monog/Mongo/g' \
+            -e 's/provisining/provisioning/g' \
+            -e 's/scnenario/scenario/g' \
+            -e 's/recrd/record/g' \
+            -e 's/Udate/Update/g' \
+            -e 's/Imge/Image/g' \
+            -e 's/availibility/availability/g' \
+            -e 's/transction/transaction/g' \
+            -e 's/occurance/occurrence/g' \
+            -e 's/verison/version/g' \
+            -e 's/commited/committed/g' \
+            -e 's/visiblity/visibility/g' \
+            -e 's/Supress/Suppress/g' \
+            -e 's/insuffcient/insufficient/g' \
+            -e 's/successs/success/g' \
+            -e 's/explcit/explicit/g' \
+            -e 's/Altas/Atlas/g' \
+            -e 's/unqiue/unique/g' \
+            -e 's/Afer/After/g' \
+            -e 's/Recipent/Recipient/g' \
+            -e 's/stablize/stabilize/g' \
+            -e 's/indefinetly/indefinitely/g' \
+            -e 's/Satify/Satisfy/g' \
+            -e 's/trucated/truncated/g' \
+            -e 's/occured/occurred/g' \
+            -e 's/specfied/specified/g' \
+            -e 's/syncronize/synchronize/g' \
+            -e 's/Subtring/Substring/g' \
+            -e 's/asychronous/asynchronous/g' \
+            -e 's/peformance/performance/g' \
+            -e 's/compatbility/compatibility/g' \
+            -e 's/deployement/deployment/g' \
+            -e 's/completly/completely/g' \
+            -e 's/Editon/Edition/g' \
+            -e 's/gaurantee/guarantee/g' \
+            -e 's/devlopment/development/g' \
+            -e 's/mutli/multi/g' \
+            -e 's/enviornment/environment/g' \
+            -e 's/achitecture/architecture/g' \
+            -e 's/architechture/architecture/g' \
+            -e 's/applicaiton/application/g' \
+            -e 's/eample/example/g' \
+            -e 's/impliment/implement/g' \
+            -e 's/assitance/assistance/g' \
+            -e 's/betweeen/between/g' \
+            -e 's/worklfow/workflow/g' \
+            -e 's/doesnt/does not/g' \
+            {} \;
+      
+      - name: Create Pull Request
+        if: steps.spellcheck.outputs.typo_count > 0 && (github.event.inputs.create_pr == 'true' || github.event_name == 'schedule')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Create branch and commit
+          BRANCH_NAME="automated/typo-fixes-$(date +%Y%m)"
+          git checkout -b "$BRANCH_NAME"
+          git add -A
+          git commit -m "fix: Auto-fix ${{ steps.spellcheck.outputs.typo_count }} typos found by monthly scan"
+          git push origin "$BRANCH_NAME" --force
+          
+          # Create or update PR using gh CLI
+          PR_EXISTS=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' || echo "")
+          
+          if [ -n "$PR_EXISTS" ]; then
+            echo "Updating existing PR #$PR_EXISTS"
+            gh pr edit "$PR_EXISTS" --body-file typo-report.md
+          else
+            echo "Creating new PR"
+            gh pr create \
+              --title "🔤 Monthly Typo Fixes - ${{ steps.spellcheck.outputs.typo_count }} corrections" \
+              --body-file typo-report.md \
+              --label "typo-bot" \
+              --label "automated" \
+              --reviewer "emetozar"
+          fi
+      
+      - name: Upload full report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: typo-report-${{ github.run_number }}
+          path: |
+            typo-report.md
+            typo-full-list.txt
+          retention-days: 30
+      
+      - name: Job Summary
+        run: |
+          echo "## 🔤 Monthly Typo Scan Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat typo-report.md >> $GITHUB_STEP_SUMMARY
