@@ -1,4 +1,4 @@
-name: Monthly Typo Scan
+name: Periodic Typo Scan
 
 on:
   schedule:
@@ -18,6 +18,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      issues: write
     
     steps:
       - name: Checkout repository
@@ -36,26 +37,48 @@ jobs:
       - name: Run spell check (future-proof scan)
         id: spellcheck
         run: |
-          # Create temp file list - includes all doc formats
-          find content -type f \( -name "*.txt" -o -name "*.rst" -o -name "*.md" -o -name "*.mdx" \) \
+          # Debug: Check config exists
+          echo "=== Checking config ==="
+          if [ ! -d ".cspell" ]; then
+            echo "::error::Missing .cspell directory!"
+            exit 1
+          fi
+          ls -la .cspell/
+          
+          # Debug: Count files to scan
+          echo "=== Counting files ==="
+          FILE_COUNT=$(find content -type f \( -name "*.txt" -o -name "*.rst" -o -name "*.md" -o -name "*.mdx" \) \
             ! -path "*/includes/*" \
             ! -path "*/node_modules/*" \
             ! -path "*/.git/*" \
-            ! -path "*/changelogs/*" \
-            > /tmp/files-to-scan.txt
+            ! -path "*/changelogs/*" | wc -l)
+          echo "Found $FILE_COUNT files to scan"
           
-          # Run cspell and save full output
+          if [ "$FILE_COUNT" -eq 0 ]; then
+            echo "::error::No documentation files found to scan!"
+            exit 1
+          fi
+          
+          # Run cspell and capture output (filter for "Unknown word" lines)
+          echo "=== Running cspell ==="
           cspell "content/**/*.txt" "content/**/*.rst" "content/**/*.md" "content/**/*.mdx" \
             --config .cspell/cspell.json \
-            --no-progress 2>&1 | grep "fix:" > /tmp/typo-output.txt || true
+            --no-progress 2>&1 | tee /tmp/cspell-raw.txt | grep "Unknown word" > /tmp/typo-output.txt || true
+          
+          # Debug: Show sample of raw output
+          echo "=== Raw cspell output (first 20 lines) ==="
+          head -20 /tmp/cspell-raw.txt || echo "No raw output"
           
           TYPO_COUNT=$(wc -l < /tmp/typo-output.txt | tr -d ' ')
+          echo "=== Found $TYPO_COUNT typos ==="
           echo "typo_count=$TYPO_COUNT" >> $GITHUB_OUTPUT
+          echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
           
           # Generate simple PR report (just project + count)
-          echo "## 🔤 Monthly Typo Fixes" > typo-report.md
+          echo "## 🔤 Periodic Typo Fixes" > typo-report.md
           echo "" >> typo-report.md
           echo "**Scan date:** $(date -u '+%Y-%m-%d %H:%M UTC')" >> typo-report.md
+          echo "**Files scanned:** $FILE_COUNT" >> typo-report.md
           echo "" >> typo-report.md
           
           if [ "$TYPO_COUNT" -gt 0 ]; then
@@ -183,7 +206,7 @@ jobs:
           BRANCH_NAME="automated/typo-fixes-$(date +%Y%m)"
           git checkout -b "$BRANCH_NAME"
           git add -A
-          git commit -m "fix: Auto-fix ${{ steps.spellcheck.outputs.typo_count }} typos found by monthly scan"
+          git commit -m "fix: Auto-fix ${{ steps.spellcheck.outputs.typo_count }} typos found by periodic scan"
           git push origin "$BRANCH_NAME" --force
           
           # Create or update PR using gh CLI
@@ -195,7 +218,7 @@ jobs:
           else
             echo "Creating new PR"
             gh pr create \
-              --title "🔤 Monthly Typo Fixes - ${{ steps.spellcheck.outputs.typo_count }} corrections" \
+              --title "🔤 Periodic Typo Fixes - ${{ steps.spellcheck.outputs.typo_count }} corrections" \
               --body-file typo-report.md \
               --label "typo-bot" \
               --label "automated" \
@@ -203,6 +226,7 @@ jobs:
           fi
       
       - name: Upload full report as artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: typo-report-${{ github.run_number }}
@@ -212,7 +236,51 @@ jobs:
           retention-days: 30
       
       - name: Job Summary
+        if: always()
         run: |
-          echo "## 🔤 Monthly Typo Scan Complete" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔤 Periodic Typo Scan Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          cat typo-report.md >> $GITHUB_STEP_SUMMARY
+          if [ -f typo-report.md ]; then
+            cat typo-report.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ No report generated" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      # Notification on failure - creates an issue to alert maintainers
+      - name: Create failure issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if there's already an open failure issue
+          EXISTING_ISSUE=$(gh issue list --label "typo-bot-failure" --state open --json number --jq '.[0].number' || echo "")
+          
+          if [ -z "$EXISTING_ISSUE" ]; then
+            gh issue create \
+              --title "⚠️ Periodic Typo Scan Failed - $(date +%Y-%m-%d)" \
+              --body "## Workflow Failure Alert
+
+The periodic typo scan workflow failed on **$(date -u '+%Y-%m-%d %H:%M UTC')**.
+
+### Details
+- **Run ID:** ${{ github.run_id }}
+- **Run URL:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+### Possible Causes
+- Missing \`.cspell/\` configuration directory
+- No documentation files found in \`content/\`
+- cspell configuration errors
+- Network/infrastructure issues
+
+### Next Steps
+1. Check the [workflow run logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+2. Verify the \`.cspell/\` directory and config exist
+3. Re-run the workflow manually once fixed
+
+/cc @emetozar" \
+              --label "typo-bot-failure" \
+              --label "automated" \
+              --assignee "emetozar"
+          else
+            echo "Failure issue #$EXISTING_ISSUE already exists, not creating duplicate"
+          fi
