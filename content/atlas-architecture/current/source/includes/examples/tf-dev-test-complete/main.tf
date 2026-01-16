@@ -10,6 +10,10 @@ resource "mongodbatlas_advanced_cluster" "atlas-cluster" {
   name = "ClusterPortalDev"
   cluster_type = "REPLICASET"
   mongo_db_major_version = var.mongodb_version
+  # MongoDB recommends enabling auto-scaling
+  # When auto-scaling is enabled, Atlas may change the instance size, and this use_effective_fields
+  # block prevents Terraform from reverting Atlas auto-scaling changes
+  use_effective_fields = true
   replication_specs = [
     {
       region_configs = [
@@ -32,13 +36,7 @@ resource "mongodbatlas_advanced_cluster" "atlas-cluster" {
       ]
     }
   ]
-  # Prevent Terraform from reverting auto-scaling changes
-  lifecycle {
-    ignore_changes = [
-      replication_specs[0].region_configs[0].electable_specs.instance_size,
-      replication_specs[0].region_configs[0].electable_specs.disk_size_gb
-    ]
-  }
+  
   tags = {
     BU       = "ConsumerProducts"
     TeamName = "TeamA"

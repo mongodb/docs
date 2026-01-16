@@ -55,6 +55,10 @@ resource "mongodbatlas_advanced_cluster" "atlas-cluster" {
   name = "ClusterPortalProd"
   cluster_type = "REPLICASET"
   mongo_db_major_version = 8.0
+  # MongoDB recommends enabling auto-scaling
+  # When auto-scaling is enabled, Atlas may change the instance size, and this use_effective_fields
+  # block prevents Terraform from reverting Atlas auto-scaling changes
+  use_effective_fields = true
   replication_specs = [
     {
       region_configs = [
@@ -102,18 +106,7 @@ resource "mongodbatlas_advanced_cluster" "atlas-cluster" {
     Email    = "marissa@example.com"
   }
   
-  # MongoDB recommends enabling auto-scaling
-  # When auto-scaling is enabled, Atlas may change the instance size, and this lifecycle
-  # block prevents Terraform from reverting Atlas auto-scaling changes
-  # that modify instance size back to the original configured value
-  lifecycle {
-    ignore_changes = [
-      replication_specs[0].region_configs[0].electable_specs.instance_size,
-      replication_specs[0].region_configs[0].electable_specs.disk_size_gb,
-      replication_specs[0].region_configs[1].electable_specs.instance_size,
-      replication_specs[0].region_configs[1].electable_specs.disk_size_gb
-    ]
-  }
+  
 }
 
 # Outputs to Display
@@ -338,8 +331,14 @@ resource "mongodbatlas_auditing" "test" {
 resource "mongodbatlas_advanced_cluster" "automated_backup_test_cluster" {
   for_each     = local.atlas_clusters
   project_id   = mongodbatlas_project.atlas-project.id
- name         = each.value.name
+  name         = each.value.name
   cluster_type = "REPLICASET"
+  
+  # MongoDB recommends enabling auto-scaling
+  # When auto-scaling is enabled, Atlas may change the instance size, and this use_effective_fields
+  # block prevents Terraform from reverting Atlas auto-scaling changes
+
+  use_effective_fields = true
 
  replication_specs = [
     {
@@ -370,16 +369,7 @@ resource "mongodbatlas_advanced_cluster" "automated_backup_test_cluster" {
   backup_enabled = true # enable cloud backup snapshots
   pit_enabled    = true
   
-  # MongoDB recommends enabling auto-scaling
-  # When auto-scaling is enabled, Atlas may change the instance size, and this lifecycle
-  # block prevents Terraform from reverting Atlas auto-scaling changes
-  # that modify instance size back to the original configured value
-  lifecycle {
-    ignore_changes = [
-      replication_specs[0].region_configs[0].electable_specs.instance_size,
-      replication_specs[0].region_configs[0].analytics_specs.instance_size
-    ]
-  }
+  
 }
 
 resource "mongodbatlas_cloud_backup_schedule" "test" {

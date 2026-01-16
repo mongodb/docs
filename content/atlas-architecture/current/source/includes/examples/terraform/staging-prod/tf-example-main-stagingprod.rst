@@ -30,6 +30,7 @@
      name = "ClusterPortalProd"
      cluster_type = "REPLICASET"
      mongo_db_major_version = var.mongodb_version
+     use_effective_fields = true
      replication_specs = [
        {
          region_configs = [
@@ -51,13 +52,6 @@
          ]
        }
      ]
-     # Prevent Terraform from reverting auto-scaling changes
-     lifecycle {
-       ignore_changes = [
-         replication_specs[0].region_configs[0].electable_specs.instance_size,
-         replication_specs[0].region_configs[0].electable_specs.disk_size_gb
-       ]
-     }
      tags = {
        BU       = "ConsumerProducts"
        TeamName = "TeamA"
