@@ -1,4 +1,7 @@
 import type { TocItem } from '../types';
+import docsVersions from '../version-arrays/drivers/kotlin-coroutine-versions';
+
+const outdatedVersions = docsVersions.before('v5.5', { inclusive: true });
 
 const tocData: TocItem[] = [
   {
@@ -64,7 +67,7 @@ const tocData: TocItem[] = [
           {
             label: 'Connection Pools',
             contentSite: 'kotlin',
-            url: '/docs/drivers/kotlin/coroutine/:version/connect/connection-options/connection-pools',
+            url: '/docs/drivers/kotlin/coroutine/:version/connect/connection-pools',
           },
           {
             label: 'MongoClient Settings',
@@ -164,6 +167,11 @@ const tocData: TocItem[] = [
             label: 'Update Documents',
             contentSite: 'kotlin',
             url: '/docs/drivers/kotlin/coroutine/:version/crud/update',
+          },
+          {
+            label: 'Upsert Documents',
+            contentSite: 'kotlin',
+            url: '/docs/drivers/kotlin/coroutine/:version/crud/upsert',
           },
           {
             label: 'Replace Documents',
@@ -412,6 +420,7 @@ const tocData: TocItem[] = [
         label: 'Third Party Integrations',
         contentSite: 'kotlin',
         collapsible: true,
+        versions: { excludes: outdatedVersions },
         items: [
           {
             label: 'Tutorial: Ktor API with MongoDB',
