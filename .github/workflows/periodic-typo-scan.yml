@@ -18,7 +18,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      issues: write
     
     steps:
       - name: Checkout repository
@@ -47,10 +46,11 @@ jobs:
           
           # Debug: Count files to scan
           echo "=== Counting files ==="
-          FILE_COUNT=$(find content -type f \( -name "*.txt" -o -name "*.rst" -o -name "*.md" -o -name "*.mdx" \) \
+          FILE_COUNT=$(find content -type f \( -name "*.txt" -o -name "*.rst" -o -name "*.md" -o -name "*.mdx" -o -name "*.yaml" -o -name "*.yml" \) \
             ! -path "*/includes/*" \
             ! -path "*/node_modules/*" \
             ! -path "*/.git/*" \
+            ! -path "*/.github/*" \
             ! -path "*/changelogs/*" | wc -l)
           echo "Found $FILE_COUNT files to scan"
           
@@ -61,7 +61,7 @@ jobs:
           
           # Run cspell and capture output (filter for "Unknown word" lines)
           echo "=== Running cspell ==="
-          cspell "content/**/*.txt" "content/**/*.rst" "content/**/*.md" "content/**/*.mdx" \
+          cspell "content/**/*.txt" "content/**/*.rst" "content/**/*.md" "content/**/*.mdx" "content/**/*.yaml" "content/**/*.yml" \
             --config .cspell/cspell.json \
             --no-progress 2>&1 | tee /tmp/cspell-raw.txt | grep "Unknown word" > /tmp/typo-output.txt || true
           
@@ -107,10 +107,17 @@ jobs:
         if: steps.spellcheck.outputs.typo_count > 0
         run: |
           # Fix typos in all doc files (.txt, .rst, .md, .mdx)
-          find content -type f \( -name "*.txt" -o -name "*.rst" -o -name "*.md" -o -name "*.mdx" \) \
+          find content -type f \( -name "*.txt" -o -name "*.rst" -o -name "*.md" -o -name "*.mdx" -o -name "*.yaml" -o -name "*.yml" \) \
             ! -path "*/includes/*" \
+            ! -path "*/.github/*" \
             ! -path "*/changelogs/*" \
+            ! -path "*/atlas-cli/*/command/*" \
             -exec sed -i \
+            -e '/^[[:space:]]*\.\. include::/b' \
+            -e '/^[[:space:]]*\.\. figure::/b' \
+            -e '/^[[:space:]]*\.\. image::/b' \
+            -e '/^[[:space:]]*\.\. literalinclude::/b' \
+            -e '/^[[:space:]]*\.\. _/b' \
             -e 's/reccomendations/recommendations/g' \
             -e 's/inefficent/inefficient/g' \
             -e 's/compatibilty/compatibility/g' \
@@ -190,7 +197,6 @@ jobs:
             -e 's/assitance/assistance/g' \
             -e 's/betweeen/between/g' \
             -e 's/worklfow/workflow/g' \
-            -e 's/doesnt/does not/g' \
             {} \;
       
       - name: Create Pull Request
@@ -206,7 +212,7 @@ jobs:
           BRANCH_NAME="automated/typo-fixes-$(date +%Y%m)"
           git checkout -b "$BRANCH_NAME"
           git add -A
-          git commit -m "fix: Auto-fix ${{ steps.spellcheck.outputs.typo_count }} typos found by periodic scan"
+          git commit -m "fix: Auto-fix common typos found by periodic scan"
           git push origin "$BRANCH_NAME" --force
           
           # Create or update PR using gh CLI
@@ -218,10 +224,8 @@ jobs:
           else
             echo "Creating new PR"
             gh pr create \
-              --title "🔤 Periodic Typo Fixes - ${{ steps.spellcheck.outputs.typo_count }} corrections" \
+              --title "🔤 Periodic Typo Fixes" \
               --body-file typo-report.md \
-              --label "typo-bot" \
-              --label "automated" \
               --reviewer "emetozar"
           fi
       
@@ -244,19 +248,4 @@ jobs:
             cat typo-report.md >> $GITHUB_STEP_SUMMARY
           else
             echo "⚠️ No report generated" >> $GITHUB_STEP_SUMMARY
-          fi
-      
-      # Notification on failure - creates an issue to alert maintainers
-      - name: Create failure issue
-        if: failure()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          EXISTING=$(gh issue list --label "typo-bot-failure" --state open --json number --jq 'length')
-          if [ "$EXISTING" = "0" ]; then
-            gh issue create \
-              --title "Typo Scan Failed - Run ${{ github.run_id }}" \
-              --body "The periodic typo scan workflow failed. Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} /cc @emetozar" \
-              --label "typo-bot-failure" \
-              --assignee "emetozar"
           fi
