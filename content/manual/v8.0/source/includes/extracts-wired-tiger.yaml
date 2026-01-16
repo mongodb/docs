@@ -205,31 +205,44 @@ content: |
 ref: wt-cache-default-setting
 content: |
 
+   Cache Configuration Settings
+   ````````````````````````````
+
    The default WiredTiger internal cache size is the larger of either:
 
-   - 50% of (RAM - 1 GB), or
+   - 50% of (RAM - 1GB), or
 
-   - 256 MB.
+   - 0.256 GB.
 
    For example, on a system with a total of 4GB of RAM the
-   WiredTiger cache uses 1.5GB of RAM (``0.5 * (4 GB - 1 GB) =
-   1.5 GB``). Conversely, on a system with a total of 1.25 GB of
-   RAM WiredTiger allocates 256 MB to the WiredTiger cache
-   because that is more than half of the total RAM minus one
-   gigabyte (``0.5 * (1.25 GB - 1 GB) = 128 MB < 256 MB``).
+   WiredTiger cache uses 1.5GB of RAM (``0.5 * (4GB - 1GB) =
+   1.5 GB``). When providing a specific cache size ensure the RAM does not 
+   exceed the bounds of 0.256GB to 10000GB. 
+
+   Avoid increasing the WiredTiger internal cache size above its default value.
+   If your case requires to do so, you can use ``--wiredTigerCacheSizePct`` to
+   account for changes in memory due to vertical. You must specify a percentage 
+   of up to 80% of available memory. Calculated values can 
+   range from 0.256GB to 10000GB. For example, on a system with 2GB of 
+   RAM the ``--wiredTigerCacheSizePct`` cannot be set to 10 because 10% of 2GB 
+   is 0.2 GB, which is less than 0.256GB.
    
    .. note::
 
-      In some instances, such as when running in a container, the database
-      can have memory constraints that are lower than the total system
-      memory. In such instances, this memory limit, rather than the total
-      system memory, is used as the maximum RAM available.
+      In some instances, such as when running in a container that is configured
+      to use less RAM than the amount of memory provisioned for the host, you
+      must account for the limits. You may need to configure the WiredTiger cache
+      to an appropriate value, as WiredTiger may not account for the memory 
+      limits of the specific container in certain cases. 
    
-      To see the memory limit, see :data:`hostInfo.system.memLimitMB`.
+      To view the :data:`memory limit <hostInfo.system.memLimitMB>`, the value
+      that WiredTiger utilizes as the maximum amount of RAM available use the
+      :dbcommand:`hostInfo` command. 
    
 ---
 ref: wt-filesystem-cache
 content: |
+
   With the filesystem cache, MongoDB automatically uses all free memory
   that is not used by the WiredTiger cache or by other processes.
 ---
