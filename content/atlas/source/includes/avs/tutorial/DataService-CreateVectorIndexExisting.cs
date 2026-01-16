@@ -43,7 +43,7 @@ public class DataService
             searchIndexView.CreateOne(model);
             Console.WriteLine($"New search index named {name} is building.");
             // Polling for index status
-            Console.WriteLine("Polling to check if the index is ready. This may take up to a minute.");
+            Console.WriteLine("Polling to check if the index is ready.");
             bool queryable = false;
             while (!queryable)
             {

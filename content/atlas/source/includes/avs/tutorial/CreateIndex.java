@@ -51,7 +51,7 @@ public class CreateIndex {
             try {
                 List<String> result = collection.createSearchIndexes(Collections.singletonList(indexModel));
                 System.out.println("Successfully created a vector index named: " + result);
-                System.out.println("It may take up to a minute for the index to build before you can query using it.");
+                System.out.println("Wait for the index to build before you can query using it.");
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
