@@ -1,0 +1,247 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _code-examples-llm-considerations:
+
+==================
+LLM Considerations
+==================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Unlike human readers, LLMs and other AI models that consume our docs can't
+infer meaning or intent from context. They struggle with ambiguity, unclear
+boundaries, partial or implicit information, and non-standard patterns.
+
+To learn more about implementing these considerations, see :ref:`code-example-guidelines`.
+
+.. tip::
+
+   See the :ref:`llm-considerations-example` section at the end of this page
+   for an example of LLM-friendly code documentation.
+
+Define Metadata Consistently
+----------------------------
+
+LLMs thrive when we provide as much clear context as possible.
+Metadata helps LLMs understand the context and intent of the code.
+
+- Define metadata, such as the code language and category, consistently
+  across all code examples:
+
+  .. code-block:: rst
+
+     .. literalinclude:: /path/to/code/hello.py
+        :language: python
+        :category: usage example
+
+- Don't guess. If you're unsure of the correct value, reach
+  out to the DevDocs team.
+
+  To learn more about the available categories, see :ref:`code-example-types`.
+
+Avoid Ambiguity
+---------------
+
+LLMs often infer patterns and fill in gaps. Reduce ambiguity by making intent
+explicit in the code and surrounding text.
+This helps prevent models from hallucinating missing pieces.
+
+- Use explicit imports, initialization, and configuration instead of implied
+  defaults.
+- Avoid "magic" helper methods or hidden setup unless the document structure clearly
+  introduces them earlier.
+- Use comments intentionally. Focus on explaining why something exists. Don't
+  restate the code.
+- Clearly mark and explain any placeholders, omissions, or truncated code
+  through code comments. Note that models can sometimes remove or misinterpret
+  placeholders.
+
+One Pattern or Topic Per Example
+--------------------------------
+
+LLMs follow patterns aggressively, which makes them very sensitive to "topic drift."
+Single-focus examples help reduce model confusion and improve accuracy.
+This is especially important for code examples, which are often retrieved out of context.
+
+- Keep examples focused on one feature or one operation, unless the page is
+  explicitly comparing or contrasting patterns.
+- Use short code blocks (around 20 lines or fewer) unless demonstrating a full workflow.
+- Keep the structure predictable: setup, action, result, and then cleanup (if needed).
+- Split multi-step workflows into discrete blocks separated by explanations.
+- Avoid showing monitoring, error handling, deployment, and configuration in the
+  same sample unless the page is explicitly about a full end-to-end app.
+
+Prioritize Self-Contained Examples
+----------------------------------
+
+LLMs often retrieve partial fragments, so self-contained usage examples
+can help reduce errors.
+Each example should run or validate in isolation whenever possible.
+
+- Minimize reliance on hidden global state or code defined earlier on the page.
+- Use placeholders in the code to keep the example self-contained.
+  For more information on placeholders, see :ref:`code-example-guidelines`.
+
+  .. note:
+
+     When creating tested code examples with Grove, use environment variables in
+     the test files but show placeholders in the documentation.
+     For more information, see :ref:`grove-create-example-files`.
+
+- Ensure required structs, types, or supplemental definitions appear in the
+  same block or are imported cleanly.
+
+Make Boundaries Between Examples Explicit
+-----------------------------------------
+
+LLMs frequently merge code blocks or treat adjacent snippets as one sample.
+Clear chunking helps LLMs retrieve single-purpose examples instead of
+blending multiple steps.
+
+- Avoid evolving state across blocks that models can't track.
+- Avoid placing unrelated code blocks back-to-back without headers.
+- Introduce each code block with context, as you would a list or table. For example,
+  use short prose labels, such as *"Create the client"*, *"Run the query"*,
+  *"Shut down the client"*, before each major block.
+- If using Bluehawk or another extraction tool, ensure snippets have self-descriptive,
+  unique names. For more information, see :ref:`grove-mark-up-examples`.
+
+Avoid Anti-Patterns
+-------------------
+
+LLMs learn from everything shown, not just what you highlight.
+Models can latch onto wrong patterns if they appear anywhere in the training
+material. Exclude anti-patterns entirely rather than showing them and then correcting them.
+
+- If you must show a "don't do this" example, give it strong, unambiguous framing
+  in both text and comments.
+- Avoid inline shortcuts such as ignoring errors in Go, catching generic
+  exceptions in Java, or constructing clients inside loops.
+
+Use Stable, Reproducible Data
+-----------------------------
+
+LLMs often predict outputs or infer structure. Use consistent values to prevent
+LLMs from hallucinating or inferring outdated patterns.
+
+- Use explicit IDs rather than generated or random values (for example, use
+  ``ObjectId("507f1f77bcf86cd799439011")`` rather than ``new ObjectId()``).
+- Avoid time-dependent values, random number generators, or implicit defaults
+  whose behavior changes across versions.
+- If demonstrating something nondeterministic (for example, vector similarity results),
+  convey expected shape rather than exact values.
+
+Keep Example Output Clean
+-------------------------
+
+LLMs try to reproduce output formatting exactly.
+Clean example output helps prevent LLMs from generating incorrect variations.
+
+- Use minimal, tidy output that reflects realistic driver behavior. For more information
+  on creating output files, see :ref:`grove-create-example-files`.
+- Avoid multi-page dumps or deeply nested logs unless required.
+- Keep formatting, whitespace, and symbols consistent.
+
+Be Consistent in Mixed-Language Pages
+-------------------------------------
+
+When showing multiple languages, such as on pages that use the
+:ref:`composable-tutorials` directive, use consistent ordering (for example,
+keep drivers in alphabetical order) and metadata.
+Models can mistake pseudocode for real syntax and often blend similar
+languages together (Java/Kotlin, JS/TS, C#/Java, etc.).
+
+- Avoid mixing pseudocode with production languages in the same block.
+- Specify the code language for every code block, including output examples in
+  an ``io-code-block``. For a complete list of supported languages, see the
+  `leafygreen-ui GitHub repository <https://github.com/mongodb/leafygreen-ui/blob/main/packages/code/src/languages.ts>`__.
+  If you are unsure which language to use or need a new language added to the
+  list, reach out to the DevDocs team.
+
+Use Predictable, Descriptive Names
+----------------------------------
+
+LLMs often propagate naming patterns across completions, and infer intent from
+variable and function names. Predictable names reduce accidental "drift."
+
+- Use consistent, descriptive identifiers that indicate purpose:
+  ``client``, ``collection``, ``items``, ``filter``.
+- When possible, stick to conventional file structure, names, and canonical patterns:
+  ``main()``, ``index.js``, ``connect()``.
+- Avoid clever, overloaded, or vague names: ``foo``, ``temp``, ``helper``.
+- Avoid unnecessary aliasing or non-standard structures unless explained clearly.
+- Keep names consistent across code examples on the same page.
+
+Add a One-Line Summary for the LLM
+----------------------------------
+
+When the example is pulled out of context (LLMs, search result cards,
+Slack previews), a one-line summary helps the LLM understand the context and intent.
+
+- Introduce each code example with a short descriptive sentence that indicates
+  purpose and intent. For example, "This example inserts one document into the collection."
+  This acts as a semantic anchor.
+- The introduction should be plain prose, *not* a code comment.
+- Keep it factual and minimal.
+
+.. _llm-considerations-example:
+
+Example
+-------
+
+The following "Insert a Document" sample demonstrates LLM-friendly code documentation:
+
+.. code-block:: rst
+   :copyable: false
+
+  Insert a Document
+  ~~~~~~~~~~~~~~~~~
+
+  This example inserts one document into the ``movies`` collection.
+
+  .. code-block:: javascript
+    :copyable: true
+
+    const { MongoClient } = require("mongodb");
+
+    // Replace with your MongoDB connection string
+    const uri = "<YOUR_CONNECTION_STRING>";
+    const client = new MongoClient(uri);
+
+    async function run() {
+      try {
+        const database = client.db("sample_mflix");
+        const movies = database.collection("movies");
+
+        const doc = {
+          title: "The Favourite",
+          genres: ["Drama", "History"],
+          runtime: 121,
+          year: 2018
+        };
+
+        const result = await movies.insertOne(doc);
+        console.log(`Document inserted with _id: ${result.insertedId}`);
+      } finally {
+        await client.close();
+      }
+    }
+
+    run().catch(console.dir);
+
+Why This Example Works
+~~~~~~~~~~~~~~~~~~~~~~
+
+- **One-line summary**: "This example inserts one document into the ``movies``
+  collection" provides context.
+- **Self-contained**: All imports, connection setup, and data are visible.
+- **Predictable names**: ``client``, ``database``, ``movies``, ``doc``, and
+  ``result`` clearly indicate purpose.
+- **Single focus**: The example demonstrates only the insert operation.
+- **Stable data**: The movie document uses fixed, predictable values.
+- **Clean structure**: Setup, action, output, then cleanup follows a linear flow.
