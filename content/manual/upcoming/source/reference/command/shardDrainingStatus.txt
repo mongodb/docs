@@ -1,0 +1,202 @@
+======================================
+shardDrainingStatus (database command)
+======================================
+
+.. meta::
+   :description: Shows status of the draining operation being performed on the shard. 
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: shardDrainingStatus
+
+   .. include:: /includes/command/shardDrainingStatus.rst
+
+   The command returns an error if the shard doesn't exist,
+   otherwise it returns the status of the draining operation.
+
+   To start draining a shard, see the
+   :dbcommand:`startShardDraining` command.
+
+   .. versionadded:: 8.3
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+.. note::
+
+   .. include:: /includes/edit-shards-atlas-compatibility.rst
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.adminCommand( { 
+        shardDrainingStatus: <shard> 
+   } )
+
+Output Fields
+-------------
+
+This command returns the following output:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 15 55
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``msg``
+     - string
+     - Provides the current draining operation being performed by
+       the balancer.
+
+   * - ``state``
+     - string
+     - Provides the status of the draining operation.
+
+   * - ``shard``
+     -  string
+     - Indicates the draining shard.
+
+   * - ``remaining``
+     - document
+     - Shows the remaining tasks the balancer must perform to
+       drain the shard.
+
+   * - ``remaining.chunks``
+     - long
+     - Indicates the number of chunks still on the shard.
+       
+   * - ``remaining.dbs``
+     - long
+     - Indicates the number of databases still on the shard.
+
+   * - ``remaining.jumboChunks``
+     - long
+     - Indicates the number of large chunks still on the shard.
+
+   * - ``remaining.collectionsToMove``
+     - long
+     - Indicates the number of collections still on the shard.
+
+   * - ``note``
+     - string
+     - Provides additional message for the user.
+
+   * - ``dbsToMove``
+     - array
+     - Indicates databases that use the draining shard as the
+       :term:`primary shard`. Before you can remove the shard
+       from the cluster, you must manually move these databases
+       to a new shard using the :dbcommand:`movePrimary`
+       command.
+
+   * - ``collectionsToMove``
+     - array
+     - Indicates unsharded collections stored on the draining
+       shard. Before you can remove the shard from the cluster,
+       you must manually move these collections to another shard
+       using the :dbcommand:`moveCollection` command.
+
+Behavior
+--------
+
+Access Requirements
+~~~~~~~~~~~~~~~~~~~
+
+If you have :setting:`~security.authorization` enabled, you must
+have the :authrole:`clusterManager` role or any role that
+includes the :authaction:`removeShard` action.
+
+Database Migration Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each database in a sharded cluster has a primary shard. If the
+shard you want to drain is also the primary of one of the
+cluster's databases, then you must manually move the databases
+to a new shard after migrating all data from the shard. See the
+:dbcommand:`movePrimary` command and the
+:ref:`remove-shards-from-cluster-tutorial` for more information.
+
+Collection Migration Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Unsharded collections are stored on individual shards. If one of
+these collections is on the shard you want to remove, you must
+first migrate the collection to a different shard.
+
+To migrate an unsharded collection, see the
+:dbcommand:`moveCollection` command.
+
+Examples
+--------
+
+To start draining a shard, use the :method:`db.adminCommand`
+method to run the :dbcommand:`startShardDraining` command:
+
+.. code-block:: javascript
+
+   db.adminCommand( { startShardDraining: "shard04" } )
+
+To check the status of the draining operation, use the
+``shardDrainingStatus`` command:
+
+.. io-code-block:: 
+
+   .. input::
+      :language: javascript
+
+      db.adminCommand( { shardDrainingStatus: "shard04" } )
+
+   .. output::
+      :language: javascript
+
+      {
+         msg: "draining ongoing",
+         state: "ongoing",
+         remaining: {
+            chunks: Long(2),
+            dbs: Long(2),
+            jumboChunks: Long(0),
+            collectionsToMove: Long(2)
+         },
+         shard: "shard04",
+         note: "you need to call moveCollection for collectionsToMove and afterwards movePrimary for the dbsToMove",
+         dbsToMove: [
+            "fizz",
+            "buzz"
+         ],
+         collectionsToMove: [
+            "fizz.coll1",
+            "buzz.coll1"
+         ],
+         ok: 1,
+         operationTime: Timestamp(1575399086, 1655),
+         $clusterTime: {
+            clusterTime: Timestamp(1575399086, 1655),
+            signature: {
+               hash: BinData(0,"XBrTmjMMe82fUtVLRm13GBVtRE8="),
+               keyId: Long("6766255701040824328")
+            }
+         }
+      }
+

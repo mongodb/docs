@@ -450,6 +450,12 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/command/shardCollection',
           },
           {
+            label: 'shardDrainingStatus',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/command/shardDrainingStatus',
+            versions: { excludes: versionsBeforeV8_3 },
+          },
+          {
             label: 'shardingState',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/shardingState',
