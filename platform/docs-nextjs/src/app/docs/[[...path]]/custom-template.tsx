@@ -21,6 +21,7 @@ import layoutStyles from '@/app/layout.module.scss';
 import ProductLandingTemplate from '@/components/templates/product-landing';
 import type { PageTemplateType } from '@/types/ast';
 import type { ServerSideChangelogData } from '@/types/openapi';
+import Header from '@/components/header';
 
 type TemplateComponent = React.ComponentType<BaseTemplateProps>;
 
@@ -111,6 +112,7 @@ export const CustomTemplate = ({
       changelogData={changelogData}
       template={template}
     >
+      <Header eol={metadata?.eol ?? false} />
       {renderSidenav && <UnifiedSidenav />}
       <div className={layoutStyles['content-container']}>
         <ActionBar template={template} sidenav={true} />

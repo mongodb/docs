@@ -4,7 +4,10 @@ import type { Environments } from '@/utils/env-config';
 const fetchBanner = async () => {
   const isStaging = ['staging', 'development', 'dotcomstg'].includes(process.env.DB_ENV as Environments);
   try {
-    const bannerResponse = await fetch(`/api/banners/${isStaging ? '?staging=true' : ''}`);
+    // Server-side fetch requires a full URL
+    const bannerResponse = await fetch(
+      `https://docs-on-nextjs.netlify.app/api/banners/${isStaging ? '?staging=true' : ''}`,
+    );
     const bannerData = await bannerResponse.json();
     return await bannerData;
   } catch (e) {
