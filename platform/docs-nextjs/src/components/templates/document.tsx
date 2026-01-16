@@ -1,6 +1,5 @@
 'use client';
 
-import { theme } from '@/styles/theme';
 import { InternalPageNav } from '@/components/internal-page-nav';
 import RightColumn from '@/components/right-column';
 import documentStyling from './document.module.scss';
@@ -12,13 +11,6 @@ import type { BaseTemplateProps } from '.';
 import MainColumn from './main-column';
 import { cx } from '@leafygreen-ui/emotion';
 import Breadcrumbs from '@/components/breadcrumbs';
-
-const MAX_ON_THIS_PAGE_WIDTH = '200px';
-const MAX_CONTENT_WIDTH = '775px';
-const MAX_CONTENT_WIDTH_LARGE_SCREEN = '884px';
-// (max content width along with padding + max "On This Page" width along with padding)
-export const DOCUMENT_TEMPLATE_MAX_WIDTH_VALUE = `(${MAX_CONTENT_WIDTH} + ${theme.size.xlarge} * 2) + (${MAX_ON_THIS_PAGE_WIDTH} + 5px + ${theme.size.medium})`;
-export const DOCUMENT_TEMPLATE_MAX_WIDTH_VALUE_LARGE_SCREEN = `(${MAX_CONTENT_WIDTH_LARGE_SCREEN} + ${theme.size.xlarge} * 2) + (${MAX_ON_THIS_PAGE_WIDTH} + 5px + ${theme.size.medium})`;
 
 export default function DocumentTemplate({ children, pageOptions }: BaseTemplateProps) {
   const { tabsMainColumn } = usePageContext();
