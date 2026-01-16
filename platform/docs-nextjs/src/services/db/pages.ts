@@ -35,7 +35,7 @@ const getPageAST = cache(async (path: string | string[], prId?: number) => {
   const collection = await getPagesDocumentCollection();
   const pathString = typeof path === 'string' ? path : path.join('/');
   const query: Filter<ASTDocument> = {
-    page_path: pathString,
+    page_path: pathString.toLowerCase(),
   };
   if (prId) {
     query.pr_id = prId;
