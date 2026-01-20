@@ -52,6 +52,7 @@ import type {
   FigureNode,
   ComposableNode,
   ComposableTutorialNode,
+  WayfindingNode,
 } from '@/types/ast';
 import type { LazyComponentMap } from '@/components/component-factory/lazy';
 import { LAZY_COMPONENTS } from '@/components/component-factory/lazy';
@@ -145,6 +146,7 @@ import DeprecatedVersionSelector from '@/components/deprecated-version-selector'
 import SearchResults from '@/components/search-results';
 import Transition from '@/components/transition';
 import OpenAPIChangelog from '@/components/open-api-changelog';
+import { Wayfinding, type WayfindingProps } from '@/components/wayfinding/Wayfinding';
 
 const IGNORED_NAMES = new Set([
   'contents',
@@ -279,7 +281,7 @@ const getComponent = (() => {
         transition: Transition as React.ComponentType<SupportedComponentProps>,
         versionadded: VersionModified as React.ComponentType<SupportedComponentProps>,
         versionchanged: VersionModified as React.ComponentType<SupportedComponentProps>,
-        // wayfinding: Wayfinding,
+        wayfinding: Wayfinding as React.ComponentType<SupportedComponentProps>,
       };
     }
     return componentMap?.[key];
@@ -387,7 +389,8 @@ type SupportedComponentProps =
   | CollapsibleProps
   | ListTableProps
   | ComposableContentProps
-  | ComposableTutorialProps;
+  | ComposableTutorialProps
+  | WayfindingProps;
 
 type RoleComponentProps =
   | AbbrProps
@@ -711,6 +714,11 @@ const renderComponentWithProps = (
     const selectedContentNode = nodeData as ComposableNode;
     return (
       <ComposableContent nodeChildren={selectedContentNode.children} selections={selectedContentNode.selections} />
+    );
+  } else if (ComponentType === getComponent('wayfinding')) {
+    const wayfindingNode = nodeData as WayfindingNode;
+    return (
+      <ComponentType nodeChildren={wayfindingNode.children} argument={wayfindingNode.argument} {...propsToDrill} />
     );
   }
 
