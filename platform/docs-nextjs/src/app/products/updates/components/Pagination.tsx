@@ -1,23 +1,35 @@
 import { css, cx } from '@leafygreen-ui/emotion';
-import Icon from '@leafygreen-ui/icon';
-import IconButton from '@leafygreen-ui/icon-button';
+import { Icon } from '@leafygreen-ui/icon';
+import { IconButton } from '@leafygreen-ui/icon-button';
 import { Option, Select } from '@leafygreen-ui/select';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 
 interface PaginationProps {
-  setCurrentPage: (page: number) => void;
-  totalFilteredUpdates: number;
+  totalPages: number;
   currentPage: number;
 }
 
-export const Pagination = ({ totalFilteredUpdates, setCurrentPage, currentPage }: PaginationProps) => {
+export const Pagination = ({ totalPages, currentPage }: PaginationProps) => {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const createPageURL = (pageNumber: number | string) => {
+    const params = new URLSearchParams(searchParams || undefined);
+    params.set('page', pageNumber.toString());
+    return `${pathname}?${params.toString()}`;
+  };
+
   const goBack = () => {
-    const previousPage = currentPage - 1;
-    setCurrentPage(previousPage);
+    if (currentPage > 1) {
+      router.push(createPageURL(currentPage - 1), { scroll: false });
+    }
   };
 
   const goNext = () => {
-    const nextPage = currentPage + 1;
-    setCurrentPage(nextPage);
+    if (currentPage < totalPages) {
+      router.push(createPageURL(currentPage + 1), { scroll: false });
+    }
   };
 
   return (
@@ -40,9 +52,9 @@ export const Pagination = ({ totalFilteredUpdates, setCurrentPage, currentPage }
           dropdownWidthBasis="option"
           value={String(currentPage)}
           allowDeselect={false}
-          onChange={(value) => setCurrentPage(Number(value))}
+          onChange={(value) => router.push(createPageURL(Number(value)), { scroll: false })}
         >
-          {Array(totalFilteredUpdates)
+          {Array(totalPages)
             .fill(0)
             .map((_, i) => {
               const page = i + 1;
@@ -54,7 +66,7 @@ export const Pagination = ({ totalFilteredUpdates, setCurrentPage, currentPage }
             font-size: 13px;
           `)}
         >
-          of {totalFilteredUpdates}
+          of {totalPages}
         </span>
       </div>
       <div
@@ -67,7 +79,7 @@ export const Pagination = ({ totalFilteredUpdates, setCurrentPage, currentPage }
         <IconButton aria-label="previous" disabled={currentPage === 1} onClick={goBack}>
           <Icon glyph="ChevronLeft" />
         </IconButton>
-        <IconButton aria-label="next" disabled={currentPage === totalFilteredUpdates} onClick={goNext}>
+        <IconButton aria-label="next" disabled={currentPage === totalPages} onClick={goNext}>
           <Icon glyph="ChevronRight" />
         </IconButton>
       </div>

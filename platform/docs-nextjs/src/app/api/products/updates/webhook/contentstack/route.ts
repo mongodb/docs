@@ -24,6 +24,7 @@ interface ContentstackWebhookPayload {
       is_featured: boolean;
       link_with_label: Array<{ url: string; label: string }>;
       beamer_created_at: string | null;
+      published_date: string;
       created_at: string;
       updated_at: string;
       aha_feature_link: string | null;

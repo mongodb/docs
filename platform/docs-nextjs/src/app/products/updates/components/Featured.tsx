@@ -113,8 +113,8 @@ const Featured = ({ updates: limitedFeaturedUpdates }: { updates: ProductUpdateE
       <H3 className={cx(featureHeaderStyle)}>Featured Updates</H3>
       <div className={cx(featuredContentStyle)}>
         {limitedFeaturedUpdates.map((update: ProductUpdateEntry) => {
-          const createdAt = update.beamer_created_at || update.created_at;
-          const date = normalizeDate(createdAt).toLocaleDateString('en-US', {
+          const publishedAt = update.published_date;
+          const date = normalizeDate(publishedAt).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',

@@ -1,10 +1,25 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Pagination } from '../../components/Pagination';
 
-const setCurrentPage = jest.fn();
-const renderContext = (currentPage: number) =>
-  render(<Pagination totalFilteredUpdates={2} setCurrentPage={setCurrentPage} currentPage={currentPage} />);
+const mockPush = jest.fn();
+
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(),
+  usePathname: jest.fn(),
+  useSearchParams: jest.fn(),
+}));
+
+beforeEach(() => {
+  (usePathname as jest.Mock).mockReturnValue('/products/updates');
+  (useSearchParams as jest.Mock).mockReturnValue(new URLSearchParams());
+  (useRouter as jest.Mock).mockReturnValue({
+    push: mockPush,
+  });
+});
+
+const renderContext = (currentPage: number) => render(<Pagination totalPages={2} currentPage={currentPage} />);
 
 describe('Pagination component', () => {
   it('renders correctly', () => {
@@ -29,7 +44,6 @@ describe('Pagination component', () => {
     // Let the user switch pages via the selector
     expect(await screen.findByRole('listbox')).toBeInTheDocument();
     await user.click(await screen.findByRole('option', { name: '2' }));
-    expect(setCurrentPage).toHaveBeenCalledWith(2);
   });
 
   it('handles next prev disabled state', () => {

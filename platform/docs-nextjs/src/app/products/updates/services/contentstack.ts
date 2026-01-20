@@ -1,6 +1,5 @@
 import contentstack from '@contentstack/delivery-sdk';
 import envConfig from '@/utils/env-config';
-import { normalizeDate } from '../utils/to-date';
 import { generateProductUpdatesSlug } from '@/app/products/updates/utils/generate-product-updates-slug';
 import type { FilterOptions } from '../consts/filters';
 
@@ -16,6 +15,7 @@ export interface ProductUpdateEntry {
   tags_product?: string[];
   link_with_label?: LinkWithLabelItem[];
   beamer_created_at?: string | null; // "2025-09-17"
+  published_date: string; // "2025-09-17T14:01:31.391Z"
 }
 
 export interface LinkWithLabelItem {
@@ -26,55 +26,84 @@ export interface LinkWithLabelItem {
   label: string;
 }
 
+const CONTENT_TYPE = 'product_update';
+
 const stack = contentstack.stack({
   apiKey: envConfig.CONTENTSTACK_API_KEY,
   deliveryToken: envConfig.CONTENTSTACK_DELIVERY_TOKEN,
   environment: envConfig.CONTENTSTACK_ENVIRONMENT,
 });
 
-let cachedEntries: ProductUpdateEntry[] | null = null;
-let lastFetchTime: number = 0;
+const cachedEntries: Map<string, { entries: ProductUpdateEntry[]; timestamp: number; totalCount: number }> = new Map();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 let cachedFilterOptions: FilterOptions | null = null;
 let lastFilterFetchTime: number = 0;
 const FILTER_CACHE_DURATION = 24 * 60 * 60 * 1000; // 1 day
 
-export async function getProductUpdates(): Promise<ProductUpdateEntry[]> {
+interface GetProductUpdatesParams {
+  limit: number;
+  skip: number;
+  search?: string;
+  categories?: string[];
+  offerings?: string[];
+  products?: string[];
+}
+
+export async function getProductUpdates({
+  limit,
+  skip,
+  search = '',
+}: GetProductUpdatesParams): Promise<{ entries: ProductUpdateEntry[]; totalCount: number }> {
   const now = Date.now();
+  const cacheKey = `${limit}-${skip}-${search}`;
 
   // Return cached data if it's still fresh
-  if (cachedEntries && now - lastFetchTime < CACHE_DURATION) {
-    return cachedEntries;
+  const cached = cachedEntries.get(cacheKey);
+  if (cached && now - cached.timestamp < CACHE_DURATION) {
+    return { entries: cached.entries, totalCount: cached.totalCount };
   }
 
   try {
-    const result = await stack.contentType('product_update').entry().query().limit(1000).find();
-    const entries = (result.entries || []) as ProductUpdateEntry[];
+    const result = await stack
+      .contentType(CONTENT_TYPE)
+      .entry()
+      .query()
+      .search(search)
+      .orderByDescending('published_date')
+      .limit(limit)
+      .skip(skip)
+      .includeCount()
+      .find<ProductUpdateEntry>();
 
-    // Sort entries by creation date (most recent first)
-    // Prioritize beamer_created_at if available, otherwise use created_at
-    const sortedEntries = entries.sort((a, b) => {
-      // We need to normalize the beamer_created_at date since that is a string date and not an actual Date type
-      // and in some cases the output can result in a day behind
-      const dateA = a.beamer_created_at ? normalizeDate(a.beamer_created_at) : new Date(a.created_at);
-      const dateB = b.beamer_created_at ? normalizeDate(b.beamer_created_at) : new Date(b.created_at);
-      return dateB.getTime() - dateA.getTime(); // Most recent first
-    });
+    const entries = result.entries || [];
 
-    // Cache the results
-    cachedEntries = sortedEntries;
-    lastFetchTime = now;
+    // Cache the results with key
+    cachedEntries.set(cacheKey, { entries, timestamp: now, totalCount: result.count ?? 0 });
 
-    return sortedEntries;
+    return { entries, totalCount: result.count ?? 0 };
   } catch (error) {
     console.error('Error fetching product updates:', error);
     throw error;
   }
 }
 
+export async function getFeaturedProductUpdates(): Promise<ProductUpdateEntry[]> {
+  const response = await stack
+    .contentType(CONTENT_TYPE)
+    .entry()
+    .query({
+      is_featured: true,
+    })
+    .orderByDescending('published_date')
+    .limit(3)
+    .find<ProductUpdateEntry>();
+
+  return response.entries || [];
+}
+
 export async function getProductUpdateBySlug(slug: string): Promise<ProductUpdateEntry | null> {
-  const entries = await getProductUpdates();
+  const { entries } = await getProductUpdates({ limit: 1000, skip: 0 });
 
   return (
     entries.find((entry: ProductUpdateEntry) => {
@@ -94,12 +123,12 @@ export async function getFilterOptions(): Promise<FilterOptions> {
 
   try {
     // Fetch all product updates to extract used filter values
-    const allEntries = await getProductUpdates();
+    const { entries } = await getProductUpdates({ limit: 1000, skip: 0 });
 
     // Helper function to extract all unique values used in entries for a field
     const getUsedValuesFromEntries = (fieldName: 'tags_category' | 'tags_offerings' | 'tags_product'): string[] => {
       const usedValues = new Set<string>();
-      allEntries.forEach((entry) => {
+      entries.forEach((entry) => {
         const fieldValues = entry[fieldName] || [];
         fieldValues.forEach((value) => {
           if (value) {

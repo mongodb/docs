@@ -16,7 +16,9 @@ describe('ProductUpdateDetail component', () => {
     (useRouter as jest.Mock).mockReturnValue({ push: jest.fn() });
   });
   it('renders correctly', () => {
-    const wrapper = render(<Updates updates={[mockedUpdate]} filterOptions={mockFilterOptions} />);
+    const wrapper = render(
+      <Updates updates={[mockedUpdate]} totalCount={1} filterOptions={mockFilterOptions} query="" currentPage={1} />,
+    );
     expect(wrapper.queryByText('Offering')).toBeInTheDocument();
     expect(wrapper.queryByText('Category')).toBeInTheDocument();
     expect(wrapper.queryByText('Product')).toBeInTheDocument();
@@ -24,7 +26,9 @@ describe('ProductUpdateDetail component', () => {
   });
 
   it('clears selected filters', () => {
-    const wrapper = render(<Updates updates={[mockedUpdate]} filterOptions={mockFilterOptions} />);
+    const wrapper = render(
+      <Updates updates={[mockedUpdate]} totalCount={1} filterOptions={mockFilterOptions} query="" currentPage={1} />,
+    );
     expect(wrapper.queryByTestId('clear_filter_btn')).toBeInTheDocument();
 
     // Get checkboxes by role

@@ -5,6 +5,7 @@ export const mockedUpdate = {
   ACL: {},
   _in_progress: false,
   created_at: '2025-09-16T16:47:50.364Z',
+  published_date: '2025-09-16T16:47:50.364Z',
   created_by: 'bltba17e143f7c997e1',
   is_featured: false,
   link_with_label: [

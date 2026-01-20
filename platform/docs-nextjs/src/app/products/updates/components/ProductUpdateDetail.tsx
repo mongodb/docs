@@ -166,8 +166,8 @@ const linkLabelBlogTextStyle = css`
 const ProductUpdateDetail = ({ update }: { update: ProductUpdateEntry }) => {
   const router = useRouter();
 
-  const createdAt = update.beamer_created_at || update.created_at;
-  const date = normalizeDate(createdAt).toLocaleDateString('en-US', {
+  const publishedAt = update.published_date;
+  const date = normalizeDate(publishedAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

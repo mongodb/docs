@@ -35,7 +35,7 @@ export async function OPTIONS() {
 
 export async function GET(request: NextRequest) {
   try {
-    const entries = await getProductUpdates();
+    const { entries } = await getProductUpdates({ limit: 10000, skip: 0 });
 
     // Parse filter parameters
     const searchParams = request.nextUrl.searchParams;
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
         const slug = generateProductUpdatesSlug(entry.title);
 
         const itemUrl = `${blogUrl}/${slug}`;
-        const pubDate = toRFC2822Date(entry.beamer_created_at || entry.created_at);
+        const pubDate = toRFC2822Date(entry.published_date);
         const descriptionText = entry.description ? stripHtml(entry.description) : entry.title;
         const description = escapeXml(descriptionText);
 

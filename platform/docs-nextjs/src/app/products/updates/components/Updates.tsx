@@ -4,20 +4,20 @@ import { css, cx } from '@leafygreen-ui/emotion';
 import { palette } from '@leafygreen-ui/palette';
 import type { ProductUpdateEntry } from '../services/contentstack';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { SearchInput } from '@leafygreen-ui/search-input';
 import { theme } from '@/styles/theme';
 import type { FilterCategory, FilterOptions } from '../consts/filters';
-import Checkbox from '@leafygreen-ui/checkbox';
-import Icon from '@leafygreen-ui/icon';
+import { Checkbox } from '@leafygreen-ui/checkbox';
+import { Icon } from '@leafygreen-ui/icon';
 import { Pagination } from './Pagination';
-import { getPagination } from '../utils/get-pagination';
 import Button from '@leafygreen-ui/button';
 import { generateProductUpdatesSlug } from '@/app/products/updates/utils/generate-product-updates-slug';
 import type { RichLinkVariantName } from '@lg-chat/rich-links';
 import { RichLink } from '@lg-chat/rich-links';
 import LeafyGreenProvider, { useDarkModeContext } from '@leafygreen-ui/leafygreen-provider';
 import { stripHtml } from '../utils/strip-html';
+import { debounce } from 'lodash';
 
 const containerStyle = css`
   max-width: 1550px;
@@ -278,15 +278,21 @@ const SubscribeButton = ({ className, selectedFilters }: SubscribeButtonProps) =
 interface UpdatesProps {
   updates: ProductUpdateEntry[];
   filterOptions: FilterOptions;
+  totalCount: number;
+  query: string;
+  currentPage: number;
 }
 
-const Updates = ({ updates, filterOptions }: UpdatesProps) => {
+const Updates = ({ updates, filterOptions, totalCount, query, currentPage: initialCurrentPage }: UpdatesProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { contextDarkMode: darkMode = false } = useDarkModeContext();
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const searchQuery = searchParams?.get('query') || query || '';
+  const currentPage = Number(searchParams?.get('page')) || initialCurrentPage || 1;
+
+  const [searchInputValue, setSearchInputValue] = useState(searchQuery);
 
   // Initialize filters from URL params
   const getInitialFilters = (): Record<FilterCategory, string[]> => {
@@ -316,22 +322,54 @@ const Updates = ({ updates, filterOptions }: UpdatesProps) => {
     product: false,
   });
 
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  // Track previous filter state to detect actual changes
+  const prevFiltersRef = useRef<Record<FilterCategory, string[]>>(selectedFilters);
+  const isInitialMountRef = useRef(true);
+
   // Get the first 12 initially
   const itemsPerPage = 12;
-  const [filteredUpdates, getFilteredUpdates] = useState<ProductUpdateEntry[][]>([[...updates.slice(0, itemsPerPage)]]);
 
   // Helper function to get available filters for a specific category
   const getAvailableFiltersForCategory = (category: FilterCategory): string[] => {
-    return filterOptions[category] || [];
+    return filterOptions[category];
+  };
+
+  const debouncedSearchRef = useRef(
+    debounce(
+      (
+        term: string,
+        currentPathname: string,
+        currentSearchParams: URLSearchParams | null,
+        currentRouter: typeof router,
+      ) => {
+        if (!currentPathname) return;
+
+        const params = new URLSearchParams(currentSearchParams || undefined);
+        params.set('page', '1'); // Reset to first page on new search
+        if (term) {
+          params.set('query', term);
+        } else {
+          params.delete('query');
+        }
+        currentRouter.replace(`${currentPathname}?${params.toString()}`, { scroll: false });
+      },
+      500,
+    ),
+  );
+
+  const handleSearch = (term: string) => {
+    debouncedSearchRef.current(term, pathname, searchParams, router);
   };
 
   useEffect(() => {
-    // Filter updates based on search term and selected filters
-    const filteredResults = updates.filter((update: ProductUpdateEntry) => {
-      // Search term filtering
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
+    setSearchInputValue(searchQuery);
+  }, [searchQuery]);
+
+  // Filter updates based on search query and selected filters
+  const filteredResults = useMemo(() => {
+    return updates.filter((update: ProductUpdateEntry) => {
+      if (searchQuery) {
+        const searchLower = searchQuery.toLowerCase();
         const titleMatch = update.title.toLowerCase().includes(searchLower);
         const descriptionText = update.description ? stripHtml(update.description) : '';
         const descriptionMatch = descriptionText.toLowerCase().includes(searchLower);
@@ -375,28 +413,60 @@ const Updates = ({ updates, filterOptions }: UpdatesProps) => {
 
       return true;
     });
+  }, [updates, searchQuery, selectedFilters]);
 
-    const pagination = getPagination(filteredResults, itemsPerPage);
-
-    getFilteredUpdates(pagination);
-  }, [searchTerm, selectedFilters, updates]);
+  // Calculate total pages based on total count (server-side pagination)
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   // Update URL params when filters change
   useEffect(() => {
     if (!pathname) return;
 
-    const params = new URLSearchParams();
+    // Skip on initial mount - filters are already initialized from URL
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      prevFiltersRef.current = selectedFilters;
+      return;
+    }
+
+    const filtersChanged =
+      JSON.stringify(prevFiltersRef.current.category) !== JSON.stringify(selectedFilters.category) ||
+      JSON.stringify(prevFiltersRef.current.offering) !== JSON.stringify(selectedFilters.offering) ||
+      JSON.stringify(prevFiltersRef.current.product) !== JSON.stringify(selectedFilters.product);
+
+    if (!filtersChanged) {
+      return;
+    }
+
+    // Update previous filters reference
+    prevFiltersRef.current = selectedFilters;
+
+    const params = new URLSearchParams(searchParams || undefined);
+
+    // Reset page to 1 when filters change
+    params.set('page', '1');
 
     if (selectedFilters.category.length > 0) {
       params.set('category', selectedFilters.category.join(','));
+    } else {
+      params.delete('category');
     }
 
     if (selectedFilters.offering.length > 0) {
       params.set('offering', selectedFilters.offering.join(','));
+    } else {
+      params.delete('offering');
     }
 
     if (selectedFilters.product.length > 0) {
       params.set('product', selectedFilters.product.join(','));
+    } else {
+      params.delete('product');
+    }
+
+    // Preserve query if it exists
+    if (searchQuery) {
+      params.set('query', searchQuery);
     }
 
     const queryString = params.toString();
@@ -406,7 +476,7 @@ const Updates = ({ updates, filterOptions }: UpdatesProps) => {
     if (newUrl !== window.location.pathname + window.location.search) {
       router.replace(newUrl, { scroll: false });
     }
-  }, [selectedFilters, pathname, router]);
+  }, [selectedFilters, pathname, router, searchParams, searchQuery]);
 
   const isFilterClearBtnDisabled = Object.keys(selectedFilters).every((category) => {
     return selectedFilters[category as keyof typeof selectedFilters].length === 0;
@@ -424,7 +494,14 @@ const Updates = ({ updates, filterOptions }: UpdatesProps) => {
 
     // Clear URL params as well
     if (pathname) {
-      router.replace(pathname, { scroll: false });
+      const params = new URLSearchParams();
+      params.set('page', '1');
+      if (searchQuery) {
+        params.set('query', searchQuery);
+      }
+      const queryString = params.toString();
+      const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+      router.replace(newUrl, { scroll: false });
     }
   };
 
@@ -470,22 +547,8 @@ const Updates = ({ updates, filterOptions }: UpdatesProps) => {
     return filters.slice(0, 5);
   };
 
-  const filteredUpdatesIndex = currentPage - 1;
-  const totalFilteredItems = filteredUpdates.flat().length;
-
-  const hasFilteredResultsOnCurrentPage = !!filteredUpdates[filteredUpdatesIndex];
-  // checks if there are results if so, use those results, if not default to the first index
-  // if all else fails just assign an empty array.
-  const currentPageFilteredUpdates = filteredUpdates[filteredUpdatesIndex] ?? filteredUpdates[0] ?? []; // at the end just default to an empty array
-
-  // Used to calculate the start number per page for the pagination
-  // if there is no results after filtering or searching while on the current page
-  // we result to the first index which represents the first page
-  const startOfResultRange = hasFilteredResultsOnCurrentPage
-    ? (currentPage - 1) * itemsPerPage + 1
-    : 0 * itemsPerPage + 1;
-  const validPageToCalculate = hasFilteredResultsOnCurrentPage ? currentPage : 1;
-  const endOfResultRange = Math.min(validPageToCalculate * itemsPerPage, totalFilteredItems);
+  const startOfResultRange = totalCount > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0;
+  const endOfResultRange = Math.min(currentPage * itemsPerPage, totalCount);
 
   return (
     <div className={cx(containerStyle)}>
@@ -562,13 +625,18 @@ const Updates = ({ updates, filterOptions }: UpdatesProps) => {
               <SearchInput
                 aria-label="Search updates by title or description..."
                 placeholder="Search updates by title or description..."
-                value={searchTerm}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                value={searchInputValue}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const term = e.target.value;
+                  setSearchInputValue(term);
+                  handleSearch(term);
+                }}
               />
             </div>
-            {currentPageFilteredUpdates.map((update: ProductUpdateEntry) => {
-              const created_at = update.beamer_created_at || update.created_at;
-              const date = new Date(created_at).toLocaleDateString('en-US', {
+            {filteredResults.map((update: ProductUpdateEntry) => {
+              const publishedAt = update.published_date;
+
+              const date = new Date(publishedAt).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
@@ -619,13 +687,9 @@ const Updates = ({ updates, filterOptions }: UpdatesProps) => {
           </div>
           <div className={cx(newsItemsCountStyle)}>
             <Body className={cx(newsItemsCountTextStyle)}>
-              {totalFilteredItems > 0 ? `${startOfResultRange}-${endOfResultRange}` : '0'} of {totalFilteredItems} items
+              {filteredResults.length > 0 ? `${startOfResultRange}-${endOfResultRange}` : '0'} of {totalCount} items
             </Body>
-            <Pagination
-              totalFilteredUpdates={filteredUpdates.length}
-              setCurrentPage={setCurrentPage}
-              currentPage={hasFilteredResultsOnCurrentPage ? currentPage : 1}
-            />
+            <Pagination totalPages={totalPages} currentPage={currentPage} />
           </div>
         </div>
       </div>
