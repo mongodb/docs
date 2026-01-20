@@ -3,7 +3,7 @@ import { loadGroupSampleData } from '../../../examples/aggregation/pipelines/gro
 import { runFilterTutorial } from '../../../examples/aggregation/pipelines/filter/tutorial.js';
 import { runGroupTutorial } from '../../../examples/aggregation/pipelines/group/tutorial.js';
 import { MongoClient } from 'mongodb';
-import outputMatchesExampleOutput from '../../../utils/outputMatchesExampleOutput.js';
+import Expect from '../../../utils/Expect.js';
 
 describe('Aggregation pipeline filter tutorial tests', () => {
   afterEach(async () => {
@@ -19,19 +19,19 @@ describe('Aggregation pipeline filter tutorial tests', () => {
     await loadFilterSampleData();
     const result = await runFilterTutorial();
     const outputFilepath = 'aggregation/pipelines/filter/tutorial-output.sh';
-    const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-      comparisonType: 'unordered',
-    });
-    expect(arraysMatch).toBe(true);
+
+    Expect.that(result)
+      .withUnorderedSort()
+      .shouldMatch(outputFilepath);
   });
 
   it('Should return grouped output that includes the three specified customer order records', async () => {
     await loadGroupSampleData();
     const result = await runGroupTutorial();
     const outputFilepath = 'aggregation/pipelines/group/tutorial-output.sh';
-    const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-      comparisonType: 'unordered',
-    });
-    expect(arraysMatch).toBe(true);
+
+    Expect.that(result)
+      .withUnorderedSort()
+      .shouldMatch(outputFilepath);
   });
 });

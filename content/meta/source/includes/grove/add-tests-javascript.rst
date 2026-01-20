@@ -88,20 +88,20 @@ How to Create a Test File
 
          it('Should return a basic document when executing the template app', async () => {
            const result = await run();
-           expect(result[0]['name']).toStrictEqual('sample2');
+           Expect.that(result[0]['name'])
+             .shouldMatch('sample2');
          });
 
       If your example returns a complex object or array, you can use the
-      ``outputMatchesExampleOutput`` comparison library to verify the output
+      ``Expect`` comparison library to verify the output
       matches what is expected. In the following example, we:
 
       - Call the ``loadFilterSampleData`` function to load the sample data
         required for the tutorial.
       - Call the ``runFilterTutorial`` function to execute the tutorial function.
       - Specify the file path where the test framework can read the expected output.
-      - Call the ``outputMatchesExampleOutput`` function to compare the actual
-        output to the expected output.
-      - Use the ``expect`` function to verify that the comparison was successful.
+      - Call the ``Expect.that()`` function to compare the actual output to the
+        expected output, and verify the comparison was successful.
 
       .. code-block:: javascript
 
@@ -109,10 +109,9 @@ How to Create a Test File
            await loadFilterSampleData();
            const result = await runFilterTutorial();
            const outputFilepath = 'aggregation/pipelines/filter/tutorial-output.sh';
-           const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-             comparisonType: 'unordered',
-           });
-           expect(arraysMatch).toBe(true);
+           Expect.that(result)
+             .withUnorderedSort()
+             .shouldMatch(outputFilepath);
          });
 
       In the example above, we specify that the comparison should be unordered,
@@ -121,11 +120,10 @@ How to Create a Test File
       the comparison should be ordered, since the order of the elements in the
       array does matter.
 
-      The ``outputMatchesExampleOutput`` function returns ``true`` if the
-      comparison was successful, and ``false`` otherwise. You can use this
-      value with the ``expect`` function to verify that the comparison was
-      successful. If the comparison fails, the test fails and provides details
-      about the failure.
+      The ``shouldMatch()`` method either returns nothing, which indicates
+      that the actual output matched the expected output, or it throws an error.
+      The error message contains details about the failure, including the reason
+      for the failure and the location in the output where the failure occurred.
 
    .. step:: Add setup and tear down logic.
 
@@ -153,10 +151,9 @@ How to Create a Test File
              await loadFilterSampleData();
              const result = await runFilterTutorial();
              const outputFilepath = 'aggregation/pipelines/filter/tutorial-output.sh';
-             const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-               comparisonType: 'unordered',
-             });
-             expect(arraysMatch).toBe(true);
+             Expect.that(result)
+               .withUnorderedSort()
+               .shouldMatch(outputFilepath);
            });
          });
 
@@ -187,10 +184,9 @@ How to Create a Test File
            it('Should return filtered output that includes the three specified person records', async () => {
              const result = await runFilterTutorial();
              const outputFilepath = 'aggregation/pipelines/filter/tutorial-output.sh';
-             const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-               comparisonType: 'unordered',
-             });
-             expect(arraysMatch).toBe(true);
+             Expect.that(result)
+               .withUnorderedSort()
+               .shouldMatch(outputFilepath);
            });
          });
 
@@ -269,30 +265,32 @@ data. It only skips the test that requires the sample data.
 Compare Expected and Actual Output
 ----------------------------------
 
-The ``outputMatchesExampleOutput`` function takes the following arguments:
+The ``Expect.that()`` function takes the following arguments:
 
-- ``filepath``: The relative path to the expected output file. The path
-  is relative to the ``examples/`` directory. In the example above, the
-  expected output file is located at
-  ``examples/aggregation/pipelines/filter/tutorial-output.sh``.
-- ``actualOutput``: The actual output from your example code.
-- ``comparisonOptions``: An optional object that contains comparison
-  options. The available options are:
+- ``actualOutput`` or ``result``: The actual output from your example code.
 
-  - ``comparisonType``: The type of comparison to perform. The available
-    options are:
+The ``shouldMatch()`` function takes the following arguments:
 
-    - ``unordered``: The order of the elements in the array does not
-      matter. MongoDB does not guarantee ordering unless you specify it, so
-      unordered comparison is the default.
-    - ``ordered``: The order of the elements in the array matters. You might
-      specify ``ordered`` output when your example uses the ``$sort`` stage,
-      and elements should only appear in a specific order.
+- ``expectedOutput``: The expected output from your example code. This can be a
+  file path, or an in-memory object.
 
-    - ``ignoreFieldValues``: An array of field names to ignore when
-      comparing objects. This is useful when the output contains fields
-      that have different values between test runs, such as ObjectIds,
-      timestamps, UUIDs, or other auto-generated values.
+  - If you use a file path, the path should start with the ``examples`` directory.
+    For example, ``examples/aggregation/pipelines/filter/tutorial-output.sh``.
+  - If you use an in-memory object, the object must be of the same type as the
+    actual output. For example, if the actual output is an array of documents,
+    the expected output must also be an array of documents.
+
+You can configure the comparison behavior using the following methods:
+
+- ``withUnorderedSort()``: Compare arrays in any order. MongoDB does not
+  guarantee ordering unless you specify it, so unordered comparison is the default.
+- ``withOrderedSort()``: Compare arrays in exact order. You might
+  specify ``withOrderedSort()`` when your example uses the ``$sort`` stage,
+  and elements should only appear in a specific order.
+- ``withIgnoredFields()``: An array of field names to ignore when
+  comparing objects. This is useful when the output contains fields
+  that have different values between test runs, such as ObjectIds,
+  timestamps, UUIDs, or other auto-generated values.
 
 For example, you might use the following options to compare the output of a
 pipeline that uses the ``$sort`` stage, where the documents contain ``_id``
@@ -300,10 +298,10 @@ and ``createdAt`` fields whose values may change between test runs:
 
 .. code-block:: javascript
 
-   const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-     comparisonType: 'ordered',
-     ignoreFieldValues: ['_id', 'createdAt'],
-   });
+   Expect.that(result)
+     .withOrderedSort()
+     .withIgnoredFields('_id', 'createdAt')
+     .shouldMatch(outputFilepath);
 
 Avoid Carrying Over Test State
 ------------------------------
@@ -378,10 +376,10 @@ The following example shows how you might revert a change to a field value:
    it('Should update the year of The Martian to 2020', async () => {
      const result = await runUpdateTutorial();
      const outputFilepath = 'crud/update/tutorial-output.sh';
-     const arraysMatch = outputMatchesExampleOutput(outputFilepath, result, {
-       comparisonType: 'unordered',
-     });
-     expect(arraysMatch).toBe(true);
+
+     Expect.that(result)
+       .withUnorderedSort()
+       .shouldMatch(outputFilepath);
 
      // Revert the change to the year field. First, you must set up the client
      // in the test file itself to make the change.
