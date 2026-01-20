@@ -717,9 +717,7 @@ const renderComponentWithProps = (
     );
   } else if (ComponentType === getComponent('wayfinding')) {
     const wayfindingNode = nodeData as WayfindingNode;
-    return (
-      <ComponentType nodeChildren={wayfindingNode.children} argument={wayfindingNode.argument} {...propsToDrill} />
-    );
+    return <ComponentType nodeChildren={wayfindingNode.children} argument={wayfindingNode.argument} />;
   }
 
   // Default: spread all props for other components
