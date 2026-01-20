@@ -63,10 +63,16 @@ This guide explains how to perform the following actions to manage your
 Create a Search Index Model
 ---------------------------
 
-To create a {+search+} or {+vector-search+} index, you must first build a
-``CreateSearchIndexModel`` instance that sets your index specifications.
+The following sections describe how to create index models for
+{+search+} and {+vector-search+} indexes.
 
-The ``CreateSearchIndexModel`` has the following properties:
+{+search+} Index Model
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a {+search+} index, you must construct a ``CreateSearchIndexModel`` instance
+that sets your index specifications.
+
+The ``CreateSearchIndexModel`` class has the following properties:
 
 .. list-table::
    :header-rows: 1
@@ -76,30 +82,20 @@ The ``CreateSearchIndexModel`` has the following properties:
      - Type
      - Description
 
-   * - ``definition``
+   * - ``Definition``
      - ``BsonDocument``
      - Specifies the index definition. If you omit this setting, the
        driver creates a {+search+} index with dynamic mappings.
 
-   * - ``name``
+   * - ``Name``
      - ``string``
      - Sets the index name. If you omit this setting, the
        driver sets the name to ``default``.
 
-   * - ``type``
+   * - ``Type``
      - ``SearchIndexType``
      - Sets the index type. If you omit this setting, the
        driver creates a {+search+} index by default.
-
-To learn more about {+search+} field mappings, see :atlas:`Define Field Mappings
-</atlas-search/define-field-mappings/>` in the Atlas documentation.
-
-To learn more about defining {+vector-search+} indexes, see
-:atlas:`How to Index Fields for Vector Search
-</atlas-vector-search/vector-search-type/>` in the Atlas documentation.
-
-Example Models
-~~~~~~~~~~~~~~
 
 The following example creates a ``CreateSearchIndexModel`` instance to provide
 specifications for an index named ``search_idx``. The code specifies static
@@ -111,16 +107,74 @@ mappings of the ``title`` and ``released`` fields:
    :language: csharp
    :dedent:
 
-The following example creates a ``CreateSearchIndexModel`` instance to provide
+To learn more about {+search+} field mappings, see :atlas:`Define Field Mappings
+</atlas-search/define-field-mappings/>` in the Atlas documentation.
+
+.. _csharp-vector-search-index-model:
+
+{+vector-search+} Index Model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a {+vector-search+} index, you must construct a ``CreateVectorSearchIndexModel``
+instance that sets your index specifications.
+
+The ``CreateVectorSearchIndexModel`` class inherits from the ``CreateSearchIndexModel``
+class and has the following additional properties:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 25 50
+
+   * - Property
+     - Type
+     - Description
+
+   * - ``Field``
+     - ``FieldDefinition<TDocument>``
+     - Specifies the field that contains the vectors to index.
+
+   * - ``Similarity``
+     - ``VectorSimilarity`` 
+     - Sets the vector similarity function to use to search for the top K-nearest neighbors.
+
+   * - ``Dimensions``
+     - ``int``
+     - Specifies the number of dimensions that the search enforces at index-time and query-time.
+
+   * - ``FilterFields``
+     - ``IReadOnlyList<FieldDefinition<TDocument>>``
+     - Specifies the fields that the search uses as filters in the vector query.
+
+   * - ``Quantization``
+     - ``VectorQuantization?``
+     - Specifies the type of automatic vector quantization for the search vectors. If you
+       don't set this property, the search uses no automatic quantization.
+
+   * - ``HnswMaxEdges``
+     - ``int?``
+     - Sets the maximum number of edges that a node can have in the Hierarchical Navigable
+       Small Worlds graph.
+
+   * - ``HnswNumEdgeCandidates``
+     - ``int?``
+     - Sets the maximum number of nodes to evaluate to find the closest neighbors to
+       connect to a new node.
+
+The following example creates a ``CreateVectorSearchIndexModel`` instance to provide
 specifications for an index named ``vs_idx``. The code specifies the
-embedding path as  ``plot_embedding``, indexes ``1536`` dimensions, and
-uses the ``"euclidean"`` vector similarity function:
+embedding path as  ``PlotEmbedding``, a class property that corresponds to the
+``plot_embedding`` field in MongoDB. It also indexes ``1536`` dimensions, and uses the
+``Euclidean`` vector similarity function.
 
 .. literalinclude:: /includes/fundamentals/code-examples/SearchIndexes.cs
    :start-after: begin-avs-model
    :end-before: end-avs-model
    :language: csharp
    :dedent:
+
+To learn more about defining {+vector-search+} indexes, see
+:atlas:`How to Index Fields for Vector Search
+</atlas-vector-search/vector-search-type/>` in the Atlas documentation.
 
 .. _csharp-create-search-index:
 
@@ -130,7 +184,7 @@ Create a Search Index
 You can create a {+search+} or {+vector-search+} index on a collection by
 calling the ``SearchIndexes.CreateOne()`` method on an ``IMongoCollection``
 instance. This method accepts an index model as a parameter, specified
-in a ``CreateSearchIndexModel`` instance.
+in a ``CreateSearchIndexModel`` or ``CreateVectorSearchIndexModel`` instance.
 
 Example
 ~~~~~~~
@@ -166,7 +220,7 @@ Create Multiple Search Indexes
 You can create multiple {+search+} and {+vector-search+} indexes
 by calling the ``SearchIndexes.CreateMany()`` method on an ``IMongoCollection``
 instance. This method accepts an ``IEnumerable`` of
-``CreateSearchIndexModel`` instances as a parameter.
+``CreateSearchIndexModel`` or ``CreateVectorSearchIndexModel`` instances as a parameter.
 
 Example
 ~~~~~~~
@@ -176,11 +230,11 @@ This example performs the following actions:
 1. Creates a ``CreateSearchIndexModel`` instance that specifies a {+search+} 
    index named ``as_idx``
 
-#. Creates a ``CreateSearchIndexModel`` instance that specifies a {+vector-search+}
+#. Creates a ``CreateVectorSearchIndexModel`` instance that specifies a {+vector-search+}
    index named ``vs_idx``
 
-#. Passes a ``List`` of both ``CreateSearchIndexModel`` instances to
-   the ``SearchIndexes.CreateMany()`` method
+#. Passes a ``List`` of the ``CreateSearchIndexModel`` and ``CreateVectorSearchIndexModel``
+   instances to the ``SearchIndexes.CreateMany()`` method
 
 #. Creates the {+search+} and {+vector-search+} indexes on the
    ``embedded_movies`` collection

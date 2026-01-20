@@ -12,41 +12,19 @@ var database = client.GetDatabase("<databaseName>");
 var collection = database.GetCollection<BsonDocument>("<collectionName>");
 
 // Create your index models and add them to an array
-var type = SearchIndexType.VectorSearch;
+var modelOne = new CreateVectorSearchIndexModel<<documentType>> (
+    <fieldToIndex>
+    "<indexName>",
+    <vectorSimilarity>,
+    <numberOfDimensions>);
 
-var definitionOne = new BsonDocument
-{
-    { "fields", new BsonArray
-        {
-            new BsonDocument
-            {
-                { "type", "vector" },
-                { "path", "<fieldToIndex>" },
-                { "numDimensions", <numberOfDimensions> },
-                { "similarity", "euclidean | cosine | dotProduct" }
-            }
-        }
-    }
-};
-var modelOne = new CreateSearchIndexModel("<indexName>", type, definitionOne);
+var modelTwo = new CreateVectorSearchIndexModel<<documentType>> (
+    <fieldToIndex>
+    "<indexName>",
+    <vectorSimilarity>,
+    <numberOfDimensions>);
 
-var definitionTwo = new BsonDocument
-{
-    { "fields", new BsonArray
-        {
-            new BsonDocument
-            {
-                { "type", "vector" },
-                { "path", "<fieldToIndex>" },
-                { "numDimensions", <numberOfDimensions> },
-                { "similarity", "euclidean | cosine | dotProduct" }
-            }
-        }
-    }
-};
-var modelTwo = new CreateSearchIndexModel("<indexName>", type, definitionTwo);
-
-var models = new CreateSearchIndexModel[] { modelOne, modelTwo };
+var models = new CreateVectorSearchIndexModel[] { modelOne, modelTwo };
 
 // Create the search indexes
 var searchIndexView = collection.SearchIndexes;

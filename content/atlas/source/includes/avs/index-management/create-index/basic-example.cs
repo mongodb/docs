@@ -20,25 +20,15 @@ public class IndexService
 
             var searchIndexView = collection.SearchIndexes;
             var name = "vector_index";
-            var type = SearchIndexType.VectorSearch;
 
-            var definition = new BsonDocument
+            var model = new CreateVectorSearchIndexModel<Movie>(
+                m => m.PlotEmbedding,
+                name,
+                VectorSimilarity.DotProduct,
+                2048)
             {
-                { "fields", new BsonArray
-                    {
-                        new BsonDocument
-                        {
-                            { "type", "vector" },
-                            { "path", "plot_embedding_voyage_3_large" },
-                            { "numDimensions", 2048 },
-                            { "similarity", "dotProduct" },
-                            { "quantization", "scalar" }
-                        }
-                    }
-                }
+                Quantization = VectorQuantization.Scalar
             };
-
-            var model = new CreateSearchIndexModel(name, type, definition);
 
             searchIndexView.CreateOne(model);
             Console.WriteLine($"New search index named {name} is building.");

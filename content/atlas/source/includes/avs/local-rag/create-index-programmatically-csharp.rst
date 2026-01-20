@@ -8,7 +8,7 @@
 
       .. literalinclude:: /includes/avs/local-rag/MongoDBDataService-create-index.cs
          :language: csharp
-         :emphasize-lines: 23-71
+         :emphasize-lines: 23-63
          :caption: MongoDBDataService.cs
 
       This index definition indexes the ``embeddings`` field

@@ -13,24 +13,11 @@ var collection = database.GetCollection<BsonDocument>("<collectionName>");
 
 // Create your index model, then create the search index
 var name = "<indexName>";
-var type = SearchIndexType.VectorSearch;
-
-var definition = new BsonDocument
-{
-    { "fields", new BsonArray
-        {
-            new BsonDocument
-            {
-                { "type", "vector" },
-                { "path", "<fieldToIndex>" },
-                { "numDimensions", <numberOfDimensions> },
-                { "similarity", "euclidean | cosine | dotProduct" }
-            }
-        }
-    }
-};
-
-var model = new CreateSearchIndexModel(name, type, definition);
+var model = new CreateVectorSearchIndexModel<<documentType>> (
+    <fieldToIndex>
+    name,
+    <vectorSimilarity>,
+    <numberOfDimensions>);
 
 var searchIndexView = collection.SearchIndexes;
 searchIndexView.CreateOne(model);

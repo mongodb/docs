@@ -26,21 +26,13 @@ public class DataService
         {
             var searchIndexView = Collection.SearchIndexes;
             var name = "vector_index";
-            var type = SearchIndexType.VectorSearch;
-            var definition = new BsonDocument
-            {
-                { "fields", new BsonArray
-                    {
-                        new BsonDocument
-                        {
-                            { "type", "vector" },
-                            { "path", "embeddings" },
-                            { "numDimensions", 768 },
-                            { "similarity", "cosine" }
-                        }
-                    }
-                }
-            };
+            
+            var model = new CreateVectorSearchIndexModel<Listing>(
+                l => l.Embeddings,
+                name,
+                VectorSimilarity.Cosine,
+                768);
+            
             var model = new CreateSearchIndexModel(name, type, definition);
             searchIndexView.CreateOne(model);
             Console.WriteLine($"New search index named {name} is building.");

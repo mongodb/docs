@@ -659,24 +659,12 @@ Atlas Search indexes on all Atlas cluster tiers. For a list of supported driver 
 
               var searchIndexView = collection.SearchIndexes;
               var name = "vector_index";
-              var type = SearchIndexType.VectorSearch;
 
-              var definition = new BsonDocument
-              {
-                  { "fields", new BsonArray
-                      {
-                          new BsonDocument
-                          {
-                              { "type", "vector" },
-                              { "path", "plot_embedding" },
-                              { "numDimensions", 1536 },
-                              { "similarity", "dotProduct" }
-                          }
-                      }
-                  }
-              };
-
-              var model = new CreateSearchIndexModel(name, type, definition);
+              var model = new CreateVectorSearchIndexModel<Movie>(
+                m => m.PlotEmbedding,
+                name,
+                VectorSimilarity.DotProduct,
+                1536);
 
               searchIndexView.CreateOne(model);
               Console.WriteLine($"New search index named {name} is building.");
@@ -2717,24 +2705,12 @@ For detailed instructions, see Prerequisites.
 
               var searchIndexView = collection.SearchIndexes;
               var name = "vector_index";
-              var type = SearchIndexType.VectorSearch;
-
-              var definition = new BsonDocument
-              {
-                  { "fields", new BsonArray
-                      {
-                          new BsonDocument
-                          {
-                              { "type", "vector" },
-                              { "path", "plot_embedding" },
-                              { "numDimensions", 1536 },
-                              { "similarity", "dotProduct" }
-                          }
-                      }
-                  }
-              };
-
-              var model = new CreateSearchIndexModel(name, type, definition);
+            
+              var model = new CreateVectorSearchIndexModel<Movie>(
+                m => m.PlotEmbedding,
+                name,
+                VectorSimilarity.DotProduct,
+                1536);
 
               searchIndexView.CreateOne(model);
               Console.WriteLine($"New search index named {name} is building.");

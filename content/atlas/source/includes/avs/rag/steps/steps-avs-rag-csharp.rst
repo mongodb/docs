@@ -158,7 +158,7 @@
          .. literalinclude:: /includes/avs/rag/index/MongoDBDataService-CreateIndex.cs
             :language: csharp
             :caption: MongoDBDataService.cs
-            :emphasize-lines: 18-66
+            :emphasize-lines: 18-57
 
       #. Update the ``Program.cs`` file.
 

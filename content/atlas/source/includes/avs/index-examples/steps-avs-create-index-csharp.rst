@@ -42,11 +42,20 @@
          * - ``<indexName>``
            - Name of your index. If you omit the index name, defaults to ``vector_index``.
 
-         * - ``<numberOfDimensions>``
-           - Number of vector dimensions that {+avs+} enforces at index-time and query-time.
+         * - ``<documentType>``
+           - Class that represents a document in the collection. To learn more,
+             see :driver:`POCOs </csharp/current/serialization/poco/>` in the C# driver
+             documentation.
 
          * - ``<fieldToIndex>``
-           - Vector and filter fields to index.
+           - Vector and filter fields to index. For this parameter, you can pass either
+             a ``FieldDefinition<TDocument>`` object or a lambda expression.
+         
+         * - ``<vectorSimilarity>``
+           - Vector similarity function, defined in the ``VectorSimilarity`` enum.
+         
+         * - ``<numberOfDimensions>``
+           - Number of vector dimensions that {+avs+} enforces at index-time and query-time.
 
       .. example:: 
 
