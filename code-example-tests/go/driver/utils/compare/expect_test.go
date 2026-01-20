@@ -449,3 +449,384 @@ func TestExpectMixedTypesComparison(t *testing.T) {
 		ExpectThat(t, structResults).ShouldMatch(testFile)
 	})
 }
+
+// TestShouldResembleBasicFunctionality tests basic ShouldResemble functionality
+func TestShouldResembleBasicFunctionality(t *testing.T) {
+	tempDir := t.TempDir()
+
+	t.Run("Validates document count", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "count_test.txt")
+		createTestFile(t, testFile, `{"_id":"1","title":"Movie 1","year":2012}
+{"_id":"2","title":"Movie 2","year":2012}
+{"_id":"3","title":"Movie 3","year":2012}`)
+
+		actual := []bson.D{
+			{{Key: "_id", Value: "a"}, {Key: "title", Value: "Different 1"}, {Key: "year", Value: 2012}},
+			{{Key: "_id", Value: "b"}, {Key: "title", Value: "Different 2"}, {Key: "year", Value: 2012}},
+			{{Key: "_id", Value: "c"}, {Key: "title", Value: "Different 3"}, {Key: "year", Value: 2012}},
+		}
+
+		ExpectThat(t, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{
+				Count:          3,
+				RequiredFields: []string{"_id", "title", "year"},
+				FieldValues:    map[string]interface{}{"year": 2012},
+			})
+	})
+
+	t.Run("Validates required fields are present", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "required_fields.txt")
+		createTestFile(t, testFile, `{"_id":"1","title":"Test","score":0.95}`)
+
+		actual := []bson.D{
+			{{Key: "_id", Value: "different"}, {Key: "title", Value: "Different"}, {Key: "score", Value: 0.87}},
+		}
+
+		ExpectThat(t, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{
+				Count:          1,
+				RequiredFields: []string{"_id", "title", "score"},
+			})
+	})
+
+	t.Run("Validates field values match exactly", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "field_values.txt")
+		createTestFile(t, testFile, `{"year":2012,"genre":"Action"}
+{"year":2012,"genre":"Action"}`)
+
+		actual := []bson.D{
+			{{Key: "year", Value: 2012}, {Key: "genre", Value: "Action"}, {Key: "title", Value: "Movie A"}},
+			{{Key: "year", Value: 2012}, {Key: "genre", Value: "Action"}, {Key: "title", Value: "Movie B"}},
+		}
+
+		ExpectThat(t, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{
+				Count:       2,
+				FieldValues: map[string]interface{}{"year": 2012, "genre": "Action"},
+			})
+	})
+}
+
+// TestShouldResembleValidationErrors tests that ShouldResemble fails appropriately
+func TestShouldResembleValidationErrors(t *testing.T) {
+	tempDir := t.TempDir()
+
+	t.Run("Fails when count does not match", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "count_mismatch.txt")
+		createTestFile(t, testFile, `{"title":"Only One"}`)
+
+		actual := []bson.D{
+			{{Key: "title", Value: "First"}},
+			{{Key: "title", Value: "Second"}},
+		}
+
+		mockT := &mockTestingT{t: t, shouldFail: true}
+		ExpectThat(mockT, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{Count: 1})
+
+		if !mockT.failed {
+			t.Error("Expected test to fail when actual count doesn't match schema count")
+		}
+	})
+
+	t.Run("Fails when required field is missing", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "missing_required.txt")
+		createTestFile(t, testFile, `{"title":"Test"}`)
+
+		actual := []bson.D{
+			{{Key: "title", Value: "Test"}},
+		}
+
+		mockT := &mockTestingT{t: t, shouldFail: true}
+		ExpectThat(mockT, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{
+				Count:          1,
+				RequiredFields: []string{"title", "year"},
+			})
+
+		if !mockT.failed {
+			t.Error("Expected test to fail when required field is missing")
+		}
+	})
+
+	t.Run("Fails when field value does not match", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "value_mismatch.txt")
+		createTestFile(t, testFile, `{"year":2012}`)
+
+		actual := []bson.D{
+			{{Key: "year", Value: 2013}},
+		}
+
+		mockT := &mockTestingT{t: t, shouldFail: true}
+		ExpectThat(mockT, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{
+				Count:       1,
+				FieldValues: map[string]interface{}{"year": 2012},
+			})
+
+		if !mockT.failed {
+			t.Error("Expected test to fail when field value doesn't match")
+		}
+	})
+}
+
+// TestShouldResembleMutualExclusivity tests that ShouldResemble is mutually exclusive with other options
+func TestShouldResembleMutualExclusivity(t *testing.T) {
+	tempDir := t.TempDir()
+	testFile := filepath.Join(tempDir, "mutual_exclusivity.txt")
+	createTestFile(t, testFile, `{"title":"Test"}`)
+
+	actual := []bson.D{
+		{{Key: "title", Value: "Test"}},
+	}
+
+	t.Run("Fails when WithSchema used without ShouldResemble", func(t *testing.T) {
+		mockT := &mockTestingT{t: t, shouldFail: true}
+		ExpectThat(mockT, actual).WithSchema(Schema{Count: 1})
+
+		if !mockT.failed {
+			t.Error("Expected test to fail when WithSchema is used without ShouldResemble")
+		}
+	})
+
+	t.Run("Fails when WithIgnoredFields used with ShouldResemble", func(t *testing.T) {
+		mockT := &mockTestingT{t: t, shouldFail: true}
+		ExpectThat(mockT, actual).
+			WithIgnoredFields("_id").
+			ShouldResemble(testFile).
+			WithSchema(Schema{Count: 1})
+
+		if !mockT.failed {
+			t.Error("Expected test to fail when WithIgnoredFields is used with ShouldResemble")
+		}
+	})
+
+	t.Run("Fails when WithOrderedSort used before ShouldResemble", func(t *testing.T) {
+		mockT := &mockTestingT{t: t, shouldFail: true}
+		ExpectThat(mockT, actual).
+			WithOrderedSort().
+			ShouldResemble(testFile).
+			WithSchema(Schema{Count: 1})
+
+		if !mockT.failed {
+			t.Error("Expected test to fail when WithOrderedSort is used with ShouldResemble")
+		}
+	})
+
+	t.Run("Fails when WithUnorderedSort used before ShouldResemble", func(t *testing.T) {
+		mockT := &mockTestingT{t: t, shouldFail: true}
+		ExpectThat(mockT, actual).
+			WithUnorderedSort().
+			ShouldResemble(testFile).
+			WithSchema(Schema{Count: 1})
+
+		if !mockT.failed {
+			t.Error("Expected test to fail when WithUnorderedSort is used with ShouldResemble")
+		}
+	})
+
+	t.Run("Fails when WithOrderedSort used after ShouldResemble", func(t *testing.T) {
+		mockT := &mockTestingT{t: t, shouldFail: true}
+		ExpectThat(mockT, actual).
+			ShouldResemble(testFile).
+			WithOrderedSort()
+
+		if !mockT.failed {
+			t.Error("Expected test to fail when WithOrderedSort is used after ShouldResemble")
+		}
+	})
+
+	t.Run("Fails when WithUnorderedSort used after ShouldResemble", func(t *testing.T) {
+		mockT := &mockTestingT{t: t, shouldFail: true}
+		ExpectThat(mockT, actual).
+			ShouldResemble(testFile).
+			WithUnorderedSort()
+
+		if !mockT.failed {
+			t.Error("Expected test to fail when WithUnorderedSort is used after ShouldResemble")
+		}
+	})
+
+	t.Run("WithOrderedSort works with ShouldMatch", func(t *testing.T) {
+		// This should pass - WithOrderedSort is valid with ShouldMatch
+		orderedActual := []bson.D{
+			{{Key: "title", Value: "First"}},
+			{{Key: "title", Value: "Second"}},
+		}
+		orderedFile := filepath.Join(tempDir, "ordered.txt")
+		createTestFile(t, orderedFile, `{"title":"First"}
+{"title":"Second"}`)
+
+		ExpectThat(t, orderedActual).
+			WithOrderedSort().
+			ShouldMatch(orderedFile)
+	})
+}
+
+// TestShouldResembleSingleDocumentWrapping tests that single documents are auto-wrapped
+func TestShouldResembleSingleDocumentWrapping(t *testing.T) {
+	type Movie struct {
+		ID    string `bson:"_id"`
+		Title string `bson:"title"`
+		Year  int    `bson:"year"`
+	}
+
+	tempDir := t.TempDir()
+
+	t.Run("Single struct actual is auto-wrapped", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "single_doc.txt")
+		createTestFile(t, testFile, `{"_id":"expected","title":"Expected Movie","year":2020}`)
+
+		actual := Movie{ID: "actual", Title: "Actual Movie", Year: 2020}
+
+		ExpectThat(t, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{
+				Count:          1,
+				RequiredFields: []string{"_id", "title", "year"},
+				FieldValues:    map[string]interface{}{"year": float64(2020)},
+			})
+	})
+
+	t.Run("Single bson.D actual is auto-wrapped", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "single_bson.txt")
+		createTestFile(t, testFile, `{"_id":"expected","title":"Expected","year":2021}`)
+
+		actual := bson.D{
+			{Key: "_id", Value: "actual"},
+			{Key: "title", Value: "Actual"},
+			{Key: "year", Value: 2021},
+		}
+
+		ExpectThat(t, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{
+				Count:          1,
+				RequiredFields: []string{"_id", "title", "year"},
+				FieldValues:    map[string]interface{}{"year": float64(2021)},
+			})
+	})
+
+	t.Run("Single map actual is auto-wrapped", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "single_map.txt")
+		createTestFile(t, testFile, `{"name":"Expected","value":100}`)
+
+		actual := map[string]interface{}{
+			"name":  "Actual",
+			"value": float64(100),
+		}
+
+		ExpectThat(t, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{
+				Count:          1,
+				RequiredFields: []string{"name", "value"},
+				FieldValues:    map[string]interface{}{"value": float64(100)},
+			})
+	})
+
+	t.Run("Both single expected and actual work", func(t *testing.T) {
+		// Single document JSON string as expected
+		expected := `{"_id":"expected","title":"Expected","year":2022}`
+
+		actual := Movie{ID: "actual", Title: "Actual", Year: 2022}
+
+		ExpectThat(t, actual).
+			ShouldResemble(expected).
+			WithSchema(Schema{
+				Count:          1,
+				RequiredFields: []string{"_id", "title", "year"},
+				FieldValues:    map[string]interface{}{"year": float64(2022)},
+			})
+	})
+}
+
+// TestShouldResembleVectorSearchScenario tests a realistic Vector Search scenario
+// where document content may vary but structure remains consistent
+func TestShouldResembleVectorSearchScenario(t *testing.T) {
+	tempDir := t.TempDir()
+
+	t.Run("Vector Search results with varying content but consistent structure", func(t *testing.T) {
+		// Expected output file representing one possible set of results
+		// All documents have year=1999 to match the FieldValues schema
+		testFile := filepath.Join(tempDir, "vector_search.txt")
+		createTestFile(t, testFile, `{"_id":"doc1","title":"The Matrix","year":1999,"score":0.95}
+{"_id":"doc2","title":"Office Space","year":1999,"score":0.87}
+{"_id":"doc3","title":"Fight Club","year":1999,"score":0.82}`)
+
+		// Actual results may contain different documents but same structure
+		// and matching field values where specified
+		actual := []bson.D{
+			{{Key: "_id", Value: "docA"}, {Key: "title", Value: "Different Movie 1"}, {Key: "year", Value: 1999}, {Key: "score", Value: 0.91}},
+			{{Key: "_id", Value: "docB"}, {Key: "title", Value: "Different Movie 2"}, {Key: "year", Value: 1999}, {Key: "score", Value: 0.88}},
+			{{Key: "_id", Value: "docC"}, {Key: "title", Value: "Different Movie 3"}, {Key: "year", Value: 1999}, {Key: "score", Value: 0.85}},
+		}
+
+		ExpectThat(t, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{
+				Count:          3,
+				RequiredFields: []string{"_id", "title", "year", "score"},
+				FieldValues:    map[string]interface{}{"year": 1999},
+			})
+	})
+
+	t.Run("Vector Search with only structure validation (no FieldValues)", func(t *testing.T) {
+		// In this case, we don't care about specific field values - just structure
+		testFile := filepath.Join(tempDir, "vector_search_structure.txt")
+		createTestFile(t, testFile, `{"_id":"doc1","title":"The Matrix","year":1999,"score":0.95}
+{"_id":"doc2","title":"Inception","year":2010,"score":0.87}
+{"_id":"doc3","title":"Interstellar","year":2014,"score":0.82}`)
+
+		actual := []bson.D{
+			{{Key: "_id", Value: "docA"}, {Key: "title", Value: "Different 1"}, {Key: "year", Value: 2020}, {Key: "score", Value: 0.91}},
+			{{Key: "_id", Value: "docB"}, {Key: "title", Value: "Different 2"}, {Key: "year", Value: 2021}, {Key: "score", Value: 0.88}},
+			{{Key: "_id", Value: "docC"}, {Key: "title", Value: "Different 3"}, {Key: "year", Value: 2022}, {Key: "score", Value: 0.85}},
+		}
+
+		// Only validate count and required fields, no specific field values
+		ExpectThat(t, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{
+				Count:          3,
+				RequiredFields: []string{"_id", "title", "year", "score"},
+			})
+	})
+}
+
+// TestShouldResembleWithStructs tests ShouldResemble works with struct slices
+func TestShouldResembleWithStructs(t *testing.T) {
+	type Movie struct {
+		ID    string  `bson:"_id"`
+		Title string  `bson:"title"`
+		Year  int     `bson:"year"`
+		Score float64 `bson:"score"`
+	}
+
+	tempDir := t.TempDir()
+
+	t.Run("Struct slices work with ShouldResemble", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "struct_test.txt")
+		createTestFile(t, testFile, `{"_id":"1","title":"Expected","year":2020,"score":0.9}
+{"_id":"2","title":"Expected 2","year":2020,"score":0.8}`)
+
+		actual := []Movie{
+			{ID: "a", Title: "Actual 1", Year: 2020, Score: 0.85},
+			{ID: "b", Title: "Actual 2", Year: 2020, Score: 0.75},
+		}
+
+		ExpectThat(t, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{
+				Count:          2,
+				RequiredFields: []string{"_id", "title", "year", "score"},
+				FieldValues:    map[string]interface{}{"year": float64(2020)},
+			})
+	})
+}

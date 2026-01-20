@@ -26,3 +26,11 @@ func WithIgnoredFields(fields ...string) Option {
 		o.IgnoreFieldValues = fields
 	}
 }
+
+// WithSchemaOption configures schema validation for ShouldResemble comparisons.
+// This is an internal option applied by the fluent API's WithSchema method.
+func WithSchemaOption(schema *Schema) Option {
+	return func(o *Options) {
+		o.Schema = schema
+	}
+}

@@ -658,9 +658,48 @@ expected output file:
 Matches actual output that contains any number of additional keys and values
 beyond the `full_name` field.
 
+##### Validate structure without exact value matching
+
+For scenarios where the result structure is consistent but exact values vary
+between runs (such as vector search results with similarity scores, or queries
+that return valid data in unpredictable order), use `ShouldResemble` and
+`WithSchema` to validate structure instead of exact content:
+
+```go
+compare.ExpectThat(t, result).
+    ShouldResemble(expectedOutputFilepath).
+    WithSchema(compare.Schema{
+        Count:          20,                              // Expect exactly 20 documents
+        RequiredFields: []string{"_id", "title", "year"}, // These fields must exist
+        FieldValues:    map[string]interface{}{"year": 2012}, // This value must match
+    })
+```
+
+The `Schema` type has three fields:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `Count int` | Yes | The exact number of documents expected. Must be non-negative. |
+| `RequiredFields []string` | No | Field names that must be present in every document. |
+| `FieldValues map[string]interface{}` | No | Field-value pairs that must match exactly in every document. |
+
+This is particularly useful for:
+
+- **Vector Search results**: Where similarity scores vary but structure is consistent
+- **Geospatial queries**: Where distance calculations may vary slightly
+- **Aggregation results**: Where you want to validate structure without exact values
+- **Any query with dynamic content**: Where the shape matters more than specific values
+
+**Important notes:**
+
+- `ShouldResemble` must be followed by `WithSchema`
+- `ShouldResemble` cannot be used with `WithIgnoredFields`, `WithUnorderedSort`, or `WithOrderedSort` (they are mutually exclusive)
+- `ShouldResemble` cannot be used with `ShouldMatch` (use one or the other)
+- Schema validation applies to both expected and actual outputs
+
 ##### Complete options reference
 
-The `ExpectThat` API supports these methods:
+The `ExpectThat` API supports these configuration methods:
 
 - **`WithUnorderedSort()`** - Explicitly specify unordered comparison (default
   behavior). Use when you are not sorting the result of a CRUD or
@@ -671,14 +710,33 @@ The `ExpectThat` API supports these methods:
 - **`WithIgnoredFields(fields ...string)`** - Ignore specific field values
   during comparison. Use for dynamic values that may change between test runs,
   such as timestamps or ObjectId values.
+- **`ShouldResemble(expected)`** - Configure schema-based validation mode.
+  Must be followed by `WithSchema` to perform the validation.
+
+The API supports two terminal methods (use one or the other):
+
+- **`ShouldMatch(expected)`** - Validates that actual results match expected
+  output exactly (respecting ignored fields and ellipsis patterns).
+- **`WithSchema(schema Schema)`** - Performs schema-based validation for
+  `ShouldResemble` comparisons. Requires `ShouldResemble` to be called first.
+  Cannot be combined with `WithIgnoredFields`, `WithUnorderedSort`, or `WithOrderedSort`.
 
 These can be chained together:
 
 ```go
+// Exact matching with options
 compare.ExpectThat(t, result).
     WithOrderedSort().
     WithIgnoredFields("_id", "timestamp").
     ShouldMatch(expectedOutputFilepath)
+
+// Structural validation with schema
+compare.ExpectThat(t, result).
+    ShouldResemble(expectedOutputFilepath).
+    WithSchema(compare.Schema{
+        Count:          10,
+        RequiredFields: []string{"name", "score"},
+    })
 ```
 
 ## To run the tests locally
