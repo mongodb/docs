@@ -7,9 +7,9 @@
 
       a. Create a ``.py`` file. 
 
-         .. code-block:: javascript 
+         .. code-block:: shell 
 
-            touch vector_index.js
+            touch vector_index.py
 
       #. Copy and paste the following index definition in to the file.
       
