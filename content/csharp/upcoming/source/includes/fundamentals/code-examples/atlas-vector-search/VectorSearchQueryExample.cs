@@ -71,6 +71,22 @@ public class VectorSearchQuery
             .Select(m => new { m.Title, m.Plot });
         // end-linq-example
     }
+
+    private static void AutoEmbeddingExample()
+    {
+        // start-auto-embedding-query
+        var options = new VectorSearchOptions<EmbeddedMovie>()
+        {
+            IndexName = "auto_embedding_index",
+            NumberOfCandidates = 150
+        };
+        var query = collection.Aggregate()
+            .VectorSearch(m => m.Plot, "time travel", 10, options)
+            .Project(Builders<EmbeddedMovie>.Projection
+                .Include(m => m.Title)
+                .Include(m => m.Plot));
+        // end-auto-embedding-query
+    }
 }
 
 // start-sample-class

@@ -39,6 +39,15 @@ public class SearchIndexes
       1536);
     // end-avs-model
 
+    // begin-auto-embedding-model
+    var model = new CreateAutoEmbeddingVectorSearchIndexModel<EmbeddedMovie>(
+      m => m.Plot,
+      "auto_embedding_index",
+      "voyage-4",
+      m => m.Runtime, m => m.Year  // Optional filter fields
+    );
+    // end-auto-embedding-model
+
     // begin-atlas-create-one
     var indexModel = new CreateSearchIndexModel(
       "example_index",
