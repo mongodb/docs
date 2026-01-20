@@ -4,6 +4,9 @@ public class ExpectBuilder : IBuilder
 {
     private readonly object? _actual;
     private ComparisonOptions _options;
+    private bool _shouldMatchCalled;
+    private bool _shouldResembleCalled;
+    private bool _sortApiCalled;
 
     internal ExpectBuilder(object? actual)
     {
@@ -13,13 +16,14 @@ public class ExpectBuilder : IBuilder
 
     public IBuilder WithOrderedSort()
     {
-
+        _sortApiCalled = true;
         _options.ArrayMode = ArrayComparisonMode.Ordered;
 
         return this;
     }
     public IBuilder WithUnorderedSort()
     {
+        _sortApiCalled = true;
         _options.ArrayMode = ArrayComparisonMode.Unordered;
 
         return this;
@@ -35,32 +39,43 @@ public class ExpectBuilder : IBuilder
 
     public ComparisonResult ShouldMatch(object? expected)
     {
-        ComparisonResult result;
-        if (expected is string stringExpected)
+        return ShouldMatchAsync(expected).GetAwaiter().GetResult();
+    }
+
+    /// <summary>
+    ///     Initiates schema-based validation where results may vary but must conform to a defined schema.
+    ///     This is mutually exclusive with ShouldMatch(), WithIgnoredFields(), and sort APIs.
+    /// </summary>
+    /// <param name="expected">The expected output to validate against the schema</param>
+    /// <returns>ISchemaBuilder that requires WithSchema() to complete validation</returns>
+    /// <exception cref="ComparisonException">
+    ///     Thrown if WithIgnoredFields(), WithOrderedSort(), or WithUnorderedSort() was called,
+    ///     or if ShouldMatch() was already called.
+    /// </exception>
+    public ISchemaBuilder ShouldResemble(object? expected)
+    {
+        if (_shouldMatchCalled)
         {
-            if (EllipsisPatternMatcher.TryMatch(stringExpected, _actual))
-            {
-                return new ComparisonSuccess();
-            }
-            if (JsonUtilities.LooksLikeJson(stringExpected))
-            {
-                var parsedExpected = FileContentsParser.ParseText(stringExpected);
-                if (_actual is string stringActual && JsonUtilities.LooksLikeJson(stringActual))
-                {
-                    var parsedActual = FileContentsParser.ParseText(stringActual);
-                    return ComparisonEngine.Compare(parsedExpected, parsedActual, _options);
-                }
-                return ComparisonEngine.Compare(parsedExpected, _actual, _options);
-            }
-            return ComparisonEngine.Compare(stringExpected, _actual, _options);
+            throw new ComparisonException(
+                "ShouldResemble() cannot be called after ShouldMatch(). These methods are mutually exclusive.");
         }
 
-        result = ComparisonEngine.Compare(expected, _actual, _options);
-        if (result.IsSuccess) return new ComparisonSuccess();
+        if (_options.IgnoredFields.Count > 0)
+        {
+            throw new ComparisonException(
+                "WithIgnoredFields() cannot be used with ShouldResemble(). " +
+                "ShouldResemble() with WithSchema() does not support ignored fields.");
+        }
 
-        var comparisonError = result as ComparisonError;
-        throw new ComparisonException($"Expected to match, but did not: {expected} != {_actual}",
-            comparisonError);
+        if (_sortApiCalled)
+        {
+            throw new ComparisonException(
+                "WithOrderedSort() and WithUnorderedSort() cannot be used with ShouldResemble(). " +
+                "ShouldResemble() with WithSchema() does not support sort options.");
+        }
+
+        _shouldResembleCalled = true;
+        return new SchemaBuilder(expected, _actual);
     }
 
     /// <summary>
@@ -77,9 +92,35 @@ public class ExpectBuilder : IBuilder
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var result = await ComparisonEngine.CompareAsync(expected, _actual, _options, string.Empty,
-            cancellationToken);
+        if (_shouldResembleCalled)
+        {
+            throw new ComparisonException(
+                "ShouldMatch() cannot be called after ShouldResemble(). These methods are mutually exclusive.");
+        }
 
+        _shouldMatchCalled = true;
+
+        ComparisonResult result;
+        if (expected is string stringExpected)
+        {
+            if (EllipsisPatternMatcher.TryMatch(stringExpected, _actual))
+            {
+                return new ComparisonSuccess();
+            }
+            if (JsonUtilities.LooksLikeJson(stringExpected))
+            {
+                var parsedExpected = FileContentsParser.ParseText(stringExpected);
+                if (_actual is string stringActual && JsonUtilities.LooksLikeJson(stringActual))
+                {
+                    var parsedActual = FileContentsParser.ParseText(stringActual);
+                    return await ComparisonEngine.CompareAsync(parsedExpected, parsedActual, _options);
+                }
+                return await ComparisonEngine.CompareAsync(parsedExpected, _actual, _options);
+            }
+            return await ComparisonEngine.CompareAsync(stringExpected, _actual, _options);
+        }
+
+        result = await ComparisonEngine.CompareAsync(expected, _actual, _options);
         if (result.IsSuccess) return new ComparisonSuccess();
 
         var comparisonError = result as ComparisonError;

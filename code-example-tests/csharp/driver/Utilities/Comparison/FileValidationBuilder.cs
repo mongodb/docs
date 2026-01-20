@@ -6,6 +6,8 @@ public sealed class FileValidationBuilder : IBuilder
 {
     private readonly string? _filePath;
     private ComparisonOptions _options = ComparisonOptions.Default;
+    private bool _shouldMatchCalled;
+    private bool _shouldResembleCalled;
 
     internal FileValidationBuilder(string? filePath)
     {
@@ -30,13 +32,62 @@ public sealed class FileValidationBuilder : IBuilder
     }
 
     /// <summary>
+    ///     Initiates schema-based validation where results may vary but must conform to a defined schema.
+    ///     For file-based validation, this parses the file contents as the expected output.
+    ///     This is mutually exclusive with ShouldMatch() and WithIgnoredFields().
+    /// </summary>
+    /// <param name="actual">The actual output to validate against the schema (file contents are used as expected)</param>
+    /// <returns>ISchemaBuilder that requires WithSchema() to complete validation</returns>
+    /// <exception cref="ComparisonException">
+    ///     Thrown if WithIgnoredFields() was called or if ShouldMatch() was already called.
+    /// </exception>
+    public ISchemaBuilder ShouldResemble(object? actual)
+    {
+        if (_shouldMatchCalled)
+        {
+            throw new ComparisonException(
+                "ShouldResemble() cannot be called after ShouldMatch(). These methods are mutually exclusive.");
+        }
+
+        if (_options.IgnoredFields.Count > 0)
+        {
+            throw new ComparisonException(
+                "WithIgnoredFields() cannot be used with ShouldResemble(). " +
+                "ShouldResemble() with WithSchema() does not support ignored fields.");
+        }
+
+        if (_filePath == null)
+        {
+            throw new ComparisonException("File path is required for ShouldResemble() on FileValidationBuilder.");
+        }
+
+        _shouldResembleCalled = true;
+
+        var fullPath = ResolveExpectedFilePath(_filePath);
+        var parseResult = FileContentsParser.ParseFile(fullPath);
+        if (!parseResult.IsSuccess)
+        {
+            throw new ComparisonException($"Failed to parse expected output file: {parseResult.Error}");
+        }
+
+        // For FileValidationBuilder, the file contents become the "expected" and the parameter is "actual"
+        return new SchemaBuilder(parseResult.Data, actual);
+    }
+
+    /// <summary>
     ///     Validates against an expected output file with custom options.
     /// </summary>
-    /// <param name="expectedFilePath">Path to expected output file (relative to examples directory)</param>
-    /// <param name="options">Comparison options</param>
+    /// <param name="actualOutput">The actual output to compare against the file</param>
     /// <returns>Validation result</returns>
     public ComparisonResult ShouldMatch(object? actualOutput)
     {
+        if (_shouldResembleCalled)
+        {
+            throw new ComparisonException(
+                "ShouldMatch() cannot be called after ShouldResemble(). These methods are mutually exclusive.");
+        }
+
+        _shouldMatchCalled = true;
 
         if (_filePath != null)
         {
@@ -66,7 +117,7 @@ public sealed class FileValidationBuilder : IBuilder
     /// use this method, we strongly advise you to rewrite your test to
     /// check for a positive result.
     /// </summary>
-    /// <param name="expected"></param>
+    /// <param name="actualOutput"></param>
     /// <returns></returns>
     public ComparisonResult ShouldNotMatch(object? actualOutput)
     {
@@ -85,6 +136,14 @@ public sealed class FileValidationBuilder : IBuilder
     public async Task<ComparisonResult> ShouldMatchAsync(object? expected, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (_shouldResembleCalled)
+        {
+            throw new ComparisonException(
+                "ShouldMatch() cannot be called after ShouldResemble(). These methods are mutually exclusive.");
+        }
+
+        _shouldMatchCalled = true;
 
         if (_filePath != null)
         {

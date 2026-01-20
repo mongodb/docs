@@ -1,6 +1,7 @@
 # C# - .NET/C# Driver - Example Test Suite
 
-This project contains the infrastructure to test and extract C#/.NET Driver code
+
+This project contains the infrastructure to test and extract C#/.NET Driver code 
 examples for use across MongoDB documentation.
 
 The structure of this C# project is as follows:
@@ -305,6 +306,91 @@ Use `...` to match dynamic or variable content:
 **Array elements:**
 ```json
 ["first", "second", ...]  // Matches arrays starting with these elements
+```
+
+### Schema-Based Validation with ShouldResemble
+
+For scenarios where MongoDB results may vary but must conform to a defined structure
+(such as Vector Search results), use the `ShouldResemble()` API with `WithSchema()`:
+
+```csharp
+// Schema validation for variable results
+var actualResults = await collection.Aggregate(vectorSearchPipeline).ToListAsync();
+
+Expect.That(actualResults)
+    .ShouldResemble(expectedResults)
+    .WithSchema(new SchemaValidationOptions
+    {
+        Count = 5,                                           // Expected document count
+        RequiredFields = new[] { "_id", "title", "score" },  // Fields that must exist
+        FieldValues = new Dictionary<string, object?>        // Fields that must match specific values
+        {
+            { "year", 2020 }
+        }
+    });
+```
+
+### When to Use ShouldResemble vs ShouldMatch:
+
+For exact output matching, use `ShouldMatch()`. For results that may vary but 
+have a consistent structure, use `ShouldResemble()` with `WithSchema()`.
+
+
+#### SchemaValidationOptions
+The SchemaValidationOptions class configures schema validation:
+
+| Property |	Type | Description |
+|----------|-----|-----------|
+| Count | int | Expected number of documents in the result set
+| RequiredFields | string[] | Field names that must exist in every document
+| FieldValues | Dictionary<string, object?> | Field values that must match in every document
+
+#### Example: Vector Search Validation
+
+```csharp
+// Vector Search returns similar results, but exact documents may vary
+var vectorSearchResults = await collection.Aggregate(pipeline).ToListAsync();
+
+// We know: 3 results, all must have these fields, all must be year 2020
+var result = Expect.That(vectorSearchResults)
+    .ShouldResemble(expectedOutput)
+    .WithSchema(new SchemaValidationOptions
+    {
+        Count = 3,
+        RequiredFields = new[] { "_id", "title", "year", "plot", "score" },
+        FieldValues = new Dictionary<string, object?> { { "year", 2020 } }
+    });
+
+Assert.That(result.IsSuccess, Is.True);
+```
+
+#### Important Constraints
+
+- `ShouldResemble()` and `ShouldMatch()` are mutually exclusive - use one or the other on the same builder.
+- `WithIgnoredFields()` cannot be used with `ShouldResemble()` - use `RequiredFields` in the schema instead.
+- `WithSchema()` is required after calling `ShouldResemble()` - the validation is not complete without it.
+- `WithOrderedSort()` and `WithUnorderedSort()` cannot be used with `ShouldResemble()` - the schema does not support a sort order.
+
+```csharp
+// ❌ Invalid - WithIgnoredFields cannot be used with ShouldResemble
+Expect.That(actual)
+    .WithIgnoredFields("_id")      // This will throw!
+    .ShouldResemble(expected)
+    .WithSchema(options);
+
+// ❌ Invalid - ShouldMatch and ShouldResemble are mutually exclusive
+var builder = Expect.That(actual);
+builder.ShouldMatch(expected);     // First call succeeds
+builder.ShouldResemble(expected);  // This will throw!
+
+// ✅ Valid - ShouldResemble with RequiredFields (no ignored fields needed)
+Expect.That(actual)
+    .ShouldResemble(expected)
+    .WithSchema(new SchemaValidationOptions
+    {
+        Count = 1,
+        RequiredFields = new[] { "title", "year" }  // Only validate presence of these fields
+    });
 ```
 
 ### Error Handling
