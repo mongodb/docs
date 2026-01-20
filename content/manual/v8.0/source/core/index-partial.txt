@@ -29,14 +29,11 @@ option accepts a document that specifies the filter condition using:
 .. include:: /includes/fact-partial-filter-expression-operators.rst
 
 For example, the following operation creates a compound index that
-indexes only the documents with a ``rating`` field greater than 5.
+indexes only the documents where the ``genre`` field is ``Drama``:
 
-.. code-block:: javascript
-
-   db.restaurants.createIndex(
-      { cuisine: 1, name: 1 },
-      { partialFilterExpression: { rating: { $gt: 5 } } }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/create-1.js
+   :language: javascript
+   :category: usage example
 
 You can specify a ``partialFilterExpression`` option for all MongoDB
 :ref:`index types <index-types>`. When specifying a
@@ -64,41 +61,37 @@ expression) as part of its query condition.
 
 For example, given the following index:
 
-.. code-block:: javascript
-
-   db.restaurants.createIndex(
-      { cuisine: 1 },
-      { partialFilterExpression: { rating: { $gt: 5 } } }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/create-2.js
+   :language: javascript
+   :category: usage example
 
 The following query can use the index since the query predicate
-includes the condition ``rating: { $gte: 8 }`` that matches a subset of
-documents matched by the index filter expression ``rating: { $gt: 5
+includes the condition ``password: { $exists: true }`` that matches
+documents matched by the index filter expression ``password: { $exists: true
 }``:
 
-.. code-block:: javascript
-
-   db.restaurants.find( { cuisine: "Italian", rating: { $gte: 8 } } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/query-1.js
+   :language: javascript
+   :category: usage example
 
 However, the following query cannot use the partial index on the
-``cuisine`` field because using the index results in an incomplete
+``name`` field because using the index results in an incomplete
 result set. Specifically, the query predicate includes the condition
-``rating: { $lt: 8 }`` while the index has the filter ``rating: { $gt:
-5 }``. That is, the query ``{ cuisine: "Italian", rating: { $lt: 8 }
-}`` matches more documents (e.g. an Italian restaurant with a rating
-equal to 1) than are indexed.
+``password: { $exists: false }`` while the index has the filter ``password: { $exists:
+true }``. That is, the query ``{ name: "Ned Stark", password: { $exists: false }
+}`` matches more documents (users without passwords) than the index covers.
 
-.. code-block:: javascript
-
-   db.restaurants.find( { cuisine: "Italian", rating: { $lt: 8 } } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/query-2.js
+   :language: javascript
+   :category: usage example
 
 Similarly, the following query cannot use the partial index because the
 query predicate does not include the filter expression and using the
 index would return an incomplete result set.
 
-.. code-block:: javascript
-
-   db.restaurants.find( { cuisine: "Italian" } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/query-3.js
+   :language: javascript
+   :category: usage example
 
 .. _partial-sparse-index-comparison:
 
@@ -119,23 +112,17 @@ For example, a partial index can implement the same behavior as a sparse index.
 This partial index supports the same queries as a sparse index on the
 ``name`` field:
 
-.. code-block:: javascript
-
-   db.contacts.createIndex(
-      { name: 1 },
-      { partialFilterExpression: { name: { $exists: true } } }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/create-3.js
+   :language: javascript
+   :category: usage example
 
 However, a partial index can also filter on fields other than the index key.
 For example, a partial index on the ``name`` field can check for the existence
 of the ``email`` field:
 
-.. code-block:: javascript
-
-   db.contacts.createIndex(
-      { name: 1 },
-      { partialFilterExpression: { email: { $exists: true } } }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/create-4.js
+   :language: javascript
+   :category: usage example
 
 For the query optimizer to choose this partial index, the query
 predicate must include a condition on the ``name`` field as well
@@ -145,18 +132,18 @@ For example, the following query can use the index because it includes
 both a condition on the ``name`` field and a non-null match on the
 ``email`` field:
 
-.. code-block:: javascript
-
-   db.contacts.find( { name: "xyz", email: { $regex: /\.org$/ } } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/query-4.js
+   :language: javascript
+   :category: usage example
 
 However, the following query cannot use the index because it
 includes a null match on the ``email`` field, which is not permitted
 by the filter expression
 ``{ email: { $exists: true } }``:
 
-.. code-block:: javascript
-
-   db.contacts.find( { name: "xyz", email: { $exists: false } } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/query-5.js
+   :language: javascript
+   :category: usage example
 
 .. _partial-ttl-indexes:
 
@@ -179,7 +166,6 @@ Restrictions
 
 - .. include:: /includes/queryable-encryption/qe-csfle-partial-filter-disclaimer.rst
 
-
 .. _index-partial-equivalent-indexes:
 
 Equivalent Indexes
@@ -187,67 +173,38 @@ Equivalent Indexes
 
 .. include:: /includes/indexes/equivalent-indexes.rst
 
-For an example, see :ref:`index-partial-equivalent-indexes-example`.
+For example, you can't create two indexes that only differ in the text case in
+the partial filter expression. 
 
 Examples
 --------
 
+.. include:: /includes/sample-data-usage.rst
+
 Create a Partial Index On A Collection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider a collection ``restaurants`` that contains documents that resemble
-the following example:
+The following example adds a partial index on the ``title`` and ``genres`` fields.
+The operation only indexes documents where the ``rating``
+field is ``PG``:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/create-5.js
+   :language: javascript
+   :category: usage example
 
-   db.restaurants.insertOne(
-      {
-         _id: ObjectId("5641f6a7522545bc535b5dc9"),
-         address: {
-            building: "1007",
-            coord: [
-               -73.856077,
-               40.848447
-            ],
-            street: "Morris Park Ave",
-            zipcode: "10462"
-         },
-         borough: "Bronx",
-         cuisine: "Bakery",
-         rating: { 
-            date: ISODate("2014-03-03T00:00:00Z"),
-            grade: "A",
-            score: 2
-         },
-         name: "Morris Park Bake Shop",
-         restaurant_id: "30075445"
-      }
-   )
+The following query on the ``movies`` collection uses the partial index to return
+the writers of the all movies titled "The Three Musketeers":
 
-You could add a partial index on the ``borough`` and ``cuisine`` fields
-choosing only to index documents where the ``rating.grade``
-field is ``A``:
-
-.. code-block:: javascript
-
-   db.restaurants.createIndex(
-      { borough: 1, cuisine: 1 },
-      { partialFilterExpression: { 'rating.grade': { $eq: "A" } } }
-   )
-
-Then, the following query on the ``restaurants`` collection uses the partial index
-to return the restaurants in the Bronx with ``rating.grade`` equal to ``A``:
-
-.. code-block:: javascript
-
-   db.restaurants.find( { borough: "Bronx", 'rating.grade': "A" } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/query-6.js
+   :language: javascript
+   :category: usage example
 
 However, the following query cannot use the partial index because the
-query predicate does not include the ``rating.grade`` field:
+query predicate does not include the ``rating`` filter:
 
-.. code-block:: javascript
-
-   db.restaurants.find( { borough: "Bronx", cuisine: "Bakery" } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/query-7.js
+   :language: javascript
+   :category: usage example
 
 .. _partial-index-with-unique-constraints:
 
@@ -263,114 +220,21 @@ unique constraint does not prevent the insertion of documents that do
 not meet the unique constraint if the documents do not meet the filter
 criteria.
 
-For example, a collection ``users`` contains the following documents:
+The following operation on the ``users`` collection creates an index that
+specifies a :ref:`unique constraint <index-type-unique>` on the ``email`` field
+and a partial filter expression ``password: { $exists: true }``.
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/create-6.js
+   :language: javascript
+   :category: usage example
 
-   db.users.insertMany( [
-      { _id: ObjectId("56424f1efa0358a27fa1f99a"), username: "david", age: 29 },
-      { _id: ObjectId("56424f37fa0358a27fa1f99b"), username: "amanda", age: 35 },
-      { _id: ObjectId("56424fe2fa0358a27fa1f99c"), username: "rajiv", age: 57 }
-   ] )
+The index prevents the insertion of the documents that both an email addresses that
+already exist in the collection and an existing ``password`` field. 
 
-The following operation creates an index that specifies a :ref:`unique
-constraint <index-type-unique>` on the ``username`` field and a partial
-filter expression ``age: { $gte: 21 }``.
+However, the following documents with duplicate email addresses are allowed
+since the unique constraint only applies to documents with a ``password``
+field.
 
-.. code-block:: javascript
-
-   db.users.createIndex(
-      { username: 1 },
-      { unique: true, partialFilterExpression: { age: { $gte: 21 } } }
-   )
-
-The index prevents the insertion of the following documents since
-documents already exist with the specified usernames and the ``age``
-fields are greater than ``21``:
-
-.. code-block:: javascript
-
-   db.users.insertMany( [
-      { username: "david", age: 27 },
-      { username: "amanda", age: 25 },
-      { username: "rajiv", age: 32 }
-   ] )
-
-However, the following documents with duplicate usernames are allowed
-since the unique constraint only applies to documents with ``age``
-greater than or equal to 21.
-
-.. code-block:: javascript
-
-   db.users.insertMany( [
-      { username: "david", age: 20 },
-      { username: "amanda" },
-      { username: "rajiv", age: null }
-   ] )
-
-.. _index-partial-equivalent-indexes-example:
-
-Equivalent Indexes Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/indexes/equivalent-indexes.rst
-
-In previous MongoDB versions, you can create two equivalent indexes. The
-following example creates a ``pizzas`` collection and two equivalent
-indexes named ``index0`` and ``index1``:
-
-.. code-block:: javascript
-
-   // Create the pizzas collection
-   db.pizzas.insertMany( [
-      { _id: 0, type: "pepperoni", size: "small", price: 4 },
-      { _id: 1, type: "cheese", size: "medium", price: 7 },
-      { _id: 2, type: "vegan", size: "large", price: 8 }
-   ] )
-
-   // Create two equivalent indexes with medium pizza sizes
-   db.pizzas.createIndex(
-      { type: 1 },
-      { name: "index0",
-        partialFilterExpression: { size: "medium" },
-        collation: { locale: "en_US", strength: 1 }
-      }
-   )
-
-   db.pizzas.createIndex(
-      { type: 1 },
-      { name: "index1",
-        partialFilterExpression: { size: "MEDIUM" },
-        collation: { locale: "en_US", strength: 1 }
-      }
-   )
-
-The indexes are equivalent because the two indexes specify the same
-pizza size and only differ in the text case in the partial filter
-expression. Only one index is used by queries: the index that was
-created first, which is ``index0`` in the previous example.
-
-Starting in MongoDB 7.3, you cannot create the second index (``index1``)
-and this error is returned:
-
-.. code-block:: none
-   :copyable: false
-
-   MongoServerError: Index already exists with a different name: index0
-
-In MongoDB versions earlier than 7.3, you can create the indexes but
-only the first index (``index0``) is used with these queries:
-
-.. code-block:: javascript
-
-   db.pizzas.find( { type: "cheese", size: "medium" } ).collation(
-      { locale: "en_US", strength: 1 }
-   )
-
-   db.pizzas.find( { type: "cheese", size: "MEDIUM" } ).collation(
-      { locale: "en_US", strength: 1 }
-   )
-   
-   db.pizzas.find( { type: "cheese", size: "Medium" } ).collation(
-      { locale: "en_US", strength: 1 }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/partial/insert.js
+   :language: javascript
+   :category: usage example

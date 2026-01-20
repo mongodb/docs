@@ -8,10 +8,14 @@ Unique and Sparse Index Creation
 This example creates multiple indexes with the same key pattern and 
 different ``sparse`` options:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/create-5.js
+   :language: javascript
+   :category: usage example
 
-   db.scoreHistory.createIndex( { score : 1 }, { name: "unique_index", unique: true } )
-   db.scoreHistory.createIndex( { score : 1 }, { name: "unique_sparse_index", unique: true, sparse: true } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/create-6.js
+   :language: javascript
+   :category: usage example
+
 
 Basic and Sparse Index Creation
 ```````````````````````````````
@@ -19,7 +23,12 @@ Basic and Sparse Index Creation
 You can also create basic indexes with the same key pattern with and 
 without the sparse option:
 
-.. code-block:: javascript
 
-   db.scoreHistory.createIndex( { score : 1 }, { name: "sparse_index", sparse: true } )
-   db.scoreHistory.createIndex( { score : 1 }, { name: "basic_index" } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/create-7.js
+   :language: javascript
+   :category: usage example
+
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/create-8.js
+   :language: javascript
+   :category: usage example

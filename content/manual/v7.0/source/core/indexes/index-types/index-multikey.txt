@@ -47,13 +47,13 @@ Use Cases
 If your application frequently queries a field that contains an array
 value, a multikey index improves performance for those queries.
 
-For example, documents in a ``students`` collection contain a
-``test_scores`` field: an array of test scores a student received
-throughout the semester. You regularly update a list of top students:
-students who have at least five ``test_scores`` greater than ``90``.
+For example, documents in a ``movies`` collection contain a
+``genres`` field: an array of genres associated with each movie.
+You regularly query movies that have specific genres, such as
+finding all movies that are both ``Drama`` and ``Action``.
 
-You can create an index on the ``test_scores`` field to improve
-performance for this query. Because ``test_scores`` contains an array
+You can create an index on the ``genres`` field to improve
+performance for this query. Because ``genres`` contains an array
 value, MongoDB stores the index as a multikey index.
 
 Get Started
@@ -69,6 +69,8 @@ Details
 
 This section describes technical details and limitations for multikey
 indexes.
+
+.. include:: /includes/sample-data-usage.rst
 
 Index Bounds
 ~~~~~~~~~~~~
@@ -98,34 +100,19 @@ document can have *at most* one indexed field whose value is an array.
 Specifically:
 
 - You cannot create a compound multikey index if more than one field in
-  the index specification is an array. For example, consider a
-  collection that contains this document:
-
-  .. code-block:: javascript
-
-     { _id: 1, scores_spring: [ 8, 6 ], scores_fall: [ 5, 9 ] }
-
-  You can't create the compound multikey index ``{ scores_spring: 1,
-  scores_fall: 1 }`` because both fields in the index are arrays.
+  the index specification is an array. 
 
 - If a compound multikey index already exists, you cannot insert a
   document that would violate this restriction.
 
-  Consider a collection that contains these documents:
+For example, you can create a compound multikey index ``{ genres: 1, year: 1
+}`` on the ``movies`` collection because for each document, only one field
+indexed by the compound multikey index is an array. No document contains array
+values for both ``genres`` and ``year`` fields.
 
-  .. code-block:: javascript
-
-     { _id: 1, scores_spring: [8, 6], scores_fall: 9 }
-     { _id: 2, scores_spring: 6, scores_fall: [5, 7] }
-
-  You can create a compound multikey index ``{ scores_spring: 1,
-  scores_fall: 1 }`` because for each document, only one field indexed
-  by the compound multikey index is an array. No document contains array
-  values for both ``scores_spring`` and ``scores_fall`` fields.
-
-  However, after you create the compound multikey index, if you attempt
-  to insert a document where both ``scores_spring`` and ``scores_fall``
-  fields are arrays, the insert fails.
+However, after you create the compound multikey index, if you attempt
+to insert a document where both ``genres`` and ``year``
+fields are arrays, the insert fails.
 
 Sorting
 ~~~~~~~
@@ -164,48 +151,32 @@ Multikey indexes can cover queries when these conditions are met:
 - The query meets all other :ref:`covered query requirements
   <covered-queries>`.
 
-For example, consider a ``matches`` collection with these documents:
+For example, the following operation creates a compound multikey index on the
+``movies`` collection on the ``genres`` and ``title`` fields:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/multikey/compound-multikey.js
+   :language: javascript
+   :category: usage example
 
-   db.matches.insertMany( [
-      { name: "Joe", event: [ "open", "tournament" ] },
-      { name: "Bill", event: [ "match", "championship" ] }
-   ] )
-
-The ``matches`` collection has a compound multikey index on the
-``event`` and ``name`` fields:
-
-.. code-block:: javascript
-
-   db.matches.createIndex( { event: 1, name: 1 } )
-
-The preceding index is multikey because the ``event`` field contains
+The preceding index is multikey because the ``genres`` field contains
 array values.
 
 The index covers these queries:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/multikey/query-1.js
+   :language: javascript
+   :category: usage example
 
-   db.matches.find(
-      { event: 'championship' },
-      { _id: 0, name: 1 }
-   )
-
-   db.matches.find(
-      { name: 'Bill', event: 'championship' },
-      { _id: 0, name: 1 }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/multikey/query-2.js
+   :language: javascript
+   :category: usage example
 
 The index does not cover the following query because the projection
-contains the ``event`` array field:
+contains the ``genres`` array field:
 
-.. code-block:: javascript
-   
-   db.matches.find(
-      { event: 'championship' },
-      { _id: 0, event: 1 }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/multikey/query-3.js
+   :language: javascript
+   :category: usage example
 
 Query on an Array Field as a Whole
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -217,37 +188,24 @@ match the entire array using the index alone. MongoDB then fetches the
 candidate documents and filters them to return only those whose array
 exactly matches the query array.
 
-For example, consider an ``inventory`` collection that contains these
-documents:
+For example, the following operation creates a multikey index on the ``movies``
+collection on the ``genres`` field:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/multikey/array-field.js
+   :language: javascript
+   :category: usage example
 
-   db.inventory.insertMany( [
-      { _id: 5, type: "food", item: "apple", ratings: [ 5, 8, 9 ] },
-      { _id: 6, type: "food", item: "banana", ratings: [ 5, 9 ] },
-      { _id: 7, type: "food", item: "chocolate", ratings: [ 9, 5, 8 ] },
-      { _id: 8, type: "food", item: "fish", ratings: [ 9, 5 ] },
-      { _id: 9, type: "food", item: "grapes", ratings: [ 5, 9, 5 ] }
-   ] )
+The following query looks for documents where the ``genres`` field is
+the array ``[ "Drama" ]``:
 
-The ``inventory`` collection has a multikey index on the ``ratings``
-field:
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/multikey/query-4.js
+   :language: javascript
+   :category: usage example
 
-.. code-block:: javascript
-
-   db.inventory.createIndex( { ratings: 1 } )
-
-The following query looks for documents where the ``ratings`` field is
-the array ``[ 5, 9 ]``:
-
-.. code-block:: javascript
-
-   db.inventory.find( { ratings: [ 5, 9 ] } )
-
-MongoDB can use the multikey index to find documents that have ``5`` at
-any position in the ``ratings`` array. Then, MongoDB retrieves these
-documents and filters for documents whose ``ratings`` array equals the
-query array ``[ 5, 9 ]``.
+MongoDB can use the multikey index to find documents that have ``"Drama"`` at
+any position in the ``genres`` array. Then, MongoDB retrieves these
+documents and filters for documents whose ``genres`` array equals the
+query array ``[ "Drama" ]``.
 
 $expr
 ~~~~~

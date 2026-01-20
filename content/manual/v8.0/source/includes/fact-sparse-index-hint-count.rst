@@ -4,20 +4,27 @@ If you include a :method:`~cursor.hint()` that specifies a
 an empty query predicate), the sparse index is used even if the sparse
 index results in an incorrect count.
 
-.. code-block:: javascript
 
-   db.collection.insertOne( { _id: 1, y: 1 } );
-   db.collection.createIndex( { x: 1 }, { sparse: true } );
+For example, create a sparse index on the ``rated`` field on the ``movies``
+collection. 
 
-   db.collection.find().hint( { x: 1 } ).count();
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/create-9.js
+   :language: javascript
+   :category: usage example
 
-To obtain the correct count, do not :method:`~cursor.hint()` with a
-:ref:`sparse index <index-type-sparse>` when performing a count of all
-documents in a collection.
+If you count the number of documents in the ``movies`` collection and include a
+hint that specifies that sparse index, the operation returns only the documents
+that contain the ``rated`` field. 
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/query-4.js
+   :language: javascript
+   :category: usage example
 
-   db.collection.find().count();
+To obtain the correct count of the number of documents in the ``movies``
+collection, do not :method:`~cursor.hint()` with a :ref:`sparse index
+<index-type-sparse>` when performing a count of all documents in a collection.
 
-   db.collection.createIndex( { y: 1 } );
-   db.collection.find().hint( { y: 1 } ).count();
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/query-5.js
+   :language: javascript
+   :category: usage example
+
