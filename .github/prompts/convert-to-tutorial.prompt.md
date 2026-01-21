@@ -12,6 +12,8 @@ DO NOT modify any of the .rST directives that contain code present in this tutor
 DO NOT hallucinate or add new information
 DO NOT remove any information from the document without making a changelog entry.
 DO aim to limit each step to be less than 50 lines of code or text. If a step is longer than that, break it into multiple steps with clear titles.
+DO ensure that the page title is between 30 and 60 characters long.
+DO ensure that the :description: meta field value is between 140 and 155 characters long.
 
 Once complete, list every change (deletion and addition) and its new line number in a bulleted list. Ask the user whether they would like to save this complete changelog into an output file. The output file will be made in a folder called ai-changelogs in the top-level directory that docs-mongodb-internal is within. If the ai-changelogs folder does not exist, you will create it. 
 
