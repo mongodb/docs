@@ -499,6 +499,11 @@ const tocData: TocItem[] = [
                 contentSite: 'node',
                 url: '/docs/drivers/node/:version/integrations/mongoose/mongoose-get-started',
               },
+              {
+                label: 'Queryable Encryption with Mongoose',
+                contentSite: 'node',
+                url: '/docs/drivers/node/:version/integrations/mongoose/mongoose-qe',
+              },
             ],
           },
           {
