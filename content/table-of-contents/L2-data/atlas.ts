@@ -540,7 +540,7 @@ const tocData: TocItem[] = [
           {
             label: 'Manage Online Archives',
             contentSite: 'cloud-docs',
-            url: '/docs/atlas/online-archive/query-online-archive',
+            url: '/docs/atlas/online-archive/manage-online-archive',
           },
           {
             label: 'Manage Private Endpoints',
