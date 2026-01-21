@@ -5,36 +5,23 @@ Use the |fts| ``string`` type to index :manual:`string
 :ref:`moreLikeThis <more-like-this-ref>` operators to query fields indexed as the
 ``string`` type.
 
-``string`` Type  Limitations
-----------------------------
+``string`` Type Considerations 
+-------------------------------------------
 
-You can't use the |fts| ``string`` type to index fields for
-:ref:`facet <fts-facet-ref>` or :ref:`autocomplete <autocomplete-ref>` operator queries. You can't use
-the ``string`` type to index fields for sorting |fts| results. Instead,
-you must use :ref:`static mappings <static-dynamic-mappings>` to index
-the string fields as the following types:
+The ``string`` type doesn't support all |fts| features for string
+fields. Index the string field as a :ref:`token <bson-data-types-token>`
+to: 
 
-- :ref:`stringFacet <bson-data-types-string-facet>` type to run a
-  :ref:`facet <fts-facet-ref>` operator query on string fields. Note that |fts| doesn't
-  :ref:`dynamically <static-dynamic-mappings>` index string fields for
-  faceting. 
+- Run a :ref:`facet <fts-facet-ref>` query on string fields.
+- Sort the |fts| results by string fields.
+- Find an exact match for queries using :ref:`equals <equals-ref>`,
+  :ref:`in <in-ref>`, and :ref:`range <range-ref>` operators.
 
-- :ref:`autocomplete <bson-data-types-autocomplete>` type to run
-  :ref:`autocomplete <autocomplete-ref>` operator queries on string fields. Note that
-  |fts| doesn't :ref:`dynamically <static-dynamic-mappings>` 
-  index string fields for :ref:`autocompletion <autocomplete-ref>`.
-
-- :ref:`token <bson-data-types-token>` type to sort the |fts| results by
-  the string field. |fts| doesn't :ref:`dynamically
-  <static-dynamic-mappings>` index string fields for :ref:`sorting
-  <sort-ref>` the results.
-
-- :ref:`token <bson-data-types-token>` type to find an exact match for
-  queries using :ref:`equals <equals-ref>`, :ref:`in <in-ref>`, and :ref:`range <range-ref>`
-  operators. |fts| doesn't :ref:`dynamically  <static-dynamic-mappings>`
-  index string fields as ``token`` type for querying using these
-  operators. 
+The |fts| :ref:`dynamic mappings <fts-enable-dynamic-mappings>` with
+the default ``typeSet`` only indexes string fields as ``string`` types.
+Specify a custom ``typeSet`` to dynamically index strings as ``token`` or
+``autocomplete`` to use their supported features.
 
 .. important::
 
-   .. include:: /includes/fts/facts/fact-fts-string-size-limit.rst
+   .. include:: /includes/fts/facts/fact-fts-string-size-limit.rst 
