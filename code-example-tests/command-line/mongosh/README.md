@@ -326,19 +326,64 @@ You can also interject standalone `...` lines between properties, similar to:
 }
 ```
 
+##### Validate output structure (schema validation)
+
+When you need to validate that output conforms to an expected structure without
+exact matching, use `shouldResemble()` with `withSchema()`. This is useful when:
+
+- You only care that documents have certain fields, not their exact values
+- You want to verify document count without matching content exactly
+- You need to check that specific fields have specific values while ignoring others
+
+```javascript
+await Expect.outputFromExampleFiles(["query.js"])
+  .withDbName("test-db")
+  .shouldResemble("output.sh")                  // Expect output to have this structure
+  .withSchema({
+    count: 3,                                   // Expect exactly 3 documents
+    requiredFields: ["_id", "title", "year"],   // These fields must exist
+    fieldValues: { year: 2012 }                 // This field have this value
+  });
+```
+
+Schema options:
+
+| Option | Required | Description |
+|--------|----------|-------------|
+| `count` | Yes | Exact number of documents expected |
+| `requiredFields` | No | Array of field names that must be present |
+| `fieldValues` | No | Object of field names with required values |
+
+**Note**: `withIgnoredFields()` cannot be used with `shouldResemble()`. The
+schema-based comparison validates document structure and count, so ignoring
+fields is not applicable. Use `shouldMatch()` if you need to ignore specific
+field values.
+
 ##### Complete API reference
 
 The `Expect` API supports these methods:
 
 ```javascript
+// With shouldMatch() - exact comparison with ellipsis support
 await Expect.outputFromExampleFiles(["file.js"])  // Required - file(s) to execute
   // or .outputFromExampleFiles(["file1.js", "file2.js"])  // Multiple files
   .withDbName("database-name")                    // Required - specify database name
   .withUnorderedSort()                            // Default - arrays compared without order
   .withOrderedSort()                              // Arrays compared in strict order
-  .withIgnoredFields("field1", "field2")          // Ignore specified fields during comparison
-  .shouldMatch("expected-output.sh");             // Performs the comparison
+  .withIgnoredFields("field1", "field2")          // Ignore specified fields (shouldMatch only)
+  .shouldMatch("expected-output.sh");
+
+// With shouldResemble() - schema-based validation
+await Expect.outputFromExampleFiles(["file.js"])
+  .withDbName("database-name")
+  .shouldResemble("expected-output.sh")           // Schema-based validation
+  .withSchema({ count: 3, requiredFields: [...], fieldValues: {...} });
 ```
+
+**Important**: `withIgnoredFields()`, `withOrderedSort()`, and `withUnorderedSort()`
+can only be used with `shouldMatch()`, not with `shouldResemble()`. Schema validation
+checks document structure independently - it doesn't compare documents between
+expected and actual outputs.
 
 You can chain multiple methods together:
 
@@ -359,6 +404,11 @@ For advanced usage when you already have captured output (not executing files):
 Expect.that(actualOutput)
   .withIgnoredFields("_id")
   .shouldMatch("expected-output.sh");
+
+// Or use schema validation
+Expect.that(actualOutput)
+  .shouldResemble("expected-output.sh")
+  .withSchema({ count: 2, requiredFields: ["name"] });
 ```
 
 

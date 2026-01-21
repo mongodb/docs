@@ -15,6 +15,10 @@ This means tests are validating the **actual mongosh output**, not return values
 
 ## The Expect API
 
+### Exact Matching with `shouldMatch()`
+
+Use when you need to verify the exact output (with optional ellipsis wildcards):
+
 ```javascript
 await Expect
   .outputFromExampleFiles(['path/to/load-data.js', 'path/to/run-query.js'])
@@ -22,11 +26,36 @@ await Expect
   .shouldMatch('path/to/expected-output.sh');
 ```
 
+### Schema Validation with `shouldResemble()`
+
+Use when you need to verify output structure without exact matching:
+
+```javascript
+await Expect
+  .outputFromExampleFiles(['path/to/query.js'])
+  .withDbName('my-database')
+  .shouldResemble('path/to/expected-output.sh')
+  .withSchema({
+    count: 3,                                  // Expect exactly 3 documents
+    requiredFields: ['_id', 'title', 'year'],  // These fields must exist
+    fieldValues: { year: 2012 }                // This field must have this value
+  });
+```
+
+**When to use each**:
+
+| Use `shouldMatch()` when... | Use `shouldResemble()` when... |
+|-----------------------------|--------------------------------|
+| Output must match exactly (with wildcards or ignored fields) | Only structure matters, not exact content |
+| Documenting specific output for readers | Verifying query returns expected document count |
+| Testing formatting or display | Testing that fields exist, only checking values of `fieldValues` |
+
 Key points:
 - File paths are **relative to the `examples/` directory**
 - Files execute in order (first file runs, then second, etc.)
 - `.withDbName()` is **required** - specifies which database to use
 - The expected output file is also relative to `examples/`
+- `withIgnoredFields()` can only be used with `shouldMatch()`, not with `shouldResemble()`
 
 ## Common Test Failures and Fixes
 
@@ -186,6 +215,7 @@ afterEach(() => {
 2. **Array order differs**: Default is unordered comparison. Use `.withOrderedSort()` if order matters
 3. **Extra fields in output**: Add standalone `...` line in expected output file
 4. **Timestamps differ**: Use `.withIgnoredFields("timestamp")` or `ISODate("...")` in output
+5. **Too many dynamic values**: Consider using `shouldResemble()` with schema validation instead
 
 **Output file patterns**:
 ```javascript
@@ -200,6 +230,20 @@ afterEach(() => {
   name: 'Alice',
   ...
 }
+```
+
+**When exact matching is too brittle**: If your output has many dynamic values or
+a query may return indeterminate but valid results:
+
+```javascript
+// Instead of complex ellipsis patterns, validate structure
+await Expect.outputFromExampleFiles(['query.js'])
+  .withDbName('test-db')
+  .shouldResemble('output.sh')
+  .withSchema({
+    count: 5,
+    requiredFields: ['_id', 'title', 'year']
+  });
 ```
 
 ### File Not Found Errors
