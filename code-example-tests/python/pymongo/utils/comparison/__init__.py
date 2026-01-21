@@ -66,6 +66,8 @@ from .content_analyzer import ContentAnalyzer
 from .comparison import (
     ComparisonOptions,
     ComparisonResult,
+    SchemaDefinition,
+    ConfigurationError,
 )
 from .errors import ComparisonError
 
@@ -77,4 +79,7 @@ __all__ = [
     "ComparisonOptions",
     "ComparisonResult",
     "ComparisonError",
+    # Schema validation
+    "SchemaDefinition",
+    "ConfigurationError",
 ]

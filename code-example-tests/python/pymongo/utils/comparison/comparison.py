@@ -147,6 +147,60 @@ class ComparisonOptions:
 
 
 @dataclass
+class SchemaDefinition:
+    """
+    Schema definition for structural validation of MongoDB results.
+
+    This class defines the expected structure and constraints for MongoDB query results
+    when using schema-based validation (should_resemble + with_schema pattern). It enables
+    validation of results where the exact documents may vary but the structure is known.
+
+    Attributes:
+        count (int): Expected number of documents in the result set.
+        required_fields (Optional[List[str]]): Field names that must exist in every document.
+            Fields are checked for presence only, not value (unless also in field_values).
+        field_values (Optional[Dict[str, Any]]): Field name to expected value mappings.
+            All documents must contain these fields with exactly these values.
+
+    Design Rationale:
+        Vector Search and other MongoDB operations may return varying documents depending
+        on the environment, but the structure (count, required fields, specific field values)
+        remains consistent. This schema allows validating these structural expectations
+        without requiring exact document matching.
+
+    Usage Example:
+        schema = SchemaDefinition(
+            count=20,
+            required_fields=['_id', 'title', 'year'],
+            field_values={'year': 2012}
+        )
+        # This validates: 20 documents, each with _id, title, year fields,
+        # and all documents have year=2012
+    """
+
+    count: int
+    required_fields: Optional[List[str]] = None
+    field_values: Optional[dict] = None
+
+
+class ConfigurationError(ValueError):
+    """
+    Exception raised when API configuration is invalid.
+
+    This exception indicates a programming error in how the comparison API
+    is being used, such as:
+    - Mixing mutually exclusive APIs (should_match with should_resemble)
+    - Conflicting configuration (ignoring a field while requiring its value)
+    - Missing required configuration (should_resemble without with_schema)
+
+    Design Decision: Inherits from ValueError rather than AssertionError because
+    this represents a configuration mistake, not a test failure.
+    """
+
+    pass
+
+
+@dataclass
 class ComparisonResult:
     """
     Standardized result container for all comparison operations.

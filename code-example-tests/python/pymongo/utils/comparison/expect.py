@@ -15,7 +15,7 @@ Key Features:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 from time import monotonic
 
 # Import existing comparison infrastructure
@@ -25,9 +25,12 @@ from .comparison import (
     compare_text_outputs,
     ComparisonOptions,
     ComparisonResult,
+    SchemaDefinition,
+    ConfigurationError,
 )
 from .parser import resolve_expected_file_path, read_expected_file
 from .content_analyzer import ContentAnalyzer
+from typing import Optional, List, Dict
 
 
 class Expect:
@@ -60,6 +63,10 @@ class Expect:
     def __init__(self, actual: Any):
         self._actual = actual
         self._options = ComparisonOptions()
+        # State for schema-based validation (should_resemble + with_schema)
+        self._expected_for_resemble: Optional[Any] = None
+        self._using_should_match: bool = False
+        self._has_sort_option: bool = False
 
     @classmethod
     def that(cls, actual: Any) -> 'Expect':
@@ -78,12 +85,26 @@ class Expect:
         """
         Configure comparison to ignore specific field names.
 
+        This method is mutually exclusive with should_resemble(). Using both
+        in the same comparison chain will raise a ConfigurationError.
+
         Args:
             *fields: Field names to ignore during comparison
 
         Returns:
             Expect: Self for method chaining
+
+        Raises:
+            ConfigurationError: If should_resemble() was already called
         """
+        # Check for mutual exclusivity with should_resemble
+        if self._expected_for_resemble is not None:
+            raise ConfigurationError(
+                "with_ignored_fields() and should_resemble() are mutually exclusive. "
+                "Use with_ignored_fields() with should_match() for exact comparisons, "
+                "or use should_resemble() + with_schema() for schema-based validation."
+            )
+
         self._options.ignore_field_values = set(fields)
         return self
 
@@ -94,9 +115,15 @@ class Expect:
         By default, arrays are compared in unordered mode (elements can be in any order).
         Use this method only when the exact order of elements matters.
 
+        Note: This option is only compatible with should_match(). Using it with
+        should_resemble() will raise a ConfigurationError because schema-based
+        validation doesn't compare documents between expected and actual,
+        so ordering is not applicable.
+
         Returns:
             Expect: Self for method chaining
         """
+        self._has_sort_option = True
         self._options.comparison_type = "ordered"
         return self
 
@@ -108,9 +135,15 @@ class Expect:
         the default behavior. Use this method when you want to be explicit about
         allowing elements to appear in any order.
 
+        Note: This option is only compatible with should_match(). Using it with
+        should_resemble() will raise a ConfigurationError because schema-based
+        validation doesn't compare documents between expected and actual,
+        so ordering is not applicable.
+
         Returns:
             Expect: Self for method chaining
         """
+        self._has_sort_option = True
         self._options.comparison_type = "unordered"
         return self
 
@@ -118,12 +151,25 @@ class Expect:
         """
         Perform the comparison and raise AssertionError if it fails.
 
+        This method is mutually exclusive with should_resemble(). Using both
+        in the same comparison chain will raise a ConfigurationError.
+
         Args:
             expected: Expected value (any type)
 
         Raises:
             AssertionError: If the comparison fails, with detailed error information
+            ConfigurationError: If should_resemble() was already called
         """
+        # Check for mutual exclusivity with should_resemble
+        if self._expected_for_resemble is not None:
+            raise ConfigurationError(
+                "should_match() and should_resemble() are mutually exclusive. "
+                "Use should_match() for exact comparisons or should_resemble() + with_schema() "
+                "for schema-based validation, but not both."
+            )
+
+        self._using_should_match = True
         result = _compare(expected, self._actual, self._options)
 
         if not result.is_match:
@@ -141,6 +187,276 @@ class Expect:
                 error_msg += " [PyMongo operation comparison]"
 
             raise AssertionError(error_msg)
+
+    def should_resemble(self, expected: Any) -> 'Expect':
+        """
+        Set up schema-based validation for results that may vary in exact content.
+
+        This method is used for comparing MongoDB results where the exact documents
+        may change (e.g., Vector Search results), but the structure is predictable.
+        It must be followed by with_schema() to complete the validation.
+
+        This method is mutually exclusive with should_match(). Using both
+        in the same comparison chain will raise a ConfigurationError.
+
+        Args:
+            expected: Expected value to validate against schema (any type)
+
+        Returns:
+            Expect: Self for method chaining (requires with_schema() to complete)
+
+        Raises:
+            ConfigurationError: If should_match() or with_ignored_fields() was already called
+
+        Example:
+            Expect.that(actual_output).should_resemble(expected_output).with_schema({
+                'count': 20,
+                'required_fields': ['_id', 'title', 'year'],
+                'field_values': {'year': 2012}
+            })
+        """
+        # Check for mutual exclusivity with should_match
+        if self._using_should_match:
+            raise ConfigurationError(
+                "should_match() and should_resemble() are mutually exclusive. "
+                "Use should_match() for exact comparisons or should_resemble() + with_schema() "
+                "for schema-based validation, but not both."
+            )
+
+        # Check for mutual exclusivity with with_ignored_fields
+        if self._options.ignore_field_values:
+            raise ConfigurationError(
+                "with_ignored_fields() and should_resemble() are mutually exclusive. "
+                "Use with_ignored_fields() with should_match() for exact comparisons, "
+                "or use should_resemble() + with_schema() for schema-based validation."
+            )
+
+        # Check for mutual exclusivity with sort options
+        if self._has_sort_option:
+            raise ConfigurationError(
+                "with_ordered_sort()/with_unordered_sort() and should_resemble() are mutually exclusive. "
+                "Sort options only apply to should_match() comparisons. Schema-based validation with "
+                "should_resemble() doesn't compare documents between expected and actual, so ordering is not applicable."
+            )
+
+        self._expected_for_resemble = expected
+        return self
+
+    def with_schema(self, schema: Dict[str, Any]) -> None:
+        """
+        Perform schema-based validation after should_resemble().
+
+        This method validates that both expected and actual outputs conform to
+        the specified schema, checking document count, required fields presence,
+        and specific field values.
+
+        Args:
+            schema: Schema definition dictionary with keys:
+                - count (int, required): Expected number of documents (non-negative)
+                - required_fields (List[str], optional): Fields that must exist in every document
+                - field_values (Dict[str, Any], optional): Fields that must have specific values
+
+        Raises:
+            ConfigurationError: If should_resemble() was not called first, if schema
+                               is invalid, or if required parameters are missing
+            AssertionError: If validation fails
+
+        Example:
+            Expect.that(actual_output).should_resemble(expected_output).with_schema({
+                'count': 20,
+                'required_fields': ['_id', 'title', 'year'],
+                'field_values': {'year': 2012}
+            })
+        """
+        # Validate that should_resemble was called first
+        if self._expected_for_resemble is None:
+            raise ConfigurationError(
+                "with_schema() requires should_resemble() to be called first. "
+                "Example: Expect.that(actual).should_resemble(expected).with_schema({...})"
+            )
+
+        # Validate schema structure
+        if not schema or not isinstance(schema, dict):
+            raise ConfigurationError("with_schema() requires a schema dictionary")
+
+        # Validate count is present and is a non-negative number
+        if 'count' not in schema:
+            raise ConfigurationError(
+                "with_schema() requires a 'count' key specifying the expected number of documents"
+            )
+        count = schema['count']
+        if not isinstance(count, int) or count < 0:
+            raise ConfigurationError(
+                "with_schema() requires 'count' to be a non-negative integer"
+            )
+
+        # Validate required_fields is a list (if provided)
+        required_fields = schema.get('required_fields')
+        if required_fields is not None and not isinstance(required_fields, list):
+            raise ConfigurationError(
+                "with_schema() 'required_fields' must be a list of field names"
+            )
+
+        # Validate field_values is a dict (if provided)
+        field_values = schema.get('field_values')
+        if field_values is not None and not isinstance(field_values, dict):
+            raise ConfigurationError(
+                "with_schema() 'field_values' must be a dictionary of key-value pairs"
+            )
+
+        # Parse schema definition
+        schema_def = SchemaDefinition(
+            count=count,
+            required_fields=required_fields,
+            field_values=field_values
+        )
+
+        # Collect all validation errors from both expected and actual
+        errors = []
+        errors.extend(_validate_against_schema(
+            self._expected_for_resemble, schema_def, "expected"
+        ))
+        errors.extend(_validate_against_schema(
+            self._actual, schema_def, "actual"
+        ))
+
+        if errors:
+            error_list = '\n'.join(f"  - {e}" for e in errors)
+            raise AssertionError(f"Schema validation failed:\n{error_list}")
+
+
+def _validate_against_schema(
+    data: Any,
+    schema: SchemaDefinition,
+    label: str
+) -> List[str]:
+    """
+    Validate data against a schema definition.
+
+    This function checks that the data conforms to the schema requirements:
+    - Document count matches
+    - Required fields are present in all documents
+    - Field values match where specified
+
+    Args:
+        data: The data to validate (expected to be a list of documents)
+        schema: The schema definition to validate against
+        label: Human-readable label for error messages ("expected" or "actual")
+
+    Returns:
+        List of error messages (empty if validation passed)
+    """
+    errors = []
+
+    # Normalize data to list for document-based validation
+    if not isinstance(data, list):
+        documents = [data]
+    else:
+        documents = data
+
+    # Validate count
+    actual_count = len(documents)
+    if actual_count != schema.count:
+        errors.append(
+            f"{label} output has {actual_count} documents, expected {schema.count}"
+        )
+
+    # Validate each document
+    for i, doc in enumerate(documents):
+        if not isinstance(doc, dict):
+            errors.append(f"{label}[{i}] is not a dictionary (got {type(doc).__name__})")
+            continue
+
+        # Check required fields (presence only)
+        if schema.required_fields:
+            for field in schema.required_fields:
+                if field not in doc:
+                    errors.append(
+                        f"{label}[{i}] is missing required field '{field}'"
+                    )
+
+        # Check field values
+        if schema.field_values:
+            for field, expected_value in schema.field_values.items():
+                if field not in doc:
+                    errors.append(
+                        f"{label}[{i}] is missing field '{field}' required by field_values"
+                    )
+                elif not _values_equal(doc[field], expected_value):
+                    errors.append(
+                        f"{label}[{i}].{field} has value {doc[field]!r}, expected {expected_value!r}"
+                    )
+
+    return errors
+
+
+def _values_equal(actual: Any, expected: Any) -> bool:
+    """
+    Compare two values for equality, handling common MongoDB types.
+
+    Args:
+        actual: The actual value
+        expected: The expected value
+
+    Returns:
+        True if values are equal
+    """
+    # Handle null/None
+    if actual is None and expected is None:
+        return True
+    if actual is None or expected is None:
+        return False
+
+    # Normalize MongoDB types for comparison
+    normalized_actual = _normalize_value(actual)
+    normalized_expected = _normalize_value(expected)
+
+    # Deep equality for objects/arrays using JSON comparison
+    if isinstance(normalized_actual, (dict, list)) and isinstance(normalized_expected, (dict, list)):
+        import json
+        try:
+            return json.dumps(normalized_actual, sort_keys=True) == json.dumps(normalized_expected, sort_keys=True)
+        except (TypeError, ValueError):
+            return normalized_actual == normalized_expected
+
+    return normalized_actual == normalized_expected
+
+
+def _normalize_value(value: Any) -> Any:
+    """
+    Normalize a value for comparison, handling common MongoDB types.
+
+    Args:
+        value: The value to normalize
+
+    Returns:
+        The normalized value
+    """
+    if value is None:
+        return value
+
+    # Handle MongoDB ObjectId
+    if hasattr(value, '__class__') and value.__class__.__name__ == 'ObjectId':
+        return str(value)
+
+    # Handle MongoDB Decimal128
+    if hasattr(value, '__class__') and value.__class__.__name__ == 'Decimal128':
+        return str(value)
+
+    # Handle datetime objects
+    from datetime import datetime
+    if isinstance(value, datetime):
+        return value.isoformat()
+
+    # Handle arrays
+    if isinstance(value, list):
+        return [_normalize_value(v) for v in value]
+
+    # Handle plain objects/dicts
+    if isinstance(value, dict):
+        return {k: _normalize_value(v) for k, v in value.items()}
+
+    return value
 
 
 def _compare(expected: Any, actual: Any, options: ComparisonOptions) -> ComparisonResult:

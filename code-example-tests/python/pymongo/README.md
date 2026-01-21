@@ -422,6 +422,39 @@ You can also interject standalone `...` lines between properties, similar to:
 }
 ```
 
+##### Validate output structure without strict matching
+
+When your code example output has highly variable content (such as random IDs,
+timestamps, or other dynamic data in most fields), strict field-by-field comparison
+may be impractical. Use `should_resemble()` with `with_schema()` to validate that
+both expected and actual outputs conform to a specified structure.
+
+This is useful when you want to verify:
+
+- Document count matches expectations
+- Required fields are present in all documents
+- Specific field values match (while ignoring other fields)
+
+```py
+# Validate both expected and actual outputs match the same structure
+Expect.that(actual_output).should_resemble(expected_output).with_schema({
+    'count': 20,                                    # Exactly 20 documents expected
+    'required_fields': ['_id', 'title', 'year'],    # These fields must exist
+    'field_values': {'year': 2012}                  # 'year' must equal 2012 in all docs
+})
+```
+
+**Schema options:**
+
+- `count` (required): Expected number of documents. Must be a non-negative integer.
+- `required_fields` (optional): List of field names that must exist in every document.
+- `field_values` (optional): Dictionary of field names and values that must match exactly.
+
+**Note:** `should_resemble()` and `should_match()` are mutually exclusive.
+Additionally, `should_resemble()` is not compatible with `with_ignored_fields()`,
+`with_ordered_sort()`, and `with_unordered_sort()` since schema validation does
+not evaluate field values.
+
 ##### Complete `Expect` reference
 
 The `Expect` class supports these methods:
@@ -431,6 +464,8 @@ The `Expect` class supports these methods:
 - `with_ordered_sort() -> Expect`: Configure comparison to require arrays in exact order.
 - `with_unordered_sort() -> Expect`: Configure comparison to allow arrays in any order (default behavior).
 - `should_match(expected: Any) -> None`: Perform the comparison and raise `AssertionError` if it fails.
+- `should_resemble(expected: Any) -> Expect`: Begin schema-based validation (must be followed by `with_schema()`).
+- `with_schema(schema: dict) -> None`: Validate both expected and actual outputs against a schema definition. Requires `should_resemble()` to be called first.
 
 ## To run the tests locally
 
@@ -602,10 +637,10 @@ This script will automatically create the specified output path if it does not
 exist.
 
 **Note:**
-While uncommon, you might create files that you do not intend to include in the docs 
-(such as a shared class file). If this is the case, you should add the file names to the 
-`IGNORE_PATTERNS` constant in the `snip.js` file. For example, the following 
-`IGNORE_PATTERNS` constant prevents `snip.js` from copying the `example_stub.py` 
+While uncommon, you might create files that you do not intend to include in the docs
+(such as a shared class file). If this is the case, you should add the file names to the
+`IGNORE_PATTERNS` constant in the `snip.js` file. For example, the following
+`IGNORE_PATTERNS` constant prevents `snip.js` from copying the `example_stub.py`
 file.
 
 ```sh

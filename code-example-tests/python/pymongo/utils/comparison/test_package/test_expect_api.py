@@ -7,7 +7,7 @@ import unittest
 import tempfile
 import os
 
-from utils.comparison import Expect
+from utils.comparison import Expect, ConfigurationError, SchemaDefinition
 
 
 class TestExpectAPI(unittest.TestCase):
@@ -525,6 +525,330 @@ class TestExpectAPI(unittest.TestCase):
         actual_array = [1, 2, 3, "anything", {"nested": "object"}]
 
         Expect.that(actual_array).should_match(array_file)
+
+
+class TestShouldResembleAPI(unittest.TestCase):
+    """Test the should_resemble and with_schema APIs for schema-based validation."""
+
+    def setUp(self):
+        """Set up temporary files for testing."""
+        self.temp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        """Clean up temporary files."""
+        import shutil
+        shutil.rmtree(self.temp_dir)
+
+    def _create_temp_file(self, content: str, filename: str = "test_expected.txt") -> str:
+        """Create a temporary file with the given content."""
+        file_path = os.path.join(self.temp_dir, filename)
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        return file_path
+
+    # ==================== Basic Schema Validation ====================
+
+    def test_basic_schema_validation_matching_count(self):
+        """Should validate matching document count."""
+        actual = [{'name': 'Alice'}, {'name': 'Bob'}]
+        expected = [{'name': 'Charlie'}, {'name': 'David'}]
+        # Should pass - both have 2 documents
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 2
+        })
+
+    def test_basic_schema_validation_actual_count_mismatch(self):
+        """Should fail when actual count does not match."""
+        actual = [{'name': 'Alice'}]  # Only 1 document
+        expected = [{'name': 'Charlie'}, {'name': 'David'}]
+        with self.assertRaises(AssertionError) as cm:
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'count': 2
+            })
+        self.assertIn("actual", str(cm.exception))
+        self.assertIn("1 documents, expected 2", str(cm.exception))
+
+    def test_basic_schema_validation_expected_count_mismatch(self):
+        """Should fail when expected count does not match."""
+        actual = [{'name': 'Alice'}, {'name': 'Bob'}]
+        expected = [{'name': 'Charlie'}]  # Only 1 document
+        with self.assertRaises(AssertionError) as cm:
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'count': 2
+            })
+        self.assertIn("expected", str(cm.exception))
+        self.assertIn("1 documents, expected 2", str(cm.exception))
+
+    # ==================== Required Fields Validation ====================
+
+    def test_required_fields_all_present(self):
+        """Should pass when all required fields present."""
+        actual = [{'_id': '1', 'name': 'Alice', 'age': 30}]
+        expected = [{'_id': '2', 'name': 'Bob', 'age': 25}]
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 1,
+            'required_fields': ['_id', 'name', 'age']
+        })
+
+    def test_required_fields_missing_in_actual(self):
+        """Should fail when required field missing in actual."""
+        actual = [{'_id': '1', 'name': 'Alice'}]  # Missing 'age'
+        expected = [{'_id': '2', 'name': 'Bob', 'age': 25}]
+        with self.assertRaises(AssertionError) as cm:
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'count': 1,
+                'required_fields': ['_id', 'name', 'age']
+            })
+        self.assertIn("actual", str(cm.exception))
+        self.assertIn("age", str(cm.exception))
+
+    def test_required_fields_missing_in_expected(self):
+        """Should fail when required field missing in expected."""
+        actual = [{'_id': '1', 'name': 'Alice', 'age': 30}]
+        expected = [{'_id': '2', 'name': 'Bob'}]  # Missing 'age'
+        with self.assertRaises(AssertionError) as cm:
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'count': 1,
+                'required_fields': ['_id', 'name', 'age']
+            })
+        self.assertIn("expected", str(cm.exception))
+        self.assertIn("age", str(cm.exception))
+
+    # ==================== Field Values Validation ====================
+
+    def test_field_values_all_match(self):
+        """Should pass when all field values match."""
+        actual = [
+            {'_id': '1', 'year': 2012, 'genre': 'Action'},
+            {'_id': '2', 'year': 2012, 'genre': 'Action'}
+        ]
+        expected = [
+            {'_id': 'a', 'year': 2012, 'genre': 'Action'},
+            {'_id': 'b', 'year': 2012, 'genre': 'Action'}
+        ]
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 2,
+            'field_values': {'year': 2012, 'genre': 'Action'}
+        })
+
+    def test_field_values_mismatch_in_actual(self):
+        """Should fail when field value does not match in actual."""
+        actual = [{'_id': '1', 'year': 2015}]  # Wrong year
+        expected = [{'_id': 'a', 'year': 2012}]
+        with self.assertRaises(AssertionError) as cm:
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'count': 1,
+                'field_values': {'year': 2012}
+            })
+        self.assertIn("actual", str(cm.exception))
+        self.assertIn("year", str(cm.exception))
+        self.assertIn("2015", str(cm.exception))
+        self.assertIn("2012", str(cm.exception))
+
+    def test_field_values_missing_field(self):
+        """Should fail when field for fieldValues is missing."""
+        actual = [{'_id': '1', 'name': 'Test'}]  # Missing 'year'
+        expected = [{'_id': 'a', 'name': 'Other'}]  # Missing 'year'
+        with self.assertRaises(AssertionError) as cm:
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'count': 1,
+                'field_values': {'year': 2012}
+            })
+        self.assertIn("missing field 'year'", str(cm.exception))
+
+    # ==================== API Error Handling ====================
+
+    def test_error_with_schema_without_should_resemble(self):
+        """Should throw when with_schema called without should_resemble."""
+        with self.assertRaises(ConfigurationError) as cm:
+            Expect.that([{'a': 1}]).with_schema({'count': 1})
+        self.assertIn("should_resemble", str(cm.exception))
+
+    def test_error_should_resemble_after_should_match(self):
+        """Should throw when should_resemble called after should_match."""
+        with self.assertRaises(ConfigurationError) as cm:
+            e = Expect.that([{'a': 1}])
+            e.should_match([{'a': 1}])
+            e.should_resemble([{'a': 1}])
+        self.assertIn("mutually exclusive", str(cm.exception))
+
+    def test_error_should_match_after_should_resemble(self):
+        """Should throw when should_match called after should_resemble."""
+        with self.assertRaises(ConfigurationError) as cm:
+            e = Expect.that([{'a': 1}])
+            e.should_resemble([{'a': 1}])
+            e.should_match([{'a': 1}])
+        self.assertIn("mutually exclusive", str(cm.exception))
+
+    def test_error_with_ignored_fields_before_should_resemble(self):
+        """Should throw when should_resemble called after with_ignored_fields."""
+        with self.assertRaises(ConfigurationError) as cm:
+            Expect.that([{'a': 1}]).with_ignored_fields('a').should_resemble([{'a': 1}])
+        self.assertIn("mutually exclusive", str(cm.exception))
+
+    def test_error_with_ignored_fields_after_should_resemble(self):
+        """Should throw when with_ignored_fields called after should_resemble."""
+        with self.assertRaises(ConfigurationError) as cm:
+            e = Expect.that([{'a': 1}])
+            e.should_resemble([{'a': 1}])
+            e.with_ignored_fields('a')
+        self.assertIn("mutually exclusive", str(cm.exception))
+
+    def test_error_with_ordered_sort_before_should_resemble(self):
+        """Should throw when should_resemble called after with_ordered_sort."""
+        with self.assertRaises(ConfigurationError) as cm:
+            Expect.that([{'a': 1}]).with_ordered_sort().should_resemble([{'a': 1}])
+        self.assertIn("mutually exclusive", str(cm.exception))
+
+    def test_error_with_unordered_sort_before_should_resemble(self):
+        """Should throw when should_resemble called after with_unordered_sort."""
+        with self.assertRaises(ConfigurationError) as cm:
+            Expect.that([{'a': 1}]).with_unordered_sort().should_resemble([{'a': 1}])
+        self.assertIn("mutually exclusive", str(cm.exception))
+
+    def test_error_schema_missing_count(self):
+        """Should throw ConfigurationError when schema is missing count."""
+        actual = [{'a': 1}, {'a': 2}]
+        expected = [{'a': 3}]
+        with self.assertRaises(ConfigurationError) as cm:
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'required_fields': ['a']
+            })
+        self.assertIn("count", str(cm.exception))
+
+    def test_error_schema_invalid_count(self):
+        """Should throw ConfigurationError when count is not a non-negative integer."""
+        actual = [{'a': 1}]
+        expected = [{'a': 2}]
+        # Test with negative count
+        with self.assertRaises(ConfigurationError) as cm:
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'count': -1
+            })
+        self.assertIn("non-negative", str(cm.exception))
+
+        # Test with non-integer count
+        with self.assertRaises(ConfigurationError) as cm:
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'count': "five"
+            })
+        self.assertIn("non-negative integer", str(cm.exception))
+
+    def test_error_schema_invalid_required_fields(self):
+        """Should throw ConfigurationError when required_fields is not a list."""
+        actual = [{'a': 1}]
+        expected = [{'a': 2}]
+        with self.assertRaises(ConfigurationError) as cm:
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'count': 1,
+                'required_fields': 'a'  # Should be a list
+            })
+        self.assertIn("required_fields", str(cm.exception))
+        self.assertIn("list", str(cm.exception))
+
+    def test_error_schema_invalid_field_values(self):
+        """Should throw ConfigurationError when field_values is not a dict."""
+        actual = [{'a': 1}]
+        expected = [{'a': 2}]
+        with self.assertRaises(ConfigurationError) as cm:
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'count': 1,
+                'field_values': ['a', 1]  # Should be a dict
+            })
+        self.assertIn("field_values", str(cm.exception))
+        self.assertIn("dictionary", str(cm.exception))
+
+    # ==================== Complex Scenarios ====================
+
+    def test_complex_all_schema_options_together(self):
+        """Should validate with all schema options together."""
+        actual = [
+            {'_id': '1', 'title': 'Movie A', 'year': 2012, 'genre': 'Action'},
+            {'_id': '2', 'title': 'Movie B', 'year': 2012, 'genre': 'Action'},
+            {'_id': '3', 'title': 'Movie C', 'year': 2012, 'genre': 'Action'},
+        ]
+        expected = [
+            {'_id': 'a', 'title': 'Different', 'year': 2012, 'genre': 'Action'},
+            {'_id': 'b', 'title': 'Titles', 'year': 2012, 'genre': 'Action'},
+            {'_id': 'c', 'title': 'Here', 'year': 2012, 'genre': 'Action'},
+        ]
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 3,
+            'required_fields': ['_id', 'title', 'year', 'genre'],
+            'field_values': {'year': 2012, 'genre': 'Action'}
+        })
+
+    def test_complex_empty_required_fields_and_field_values(self):
+        """Should work with empty required_fields and field_values."""
+        actual = [{'a': 1}, {'b': 2}]
+        expected = [{'c': 3}, {'d': 4}]
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 2,
+            'required_fields': [],
+            'field_values': {}
+        })
+
+    def test_complex_only_count_specified(self):
+        """Should work with only count specified."""
+        actual = [{'any': 'content'}, {'goes': 'here'}]
+        expected = [{'different': 'stuff'}]
+        with self.assertRaises(AssertionError):
+            # Fails because expected has 1, not 2
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'count': 2
+            })
+
+    def test_complex_nested_field_values(self):
+        """Should handle nested field values."""
+        actual = [
+            {'_id': '1', 'meta': {'version': 1}},
+            {'_id': '2', 'meta': {'version': 1}},
+        ]
+        expected = [
+            {'_id': 'a', 'meta': {'version': 1}},
+            {'_id': 'b', 'meta': {'version': 1}},
+        ]
+        # field_values validates that ALL documents have the exact nested value
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 2,
+            'required_fields': ['_id', 'meta'],
+            'field_values': {'meta': {'version': 1}}
+        })
+
+    def test_complex_nested_field_values_mismatch(self):
+        """Should fail with mismatched nested field values."""
+        actual = [
+            {'_id': '1', 'meta': {'version': 2}},  # version is 2, not 1
+        ]
+        expected = [
+            {'_id': 'a', 'meta': {'version': 1}},
+        ]
+        with self.assertRaises(AssertionError) as cm:
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'count': 1,
+                'field_values': {'meta': {'version': 1}}
+            })
+        self.assertIn("meta", str(cm.exception))
+
+    # ==================== Expected Output Formats ====================
+
+    def test_format_array_as_expected_output(self):
+        """Should accept array as expected output."""
+        actual = [{'name': 'A'}, {'name': 'B'}, {'name': 'C'}]
+        expected = [{'name': 'X'}, {'name': 'Y'}, {'name': 'Z'}]
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 3,
+            'required_fields': ['name']
+        })
+
+    def test_format_single_dict_as_expected_output(self):
+        """Should accept single dict as expected output (treated as single-doc list)."""
+        actual = {'name': 'Alice', 'age': 30}
+        expected = {'name': 'Bob', 'age': 25}
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 1,
+            'required_fields': ['name', 'age']
+        })
 
 
 if __name__ == "__main__":
