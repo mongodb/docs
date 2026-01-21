@@ -20,6 +20,15 @@ const path = require('path');
  *
  * // Pattern matching
  * Expect.that(actualResults).shouldMatch('{_id: "...", name: "test"}');
+ *
+ * // Schema-based validation for results that may vary (e.g., Vector Search)
+ * Expect.that(actualResults)
+ *   .shouldResemble(expectedOutput)
+ *   .withSchema({
+ *     count: 20,
+ *     requiredFields: ['_id', 'title', 'year'],
+ *     fieldValues: { year: 2012 }
+ *   });
  */
 class Expect {
   /**
@@ -34,6 +43,12 @@ class Expect {
       arrayComparison: 'unordered', // Default to unordered
       ignoreFields: [],
     };
+    // Schema validation state (for shouldResemble API)
+    this._comparisonType = null; // 'exact' for shouldMatch, 'schema' for shouldResemble
+    this._schemaConfig = null;
+    this._expectedOutputForResemble = null;
+    // Track whether sort options were explicitly set
+    this._hasSortOption = false;
   }
 
   /**
@@ -54,6 +69,11 @@ class Expect {
    * Configures the comparison to use unordered array matching (default behavior).
    * Arrays will be compared without regard to element order.
    *
+   * Note: This option is only compatible with shouldMatch(). Using it with
+   * shouldResemble() will throw an error because schema-based validation
+   * doesn't compare documents between expected and actual, so ordering
+   * is not applicable.
+   *
    * @returns {Expect} This instance for method chaining
    *
    * @example
@@ -62,6 +82,7 @@ class Expect {
    *   .shouldMatch([{b: 2}, {a: 1}]); // Passes
    */
   withUnorderedSort() {
+    this._hasSortOption = true;
     this._options.arrayComparison = 'unordered';
     return this;
   }
@@ -69,6 +90,11 @@ class Expect {
   /**
    * Configures the comparison to use ordered array matching.
    * Arrays will be compared with strict element-by-element ordering.
+   *
+   * Note: This option is only compatible with shouldMatch(). Using it with
+   * shouldResemble() will throw an error because schema-based validation
+   * doesn't compare documents between expected and actual, so ordering
+   * is not applicable.
    *
    * @returns {Expect} This instance for method chaining
    *
@@ -82,6 +108,7 @@ class Expect {
    *   .shouldMatch([{b: 2}, {a: 1}]); // Fails
    */
   withOrderedSort() {
+    this._hasSortOption = true;
     this._options.arrayComparison = 'ordered';
     return this;
   }
@@ -112,8 +139,10 @@ class Expect {
    * - Selects the optimal comparison strategy
    * - Provides detailed error messages on failure
    *
+   * This method is mutually exclusive with shouldResemble().
+   *
    * @param {*} expected - Expected value (file path, object, array, string, etc.)
-   * @throws {Error} If the comparison fails
+   * @throws {Error} If the comparison fails or if shouldResemble() was already called
    *
    * @example
    * // All these work automatically:
@@ -123,6 +152,13 @@ class Expect {
    * Expect.that(results).shouldMatch('Some text output');   // Text comparison
    */
   shouldMatch(expected) {
+    if (this._comparisonType === 'schema') {
+      throw new Error(
+        'shouldMatch() cannot be used with shouldResemble() - they are mutually exclusive'
+      );
+    }
+    this._comparisonType = 'exact';
+
     // Add baseDir internally - always resolve to examples directory
     const optionsWithBaseDir = {
       ...this._options,
@@ -138,6 +174,312 @@ class Expect {
     if (!result.isMatch) {
       throw new Error(result.getErrorSummary());
     }
+  }
+
+  /**
+   * Marks the comparison for schema-based validation instead of exact matching.
+   * Use this when MongoDB results may vary but should conform to a known structure.
+   *
+   * This method MUST be followed by withSchema() to define validation criteria.
+   * This method is mutually exclusive with shouldMatch().
+   *
+   * @param {*} expectedOutput - Sample expected output to validate against the schema
+   * @returns {Expect} This instance for method chaining
+   * @throws {Error} If shouldMatch() was already called
+   *
+   * @example
+   * Expect.that(actualResults)
+   *   .shouldResemble(expectedOutput)
+   *   .withSchema({
+   *     count: 20,
+   *     requiredFields: ['_id', 'title', 'year'],
+   *     fieldValues: { year: 2012 }
+   *   });
+   */
+  shouldResemble(expectedOutput) {
+    if (this._comparisonType === 'exact') {
+      throw new Error(
+        'shouldResemble() cannot be used with shouldMatch() - they are mutually exclusive'
+      );
+    }
+    if (this._options.ignoreFields.length > 0) {
+      throw new Error(
+        'withIgnoredFields() cannot be used with shouldResemble() - ' +
+          'schema validation ignores field values by default'
+      );
+    }
+    if (this._hasSortOption) {
+      throw new Error(
+        'withOrderedSort()/withUnorderedSort() cannot be used with shouldResemble() - ' +
+          'sort options only apply to shouldMatch() comparisons'
+      );
+    }
+    this._comparisonType = 'schema';
+    this._expectedOutputForResemble = expectedOutput;
+    return this;
+  }
+
+  /**
+   * Defines the schema for validating results in shouldResemble() mode.
+   * This is the terminal operation when using shouldResemble().
+   *
+   * Validates that BOTH expectedOutput and actualOutput:
+   * - Match the expected document count
+   * - Contain all required fields in every document
+   * - Have matching values for specified fieldValues in every document
+   *
+   * @param {Object} schema - Schema definition for validation
+   * @param {number} schema.count - Expected number of documents
+   * @param {string[]} [schema.requiredFields=[]] - Fields that must exist in every document
+   * @param {Object} [schema.fieldValues={}] - Key-value pairs that must match in every document
+   * @throws {Error} If shouldResemble() was not called first
+   * @throws {Error} If validation fails
+   *
+   * @example
+   * Expect.that(actualResults)
+   *   .shouldResemble(expectedOutput)
+   *   .withSchema({
+   *     count: 20,
+   *     requiredFields: ['_id', 'title', 'year'],
+   *     fieldValues: { year: 2012 }
+   *   });
+   */
+  withSchema(schema) {
+    if (this._comparisonType !== 'schema') {
+      throw new Error(
+        'withSchema() requires shouldResemble() to be called first'
+      );
+    }
+
+    // Validate schema structure
+    if (!schema || typeof schema !== 'object') {
+      throw new Error('withSchema() requires a schema object');
+    }
+    if (typeof schema.count !== 'number' || schema.count < 0) {
+      throw new Error('withSchema() requires a non-negative count number');
+    }
+    if (
+      schema.requiredFields !== undefined &&
+      !Array.isArray(schema.requiredFields)
+    ) {
+      throw new Error(
+        'withSchema() requiredFields must be an array of field names'
+      );
+    }
+    if (
+      schema.fieldValues !== undefined &&
+      (typeof schema.fieldValues !== 'object' ||
+        schema.fieldValues === null ||
+        Array.isArray(schema.fieldValues))
+    ) {
+      throw new Error(
+        'withSchema() fieldValues must be an object of key-value pairs'
+      );
+    }
+
+    this._schemaConfig = {
+      count: schema.count,
+      requiredFields: schema.requiredFields || [],
+      fieldValues: schema.fieldValues || {},
+    };
+
+    // Validate both expected and actual outputs against the schema
+    const errors = [];
+
+    // Validate expected output
+    const expectedErrors = this._validateAgainstSchema(
+      this._expectedOutputForResemble,
+      this._schemaConfig.count,
+      this._schemaConfig.requiredFields,
+      this._schemaConfig.fieldValues,
+      'expected'
+    );
+    errors.push(...expectedErrors);
+
+    // Validate actual output
+    const actualErrors = this._validateAgainstSchema(
+      this._actual,
+      this._schemaConfig.count,
+      this._schemaConfig.requiredFields,
+      this._schemaConfig.fieldValues,
+      'actual'
+    );
+    errors.push(...actualErrors);
+
+    if (errors.length > 0) {
+      throw new Error(
+        `Schema validation failed:\n${errors.map((e) => `  - ${e}`).join('\n')}`
+      );
+    }
+  }
+
+  /**
+   * Validates an array of documents against the schema definition.
+   *
+   * @private
+   * @param {*} data - The data to validate (array or single document)
+   * @param {number} count - Expected document count
+   * @param {string[]} requiredFields - Fields that must exist in every document
+   * @param {Object} fieldValues - Key-value pairs that must match in every document
+   * @param {string} label - Label for error messages ('expected' or 'actual')
+   * @returns {string[]} Array of error messages (empty if valid)
+   */
+  _validateAgainstSchema(data, count, requiredFields, fieldValues, label) {
+    const errors = [];
+
+    // Normalize data to an array (auto-wrap single documents)
+    const documents = this._normalizeToDocumentArray(data, label, errors);
+
+    // If normalization failed, return early with errors
+    if (errors.length > 0) {
+      return errors;
+    }
+
+    // Validate count
+    if (documents.length !== count) {
+      errors.push(
+        `${label} output has ${documents.length} documents, expected ${count}`
+      );
+    }
+
+    // Validate each document
+    documents.forEach((doc, index) => {
+      if (typeof doc !== 'object' || doc === null) {
+        errors.push(`${label}[${index}] is not an object`);
+        return;
+      }
+
+      // Check required fields (presence only, not value)
+      for (const field of requiredFields) {
+        if (!(field in doc)) {
+          errors.push(
+            `${label}[${index}] is missing required field '${field}'`
+          );
+        }
+      }
+
+      // Check field values
+      for (const [field, expectedValue] of Object.entries(fieldValues)) {
+        if (!(field in doc)) {
+          errors.push(
+            `${label}[${index}] is missing field '${field}' required by fieldValues`
+          );
+        } else if (!this._valuesEqual(doc[field], expectedValue)) {
+          errors.push(
+            `${label}[${index}].${field} has value ${JSON.stringify(doc[field])}, expected ${JSON.stringify(expectedValue)}`
+          );
+        }
+      }
+    });
+
+    return errors;
+  }
+
+  /**
+   * Normalizes input to a document array.
+   * Handles arrays, single documents (objects), and reports errors for invalid types.
+   *
+   * @private
+   * @param {*} data - The data to normalize
+   * @param {string} label - Label for error messages ('expected' or 'actual')
+   * @param {string[]} errors - Array to push errors into
+   * @returns {Array} Normalized array of documents (empty array if invalid)
+   */
+  _normalizeToDocumentArray(data, label, errors) {
+    // Null/undefined check
+    if (data === null || data === undefined) {
+      errors.push(`${label} output is ${data === null ? 'null' : 'undefined'}`);
+      return [];
+    }
+
+    // Already an array - return as-is
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    // Single document (plain object) - wrap in array
+    if (typeof data === 'object') {
+      return [data];
+    }
+
+    // Invalid type (string, number, boolean, etc.)
+    errors.push(
+      `${label} output must be an array or document, got ${typeof data}`
+    );
+    return [];
+  }
+
+  /**
+   * Compares two values for equality, handling common MongoDB types.
+   *
+   * @private
+   * @param {*} actual - The actual value
+   * @param {*} expected - The expected value
+   * @returns {boolean} True if values are equal
+   */
+  _valuesEqual(actual, expected) {
+    // Handle null/undefined
+    if (actual === expected) return true;
+    if (actual === null || expected === null) return false;
+    if (actual === undefined || expected === undefined) return false;
+
+    // Handle MongoDB types by converting to string/primitive for comparison
+    const normalizedActual = this._normalizeValue(actual);
+    const normalizedExpected = this._normalizeValue(expected);
+
+    // Deep equality for objects/arrays
+    if (
+      typeof normalizedActual === 'object' &&
+      typeof normalizedExpected === 'object'
+    ) {
+      return (
+        JSON.stringify(normalizedActual) === JSON.stringify(normalizedExpected)
+      );
+    }
+
+    return normalizedActual === normalizedExpected;
+  }
+
+  /**
+   * Normalizes a value for comparison, handling common MongoDB types.
+   *
+   * @private
+   * @param {*} value - The value to normalize
+   * @returns {*} The normalized value
+   */
+  _normalizeValue(value) {
+    if (value === null || value === undefined) return value;
+
+    // Handle MongoDB ObjectId
+    if (value.constructor && value.constructor.name === 'ObjectId') {
+      return value.toString();
+    }
+
+    // Handle MongoDB Decimal128
+    if (value.constructor && value.constructor.name === 'Decimal128') {
+      return value.toString();
+    }
+
+    // Handle Date objects
+    if (value instanceof Date) {
+      return value.toISOString();
+    }
+
+    // Handle arrays
+    if (Array.isArray(value)) {
+      return value.map((v) => this._normalizeValue(v));
+    }
+
+    // Handle plain objects
+    if (typeof value === 'object') {
+      const result = {};
+      for (const [k, v] of Object.entries(value)) {
+        result[k] = this._normalizeValue(v);
+      }
+      return result;
+    }
+
+    return value;
   }
 }
 

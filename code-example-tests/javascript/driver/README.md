@@ -410,9 +410,46 @@ You can also interject standalone `...` lines between properties, similar to:
 }
 ```
 
+##### Handle variable output with schema validation
+
+For code examples that produce results which may vary between runs but should
+conform to a known structure (such as Vector Search results or queries that
+return dynamic data), use schema-based validation with `shouldResemble()` and
+`withSchema()`.
+
+This is particularly useful for:
+
+- **Vector Search results**: Where similarity scores vary but structure is consistent
+- **Geospatial queries**: Where distance calculations may vary slightly
+- **Aggregation results**: Where you want to validate structure without exact values
+- **Any query with dynamic content**: Where the shape matters more than specific values
+
+```javascript
+const actualResults = await runVectorSearch();
+const expectedOutput = await loadExpectedOutputFile();
+
+Expect.that(actualResults)
+  .shouldResemble(expectedOutput)
+  .withSchema({
+    count: 20,                                // Exact number of documents expected
+    requiredFields: ['_id', 'title', 'year'], // Fields that must exist in every document
+    fieldValues: { year: 2012 }               // Values that must match in every document
+  });
+```
+
+The schema validates that BOTH the expected output file AND the actual results:
+
+- Have exactly `count` documents
+- Contain all `requiredFields` in every document
+- Have matching values for all specified `fieldValues` in every document
+
 ##### Complete API reference
 
-The Expect API supports these methods:
+The Expect API supports two comparison modes:
+
+###### Exact matching with shouldMatch()
+
+Use for exact content comparison with optional ellipsis pattern matching:
 
 ```javascript
 Expect.that(result)
@@ -430,6 +467,24 @@ Expect.that(result)
   .withIgnoredFields('_id', 'timestamp')
   .shouldMatch(outputFilepath);
 ```
+
+###### Schema-based validation with shouldResemble()
+
+Use when results may vary but should conform to a known structure:
+
+```javascript
+Expect.that(result)
+  .shouldResemble(expectedOutput)             // Mark for schema-based validation
+  .withSchema({                               // Define validation criteria
+    count: 20,                                // Required: exact document count
+    requiredFields: ['_id', 'title', 'year'], // Optional: fields that must exist
+    fieldValues: { year: 2012 }               // Optional: values that must match
+  });
+```
+
+**Note:** `shouldMatch()` and `shouldResemble()` are mutually exclusive.
+`withIgnoredFields()`, `withUnorderedSort()`, and `withOrderedSort()` can only
+be used with `shouldMatch()`, not with `shouldResemble()`.
 
 ## To run the tests locally
 
@@ -619,10 +674,10 @@ This script will automatically create the specified output path if it does not
 exist.
 
 **Note:**
-While uncommon, you might create files that you do not intend to include in the docs 
-(such as a shared class file). If this is the case, you should add the file names to the 
-`IGNORE_PATTERNS` constant in the `snip.js` file. For example, the following 
-`IGNORE_PATTERNS` constant prevents `snip.js` from copying the `example-stub.js` 
+While uncommon, you might create files that you do not intend to include in the docs
+(such as a shared class file). If this is the case, you should add the file names to the
+`IGNORE_PATTERNS` constant in the `snip.js` file. For example, the following
+`IGNORE_PATTERNS` constant prevents `snip.js` from copying the `example-stub.js`
 file.
 
 ```sh
