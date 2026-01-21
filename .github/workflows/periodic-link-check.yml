@@ -1,0 +1,268 @@
+name: Periodic Link Check
+
+on:
+  schedule:
+    # Run at 4:00 AM UTC on the 1st of every month (1 hour after typo scan)
+    - cron: '0 4 1 * *'
+  workflow_dispatch:
+    inputs:
+      trigger_ai_fix:
+        description: 'Trigger AI to suggest link fixes'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  check-external-links:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      
+      - name: Install lychee link checker
+        run: |
+          # Install lychee v0.18 (fast link checker written in Rust)
+          curl -sLO https://github.com/lycheeverse/lychee/releases/download/v0.18.0/lychee-x86_64-unknown-linux-gnu.tar.gz
+          tar -xzf lychee-x86_64-unknown-linux-gnu.tar.gz
+          chmod +x lychee
+          sudo mv lychee /usr/local/bin/
+      
+      - name: Find documentation files
+        id: find-files
+        run: |
+          # Count files to scan
+          FILE_COUNT=$(find content -type f \( -name "*.txt" -o -name "*.rst" -o -name "*.md" -o -name "*.mdx" -o -name "*.yaml" -o -name "*.yml" \) \
+            ! -path "*/includes/*" \
+            ! -path "*/.github/*" \
+            ! -path "*/changelogs/*" \
+            ! -path "*/node_modules/*" | wc -l)
+          echo "Found $FILE_COUNT documentation files to scan"
+          echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
+          
+          # Create file list
+          find content -type f \( -name "*.txt" -o -name "*.rst" -o -name "*.md" -o -name "*.mdx" -o -name "*.yaml" -o -name "*.yml" \) \
+            ! -path "*/includes/*" \
+            ! -path "*/.github/*" \
+            ! -path "*/changelogs/*" \
+            ! -path "*/node_modules/*" > /tmp/files-to-check.txt
+      
+      - name: Check external links
+        id: linkcheck
+        run: |
+          echo "=== Starting link check ==="
+          
+          # Run lychee on all doc files
+          # --exclude: Skip internal MongoDB docs links
+          # --exclude-mail: Skip email addresses
+          # --accept: Accept 200, 204 (success) and 429 (rate limited - not broken)
+          # --timeout: 30 second timeout per link
+          # --max-retries: Retry failed links twice
+          # --no-progress: Clean output for CI
+          
+          lychee \
+            --exclude '^https?://(www\.)?mongodb\.com' \
+            --exclude '^https?://(www\.)?docs\.mongodb\.com' \
+            --exclude '^https?://cloud\.mongodb\.com' \
+            --exclude '^https?://localhost' \
+            --exclude '^https?://127\.0\.0\.1' \
+            --exclude '^https?://0\.0\.0\.0' \
+            --exclude '^https?://portal\.azure\.com' \
+            --exclude '^https?://console\.aws\.amazon\.com' \
+            --exclude '^https?://console\.cloud\.google\.com' \
+            --exclude '^https?://.*\.okta\.com' \
+            --exclude '^https?://login\.' \
+            --exclude '^https?://.*example\.com' \
+            --exclude '^https?://.*example\.org' \
+            --exclude '^https?://.*\.local' \
+            --exclude '^mailto:' \
+            --exclude '^https?://192\.168\.' \
+            --exclude '^https?://10\.' \
+            --exclude '^https?://172\.(1[6-9]|2[0-9]|3[0-1])\.' \
+            --exclude '^https?://.*\.internal' \
+            --exclude '\.internal\.(io|com|net|org)' \
+            --exclude '^https?://api\.github\.com' \
+            --exclude '^https?://.*signin' \
+            --exclude '^https?://.*login' \
+            --exclude '^mongodb(\+srv)?://' \
+            --exclude '^file://' \
+            --exclude '/v[0-9]+/(embeddings|completions|chat)' \
+            --exclude '/api/v[0-9]+/' \
+            --exclude 'cloud-dev\.mongodb\.com' \
+            --exclude 'github\.com/10gen/' \
+            --exclude 'docs-mongodbcom-staging\.corp\.mongodb\.com' \
+            --exclude 'docs\.google\.com' \
+            --exclude '%7B\+' \
+            --exclude '\{\+' \
+            --accept 200,201,202,204,206,301,302,307,308,405,429 \
+            --timeout 30 \
+            --max-retries 2 \
+            --no-progress \
+            --format markdown \
+            --output /tmp/link-report.md \
+            -- $(cat /tmp/files-to-check.txt) 2>&1 || true
+          
+          # Also run with JSON output for webhook payload
+          lychee \
+            --exclude '^https?://(www\.)?mongodb\.com' \
+            --exclude '^https?://(www\.)?docs\.mongodb\.com' \
+            --exclude '^https?://cloud\.mongodb\.com' \
+            --exclude '^https?://localhost' \
+            --exclude '^https?://127\.0\.0\.1' \
+            --exclude '^https?://0\.0\.0\.0' \
+            --exclude '^https?://portal\.azure\.com' \
+            --exclude '^https?://console\.aws\.amazon\.com' \
+            --exclude '^https?://console\.cloud\.google\.com' \
+            --exclude '^https?://.*\.okta\.com' \
+            --exclude '^https?://login\.' \
+            --exclude '^https?://.*example\.com' \
+            --exclude '^https?://.*example\.org' \
+            --exclude '^https?://.*\.local' \
+            --exclude '^mailto:' \
+            --exclude '^https?://192\.168\.' \
+            --exclude '^https?://10\.' \
+            --exclude '^https?://172\.(1[6-9]|2[0-9]|3[0-1])\.' \
+            --exclude '^https?://.*\.internal' \
+            --exclude '\.internal\.(io|com|net|org)' \
+            --exclude '^https?://api\.github\.com' \
+            --exclude '^https?://.*signin' \
+            --exclude '^https?://.*login' \
+            --exclude '^mongodb(\+srv)?://' \
+            --exclude '^file://' \
+            --exclude '/v[0-9]+/(embeddings|completions|chat)' \
+            --exclude '/api/v[0-9]+/' \
+            --exclude 'cloud-dev\.mongodb\.com' \
+            --exclude 'github\.com/10gen/' \
+            --exclude 'docs-mongodbcom-staging\.corp\.mongodb\.com' \
+            --exclude 'docs\.google\.com' \
+            --exclude '%7B\+' \
+            --exclude '\{\+' \
+            --accept 200,201,202,204,206,301,302,307,308,405,429 \
+            --timeout 30 \
+            --max-retries 2 \
+            --no-progress \
+            --format json \
+            --output /tmp/link-report.json \
+            -- $(cat /tmp/files-to-check.txt) 2>&1 || true
+          
+          # Count errors and build webhook payload from JSON
+          BROKEN_COUNT=0
+          if [ -f /tmp/link-report.json ]; then
+            # Parse JSON and count failures, build webhook payload
+            BROKEN_COUNT=$(python3 -c "
+import json
+import sys
+from datetime import datetime
+
+try:
+    with open('/tmp/link-report.json', 'r') as f:
+        data = json.load(f)
+    
+    broken_links = []
+    fail_map = data.get('fail_map', {})
+    
+    for file_path, failures in fail_map.items():
+        for failure in failures:
+            status_info = failure.get('status', {})
+            if isinstance(status_info, dict):
+                status_text = status_info.get('text', str(status_info.get('code', 'unknown')))
+            else:
+                status_text = str(status_info)
+            broken_links.append({
+                'file': file_path,
+                'url': failure.get('url', ''),
+                'status': status_text,
+            })
+    
+    # Write webhook payload
+    payload = {
+        'scan_date': datetime.utcnow().strftime('%Y-%m-%d'),
+        'broken_links': broken_links
+    }
+    
+    with open('/tmp/webhook-payload.json', 'w') as f:
+        json.dump(payload, f, indent=2)
+    
+    print(len(broken_links))
+except Exception as e:
+    print(f'Error: {e}', file=sys.stderr)
+    print('0')
+" 2>/dev/null || echo "0")
+          fi
+          
+          echo "broken_count=$BROKEN_COUNT" >> $GITHUB_OUTPUT
+          echo "=== Found $BROKEN_COUNT broken links ==="
+      
+      - name: Generate report
+        run: |
+          echo "## 🔗 External Link Health Report" > link-health-report.md
+          echo "" >> link-health-report.md
+          echo "**Scan date:** $(date -u '+%Y-%m-%d %H:%M UTC')" >> link-health-report.md
+          echo "**Files scanned:** ${{ steps.find-files.outputs.file_count }}" >> link-health-report.md
+          echo "**Broken links found:** ${{ steps.linkcheck.outputs.broken_count }}" >> link-health-report.md
+          echo "" >> link-health-report.md
+          
+          if [ -f /tmp/link-report.md ]; then
+            echo "---" >> link-health-report.md
+            echo "" >> link-health-report.md
+            cat /tmp/link-report.md >> link-health-report.md
+          fi
+      
+      - name: Upload report as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: link-health-report-${{ github.run_number }}
+          path: |
+            link-health-report.md
+            /tmp/webhook-payload.json
+          retention-days: 30
+      
+      - name: Trigger AI Link Fixer
+        if: steps.linkcheck.outputs.broken_count > 0 && (github.event.inputs.trigger_ai_fix == 'true' || github.event_name == 'schedule')
+        env:
+          LINK_FIXER_WEBHOOK_URL: ${{ secrets.LINK_FIXER_WEBHOOK_URL }}
+        run: |
+          if [ -z "$LINK_FIXER_WEBHOOK_URL" ]; then
+            echo "⚠️ LINK_FIXER_WEBHOOK_URL secret not configured, skipping AI fix"
+            exit 0
+          fi
+          
+          if [ ! -f /tmp/webhook-payload.json ]; then
+            echo "⚠️ No webhook payload found, skipping AI fix"
+            exit 0
+          fi
+          
+          echo "🤖 Triggering AI Link Fixer with ${{ steps.linkcheck.outputs.broken_count }} broken links..."
+          
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            -H "Content-Type: application/json" \
+            -d @/tmp/webhook-payload.json \
+            "$LINK_FIXER_WEBHOOK_URL")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          
+          echo "Response code: $HTTP_CODE"
+          echo "$BODY"
+          
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ AI Link Fixer triggered successfully"
+          else
+            echo "⚠️ AI Link Fixer returned non-200 status: $HTTP_CODE (continuing anyway)"
+          fi
+      
+      - name: Job Summary
+        run: |
+          echo "## 🔗 External Link Check Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat link-health-report.md >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ github.event.inputs.trigger_ai_fix }}" = "true" ] && [ "${{ steps.linkcheck.outputs.broken_count }}" -gt "0" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "---" >> $GITHUB_STEP_SUMMARY
+            echo "🤖 **AI Link Fixer triggered** - PR will be created automatically" >> $GITHUB_STEP_SUMMARY
+          fi
