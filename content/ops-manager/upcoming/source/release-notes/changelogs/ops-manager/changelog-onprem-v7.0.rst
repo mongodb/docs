@@ -1,3 +1,53 @@
+.. _opsmgr-server-7.0.22:
+
+|onprem| Server 7.0.22
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-01-15*
+
+Improvements
+~~~~~~~~~~~~
+
+- Releases {+mdbagent+} :ref:`107.0.22.8822-1 <mongodb-107.0.22.8822-1>`.
+- Adds code reformatting hooks for Go source files.
+- Re-enables the Agent to download {+mongosh+} on RHEL 9 s390x.
+- Makes deadcode report when an entry in ``ignored-deadcode.yml`` cannot be matched.
+- Upgrades the ``bc-fips`` library from version 1.0.2.5 to 1.0.2.6 and adds pre-flight 
+  validations for certificate compatibility.
+- Updates the Slack integration to leverage the latest supported Slack app.
+- Addresses a security finding by updating the ``qs`` package to version 6.14.1.
+
+Bug Fixes
+~~~~~~~~~
+
+- Validates that ``net.tls`` parameters are removed when TLS is disabled.
+- Introduces the following fixes related to certificate validation and security 
+  vulnerabilities:
+
+  - Adds a preflight check that scans the following customer certificates, when 
+    present, and prevents |onprem| from starting if any are affected by 
+    `CVE-2025-8885 <https://github.com/bcgit/bc-java/wiki/CVE%E2%80%902025%E2%80%908885>`__:
+
+    - ``mongodb.ssl.PEMKeyFile``
+    - ``mms.https.PEMKeyFile``
+    - ``mms.ldap.ssl.PEMKeyFile``
+    - ``mms.saml.ssl.PEMKeyFile``
+    - ``brs.queryable.pem``
+    - ``mongodb.ssl.CAFile``
+    - ``mms.https.CAFile``
+    - ``mms.ldap.ssl.CAFile``
+    - ``backup.kmip.server.ca.file``
+    - ``mms.saml.x509.cert``
+
+  - Fixes the following CVEs:
+
+    - `CVE-2025-8885 <https://github.com/bcgit/bc-java/wiki/CVE%E2%80%902025%E2%80%908885>`__
+    - `CVE-2024-29371 <https://nvd.nist.gov/vuln/detail/CVE-2024-29371>`__
+    - `CVE-2025-15284 <https://nvd.nist.gov/vuln/detail/CVE-2025-15284>`__
+    - `CVE-2025-58056 <https://nvd.nist.gov/vuln/detail/CVE-2025-58056>`__
+    - `CVE-2025-67735 <https://nvd.nist.gov/vuln/detail/CVE-2025-67735>`__
+    - `GHSA-fghv-69vj-qj49 <https://github.com/advisories/GHSA-fghv-69vj-qj49>`__
+
 .. _opsmgr-server-7.0.21:
 
 |onprem| Server 7.0.21
