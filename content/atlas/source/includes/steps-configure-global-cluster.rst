@@ -523,10 +523,13 @@
              :ref:`billing-backup-cloud-provider-snapshots`.
       
    .. step:: Deploy your {+cluster+}.
+      
       Click :guilabel:`Confirm and Deploy Cluster` below the form to deploy your
       {+cluster+}.
       
-      :gold:`IMPORTANT:` .. include:: /includes/fact-database-deployment-project-limit-lettered.rst
+      .. important:: 
+      
+         .. include:: /includes/fact-database-deployment-project-limit-lettered.rst
       
    .. step:: Shard a global collection.
       
