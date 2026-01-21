@@ -19,6 +19,14 @@ set into a sharded cluster, see
 :doc:`/sharding` documentation for more information on sharded
 clusters.
 
+This tutorial guides you through the following tasks:
+
+1. Disable the balancer and lock the cluster.
+
+#. Convert a Single or Sharded Cluster into a Replica Set
+
+#. Unlock the cluster after converting to a replica set.
+
 Before You Begin
 ----------------
 
@@ -44,173 +52,182 @@ Schedule the Cluster Conversion
 Convert the cluster when chunk migrations, resharding, and schema
 transformations aren't typically performed.
 
-Disable the Balancer and Lock the Cluster
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Steps
+-----
 
-To disable the balancer and lock the cluster:
+.. procedure::
+  
+   .. step:: Disable the Balancer and Lock the Cluster
 
-1. Connect :binary:`~bin.mongosh` to a :binary:`~bin.mongos` instance in
-   the sharded cluster.
+      To disable the balancer and lock the cluster:
 
-#. To stop the balancer, run:
+      a. Connect :binary:`~bin.mongosh` to a :binary:`~bin.mongos` instance in
+         the sharded cluster.
 
-   .. code-block:: javascript
+      #. To stop the balancer, run:
 
-      sh.stopBalancer()
+         .. code-block:: javascript
 
-#. To verify the balancer is disabled, run the following command and
-   ensure the output is ``false``:
+            sh.stopBalancer()
 
-   .. code-block:: javascript
+      #. To verify the balancer is disabled, run the following command and
+         ensure the output is ``false``:
 
-      sh.getBalancerState()
+         .. code-block:: javascript
 
-#. To lock the sharded cluster, which prevents database writes, run:
+            sh.getBalancerState()
 
-   .. code-block:: javascript
+      #. To lock the sharded cluster, which prevents database writes, run:
 
-      db.getSiblingDB( "admin" ).fsyncLock()
+         .. code-block:: javascript
 
-#. To confirm the lock, run:
+            db.getSiblingDB( "admin" ).fsyncLock()
 
-   .. code-block:: javascript
+      #. To confirm the lock, run:
 
-      db.getSiblingDB( "admin" ).aggregate( [
-         { $currentOp: { } },
-         { $facet: {
-            "locked": [
-               { $match: { $and: [
-                  { fsyncLock: { $exists: true } }
-               ] } }
-            ],
-            "unlocked": [
-               { $match: { fsyncLock: { $exists: false } } }
-            ]
-         } },
-         { $project: {
-            "fsyncLocked": { $gt: [ { $size: "$locked" }, 0 ] },
-            "fsyncUnlocked": { $gt: [ { $size: "$unlocked" }, 0 ] }
-         } }
-      ] )
+         .. code-block:: javascript
 
-#. Ensure the output shows ``fsyncLocked`` is ``true``, which means the
-   cluster is locked:
+            db.getSiblingDB( "admin" ).aggregate( [
+               { $currentOp: { } },
+               { $facet: {
+                  "locked": [
+                     { $match: { $and: [
+                        { fsyncLock: { $exists: true } }
+                     ] } }
+                  ],
+                  "unlocked": [
+                     { $match: { fsyncLock: { $exists: false } } }
+                  ]
+               } },
+               { $project: {
+                  "fsyncLocked": { $gt: [ { $size: "$locked" }, 0 ] },
+                  "fsyncUnlocked": { $gt: [ { $size: "$unlocked" }, 0 ] }
+               } }
+            ] )
 
-   .. code-block:: javascript
-      :copyable: false
+      #. Ensure the output shows ``fsyncLocked`` is ``true``, which means the
+         cluster is locked:
 
-      [ { fsyncLocked: true }, { fsyncUnlocked: false } ]
+         .. code-block:: javascript
+            :copyable: false
 
-Convert a Cluster with a Single Shard into a Replica Set
---------------------------------------------------------
+            [ { fsyncLocked: true }, { fsyncUnlocked: false } ]
 
-In the case of a :term:`sharded cluster` with only one shard, that shard
-contains the full data set. Use the following procedure to convert that
-cluster into a non-sharded :term:`replica set`:
+   .. step:: Convert a Single or Sharded Cluster into a Replica Set
 
-1. Reconfigure the application to connect to the primary member of the
-   replica set hosting the single shard that system will be the new replica
-   set.
+      .. tabs::
 
-#. Remove the :option:`--shardsvr <mongod --shardsvr>`
-   option from your :binary:`~bin.mongod`.
+         .. tab:: Single-Shard Cluster
+            :tabid: singleshardcluster
 
-   .. tip:: Changing the :option:`--shardsvr <mongod --shardsvr>`
-      option will change the port that :binary:`~bin.mongod` listens for
-      incoming connections on.
+            In the case of a :term:`sharded cluster` with only one shard,
+            that shard contains the full data set. To convert that cluster
+            into a non-sharded :term:`replica set`:
 
-The single-shard cluster is now a non-sharded :term:`replica set` that
-will accept read and write operations on the data set.
+            a. Reconfigure the application to connect to the primary member
+               of the replica set hosting the single shard that system will
+               be the new replica set.
 
-Convert a Sharded Cluster into a Replica Set
---------------------------------------------
+            #. Remove the :option:`--shardsvr <mongod --shardsvr>`
+               option from your :binary:`~bin.mongod`.
 
-Use the following procedure to transition from a :term:`sharded cluster`
-with more than one shard to an entirely new :term:`replica set`.
+               .. tip:: Changing the :option:`--shardsvr <mongod --shardsvr>`
+                  option will change the port that :binary:`~bin.mongod` listens
+                  for incoming connections on.
 
-1. With the sharded cluster locked and the balancer disabled, :ref:`deploy a new replica
-   set <server-replica-set-deploy>` in addition to your sharded cluster. The
-   replica set must have sufficient capacity to hold all of the data
-   files from all of the current shards combined. Do not configure the
-   application to connect to the new replica set until the data
-   transfer is complete.
+            The single-shard cluster is now a non-sharded :term:`replica set` that
+            will accept read and write operations on the data set.
 
-#. Reconfigure
-   your application or stop all :binary:`~bin.mongos` instances. If you
-   stop all :binary:`~bin.mongos` instances, the applications will not be
-   able to read from the database. If you stop all :binary:`~bin.mongos`
-   instances, start a temporary :binary:`~bin.mongos` instance that
-   applications cannot access for the data migration procedure.
+         .. tab:: Multi-Shard Cluster
+            :tabid: multishardcluster
 
-#. Use :doc:`mongodump and mongorestore
-   </tutorial/backup-and-restore-tools/>` to migrate
-   the data from the :binary:`~bin.mongos` instance to the new
-   :term:`replica set`.
+            Use the following procedure to transition from a
+            :term:`sharded cluster` with more than one shard to an
+            entirely new :term:`replica set`.
 
-   Exclude the ``config`` database when you run ``mongorestore``. Use
-   the :option:`--nsExclude <mongorestore --nsExclude>` option as shown
-   in this example:
+            a. With the sharded cluster locked and the balancer disabled,
+               :ref:`deploy a new replica set <server-replica-set-deploy>`
+               in addition to your sharded cluster. The replica set must have
+               sufficient capacity to hold all of the data files from all of
+               the current shards combined. Do not configure the application
+               to connect to the new replica set until the data transfer is
+               complete.
 
-   .. code-block:: sh
+            #. Reconfigure your application or stop all :binary:`~bin.mongos`
+               instances. If you stop all :binary:`~bin.mongos` instances, the
+               applications will not be able to read from the database. If you
+               stop all :binary:`~bin.mongos` instances, start a temporary
+               :binary:`~bin.mongos` instance that applications cannot access
+               for the data migration procedure.
 
-      mongorestore --nsExclude="config.*" <connection-string> /data/backup
+            #. Use :doc:`mongodump and mongorestore
+               </tutorial/backup-and-restore-tools/>` to migrate
+               the data from the :binary:`~bin.mongos` instance to the new
+               :term:`replica set`.
 
-   .. note:: Not all collections on all databases are necessarily
-      sharded. Do not solely migrate the sharded collections. Ensure that
-      all databases and all collections migrate correctly.
+               Exclude the ``config`` database when you run ``mongorestore``.
+               Use the :option:`--nsExclude <mongorestore --nsExclude>` option
+               as shown in this example:
 
-#. Reconfigure the application to use the non-sharded :term:`replica
-   set` instead of the :binary:`~bin.mongos` instance.
+               .. code-block:: sh
 
-   After you convert the sharded cluster to a replica set, update the
-   :ref:`connection string <mongodb-uri>` used by your applications
-   to the connection string for your replica set. Then, restart your
-   applications. 
+                  mongorestore --nsExclude="config.*" <connection-string> /data/backup
 
-The application will now use the un-sharded :term:`replica set` for
-reads and writes. You may now decommission the remaining unused
-sharded cluster infrastructure.
+               .. note:: Not all collections on all databases are necessarily
+                  sharded. Do not solely migrate the sharded collections. Ensure that
+                  all databases and all collections migrate correctly.
 
-Next Steps
-----------
+            #. Reconfigure the application to use the non-sharded :term:`replica
+               set` instead of the :binary:`~bin.mongos` instance.
 
-After you convert the sharded cluster to a replica set, perform the
-following steps to unlock the cluster:
+               After you convert the sharded cluster to a replica set, update the
+               :ref:`connection string <mongodb-uri>` used by your applications
+               to the connection string for your replica set. Then, restart your
+               applications. 
 
-1. To unlock the cluster and allow database writes to resume, run:
+            The application now uses the un-sharded :term:`replica set` for
+            reads and writes. You may now decommission the remaining unused
+            sharded cluster infrastructure.
+  
+   .. step:: Unlock the cluster after converting to a replica set 
 
-   .. code-block:: javascript
+      After you convert the sharded cluster to a replica set, perform the
+      following steps to unlock the cluster:
 
-      db.getSiblingDB( "admin" ).fsyncLock()
+      a. To unlock the cluster and allow database writes to resume, run:
 
-#. To confirm the unlock, run:
+         .. code-block:: javascript
 
-   .. code-block:: javascript
+            db.getSiblingDB( "admin" ).fsyncLock()
 
-      db.getSiblingDB("admin").aggregate( [
-         { $currentOp: { } },
-         { $facet: {
-            "locked": [
-               { $match: { $and: [
-                  { fsyncLock: { $exists: true } }
-               ] } } ],
-               "unlocked": [
-               { $match: { fsyncLock: { $exists: false } } }
-            ]
-         } },
-         { $project: {
-            "fsyncLocked": { $gt: [ { $size: "$locked" }, 0 ] },
-            "fsyncUnlocked": { $gt: [ { $size: "$unlocked" }, 0 ] }
-         } }
-      ] )
+      #. To confirm the unlock, run:
 
-#. Ensure the output shows ``fsyncLocked`` is ``false``, which means the
-   cluster is unlocked:
+         .. code-block:: javascript
 
-   .. code-block:: javascript
-      :copyable: false
+            db.getSiblingDB("admin").aggregate( [
+               { $currentOp: { } },
+               { $facet: {
+                  "locked": [
+                     { $match: { $and: [
+                        { fsyncLock: { $exists: true } }
+                     ] } } ],
+                     "unlocked": [
+                     { $match: { fsyncLock: { $exists: false } } }
+                  ]
+               } },
+               { $project: {
+                  "fsyncLocked": { $gt: [ { $size: "$locked" }, 0 ] },
+                  "fsyncUnlocked": { $gt: [ { $size: "$unlocked" }, 0 ] }
+               } }
+            ] )
 
-      [ { fsyncLocked: false }, { fsyncUnlocked: true } ]
+      #. Ensure the output shows ``fsyncLocked`` is ``false``, which means the
+         cluster is unlocked:
+
+         .. code-block:: javascript
+            :copyable: false
+
+            [ { fsyncLocked: false }, { fsyncUnlocked: true } ]
 
 Learn More
 ----------
