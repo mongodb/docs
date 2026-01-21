@@ -1268,6 +1268,11 @@ const tocData: TocItem[] = [
         contentSite: 'cloud-docs',
         url: 'https://www.mongodb.com/docs/atlas/atlas-ui/triggers',
       },
+      {
+        label: 'Troubleshoot',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/atlas-ui/troubleshoot',
+      },
     ],
   },
   {
