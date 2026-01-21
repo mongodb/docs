@@ -6,10 +6,21 @@ import java.nio.file.Path;
  * Builder for configuring and executing comparisons in the Expect API.
  * Provides a fluent interface that automatically handles content-aware
  * comparison strategy selection.
+ *
+ * <p>This builder supports two mutually exclusive comparison modes:
+ * <ul>
+ *   <li>{@code shouldMatch()} - Exact matching with optional ignored fields and sort options</li>
+ *   <li>{@code shouldResemble().withSchema()} - Schema-based validation for variable results</li>
+ * </ul>
+ *
+ * <p>The {@code withIgnoredFields()}, {@code withOrderedSort()}, and {@code withUnorderedSort()}
+ * options are only compatible with {@code shouldMatch()}.
  */
 public class ExpectBuilder {
     private final Object actual;
     private final ComparisonOptions.Builder options;
+    private boolean hasIgnoredFields = false;
+    private boolean hasSortOption = false;
 
     /**
      * Package-private constructor. Use Expect.that() to create instances.
@@ -23,9 +34,15 @@ public class ExpectBuilder {
      * Configure to use ordered array comparison where element position matters.
      * Use this for sorted query results or when order is significant.
      *
+     * <p>Note: This option is only compatible with {@code shouldMatch()}.
+     * Using this with {@code shouldResemble()} will throw an error because
+     * schema-based validation doesn't compare documents between expected and actual,
+     * so ordering is not applicable.
+     *
      * @return this builder for method chaining
      */
     public ExpectBuilder withOrderedSort() {
+        this.hasSortOption = true;
         options.withOrderedArrays();
         return this;
     }
@@ -35,9 +52,15 @@ public class ExpectBuilder {
      * This is the default behavior. Use this method to explicitly indicate that
      * array order should be ignored during comparison.
      *
+     * <p>Note: This option is only compatible with {@code shouldMatch()}.
+     * Using this with {@code shouldResemble()} will throw an error because
+     * schema-based validation doesn't compare documents between expected and actual,
+     * so ordering is not applicable.
+     *
      * @return this builder for method chaining
      */
     public ExpectBuilder withUnorderedSort() {
+        this.hasSortOption = true;
         options.withUnorderedArrays();
         return this;
     }
@@ -46,12 +69,50 @@ public class ExpectBuilder {
      * Specify fields to ignore during comparison.
      * Useful for dynamic fields like _id, timestamps, or generated values.
      *
+     * <p>Note: This option is only compatible with {@code shouldMatch()}.
+     * Using this with {@code shouldResemble()} will throw an error.
+     *
      * @param fields Names of fields to ignore at any nesting level
      * @return this builder for method chaining
      */
     public ExpectBuilder withIgnoredFields(String... fields) {
+        this.hasIgnoredFields = fields != null && fields.length > 0;
         options.withIgnoredFields(fields);
         return this;
+    }
+
+    /**
+     * Begin resemblance-based validation for results that may vary.
+     * This is useful for scenarios like Vector Search where the exact documents
+     * may differ, but the count and structure should match a defined schema.
+     *
+     * <p>This method is mutually exclusive with {@code shouldMatch()}. The returned
+     * {@link ResemblanceBuilder} requires a call to {@code withSchema()} to complete
+     * the validation.
+     *
+     * <p>Note: {@code withIgnoredFields()}, {@code withOrderedSort()}, and
+     * {@code withUnorderedSort()} are not compatible with this method.
+     *
+     * @param expected The expected value to validate structure against
+     * @return a ResemblanceBuilder to configure schema validation
+     * @throws IllegalStateException if withIgnoredFields() or sort options were called on this builder
+     *
+     * @see ResemblanceSchema
+     * @see ResemblanceBuilder#withSchema(ResemblanceSchema)
+     */
+    public ResemblanceBuilder shouldResemble(Object expected) {
+        if (hasIgnoredFields) {
+            throw new IllegalStateException(
+                    "withIgnoredFields() is not compatible with shouldResemble(). " +
+                    "Use shouldMatch() for comparisons with ignored fields.");
+        }
+        if (hasSortOption) {
+            throw new IllegalStateException(
+                    "withOrderedSort()/withUnorderedSort() cannot be used with shouldResemble(). " +
+                    "Schema-based validation checks document structure independently - it does not compare " +
+                    "documents between expected and actual, so ordering is not applicable.");
+        }
+        return new ResemblanceBuilder(actual, expected);
     }
 
     /**

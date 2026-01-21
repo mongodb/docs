@@ -285,6 +285,62 @@ Expect.that(results)
     .shouldMatch("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
 ```
 
+### Schema-Based Validation
+
+For cases where exact matching isn't appropriate—such as when document order varies
+or dynamic fields like `_id` differ between runs—use schema-based validation with
+`shouldResemble()`:
+
+```java
+import mongodb.comparison.Expect;
+import mongodb.comparison.Schema;
+
+// Basic schema validation - verify count and structure
+Expect.that(actual).shouldResemble(expected).withSchema(
+    Schema.builder()
+        .withCount(5)                           // Expect exactly 5 documents
+        .withRequiredFields("_id", "title")     // Each doc must have these fields
+        .build()
+);
+
+// With field value constraints
+Expect.that(actual).shouldResemble(expected).withSchema(
+    Schema.builder()
+        .withCount(3)
+        .withRequiredFields("_id", "title", "year", "type")
+        .withFieldValues(Map.of("type", "movie", "year", 2012))  // All docs must have these values
+        .build()
+);
+```
+
+#### Schema Builder Options
+
+| Method | Description |
+|--------|-------------|
+| `withCount(n)` | **Required.** Expect exactly `n` documents in both actual and expected |
+| `withRequiredFields("field1", "field2", ...)` | Each document must contain these fields |
+| `withFieldValues(Map.of("field", value))` | Each document must have these exact field values |
+
+#### Flexible Input Handling
+
+The schema validation automatically normalizes inputs, so you can pass:
+- **Collections** (List, Set, etc.)
+- **Arrays**
+- **Single documents** (auto-wrapped into a single-element list)
+
+```java
+// All of these work:
+Expect.that(singleDocument).shouldResemble(expectedList).withSchema(schema);
+Expect.that(documentList).shouldResemble(singleDocument).withSchema(schema);
+Expect.that(singleDoc).shouldResemble(anotherSingleDoc).withSchema(schemaWithCount1);
+```
+
+#### Schema Validation Limitations
+
+Schema validation is mutually exclusive with `shouldMatch()`. Additionally,
+schema validation does not support `.withIgnoredFields()`, `.withOrderedSort()`,
+or `.withUnorderedSort()`, since schema validation does not evaluate field values.
+
 ### Expected Output File Formats
 
 The library supports multiple formats in your expected output files:
@@ -531,10 +587,10 @@ This script will automatically create the specified output path if it does not
 exist.
 
 **Note:**
-While uncommon, you might create files that you do not intend to include in the docs 
-(such as a shared class file). If this is the case, you should add the file names to the 
-`IGNORE_PATTERNS` constant in the `snip.js` file. For example, the following 
-`IGNORE_PATTERNS` constant prevents `snip.js` from copying the `ExampleStub.java` 
+While uncommon, you might create files that you do not intend to include in the docs
+(such as a shared class file). If this is the case, you should add the file names to the
+`IGNORE_PATTERNS` constant in the `snip.js` file. For example, the following
+`IGNORE_PATTERNS` constant prevents `snip.js` from copying the `ExampleStub.java`
 file.
 
 ```sh

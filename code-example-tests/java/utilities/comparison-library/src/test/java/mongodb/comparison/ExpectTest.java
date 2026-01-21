@@ -476,4 +476,461 @@ class ExpectTest {
             });
         }
     }
+
+    @Nested
+    @DisplayName("shouldResemble and withSchema API Tests")
+    public class ResemblanceValidation {
+
+        @Test
+        @DisplayName("Should validate document count matches schema")
+        void testCountValidation() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1").append("title", "Movie A").append("year", 2012),
+                    new Document("_id", "2").append("title", "Movie B").append("year", 2012)
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "3").append("title", "Movie C").append("year", 2012),
+                    new Document("_id", "4").append("title", "Movie D").append("year", 2012)
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(2)
+                    .build();
+
+            // Should pass - both have 2 documents
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+        }
+
+        @Test
+        @DisplayName("Should fail when document count does not match schema")
+        void testCountValidationFailure() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1").append("title", "Movie A")
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "2").append("title", "Movie B"),
+                    new Document("_id", "3").append("title", "Movie C")
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(2)
+                    .build();
+
+            AssertionError error = assertThrows(AssertionError.class, () ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+
+            assertTrue(error.getMessage().contains("actual output has 1 documents, expected 2"));
+        }
+
+        @Test
+        @DisplayName("Should validate required fields are present in all documents")
+        void testRequiredFieldsValidation() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1").append("title", "Movie A").append("year", 2012),
+                    new Document("_id", "2").append("title", "Movie B").append("year", 2013)
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "3").append("title", "Movie C").append("year", 2014),
+                    new Document("_id", "4").append("title", "Movie D").append("year", 2015)
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(2)
+                    .withRequiredFields("_id", "title", "year")
+                    .build();
+
+            // Should pass - all documents have all required fields
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+        }
+
+        @Test
+        @DisplayName("Should fail when required field is missing")
+        void testRequiredFieldsMissing() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1").append("title", "Movie A")  // missing "year"
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "2").append("title", "Movie B").append("year", 2012)
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .withRequiredFields("_id", "title", "year")
+                    .build();
+
+            AssertionError error = assertThrows(AssertionError.class, () ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+
+            assertTrue(error.getMessage().contains("missing required field 'year'"));
+        }
+
+        @Test
+        @DisplayName("Should validate field values match in all documents")
+        void testFieldValuesValidation() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1").append("title", "Movie A").append("year", 2012),
+                    new Document("_id", "2").append("title", "Movie B").append("year", 2012)
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "3").append("title", "Movie C").append("year", 2012),
+                    new Document("_id", "4").append("title", "Movie D").append("year", 2012)
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(2)
+                    .withRequiredFields("_id", "title", "year")
+                    .withFieldValues(Map.of("year", 2012))
+                    .build();
+
+            // Should pass - all documents have year=2012
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+        }
+
+        @Test
+        @DisplayName("Should fail when field value does not match")
+        void testFieldValueMismatch() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1").append("title", "Movie A").append("year", 2012),
+                    new Document("_id", "2").append("title", "Movie B").append("year", 2013)  // wrong year
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "3").append("title", "Movie C").append("year", 2012),
+                    new Document("_id", "4").append("title", "Movie D").append("year", 2012)
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(2)
+                    .withFieldValues(Map.of("year", 2012))
+                    .build();
+
+            AssertionError error = assertThrows(AssertionError.class, () ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+
+            assertTrue(error.getMessage().contains(".year has value"));
+        }
+
+        @Test
+        @DisplayName("Should throw error when withIgnoredFields is used with shouldResemble")
+        void testMutualExclusivityWithIgnoredFields() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1").append("title", "Movie A")
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "2").append("title", "Movie B")
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .build();
+
+            IllegalStateException error = assertThrows(IllegalStateException.class, () ->
+                    Expect.that(actual)
+                            .withIgnoredFields("_id")
+                            .shouldResemble(expected)
+                            .withSchema(schema));
+
+            assertTrue(error.getMessage().contains("withIgnoredFields()"));
+            assertTrue(error.getMessage().contains("not compatible"));
+        }
+
+        @Test
+        @DisplayName("Should throw error when withOrderedSort is used with shouldResemble")
+        void testMutualExclusivityWithOrderedSort() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1").append("title", "Movie A")
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "2").append("title", "Movie B")
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .build();
+
+            IllegalStateException error = assertThrows(IllegalStateException.class, () ->
+                    Expect.that(actual)
+                            .withOrderedSort()
+                            .shouldResemble(expected)
+                            .withSchema(schema));
+
+            assertTrue(error.getMessage().contains("withOrderedSort()"));
+            assertTrue(error.getMessage().contains("cannot be used with shouldResemble"));
+        }
+
+        @Test
+        @DisplayName("Should throw error when withUnorderedSort is used with shouldResemble")
+        void testMutualExclusivityWithUnorderedSort() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1").append("title", "Movie A")
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "2").append("title", "Movie B")
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .build();
+
+            IllegalStateException error = assertThrows(IllegalStateException.class, () ->
+                    Expect.that(actual)
+                            .withUnorderedSort()
+                            .shouldResemble(expected)
+                            .withSchema(schema));
+
+            assertTrue(error.getMessage().contains("withUnorderedSort()"));
+            assertTrue(error.getMessage().contains("cannot be used with shouldResemble"));
+        }
+
+        @Test
+        @DisplayName("Should auto-wrap single document actual into list")
+        void testSingleDocumentActual() {
+            Document actual = new Document("_id", "1").append("title", "Movie A").append("year", 2012);
+            List<Document> expected = List.of(
+                    new Document("_id", "2").append("title", "Movie B").append("year", 2012)
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .withRequiredFields("_id", "title", "year")
+                    .withFieldValues(Map.of("year", 2012))
+                    .build();
+
+            // Should pass - single document is auto-wrapped into list
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+        }
+
+        @Test
+        @DisplayName("Should auto-wrap single document expected into list")
+        void testSingleDocumentExpected() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1").append("title", "Movie A").append("year", 2012)
+            );
+            Document expected = new Document("_id", "2").append("title", "Movie B").append("year", 2012);
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .withRequiredFields("_id", "title", "year")
+                    .withFieldValues(Map.of("year", 2012))
+                    .build();
+
+            // Should pass - single document is auto-wrapped into list
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+        }
+
+        @Test
+        @DisplayName("Should work with both actual and expected as single documents")
+        void testBothSingleDocuments() {
+            Document actual = new Document("_id", "1").append("title", "Movie A").append("year", 2012);
+            Document expected = new Document("_id", "2").append("title", "Movie B").append("year", 2012);
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .withRequiredFields("_id", "title", "year")
+                    .withFieldValues(Map.of("year", 2012))
+                    .build();
+
+            // Should pass - both single documents are auto-wrapped into lists
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+        }
+
+        @Test
+        @DisplayName("Should fail with unsupported input type")
+        void testUnsupportedInputType() {
+            String actual = "not a document";
+            List<Document> expected = List.of(
+                    new Document("_id", "1").append("title", "Movie A")
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .build();
+
+            AssertionError error = assertThrows(AssertionError.class, () ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+
+            assertTrue(error.getMessage().contains("must be an array, collection, or document"));
+        }
+
+        @Test
+        @DisplayName("Should handle multiple field value constraints")
+        void testMultipleFieldValues() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1").append("type", "movie").append("year", 2012).append("rating", "PG"),
+                    new Document("_id", "2").append("type", "movie").append("year", 2012).append("rating", "PG")
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "3").append("type", "movie").append("year", 2012).append("rating", "PG"),
+                    new Document("_id", "4").append("type", "movie").append("year", 2012).append("rating", "PG")
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(2)
+                    .withFieldValues(Map.of("type", "movie", "year", 2012, "rating", "PG"))
+                    .build();
+
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+        }
+
+        @Test
+        @DisplayName("Should validate both expected and actual against schema")
+        void testBothExpectedAndActualValidated() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1").append("title", "Movie A").append("year", 2012)
+            );
+
+            // Expected is missing a required field
+            List<Document> expected = List.of(
+                    new Document("_id", "2").append("title", "Movie B")  // missing "year"
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .withRequiredFields("_id", "title", "year")
+                    .build();
+
+            AssertionError error = assertThrows(AssertionError.class, () ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+
+            assertTrue(error.getMessage().contains("expected[0]"));
+            assertTrue(error.getMessage().contains("missing required field 'year'"));
+        }
+
+        @Test
+        @DisplayName("Schema builder should reject negative count")
+        void testNegativeCountRejected() {
+            assertThrows(IllegalArgumentException.class, () ->
+                    Schema.builder().withCount(-1).build());
+        }
+
+        @Test
+        @DisplayName("withSchema should reject schema without count specified")
+        void testCountRequired() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1").append("title", "Movie A")
+            );
+            List<Document> expected = List.of(
+                    new Document("_id", "2").append("title", "Movie B")
+            );
+
+            // Build schema without calling withCount() - count will be -1
+            Schema schema = Schema.builder().build();
+
+            IllegalArgumentException error = assertThrows(IllegalArgumentException.class, () ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+
+            assertTrue(error.getMessage().contains("non-negative count"));
+        }
+
+        @Test
+        @DisplayName("Should handle empty lists with zero count")
+        void testEmptyListsWithZeroCount() {
+            List<Document> actual = List.of();
+            List<Document> expected = List.of();
+
+            Schema schema = Schema.builder()
+                    .withCount(0)
+                    .build();
+
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+        }
+
+        @Test
+        @DisplayName("Should handle Map objects in addition to Documents")
+        void testMapObjects() {
+            List<Map<String, Object>> actual = List.of(
+                    Map.of("_id", "1", "title", "Movie A", "year", 2012)
+            );
+
+            List<Map<String, Object>> expected = List.of(
+                    Map.of("_id", "2", "title", "Movie B", "year", 2012)
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .withRequiredFields("_id", "title", "year")
+                    .withFieldValues(Map.of("year", 2012))
+                    .build();
+
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+        }
+
+        @Test
+        @DisplayName("Should handle nested field values")
+        void testNestedFieldValues() {
+            List<Document> actual = List.of(
+                    new Document("id", 1).append("metadata",
+                            new Document("category", "movie").append("source", "imdb")),
+                    new Document("id", 2).append("metadata",
+                            new Document("category", "movie").append("source", "imdb"))
+            );
+
+            List<Document> expected = List.of(
+                    new Document("id", 10).append("metadata",
+                            new Document("category", "movie").append("source", "imdb")),
+                    new Document("id", 20).append("metadata",
+                            new Document("category", "movie").append("source", "imdb"))
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(2)
+                    .withRequiredFields("id", "metadata")
+                    .withFieldValues(Map.of("metadata",
+                            new Document("category", "movie").append("source", "imdb")))
+                    .build();
+
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+        }
+
+        @Test
+        @DisplayName("Should validate Vector Search style results")
+        void testVectorSearchScenario() {
+            // Simulating Vector Search where specific documents may vary
+            List<Document> actual = List.of(
+                    new Document("_id", "doc1").append("title", "Inception")
+                            .append("genre", "Sci-Fi").append("score", 0.95),
+                    new Document("_id", "doc2").append("title", "Interstellar")
+                            .append("genre", "Sci-Fi").append("score", 0.88),
+                    new Document("_id", "doc3").append("title", "The Dark Knight")
+                            .append("genre", "Sci-Fi").append("score", 0.82)
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "docA").append("title", "The Matrix")
+                            .append("genre", "Sci-Fi").append("score", 0.91),
+                    new Document("_id", "docB").append("title", "Blade Runner")
+                            .append("genre", "Sci-Fi").append("score", 0.85),
+                    new Document("_id", "docC").append("title", "Alien")
+                            .append("genre", "Sci-Fi").append("score", 0.79)
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(3)
+                    .withRequiredFields("_id", "title", "genre", "score")
+                    .withFieldValues(Map.of("genre", "Sci-Fi"))
+                    .build();
+
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+        }
+    }
 }
