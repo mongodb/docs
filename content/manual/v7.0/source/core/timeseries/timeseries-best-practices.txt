@@ -1,3 +1,5 @@
+.. _timeseries-best-practices:
+
 ==========================================
 Best Practices for Time Series Collections
 ==========================================
@@ -16,13 +18,147 @@ Best Practices for Time Series Collections
 This page describes best practices to improve performance and data usage
 for time series collections.
 
+.. _tsc-best-practice-optimize-compression:
+
+Compression Best Practices
+--------------------------
+
+To optimize data compression for time series collections, perform the
+following actions:
+
+Omit Fields Containing Empty Objects and Arrays from Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your data contains empty objects, arrays, or strings, omit the empty
+fields from your documents to optimize compression.
+
+For example, consider the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 7
+
+   {
+      timestamp: ISODate("2020-01-23T00:00:00.441Z"),
+      coordinates: [1.0, 2.0]
+   },
+   {
+      timestamp: ISODate("2020-01-23T00:00:10.441Z"),
+      coordinates: []
+   },
+   {
+      timestamp: ISODate("2020-01-23T00:00:20.441Z"),
+      coordinates: [3.0, 5.0]
+   }
+
+``coordinates`` fields with populated values and ``coordinates`` fields
+with an empty array result in a schema change for the compressor. The
+schema change causes the second and third documents in the sequence to
+remain uncompressed.
+
+Optimize compression by omitting the fields with empty values, as shown
+in the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      timestamp: ISODate("2020-01-23T00:00:00.441Z"),
+      coordinates: [1.0, 2.0]
+   },
+   {
+      timestamp: ISODate("2020-01-23T00:00:10.441Z")
+   },
+   {
+      timestamp: ISODate("2020-01-23T00:00:20.441Z"),
+      coordinates: [3.0, 5.0]
+   }
+
+Round Numeric Data to Few Decimal Places
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Round numeric data to the precision that your application requires.
+Rounding numeric data to fewer decimal places improves the compression
+ratio.
+
+.. _tsc-best-practice-embedded-fields:
+
+Use Standard Embedded Fields Best Practices
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If an :ref:`embedded data model <data-modeling-embedding>` supports your
+application's needs, use nested fields. The behavior of nested fields does not
+differ between regular collections and time series collections. 
+
+For example, consider a time series collection that contains
+weather documents similar to the following example: 
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      timestamp: ISODate("2024-06-17T10:00:00Z"),
+      stationId: "ALPHA123",
+      atmosphere: {
+         temperature: 21.5,
+         humidity: 68,
+         pressure: 1013.25
+      },
+      wind: {
+         speed: 7.2,
+         direction: "NW"
+      },
+      precipitation: 0.5,
+      visibility: 10
+   }
+
+MongoDB uses column compression on each nested field individually, which
+provides the same compression quality as flattening the fields to the top level.
+The resulting compression is identical to the compression that would result from
+flattening all of the nested fields to top level fields.
+
+.. important::
+
+   Column compression requires a consistent nested field order. However, if you
+   use a driver to interact with your data, there may be additional ordering
+   considerations. For example, see `BSON Types
+   <https://www.mongodb.com/docs/drivers/go/current/data-formats/bson/>`__ for
+   ordered representation considerations for the Go driver. Refer to `driver
+   documentation <https://www.mongodb.com/docs/drivers/>`__ for more
+   information.
+
+If your workload has high cardinality, flattening nested objects may improve
+performance. For example, the following document contains the same data as the
+previous document but in a flattened format:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      timestamp: ISODate("2024-06-17T10:00:00Z"),
+      stationId: "ALPHA123",
+      atmosphere_temperature: 21.5,
+      atmosphere_humidity: 68,
+      atmosphere_pressure: 1013.25
+      wind_speed: 7.2,
+      wind_direction: "NW"
+      precipitation: 0.5,
+      visibility: 10
+   }
+
+.. note::
+
+   Use a data model that is most natural for your application. MongoDB only
+   recommends flattening documents if a nested structure causes significant
+   performance issues. 
+
 .. _tsc-best-practice-optimize-inserts:
 
-Optimize Inserts
-----------------
+Inserts Best Practices
+----------------------
 
 To optimize insert performance for time series collections, perform the
-following actions.
+following actions:
 
 Batch Document Writes
 ~~~~~~~~~~~~~~~~~~~~~
@@ -33,186 +169,160 @@ When inserting multiple documents:
   :method:`~db.collection.insertMany()` statement as opposed to
   multiple :method:`~db.collection.insertOne()` statements.
 
-- If possible, construct batches to contain multiple measurements per series 
-  (as defined by metadata).
+- If possible, insert data that contains identical ``metaField`` values in
+  the same batches.
  
-- To improve performance, set the ``ordered`` parameter to ``false``.
+- Set the ``ordered`` parameter to ``false``.
 
-For example, if you have two sensors, ``sensor A`` and ``sensor B``, a
-batch containing multiple measurements from a single sensor incurs the
-cost of one insert, rather than one insert per measurement.
+For example, if you have two sensors that correspond to two ``metaField``
+values, ``sensor A`` and ``sensor B``, a batch that contains multiple
+measurements from a single sensor incurs the cost of one insert, rather
+than one insert per measurement.
 
 The following operation inserts six documents, but only incurs the cost
-of two inserts (one per batch), because the documents are ordered by
-sensor. The ``ordered`` parameter is set to ``false`` to improve performance:
+of two inserts (one per ``metaField`` value), because the documents are
+ordered by sensor. The ``ordered`` parameter is set to ``false`` to
+improve performance:
 
 .. code-block:: javascript
 
-   db.temperatures.insertMany( [
-      {
-         "metadata": {
-            "sensor": "sensorA"
+   db.temperatures.insertMany( 
+      [
+         {
+            metaField: {
+               sensor: "sensorA"
+            },
+            timestamp: ISODate("2021-05-18T00:00:00.000Z"),
+            temperature: 10
          },
-         "timestamp": ISODate("2021-05-18T00:00:00.000Z"),
-         "temperature": 10
-      },
-      {
-         "metadata": {
-            "sensor": "sensorA"
+         {
+            metaField: {
+               sensor: "sensorA"
+            },
+            timestamp: ISODate("2021-05-19T00:00:00.000Z"),
+            temperature: 12
          },
-         "timestamp": ISODate("2021-05-19T00:00:00.000Z"),
-         "temperature": 12
-      },
-      {
-         "metadata": {
-            "sensor": "sensorA"
+         {
+            metaField: {
+               sensor: "sensorA"
+            },
+            timestamp: ISODate("2021-05-20T00:00:00.000Z"),
+            temperature: 13
          },
-         "timestamp": ISODate("2021-05-20T00:00:00.000Z"),
-         "temperature": 13
-      },
-      {
-         "metadata": {
-            "sensor": "sensorB"
+         {
+            metaField: {
+               sensor: "sensorB"
+            },
+            timestamp: ISODate("2021-05-18T00:00:00.000Z"),
+            temperature: 20
          },
-         "timestamp": ISODate("2021-05-18T00:00:00.000Z"),
-         "temperature": 20
-      },
-      {
-         "metadata": {
-            "sensor": "sensorB"
+         {
+            metaField: {
+               sensor: "sensorB"
+            },
+            timestamp: ISODate("2021-05-19T00:00:00.000Z"),
+            temperature: 25
          },
-         "timestamp": ISODate("2021-05-19T00:00:00.000Z"),
-         "temperature": 25
-      },
-      {
-         "metadata": {
-            "sensor": "sensorB"
-         },
-         "timestamp": ISODate("2021-05-20T00:00:00.000Z"),
-         "temperature": 26
-      }
-   ], {
-      "ordered": false
-   })
+         {
+            metadField: {
+               sensor: "sensorB"
+            },
+            timestamp: ISODate("2021-05-20T00:00:00.000Z"),
+            temperature: 26
+         }
+      ], 
+      { "ordered": false }
+   )
 
 Use Consistent Field Order in Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using a consistent field order in your documents improves insert
+Using a consistent field order in your documents improves insert and compression
 performance. 
 
-For example, inserting these documents achieves optimal insert
-performance:
+.. note::
+
+   Compression requires consistent nested field order. For more information on
+   compression with nested fields, see :ref:`Nested Fields Best Practices
+   <tsc-best-practice-embedded-fields>`. 
+
+For example, inserting the following documents, all of which have the
+same field order, results in optimal performance.
 
 .. code-block:: javascript
 
    { 
-      "_id": ObjectId("6250a0ef02a1877734a9df57"),
-      "timestamp": ISODate("2020-01-23T00:00:00.441Z"),
-      "name": "sensor1",
-      "range": 1 
+      _id: ObjectId("6250a0ef02a1877734a9df57"),
+      timestamp: ISODate("2020-01-23T00:00:00.441Z"),
+      name: "sensor1",
+      range: 1 
    }, 
    {
-      "_id": ObjectId("6560a0ef02a1877734a9df66"),
-      "timestamp": ISODate("2020-01-23T01:00:00.441Z"),
-      "name": "sensor1",
-      "range": 5
+      _id: ObjectId("6560a0ef02a1877734a9df66"),
+      timestamp: ISODate("2020-01-23T01:00:00.441Z"),
+      name: "sensor1",
+      range: 5
    } 
 
-In contrast, these documents *do not* achieve optimal insert
+In contrast, the following documents *do not* achieve optimal
 performance, because their field orders differ:
 
 .. code-block:: javascript
 
    { 
-      "range": 1,
-      "_id": ObjectId("6250a0ef02a1877734a9df57"),
-      "name": "sensor1",
-      "timestamp": ISODate("2020-01-23T00:00:00.441Z")
+      range: 1,
+      _id: ObjectId("6250a0ef02a1877734a9df57"),
+      name: "sensor1",
+      timestamp: ISODate("2020-01-23T00:00:00.441Z")
    }, 
    {
-      "_id": ObjectId("6560a0ef02a1877734a9df66"),
-      "name": "sensor1",
-      "timestamp": ISODate("2020-01-23T01:00:00.441Z"),
-      "range": 5
+      _id: ObjectId("6560a0ef02a1877734a9df66"),
+      name: "sensor1",
+      timestamp: ISODate("2020-01-23T01:00:00.441Z"),
+      range: 5
    } 
 
 Increase the Number of Clients
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Increasing the number of clients writing data to your collections can
+Increasing the number of clients that write data to your collections can
 improve performance.
 
-.. _tsc-best-practice-optimize-compression:
+.. _tsc-best-practice-optimize-sharding:
 
-Optimize Compression
---------------------
+Sharding Best Practices
+-----------------------
 
-To optimize data compression for time series collections, perform the
-following actions.
+To optimize sharding on your time series collection, perform the
+following action:
 
-Omit Fields Containing Empty Objects and Arrays from Documents
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Use the ``metaField`` as your Shard Key
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To optimize compression, if your data contains empty objects or arrays,
-omit the empty fields from your documents.
-
-For example, consider the following documents:
-
-.. code-block:: javascript
-   :copyable: false
-   :emphasize-lines: 7
-
-   {
-    "timestamp": ISODate("2020-01-23T00:00:00.441Z"),
-    "coordinates": [1.0, 2.0]
-   },
-   {
-      "timestamp": ISODate("2020-01-23T00:00:10.441Z"),
-      "coordinates": []
-   },
-   {
-      "timestamp": ISODate("2020-01-23T00:00:20.441Z"),
-      "coordinates": [3.0, 5.0]
-   }
-
-The alternation between ``coordinates`` fields with populated values and
-an empty array result in a schema change for the compressor. The schema
-change causes the second and third documents in the sequence remain
-uncompressed.
-
-In contrast, the following documents where the empty array is omitted
-receive the benefit of optimal compression:
-
-.. code-block:: javascript
-   :copyable: false
-
-   {
-      "timestamp": ISODate("2020-01-23T00:00:00.441Z"),
-      "coordinates": [1.0, 2.0]
-   },
-   {
-      "timestamp": ISODate("2020-01-23T00:00:10.441Z")
-   },
-   {
-      "timestamp": ISODate("2020-01-23T00:00:20.441Z"),
-      "coordinates": [3.0, 5.0]
-   }
-
-Round Numeric Data to Few Decimal Places
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Round numeric data to the precision required for your application.
-Rounding numeric data to fewer decimal places improves the compression
-ratio.
+Using the ``metaField`` to shard your collection provides sufficienct
+cardinality as a shard key for time series collections. 
 
 .. _tsc-best-practice-optimize-query-performance:
 
-Optimize Query Performance
---------------------------
+Query Best Practices
+--------------------
+
+To optimize queries on your time series collection, perform the
+following actions:
+
+Set a Strategic ``metaField`` When Creating the Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your choice of ``metaField`` has the 
+biggest impact on optimizing queries in your application. 
+
+.. include:: /includes/time-series/fact-metafield-best-practices.rst
+
+For more information, see :ref:`timeseries-metafield-considerations`.
 
 Set Appropriate Bucket Granularity
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 When you create a time series collection, MongoDB groups incoming time
 series data into buckets. By accurately setting granularity, you control
 how frequently data is bucketed based on the ingestion rate of your data.
@@ -254,16 +364,21 @@ To improve query performance, :ref:`create one or more secondary indexes
 higher, MongoDB creates a secondary index on the ``timeField`` and
 ``metaField`` automatically.
 
-Query metaFields on Sub-Fields
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Additional Index Best Practices
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MongoDB reorders the metaFields of time-series collections, which may
+.. include:: /includes/time-series/fact-index-best-practices.rst
+
+Query the ``metaField`` on Sub-Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB reorders the ``metaField`` of time-series collections, which may
 cause servers to store data in a different field order than
-applications. If metaFields are objects, queries on entire metaFields
-may produce inconsistent results because metaField order may vary
-between servers and applications. To optimize queries on time-series
-metaFields, query timeseries metaFields on scalar sub-fields rather than
-entire metaFields. 
+applications. If a ``metaField`` is an object, queries on the ``metaField``
+may produce inconsistent results because ``metaField`` order may vary
+between servers and applications. To optimize queries on a time-series
+``metaField``, query the ``metaField`` on scalar sub-fields rather than
+the entire ``metaField``. 
 
 The following example creates a time series collection:
 
@@ -271,14 +386,14 @@ The following example creates a time series collection:
 
    db.weather.insertMany( [
       {
-         "metaField": { "sensorId": 5578, "type": "temperature" },
-         "timestamp": ISODate( "2021-05-18T00:00:00.000Z" ),
-         "temp": 12
+         metaField: { sensorId: 5578, type: "temperature" },
+         timestamp: ISODate( "2021-05-18T00:00:00.000Z" ),
+         temp: 12
       },
       {
-         "metaField": { "sensorId": 5578, "type": "temperature" },
-         "timestamp": ISODate( "2021-05-18T04:00:00.000Z" ),
-         "temp": 11
+         metaField: { sensorId: 5578, type: "temperature" },
+         timestamp: ISODate( "2021-05-18T04:00:00.000Z" ),
+         temp: 11
       }
    ] )
 

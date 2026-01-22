@@ -1,0 +1,221 @@
+.. meta::
+   :keywords: data format, optimization, performance
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: javascript/typescript
+
+
+.. _timeseries-bucketing:
+
+======================
+About Time Series Data
+======================
+   
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Internally, MongoDB optimizes time series data by grouping documents in a time
+series collection based on common ``metaField`` values. Selecting a useful one
+provides significant optimizations to storage density and query performance.
+For more information, see :ref:`timeseries-collections-metafield`.
+
+
+.. _timeseries-data-properties:
+
+Properties of Time Series Data
+------------------------------
+
+Time series data has several properties that differentiate it from other data
+formats:
+
+- Documents arrive in order, requiring frequent insert operations to append 
+  them.
+- Update operations are rare, since each document represents a single point in 
+  time.
+- Delete operations are rare if your application benefits from having
+  an extensive historical record.
+- Data is indexed by time and an identifier, such as a stock ticker, that 
+  identifies the unique time series it belongs to.
+- Data is high volume, since each individual time series requires a large, 
+  constantly growing number of documents.
+- .. include:: /includes/time-series-unique-id
+
+To account for these factors, MongoDB uses a specialized columnar format that
+groups documents from each time series together. This has the following 
+benefits:
+
+- Reduced storage and index sizes
+- Improved query efficiency
+- Reduced I/O for read operations
+- Increased usage of the :ref:`WiredTiger <storage-wiredtiger>` in-memory
+  cache, further improving query speed
+- Reduced complexity for working with time series data
+
+Comparing Time Series Collections to Regular Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In a regular collection, data is stored sequentially as blocks on disk,
+optimizing write speed. However, it requires one index for each data point,
+which quickly grows very large. It also requires a second index that contains
+the time series identifier and timestamps themselves, so that users can query
+for a single series. To read this data, MongoDB has to process all of the
+database and disk blocks that contain it, even if a block only contains a
+single relevant document.
+
+This model is optimized for :term:`CRUD` operations and frequent updates. A
+bank account balance only needs to reflect the current state, so each account
+holder's document is updated as that information changes.
+
+Compare this to a time series collection. Time series collections write data in
+order, meaning recent transactions can be kept in memory for much faster
+retrieval. Since they are written in sequence, documents are stored
+together, so there's no need to read every disk block after a document
+is no longer in memory. Data is indexed by the ``metaField``, leading to much
+smaller indexes.
+
+.. _timeseries-bucketing-specifics:
+
+How Bucketing Works
+-------------------
+
+When you create a time series collection, MongoDB automatically creates
+a ``system.buckets`` :ref:`system collection  <metadata-system-collections>`.
+MongoDB groups documents that have both:
+
+- An identical ``metaField`` value, which should uniquely identify a time 
+  series. If a ``metaField`` is an object or array, MongoDB groups only if all 
+  object fields or array elements match.
+- ``timeField`` values that are close together. The time series collection's
+  ``granularity``, ``bucketMaxSpanSeconds``, and ``bucketRoundingSeconds``
+  parameters control the time span covered by each bucket. For more 
+  information, see :ref:`timeseries-granularity`.
+
+For example, with a granularity of ``seconds``, MongoDB buckets documents
+within the same hour. If a bucket contains a document with a ``metaField``
+value of ``sensorA`` and a ``timeField`` value of ``2024-08-01T18:23:21Z``, an
+incoming document with a ``metaField`` of ``sensorB`` goes into a separate
+bucket regardless of time. An incoming document from ``sensorA`` goes into the
+same bucket only if its ``timeField`` is between ``2024-08-01T18:00:00Z`` and 
+``2024-08-01T18:59:59Z``.
+
+If a document with a time of ``2023-03-27T16:24:35Z`` does not fit an
+existing bucket, MongoDB creates a new bucket with a minimum time of
+``2023-03-27T16:00:00Z`` and a maximum time of ``2023-03-27T16:59:59Z``.
+
+.. note::
+
+   You can modify a time series collection's granularity, but only to change
+   from finer to coarser measurements, such as extending bucket coverage
+   from minutes hours. This updates the collection's view definition, but 
+   doesn't change how data is stored across existing buckets.
+
+
+How the metaField Affects Bucketing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Because ``metaField`` values must match exactly to group documents,
+the number of buckets in a time series collection depends on the number of
+unique ``metaField`` values. Collections with fine-grained or changing
+``metaField`` values generate many sparsely packed, short-lived buckets.
+This leads to decreased storage and query efficiency. 
+
+For example, in the following document, ``metadata`` is a good choice
+of ``metaField`` since it makes it easy to query data from a given weather
+sensor. Using these fields, MongoDB buckets readings from a single sensor together.
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      timestamp: ISODate("2021-05-18T00:00:00.000Z"),
+      metadata: { sensorId: 5578, type: 'temperature' },
+      temp: 12,
+      _id: ObjectId("62f11bbf1e52f124b84479ad")
+   }
+
+.. _timeseries-bucket-catalog:
+.. _timeseries-bucket-lifecycle:
+
+The Bucket Catalog
+------------------
+
+The bucket catalog is a specialized in-memory cache in :ref:`WiredTiger 
+<storage-wiredtiger>`. It tracks buckets to minimize latency and coordinate 
+concurrent writes. 
+
+For each open bucket, the catalog maintains information such as the
+``metaField``, active writers, covered time span, number of documents, size,
+and recent operations. Because MongoDB creates separate buckets for documents
+with a different ``metaField``, multiple buckets are typically open at the same
+time.
+
+To avoid inconsistencies caused by race conditions, buckets may be closed and 
+removed from the bucket catalog when a conflicting operation is executed.
+Restarting :binary:`~bin.mongod` closes all buckets and resets the bucket
+catalog.
+
+Creation
+~~~~~~~~
+
+* MongoDB creates a new bucket if there isn't a suitable one for an incoming 
+  document. This occurs when any of the following are true:
+
+  * The document ``metaField`` doesn't match any active buckets.
+  * The document timestamp is outside of the range of all active buckets.
+  * The document exceeds the remaining size or document limit of all 
+    active buckets.
+  
+  The starting timestamp of a new bucket is rounded down based on the
+  collection's :ref:`granularity <timeseries-granularity>`. This handles cases
+  where documents with out-of-order timestamps arrive in close succession.
+
+.. _timeseries-bucket-closure:
+
+Closure
+~~~~~~~
+
+MongoDB closes a bucket under any of the following circumstances:
+
+* Time has moved forward or backward past the covered time span, as
+  indicated by an incoming document timestamp that falls outside of the 
+  bucket's bounds. These bounds are determined by the collection's 
+  :ref:`granularity <timeseries-granularity>` setting.
+* The bucket has hit the document limit (default 1000).
+* The bucket has exceeded its storage size limit. This happens when:
+  
+  * The size exceeds the allowed maximum (default 125KiB).
+
+  * The number of documents is below a minimum number (default 10) and the 
+    size is below 12MiB. 
+    
+    This is a set, internal limit that optimizes performance when data
+    consists of fewer, larger documents.
+
+  * The set of active buckets doesn't fit within the allowed storage engine
+    cache size. You can review this information using the
+    :dbcommand:`collStats` database command.
+
+* The bucket catalog exceeds its allowed total memory allocation (by default, 
+  2.5% of available system memory)
+* A conflicting operation, such as a chunk migration or update, changes a 
+  bucket's on-disk state.
+* :binary:`~bin.mongod` restarts. This closes all buckets.
+
+Deletion
+~~~~~~~~
+
+MongoDB deletes a bucket when:
+
+* Its maximum allowed timestamp is less than the current time minus
+  the collection's ``expireAfterSeconds`` parameter. This is equivalent to a
+  :ref:`TTL collection's <ttl-collections>` time to live.
+* A :dbcommand:`delete` or :method:`db.collection.deleteMany()` command deletes
+  the last document in the bucket.
