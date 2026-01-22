@@ -16,44 +16,6 @@ const tocData: TocItem[] = [
         label: 'Quick Start - Ruby on Rails',
         contentSite: 'mongoid',
         url: '/docs/mongoid/:version/quick-start-rails',
-        collapsible: true,
-        items: [
-          {
-            label: 'Download & Install',
-            contentSite: 'mongoid',
-            url: '/docs/mongoid/:version/quick-start-rails/download-and-install',
-          },
-          {
-            label: 'Create a Deployment',
-            contentSite: 'mongoid',
-            url: '/docs/mongoid/:version/quick-start-rails/create-a-deployment',
-          },
-          {
-            label: 'Create a Connection String',
-            contentSite: 'mongoid',
-            url: '/docs/mongoid/:version/quick-start-rails/create-a-connection-string',
-          },
-          {
-            label: 'Configure Your Connection',
-            contentSite: 'mongoid',
-            url: '/docs/mongoid/:version/quick-start-rails/configure-mongodb',
-          },
-          {
-            label: 'View Data',
-            contentSite: 'mongoid',
-            url: '/docs/mongoid/:version/quick-start-rails/view-data',
-          },
-          {
-            label: 'Write Data',
-            contentSite: 'mongoid',
-            url: '/docs/mongoid/:version/quick-start-rails/write-data',
-          },
-          {
-            label: 'Next Steps',
-            contentSite: 'mongoid',
-            url: '/docs/mongoid/:version/quick-start-rails/next-steps',
-          },
-        ],
       },
       {
         label: 'Quick Start - Sinatra',

@@ -251,6 +251,11 @@ const tocData: TocItem[] = [
             showSubNav: true,
             items: MongoidDriverData,
           },
+          {
+            label: 'Ruby on Rails Integration',
+            contentSite: 'mongoid',
+            url: '/docs/mongoid/current/quick-start-rails',
+          },
         ],
       },
       {
