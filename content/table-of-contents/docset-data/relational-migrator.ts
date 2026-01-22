@@ -597,28 +597,20 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: 'Code Generation',
+        label: 'JSON Schema',
         contentSite: 'docs-relational-migrator',
-        url: '/docs/relational-migrator/code-generation',
+        url: '/docs/relational-migrator/json-schema',
         collapsible: true,
         items: [
           {
-            label: 'Generate App Code',
+            label: 'Download All Files',
             contentSite: 'docs-relational-migrator',
-            url: '/docs/relational-migrator/code-generation/generate-app-code',
-            collapsible: true,
-            items: [
-              {
-                label: 'Download All Code Files',
-                contentSite: 'docs-relational-migrator',
-                url: '/docs/relational-migrator/code-generation/generate-app-code/download-all-code-files',
-              },
-              {
-                label: 'Download Single Code Files',
-                contentSite: 'docs-relational-migrator',
-                url: '/docs/relational-migrator/code-generation/generate-app-code/download-single-code-files',
-              },
-            ],
+            url: '/docs/relational-migrator/json-schema/download-all-files',
+          },
+          {
+            label: 'Download a Single File',
+            contentSite: 'docs-relational-migrator',
+            url: '/docs/relational-migrator/json-schema/download-single-file',
           },
         ],
       },
