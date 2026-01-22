@@ -65,10 +65,11 @@ Procedure
 
          docker pull mongodb/mongodb-community-server:latest && docker pull mongodb/mongodb-community-search:latest
          
-         .. note::
-            You must have a minimum of MongoDB 8.2.0 to use MongoDB Search with a
-            self-managed deployment. For more information, see :ref:`MongoDB Search
-            Compatibility <fts-feature-availability>`. 
+      .. note::
+
+         You must have a minimum of MongoDB 8.2.0 to use MongoDB Search with a
+         self-managed deployment. For more information, see :ref:`MongoDB Search
+         Compatibility <fts-feature-availability>`. 
 
    .. step:: Download an archive of sample data
 
@@ -83,6 +84,7 @@ Procedure
       Create a password file for ``mongot`` to connect to ``mongod``. 
 
       .. note::
+
          Do not include trailing newlines in your password file. 
          ``mongot`` rejects password files that contain trailing newlines. 
 
@@ -97,6 +99,8 @@ Procedure
 
                echo -n "mongotPassword" > pwfile
                chmod 400 pwfile
+
+            .. note::
 
                The ``-n`` flag prevents a trailing newline. 
 
