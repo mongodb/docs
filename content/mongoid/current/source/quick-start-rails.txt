@@ -1,32 +1,61 @@
 .. _mongoid-quick-start-rails:
 
-===========================
-Quick Start - {+ror+}
-===========================
+====================================
+Integrate {+odm+} with {+ror+}
+====================================
 
 .. facet::
    :name: genre
    :values: tutorial
 
 .. meta::
-   :keywords: ruby framework, odm
+   :keywords: ruby framework, odm, web app, mongoid, code example
+   :description: Build a complete Ruby on Rails application using Mongoid and MongoDB. Learn how to connect to MongoDB Atlas and display sample data.
 
-.. contents:: On this page
+.. contents:: On this page 
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Overview
 --------
 
-This guide shows you how to use {+odm+} in a new **{+ror+} 8 (Rails)**
-web application, connect to a MongoDB cluster hosted on MongoDB
-Atlas, and perform read and write operations on the data in your
-cluster.
+In this guide, you can learn how to create a **{+language+}** web application
+that uses **{+ror+} 8** as the web framework. {+ror+} is a full-stack web application
+framework for {+language+} that follows the model-view-controller (MVC) architecture
+pattern for building applications.
 
-To learn how to integrate {+odm+} into an existing application, see the
-:ref:`mongoid-add-to-existing` guide.
+The application in this tutorial consists of the following layers:
+
+- **Database layer**: MongoDB provides data storage and retrieval.
+- **Application layer**: Rails handles HTTP requests, routing, and logic processing.
+- **Presentation layer**: Emebdded Ruby templates and CSS render restaurant data on web pages.
+
+.. tip::
+
+   To learn how to integrate {+odm+} into an existing application, see the
+   :ref:`mongoid-add-to-existing` guide.
+
+Why Use MongoDB with {+language+} and Rails?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By integrating MongoDB with {+language+} and Rails, you can use {+odm+}'s
+Object-Document Mapper (ODM) to interact with MongoDB's flexible
+document model. {+odm+} replaces Rails' default Active Record ORM, and you
+can leverage MongoDB's schema flexibility while using Rails to 
+easily control how your data is modeled and displayed.
+
+.. _mongoid-rails-qs-tutorial:
+
+Quick Start Tutorial
+--------------------
+
+This tutorial shows you how to build a web application that uses 
+{+language+} and Rails. The application accesses sample restaurant data, queries
+the data, and displays the results on a locally hosted site. The tutorial
+also includes instructions for connecting to a MongoDB cluster hosted
+on MongoDB Atlas and accessing and displaying data from your database.
 
 .. tip::
 
@@ -34,43 +63,324 @@ To learn how to integrate {+odm+} into an existing application, see the
    {+odm+}, follow the :ruby:`Get Started with the Ruby Driver
    </get-started/>` tutorial.
 
-{+odm+} is an Object-Document Mapper (ODM) framework for MongoDB in
-{+language+}. By using {+odm+}, you can easily interact with your data and
-create flexible data models.
+.. _mongoid-quick-start-rails-download-and-install:
+.. _mongoid-quick-start-rails-create-deployment:
 
-{+ror+} is a web application framework for
-{+language+}. Rails applications use a model-view-controller (MVC)
-architecture that allows you to easily control how your data is
-modeled and displayed. {+odm+} replaces the default Active Record
-adapter for data modeling in Rails.
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
 
-To learn more about {+ror+}, see the `Getting Started
-with Rails <{+active-record-docs+}/getting_started.html>`__
-guide in the Rails documentation.
+Follow the steps in this section to install the project dependencies,
+create an Atlas cluster, and set up the application structure.
 
-MongoDB Atlas is a fully managed cloud database service that hosts your
-MongoDB deployments. You can create your own free (no credit card
-required) MongoDB Atlas deployment by following the steps in this guide.
+.. procedure::
+   :style: connected
 
-Follow the steps in this guide to create a sample {+odm+} web application
-that connects to a MongoDB deployment.
+   .. step:: Verify the prerequisites.
+
+      Before you create the Quick Start application, install the following software
+      in your development environment:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Prerequisite
+           - Notes
+
+         * - `Ruby <https://www.ruby-lang.org/en/documentation/installation/>`__
+           - Use version 3.1 or later.
+
+         * - `RubyGems <https://rubygems.org/pages/download>`__
+           - This is a package manager for Ruby.
+  
+         * - Code editor
+           - This tutorial uses `Visual Studio Code <https://code.visualstudio.com/>`__
+             with the Ruby extension, but you can use the editor of your choice.
+  
+         * - Terminal app and shell 
+           - For MacOS users, use Terminal or a
+             similar app. For Windows users, use PowerShell.          
+
+   .. step:: Create a MongoDB Atlas cluster.
+      
+      MongoDB Atlas is a fully managed cloud database service that hosts your
+      MongoDB deployments. If you do not have a MongoDB deployment, you can create a MongoDB
+      cluster for free (no credit card required) by completing the
+      `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=ruby>`__
+      tutorial. The MongoDB Get Started tutorial also demonstrates how to load sample
+      datasets into your cluster, including the ``sample_restaurants`` database
+      that is used in this tutorial. 
+
+      To connect to your MongoDB cluster, you must use a **connection URI**. To
+      learn how to retrieve your connection URI, see the `Add your connection string
+      <https://www.mongodb.com/docs/get-started/?language=ruby#add-your-connection-string>`__
+      section of the MongoDB Get Started tutorial.
+
+      .. important::
+
+         Save your connection string in a secure location.
+
+   .. step:: Specify the target database in your connection string.
+      
+      When connecting to an Atlas cluster, you must specify the database that
+      you want to interact with as the default database in your connection string.
+      You must add the database name to your connection string *after the hostname*
+      and *before the connection options*.
+      
+      The following example specifies the ``sample_restaurants`` target database
+      in a sample connection string:
+
+      .. code-block:: none
+
+         mongodb+srv://user0:pass123@mongo0.example.com/sample_restaurants?retryWrites=true&w=majority
+
+   .. step:: Install Rails.
+
+      Install the ``rails`` gem, which provides a command-line
+      interface to create a basic application structure and application
+      components.
+
+      Run the following command to install ``rails``:
+
+      .. code-block:: bash
+         
+         gem install rails
+
+   .. step:: Create a Rails app with default scaffolding.
+
+      Run the following commands to create a new Rails application
+      directory with default scaffolding and enter the application:
+
+      .. code-block:: bash
+
+         rails new {+quickstart-rails-app-name+} --skip-active-record
+         cd {+quickstart-rails-app-name+}
+
+      The ``--skip-active-record`` flag instructs Rails to not add
+      Active Record as a dependency. You don't need this
+      dependency because you will use {+odm+} instead.
+
+   .. step:: Configure your project dependencies.
+
+      Navigate to the ``{+quickstart-rails-app-name+}`` directory and run the
+      following commands to install the {+odm+} and the dependencies:
+
+      .. code-block:: bash
+
+         bundle add mongoid
+         bundle install
+
+   .. step:: Generate the {+odm+} configuration.
+
+      Run the following command to generate the {+odm+} configuration file:
+
+      .. code-block:: bash
+
+         rails generate mongoid:config
+
+      This command creates a ``config/mongoid.yml`` file to configure
+      the connection to your MongoDB deployment
+
+.. _mongoid-quick-start-rails-connect-to-mongodb:
+
+Configure the Back End
+~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up the project structure and dependencies, follow
+the steps in this section to connect to MongoDB and set up your
+data models.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Configure your MongoDB connection.
+
+      Navigate to the ``config/mongoid.yml`` file and replace its contents
+      with the following code:
+
+      .. code-block:: yaml
+
+         development:
+           clients:
+             default:
+               uri: <connection_URI>
+
+      Replace the ``<connection_URI>`` placeholder with the connection URI that you saved
+      in a :ref:`previous step <mongoid-quick-start-rails-download-and-install>`. Ensure that the URI
+      includes the ``sample_restaurants`` database name.
+
+   .. step:: Create a data model.
+
+      Generate a ``Restaurant`` model with ``name``, ``cuisine``, and ``borough`` fields
+      by running the following command:
+
+      .. code-block:: bash
+
+         bin/rails g scaffold Restaurant name:string cuisine:string borough:string
+
+      The ``Restaurant`` model represents the ``restaurants`` collection in the ``sample_restaurants``
+      database. The preceding command also creates the controller and view files for the ``Restaurant`` model.
+      You can find the directories that contain these files in the ``app`` directory of your
+      application.
+
+   .. step:: Configure routes and add custom actions.
+
+      Navigate to the ``config/routes.rb`` file and replace its contents with the
+      following code:
+
+      .. literalinclude:: /includes/quick-start/routes.rb
+         :caption: config/routes.rb
+         :language: ruby
+
+      Then, add the following method to the ``app/controllers/restaurants_controller.rb``
+      file:
+
+      .. literalinclude:: /includes/quick-start/restaurants_controller.rb
+         :caption: app/controllers/restaurants_controller.rb
+         :language: ruby
+         :start-after: # start-browse
+         :end-before: # end-browse
+
+      This method queries for restaurants in Queens that have ``"Moon"`` in their name
+      by using a case-insensitive regular expression match.
+
+Configure the Front End
+~~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up the data layer, follow the steps in this section
+to create templates and styling for the user interface.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Update the main layout.
+
+      Navigate to the ``app/views/layouts/application.html.erb`` file and replace
+      its contents with the following code:
+
+      .. literalinclude:: /includes/quick-start/application.html.erb
+         :caption: app/views/layouts/application.html.erb
+         :language: erb
+
+      This file is the main template wrapper for all pages in your application.
+      It includes navigation links, page titles, and the necessary Rails helper tags
+      for security and asset loading.
+
+   .. step:: Create the restaurant list view.
+
+      Navigate to the ``app/views/restaurants/index.html.erb`` file and replace
+      its contents with the following code:
+
+      .. literalinclude:: /includes/quick-start/index.html.erb
+         :caption: app/views/restaurants/index.html.erb
+         :language: erb
+
+      This view file displays all restaurants in a grid layout and includes action buttons for
+      viewing, editing, and deleting each restaurant.
+
+   .. step:: Create the filtered view.
+
+      Create a new file named ``app/views/restaurants/browse.html.erb`` and paste
+      the following code:
+
+      .. literalinclude:: /includes/quick-start/browse.html.erb
+         :caption: app/views/restaurants/browse.html.erb
+         :language: erb
+
+      This view file displays the filtered restaurant results, showing only restaurants
+      from the custom ``browse`` controller action.
+
+   .. step:: Add CSS styling.
+
+      Add the following code to the ``app/assets/stylesheets/application.css``
+      file:
+
+      .. literalinclude:: /includes/quick-start/application.css
+         :caption: app/assets/stylesheets/application.css
+         :language: css
+
+      This CSS file adds styling to the site's grid layout.
+
+.. _mongoid-quick-start-rails-view-data:
+
+Run Your Application
+~~~~~~~~~~~~~~~~~~~~
+
+Finally, follow the steps in this section to run your web application and
+explore the restaurant data by using the browser interface.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Start the Rails application.
+
+      Navigate to your project directory and run the following command:
+
+      .. code-block:: bash
+
+         bin/rails s
+
+      If successful, the command output resembles the following example:
+
+      .. code-block:: bash
+         :copyable: false
+
+         => Booting Puma
+         => Rails 8.0.1 application starting in development
+         => Run `bin/rails server --help` for more startup options
+         Puma starting in single mode...
+         * Puma version: 6.4.3 (ruby 3.2.5-p208) ("The Eagle of Durango")
+         *  Min threads: 3
+         *  Max threads: 3
+         *  Environment: development
+         *          PID: 66973
+         * Listening on http://127.0.0.1:3000
+         * Listening on http://[::1]:3000
+         * Listening on http://127.0.2.2:3000
+         * Listening on http://127.0.2.3:3000
+         Use Ctrl-C to stop
+
+   .. step:: Open the web application.
+
+      Open http://127.0.0.1:3000 in your web browser. The initial
+      landing page displays all restaurants in the ``sample_restaurants.restaurants``
+      collection:
+
+      .. figure:: /includes/figures/all-restaurants.png
+         :alt: The web page that displays all restaurants
+
+      Then, click the :guilabel:`Browse Filtered` button to view restaurants in Queens that
+      have ``"Moon"`` in their name:
+
+      .. figure:: /includes/figures/browse-restaurants.png
+         :alt: The web page that displays filtered restaurants
+
+   .. step:: Explore CRUD functionality.
+
+      Rails automatically provides complete CRUD (Create, Read, Update, Delete)
+      functionality for your restaurants. You can perform the following actions:
+
+      - **Create**: Click :guilabel:`New Restaurant` to add a new restaurant to the ``restaurants`` collection.
+      - **Read**: Click :guilabel:`View` on any restaurant card to see detailed information.
+      - **Update**: Click :guilabel:`Edit` on any restaurant card to modify the restaurant's information.
+      - **Delete**: Click :guilabel:`Delete` on any restaurant card to remove it from the collection.
+
+Congratulations on completing the Quick Start tutorial! After you complete
+these steps, you have a {+language+} and Rails web application that
+connects to your MongoDB deployment, runs queries on sample restaurant data,
+and displays the results on a locally hosted web interface with full CRUD capabilities.
+
+.. _mongoid-quick-start-rails-next-steps:
+
+Additional Resources
+--------------------
+
+To learn more about {+language+}, Rails, {+odm+}, and MongoDB, view the following resources:
+
+- `Ruby on Rails <https://guides.rubyonrails.org/>`__ documentation
+- :ruby:`Ruby Driver Documentation </>`
+- `Ruby <https://www.ruby-lang.org/>`__ language documentation
 
 .. tip:: Other Framework Tutorials
 
    If you prefer to use Sinatra as your web framework, see the
    :ref:`mongoid-quick-start-sinatra` guide.
-
-.. TODO .. tip::
-.. 
-..    You can download the complete web application project by cloning the
-..    `mongoid-quickstart <>`__ GitHub repository.
-
-.. toctree::
-
-   Download & Install </quick-start-rails/download-and-install/>
-   Create a Deployment </quick-start-rails/create-a-deployment/>
-   Create a Connection String </quick-start-rails/create-a-connection-string/>
-   Configure Your Connection </quick-start-rails/configure-mongodb/>
-   View Data </quick-start-rails/view-data/>
-   Write Data </quick-start-rails/write-data/>
-   Next Steps </quick-start-rails/next-steps/>
