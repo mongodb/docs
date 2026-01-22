@@ -11,7 +11,7 @@ for additional guidance.
 Assumptions and Compatibility
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Target a modern LTS release (currently Java 21) unless a procedure or
+- Target a modern LTS (long-term support) release (currently Java 21) unless a procedure or
   compatibility note requires an older version.
 - Avoid preview or incubation features in code examples.
 - Avoid framework-specific patterns unless the page is explicitly about
@@ -94,6 +94,19 @@ Conditional Logic
 - Avoid deeply nested ``if``/``else`` blocks or multi-level loops in short
   examples.
 - Use early returns when they simplify the example logic.
+
+Configurable Fields
+~~~~~~~~~~~~~~~~~~~
+
+- Define variables for fields that are configurable by the user, such as connection
+  strings, database names, and collection names.
+- For procedures, introduce variables in either a setup section or as an explicit step
+  when the variable is first used.
+- Ensure that the variable placeholders are obvious (for example, use
+  `emphasize-lines` to highlight the line), and readers can
+  easily understand how to configure them (for example, use comments to
+  explain what the variable represents).
+  See also :ref:`placeholders-java`.
 
 Code Block Height
 ~~~~~~~~~~~~~~~~~
@@ -204,11 +217,16 @@ Imports
 ~~~~~~~
 
 - When possible, do not use wildcard imports.
+- Avoid static imports except with builders. See also :ref:`static-imports-java`.
+- Include *all* imports used in the example at the top of the code block,
+  or when applicable, define them in a setup section or procedure step.
 - Group imports in this order:
 
   1. ``java`` and ``javax`` imports.
   2. Third-party libraries.
   3. Project-specific packages.
+
+.. _static-imports-java:
 
 Static Imports for Builders
 ###########################
@@ -300,15 +318,27 @@ Naming Conventions
        - lowercase
        - ``com.example.docs``, ``com.mongodb.docs.quickstart``
 
+.. _placeholders-java:
+
 Placeholders
 ~~~~~~~~~~~~
 
 - Use placeholders sparingly, such as for credentials, connection strings,
   or other values that are not essential to the example.
-- Include a comment above the line with the placeholder to explain what it
+- Always include a comment above the line with the placeholder to explain what it
   represents.
+- Highlight the line with the placeholder using ``:emphasize-lines:``.
 - Ensure that any placeholder text in code is obvious. Format placeholders
   as directed in :ref:`api-placeholders`.
+
+.. code-block:: java
+   :emphasize-lines: 1-2
+
+   // Replace the placeholder with your MongoDB deployment's connection string
+   String uri = "<your connection string>";
+
+   MongoClient mongoClient = MongoClients.create(uri);
+   // ...
 
 Resource Management
 ~~~~~~~~~~~~~~~~~~~
@@ -429,9 +459,9 @@ Builder Patterns
      );
 
      Bson filter = Filters.and(
-        Filters.eq("status", "active"),
-        Filters.gte("age", 21),
-        Filters.exists("email")
+         Filters.eq("status", "active"),
+         Filters.gte("age", 21),
+         Filters.exists("email")
      );
 
 Testing Examples

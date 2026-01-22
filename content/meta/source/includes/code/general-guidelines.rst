@@ -37,16 +37,34 @@ Introductory Text
 - Introduce each code block with context, as you would a list or table.
 - Explain anything that isn't self-evident from the code, such as non-obvious
   logic, behavior, or intent.
-- List any prerequisites or code dependencies needed to use or run the example.
+- List any prerequisites, imports, variables, or code dependencies
+  needed to use or run the example.
 
-Moving Between Files
-~~~~~~~~~~~~~~~~~~~~
+Procedural Examples
+~~~~~~~~~~~~~~~~~~~
 
-- Group related pieces of a workflow together when possible.
-- Don't jump around between files. Instead, provide a clear path for the reader to follow.
-- If needed, include visual cues with the code block to help readers, such as
-  ``:caption:`` or ``:emphasize-lines:``.
-  For more information, see :ref:`code-example-formatting-emphasis`.
+- Make sure the procedure is easy to follow. Provide intuitive, clear steps.
+
+  - Group related code examples in a workflow together when possible.
+  - If the procedure contains multiple files, make sure it's clear how the files
+    relate to each other and in which order they should be read. Don't jump around
+    randomly between files.
+
+  .. tip:: Use Visual Cues to Help Readers Follow Along
+
+     Add visual cues to the code examples. For example, use a ``caption`` that provides
+     the file path and name, or use ``emphasize-lines`` to highlight important sections.
+     For more information, see :ref:`code-example-formatting-emphasis`.
+
+- Don't surprise readers. Explain what the code does before showing it.
+
+  - Put all prerequisites or initial setup steps at the beginning.
+  - Define all imports used in an example at the top of the code block or in an explicit step.
+  - Identify all variables that users need to define before running an example (for example,
+    connection strings or database names).
+    This might be in a setup section or as an explicit step.
+  - Include an explicit "Create a file" step every time the example requires
+    creating a new file. Be sure to include the filename in the step.
 
 Production-Worthy Code
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -80,5 +98,5 @@ Security
 
      Never include real passwords, secrets, or other sensitive information
      in a code example. If you're unsure how to handle credentials in your
-     code, reach out to the DevDocs team or use the
-     ``#ask-devdocs`` Slack channel.
+     code, reach out to the Dev Docs team during the team's open lobby or
+     through the ``#ask-devdocs`` Slack channel.
