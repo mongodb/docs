@@ -1,0 +1,160 @@
+=====================================
+commitShardRemoval (database command)
+=====================================
+.. meta::
+   :description: Removes a shard from a sharded cluster.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: commitShardRemoval
+
+   .. include:: /includes/command/commitShardRemoval
+
+   In order to run this command, you must first drain the shard
+   with the :dbcommand:`startShardDraining` command. This
+   command tells the balancer to move chunks from the shard to
+   other shards in the cluster. You must also manually move any
+   databases that use the shard as the :term:`primary shard` and
+   unsharded collections stored on the shard before running the
+   ``commitShardRemoval`` command. 
+
+   The command returns an error if the shard is not completely
+   drained or if it contains a database or unsharded collection.
+   If the shard is drained and all databases and unsharded
+   collections migrated off of the shard, the command returns
+   ``ok``.
+
+   To check the status of a draining shard, see the
+   :dbcommand:`shardDrainingStatus` command.
+
+   .. versionadded:: 8.3
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+.. note::
+
+   .. include:: /includes/edit-shards-atlas-compatibility.rst
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.adminCommand( { 
+        commitShardRemoval: <shard> 
+   } )
+
+Behavior
+--------
+
+Access Requirements
+~~~~~~~~~~~~~~~~~~~
+
+If you have :setting:`~security.authorization` enabled, you must
+have the :authrole:`clusterManager` role or any role that
+includes the :authaction:`removeShard` action.
+
+Database Migration Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each database in a sharded cluster has a primary shard. If the
+shard you want to drain is also the primary of one of the
+cluster's databases, then you must manually move the databases
+from its primary shard to a new shard after migrating all data
+from the shard. 
+
+If there is a database that uses the shard you want to use as a
+primary, the ``commitShardRemoval`` command returns an error.
+
+For details, see the :dbcommand:`movePrimary` command and the
+:ref:`remove-shards-from-cluster-tutorial` for more information.
+
+Collection Migration Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Unsharded collections are stored on individual shards. If one of
+these collections is on the shard you want to remove, you must
+first migrate the collection to a different shard.
+
+If there is an unsharded collection stored on the shard you want
+to remove, the ``commitShardRemoval`` command returns an error.
+
+To migrate an unsharded collection, see the
+:dbcommand:`moveCollection` command.
+
+Examples
+--------
+
+To start draining a shard, use the :method:`db.adminCommand`
+method to run the :dbcommand:`startShardDraining` command:
+
+.. code-block:: javascript
+
+   db.adminCommand( { startShardDraining: "shard04" } )
+
+To check the status of the draining operation, use the
+:dbcommand:`shardDrainingStatus` command:
+
+.. io-code-block:: 
+
+   .. input::
+      :language: javascript
+
+      db.adminCommand( { shardDrainingStatus: "shard04" } )
+
+   .. output::
+      :language: javascript
+
+      {
+         "msg" : "removeshard completed successfully",
+         "state" : "completed",
+         "shard" : "shard04",
+         "ok" : 1,
+         "operationTime" : Timestamp(1575400370, 2),
+         "$clusterTime" : {
+            "clusterTime" : Timestamp(1575400370, 2),
+            "signature" : {
+               "hash" : BinData(0,"JjSRciHECXDBXo0e5nJv9mdRG8M="),
+               "keyId" : Long("6766255701040824328")
+            }
+         }
+      }
+
+If the output shows any databases in the ``dbsToMove`` field,
+use the :dbcommand:`movePrimary` command to move them onto a
+different shard.
+
+If the output shows any unsharded collections in the
+``collectionsToMove`` field, use the :dbcommand:`moveCollection`
+command to move them onto a different shard.
+
+When :dbcommand:`shardDrainingStatus` shows ``{ state:
+"completed" }``, the balancer has finished moving chunks off the
+shard. You can now remove the shard:
+
+.. code-block:: javascript
+
+   db.adminCommand( { commitShardRemoval: "shard04" } )
+
+Learn More
+----------
+
+- :dbcommand:`startShardDraining`
+
+- :dbcommand:`shardDrainingStatus`

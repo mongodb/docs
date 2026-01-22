@@ -349,6 +349,12 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/command/commitReshardCollection',
           },
           {
+            label: 'commitShardRemoval',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/command/commitShardRemoval',
+            versions: { excludes: versionsBeforeV8_3 },
+          },
+          {
             label: 'configureCollectionBalancing',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/configureCollectionBalancing',
