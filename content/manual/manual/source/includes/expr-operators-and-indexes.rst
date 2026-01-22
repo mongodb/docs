@@ -13,4 +13,5 @@ referenced in a :pipeline:`$lookup` stage. Limitations:
 - Indexes are not used for comparisons where the ``let`` operand resolves to an
   empty or missing value.
 
-- :ref:`Multikey indexes <index-type-multikey>` are not used.
+- :ref:`Multikey <index-type-multikey>`, :ref:`partial <index-type-partial>`, or 
+  :ref:`sparse <index-type-sparse>` indexes are not used.
