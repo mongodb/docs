@@ -1,4 +1,4 @@
-.. Last updated: January 15, 2026 at 04:35 PM EST
+.. Last updated: January 22, 2026 at 01:28 PM EST
 
 .. list-table::
    :header-rows: 1
@@ -26,17 +26,11 @@
        Account upgraded
      - no
 
-   * - ``ACME_PROVIDER_FIXED``
-     - .. _atlas_event_acme_provider_fixed:
+   * - ``ACTIVE_LEGACY_TLS_CONNECTIONS``
+     - .. _atlas_event_active_legacy_tls_connections:
 
-       ACME Provider was fixed
-     - no
-
-   * - ``ACME_PROVIDER_UNFIXED``
-     - .. _atlas_event_acme_provider_unfixed:
-
-       ACME Provider was unfixed
-     - no
+       Clusters with minimum TLS version set to TLS 1.0 or TLS 1.1 detected
+     - yes
 
    * - ``ADD_HOST_AUDIT``
      - .. _atlas_event_add_host_audit:
@@ -56,40 +50,10 @@
        Admin updated admin cluster lock
      - no
 
-   * - ``ADMIN_NOTE_UPDATED``
-     - .. _atlas_event_admin_note_updated:
-
-       Admin updated admin note for project
-     - no
-
    * - ``ADMIN_OVERRIDE_PAYMENT_METHOD_DELETED``
      - .. _atlas_event_admin_override_payment_method_deleted:
 
        Admin Override payment method deleted
-     - no
-
-   * - ``AGENT_API_KEY_CREATED``
-     - .. _atlas_event_agent_api_key_created:
-
-       Agent API key was created
-     - no
-
-   * - ``AGENT_API_KEY_DELETED``
-     - .. _atlas_event_agent_api_key_deleted:
-
-       Agent API key was deleted
-     - no
-
-   * - ``AGENT_VERSION_FIXED``
-     - .. _atlas_event_agent_version_fixed:
-
-       Agent version was fixed
-     - no
-
-   * - ``AGENT_VERSION_UNFIXED``
-     - .. _atlas_event_agent_version_unfixed:
-
-       Agent version was unfixed
      - no
 
    * - ``ALERT_ACKNOWLEDGED_AUDIT``
@@ -336,12 +300,6 @@
      - .. _atlas_event_automation_config_published_audit:
 
        Deployment configuration published
-     - no
-
-   * - ``AUTO_CREATED_INDEX_AUDIT``
-     - .. _atlas_event_auto_created_index_audit:
-
-       Secondary Index automatically created
      - no
 
    * - ``AUTO_HEALING_ACTION``
@@ -864,12 +822,6 @@
      - .. _atlas_event_check_payment_received:
 
        Invoice has been paid by check
-     - no
-
-   * - ``CLEAR_UNPROVISIONED_TARGET_GROUPS_REQUESTED``
-     - .. _atlas_event_clear_unprovisioned_target_groups_requested:
-
-       Unprovisioned target group deletion requested
      - no
 
    * - ``CLOUD_PROVIDER_ACCESS_AWS_IAM_ROLE_ADDED``
@@ -1490,12 +1442,6 @@
        Cluster storage engine has been updated
      - no
 
-   * - ``CLUSTER_SYSTEMD_OVERRIDES_CHANGED``
-     - .. _atlas_event_cluster_systemd_overrides_changed:
-
-       Cluster systemd slice overrides changed
-     - no
-
    * - ``CLUSTER_TAGS_MODIFIED``
      - .. _atlas_event_cluster_tags_modified:
 
@@ -1536,24 +1482,6 @@
      - .. _atlas_event_cluster_update_submitted:
 
        Cluster update submitted
-     - no
-
-   * - ``CLUSTER_UPDATE_SUBMITTED_INTERNAL``
-     - .. _atlas_event_cluster_update_submitted_internal:
-
-       Cluster update submitted: hidden properties
-     - no
-
-   * - ``CLUSTER_VERSION_FIXED``
-     - .. _atlas_event_cluster_version_fixed:
-
-       Cluster version was fixed
-     - no
-
-   * - ``CLUSTER_VERSION_UNFIXED``
-     - .. _atlas_event_cluster_version_unfixed:
-
-       Cluster version was unfixed
      - no
 
    * - ``COMPUTE_AUTO_SCALE_INITIATED``
@@ -2132,12 +2060,6 @@
        Credit issued
      - no
 
-   * - ``CREDIT_MOVED``
-     - .. _atlas_event_credit_moved:
-
-       Credit moved
-     - no
-
    * - ``CREDIT_PULLED_FWD``
      - .. _atlas_event_credit_pulled_fwd:
 
@@ -2330,12 +2252,6 @@
        User downloaded query logs for Data Lake Tenant.
      - no
 
-   * - ``DATA_PROCESSING_REGION_UPDATED``
-     - .. _atlas_event_data_processing_region_updated:
-
-       Data processing region updated
-     - no
-
    * - ``DATA_VALIDATION_SUBMITTED_FOR_CLUSTER``
      - .. _atlas_event_data_validation_submitted_for_cluster:
 
@@ -2352,12 +2268,6 @@
      - .. _atlas_event_db_check_scheduled_for_cluster:
 
        Cluster was scheduled for DB Check
-     - no
-
-   * - ``DB_CHECK_SUBMITTED``
-     - .. _atlas_event_db_check_submitted:
-
-       DbCheck was submitted
      - no
 
    * - ``DB_CHECK_UPDATED``
@@ -2407,12 +2317,6 @@
 
        A user has successfully changed the deployment model for an App Service
      - yes
-
-   * - ``DEPUTY_SETTINGS_UPDATED``
-     - .. _atlas_event_deputy_settings_updated:
-
-       Data exfiltration prevention settings updated
-     - no
 
    * - ``DEVICE_SYNC_DEBUG_ACCESS_GRANTED``
      - .. _atlas_event_device_sync_debug_access_granted:
@@ -2652,18 +2556,6 @@
      - .. _atlas_event_federation_settings_updated:
 
        Federation settings have been updated
-     - no
-
-   * - ``FIXED_AGENT_VERSION_UPDATED``
-     - .. _atlas_event_fixed_agent_version_updated:
-
-       Fixed agent version was updated
-     - no
-
-   * - ``FIXED_VERSION_UPDATED``
-     - .. _atlas_event_fixed_version_updated:
-
-       Fixed version for cluster was updated
      - no
 
    * - ``FLEX_UPGRADE_STARTED``
@@ -3332,12 +3224,6 @@
        Independent Shard AutoScaling is now available for a cluster
      - no
 
-   * - ``INDEPENDENT_SHARD_SCALING_AVAILABLE``
-     - .. _atlas_event_independent_shard_scaling_available:
-
-       Independent Shard Scaling is now available for the project
-     - no
-
    * - ``INDEPENDENT_SHARD_SCALING_CLUSTER_MIGRATED``
      - .. _atlas_event_independent_shard_scaling_cluster_migrated:
 
@@ -3917,13 +3803,13 @@
    * - ``MONGOTUNE_ALERT``
      - .. _atlas_event_mongotune_alert:
 
-       Intelligent Workload Management
+       Intelligent Workload Management has taken action on your cluster
      - yes
 
    * - ``MONGOTUNE_INFO``
      - .. _atlas_event_mongotune_info:
 
-       Intelligent Workload Management
+       Intelligent Workload Management informational event
      - no
 
    * - ``MONGOTUNE_WRITE_BLOCK_POLICY_ELIGIBLE``
@@ -4092,6 +3978,12 @@
      - .. _atlas_event_node_rolling_resync_scheduled:
 
        Node rolling resync scheduled
+     - no
+
+   * - ``NO_ACTIVE_LEGACY_TLS_CONNECTIONS``
+     - .. _atlas_event_no_active_legacy_tls_connections:
+
+       No clusters with minimum TLS version set to TLS 1.0 or TLS 1.1
      - no
 
    * - ``NO_PRIMARY``
@@ -4610,12 +4502,6 @@
        Organization Federation settings were updated
      - no
 
-   * - ``ORG_SFDC_ACCOUNT_ID_CHANGED``
-     - .. _atlas_event_org_sfdc_account_id_changed:
-
-       The SalesForce account ID was changed
-     - yes
-
    * - ``ORG_SUSPENDED``
      - .. _atlas_event_org_suspended:
 
@@ -4856,12 +4742,6 @@
        Plan was manually abandoned
      - no
 
-   * - ``PLAN_APPROVED``
-     - .. _atlas_event_plan_approved:
-
-       Plan was approved for execution
-     - no
-
    * - ``PLAN_ASAP_REQUESTED``
      - .. _atlas_event_plan_asap_requested:
 
@@ -5004,12 +4884,6 @@
      - .. _atlas_event_project_live_import_overrides_updated:
 
        Project-level data migration overrides updated
-     - no
-
-   * - ``PROJECT_OPERATIONAL_LIMIT_UPDATED``
-     - .. _atlas_event_project_operational_limit_updated:
-
-       Project operational limit updated
      - no
 
    * - ``PROJECT_SCHEDULED_MAINTENANCE``
@@ -5508,12 +5382,6 @@
      - .. _atlas_event_serverless_horizontal_scaling_initiated:
 
        Serverless horizontal scale initiated
-     - no
-
-   * - ``SERVERLESS_INSTANCE_BLOCKED``
-     - .. _atlas_event_serverless_instance_blocked:
-
-       Admin placed a block request on a serverless instance.
      - no
 
    * - ``SERVERLESS_INSTANCE_CREATED``
@@ -6068,12 +5936,6 @@
        Team updated
      - no
 
-   * - ``TENANT_CLUSTER_UPGRADE_FROM_MTM``
-     - .. _atlas_event_tenant_cluster_upgrade_from_mtm:
-
-       Tenant cluster upgrade from MTM
-     - no
-
    * - ``TENANT_ENDPOINT_AVAILABLE``
      - .. _atlas_event_tenant_endpoint_available:
 
@@ -6306,12 +6168,6 @@
      - .. _atlas_event_unlinked_org:
 
        An organization has been unlinked from this paying organization
-     - no
-
-   * - ``UPDATE_BUMPER_FILES``
-     - .. _atlas_event_update_bumper_files:
-
-       Initiated an update to the bumper files of an instance in the cluster
      - no
 
    * - ``URL_CONFIRMATION``
