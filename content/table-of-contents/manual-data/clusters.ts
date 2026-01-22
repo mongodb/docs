@@ -43,7 +43,7 @@ const tocData: TocItem[] = [
       {
         label: 'SQL Interface',
         contentSite: 'cloud-docs',
-        url: '/docs/atlas/data-federation/query/connect-with-sql-overview/',
+        url: 'https://www.mongodb.com/docs/atlas/data-federation/query/connect-with-sql-overview/',
       },
       {
         label: 'Command Line Tools',
