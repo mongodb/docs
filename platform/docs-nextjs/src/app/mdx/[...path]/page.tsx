@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { loadMDX } from '@/mdx-utils/load-mdx';
+import { Providers } from './Providers';
 
 // ISR (Incremental Static Regeneration) behavior
 export const revalidate = 24 * 60 * 60; // 1 day in seconds
@@ -19,9 +20,9 @@ export default async function MDXPage({ params: { path } }: PageProps) {
   }
 
   return (
-    <div className="mdx-container" style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-      {result.content}
-    </div>
+    <Providers>
+      <div>{result.content}</div>
+    </Providers>
   );
 }
 

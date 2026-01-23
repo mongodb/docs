@@ -2,6 +2,9 @@ import type { MDXComponents } from 'mdx/types';
 import { Image } from '@/mdx-components/Image';
 import { Include } from '@/mdx-components/Include';
 import { Reference } from '@/mdx-components/Reference';
+import Admonition from '@/components/admonition';
+import Heading from '@/components/heading';
+import Section from '@/components/section';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -12,7 +15,21 @@ export const components = (injectedProps?: InjectedProps) =>
     Include: (props) => <Include {...props} {...injectedProps} />,
     Reference: (props) => <Reference {...props} {...injectedProps} />,
     // dummy mappings for everything else
-    Admonition: ({ children }) => <span>{children}</span>,
+    Tip: ({ children, ...props }) => (
+      <Admonition name="tip" {...props}>
+        {children}
+      </Admonition>
+    ),
+    Note: ({ children, ...props }) => (
+      <Admonition name="note" {...props}>
+        {children}
+      </Admonition>
+    ),
+    Important: ({ children, ...props }) => (
+      <Admonition name="important" {...props}>
+        {children}
+      </Admonition>
+    ),
     Banner: ({ children }) => <span>{children}</span>,
     Blockquote: ({ children }) => <span>{children}</span>,
     Button: ({ children }) => <span>{children}</span>,
@@ -23,7 +40,6 @@ export const components = (injectedProps?: InjectedProps) =>
     Code: ({ children }) => <span>{children}</span>,
     Contents: ({ children }) => <span>{children}</span>,
     Facet: ({ children }) => <span>{children}</span>,
-    Tip: ({ children }) => <span>{children}</span>,
     Collapsible: ({ children }) => <span>{children}</span>,
     CommunityDriver: ({ children }) => <span>{children}</span>,
     ComposableTutorial: ({ children }) => <span>{children}</span>,
@@ -46,11 +62,10 @@ export const components = (injectedProps?: InjectedProps) =>
     Glossary: ({ children }) => <span>{children}</span>,
     GuideNext: ({ children }) => <span>{children}</span>,
     Guilabel: ({ children }) => <span>{children}</span>,
-    Heading: ({ children }) => <span>{children}</span>,
+    Heading: ({ children, ...props }) => <Heading {...props}>{children}</Heading>,
     HList: ({ children }) => <span>{children}</span>,
     Introduction: ({ children }) => <span>{children}</span>,
     Input: ({ children }) => <span>{children}</span>,
-    Important: ({ children }) => <span>{children}</span>,
     IoCodeBlock: ({ children }) => <span>{children}</span>,
     Kicker: ({ children }) => <span>{children}</span>,
     Line: ({ children }) => <span>{children}</span>,
@@ -62,7 +77,6 @@ export const components = (injectedProps?: InjectedProps) =>
     LiteralBlock: ({ children }) => <span>{children}</span>,
     LiteralInclude: ({ children }) => <span>{children}</span>,
     MethodSelector: ({ children }) => <span>{children}</span>,
-    Note: ({ children }) => <span>{children}</span>,
     Only: ({ children }) => <span>{children}</span>,
     Output: ({ children }) => <span>{children}</span>,
     OpenAPIChangelog: ({ children }) => <span>{children}</span>,
@@ -73,7 +87,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Root: ({ children }) => <span>{children}</span>,
     Rubric: ({ children }) => <span>{children}</span>,
     SearchResults: ({ children }) => <span>{children}</span>,
-    Section: ({ children }) => <span>{children}</span>,
+    Section: ({ children }) => <Section>{children}</Section>,
     See: ({ children }) => <span>{children}</span>,
     SeeAlso: ({ children }) => <span>{children}</span>,
     SharedInclude: ({ children }) => <span>{children}</span>,

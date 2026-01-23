@@ -173,32 +173,42 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
     case 'section': {
       const titleNode = (node.children ?? []).find((c) => c.type === 'title' || c.type === 'heading');
       const rest = (node.children ?? []).filter((c) => c !== titleNode);
-      const mdast: MdastNode[] = [];
+      const sectionChildren: MdastNode[] = [];
 
       if (titleNode) {
-        mdast.push({
-          type: 'heading',
-          depth: Math.min(depth, MAX_HEADING_DEPTH),
+        const attributes = toJsxAttributes(node.options);
+        sectionChildren.push({
+          type: 'mdxJsxFlowElement',
+          name: 'Heading',
+          attributes: attributes,
           children: convertChildren({ nodes: titleNode.children, depth, ctx }),
         });
       }
 
       rest.forEach((child) => {
         const converted = convertNode({ node: child, depth: depth + 1, ctx });
-        if (Array.isArray(converted)) mdast.push(...converted);
-        else if (converted) mdast.push(converted);
+        if (Array.isArray(converted)) sectionChildren.push(...converted);
+        else if (converted) sectionChildren.push(converted);
       });
 
-      return mdast;
+      return {
+        type: 'mdxJsxFlowElement',
+        name: 'Section',
+        attributes: [],
+        children: sectionChildren,
+      };
     }
 
     case 'title':
-    case 'heading':
+    case 'heading': {
+      const attributes = toJsxAttributes(node.options);
       return {
-        type: 'heading',
-        depth: node.depth ?? Math.min(depth, 6),
+        type: 'mdxJsxFlowElement',
+        name: 'Heading',
+        attributes: attributes,
         children: convertChildren({ nodes: node.children, depth, ctx }),
       };
+    }
 
     case 'directive': {
       const directiveName = String(node.name ?? '').toLowerCase();
@@ -497,11 +507,10 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
 
     case 'admonition': {
       const admonitionName = String(node.name ?? node.admonition_type ?? 'note');
-      const componentName = pascalCase(admonitionName);
       return {
         type: 'mdxJsxFlowElement',
-        name: componentName,
-        attributes: [],
+        name: 'Admonition',
+        attributes: [{ type: 'mdxJsxAttribute', name: 'name', value: admonitionName }],
         children: convertChildren({ nodes: node.children, depth, ctx }),
       };
     }

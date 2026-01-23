@@ -108,20 +108,19 @@ const admonitionStyles = css`
 `;
 
 export type AdmonitionProps = {
-  nodeChildren: AdmonitionNode['children'];
+  children?: React.ReactNode;
+  nodeChildren?: AdmonitionNode['children'];
   argument: AdmonitionNode['argument'];
   name: Exclude<AdmonitionName, 'see' | 'seealso'>;
 };
 
-const Admonition = ({ argument, nodeChildren, name, ...rest }: AdmonitionProps) => {
+const Admonition = ({ children, argument, nodeChildren, name, ...rest }: AdmonitionProps) => {
   const variant = admonitionMap[name as Exclude<AdmonitionName, 'see' | 'seealso'>] || Variant.Note;
   const title = getPlaintext(argument);
 
   return (
     <Callout className={cx([admonitionStyles, colorStyles(variant)])} title={title} variant={variant} baseFontSize={16}>
-      {nodeChildren.map((child, i) => (
-        <ComponentFactory {...rest} key={i} nodeData={child} />
-      ))}
+      {children ?? nodeChildren?.map((child, i) => <ComponentFactory {...rest} key={i} nodeData={child} />)}
     </Callout>
   );
 };

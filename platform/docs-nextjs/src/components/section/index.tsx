@@ -9,14 +9,16 @@ import ComponentFactory from '../component-factory';
 import { useHeadingContext } from '@/context/heading-context';
 
 export type SectionProps = {
-  nodeChildren: ASTNode[];
+  children?: React.ReactNode;
+  nodeChildren?: ASTNode[];
 };
 
-const Section = ({ nodeChildren, ...rest }: SectionProps) => {
+const Section = ({ children, nodeChildren = [], ...rest }: SectionProps) => {
   // Get depth from context (automatically incremented by parent sections)
   const { sectionDepth: currentDepth } = useHeadingContext();
 
   let headingText = '';
+  // TODO: make this work with children as well (support for MDX)
   const headingNode = findKeyValuePair(nodeChildren, 'type', 'heading') as HeadingNode | undefined;
 
   if (headingNode && isHeadingNode(headingNode)) {
@@ -27,9 +29,10 @@ const Section = ({ nodeChildren, ...rest }: SectionProps) => {
   return (
     <HeadingContextProvider heading={headingText} sectionDepth={currentDepth + 1}>
       <section>
-        {nodeChildren.map((child, index) => {
-          return <ComponentFactory {...rest} nodeData={child} key={index} />;
-        })}
+        {children ??
+          nodeChildren.map((child, index) => {
+            return <ComponentFactory {...rest} nodeData={child} key={index} />;
+          })}
       </section>
     </HeadingContextProvider>
   );

@@ -8,12 +8,12 @@ import Button from '@leafygreen-ui/button';
 import Icon from '@leafygreen-ui/icon';
 import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
-import ComponentFactory from '@/components/component-factory';
-import type { HeadingNode } from '@/types/ast';
 import { TabContext } from '@/context/tabs-context';
 import useScreenSize from '@/hooks/use-screen-size';
 import { usePageContext } from '@/context/page-context';
 import ConditionalWrapper from '../conditional-wrapper';
+import ComponentFactory from '@/components/component-factory';
+import type { HeadingNode } from '@/types/ast';
 import { useInstruqt } from '@/context/instruqt-context';
 import { disabledStyle } from '@/components/button/styles';
 import Permalink from '@/components/permalink';
@@ -81,10 +81,11 @@ function toHeadingTag(n: number): HeadingTag {
 }
 
 export type HeadingProps = {
-  nodeChildren: HeadingNode['children'];
+  children?: React.ReactNode;
+  nodeChildren?: HeadingNode['children'];
+  as?: number;
   id?: string;
   slug?: string;
-  as?: number;
   className?: string;
 };
 
@@ -192,9 +193,10 @@ const Heading = ({ nodeChildren, id = '', className, as, ...rest }: HeadingProps
               as={asHeading}
               weight="medium"
             >
-              {nodeChildren.map((element, index) => {
-                return <ComponentFactory nodeData={element} key={index} {...rest} />;
-              })}
+              {rest.children ??
+                nodeChildren?.map((element, index) => {
+                  return <ComponentFactory nodeData={element} key={index} {...rest} />;
+                })}
               <Permalink id={id} description="heading" />
             </HeadingTag>
           </ConditionalWrapper>
