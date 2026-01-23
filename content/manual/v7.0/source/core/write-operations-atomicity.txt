@@ -4,6 +4,10 @@
 Atomicity and Transactions
 ==========================
 
+.. meta::
+   :description: Understand atomicity in MongoDB write operations. Manage
+      concurrent updates with transactions and unique indexes.
+
 .. default-domain:: mongodb
 
 .. contents:: On this page
@@ -16,17 +20,16 @@ Atomicity and Transactions
    :name: genre
    :values: reference
 
-In MongoDB, a write operation is :term:`atomic <atomic operation>` on
-the level of a single document, even if the operation modifies multiple
-values. When multiple update commands happen in parallel, each
-individual command ensures that the query condition still matches.
+In MongoDB, write operations are :term:`atomic <atomic operation>` on
+the single-document level, even if modifying multiple values. For
+parallel updates, each command ensures the query condition still
+matches.
 
-To guarantee that concurrent update commands do not conflict with each
-other, you can specify the expected current value of a field in the
-update filter.
+To prevent conflicts during concurrent updates, include the expected
+current value in the update filter.
 
-Example
-~~~~~~~
+Use Cases
+---------
 
 Consider a collection with this document:
 
@@ -54,16 +57,13 @@ These update operations occur concurrently:
       }
    )
 
-One update operation sets the document's ``score`` field to either
-``90`` or ``100``. After this update completes, the second update
-operation no longer matches the query predicate ``{ score: 80 }``, and
-is not performed.
+One update sets ``score`` to ``90`` or ``100``. The second update then
+fails to match ``{ score: 80 }`` and does not run.
 
 .. warning::
 
-   In the case of concurrent update operations, specifying a filter on a
-   field that is not being updated can lead to unexpected results. For
-   example, consider if these update operations occur concurrently:
+   Filtering on a field you do not update can cause unexpected results
+   during concurrent updates. Consider these operations:
 
    .. code-block:: javascript
       :copyable: false
@@ -84,18 +84,14 @@ is not performed.
          }
       )
 
-   After one update operation completes, the remaining operation still
-   matches the query predicate ``{ _id: 1 }``. As a result, both update
-   operations occur and the stored ``score`` value reflects the second
-   update operation. This is problematic because the client that issued the
-   first update does not receive any indication that the update was
-   overwritten and the ``score`` value is different than expected.
+   Both updates match ``{ _id: 1 }``, so both run. The second update
+   overwrites the first. The first client receives no warning that its
+   update was lost.
 
-To prevent conflicting write operations when your update filter is on a
-different field than the one being updated, use the :update:`$inc`
-operator.
+To avoid conflicts when filtering on non-updated fields, use
+:update:`$inc`.
 
-For example, consider if these update operations occur concurrently:
+For example, consider the following concurrent update operations:
 
 .. code-block:: javascript
 
@@ -115,22 +111,22 @@ For example, consider if these update operations occur concurrently:
       }
    )
 
-After one update operation completes, the remaining operation still
-matches the query predicate ``{ _id: 1 }``. However, because the
-operations modify the current value of ``score``, they don't overwrite
-each other. Both updates are reflected and the resulting ``score`` is
+Both updates match ``{ _id: 1 }``. Because they increment rather than
+set the value, they do not overwrite each other. The final ``score`` is
 ``110``.
 
 .. tip:: Store Unique Values
 
-   To ensure that a field only has unique values, you can create a
-   :ref:`unique index <index-type-unique>`. Unique indexes prevent inserts
-   and updates from creating duplicate data. You can create a unique index
-   on multiple fields to ensure the combination of field values is unique.
-   For examples, see :ref:`index-unique-create`.
+   To enforce uniqueness, create a :ref:`unique index
+   <index-type-unique>`. This prevents duplicate data in inserts and
+   updates. You can also create unique indexes on multiple fields. See
+   :ref:`index-unique-create`.
 
-Multi-Document Transactions
----------------------------
+Details
+-------
+
+This section describes additional details for multi-document
+transactions.
 
 .. include:: /includes/extracts/concurrent-operations-multi-document-writes.rst
 

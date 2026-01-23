@@ -18,7 +18,9 @@ Retryable Writes
    :class: singlecol
 
 Retryable writes let drivers retry specific write operations once after
-network errors or if they cannot find a healthy :term:`primary`.
+network errors or if they cannot find a healthy :term:`primary` in the
+:ref:`replica set <replication>` or :ref:`sharded cluster
+<sharding-introduction>`.
 
 Compatibility
 -------------
@@ -57,7 +59,8 @@ Retryable Writes and Multi-Document Transactions
 retryable. Drivers retry these operations once on error, even if
 :urioption:`retryWrites` is ``false``.
 
-Writes inside a transaction are not individually retryable.
+Writes inside a transaction are not individually retryable, regardless
+of value of :urioption:`retryWrites`.
 
 For more information on transactions, see :doc:`/core/transactions`.
 
@@ -80,8 +83,9 @@ MongoDB Drivers
 Retryable Write Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MongoDB retries these operations if they have acknowledged write
-concern:
+MongoDB retries the following operations if they have acknowledged write
+concern (for example, :doc:`/reference/write-concern` cannot be
+:writeconcern:`{w: 0} <\<number\>>`):
 
 .. note::
 
@@ -120,8 +124,10 @@ concern:
        - :ref:`bulkwrite-write-operations-replaceOne`
        - :ref:`deleteOne <bulkwrite-write-operations-deleteOneMany>`
 
-     - Bulk writes consisting only of single-document operations.
-       Cannot include multi-document operations like ``updateMany``.
+     - Bulk write operations that only consist of the single-document
+       write operations. A retryable bulk operation can include any
+       combination of the specified write operations but cannot include
+       any multi-document write operations, such as ``updateMany``.
 
    * - :method:`Bulk <Bulk()>` operations for:
 
@@ -129,9 +135,11 @@ concern:
        - :method:`Bulk.find.replaceOne()`
        - :method:`Bulk.find.updateOne()`
 
-     - Bulk writes consisting only of single-document operations.
-       Cannot include multi-document operations (e.g. ``update`` with
-       ``multi: true``).
+     - Bulk write operations that only consist of the single-document
+       write operations. A retryable bulk operation can include any
+       combination of the specified write operations but cannot include
+       any multi-document write operations, such as ``update`` which
+       specifies ``true`` for the ``multi`` option.
 
 Persistent Network Errors
 ~~~~~~~~~~~~~~~~~~~~~~~~~
