@@ -1,0 +1,20 @@
+.. _cdc-mongodb-example:
+
+Configure MongoDB CDC Handlers
+------------------------------
+
+The following properties file configures a sink connector to replicate
+MongoDB change event documents:
+
+.. code-block:: properties
+   :emphasize-lines: 6
+
+   connector.class=com.mongodb.kafka.connect.MongoSinkConnector
+   connection.uri=<your connection uri>
+   database=<your database>
+   collection=<your collection>
+   topics=<topic containing mongodb change event documents>
+   change.data.capture.handler=com.mongodb.kafka.connect.sink.cdc.mongodb.ChangeStreamHandler
+
+To view the source code for the MongoDB CDC handler, see
+:github:`the {+connector+} source code <mongodb/mongo-kafka/tree/{+connector_version_github_tag+}/src/main/java/com/mongodb/kafka/connect/sink/cdc/mongodb>`.

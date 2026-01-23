@@ -1,0 +1,220 @@
+.. _source-configuration-change-stream:
+
+========================
+Change Stream Properties
+========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+.. _source-configuration-change-stream-description-start:
+
+Use the following configuration settings to specify aggregation pipelines
+for change streams and read preferences for change stream cursors when working
+with the {+source-connector+}.
+
+.. _source-configuration-change-stream-description-end:
+
+.. include:: /includes/source-config-link.rst
+
+.. _source-configuration-change-stream-list:
+
+Settings
+--------
+
+.. _source-configuration-change-stream-table-start:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Name
+     - Description
+
+   * - | **pipeline**
+     - | **Type:** string
+       |
+       | **Description:**
+       | An array of aggregation pipelines to run in your change stream.
+         You must configure this setting for the change stream
+         event document, not the ``fullDocument`` field.
+       | 
+       | For example: 
+
+       .. code-block:: none
+
+          [{"$match": { "$and": [{"operationType": "insert"}, {"fullDocument.eventId": 1404 }] } }]
+
+       | For more examples, see: 
+
+       - :ref:`<source-usage-example-custom-pipeline>`
+       - :ref:`<source-usage-example-multiple-sources>`
+    
+       | **Default**: ``"[]"``
+       | **Accepted Values**: Valid aggregation pipeline stage
+
+   * - | **change.stream.full.document**
+     - | **Type:** string
+       |
+       | **Description:**
+       | Determines what values your change stream returns on update
+         operations.
+       |
+       | The default setting returns the differences between the original
+         document and the updated document.
+       |
+       | The ``updateLookup`` setting returns the differences between the
+         original document and updated document as well as a copy of the
+         entire updated document at a *point in time* after the update.
+       |
+       | The ``whenAvailable`` setting returns the updated document,
+         if available.
+       |
+       | The ``required`` setting returns the updated document and
+         raises an error if it is not available.
+       |
+       | For more information on how this change stream option works, see
+         :manual:`Lookup Full Document for Update Operations 
+         </changeStreams/#lookup-full-document-for-update-operations>`
+         in the MongoDB manual.
+       |
+       | **Default**: ``""``
+       | **Accepted Values**: ``""``, ``"updateLookup"``, ``"whenAvailable"``, or ``"required"``
+       
+   * - | **change.stream.show.expanded.events**
+     - | **Type:** boolean
+       | 
+       | **Description:**
+       | Determines if change streams notifies for DDL events such as 
+       | :manual:`createIndexes </reference/change-events/createIndexes/>` and
+       | :manual:`dropIndexes </reference/change-events/dropIndexes/>`
+       | events. To learn more, see :manual:`showExpandedEvents </reference/change-events/#expanded-events>`. 
+       |
+       | This setting is **required** to show
+       | ``updateDescription.disambiguatedPaths`` in update events, which
+       | clarifies changes that involve ambiguous fields. To learn more,
+       | see :manual:`disambiguatedPaths </reference/change-events/update/#path-disambiguation>`.
+       | 
+       | **Default**: ``false``
+       | **Accepted Values**: ``true`` or ``false`` 
+
+   * - | **change.stream.full.document.before.change**
+     - | **Type:** string
+       |
+       | **Description:**
+       | Configures the document pre-image your change stream returns on update
+         operations. The pre-image is not available for source records
+         published while copying existing data, and the pre-image configuration
+         has no effect on copying.
+       |
+       | To learn how to configure a collection to enable
+         pre-images, see :manual:`Change Streams with Document Pre- and Post-Images 
+         </changeStreams/#change-streams-with-document-pre--and-post-images>` in the MongoDB manual. 
+       |
+       | The default setting suppresses the document pre-image.
+       |
+       | The ``whenAvailable`` setting returns the document pre-image if
+         it's available, before it was replaced, updated, or
+         deleted.
+       |
+       | The ``required`` setting returns the document pre-image and
+         raises an error if it is not available.
+       |
+       | **Default**: ``""``
+       | **Accepted Values**: ``""`` or ``"whenAvailable"`` or ``"required"``
+
+   * - | **publish.full.document.only**
+     - | **Type:** boolean
+       |
+       | **Description:**
+       | Whether to return only the ``fullDocument`` field from the
+         change stream event document produced by any update event. The
+         ``fullDocument`` field contains the most current version of the
+         updated document. To learn more about the ``fullDocument``
+         field, see the :manual:`update Event
+         </reference/change-events/update/>` in the Server manual.
+       |
+       | When set to ``true``, the connector overrides the
+         ``change.stream.full.document`` setting and sets it to
+         ``updateLookup`` so that the ``fullDocument`` field contains
+         updated documents.
+       |
+       | **Default**: ``false``
+       | **Accepted Values**: ``true`` or ``false``
+
+   * - | **publish.full.document.only.tombstone.on.delete**
+     - | **Type:** boolean
+       |
+       | **Description:**
+       | Whether to return tombstone events when documents are deleted.
+         Tombstone events contain the keys of deleted documents with
+         ``null`` values. This setting applies only when
+         ``publish.full.document.only`` is ``true``.
+       |
+       | **Default**: ``false``
+       | **Accepted Values**: ``true`` or ``false``
+
+   * - | **change.stream.document.key.as.key**
+     - | **Type:** boolean
+       |
+       | **Description:**
+       | Whether to use the document key for the source record key if
+         the document key is present.
+       |
+       | When set to ``true``, the connector adds keys of the deleted
+         documents to the tombstone events. When set to ``false``,
+         the connector uses the resume token as the source key for
+         the tombstone events.
+       |
+       | **Default**: ``true``
+       | **Accepted Values**: ``true`` or ``false``
+
+   * - | **collation**
+     - | **Type:** string
+       |
+       | **Description:**
+       | A JSON :manual:`collation document </reference/collation/#collation-document>`
+         that specifies language-specific ordering rules that MongoDB
+         applies to the documents returned by the change stream.
+       |
+       | **Default**: ``""``
+       | **Accepted Values**: A valid collation JSON document
+
+   * - | **batch.size**
+     - | **Type:** int
+       |
+       | **Description:**
+       | The change stream cursor batch size.
+       |
+       | **Default**: ``0``
+       | **Accepted Values**: An integer
+
+   * - | **poll.await.time.ms**
+     - | **Type:** long
+       |
+       | **Description:**
+       | The maximum amount of time in milliseconds that the server waits for new
+         data changes to report to the change stream cursor before returning an
+         empty batch.
+       |
+       | **Default**: ``5000``
+       | **Accepted Values**: An integer
+
+   * - | **poll.max.batch.size**
+     - | **Type:** int
+       |
+       | **Description:**
+       | Maximum number of documents to read in a single batch when polling
+         a change stream cursor for new data. You can use this setting to
+         limit the amount of data buffered internally in the connector.
+       |
+       | **Default**: ``1000``
+       | **Accepted Values**: An integer
+
+.. _source-configuration-change-stream-table-end:

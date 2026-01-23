@@ -1,0 +1,197 @@
+.. _kafka-source-json-formatters:
+
+===============
+JSON Formatters
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+Overview
+--------
+
+In this guide, you can learn how to specify built-in JSON formatter
+classes to use in a {+source-connector+}.
+
+JSON Formatters
+---------------
+
+**JSON formatters** specify how JSON data appears. They provide instructions
+for how the connector represents different types when it outputs data.
+
+Built-In Formatters
+-------------------
+
+The following table describes the formatter classes available in the
+source connector:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 60 40
+
+   * - Class
+     - Description
+
+   * - ``com.mongodb.kafka.connect.source.json.formatter.DefaultJson``
+     - The legacy strict JSON formatter.
+
+   * - ``com.mongodb.kafka.connect.source.json.formatter.ExtendedJson``
+     - The fully type-safe extended JSON formatter. This formatter
+       emphasizes type preservation and represents most values with
+       their BSON type.
+
+   * - ``com.mongodb.kafka.connect.source.json.formatter.SimplifiedJson``
+     - The simplified JSON formatter. This formatter represents
+       ``ObjectId``, ``Decimal``, ``Date``, and ``Binary`` values as
+       strings.
+
+Examples
+--------
+
+The following table describes the fields of the sample document that the
+examples in this guide use to demonstrate each output format. The
+columns describe the field name, value, and type for each field or
+nested field.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 55 30
+
+   * - Name
+     - Value
+     - Type
+
+   * - ``_id``
+     - .. code-block:: none
+          :copyable: false
+          
+          "5f15aab12435743f9bd126a4"
+
+     - ``ObjectID`` (``$oid``)
+
+   * - ``w``
+     - .. code-block:: none
+          :copyable: false
+      
+          [ 12345.6789, 23.53 ]
+
+     - | Array of:
+       | - ``Decimal128`` (``$numberDecimal``)
+       | - ``Double`` (``$numberDouble``)
+
+   * - ``x``
+     - .. code-block:: none
+          :copyable: false
+      
+          "SSBsb3ZlIGZvcm1hdHRpbmch" of type "00"
+
+     - ``Binary`` (``$binary``)
+
+   * - ``y``
+     - .. code-block:: none
+          :copyable: false
+         
+          "2023-05-11T08:27:07.000Z"
+
+     - ``Date`` (``$date``)
+
+   * - ``z``
+     - .. code-block:: none
+          :copyable: false
+         
+          { a: false, b: 87, c: "hello world" }
+          
+     - | Document with fields:
+       | - ``a``: ``Boolean``
+       | - ``b``: ``Int32`` (``$numberInt``)
+       | - ``c``: ``String``
+
+Default JSON Formatter
+~~~~~~~~~~~~~~~~~~~~~~
+
+In the configuration properties for your source connector, set the
+following property to specify the default JSON formatter:
+
+.. code-block:: json
+
+   "output.json.formatter": "com.mongodb.kafka.connect.source.json.formatter.DefaultJson"
+
+When you output the sample document contents from your Kafka topic, the
+output shows the following type representations:
+
+- ``ObjectId`` value with its BSON type
+- ``Decimal`` value with its BSON type
+- ``Binary`` value with its buffer string and binary type
+- ``Date`` value as milliseconds since the UNIX epoch
+
+.. code-block:: json
+   
+   { 
+      "_id": {"$oid": "5f15aab12435743f9bd126a4"},
+      "w": [{"$numberDecimal": "12345.6789"}, 23.53],
+      "x": {"$binary": "SSBsb3ZlIGZvcm1hdHRpbmch", "$type": "00"},
+      "y": {"$date": 1683793627000},
+      "z": {"a": false, "b": 87, "c": "hello world"}
+   }
+
+Extended JSON Formatter
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In the configuration properties for your source connector, set the
+following property to specify the extended JSON formatter:
+
+.. code-block:: json
+
+   "output.json.formatter": "com.mongodb.kafka.connect.source.json.formatter.ExtendedJson"
+
+When you output the sample document contents from your Kafka topic, the
+output shows the following type representations:
+
+- ``ObjectId`` value with its BSON type
+- ``Decimal`` value with its BSON type
+- ``Double`` value with its BSON type
+- ``Binary`` value with its buffer string and binary type
+- ``Date`` value as milliseconds since the UNIX epoch
+- ``Int32`` value with its BSON type
+
+.. code-block:: json
+   
+   { 
+      "_id": {"$oid": "5f15aab12435743f9bd126a4"},
+      "w": [{"$numberDecimal": "12345.6789"}, {"$numberDouble": "23.53"}],
+      "x": {"$binary": "SSBsb3ZlIGZvcm1hdHRpbmch", "$type": "00"},
+      "y": {"$date": 1683793627000},
+      "z": {"a": false, "b": {"$numberInt": "87"}, "c": "hello world"}
+   }
+
+Simplified JSON Formatter
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the configuration properties for your source connector, set the
+following property to specify the simplified JSON formatter:
+
+.. code-block:: json
+
+   "output.json.formatter": "com.mongodb.kafka.connect.source.json.formatter.SimplifiedJson"
+
+When you output the sample document contents from your Kafka topic, the
+output shows the following type representations:
+
+- ``ObjectId`` value as its hexadecimal string
+- ``Decimal`` value as a string
+- ``Binary`` value as its buffer string
+- ``Date`` value as a string
+
+.. code-block:: json
+   
+   { 
+      "_id": "5f15aab12435743f9bd126a4",
+      "w": ["12345.6789", 23.53],
+      "x": "SSBsb3ZlIGZvcm1hdHRpbmch",
+      "y": "2023-05-11T08:27:07Z",
+      "z": {"a": false, "b": 87, "c": "hello world"}
+   }

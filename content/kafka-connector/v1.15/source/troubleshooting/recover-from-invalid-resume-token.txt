@@ -1,0 +1,205 @@
+.. _kafka-troubleshoot-invalid-resume-token:
+
+====================
+Invalid Resume Token
+====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+Overview
+--------
+
+Learn how to recover from an invalid resume token
+in a {+source-connector+}. 
+
+Stack Trace
+~~~~~~~~~~~
+
+The following stack trace indicates that the source connector has an invalid resume token:
+
+.. code-block:: text
+
+   ...
+   org.apache.kafka.connect.errors.ConnectException: ResumeToken not found.
+   Cannot create a change stream cursor
+   ...
+   Command failed with error 286 (ChangeStreamHistoryLost): 'PlanExecutor
+   error during aggregation :: caused by :: Resume of change stream was not
+   possible, as the resume point may no longer be in the oplog
+   ... 
+
+
+.. _invalid-resume-token-cause:
+
+Cause
+-----
+
+When the ID of your source connector's resume token does not correspond to any
+entry in your MongoDB deployment's :ref:`oplog <replica-set-oplog>`, 
+your connector has no way to determine where to begin to process your
+MongoDB change stream. Click the following tabs to see scenarios 
+in which you can experience this issue:
+
+.. tabs::
+
+   .. tab:: Paused Connector
+      :tabid: paused-connector
+
+      In this scenario, you pause your source connector and you fill your MongoDB
+      deployment's oplog:
+      
+      #. You start a Kafka deployment with a {+source-connector+}.
+      #. You produce a change event in your source MongoDB namespace, and your 
+         connector stores a resume token corresponding to this event.
+      #. You pause your source connector.
+      #. While your connector pauses, you fill your MongoDB oplog such that MongoDB
+         deletes the oplog entry corresponding to your resume token.
+      #. You restart your source connector and it is unable to resume
+         processing as its resume token does not exist in your MongoDB oplog.
+
+
+   .. tab:: Infrequently Updated Namespace
+      :tabid: infrequently-updated-namespace
+
+      In this scenario, your source connector listens for changes on an infrequently
+      updated MongoDB namespace and the
+      :ref:`heartbeat feature <invalid-resume-token-prevention>` is not enabled:
+      
+      #. You start a Kafka deployment with a {+source-connector+}.
+      #. You produce a change event in your source MongoDB namespace, and your
+         connector stores a resume token corresponding to this event.
+      #. Your source MongoDB namespace is not updated in the time it takes for your MongoDB
+         deployment to rotate the change event corresponding to your resume token out of its
+         oplog.
+      #. You produce a change event in your source MongoDB namespace and your 
+         source connector is unable to resume processing as its resume token does 
+         not exist in your MongoDB oplog.
+
+For more information on the oplog, see the 
+:ref:`MongoDB Manual <replica-set-oplog>`.
+
+For more information on change streams, see the
+:ref:`<kafka-source-change-streams>` guide.
+
+Solutions
+---------
+
+You can recover from an invalid resume token using one of the following
+strategies:
+
+- :ref:`<temporarily-tolerate-errors>`
+- :ref:`<troubleshoot-reset-stored-offsets>`
+
+.. _temporarily-tolerate-errors:
+
+Temporarily Tolerate Errors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure your source connector to tolerate errors 
+while you produce a change stream event that updates the 
+connector's resume token. This recovery strategy is the 
+simplest, but there is a risk that your connector briefly 
+ignores errors unrelated to the invalid resume token. If you 
+aren't comfortable briefly tolerating errors
+in your deployment, you can 
+:ref:`delete stored offsets <troubleshoot-delete-stored-offsets>` instead.
+
+To configure your source connector to temporarily tolerate errors:
+
+#. Set the ``errors.tolerance`` option to tolerate all errors:
+
+   .. code-block:: java
+
+      errors.tolerance=all
+
+#. Insert, update, or delete a document in the collection referenced by your source connector to
+   produce a change stream event that updates your connector's resume token.
+
+#. Once you produce a change stream event, set the ``errors.tolerance``
+   option to no longer tolerate errors:
+   
+   .. code-block:: java
+   
+      errors.tolerance=none
+
+For more information on the ``errors.tolerance`` option, see the
+:ref:`<source-configuration-error-handling>` page.
+
+.. _troubleshoot-reset-stored-offsets:
+.. _troubleshoot-delete-stored-offsets:
+
+Reset Stored Offsets
+~~~~~~~~~~~~~~~~~~~~~
+
+You can reset your Kafka Connect offset data, which contains your resume token,
+to allow your connector to resume processing your change stream.
+
+To reset your offset data, change the value of the
+``offset.partition.name`` configuration property to a partition name that does
+not exist on your Kafka deployment. You can set your ``offset.partition.name``
+property like this:
+
+.. code-block:: properties
+
+   offset.partition.name=<a string>
+
+.. tip:: Naming your Offset Partitions
+
+   Consider using the following pattern to name your offset partitions:
+
+   .. code-block:: properties
+
+      offset.partition.name=<source connector name>.<monotonically increasing number>
+
+   This pattern provides the following benefits:
+
+   - Records the number of times you reset your connector
+   - Documents to which connector an offset partition belongs
+
+   For example, if you named your source connector ``"source-values"`` and you are
+   setting the ``offset.partition.name`` property for the first time, 
+   configure your connector as follows:
+
+   .. code-block:: properties
+
+      offset.partition.name=source-values.1
+
+   The next time you reset your connector's offset data, configure
+   your connector as follows:
+
+   .. code-block:: properties
+
+      offset.partition.name=source-values.2
+
+To learn more about the ``offset.partition.name`` configuration property, see
+the :ref:`<source-configuration-error-handling>` page.
+
+To learn about naming your connector, see the official 
+`{+kafka+} <https://kafka.apache.org/documentation/#connect_configuring>`__
+documentation.
+
+.. _invalid-resume-token-prevention:
+
+Prevention
+----------
+
+To prevent invalid resume token errors caused by an
+:ref:`infrequently updated namespace <invalid-resume-token-cause>`, enable
+**heartbeats**. Heartbeats is a feature of your source connector that causes 
+your connector to update its resume token at regular intervals as well as when
+the contents of your source MongoDB namespace changes.
+
+Specify the following option in your source connector configuration to enable
+heartbeats:
+
+.. code-block:: properties
+
+   heartbeat.interval.ms=<a positive integer>
+
+To learn more about heartbeats, see the 
+:ref:`<source-configuration-error-handling>` guide.

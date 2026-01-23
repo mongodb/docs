@@ -1,0 +1,212 @@
+.. _kafka-source-apply-schemas:
+
+=============
+Apply Schemas
+=============
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :keywords: structure, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+Overview
+--------
+
+In this guide, you can learn how to apply schemas to incoming
+documents in a {+source-connector+}.
+
+There are two types of schema in Kafka Connect, **key schema** and
+**value schema**. Kafka Connect sends messages to Apache Kafka containing both
+your value and a key. A key schema enforces a structure for keys in messages
+sent to Apache Kafka. A value schema enforces a structure for values in messages
+sent to Apache Kafka.
+
+.. important:: Note on Terminology
+
+   This guide uses the Apache Kafka definition of the word "key", which differs
+   slightly from the BSON definition. In BSON, a "key" is a unique string identifier
+   for a field in a document.
+
+   In Apache Kafka, a "key" is a byte array sent in a message used to determine
+   what partition of a topic to write the message to. Kafka keys can be
+   duplicates of other keys or ``null``.
+
+Specifying schemas in the connector is optional, and you can specify any of the
+following combinations of schemas:
+
+- Only a value schema
+- Only a key schema
+- Both a value and key schema
+- No schemas
+
+.. tip:: Benefits of Schema
+
+   To see a discussion on the benefits of using schemas with Kafka Connect,
+   see `this article from Confluent <https://docs.confluent.io/platform/current/schema-registry/index.html#ak-serializers-and-deserializers-background>`__.
+
+If you want to send data through {+kafka+} with a specific data format, such as {+avro-long+}
+or JSON Schema, see the :ref:`<intro-converters>` guide.
+
+To learn more about keys and values in Apache Kafka, see the
+`official Apache Kafka introduction <http://kafka.apache.org/intro#intro_concepts_and_terms>`__.
+
+.. _kafka-source-apply-schemas-default-schema:
+
+Default Schemas
+---------------
+
+The connector provides two default schemas:
+
+- :ref:`A key schema for the _id field of MongoDB change event documents. <source-default-key-schema>`
+- :ref:`A value schema for MongoDB change event documents. <source-default-value-schema>`
+
+To learn more about change events, see our
+:doc:`guide on change streams </source-connector/fundamentals/change-streams>`.
+
+To learn more about default schemas, see the default schemas
+:github:`here in the MongoDB Kafka Connector source code <mongodb/mongo-kafka/blob/{+connector_version_github_tag+}/src/main/java/com/mongodb/kafka/connect/source/schema/AvroSchemaDefaults.java>`.
+
+.. _source-default-key-schema:
+
+Key Schema
+~~~~~~~~~~
+
+The connector provides a default key schema for the ``_id`` field of change
+event documents. You should use the default key schema unless you remove the
+``_id`` field from your change event document using either of the transformations
+:ref:`described in this guide here <source-schema-for-modified-document>`.
+
+If you specify either of these transformations and want to use a key
+schema for your incoming documents, you must specify a key schema
+:ref:`as described in the specify a schema section of this guide <source-specify-avro-schema>`.
+
+You can enable the default key schema with the following option:
+
+.. code-block:: properties
+
+   output.format.key=schema
+
+.. _source-default-value-schema:
+
+Value Schema
+~~~~~~~~~~~~
+
+The connector provides a default value schema for change event documents. You
+should use the default value schema unless you transform your change event
+documents
+:ref:`as described in this guide here <source-schema-for-modified-document>`.
+
+If you specify either of these transformations and want to use a value schema for your
+incoming documents, you must use one of the mechanisms described in the
+:ref:`schemas for transformed documents section of this guide <source-schema-for-modified-document>`.
+
+You can enable the default value schema with the following option:
+
+.. code-block:: properties
+
+   output.format.value=schema
+
+.. _source-schema-for-modified-document:
+
+Schemas For Transformed Documents
+---------------------------------
+
+There are two ways you can transform your change event documents in a
+source connector:
+
+- The ``publish.full.document.only=true`` option
+- An aggregation pipeline that modifies the structure of change event documents
+
+If you transform your MongoDB change event documents,
+you must do the following to apply schemas:
+
+- :ref:`Specify schemas <source-specify-avro-schema>`
+- :ref:`Have the connector infer a value schema <source-infer-a-schema>`
+
+To learn more about the preceding configuration options, see the
+:ref:`<source-configuration-change-stream>` page.
+
+.. _source-specify-avro-schema:
+
+Specify Schemas
+~~~~~~~~~~~~~~~
+
+You can specify schemas for incoming documents using Avro schema syntax. Click on
+the following tabs to see how to specify a schema for document values and keys:
+
+.. tabs::
+
+   .. tab:: Key
+      :tabid: key
+
+      .. code-block:: properties
+
+         output.format.key=schema
+         output.schema.key=<your avro schema>
+
+   .. tab:: Value
+      :tabid: value
+
+      .. code-block:: properties
+
+         output.format.value=schema
+         output.schema.value=<your avro schema>
+
+To view an example that demonstrates how to specify a schema, see the
+:ref:`<source-usage-example-schema>` usage example.
+
+To learn more about Avro Schema, see the
+:ref:`Data Formats <kafka-df-avro-schema>` guide.
+
+.. include:: /includes/schema-converter-important.rst
+
+.. _source-infer-a-schema:
+
+Infer a Schema
+~~~~~~~~~~~~~~
+
+You can have your source connector infer a schema for incoming documents. This
+option works well for development and for data sources that do not
+frequently change structure, but for most production deployments we recommend that you
+:ref:`specify a schema <source-specify-avro-schema>`.
+
+You can have the connector infer a schema by specifying the
+following options:
+
+.. code-block:: properties
+
+   output.format.value=schema
+   output.schema.infer.value=true
+
+The source connector can infer schemas for incoming documents that
+contain nested documents stored in arrays. Starting in Version 1.9 of the
+connector, schema inference will gather the appropriate data type
+for fields instead of defaulting to a ``string`` type assignment if there are
+differences between nested documents described by the following cases:
+
+- A field is present in one document but missing in another.
+- A field is present in one document but ``null`` in another.
+- A field is an array with elements of any type in one document but
+  has additional elements or elements of other data types in another.
+- A field is an array with elements of any type in one document but an
+  empty array in another.
+
+If field types conflict between nested documents, the connector
+pushes the conflict down to the schema for the field and defaults to a
+``string`` type assignment.
+
+.. note:: Cannot Infer Key Schema
+
+   The connector does not support key schema inference. If you want to use a key
+   schema and transform your MongoDB change event documents, you must specify a
+   key schema as described in
+   :ref:`the specify schemas section of this guide <source-specify-avro-schema>`.

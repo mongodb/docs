@@ -1,0 +1,800 @@
+.. _kafka-monitoring:
+
+==========
+Monitoring
+==========
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :keywords: logging, audit, metrics
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Learn how to observe the behavior of your {+source-connector+} or
+{+sink-connector+} through **monitoring**.
+Monitoring is the process of getting information about the
+activities a running program performs for use in an application
+or an application performance management library.
+
+To learn how monitoring works in the connector and how to use
+it, see the :ref:`<kafka-monitoring-information>` section.
+
+To view an example that shows how to monitor a running connector,
+see the :ref:`<kafka-monitoring-example>` section. 
+
+To view a list of all metrics produced by MongoDB source and sink
+connectors, see the :ref:`<kafka-monitoring-all-attributes>` section.
+
+.. _kafka-monitoring-information:
+.. _kafka-monitoring-use-cases:
+
+Use Cases
+---------
+
+This section describes use cases for monitoring MongoDB source and sink
+connectors, and how you can use the metrics your connector provides
+to satisfy those use cases.
+
+.. tip:: Computed Values
+
+   To learn what types of metrics the connector provides and when
+   to implement logic to compute a value, see
+   :ref:`<kafka-monitoring-types-of-metrics>`.
+
+Sink Connector
+~~~~~~~~~~~~~~
+
+The following table describes some use cases for monitoring the MongoDB
+sink connector and the metrics the sink connector provides
+to satisfy those use cases:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Use Case
+     - Metrics to Use
+
+   * - You want to know if a component of your pipeline is falling behind.
+     - Use the ``latest-kafka-time-difference-ms``
+       metric. This metric indicates the interval of time between
+       when a record arrived in a Kafka topic and when your connector
+       received that record. If the value of this metric is increasing,
+       it signals that there may be a problem with {+kafka+} or MongoDB. 
+
+   * - You want to know the total number of records your connector
+       wrote to MongoDB.
+     - Use the ``records`` metric.
+
+   * - You want to know the total number of write errors your connector
+       encountered when attempting to write to MongoDB.
+     - Use the ``batch-writes-failed`` metric.
+
+   * - You want to know if your MongoDB performance is getting slower
+       over time.
+     - Use the ``in-task-put-duration-ms`` metric to initially diagnose
+       a slowdown.
+
+       Use the following metrics to further diagnose any issues:
+     
+       - ``batch-writes-successful-duration-over-<number>-ms``
+       - ``batch-writes-failed-duration-over-<number>-ms``
+       - ``processing-phase-duration-over-<number>-ms``
+ 
+   * - You want to find the time {+kafka-connect+} and the MongoDB sink
+       connector spend writing records to MongoDB.
+     - Compare the values of the following metrics:
+     
+       - ``in-task-put-duration-ms``
+       - ``in-connect-framework-duration-ms``
+
+You can find descriptions of all MongoDB sink connector metrics in the
+:ref:`<kafka-monitoring-sink-attributes>` section.
+
+Source Connector
+~~~~~~~~~~~~~~~~
+
+The following table describes some use cases for monitoring the MongoDB
+source connector and the metrics the source connector provides
+to satisfy those use cases:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Use Case
+     - Metrics to Use
+
+   * - You want to know if a component of your pipeline is falling behind.
+     - Use the ``latest-mongodb-time-difference-secs``
+       metric. This metric indicates how old the most recent change
+       stream event your connector processed is. If this metric is increasing,
+       it signals that there may be a problem with {+kafka+} or MongoDB. 
+
+   * - You want to know the total number of change stream events your source connector
+       has processed. 
+     - Use the ``records`` metric.
+
+   * - You want to know the percentage of records your connector
+       received but failed to write to {+kafka+}.
+     - Perform the following calculation with the ``records``,
+       ``records-filtered``, and ``records-acknowledged`` metrics:
+
+       .. code-block:: text
+      
+          (records - (records-acknowledged + records-filtered)) / records
+
+   * - You want to know the average size of the documents your connector
+       has processed.
+     - Perform the following calculation with the ``mongodb-bytes-read`` and
+       ``records`` metrics:
+
+       .. code-block:: text
+
+          mongodb-bytes-read / records
+      
+       To learn how to calculate the average size of records over a span of
+       time, see :ref:`mongodb-bytes-read <kafka-monitoring-averge-record-size-span>`.
+
+   * - You want to find the time {+kafka-connect+} and the MongoDB
+       source connector spend writing records to {+kafka+}.
+     - Compare the values of the following metrics:
+     
+       - ``in-task-poll-duration-ms``
+       - ``in-connect-framework-duration-ms``
+
+   * - You want to know if your MongoDB performance is getting slower
+       over time.
+     - Use the ``in-task-poll-duration-ms`` metric to initially diagnose
+       a slowdown.
+     
+       Use the following metrics to further diagnose any issues:
+     
+       - ``initial-commands-successful-duration-over-<number>-ms``
+       - ``initial-commands-failed-duration-over-<number>-ms``
+       - ``getmore-commands-successful-duration-over-<number>-ms``
+       - ``getmore-commands-failed-duration-over-<number>-ms``
+
+You can find descriptions of all MongoDB source connector metrics in the
+:ref:`<kafka-monitoring-source-attributes>` section.
+
+Monitor the Connector
+---------------------
+
+The {+connector+} uses **{+jmx-long+} (JMX)** to enable monitoring.
+JMX is a technology included in the {+java-se+} that provides
+tools to monitor applications and devices. You can view the
+metrics produced by the connector with any JMX console, such
+as {+jconsole+}.
+
+The {+connector+} provides metrics for individual **tasks**.
+Tasks are classes instantiated by {+kafka-connect+} that copy
+data to and from datastores and {+kafka+}. The names and
+responsibilities of the two types of tasks in {+kafka-connect+} are as
+follows:
+
+- A source task copies data from a data store to {+kafka+}.
+- A sink task copies data from {+kafka+} to a data store.
+
+A sink connector configures one or more sink tasks.
+A source connector configures one or more source tasks.
+
+To learn more about JMX, see the following resources from Oracle:
+
+- `Java Management Extensions Guide <https://docs.oracle.com/en/java/javase/17/jmx/introduction-jmx-technology.html>`__
+- `Using {+jconsole+} <https://docs.oracle.com/en/java/javase/17/management/using-jconsole.html>`__
+
+To learn more about tasks and connectors in {+kafka-connect+}, see the following resources:
+
+- `Kafka Connect Concepts from Confluent <https://docs.confluent.io/platform/current/connect/concepts.html#tasks>`__
+- `{+kafka-connect+} API documentation for the Task interface <{+kafka_api_docs_base+}javadoc/index.html?org/apache/kafka/connect/connector/Task.html>`__
+- `{+kafka-connect+} API documentation for the Connector abstract class <{+kafka_api_docs_base+}javadoc/org/apache/kafka/connect/connector/Connector.html>`__
+
+Enable Monitoring
+~~~~~~~~~~~~~~~~~
+
+The {+connector+} uses {+kafka-connect+}'s metrics infrastructure to
+serve metrics. To read the metrics produced by your connector,
+enable JMX in your {+kafka-connect+} deployment.
+
+To learn how to enable JMX for a {+kafka-connect+} instance
+running on your host machine, see the
+`Official Kafka Documentation <https://kafka.apache.org/documentation/#monitoring>`__.
+
+To learn how to enable JMX for a containerized {+kafka-connect+}
+deployment, see
+`Kafka Monitoring and Metrics Using JMX with Docker <https://docs.confluent.io/platform/current/installation/docker/operations/monitoring.html>`__.
+
+.. _kafka-monitoring-types-of-metrics:
+
+Types of Metrics
+~~~~~~~~~~~~~~~~
+
+The connector provides metrics related to the following
+types of quantities:
+
+- The number of times an event has occurred in total for a connector task
+- The value related to the most recent occurrence of an event
+
+For some use cases, you must perform extra computations with the
+metrics the connector provides. For example, you can compute the
+following values from provided metrics:
+
+- The rate of change of a metric
+- The value of a metric over a span of time
+- The difference between one metric and another metric    
+
+To view some examples of computed metrics, see the
+:ref:`<kafka-monitoring-use-cases>` section.
+
+JMX Paths
+~~~~~~~~~
+
+The {+connector+} and {+kafka-connect+} both produce metrics for MongoDB connector
+tasks.
+
+Both sets of metrics provide information about how your tasks
+interact with {+kafka-connect+}, but only the {+connector+}
+metrics provide information about how your tasks interact with
+MongoDB.
+
+The {+connector+} produces metrics under the following JMX
+paths:
+
+- ``{+metrics-path+}.sink-task-metrics.sink-task-<monitonically increasing number>``
+- ``{+metrics-path+}.source-task-metrics.source-task-<monitonically increasing number>``
+- ``{+metrics-path+}.source-task-metrics.source-task-change-stream-<monitonically increasing number>``
+- ``{+metrics-path+}.source-task-metrics.source-task-copy-existing-<monitonically increasing number>``
+
+{+kafka-connect+} produces metrics under the following JMX paths:
+
+- ``kafka.connect.sink-task-metrics.<connector-name>``
+- ``kafka.connect.source-task-metrics.<connector-name>``
+- ``kafka.connect.connector-task-metrics.<connector-name>``
+
+To relate {+kafka-connect+} metrics to {+connector+} metrics, you must remember the
+order in which you added your connectors to {+kafka-connect+}.
+
+.. note:: Naming Conflicts
+
+   If the {+connector+} ever encounters a naming conflict when it attempts
+   to register an ``MBean`` on a JMX path, the {+connector+} adds a version suffix
+   to the ``MBean``.
+
+   For example, if the connector tries to register an ``MBean`` under the path 
+   ``{+metrics-path+}.sink-task-metrics.sink-task-0`` and is unable to do
+   so, it attempts to register the ``MBean`` under
+   ``{+metrics-path+}.sink-task-metrics.sink-task-0-v1``. 
+
+
+Example
+```````
+
+Assume you add a single MongoDB source connector
+named ``my-source-connector`` to your deployment.
+
+The MongoDB source connector writes metrics to the following
+JMX path:  
+
+- ``{+metrics-path+}.sink-task-metrics.sink-task-0``
+
+{+kafka-connect+} writes metrics for this task under the following
+path:
+
+- ``kafka.connect.sink-task-metrics.my-source-connector``
+
+.. _kafka-monitoring-example:
+
+Example - Monitor the Quick Start
+---------------------------------
+
+The sample environment provided in the Quick Start exposes metrics
+on your host machine at the URI ``localhost:{+jmx-port-mapping+}``.
+
+To view these metrics with {+jconsole+}, perform the following actions:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Download {+jconsole+}.
+
+      {+jconsole+} is part of the {+java-se+}. To download {+jconsole+}, download the
+      `Java SE Development Kit <https://www.oracle.com/java/technologies/downloads/>`__
+      from Oracle.
+
+   .. step:: Start the Quick Start pipeline and add connectors.
+
+      Follow the Quick Start until the :ref:`<kafka-quick-start-send-a-document>`
+      step.
+
+   .. step:: Start {+jconsole+}.
+
+      Run the following command from your command line to start {+jconsole+}:
+
+      .. code-block:: shell
+
+         {+jconsole_command+}
+
+   .. step:: Connect to the {+kafka-connect+} JMX server.
+
+      a. Enter your JMX Server URI ``localhost:{+jmx-port-mapping+}``
+         into the
+         :guilabel:`Remote Process` text input box in the {+jconsole+}
+         interface.
+
+      #. Click :guilabel:`Connect`.
+
+      #. In the dialog box, click :guilabel:`Insecure Connection`.
+
+   .. step:: Explore your connectors' metrics.
+
+      a. Navigate to the :guilabel:`MBeans` tab in {+jconsole+}.
+
+      #. Inspect connector metrics. Notice that the 
+         ``{+metrics-path+}.sink-task-metrics.sink-task-0.records``
+         attribute has a value of ``0``. This
+         value indicates that your sink task has not received any
+         records from {+kafka+}.
+
+      #. Continue the Quick Start until, but not through, the
+         :ref:`<kafka-quickstart-remove-the-sandbox>` step.
+
+      #. Navigate back to the :guilabel:`MBeans` tab in {+jconsole+}.
+         The ``{+metrics-path+}.sink-task-metrics.sink-task-0.records``
+         attribute should now have a value of ``1``.
+
+   .. step:: Stop and remove the Quick Start environment.
+
+      To stop and remove the Quick Start environment, follow the
+      :ref:`<kafka-quickstart-remove-the-sandbox>` step of the Quick Start.
+ 
+.. _kafka-monitoring-all-attributes:
+
+Available Metrics
+-----------------
+
+Use the attributes in the tables in this section to monitor the behavior of your source and
+sink connectors through {+jmx-long+} (JMX).
+
+.. tip:: JMX Attributes
+
+   {+jmx-hover+} represents an individual metric as an attribute of an ``MBean``.
+   To learn more about attributes and ``MBeans``, see the
+   `Standard MBeans Tutorial <https://docs.oracle.com/javase/tutorial/jmx/mbeans/standard.html>`__
+   from Oracle.
+
+.. note:: Poll and Put Methods
+
+   A MongoDB source connector task has a ``poll()`` method to retrieve
+   documents from MongoDB and send them to {+kafka+}. A MongoDB sink
+   connector task has a ``put()`` method to retrieve documents from {+kafka+}
+   and send them to MongoDB.
+
+   To learn more about ``poll()`` and ``put()`` methods, see the following
+   resources:
+
+   - `{+kafka-connect+} API documentation for SourceTask interface <{+kafka_api_docs_base+}javadoc/org/apache/kafka/connect/source/SourceTask.html>`__
+   - `{+kafka-connect+} API documentation for SinkTask interface <{+kafka_api_docs_base+}javadoc/org/apache/kafka/connect/sink/SinkTask.html>`__
+
+.. _kafka-monitoring-sink-attributes:
+
+Sink Connector JMX Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Attribute Name
+     - Description
+
+   * - **records**
+     - The total number of Kafka records a MongoDB sink task received.
+
+   * - **records-successful**
+     - The total number of Kafka records a MongoDB sink task successfully
+       wrote to MongoDB.
+
+   * - **records-failed**
+     - The total number of Kafka records a MongoDB sink task failed to write
+       to MongoDB.
+
+   * - **latest-kafka-time-difference-ms**
+     - The number of milliseconds of the most recent time difference recorded
+       between a MongoDB sink task and Kafka. This value is calculated by
+       subtracting the current time of the connector's clock and the timestamp
+       of the last record the task received.
+
+   * - **in-task-put**
+     - The total number of times the {+kafka-connect+} framework executed the
+       ``put()`` method of the MongoDB sink task.
+
+   * - **in-task-put-duration-ms**
+     - The total number of milliseconds the {+kafka-connect+} framework spent
+       executing the ``put()`` method of a MongoDB sink task.
+
+   * - **in-task-put-duration-over-1-ms**
+     - The total number of MongoDB sink task ``put()`` method executions
+       with a duration that exceeded 1 millisecond.
+
+   * - **in-task-put-duration-over-10-ms**
+     - The total number of MongoDB sink task ``put()`` method executions
+       with a duration that exceeded 10 milliseconds.
+
+   * - **in-task-put-duration-over-100-ms**
+     - The total number of MongoDB sink task ``put()`` method executions
+       with a duration that exceeded 100 milliseconds.
+
+   * - **in-task-put-duration-over-1000-ms**
+     - The total number of MongoDB sink task ``put()`` method executions
+       with a duration that exceeded 1000 milliseconds.
+
+   * - **in-task-put-duration-over-10000-ms**
+     - The total number of MongoDB sink task ``put()`` method executions
+       with a duration that exceeded 10000 milliseconds.
+
+   * - **in-connect-framework**
+     - The total number of times code in the {+kafka-connect+} framework
+       executed after the first invocation of the ``put()`` method of the
+       MongoDB sink task.
+
+   * - **in-connect-framework-duration-ms**
+     - The total number of milliseconds spent executing code in the Kafka
+       Connect framework since the framework first invoked the ``put()``
+       method of the MongoDB sink task. This metric does not count time
+       executing code in the MongoDB sink task towards the total.
+
+   * - **in-connect-framework-duration-over-1-ms**
+     - The total number of times code in the {+kafka-connect+} framework
+       executed for a duration that exceeded 1 millisecond.
+
+   * - **in-connect-framework-duration-over-10-ms**
+     - The total number of times code in the {+kafka-connect+} framework
+       executed for a duration that exceeded 10 milliseconds.
+
+   * - **in-connect-framework-duration-over-100-ms**
+     - The total number of times code in the {+kafka-connect+} framework
+       executed for a duration that exceeded 100 milliseconds.
+
+   * - **in-connect-framework-duration-over-1000-ms**
+     - The total number of times code in the {+kafka-connect+} framework executed
+       for a duration that exceeded 1000 milliseconds.
+
+   * - **in-connect-framework-duration-over-10000-ms**
+     - The total number of times code in the {+kafka-connect+} framework executed
+       for a duration that exceeded 10000 milliseconds.
+
+   * - **processing-phases**
+     - The total number of times a MongoDB sink task executed the processing
+       phase on a batch of records from Kafka. The processing phase of a
+       MongoDB sink task is the set of actions that starts after records are
+       obtained from Kafka and ends before records are written to MongoDB.
+
+   * - **processing-phases-duration-ms**
+     - The total number of milliseconds a MongoDB sink task spent processing
+       records before writing them to MongoDB.
+
+   * - **processing-phases-duration-over-1-ms**
+     - The total number of MongoDB sink task processing phase executions with
+       a duration that exceeded 1 millisecond.
+
+   * - **processing-phases-duration-over-10-ms**
+     - The total number of MongoDB sink task processing phase executions with
+       a duration that exceeded 10 milliseconds.
+
+   * - **processing-phases-duration-over-100-ms**
+     - The total number of MongoDB sink task processing phase executions with
+       a duration that exceeded 100 milliseconds.
+
+   * - **processing-phases-duration-over-1000-ms**
+     - The total number of MongoDB sink task processing phase executions with
+       a duration that exceeded 1000 milliseconds.
+
+   * - **processing-phases-duration-over-10000-ms**
+     - The total number of MongoDB sink task processing phase executions with
+       a duration that exceeded 10000 milliseconds.
+
+   * - **batch-writes-successful**
+     - The total number of batches a MongoDB sink task successfully wrote
+       to the {+cluster+}.
+
+   * - **batch-writes-successful-duration-ms**
+     - The total number of milliseconds a MongoDB sink task spent successfully
+       writing to the {+cluster+}.
+
+   * - **batch-writes-successful-duration-over-1-ms**
+     - The total number of successful batch writes performed by the MongoDB
+       sink task with a duration that exceeded 1 millisecond.
+
+   * - **batch-writes-successful-duration-over-10-ms**
+     - The total number of successful batch writes performed by the MongoDB
+       sink task with a duration that exceeded 10 milliseconds.
+
+   * - **batch-writes-successful-duration-over-100-ms**
+     - The total number of successful batch writes performed by the MongoDB
+       sink task with a duration that exceeded 100 milliseconds.
+
+   * - **batch-writes-successful-duration-over-1000-ms**
+     - The total number of successful batch writes performed by the MongoDB
+       sink task with a duration that exceeded 1000 milliseconds.
+
+   * - **batch-writes-successful-duration-over-10000-ms**
+     - The total number of successful batch writes performed by the MongoDB
+       sink task with a duration that exceeded 10000 milliseconds.
+
+   * - **batch-writes-failed**
+     - The total number of batches a MongoDB sink task failed to write
+       to the {+cluster+}.
+
+   * - **batch-writes-failed-duration-ms**
+     - The total number of milliseconds a MongoDB sink task spent
+       unsuccessfully attempting to write batches to the {+cluster+}.
+
+   * - **batch-writes-failed-duration-over-1-ms**
+     - The total number of failed batch writes attempted by the MongoDB
+       sink task with a duration that exceeded 1 millisecond.
+
+   * - **batch-writes-failed-duration-over-10-ms**
+     - The total number of failed batch writes attempted by the MongoDB
+       sink task with a duration that exceeded 10 milliseconds.
+
+   * - **batch-writes-failed-duration-over-100-ms**
+     - The total number of failed batch writes attempted by the MongoDB sink
+       task with a duration that exceeded 100 milliseconds.
+
+   * - **batch-writes-failed-duration-over-1000-ms**
+     - The total number of failed batch writes attempted by the MongoDB sink
+       task with a duration that exceeded 1000 milliseconds.
+
+   * - **batch-writes-failed-duration-over-10000-ms**
+     - The total number of failed batch writes attempted by the MongoDB sink
+       task with a duration that exceeded 10000 milliseconds.
+
+.. _kafka-monitoring-source-attributes:
+
+Source Connector JMX Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note:: Initial Commands and ``getMore`` Commands
+
+   Some metrics for source connector tasks distinguish between
+   **initial commands** and ``getMore`` commands. An initial
+   command is a ``find`` or ``aggregate`` command sent to a MongoDB
+   instance that retrieves the first set of documents in a client-side
+   MongoDB cursor. The ``getMore`` command is the MongoDB command that fetches
+   the subsequent sets of documents in a cursor.
+
+   To learn more about ``getMore`` commands, see the
+   :manual:`getMore </reference/command/getMore>` page.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Attribute Name
+     - Description
+
+   * - **records**
+     - The total number of records a MongoDB source task passed to the
+       {+kafka-connect+} framework.
+
+   * - **records-filtered**
+     - The number of records a MongoDB source task passed to the
+       {+kafka-connect+} framework that were then filtered by the framework.
+       A filtered record is not written to Kafka.
+
+   * - **records-acknowledged**
+     - The total number of records a MongoDB source task passed to the
+       {+kafka-connect+} framework that were then successfully
+       written to Kafka.
+
+   * - **mongodb-bytes-read**
+     - The total number of bytes a MongoDB source task read from the
+       {+cluster+}.
+
+       .. _kafka-monitoring-averge-record-size-span:      
+
+       To calculate the average size of the records your sink connector
+       processed over a span of time, perform the following actions:
+
+       #. Determine the change in the value of the
+          ``mongodb-bytes-read`` attribute for a span of time.
+       #. Determine the change in the value of the ``records`` attribute
+          for the same span of time you used for the preceding step.
+       #. Divide the change in the value of the ``mongodb-bytes-read``
+          attribute by the change in the value of the ``records``
+          attribute.
+
+   * - **latest-mongodb-time-difference-secs**
+     - The number of seconds of the most recent time difference recorded between
+       a {+cluster+} and the post-batch resume token held by a MongoDB
+       source task. This value is calculated by subtracting the timestamp
+       of the task's post-batch resume token from the ``operationTime`` value of
+       the most recent successful MongoDB command executed by the task.
+
+   * - **in-task-poll**
+     - The total number of times the {+kafka-connect+} framework executed
+       the ``poll()`` method of a MongoDB source task.
+
+   * - **in-task-poll-duration-ms**
+     - The total number of milliseconds the {+kafka-connect+} framework
+       spent executing the ``poll()`` method of a MongoDB source task.
+
+   * - **in-task-poll-duration-over-1-ms**
+     - The total number of MongoDB source task ``poll()`` method executions
+       with a duration that exceeded 1 millisecond.
+
+   * - **in-task-poll-duration-over-10-ms**
+     - The total number of MongoDB source task ``poll()`` method executions
+       with a duration that exceeded 10 milliseconds.
+
+   * - **in-task-poll-duration-over-100-ms**
+     - The total number of MongoDB source task ``poll()`` method executions
+       with a duration that exceeded 100 milliseconds.
+
+   * - **in-task-poll-duration-over-1000-ms**
+     - The total number of MongoDB source task ``poll()`` method executions
+       with a duration that exceeded 1000 milliseconds.
+
+   * - **in-task-poll-duration-over-10000-ms**
+     - The total number of MongoDB source task ``poll()`` method executions
+       with a duration that exceeded 10000 milliseconds.
+
+   * - **in-connect-framework**
+     - The total number of times code in the {+kafka-connect+} framework
+       executed after the first invocation of the ``poll()`` method of the
+       MongoDB source task.
+
+   * - **in-connect-framework-duration-ms**
+     - The total number of milliseconds spent executing code in the
+       {+kafka-connect+} framework since the framework first invoked the
+       ``poll()`` method of the MongoDB source task. This metric does
+       not count time executing code in the MongoDB sink task towards the total.
+
+   * - **in-connect-framework-duration-over-1-ms**
+     - The total number of times code in the {+kafka-connect+} framework
+       executed for a duration that exceeded 1 millisecond.
+
+   * - **in-connect-framework-duration-over-10-ms**
+     - The total number of times code in the {+kafka-connect+} framework
+       executed for a duration that exceeded 10 milliseconds.
+
+   * - **in-connect-framework-duration-over-100-ms**
+     - The total number of times code in the {+kafka-connect+} framework
+       executed for a duration that exceeded 100 milliseconds.
+
+   * - **in-connect-framework-duration-over-1000-ms**
+     - The total number of times code in the {+kafka-connect+} framework
+       executed for a duration that exceeded 1000 milliseconds.
+
+   * - **in-connect-framework-duration-over-10000-ms**
+     - The total number of times code in the {+kafka-connect+} framework
+       executed for a duration that exceeded 10000 milliseconds.
+
+   * - **initial-commands-successful**
+     - The total number of initial commands issued by a MongoDB source
+       task that succeeded. An initial command is a find or aggregate command
+       sent to a {+cluster+} that retrieves the first set of documents in a
+       cursor. A ``getMore`` command is not an initial command.
+
+   * - **initial-commands-successful-duration-ms**
+     - The total number of milliseconds a MongoDB source task spent executing
+       initial commands that succeeded.
+
+   * - **initial-commands-successful-duration-over-1-ms**
+     - The total number of successful initial commands issued by a MongoDB
+       source task with a duration that exceeded 1 millisecond.
+
+   * - **initial-commands-successful-duration-over-10-ms**
+     - The total number of successful initial commands issued by a MongoDB
+       source task with a duration that exceeded 10 milliseconds. 
+
+   * - **initial-commands-successful-duration-over-100-ms**
+     - The total number of successful initial commands issued by a MongoDB
+       source task with a duration that exceeded 100 milliseconds.
+
+   * - **initial-commands-successful-duration-over-1000-ms**
+     - The total number of successful initial commands issued by a MongoDB
+       source task with a duration that exceeded 1000 milliseconds.
+
+   * - **initial-commands-successful-duration-over-10000-ms**
+     - The total number of successful initial commands issued by a MongoDB
+       source task with a duration that exceeded 10000 milliseconds.
+
+   * - **getmore-commands-successful**
+     - The total number of ``getMore`` commands issued by a MongoDB source
+       task that succeeded.
+
+   * - **getmore-commands-successful-duration-ms**
+     - The total number of milliseconds a MongoDB source task spent executing
+       ``getMore`` commands that succeeded.
+
+   * - **getmore-commands-successful-duration-over-1-ms**
+     - The total number of successful ``getMore`` commands issued by a
+       MongoDB source task with a duration that exceeded 1 millisecond.
+
+   * - **getmore-commands-successful-duration-over-10-ms**
+     - The total number of successful ``getMore`` commands issued by a MongoDB
+       source task with a duration that exceeded 10 milliseconds.
+
+   * - **getmore-commands-successful-duration-over-100-ms**
+     - The total number of successful ``getMore`` commands issued by a MongoDB
+       source task with a duration that exceeded 100 milliseconds.
+
+   * - **getmore-commands-successful-duration-over-1000-ms**
+     - The total number of successful ``getMore`` commands issued by a
+       MongoDB source task with a duration that exceeded 1000 milliseconds.
+
+   * - **getmore-commands-successful-duration-over-10000-ms**
+     - The total number of successful ``getMore`` commands issued by a MongoDB
+       source task with a duration that exceeded 10000 milliseconds.
+
+   * - **initial-commands-failed**
+     - The total number of initial commands issued by a MongoDB source
+       task that failed. An initial command is a find or aggregate command
+       sent to a {+cluster+} that retrieves the first set of documents in a
+       cursor. A ``getMore`` command is not an initial command.
+
+   * - **initial-commands-failed-duration-ms**
+     - The total number of milliseconds a MongoDB source task spent
+       unsuccessfully attempting to issue initial commands to the MongoDB
+       server.
+
+   * - **initial-commands-failed-duration-over-1-ms**
+     - The total number of failed initial commands issued by a MongoDB
+       source task with a duration that exceeded 1 millisecond.
+
+   * - **initial-commands-failed-duration-over-10-ms**
+     - The total number of failed initial commands issued by a
+       MongoDB source task with a duration that exceeded 10 milliseconds.
+
+   * - **initial-commands-failed-duration-over-100-ms**
+     - The total number of failed initial commands issued by a MongoDB source
+       task with a duration that exceeded 100 milliseconds.
+
+   * - **initial-commands-failed-duration-over-1000-ms**
+     - The total number of failed initial commands issued by a MongoDB source
+       task with a duration that exceeded 1000 milliseconds.
+
+   * - **initial-commands-failed-duration-over-10000-ms**
+     - The total number of failed initial commands issued by a MongoDB
+       source task with a duration that exceeded 10000 milliseconds.
+
+   * - **getmore-commands-failed**
+     - The total number of ``getMore`` commands issued by a MongoDB source
+       task that failed.
+
+   * - **getmore-commands-failed-duration-ms**
+     - The total number of milliseconds a MongoDB source task spent
+       unsuccessfully attempting to issue ``getMore`` commands to the MongoDB
+       server.
+
+   * - **getmore-commands-failed-duration-over-1-ms**
+     - The total number of failed ``getMore`` commands issued by a MongoDB source
+       task with a duration that exceeded 1 millisecond.
+
+   * - **getmore-commands-failed-duration-over-10-ms**
+     - The total number of failed ``getMore`` commands issued by a MongoDB source
+       task with a duration that exceeded 10 milliseconds.
+
+   * - **getmore-commands-failed-duration-over-100-ms**
+     - The total number of failed ``getMore`` commands issued by a MongoDB source
+       task with a duration that exceeded 100 milliseconds.
+
+   * - **getmore-commands-failed-duration-over-1000-ms**
+     - The total number of failed ``getMore`` commands issued by a MongoDB source
+       task with a duration that exceeded 1000 milliseconds.
+
+   * - **getmore-commands-failed-duration-over-10000-ms**
+     - The total number of failed ``getMore`` commands issued by a MongoDB
+       source task with a duration that exceeded 10000 milliseconds.
