@@ -18,12 +18,12 @@ const tocData: TocItem[] = [
         url: '/docs/languages/java/mongodb-hibernate/:version/get-started',
       },
       {
-        label: 'Model Your Data',
+        label: 'Model Data',
         contentSite: 'hibernate',
         collapsible: true,
         items: [
           {
-            label: 'Create Entities',
+            label: 'Entities',
             contentSite: 'hibernate',
             url: '/docs/languages/java/mongodb-hibernate/:version/model-data/entities',
           },
@@ -50,7 +50,7 @@ const tocData: TocItem[] = [
             url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/native-queries',
           },
           {
-            label: 'Transactions',
+            label: 'Transactions & Sessions',
             contentSite: 'hibernate',
             url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/transactions',
           },
