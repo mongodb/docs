@@ -65,7 +65,7 @@ Configure MongoDB Community Edition
 .. procedure:: 
    :style: normal 
 
-   .. step:: Pull the MongoDB Search Docker image and the latest MongoDB Community Edition image
+   .. step:: Pull the MongoDB Search Docker image and the latest MongoDB Community Edition image.
 
       To download the ``mongot`` Docker image and the latest MongoDB Community
       Edition image, run the following command:
@@ -80,7 +80,7 @@ Configure MongoDB Community Edition
          self-managed deployment. For more information, see :ref:`MongoDB Search
          Compatibility <fts-feature-availability>`. 
 
-   .. step:: Download an archive of sample data
+   .. step:: Download an archive of sample data.
 
       To download the sample data, run the following command: 
 
@@ -88,7 +88,7 @@ Configure MongoDB Community Edition
 
          curl https://atlas-education.s3.amazonaws.com/sampledata.archive -o sampledata.archive
          
-   .. step:: Create your password file
+   .. step:: Create your password file.
 
       Create a password file for ``mongot`` to connect to ``mongod``. 
 
@@ -141,9 +141,9 @@ Configure MongoDB Community Edition
 
    .. step:: If you want to use Automated Embedding in {+avs+}, set up the credentials file for |api| authentication. 
 
-      Create a credentials file for ``mongot`` to connect to |voyage| if you 
+      Create credentials files for ``mongot`` to connect to |voyage| if you 
       want {+avs+} to automatically generate embeddings for text fields in 
-      your collection.
+      your collection and text strings in your queries.
       
       a. Run the following command after replacing ``<your-voyage-api-key>``
          with your valid |voyage| |api| key to create two files named
@@ -165,7 +165,7 @@ Configure MongoDB Community Edition
 
          The ``mongot`` process uses these |api| keys to generate embeddings.
 
-   .. step:: Set up your configuration files
+   .. step:: Set up your configuration files.
 
       Create the following configuration files in your project folder and paste
       the provided code for each file:
@@ -361,7 +361,7 @@ Configure MongoDB Community Edition
             logging:
                verbosity: INFO
 
-   .. step:: Set up the Docker environment
+   .. step:: Set up the Docker environment.
       
       To create the Docker network, run the following command: 
 
@@ -369,7 +369,7 @@ Configure MongoDB Community Edition
 
          docker network create search-community
 
-   .. step:: Start ``mongod`` and ``mongot``
+   .. step:: Start ``mongod`` and ``mongot``.
 
       Use the following steps to launch both services:
 
