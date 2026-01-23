@@ -1,3 +1,91 @@
+.. _opsmgr-server-8.0.19:
+
+|onprem| Server 8.0.19
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-01-15*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`108.0.19.8941-1 <mongodb-108.0.19.8941-1>`.
+- Re-enables the Agent to download {+mongosh+} on RHEL 9 s390x.
+- Improves error handling in ``NotLoggedInFilter`` by preserving 
+  exception stack traces for SAML PEM file loading failures to improve 
+  diagnosability for SAML configuration.
+- Adds support for |s3| Object Lock for snapshots, enabling immutable snapshots that 
+  protect against accidental or malicious deletion and automatically storing snapshot 
+  metadata in |s3| so snapshots can be imported into new |onprem| instances.
+- Enables direct restore of snapshots from |s3| storage to MongoDB nodes, 
+  bypassing the |onprem| server in the data path to avoid |onprem| as a potential 
+  bottleneck, removing the need to scale |onprem| infrastructure for high-volume 
+  restore traffic, and resolving a previous issue in 8.0.16 where the UI 
+  checkbox for this feature was visible before the feature was enabled.
+- Removes the |kmip| certificate check from the allow backup and change sequence 
+  process after investigating and updating the |kmip| path requirement to start backup.
+- Updates the Slack integration in |onprem| to address upcoming deprecation 
+  and leverage the new integration used by |service-short|.
+- Reloads backup status for filesystem jobs before the abandonment 
+  check to prevent incorrect cancellation of active filesystem snapshots.
+- Upgrades the ``bc-fips`` library to version 1.0.2.6 and adds pre-flight 
+  validation checks for certificates and PEM files referenced via ``appsettings`` 
+  to prevent breaking upgrades.
+- Addresses a security finding by updating the ``qs`` package to version 6.14.1.
+- Removes the back button from the restore-from-snapshot workflow and updates 
+  logic related to ``restoreRange`` and ``deleteAt``.
+- Uses a regular expression pattern for non-proxy host configuration in the |s3| client v2.  
+- Adds validation to ensure ``net.tls`` parameters are removed when disabling 
+  TLS to prevent user error.
+- Removes the direct |s3| restore UI checkbox behind a feature flag.
+- Makes the following changes to the |onprem| Administration API to enable 
+  restores of volume-based snapshots through third-party platforms:
+
+  - Skips delete operations during third-party restores so data is not deleted 
+    by the Automation Agent prematurely.    
+  - Adds a flag in the Create Restore API for full volume restore.    
+  - Allows ``RECOVERY_IN_PROGRESS`` to revert to ``COPY_FILES``.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes a bug where a metadata or retention job could be scheduled twice for 
+  the same ``snapshotId``.
+- Runs object lock checks only when object lock is enabled, 
+  resolving a blocker for |s3| oplog store addition.
+- Fixes termination job failures caused by retention-protected metadata file 
+  deletion errors by deleting object lock metadata files asynchronously.
+- Fixes non-proxy endpoint configuration to properly compare ``nonProxyHosts`` 
+  regular expressions in the |s3| client v2 and match v1 behavior.
+- Validates removal of ``net.tls`` parameters when TLS is disabled and raises 
+  a validation exception to prevent accidental misconfiguration.
+- Gates the direct |s3| restore UI checkbox behind a feature flag to ensure correct feature rollout.
+- Introduces the following fixes related to certificate validation and security 
+  vulnerabilities:
+
+  - Adds a preflight check that scans the following customer certificates, when 
+    present, and prevents |onprem| from starting if any are affected by 
+    `CVE-2025-8885 <https://github.com/bcgit/bc-java/wiki/CVE%E2%80%902025%E2%80%908885>`__:
+
+    - ``mongodb.ssl.PEMKeyFile``
+    - ``mms.https.PEMKeyFile``
+    - ``mms.ldap.ssl.PEMKeyFile``
+    - ``mms.saml.ssl.PEMKeyFile``
+    - ``brs.queryable.pem``
+    - ``mongodb.ssl.CAFile``
+    - ``mms.https.CAFile``
+    - ``mms.ldap.ssl.CAFile``
+    - ``backup.kmip.server.ca.file``
+    - ``mms.saml.x509.cert``
+
+  - Fixes the following CVEs:
+
+    - `CVE-2025-8885 <https://github.com/bcgit/bc-java/wiki/CVE%E2%80%902025%E2%80%908885>`__
+    - `CVE-2024-29371 <https://nvd.nist.gov/vuln/detail/CVE-2024-29371>`__
+    - `CVE-2025-15284 <https://nvd.nist.gov/vuln/detail/CVE-2025-15284>`__
+    - `CVE-2025-58056 <https://nvd.nist.gov/vuln/detail/CVE-2025-58056>`__
+    - `CVE-2025-67735 <https://nvd.nist.gov/vuln/detail/CVE-2025-67735>`__
+    - `GHSA-fghv-69vj-qj49 <https://github.com/advisories/GHSA-fghv-69vj-qj49>`__
+
 .. _opsmgr-server-8.0.18:
 
 |onprem| Server 8.0.18
