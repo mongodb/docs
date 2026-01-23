@@ -127,6 +127,13 @@ How to Create a Test File
       message with details about the failure, including the reason for the
       failure and the location in the output where the failure occurred.
 
+      .. tip:: Some tests may not work with exact matching
+
+         Some scenarios, such as Vector Search queries, do not have stable output.
+         In these cases, you can use the ``shouldResemble()`` method instead of
+         ``shouldMatch()``. For more details, refer to the
+         :ref:`java-expect-similar-output` section on this page.
+
    .. step:: Add setup and tear down logic.
 
       You can add setup and tear down logic to your test file to execute
@@ -173,6 +180,17 @@ The ``Expect.that()`` function takes the following arguments:
 
 - ``actualOutput``: The actual output from your example code.
 
+To perform the comparison, use one of the following methods:
+
+- ``shouldMatch()``: Use for most cases. The actual output must match the expected output.
+- ``shouldResemble()``: Use for cases where the output may vary between test runs.
+
+Expect Exact Matches
+~~~~~~~~~~~~~~~~~~~~
+
+For most cases, we expect the actual output to match the expected output. In
+these cases, use the ``shouldMatch()`` method.
+
 The ``shouldMatch()`` function takes the following arguments:
 
 - ``expectedOutput``: The expected output from your example code. This can be a
@@ -202,6 +220,83 @@ and ``createdAt`` fields whose values may change between test runs:
        .withUnorderedSort()
        .withIgnoredFields("_id", "createdAt")
        .shouldMatch("src/main/java/aggregation/pipelines/filter/TutorialOutput.txt");
+
+.. _java-expect-similar-output:
+
+Expect Similar Output
+~~~~~~~~~~~~~~~~~~~~~
+
+Some scenarios, such as Vector Search queries, do not have stable output. In
+these cases, you can use the ``shouldResemble()`` method instead of
+``shouldMatch()``.
+
+The ``shouldResemble()`` method takes the following arguments:
+
+- ``expectedOutput``: The expected output from your example code. This can be a
+  file path, or an in-memory object.
+
+  - If you use a file path, the path is relative to the ``driver-sync`` or
+    ``driver-reactive`` directory. For example,
+    ``src/main/java/aggregation/pipelines/filter/TutorialOutput.txt``.
+  - If you use an in-memory object, the object must be of the same type as the
+    actual output. For example, if the actual output is an array of documents,
+    the expected output must also be an array of documents.
+
+The ``shouldResemble()`` method requires a ``Schema`` object to
+use with the ``withSchema()`` method. This object provides details
+about the count and structure of the expected output. You can use the builder
+pattern to create a ``Schema`` with the following methods:
+
+- ``withCount(Integer count)``: Required; the expected number of documents in the result set.
+- ``withRequiredFields(String... fields)``: Optional; an array of field names that must exist in every document.
+- ``withFieldValues(Map<String, Object> fieldValues)``: Optional; a dictionary that maps field names to their expected values.
+
+Schema-based comparison supports cases where the elements may have different
+values between test runs, such as:
+
+- Vector Search queries, where the order and score of the results may vary.
+- Aggregation queries that include a ``$sample`` stage, where the results may vary.
+- Geospatial queries where distance calculations may vary slightly.
+
+The following example shows how to use the ``shouldResemble()`` method to
+compare the output of a Vector Search query.
+
+.. code-block:: java
+
+   var result = vectorSearch.RunQuery();
+   Expect.that(result).shouldResemble(expected).withSchema(
+      Schema.builder()
+         .withCount(5)
+         .withRequiredFields("_id", "title", "plot", "year")
+         .withFieldValues(Map.of("year", 2012))
+         .build()
+   );
+
+In this example, the schema specifies that the result set should contain 5
+documents. Each document must have the ``_id``, ``title``, ``plot``, and
+``year`` fields. The ``year`` field must have the value ``2012``, but the other
+fields may have different values between test runs.
+
+The ``shouldResemble()`` method is mutually exclusive with ``shouldMatch()``.
+Additionally, ``shouldResemble()`` is not compatible with ``withUnorderedSort()``,
+``withOrderedSort()``, or ``withIgnoredFields()``.
+
+Communicate Clearly about Results in Documentation
+``````````````````````````````````````````````````
+
+When using ``shouldResemble()``, if you show the output in the documentation,
+it is important to let readers know that the output is an example and the actual output
+may differ. If a developer runs the example and gets different results, we
+do not want the developer to think that the results are incorrect. Set clear
+expectations that the results may differ, and consider including information
+about why the results vary. For example, if you're showing the output of
+a pipeline that includes a ``$sample`` stage, you may include a note similar to:
+
+.. note:: Results of query may vary
+
+   The sampling process selects a subset of the data, so the results may not be
+   exactly the same every time you run the query. The documentation shows an
+   example of the output, but your results may differ.
 
 Work with MongoDB Sample Data
 -----------------------------

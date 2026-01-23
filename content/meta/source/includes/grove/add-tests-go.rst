@@ -157,6 +157,13 @@ How to Create a Test File
       comparison failed, including the location in the output where the
       failure occurred.
 
+      .. tip:: Some tests may not work with exact matching
+
+         Some scenarios, such as Vector Search queries, do not have stable output.
+         In these cases, you can use the ``ShouldResemble()`` method instead of
+         ``ShouldMatch()``. For more details, refer to the
+         :ref:`go-expect-similar-output` section on this page.
+
    .. step:: Add setup and tear down logic.
 
       You can add setup and tear down logic to your test file to execute
@@ -211,6 +218,17 @@ The ``ExpectThat()`` function takes the following arguments:
 - ``testing.T``: The testing object for the current test.
 - ``actualOutput``: The actual output from your example code.
 
+To perform the comparison, use one of the following methods:
+
+- ``ShouldMatch()``: Use for most cases. The actual output must match the expected output.
+- ``ShouldResemble()``: Use for cases where the output may vary between test runs.
+
+Expect Exact Matches
+~~~~~~~~~~~~~~~~~~~~
+
+For most cases, we expect the actual output to match the expected output. In
+these cases, use the ``ShouldMatch()`` method.
+
 The ``ShouldMatch()`` function takes the following arguments:
 
 - ``expectedOutput``: The expected output from your example code. This can be a
@@ -239,6 +257,82 @@ and ``createdAt`` fields whose values may change between test runs:
        .WithUnorderedSort()
        .WithIgnoredFields("_id", "createdAt")
        .ShouldMatch("examples/aggregation/pipelines/join_one_to_one/output.txt");
+
+.. _go-expect-similar-output:
+
+Expect Similar Output
+~~~~~~~~~~~~~~~~~~~~~
+
+Some scenarios, such as Vector Search queries, do not have stable output. In
+these cases, you can use the ``ShouldResemble()`` method instead of
+``ShouldMatch()``.
+
+The ``ShouldResemble()`` method takes the following arguments:
+
+- ``expectedOutput``: The expected output from your example code. This can be a
+  file path, or an in-memory object.
+
+  - If you use a file path, the path should start with the ``examples`` directory.
+    For example, ``examples/aggregation/pipelines/join_one_to_one/output.txt``.
+  - If you use an in-memory object, the object must be of the same type as the
+    actual output. For example, if the actual output is an array of documents,
+    the expected output must also be an array of documents.
+
+The ``ShouldResemble()`` method requires you to define a ``Schema`` object to
+use with the ``WithSchema()`` method. This object provides details
+about the count and structure of the expected output. ``Schema`` has the
+following properties:
+
+- ``Count``: Required; the expected number of documents in the result set.
+- ``RequiredFields``: Optional; an array of field names that must exist in every document.
+- ``FieldValues``: Optional; a dictionary that maps field names to their expected values.
+
+Schema-based comparison supports cases where the elements may have different
+values between test runs, such as:
+
+- Vector Search queries, where the order and score of the results may vary.
+- Aggregation queries that include a ``$sample`` stage, where the results may vary.
+- Geospatial queries where distance calculations may vary slightly.
+
+The following example shows how to use the ``ShouldResemble()`` method to
+compare the output of a Vector Search query.
+
+.. code-block:: go
+
+   result := vectorSearch.RunMovieQuery();
+   compare.ExpectThat(t, result).
+      ShouldResemble(expectedOutputFilepath).
+      WithSchema(compare.Schema{
+         Count:          5,
+         RequiredFields: []string{"_id", "title", "plot", "year"},
+         FieldValues:    map[string]interface{}{"year": 2012},
+      })
+
+In this example, the schema specifies that the result set should contain 5
+documents. Each document must have the ``_id``, ``title``, ``plot``, and
+``year`` fields. The ``year`` field must have the value ``2012``, but the other
+fields may have different values between test runs.
+
+The ``ShouldResemble()`` method is mutually exclusive with ``ShouldMatch()``.
+Additionally, ``ShouldResemble()`` is not compatible with ``WithUnorderedSort()``,
+``WithOrderedSort()``, or ``WithIgnoredFields()``.
+
+Communicate Clearly about Results in Documentation
+``````````````````````````````````````````````````
+
+When using ``ShouldResemble()``, if you show the output in the documentation,
+it is important to let readers know that the output is an example and the actual output
+may differ. If a developer runs the example and gets different results, we
+do not want the developer to think that the results are incorrect. Set clear
+expectations that the results may differ, and consider including information
+about why the results vary. For example, if you're showing the output of
+a pipeline that includes a ``$sample`` stage, you may include a note similar to:
+
+.. note:: Results of query may vary
+
+   The sampling process selects a subset of the data, so the results may not be
+   exactly the same every time you run the query. The documentation shows an
+   example of the output, but your results may differ.
 
 Work with MongoDB Sample Data
 -----------------------------

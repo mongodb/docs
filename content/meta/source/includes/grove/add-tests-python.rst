@@ -125,6 +125,13 @@ How to Create a Test File
       failure, including the reason for the failure and the location in the
       output where the failure occurred.
 
+      .. tip:: Some tests may not work with exact matching
+
+         Some scenarios, such as Vector Search queries, do not have stable output.
+         In these cases, you can use the ``should_resemble()`` method instead of
+         ``should_match()``. For more details, refer to the
+         :ref:`python-expect-similar-output` section on this page.
+
    .. step:: Add setup and tear down logic.
 
       Add setup and tear down logic to your test file to execute code before or
@@ -176,6 +183,17 @@ The ``Expect.that()`` function takes the following arguments:
 
 - ``actual_output``: The actual output from your example code.
 
+To perform the comparison, use one of the following methods:
+
+- ``should_match()``: Use for most cases. The actual output must match the expected output.
+- ``should_resemble()``: Use for cases where the output may vary between test runs.
+
+Expect Exact Matches
+~~~~~~~~~~~~~~~~~~~~
+
+For most cases, we expect the actual output to match the expected output. In
+these cases, use the ``should_match()`` method.
+
 The ``should_match()`` function takes the following arguments:
 
 - ``expected_output``: The expected output from your example code. This can be a
@@ -204,6 +222,79 @@ and ``createdAt`` fields whose values may change between test runs:
        .with_unordered_sort()
        .with_ignored_fields("_id", "created_at")
        .should_match("examples/aggregation/pipelines/filter/tutorial-output.txt");
+
+.. _python-expect-similar-output:
+
+Expect Similar Output
+~~~~~~~~~~~~~~~~~~~~~
+
+Some scenarios, such as Vector Search queries, do not have stable output. In
+these cases, you can use the ``should_resemble()`` method instead of
+``should_match()``.
+
+The ``should_resemble()`` method takes the following arguments:
+
+- ``expected_output``: The expected output from your example code. This can be a
+  file path, or an in-memory object.
+
+  - If you use a file path, the path should start with the ``examples`` directory.
+    For example, ``examples/aggregation/pipelines/filter/tutorial-output.txt``.
+  - If you use an in-memory object, the object must be of the same type as the
+    actual output. For example, if the actual output is an array of documents,
+    the expected output must also be an array of documents.
+
+The ``should_resemble()`` method requires you to define a schema
+object to use with the ``with_schema()`` method. This object provides details
+about the count and structure of the expected output. Your schema object should
+have the following properties:
+
+- ``count``: Required; the expected number of documents in the result set.
+- ``required_fields``: Optional; an array of field names that must exist in every document.
+- ``field_values``: Optional; a dictionary that maps field names to their expected values.
+
+Schema-based comparison supports cases where the elements may have different
+values between test runs, such as:
+
+- Vector Search queries, where the order and score of the results may vary.
+- Aggregation queries that include a ``$sample`` stage, where the results may vary.
+- Geospatial queries where distance calculations may vary slightly.
+
+The following example shows how to use the ``should_resemble()`` method to
+compare the output of a Vector Search query.
+
+.. code-block:: python
+
+   Expect.that(actual_output).should_resemble(expected_output).with_schema({
+      'count': 5,
+      'required_fields': ['_id', 'title', 'plot', 'year'],
+      'field_values': {'year': 2012}
+   })
+
+In this example, the schema specifies that the result set should contain 5
+documents. Each document must have the ``_id``, ``title``, ``plot``, and
+``year`` fields. The ``year`` field must have the value ``2012``, but the other
+fields may have different values between test runs.
+
+The ``should_resemble()`` method is mutually exclusive with ``should_match()``.
+Additionally, ``should_resemble()`` is not compatible with ``with_unordered_sort()``,
+``with_ordered_sort()``, or ``with_ignored_fields()``.
+
+Communicate Clearly about Results in Documentation
+``````````````````````````````````````````````````
+
+When using ``should_resemble()``, if you show the output in the documentation,
+it is important to let readers know that the output is an example and the actual
+output may differ. If a developer runs the example and gets different results,
+we do not want the developer to think that the results are incorrect. Set clear
+expectations that the results may differ, and consider including information
+about why the results vary. For example, if you're showing the output of
+a pipeline that includes a ``$sample`` stage, you may include a note similar to:
+
+.. note:: Results of query may vary
+
+   The sampling process selects a subset of the data, so the results may not be
+   exactly the same every time you run the query. The documentation shows an
+   example of the output, but your results may differ.
 
 Work with MongoDB Sample Data
 -----------------------------
