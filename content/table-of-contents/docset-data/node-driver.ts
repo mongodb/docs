@@ -511,6 +511,11 @@ const tocData: TocItem[] = [
             contentSite: 'node',
             url: '/docs/drivers/node/:version/integrations/prisma',
           },
+          {
+            label: 'Deploy an Application on Vercel',
+            contentSite: 'node',
+            url: '/docs/drivers/node/:version/integrations/next-vercel',
+          },
         ],
       },
       {
