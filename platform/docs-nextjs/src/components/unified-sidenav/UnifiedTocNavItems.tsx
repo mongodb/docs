@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import styled from '@emotion/styled';
 import Icon from '@leafygreen-ui/icon';
 import { palette } from '@leafygreen-ui/palette';
@@ -23,7 +23,7 @@ import type { TocItem } from './types';
 export const Border = styled('hr')`
   border: unset;
   border-bottom: 1px solid var(--sidenav-border-bottom-color);
-  margin-bottom: 8px;
+  margin: 0 auto 8px;
   width: 80%;
 `;
 
@@ -370,7 +370,10 @@ export const StaticNavItem = ({
   isAccordion,
   setShowDriverBackBtn,
 }: StaticNavItemProps) => {
-  const isActive = isActiveTocNode(slug, newUrl, items);
+  const isActive = useMemo(
+    () => isActiveTocNode(slug, newUrl, items),
+    [slug], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   return (
     <SideNavItem

@@ -230,9 +230,9 @@ export const VersionContextProvider = ({ docsets, slug, env, children }: Version
           : targetBranch?.urlSlug || targetBranch?.urlAliases?.[0] || targetBranch?.gitBranchName;
 
       const urlTarget = getUrl(target, metadata.project, siteBasePrefix, slug);
-      router.push(urlTarget);
+      router.push(urlTarget.replace(/\/index\/?$/, '/')); // gets rid of trailing /index/
     },
-    [versions, metadata, siteBasePrefix, slug],
+    [versions, metadata, siteBasePrefix, slug], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   return (
