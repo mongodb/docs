@@ -121,6 +121,11 @@ const tocData: TocItem[] = [
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/healthcare-asset-ai-healthcare',
           },
+          {
+            label: 'Hybrid FHIR ODL',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/fhir-data-layer',
+          },
         ],
       },
     ],
