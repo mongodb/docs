@@ -13,6 +13,6 @@ Enterprise Edition:
 - MONGODB-OIDC
 
 To learn more about authentication mechanisms in MongoDB Enterprise Edition, see the
-:ref:`Authentication Mechanisms guide <kotlin-fundamentals-logging>`.  For more information on
+:ref:`Authentication Mechanisms guide <authentication-mechanisms>`.  For more information on
 establishing a connection to your MongoDB cluster, read our
-:doc:`Connection Guide </connect>`.
+:ref:`Connection Guide <kotlin-connect>`.

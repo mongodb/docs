@@ -4,4 +4,4 @@ val paintOrders = listOf(
 )
 val result = collection.insertMany(paintOrders)
 
-println("Inserted a document with the following ids: ${result.insertedIds.toList()}")
+println("Inserted documents with the following ids: ${result.insertedIds.toList()}")

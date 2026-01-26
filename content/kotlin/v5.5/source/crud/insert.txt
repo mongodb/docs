@@ -1,0 +1,221 @@
+.. _kotlin-fundamentals-insert:
+
+================
+Insert Documents
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to add
+documents to a MongoDB collection by performing insert operations.
+
+An insert operation inserts one or more documents into a MongoDB
+collection. You can perform an insert operation by using the following
+methods:
+
+- ``insertOne()`` to insert a single document
+- ``insertMany()`` to insert one or more documents
+
+Sample Data
+~~~~~~~~~~~
+
+In the following examples, a paint store has an inventory of different colors
+of paint. This data is modeled with the following Kotlin data class:
+
+.. literalinclude:: /examples/generated/InsertTest.snippet.data-model.kt
+   :language: kotlin
+
+The _id Field
+-------------
+
+In a MongoDB collection, each document *must* contain an ``_id`` field
+that has a unique value.
+
+MongoDB allows you to manage this field in two ways:
+
+- You can set this field for each document yourself, ensuring each
+  ``_id`` field value is unique.
+- You can let the driver automatically generate a unique ``ObjectId``
+  value for each document ``_id``. If you do not manually set an
+  ``_id`` value for a document, the driver populates the field
+  with an ``ObjectId``.
+
+Unless you can guarantee uniqueness, we recommend
+letting the driver automatically generate ``_id`` values.
+
+.. note:: Duplicate _id Errors
+
+   Setting duplicate ``_id`` values in a collection violates unique
+   index constraints, which causes the driver to return a ``WriteError`` from
+   the ``insertOne()`` method or a ``BulkWriteError`` from the
+   ``insertMany()`` method.
+
+To learn more about the ``_id`` field, see the
+:manual:`Unique Indexes </core/index-unique/>` guide in the
+{+mdb-server+} manual.
+
+To learn more about document structure and rules, see the
+:manual:`Documents </core/document>` guide in the {+mdb-server+} manual.
+
+.. _insert-single-document:
+
+Insert One Document
+-------------------
+
+Use the ``insertOne()`` method when you want to insert a single
+document. 
+
+On successful insertion, the method returns an ``InsertOneResult``
+instance representing the ``_id`` of the new document. 
+
+The following example creates and inserts a document by using the
+``insertOne()`` method:
+
+.. io-code-block::
+   
+      .. input:: /examples/generated/InsertTest.snippet.insert-one.kt
+         :language: kotlin
+
+      .. output:: 
+         :language: console
+
+         Inserted a document with the following id: 60930c39a982931c20ef6cd6
+
+Insert Multiple Documents
+-------------------------
+
+To add multiple documents to a MongoDB collection, use the ``insertMany()``
+method and pass a list of documents you want to add. The
+``insertMany()`` method inserts documents in the order specified until
+an exception occurs, if any.
+
+If successful, the method returns an ``InsertManyResult``
+instance representing the ``_id`` of each new document. 
+
+The following example creates and adds two documents to a ``List``, and
+inserts the ``List`` by using the ``insertMany()`` method: 
+
+.. io-code-block::
+   
+   .. input:: /examples/generated/InsertTest.snippet.insert-many.kt
+      :language: kotlin
+
+   .. output:: 
+      :language: console
+
+      Inserted documents with the following ids: [60930c3aa982931c20ef6cd7, 60930c3aa982931c20ef6cd8] 
+
+Return Value
+------------
+
+The ``insertOne()`` method returns an ``InsertOneResult`` instance, and
+the ``insertMany()`` method returns an ``InsertManyResult`` instance.
+
+You can use the following methods to retrieve information from
+an ``InsertOneResult`` instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``getInsertedId()``
+     - Indicates the ``_id`` value of the inserted document.
+
+   * - ``wasAcknowledged()``
+     - Returns ``true`` if the server acknowledges the result.
+
+You can use the following methods to retrieve information from
+an ``InsertOneResult`` instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``getInsertedIds()``
+     - Indicates the ``_id`` values of the inserted documents.
+
+   * - ``wasAcknowledged()``
+     - Returns ``true`` if the server acknowledges the result.
+
+.. note::
+
+   If the ``wasAcknowledged()`` method returns ``false``, trying to
+   access the ``_id`` values results in an
+   ``InvalidOperation`` exception. The driver cannot 
+   determine these values if the server does not acknowledge the write
+   operation.
+
+Fully Runnable Examples
+-----------------------
+
+The following sections provide fully runnable examples that demonstrate how to
+insert documents by using the ``insertOne()`` and ``insertMany()``
+methods.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this section use the ``sample_movies.movies`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+Mongodb :ref:`Get Started <unified-get-started>` guide.
+
+insertOne() Example: Full File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example connects to a MongoDB cluster, creates a
+``MongoClient`` object, and inserts a single document into the
+``movies`` collection by using the ``insertOne()`` method:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/InsertOne.snippet.insert-usage-example.kt
+      :language: kotlin
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Success! Inserted document id: BsonObjectId{value=...}
+
+insertMany() Example: Full File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example connects to a MongoDB cluster, creates a
+``MongoClient`` object, and inserts multiple documents into the
+``movies`` collection by using the ``insertMany()`` method:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/InsertMany.snippet.insert-many-usage-example.kt
+      :language: kotlin
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Success! Inserted document ids: {0=BsonObjectId{value=...}, 1=BsonObjectId{value=...}}
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `insertOne() <{+driver-api+}/-mongo-collection/insert-one.html>`__
+- `InsertOneResult <{+core-api+}/client/result/InsertOneResult.html>`__
+- `insertMany() <{+driver-api+}/-mongo-collection/insert-many.html>`__
+- `InsertManyResult <{+core-api+}/client/result/InsertManyResult.html>`__

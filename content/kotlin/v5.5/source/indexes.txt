@@ -1,0 +1,605 @@
+.. _kotlin-fundamentals-indexes:
+
+=======
+Indexes
+=======
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, optimization, atlas search
+   :description: Learn to create and manage indexes using the MongoDB Kotlin Driver to optimize query performance and support various query types.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to create and manage **indexes** by
+using the {+driver-long+}.
+
+Indexes support the efficient execution of queries in MongoDB. Without
+indexes, MongoDB must scan *every* document in a collection (a
+**collection scan**) to find the documents that match each query. These
+collection scans are slow and can negatively affect the performance of
+your application. If an appropriate index exists for a query, MongoDB
+can use the index to limit the documents that the query must inspect.
+
+Indexes also have the following benefits:
+
+- Indexes allow efficient sorting.
+- Indexes enable special capabilities such as :ref:`geospatial queries <geo-indexes>`.
+- Indexes allow the creation of constraints to ensure a field value is :ref:`unique <unique-indexes>`.
+
+To learn more, see :manual:`Indexes </indexes/>` in the Server manual.
+
+.. tip::
+
+   Update operations use indexes when finding documents to update, and
+   delete operations use indexes when finding documents to delete.
+   :manual:`Certain stages </core/aggregation-pipeline/#pipeline-operators-and-indexes>` in
+   the aggregation pipeline also use indexes to improve performance.
+
+Query Coverage and Performance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you execute a query against MongoDB, your command can include various elements:
+
+- Query criteria that specify fields and values you are looking for
+- Options that affect the query's execution, such as the read concern
+- Projection criteria to specify the fields MongoDB returns (optional)
+- Sort criteria to specify the order of documents returned from MongoDB (optional)
+
+When all the fields specified in the query, projection, and sort are in the same index, MongoDB returns results directly
+from the index, also called a **covered query**.
+
+.. important:: Sort Order
+
+   Sort criteria must match or invert the order of the index.
+
+   Consider an index on the field ``name`` in ascending order (A-Z) and ``age`` in descending order (9-0):
+
+   .. code-block:: none
+      :copyable: false
+
+      name_1_age_-1
+
+   MongoDB uses this index when you sort your data in either of the
+   following ways:
+
+   - ``name`` ascending, ``age`` descending
+   - ``name`` descending, ``age`` ascending
+
+   Specifying a sort order of ``name`` and :guilabel:`age` ascending or :guilabel:`name` and ``age``
+   descending requires an in-memory sort.
+
+For more information on how to ensure your index covers your query criteria and projection, see the Server manual
+articles on :manual:`query coverage </core/query-optimization/#covered-query>`.
+
+Operational Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following guidelines describe how you can optimize the way
+your application uses indexes:
+
+- To improve query performance, build indexes on fields that appear often in
+  your application's queries and operations that return sorted results.
+
+- Track index memory and disk usage for capacity planning, because each
+  index that you add consumes disk space and memory when active.
+  
+- Avoid adding indexes that you infrequently use. Note that when a write
+  operation updates an indexed field, MongoDB updates the related index.
+
+Since MongoDB supports dynamic schemas, applications can query against fields whose names cannot be known in advance or
+are arbitrary with :manual:`wildcard indexes </core/index-wildcard/>`. Wildcard indexes are 
+not designed to replace workload-based index planning.
+
+For more information on designing your data model and choosing indexes appropriate for your application, see the MongoDB
+server documentation on :manual:`Indexing Strategies </applications/indexes>` and
+:manual:`Data Modeling and Indexes </core/data-model-operations/#indexes>`.
+
+Index Types
+-----------
+
+MongoDB supports several different index types to support querying your data. The following sections describe the
+most common index types and provide sample code for creating each index type. For a full list of index types, see
+:manual:`Indexes </indexes/>` in the Server manual.
+
+.. tip::
+
+   The {+driver-short+} provides the `Indexes
+   <{+core-api+}/client/model/Indexes.html>`__
+   class to create and manage indexes. This class includes static
+   factory methods to create index specification documents for different
+   MongoDB index key types.
+
+The following examples use the
+`createIndex() <{+driver-api+}/-mongo-collection/create-index.html>`__
+method to create various indexes, and the following data classes to model data
+in MongoDB:
+
+.. literalinclude:: /examples/generated/IndexesTest.snippet.data-classes.kt
+   :language: kotlin
+
+Single Field and Compound Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Single Field Indexes
+++++++++++++++++++++
+
+:manual:`Single field indexes </core/index-single/>` are indexes with a reference to a single field within a collection's
+documents. They improve single field query and sort performance, and support :manual:`TTL Indexes </core/index-ttl>` that
+automatically remove documents from a collection after a certain amount of time or at a specific clock time.
+
+.. note::
+
+   The ``_id_`` index is an example of a single field index. This index is automatically created on the ``_id`` field
+   when a new collection is created.
+
+The following example creates an index in ascending order on the ``title`` field:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/IndexesTest.snippet.single-index-setup.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Index created: title_1
+
+The following is an example of a query that is covered by the index
+created in the preceding code snippet:
+
+.. literalinclude:: /examples/generated/IndexesTest.snippet.single-index-query.kt
+   :language: kotlin
+
+See the MongoDB server manual section on :manual:`single field indexes </core/index-single>` for more information.
+
+Compound Indexes
+++++++++++++++++
+
+:manual:`Compound </core/index-compound/>` indexes hold references to multiple fields within a collection's documents,
+improving query and sort performance.
+
+.. tip::
+
+   Read more about compound indexes, **index prefixes**, and sort order :manual:`here </core/index-compound/#prefixes>`.
+
+The following example creates a compound index on the ``type`` and ``rated`` fields:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/IndexesTest.snippet.compound-index-setup.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Index created: type_1_rated_1
+
+The following is an example of a query that is covered by the index
+created in the preceding code snippet:
+
+.. literalinclude:: /examples/generated/IndexesTest.snippet.compound-index-query.kt
+   :language: kotlin
+
+See the MongoDB server manual section on :manual:`Compound indexes </core/index-compound>` for more information.
+
+Multikey Indexes (Indexes on Array Fields)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Multikey indexes** are indexes that improve performance for queries that specify a field with an index that contains
+an array value. You can define a multikey index using the same syntax as a single field or compound index.
+
+The following example creates a compound, multikey index on the ``rated``, ``genres`` (an array of
+Strings), and ``title`` fields:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/IndexesTest.snippet.multikey-index-setup.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Index created: rated_1_genres_1_title_1
+
+The following is an example of a query that is covered by the index
+created in the preceding code snippet:
+
+.. literalinclude:: /examples/generated/IndexesTest.snippet.multikey-index-query.kt
+   :language: kotlin
+
+Multikey indexes behave differently from other indexes in terms of query coverage, index-bound computation, and
+sort behavior. To learn more about multikey indexes, including a discussion of their behavior and limitations,
+see :manual:`Multikey Indexes </core/index-multikey>` in the Server manual.
+
+.. _kotlin-search-indexes:
+
+{+search+} and {+vector-search+} Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can programmatically manage your {+search+} and Atlas Vector
+Search indexes by using the {+driver-short+}.
+
+The {+search+} feature enables you to perform full-text searches on
+collections hosted on MongoDB Atlas. To learn more about MongoDB Atlas
+Search, see the :atlas:`{+search+} Indexes
+</atlas-search/atlas-search-overview/#fts-indexes>` documentation.
+
+{+vector-search+} enables you to perform semantic searches on vector
+embeddings stored in MongoDB Atlas. To learn more about {+vector-search+}, see the
+:ref:`kotlin-atlas-vector-search` guide.
+
+You can call the following methods on a collection to manage your {+search+} 
+and {+vector-search+} indexes:
+
+- ``createSearchIndex()`` *(valid for Atlas Search indexes only)*
+- ``createSearchIndexes()``
+- ``listSearchIndexes()``
+- ``updateSearchIndex()``
+- ``dropSearchIndex()``
+
+.. note::
+
+   The {+search+} index-management methods run asynchronously. The
+   driver methods can return before confirming that they ran
+   successfully. To determine the current status of the indexes, call the
+   ``listSearchIndexes()`` method.
+
+The following sections provide code examples that demonstrate how to use
+each of the preceding methods.
+
+Create a Search Index
++++++++++++++++++++++
+
+You can use the `createSearchIndex() <{+driver-api+}/-mongo-collection/create-search-index.html>`__
+method to create a single {+search+} index. You *cannot* use this method to
+create a {+vector-search+} index.
+
+You can use the
+`createSearchIndexes() <{+driver-api+}/-mongo-collection/create-search-indexes.html>`__
+method to create multiple {+search+} or {+vector-search+}
+indexes. You must create a
+`SearchIndexModel
+<{+core-api+}/client/model/SearchIndexModel.html>`__
+instance for each index, then pass a list of ``SearchIndexModel`` instances to the ``createSearchIndexes()`` method.
+
+The following code example shows how to create a {+search+} index:
+
+.. literalinclude:: /examples/generated/SearchIndexesTest.snippet.single-search-index-create.kt
+   :language: kotlin
+
+To create multiple Search or Vector Search indexes, you must create a
+`SearchIndexModel
+<{+core-api+}/client/model/SearchIndexModel.html>`__
+instance for each index.
+
+The following code example shows how to create Search and
+Vector Search indexes in one call:
+
+.. literalinclude:: /examples/generated/SearchIndexesTest.snippet.multi-search-index-create.kt
+   :language: kotlin
+
+List Search Indexes
++++++++++++++++++++
+
+You can use the
+`listSearchIndexes() <{+driver-api+}/-mongo-collection/list-search-indexes.html>`__
+method to return a list of the {+search+} indexes on a collection.
+
+The following code example shows how to print a list of the search indexes on
+a collection:
+
+.. literalinclude:: /examples/generated/SearchIndexesTest.snippet.list-search-indexes.kt
+   :language: kotlin
+
+Update a Search Index
++++++++++++++++++++++
+
+You can use the
+`updateSearchIndex() <{+driver-api+}/-mongo-collection/update-search-index.html>`__
+method to update a {+search+} index.
+
+The following code shows how to update a search index:
+
+.. literalinclude:: /examples/generated/SearchIndexesTest.snippet.update-search-indexes.kt
+   :language: kotlin
+
+Drop a Search Index
++++++++++++++++++++
+
+You can use the
+`dropSearchIndex() <{+driver-api+}/-mongo-collection/drop-search-index.html>`__
+method to remove a {+search+} index.
+
+The following code shows how to delete a search index from a collection:
+
+.. literalinclude:: /examples/generated/SearchIndexesTest.snippet.drop-search-index.kt
+   :language: kotlin
+
+.. _text-indexes:
+
+Text Indexes
+~~~~~~~~~~~~
+
+**Text indexes** support text queries on string content. These indexes can include any field whose value is a
+string or an array of string elements. MongoDB supports text queries for various languages. You can specify the default
+language as an option when creating the index.
+
+.. tip::
+
+   MongoDB offers an improved full-text search solution,
+   :atlas:`{+search+} </atlas-search/>`. To learn more about {+search+}
+   indexes and how to use them, see the :ref:`kotlin-search-indexes` section of this
+   guide.
+
+Single Field
+++++++++++++
+
+The following example creates a text index on the ``plot`` field:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/IndexesTest.snippet.text-index-setup.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Index created: plot_text
+
+The following is an example of a query that is covered by the index
+created in the preceding code snippet. Note that the ``sort`` is
+omitted because text indexes do not contain sort order.
+
+.. literalinclude:: /examples/generated/IndexesTest.snippet.text-index-query.kt
+   :language: kotlin
+
+Multiple Fields
++++++++++++++++
+
+A collection can only contain one text index. If you want to create a
+text index for multiple text fields, you must create a compound
+index. A text query runs on all the text fields within the compound
+index.
+
+The following snippet creates a compound text index for the ``title`` and ``genre``
+fields:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/IndexesTest.snippet.text-multiple-index.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Index created: title_text_genre_text
+
+For more information, see the following Server Manual Entries:
+
+- :manual:`Compound Text Index Restrictions </core/index-text/#std-label-text-index-compound>`
+- :manual:`Text Indexes </core/index-text>`
+
+Geospatial Indexes
+~~~~~~~~~~~~~~~~~~
+
+.. _geo-indexes:
+
+MongoDB supports queries of geospatial coordinate data using **2dsphere indexes**. With a ``2dsphere`` index, you can query
+the geospatial data for inclusion, intersection, and proximity. For more information on querying geospatial data, see
+:manual:`Geospatial Queries </geospatial-queries/>` in the Server manual.
+
+To create a ``2dsphere`` index, you must specify a field that contains
+only **GeoJSON objects**. To learn more about this type, see
+:manual:`GeoJSON objects </reference/geojson>` in the Server manual.
+
+The ``location.geo`` field in the following sample document from the ``theaters`` collection in the ``sample_mflix``
+database is a GeoJSON Point object that describes the coordinates of the theater:
+
+.. code-block:: javascript
+   :emphasize-lines: 11-17
+
+   {
+      "_id" : ObjectId("59a47286cfa9a3a73e51e75c"),
+      "theaterId" : 104,
+      "location" : {
+         "address" : {
+            "street1" : "5000 W 147th St",
+            "city" : "Hawthorne",
+            "state" : "CA",
+            "zipcode" : "90250"
+         },
+         "geo" : {
+            "type" : "Point",
+            "coordinates" : [
+               -118.36559,
+               33.897167
+            ]
+         }
+      }
+   }
+
+The following example creates a ``2dsphere`` index on the ``location.geo`` field:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/IndexesTest.snippet.geospatial-index-setup.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Index created: location.geo_2dsphere
+
+.. important::
+
+   Attempting to create a geospatial index on a field that is already
+   covered by a geospatial index results in an error.
+
+The following is an example of a geospatial query that is covered by the index
+created in the preceding code snippet:
+
+.. literalinclude:: /examples/generated/IndexesTest.snippet.geospatial-index-query.kt
+   :language: kotlin
+
+MongoDB also supports ``2d`` indexes for calculating distances on a
+Euclidean plane. To learn more, see :manual:`Geospatial Queries </geospatial-queries>` 
+in the Server manual.
+
+Unique Indexes
+~~~~~~~~~~~~~~
+
+.. _unique-indexes:
+
+Unique indexes ensure that the indexed fields do not store duplicate values. By default, MongoDB creates a unique index
+on the ``_id`` field during the creation of a collection. To create a unique index, specify the field or combination of
+fields that you want to prevent duplication on and set the ``unique`` option to ``true``.
+
+The following example creates a unique, descending index on the ``theaterId`` field:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/IndexesTest.snippet.unique-index.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Index created: theaterId_-1
+
+.. important::
+
+   If you perform a write operation that stores a duplicate value that
+   violates the unique index, the driver raises a ``DuplicateKeyException``,
+   and MongoDB throws an error resembling the following:
+
+   .. code-block:: none
+      :copyable: false
+
+      E11000 duplicate key error index
+
+Refer to the :manual:`Unique Indexes page </core/index-unique>` in the MongoDB server manual for more information.
+
+.. _kotlin-clustered-indexes:
+
+Clustered Indexes
+~~~~~~~~~~~~~~~~~
+
+**Clustered indexes** instruct a collection to store documents ordered
+by a key value. To create a clustered index, specify the clustered index
+option with the ``_id`` field as the key and the unique field as
+``true`` when you create your collection.
+
+The following example creates a clustered index on the ``_id`` field in
+the ``vendors`` collection:
+
+.. literalinclude:: /examples/generated/IndexesTest.snippet.clustered-indexes.kt
+   :language: kotlin
+
+See the MongoDB server manual sections for more information:
+
+- :v6.0:`Clustered Index </reference/method/db.createCollection/#std-label-db.createCollection.clusteredIndex>`
+- :v6.0:`Clustered Collections </core/clustered-collections>`
+
+Remove an Index
+---------------
+
+You can remove any unused index except the default unique index on the
+``_id`` field.
+
+The following sections show the ways to remove indexes:
+
+- Using an index specification document
+- Using an indexed name field
+- Using a wildcard character to remove all indexes
+
+Remove an Index Using an Index Specification Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pass an **index specification document** to the ``dropIndex()`` method to
+remove an index from a collection. An index specification document is
+a ``Bson`` instance that specifies the type of index on a
+specified field.
+
+The following snippet removes an ascending index on the ``title`` field
+in a collection:
+
+.. literalinclude:: /examples/generated/IndexesTest.snippet.drop-index-with-specification-document.kt
+   :language: kotlin
+
+.. important::
+
+   If you want to drop a text index, you must use the name of the index
+   instead. See the :ref:`Remove an Index Using a Name Field
+   <name_field>` section for details.
+
+.. _name_field:
+
+Remove an Index Using a Name Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pass the ``name`` field of the index to the ``dropIndex()`` method to
+remove an index from a collection.
+
+If you must find the name of your index, use the ``listIndexes()``
+method to see the value of the ``name`` fields in your indexes.
+
+The following snippet retrieves and prints all the indexes in a
+collection:
+
+.. literalinclude:: /examples/generated/IndexesTest.snippet.list-indexes.kt
+   :language: kotlin
+
+If you call ``listIndex()`` on a collection that contains a text index,
+the output might resemble the following:
+
+.. code-block:: json
+   :copyable: false
+
+   { "v": 2, "key": {"_id": 1}, "name": "_id_" }
+   { "v": 2, "key": {"_fts": "text", "_ftsx": 1}, "name": "title_text", "weights": {"title": 1},
+   "default_language": "english", "language_override": "language", "textIndexVersion": 3 }
+
+This output tells us the names of the existing indexes are "_id" and
+"title_text".
+
+The following snippet removes the "title_text" index from the collection:
+
+.. literalinclude:: /examples/generated/IndexesTest.snippet.drop-index-with-name.kt
+   :language: kotlin
+
+.. note::
+
+   You cannot remove a single field from a compound text index. You must
+   drop the entire index and create a new one to update the indexed
+   fields.
+
+Remove an Index Using a Wildcard Character
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can drop all indexes by calling the
+``dropIndexes()`` method on your collection:
+
+.. literalinclude:: /examples/generated/IndexesTest.snippet.drop-all-indexes.kt
+   :language: kotlin
+
+For prior versions of MongoDB, pass "*" as a parameter to your call to
+``dropIndex()`` on your collection:
+
+.. literalinclude:: /examples/generated/IndexesTest.snippet.drop-all-indexes-wildcard.kt
+   :language: kotlin
+
+For more information on the methods in this section, see the following API Documentation:
+
+- `dropIndex() <{+driver-api+}/-mongo-collection/drop-index.html>`__
+- `dropIndexes() <{+driver-api+}/-mongo-collection/drop-indexes.html>`__

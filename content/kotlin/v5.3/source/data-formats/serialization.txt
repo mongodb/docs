@@ -60,6 +60,12 @@ Add {+language+} Serialization to Your Project
 Support for serialization in the {+driver-short+} depends on the official `Kotlin
 serialization library <https://github.com/Kotlin/kotlinx.serialization>`__.
 
+.. sharedinclude:: dbx/jvm/BOM-installation-tip.rst
+
+   .. replacement:: installation-guide
+
+      :ref:`Add the Driver Bill of Materials <kotlin-get-started-install-bom>` step of the Quick Start guide.
+
 Select from the following tabs to see how to add the serialization
 dependencies to your project by using the :guilabel:`Gradle` and
 :guilabel:`Maven` package managers:
@@ -76,7 +82,7 @@ dependencies to your project by using the :guilabel:`Gradle` and
         :caption: build.gradle.kts
 
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:{+serializationVersion+}")
-        implementation("org.mongodb:bson-kotlinx:{+full-version+}")
+        implementation("org.mongodb:bson-kotlinx")
 
    .. tab::
       :tabid: Maven
@@ -95,7 +101,6 @@ dependencies to your project by using the :guilabel:`Gradle` and
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>bson-kotlinx</artifactId>
-            <version>{+full-version+}</version>
         </dependency>
 
 .. _kotlin-data-class-annotation:
@@ -131,6 +136,33 @@ For more information on serializable classes and available annotation classes,
 see the `official Kotlin Serialization <https://github.com/Kotlin/kotlinx.serialization/blob/master/docs/basic-serialization.md#serializable-classes>`__ 
 documentation.
 
+.. _kotlin-data-class-query:
+
+Query Annotated Classes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can query annotated data classes by using the `Filters class
+<{+api-root+}/driver-kotlin-extensions/mongodb-driver-kotlin-extensions/com.mongodb.kotlin.client.model/-filters/index.html>`__
+from the ``mongodb-driver-kotlin-extensions`` package. This class allows
+you to create query filters on field names annotated with the
+``@SerialName`` annotation.
+
+.. tip::
+
+   To use the ``Filters`` class from the extension library, you must add the
+   ``mongodb-driver-kotlin-extensions`` dependency to your project. For more
+   information, see the :ref:`kotlin-builders-install-dependency` section of the
+   Use Builders with Data Classes guide.
+
+The following example queries the ``orders`` collection for documents that
+have a ``brand`` field value of ``"Sherwin-Williams"``:
+
+.. code-block:: kotlin
+   :copyable: true
+
+   val queryFilter = eq(PaintOrder::manufacturer, "Sherwin-Williams")
+   val results = collection.find(queryFilter)
+
 Custom Serializer Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -160,8 +192,8 @@ see the following API documentation:
 
 - `KSerializer <{+kotlin-docs+}/api/kotlinx.serialization/kotlinx-serialization-core/kotlinx.serialization/-k-serializer/>`__
 - `Instant <{+kotlin-docs+}/api/core/kotlin-stdlib/kotlin.time/-instant/>`__
-- `BsonEncoder <{+api+}/apidocs/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-bson-encoder/index.html>`__
-- `BsonDecoder <{+api+}/apidocs/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-bson-decoder/index.html>`__
+- `BsonEncoder <{+api-root+}/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-bson-encoder/index.html>`__
+- `BsonDecoder <{+api-root+}/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-bson-decoder/index.html>`__
 
 .. _kotlin-custom-codec:
 
@@ -173,7 +205,8 @@ package to create a codec for your ``@Serializable`` data classes and
 customize what is stored.
 
 Use the ``BsonConfiguration`` class to define the configuration, 
-including whether to encode defaults, encode nulls, or define class discriminators.
+including whether to encode defaults, encode nulls, define class discriminators,
+or enforce snake case.
 
 To create a custom codec, install the ``bson-kotlinx``
 dependency to your project. Select from the following tabs to see how to
@@ -191,7 +224,7 @@ add the dependency to your project by using the :guilabel:`Gradle` and
       .. code-block:: kotlin
         :caption: build.gradle.kts
 
-        implementation("org.mongodb:bson-kotlinx:{+full-version+}")
+        implementation("org.mongodb:bson-kotlinx")
 
    .. tab::
       :tabid: Maven
@@ -205,7 +238,6 @@ add the dependency to your project by using the :guilabel:`Gradle` and
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>bson-kotlinx</artifactId>
-            <version>{+full-version+}</version>
         </dependency>
 
 .. note:: bson-kotlin Dependency
@@ -215,14 +247,14 @@ add the dependency to your project by using the :guilabel:`Gradle` and
    and the codec registry to support Kotlin data classes, but it does
    not support certain POJO annotations such as ``BsonDiscriminator``,
    ``BsonExtraElements``, and ``BsonConstructor``. To learn more, see
-   the `bson-kotlin API documentation <{+api+}/apidocs/bson-kotlin/index.html>`__.
+   the `bson-kotlin API documentation <{+api-root+}/bson-kotlin/index.html>`__.
 
    Generally, we recommend that you install and use the faster
    ``bson-kotlinx`` library for codec configuration.
 
 Then, you can define your codec using the
 `KotlinSerializerCodec.create()
-<{+api+}/apidocs/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-kotlin-serializer-codec/-companion/index.html>`__
+<{+api-root+}/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-kotlin-serializer-codec/-companion/index.html>`__
 method and add it to the registry.
 
 Custom Codec Example
@@ -241,12 +273,33 @@ The following example shows how to create a codec using the
 .. literalinclude:: /examples/generated/KotlinXSerializationTest.snippet.custom-serialization.kt
     :language: kotlin
 
+.. _kotlin-serialization-snake-case-eg:
+
+Implement Snake Case Naming Strategy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When using ``bson-kotlinx`` package v5.4 or later, you can direct the driver to
+serialize data class field names written in camel case to snake case in MongoDB.
+The following example shows how to create and register a custom codec
+to convert data class field names into snake case by setting the
+``bsonNamingStrategy`` parameter in a codec:
+
+.. code-block:: kotlin
+    :copyable: true
+
+   import org.bson.codecs.kotlinx.BsonConfiguration
+   import org.bson.codecs.kotlinx.BsonNamingStrategy
+
+.. literalinclude:: /examples/generated/KotlinXSerializationTest.snippet.snake-case-naming.kt
+   :language: kotlin
+
 For more information about the methods and classes mentioned in this section,
 see the following API documentation:
 
-- `KotlinSerializerCodec <{+api+}/apidocs/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-kotlin-serializer-codec/index.html>`__
-- `KotlinSerializerCodec.create() <{+api+}/apidocs/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-kotlin-serializer-codec/-companion/create.html>`__
-- `BsonConfiguration <{+api+}/apidocs/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-bson-configuration/index.html>`__
+- `KotlinSerializerCodec <{+api-root+}/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-kotlin-serializer-codec/index.html>`__
+- `KotlinSerializerCodec.create() <{+api-root+}/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-kotlin-serializer-codec/-companion/create.html>`__
+- `BsonConfiguration <{+api-root+}/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-bson-configuration/index.html>`__
+- `BsonNamingStrategy <{+api-root+}/bson-kotlinx/bson-kotlinx/org.bson.codecs.kotlinx/-bson-naming-strategy/index.html>`__
  
 .. _kotlin-polymorphic:
 

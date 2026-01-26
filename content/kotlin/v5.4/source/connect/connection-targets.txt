@@ -1,0 +1,152 @@
+.. _kotlin-connection-targets:
+
+==========================
+Choose a Connection Target
+==========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: connection string, URI, server, settings, client, load balancing, srv, dns
+   :description: Learn how to connect to different MongoDB deployments with the Kotlin driver, including Atlas, local deployments, and replica sets.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use a connection string and ``MongoClient`` object
+to connect to different types of MongoDB deployments.
+
+Atlas
+-----
+
+To connect to a MongoDB deployment on Atlas, include the following elements
+in your connection string:
+
+- URL of your Atlas cluster
+- MongoDB username
+- MongoDB password
+
+Then, pass your connection string to the ``MongoClient.create()`` method.
+
+.. tip::
+
+   Follow the :atlas:`Atlas driver connection guide </driver-connection?tck=docs_driver_kotlin>`
+   to retrieve your connection string.
+
+When you connect to Atlas, we recommend using the {+stable-api+} client option to avoid
+breaking changes when Atlas upgrades to a new version of {+mdb-server+}.
+To learn more about the {+stable-api+} feature, see the :ref:`{+stable-api+} page
+<stable-api-kotlin>`.
+
+The following code shows how to use the Kotlin driver to connect to an Atlas cluster. The
+code also uses the ``serverApi`` option to specify a {+stable-api+} version:
+
+.. literalinclude:: /examples/generated/ConnectTest.snippet.connection-example.kt
+   :language: kotlin
+
+Local Deployments
+-----------------
+
+To connect to a local MongoDB deployment, use ``localhost`` as the hostname. By
+default, the ``mongod`` process runs on port 27017, though you can customize this for
+your deployment.
+
+The following code shows how to use the Kotlin driver to connect to a local MongoDB
+deployment:
+
+.. code-block:: kotlin
+
+   import com.mongodb.kotlin.client.coroutine.MongoClient
+
+   val uri = "mongodb://localhost:27017/"
+   val client = MongoClient.create(uri)
+
+.. _connect-replica-set:
+
+Replica Sets
+------------
+
+A MongoDB replica set deployment is a group of connected instances that
+store the same set of data. This configuration of instances provides data
+redundancy and high data availability.
+
+To connect to a replica set, specify the hostnames (or IP addresses) and 
+port numbers of the replica-set members.
+
+If you aren't able to provide a full list of hosts in the replica set, you can 
+specify one or more of the hosts in the replica set and instruct the {+driver-short+} to 
+perform automatic discovery to find the others. To instruct the driver to perform
+automatic discovery, perform one of the following actions:
+
+- Specify the name of the replica set as the value of the ``replicaSet`` parameter.
+- Specify ``false`` as the value of the ``directConnection`` parameter.
+- Specify more than one host in the replica set.
+
+.. note::
+
+   The ``MongoClient`` constructor is *non-blocking*.
+   When you connect to a replica set, the constructor returns immediately while the
+   client uses background threads to connect to the replica set.
+
+   If you construct a ``MongoClient`` and immediately print the string representation
+   of its ``nodes`` attribute, the list might be empty while the client connects to
+   the replica-set members.
+
+.. _mongo-client-settings-multiple-hosts:
+
+The following examples show how to connect to a MongoDB replica set running on port
+``27017`` of three different hosts by using either the ``ConnectionString`` or
+``MongoClientSettings`` class. Select the tab that corresponds to your preferred class.
+
+.. tabs::
+
+   .. tab:: ConnectionString
+      :tabid: connectionstring
+
+      .. literalinclude:: /examples/generated/ConnectTest.snippet.connect-to-multiple-hosts-with-string.kt
+         :language: kotlin
+
+   .. tab:: MongoClientSettings
+      :tabid: mongoclientsettings
+
+      .. literalinclude:: /examples/generated/ConnectTest.snippet.connect-to-multiple-hosts-with-mongo-client-settings.kt
+         :language: kotlin
+
+.. note:: Replica Set in Docker
+
+   .. sharedinclude:: dbx/docker-replica-set.rst
+
+DNS Service Discovery
+---------------------
+
+To use DNS service discovery to look up the DNS SRV record of the service you're connecting to,
+specify the SRV connection format in your connection string. Additionally, if you enable
+the SRV connection format, the Kotlin driver automatically re-scans for new hosts without
+having to change the client configuration.
+
+The following code shows a connection string that uses the SRV connection format:
+
+.. code-block:: kotlin
+
+   val uri = "mongodb+srv://<hostname>/"
+
+To learn more about the SRV connection format, see the :manual:`SRV Connection Format </reference/connection-string/#std-label-connections-dns-seedlist>` entry
+in the {+mdb-server+} manual.
+
+API Documentation
+-----------------
+
+To learn more about creating a ``MongoClient`` object in the Kotlin driver,
+see the following API documentation:
+
+- `MongoClient <{+driver-api+}/-mongo-client/index.html>`__
+- `MongoClientSettings <{+core-api+}/MongoClientSettings.Builder.html>`__
+- `ConnectionString <{+core-api+}/ConnectionString.html>`__
