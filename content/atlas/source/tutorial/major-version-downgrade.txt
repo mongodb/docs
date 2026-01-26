@@ -1,0 +1,185 @@
+.. _downgrade-major-MongoDB-version:
+
+:orphan:
+
+=============================================
+Downgrade Major MongoDB Version for a Cluster
+=============================================
+
+.. meta::
+   :description: Manage the Feature Compatibility Version and downgrade your Atlas cluster's MongoDB version.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The following procedures allow you to pin or unpin the |fcv| for your cluster, downgrade
+your cluster by one major version, or file a support ticket.
+
+Limitations
+-----------
+
+The following limitations apply to downgrading your cluster's version:
+
+- You can only downgrade your {+cluster+} using the procedure on this page if you
+  pinned the |fcv| before upgrading.
+- You can only downgrade your {+cluster+} to the major version that matches the pinned |fcv|.
+- You can only perform this action if the pinned |fcv| is only one major version below 
+  the current |fcv| and you don't have :manual:`rapid release </reference/versioning/>` enabled.
+- You can't downgrade to a version after it reaches end-of-life. Ensure pinning occurs
+  before the current version reaches end-of-life.
+- |fcv| pinning is only available on Dedicated {+clusters+}.
+- |fcv| pinning can't be extended beyond 4 weeks from the pin date.
+
+If a downgrade is necessary, and you did not pin the |fcv| before upgrading, you can:
+
+- Restore to a specific point in time:
+
+  - If you have :ref:`{+PIT-Restore+} <pit-restore>` enabled for your cluster, you can perform a |pit| restore to restore your cluster to a previous state with
+    the older MongoDB version:
+
+    - Create a new cluster with the previous major version.
+    - Perform a |pit| restore using the instructions in
+      :ref:`restore-from-continuous`.
+
+- Restore from an |service| snapshot:
+
+  - If you have :ref:`{+Cloud-Backup+} <backup-cloud-provider>` enabled
+    without {+pit-restore+}s, consider restoring the latest snapshot of
+    the cluster based on the previous version to a new cluster:
+
+    - Create a new cluster with the previous major version.
+    - Restore the latest snapshot before the MongoDB version upgrade to
+      the new cluster using the instructions in :ref:`restore-from-snapshot`.
+
+Required Access 
+---------------
+
+To downgrade a cluster by a major version, pin the |fcv| for your cluster,
+or unpin the |fcv| for your cluster, you must have the :authrole:`Project Owner`
+or higher role for the project.
+
+.. _pin-fcv:
+
+Pin the |fcv| for Your {+Cluster+}
+-----------------------------------
+
+When your {+cluster+} has a pinned |fcv|, a pin icon appears next to your {+cluster+}'s :guilabel:`Version`
+at the bottom of the {+cluster+} card. If you hover your cursor over the pin icon, a tooltip that
+shows the |fcv| and the expiration date appears.
+
+|service| unpins your {+cluster+}'s |fcv| on the next :ref:`maintenance window <configure-maintenance-window>` 
+starting on or after the expiration date.
+
+If you already upgraded your {+cluster+}'s MongoDB version, |service| upgrades its |fcv| to match 
+its MongoDB version after the pin expires.
+
+To pin the |fcv| for your {+cluster+}:
+
+.. tabs:: 
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      .. procedure::
+         :style: normal
+
+         .. include:: /includes/nav/steps-db-deployments-page.rst
+
+         .. step:: Click the :icon-fa5:`ellipsis-h` icon to the right of the {+database-deployment+}.
+
+         .. step:: Select :guilabel:`Pin Feature Compatibility Version`. 
+         
+            A modal appears with the :guilabel:`Feature Compatibility Version` and the :guilabel:`Set expiration date` field.
+
+         .. step:: Set the expiration date. 
+            
+            All dates are set to |iso8601-time|, in the ``MM/DD/YYYY`` format. Set the |fcv| expiration date 
+            to be within four weeks of the date to which you pinned the |fcv|. When the expiration date passes, the tooltip displays 
+            ``Expired XX/XX/XXXX``. Your |fcv| pin automatically expires after 4 weeks.
+
+            After the |fcv| pin expires, |service| unpins your {+cluster+}'s |fcv| on the next maintenance window starting on or after 
+            the expiration date. If you already upgraded your {+cluster+}'s MongoDB version, |service| upgrades its |fcv| to match its 
+            MongoDB version.
+   
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      To pin the |fcv| for your cluster using the {+atlas-admin-api+}, see 
+      :oas-bump-atlas-op:`Pin FCV for One Cluster from One Project <pingroupclusterfeaturecompatibilityversion>`.
+
+.. _unpin-fcv:
+
+Unpin the |fcv| for Your {+Cluster+}
+------------------------------------
+
+To unpin the |fcv| for your {+cluster+}:
+
+.. tabs::
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+   
+      .. procedure::
+         :style: normal
+
+         .. include:: /includes/nav/steps-db-deployments-page.rst
+
+         .. step:: Click the :icon-fa5:`ellipsis-h` icon to the right of the {+database-deployment+}.
+
+         .. step:: Select :guilabel:`Edit Pinned Feature Compatibility Version`. 
+         
+            A modal appears with the :guilabel:`Feature Compatibility Version` and the :guilabel:`Edit expiration date` field.
+
+         .. step:: Click :guilabel:`Unpin` next to the :guilabel:`Feature Compatibility Version`. 
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      To unpin the |fcv| for your cluster using the {+atlas-admin-api+}, see 
+      :oas-bump-atlas-op:`Unpin FCV for One Cluster from One Project <unpingroupclusterfeaturecompatibilityversion>`.
+
+
+.. _downgrade-major-version:
+
+Downgrade Your {+Cluster+} by One Major Version
+------------------------------------------------
+
+To downgrade your {+cluster+} by one major version: 
+
+.. tabs::
+   
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+   
+      .. procedure::
+         :style: normal
+
+         .. include:: /includes/nav/steps-db-deployments-page.rst
+
+         .. step:: Click the :icon-fa5:`ellipsis-h` icon to the right of the {+database-deployment+}.
+
+         .. step:: Select :guilabel:`Edit Configuration`.
+
+         .. step:: In the :guilabel:`Additional Settings` section of the {+cluster+} form, select a major version from the dropdown next to :guilabel:`Select a Version` that matches your cluster's |fcv|.
+
+            A warning banner appears indicating that your cluster's MongoDB version will be downgraded.
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      To downgrade your {+cluster+} by one major version using the API, see 
+      :oas-bump-atlas-op:`Modify One Cluster from One Project <updategroupcluster>`.
+
+Contact Support
+----------------
+
+.. include:: /includes/migration-support.rst

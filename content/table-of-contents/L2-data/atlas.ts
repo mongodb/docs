@@ -321,9 +321,14 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: 'Major MongoDB Version',
+            label: 'Upgrade Major MongoDB Version',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/tutorial/major-version-change',
+          },
+          {
+            label: 'Downgrade Major MongoDB Version',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/tutorial/major-version-downgrade',
           },
           {
             label: 'Maintenance Windows',
