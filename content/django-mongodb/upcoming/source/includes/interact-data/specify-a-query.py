@@ -100,6 +100,26 @@ Movie.objects.filter(awards__year__lt=2000)
 Movie.objects.filter(genres__overlap=["Adventure", "Family"])
 # end-array
 
+# start-geo
+from django.contrib.gis.geos import Polygon
+
+manhattan_coords = [
+    [-73.925492, 40.877410],
+    [-73.910372, 40.872366],
+    [-73.935127, 40.834020],
+    [-73.929049, 40.798569],
+    [-73.976485, 40.711432],
+    [-74.015747, 40.701229],
+    [-74.018859, 40.708367],
+    [-74.008007, 40.754307],
+    [-73.925492, 40.877410]
+]
+
+# Creates a polygon from the coordinates
+search_area = Polygon(manhattan_coords)
+Theater.objects.filter(location__geo__within=search_area)
+# end-geo
+
 # start-json
 Movie.objects.filter(imdb__votes__gt=900000)
 # end-json
