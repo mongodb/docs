@@ -276,6 +276,11 @@ const tocData: TocItem[] = [
             contentSite: 'drivers',
             url: '/docs/drivers/rust-frameworks/rocket/',
           },
+          {
+            label: 'Actix Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/rust-frameworks/actix/',
+          },
         ],
       },
       {

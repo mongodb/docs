@@ -1,0 +1,466 @@
+.. _rust-actix-integration:
+
+============================
+Integrate MongoDB with Actix
+============================
+
+.. facet::
+    :name: genre
+    :values: tutorial
+
+.. meta::
+    :keywords: web app, actix, code example, full stack, rust
+    :description: Build a  web application that uses MongoDB as the backend and Actix as the web framework. Learn how to use Actix with MongoDB to query data.
+
+.. contents:: On this page
+    :local:
+    :backlinks: none
+    :depth: 2    
+    :class: singlecol
+
+Overview
+--------
+
+This guide demonstrates how to build a web application using
+Actix Web and MongoDB. Actix is a powerful asynchronous web
+framework for Rust that makes it easy to build fast, type-safe
+HTTP services.
+
+The application in this tutorial consists of the following
+layers:
+
+- **Database Layer**: MongoDB (hosted on MongoDB Atlas) stores
+  and retrieves data.
+- **Server Layer**: Actix Web provides the HTTP server, routing,
+  and API endpoints to connect your frontend to your MongoDB
+  database.
+- **Data Management Layer**: Rust's type system and async/await
+  provide safe data handling with compile-time guarantees.
+- **Presentation Layer**: Server-rendered HTML pages, styled with
+  Tailwind CSS, display the sample restaurant data in a table.
+
+You will build a small application that:
+
+- Connects to a MongoDB Atlas cluster that contains the
+  ``sample_restaurants`` dataset
+- Exposes a ``/restaurants`` endpoint that lists all restaurants
+- Exposes a ``/browse`` endpoint that lists restaurants in Queens
+  with ``"Moon"`` in the name
+- Renders the results as an HTML table with a shared navigation
+  bar
+
+.. _rust-actix-why-use-mongodb-in-actix-application:
+
+Why Use MongoDB in an Actix Application?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+MongoDB's flexible document model stores data as BSON/JSON-like
+documents. This works naturally with Rust structs that model your
+data, without complex ORM layers or schema migrations.
+
+When you combine Actix Web and the async MongoDB Rust driver,
+this stack provides:
+
+- Flexible data structures that can evolve without costly
+  migrations
+- Async, non-blocking I/O for high concurrency and performant APIs
+- Strong type safety from the database layer up through your
+  handlers and models
+- Simple integration with web views (HTML templates or manual
+  string building, as in this tutorial)
+
+This combination works for applications that need the following:
+
+- Evolving schemas over time
+- High throughput and concurrency
+- Strong compile-time guarantees about data shapes
+
+.. _rust-actix-quick-start-tutorial:
+
+Quick Start Tutorial
+--------------------
+
+This tutorial guides you through building an Actix Web
+application that integrates with MongoDB. The application
+accesses sample restaurant data in a MongoDB Atlas cluster and
+displays the results in your browser.
+
+.. tip::
+    If you prefer to connect to MongoDB by using the Rust driver
+    without Actix Web, see the :driver:`Rust Driver Quick Start
+    </rust/current/quick-start>` guide.
+
+.. _rust-actix-set-up-your-project:
+
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to install prerequisites,
+create a MongoDB Atlas cluster, and scaffold the Rust project.
+
+.. procedure:: 
+    :style: connected
+
+    .. step:: Verify the prerequisites
+
+        To create the Quick Start application, ensure you have the following installed:
+
+        .. list-table::
+            :header-rows: 1
+
+            * - Prerequisite
+              - Notes
+
+            * - Rust
+              - Install the latest stable version of `Rust
+                <https://www.rust-lang.org/tools/install>`__.
+
+            * - Code Editor
+              - This tutorial uses `Visual Studio Code
+                <https://code.visualstudio.com/>`__ with the Rust
+                extension, but you can use the editor of your choice.
+            
+            * - Terminal
+              - Use Terminal or similar app for MacOS. Use PowerShell
+                for Windows.
+
+    .. step:: Create a MongoDB Atlas cluster
+
+        MongoDB Atlas is a fully managed cloud database service that
+        hosts your MongoDB deployments. If you do not have a MongoDB
+        deployment, create a MongoDB cluster for free (no credit card
+        required) by completing the `MongoDB Get Started
+        <https://www.mongodb.com/docs/get-started/?language=rust>`__
+        tutorial. The MongoDB Get Started tutorial also demonstrates
+        how to load sample datasets into your cluster, including the
+        ``sample_restaurants`` database that this tutorial uses. 
+
+        .. important::
+        
+            Ensure you have the sample_restaurants dataset loaded into
+            your cluster before proceeding. A missing sample_restaurants
+            dataset results in empty restaurants lists on your sample pages. 
+
+        To connect to your MongoDB cluster, use a **connection URI**.
+        To learn how to retrieve your connection URI, see the
+        `Add your connection string
+        <https://www.mongodb.com/docs/get-started/?language=rust#add-your-connection-string>`__
+        section of the MongoDB Get Started tutorial.
+
+        .. tip::
+        
+            Save your connection URI in a secure location. You will
+            add it to a ``.env`` file later.
+
+    .. step:: Create your Rust project
+
+        Run the following command in your terminal to create a new Rust project:
+
+        .. code-block:: bash
+
+            cargo new actix-quickstart
+            cd actix-quickstart
+
+        This command creates a new Rust project named
+        ``actix-quickstart`` and navigates into the project directory.
+
+    .. step:: Configure your project dependencies
+
+        Open ``Cargo.toml`` and replace the ``[dependencies]`` section with the following:
+
+        .. literalinclude:: /includes/rust-frameworks/actix/Cargo.toml
+            :caption: actix-quickstart/Cargo.toml
+            :language: toml
+
+        Install the new dependencies by running the following command in your terminal:
+        
+        .. code-block:: bash
+
+            cargo build
+
+        These dependencies provide:
+
+        - ``actix-web``: HTTP server, routing, and request/response
+          types.
+        - ``mongodb``: Official async MongoDB driver for Rust.
+        - ``tokio``: Async runtime used by Actix Web and the MongoDB
+          driver.
+        - ``serde`` / ``serde_json``: Serialization and deserialization for
+          JSON and BSON data.
+        - ``dotenv``: Loads environment variables from a .env file for
+          local development.
+        - ``futures``: Utilities for working with async streams (used for
+          MongoDB cursors).
+
+.. _rust-actix-configure-back-end:
+
+Configure the Back End
+~~~~~~~~~~~~~~~~~~~~~~
+
+After you set up the project, follow the steps in this section
+to configure environment variables, set up your MongoDB
+connection, define your data model, and implement the database
+query services.
+
+.. procedure::
+    :style: connected
+
+    .. step:: Configure your environment variables
+
+        Create a ``.env`` file at the root of your project to store
+        your MongoDB connection URI.
+
+        Run the following command in  your project root:
+
+        .. code-block:: bash
+
+            touch .env
+
+        Open ``.env`` and add your connection URI and port number:
+
+        .. code-block:: bash
+            
+            MONGO_URI="<your-mongodb-connection-uri>"
+            PORT=5050
+        
+        Replace ``<your-mongodb-connection-uri>`` with the connection URI 
+        you saved earlier.
+
+    .. step:: Create the database connection module
+        
+        Create a new file named ``db.rs`` in the ``src`` directory to
+        manage the MongoDB connection.
+
+        Run the following command in your project root:
+
+        .. code-block:: bash
+
+            touch src/db.rs
+
+        Open ``db.rs`` and add the following code to set up the MongoDB
+        client and database connection:
+
+        .. literalinclude:: /includes/rust-frameworks/actix/db.rs
+            :caption: actix-quickstart/src/db.rs
+            :language: rust
+
+        This module:
+
+        - Parses the MongoDB connection string from your environment.
+        - Configures the driver's app_name for easier observability.
+        - Creates a Client and returns a Database handle for the
+          ``sample_restaurants`` database.
+
+    .. step:: Define the restaurant data model
+
+        Create a new file named ``models.rs`` in the ``src`` directory to
+        define the restaurant data model.
+
+        Run the following command in your project root:
+
+        .. code-block:: bash
+
+            touch src/models.rs
+
+        Open ``models.rs`` and add the following code to define the
+        Restaurant struct:
+
+        .. literalinclude:: /includes/rust-frameworks/actix/models.rs
+            :caption: actix-quickstart/src/models.rs
+            :language: rust
+
+        This struct represents a restaurant document in the MongoDB
+        collection. It uses Serde annotations to map BSON fields to
+        Rust struct fields.
+
+    .. step:: Create the restaurant query service
+
+        Create a service module that isolates MongoDB query logic
+        from the HTTP handlers.
+
+        Run the following commands in your project root:
+
+        .. code-block:: bash
+
+            mkdir -p src/services
+            touch src/services/restaurant_queries.rs
+
+        Open ``restaurant_queries.rs`` and add the following code:
+
+        .. literalinclude:: /includes/rust-frameworks/actix/services/restaurant_queries.rs
+            :caption: actix-quickstart/src/services/restaurant_queries.rs
+            :language: rust
+
+        This file contains two async functions:
+        
+        - ``fetch_all()``: Returns all restaurants with a field
+          projection.
+        - ``fetch_by_borough()``: Returns restaurants filtered by
+          borough and by a case-insensitive name regex.
+
+        Both functions return ``Vec<RestaurantRow>`` so your presentation
+        layer does not need to deal with raw BSON.
+
+    .. step:: Export the service module
+
+        Run the following command in your project root:
+
+        .. code-block:: bash
+
+            touch src/services/mod.rs
+
+        Open ``mod.rs`` and add the following code to export the
+        ``restaurant_queries`` module:
+
+        .. literalinclude:: /includes/rust-frameworks/actix/services/mod.rs
+            :caption: actix-quickstart/src/services/mod.rs
+            :language: rust
+
+.. _rust-actix-configure-front-end:
+
+Configure the Front End
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Now that the database and service layers are in place, configure Actix Web to:
+
+- Initialize the MongoDB connection
+- Define shared application state
+- Expose the ``/restaurants`` and ``/browse`` endpoints
+- Render HTML pages with Tailwind CSS
+
+.. procedure::
+    :style: connected
+
+    .. step:: Create the HTTP route handlers
+
+        Create a module that holds your Actix Web HTTP route handlers and HTML rendering logic.
+
+        From your project root, run the following command:
+
+        .. code-block:: bash
+
+            touch src/pages.rs
+
+        Open ``pages.rs`` and add the following code:
+
+        .. literalinclude:: /includes/rust-frameworks/actix/pages.rs
+            :caption: actix-quickstart/src/pages.rs
+            :language: rust
+
+        This module:
+
+        - Defines the ``/restaurants`` and ``/browse`` endpoints.
+        - Calls the database query services ``fetch_all`` and
+          ``fetch_by_borough``.
+        - Renders a full HTML page with Tailwind CSS and a reusable
+          navigation bar.
+
+    .. step:: Update the main application file
+
+        Replace the contents of ``main.rs`` with the following code:
+
+        .. literalinclude:: /includes/rust-frameworks/actix/main.rs
+            :caption: actix-quickstart/src/main.rs
+
+        This file:
+
+        - Declares the modules used in the app (``db``, ``models``,
+          ``services``, ``pages``).
+        - Defines an ``AppState`` struct that holds the restaurants
+          collection, shared across handlers.
+        - Implements the ``/health`` endpoint.
+        - Reads ``MONGO_URI`` and ``PORT`` from the environment.
+        - Initializes the MongoDB database and ``restaurants``
+          collection.
+        - Pings your MongoDB cluster to verify connectivity.
+        - Starts an Actix Web HTTP server and registers your routes:
+
+          - ``/health``
+          - ``/restaurants``
+          - ``/browse``
+
+    .. step:: Verify your file structure
+
+        Before you run the application, ensure your file tree is
+        structured similarly to the following:
+
+        .. code-block:: text
+            :copyable: false
+
+            actix-quickstart
+            ├── Cargo.toml        <-- Project config + dependencies>
+            ├── .env              <-- Environment variables>
+            └── src
+                ├── main.rs       <-- Application entry point>
+                ├── db.rs         <-- MongoDB connection module>
+                ├── models.rs     <-- RestaurantRow model + BSON mapping>
+                ├── pages.rs      <-- HTTP route handlers + HTML rendering>
+                └── services
+                    ├── mod.rs    <-- Service module exports>
+                    └── restaurant_queries.rs <-- MongoDB query services>
+
+        Rust tooling creates additional files such as ``target/`` when
+        you build. You can safely ignore these files.
+
+.. _rust-actix-run-your-application:
+
+Run Your Application
+~~~~~~~~~~~~~~~~~~~~
+
+Follow the remaining steps to start the server and view the
+rendered restaurant data.
+
+.. procedure::
+    :style: connected
+
+    .. step:: Start the Actix Web server
+
+        From your project root, run the following command to start the server:
+
+        .. code-block:: bash
+
+            cargo run
+
+        Cargo compiles your application and starts the Actix Web
+        server on port 5050 defined in your ``.env`` file.
+
+        When successful, you see output similar to the following:
+
+        .. code-block:: text
+            :copyable: false
+
+            Starting server on port 5050...
+            MongoDB ping result: Ok(Document({"ok": Int32(1)}))
+
+    .. step:: Open the application in your browser
+
+        Open your web browser and navigate to
+        ``http://localhost:5050/restaurants`` to view all restaurants.
+
+        .. figure:: /figures/rust-landing.png
+            :alt: Restaurants Page
+            
+
+    .. step:: Browse restaurants in Queens with "Moon" in the name
+
+        Click the :guilabel:`Browse` link in the header to view a
+        filtered list of restaurants in Queens with ``Moon`` in the
+        name.
+
+        .. figure:: /figures/rust-filtered.png
+            :alt: Browse Restaurants Page
+
+Congratulations on completing the Quick Start tutorial!
+
+After you complete these steps, you have an Actix Web
+application that connects to your MongoDB deployment, runs
+queries on sample restaurant data, and renders the results.
+
+Additional Resources
+--------------------
+
+To learn more about Actix Web, MongoDB, and related tooling, see:
+
+- `Actix Web <https://actix.rs/>`__ documentation
+- :driver:`MongoDB Rust Driver </rust/current>` documentation  
