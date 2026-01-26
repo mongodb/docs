@@ -12,11 +12,11 @@
       #. Toggle :guilabel:`Termination Protection` to :guilabel:`Off`.
       #. Click :guilabel:`Review Changes`.
       #. Click :guilabel:`Apply Changes`.
-      
+
    .. step:: Click :icon-mms:`ellipsis` next to the cluster you want to terminate.
       
    .. step:: Click :guilabel:`Terminate` from the drop-down menu.
-      
+
    .. step:: (Optional) Keep existing snapshots after termination.
       
       If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>` and 
@@ -27,12 +27,15 @@
       <recover-pit-continuous-cloud-backup>` in a static state until 
       |service| can no longer use them for {+pit-restore+}.
       
-      Otherwise, if you have {+Cloud-Backup+} enabled, you can toggle 
-      :guilabel:`Keep existing snapshots after termination` to 
-      :guilabel:`On`.
-      
-      If you have {+Cloud-Backup+} disabled, this option is unavilable.
-      
+      Otherwise, if you are terminating a cluster with {+Cloud-Backup+} 
+      enabled, you must toggle :guilabel:`Keep existing snapshots after 
+      termination` to :guilabel:`On` to retain any existing snapshots 
+      after termination. This option instructs |service| to keep the 
+      existing snapshots and :term:`oplog` for the cluster according to 
+      your cluster's 
+      :ref:`backup policy <cloud-provider-retention-policy>`. If you 
+      have {+Cloud-Backup+} disabled, this option is unavilable.
+            
    .. step:: Confirm the termination.
       
       a. Enter the cluster name.
