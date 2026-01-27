@@ -95,12 +95,6 @@
             :icon-alt: Scala Driver icon
 
          .. card::
-            :headline: Swift
-            :url: https://www.mongodb.com/docs/drivers/swift/
-            :icon: /images/icons/swift.svg
-            :icon-alt: Swift Driver icon
-
-         .. card::
             :headline: TypeScript
             :url: https://www.mongodb.com/docs/languages/javascript/
             :icon: /images/icons/ts.svg
