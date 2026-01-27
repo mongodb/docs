@@ -243,6 +243,13 @@ idx=1
 for rel_path in "${TARGET_REL_PATHS[@]}"; do
   printf "%b\n" "${BOLD}${MAGENTA}→ Starting project${RESET} [${BOLD}${BLUE}${idx}/${TOTAL_PROJECTS}${RESET}] ${YELLOW}$rel_path${RESET}\n"
   abs_input="$CONTENT_DIR/$rel_path"
+
+  # Remove existing project output directory to ensure a clean conversion
+  project_output="$OUTPUT_DIR/$rel_path"
+  if [[ -d "$project_output" ]]; then
+    log_step "0/3" "${CYAN}Removing existing project output: ${YELLOW}$project_output${RESET}\n"
+    rm -rf "$project_output"
+  fi
   zip_file_name="$rel_path.zip"
   zip_path="$TMP_ZIPS_DIR/$zip_file_name"
   # Ensure nested directory exists when rel_path contains slashes
