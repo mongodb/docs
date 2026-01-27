@@ -101,70 +101,71 @@ content: |-
 ref: collation-index-use
 content: |-
    To use an index for string comparisons, an operation must also
-   specify the same collation. That is, an index with a collation
-   cannot support an operation that performs string comparisons on the
-   indexed fields if the operation specifies a different collation.
+   specify the same collation. If an operation specifies a different collation 
+   than the index specifies, the index cannot support string comparisons on the 
+   indexed fields.
 
    .. warning::
+      
+      Collation-aware index keys might be larger than index keys for indexes 
+      without collation because indexes that are configured with collation use 
+      ICU collation keys to achieve sort order.
 
-      Because indexes that are configured with collation use ICU
-      collation keys to achieve sort order, collation-aware index keys
-      may be larger than index keys for indexes without collation. 
+   Use the following code to create an index on the ``movies`` collection of the
+   ``sample_mflix`` database with the collation locale ``"fr"`` for string 
+   comparisons:
 
-   .. include:: /includes/collation-data-setup.rst
-   
-   The ``restaurants`` collection has an index on a string field
-   ``category`` with the collation locale ``"fr"``.
-
-   .. code-block:: javascript
-
-      db.restaurants.createIndex( { category: 1 }, { collation: { locale: "fr" } } )
+   .. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/collation/create-collation-index/run-pipeline.snippet.create-collation-index.js
+      :language: javascript
+      :category: usage example
 
    The following query, which specifies the same collation as the index,
    can use the index:
 
-   .. code-block:: javascript
-
-      db.restaurants.find( { category: "cafe" } ).collation( { locale: "fr" } )
+   .. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/collation/find-collation-index/run-pipeline.snippet.find-collation-index.js
+      :language: javascript
+      :category: usage example
 
    However, the following query operation, which by default uses the
-   "simple" binary collator, cannot use the index:
+   "simple" binary collator, cannot use the index and requires a ``COLLSCAN``.
 
-   .. code-block:: javascript
-
-      db.restaurants.find( { category: "cafe" } )
+   .. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/collation/find-no-collation-index/run-pipeline.snippet.find-no-collation-index.js
+      :language: javascript
+      :category: usage example
 
    For a compound index where the index prefix keys are not strings,
    arrays, and embedded documents, an operation that specifies a
    different collation can still use the index to support comparisons
    on the index prefix keys.
 
-   For example, the collection ``restaurants`` has a compound index on the
-   numeric fields ``score`` and ``price`` and the string field
-   ``category``; the index is created with the  collation locale
-   ``"fr"`` for string comparisons:
+   For example, you can use the following code to create a compound index on the
+   ``movies`` collection of the ``sample_mflix`` database specifying the 
+   numeric fields ``year`` and ``metacritic`` and the string field ``title``. 
+   The index also specifies the collation locale ``"fr"`` for string 
+   comparisons:
 
-   .. code-block:: javascript
-
-      db.restaurants.createIndex(
-         { score: 1, price: 1, category: 1 },
-         { collation: { locale: "fr" } } )
+   .. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/collation/create-collation-compound-index/run-pipeline.snippet.create-collation-compound-index.js
+      :language: javascript
+      :category: usage example
 
    The following operations, which use ``"simple"`` binary collation
    for string comparisons, can use the index:
 
-   .. code-block:: javascript
+   .. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/collation/find-compound-collation-index-year/run-pipeline.snippet.find-compound-collation-index-year.js
+      :language: javascript
+      :category: usage example
 
-      db.restaurants.find( { score: 5 } ).sort( { price: 1 } )
-      db.restaurants.find( { score: 5, price: { $gt: Decimal128( "10" ) } } ).sort( { price: 1 } )
+   .. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/collation/find-compound-collation-index-year-title/find.snippet.find-compound-collation-index-year-title.js
+      :language: javascript
+      :category: usage example
 
    The following operation, which uses ``"simple"`` binary collation
-   for string comparisons on the indexed ``category`` field, can use
-   the index to fulfill only the ``score: 5`` portion of the query:
+   for string comparisons on the indexed ``title`` field, can use
+   the index to fulfill only the ``year: 2012`` portion of the query:
 
-   .. code-block:: javascript
-
-      db.restaurants.find( { score: 5, category: "cafe" } )
+   .. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/collation/find-compound-index-year-partial/run-pipeline.snippet.find-compound-index-year-partial.js
+      :language: javascript
+      :category: usage example
    
    To confirm whether a query used an index, run the query with the
    :method:`~cursor.explain()` option.
