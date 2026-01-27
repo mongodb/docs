@@ -144,6 +144,17 @@ Configure MongoDB Community Edition
       Create credentials files for ``mongot`` to connect to |voyage| if you 
       want {+avs+} to automatically generate embeddings for text fields in 
       your collection and text strings in your queries.
+
+      .. note::
+
+         If you create a Voyage AI API key through the `Atlas UI <https://www.mongodb.com/docs/voyageai/management/api-keys/>`__, the key only 
+         authenticates requests to ``https://ai.mongodb.com/v1/embeddings``. 
+         
+         Conversely, API keys created through `VoyageAI <https://docs.voyageai.com/docs/api-key-and-installation>`__ directly only 
+         authenticate requests to ``https://api.voyageai.com/v1/embeddings``. 
+
+         Requests that include an API key to the opposite endpoint result in an 
+         authentication error (``403``).
       
       a. Run the following command after replacing ``<your-voyage-api-key>``
          with your valid |voyage| |api| key to create two files named
@@ -316,20 +327,14 @@ Configure MongoDB Community Edition
             replication:
                replSetName: rs0
 
+      Select one of the two following ``mongot.conf`` configurations based on
+      whether you created |voyage| |api| keys for Automated Embedding in the 
+      {+atlas-ui+} or directly from |voyage|.
+
       .. collapsible::
-         :heading: mongot.conf 
+         :heading: mongot.conf (Voyage API Key Created from the {+atlas-ui+})
          :expanded: false
 
-         .. note:: 
-
-            The ``providerEndpoint`` value depends on whether you create the 
-            keys from {+atlas-ui+} or |voyage|. The value must be: 
-
-            - ``https://ai.mongodb.com/v1/embeddings`` for keys generated from the 
-              {+atlas-ui+}
-            - ``https://api.voyageai.com/v1/embeddings`` for keys generated from 
-              |voyage|
-               
          .. code-block:: shell
             :linenos:
 
@@ -352,6 +357,41 @@ Configure MongoDB Community Edition
                queryKeyFile: "/mongot-community/voyage-api-query-key"
                indexingKeyFile: "/mongot-community/voyage-api-indexing-key"
                providerEndpoint: "https://ai.mongodb.com/v1/embeddings"
+               isAutoEmbeddingViewWriter: true
+            metrics:
+               enabled: true
+               address: "mongot.search-community:9946"
+            healthCheck:
+               address: "mongot.search-community:8080"
+            logging:
+               verbosity: INFO
+
+      .. collapsible::
+         :heading: mongot.conf (Voyage API Key Created directly from Voyage AI)
+         :expanded: false
+
+         .. code-block:: shell
+            :linenos:
+
+            syncSource:
+               replicaSet:
+                  hostAndPort: "mongod.search-community:27017"
+                  username: "mongotUser"
+                  passwordFile: "/mongot-community/pwfile"
+                  authSource: "admin"
+                  tls: false
+                  readPreference: "primaryPreferred"
+            storage:
+               dataPath: "data/mongot"
+            server:
+               grpc:
+                  address: "mongot.search-community:27028"
+                  tls:
+                     mode: "disabled"
+            embedding:
+               queryKeyFile: "/mongot-community/voyage-api-query-key"
+               indexingKeyFile: "/mongot-community/voyage-api-indexing-key"
+               providerEndpoint: "https://api.voyageai.com/v1/embeddings"
                isAutoEmbeddingViewWriter: true
             metrics:
                enabled: true
