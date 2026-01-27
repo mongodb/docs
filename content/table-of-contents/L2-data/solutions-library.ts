@@ -39,6 +39,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/card-fraud-solution',
           },
           {
+            label: 'Financial Crime Mitigation',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/fincrime-mitigation',
+          },
+          {
             label: 'Fraud Detection Accelerator',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/fraud-detection-accelerator',
