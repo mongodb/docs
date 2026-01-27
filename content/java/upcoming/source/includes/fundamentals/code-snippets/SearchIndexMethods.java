@@ -82,6 +82,22 @@ public class SearchIndexMethods {
             // start drop-search-index
             collection.dropSearchIndex("myIndex");
             // end drop-search-index
+
+            // start autoembedding-indexes
+            SearchIndexModel indexModel = new SearchIndexModel(
+                    "myIndex",
+                    new Document("fields",
+                            Collections.singletonList(
+                                    new Document("type", "autoEmbed")
+                                            .append("modality", "text")
+                                            .append("model", "voyage-4-large")
+                                            .append("path", "plot")
+                            )
+                    ),
+                    SearchIndexType.vectorSearch()
+            );
+            collection.createSearchIndexes(Collections.singletonList(indexModel));
+            // end autoembedding-indexes
         }
     }
 }
