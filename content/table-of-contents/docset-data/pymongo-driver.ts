@@ -360,6 +360,11 @@ const tocData: TocItem[] = [
             contentSite: 'pymongo',
             url: '/docs/languages/python/pymongo-driver/:version/integrations/test-package-library',
           },
+          {
+            label: 'Tutorial: Deploy a Flask App to Azure Container Apps',
+            contentSite: 'pymongo',
+            url: '/docs/languages/python/pymongo-driver/:version/integrations/flask-azure',
+          },
         ],
       },
       {
