@@ -5,6 +5,8 @@ import { Reference } from '@/mdx-components/Reference';
 import Admonition from '@/components/admonition';
 import Heading from '@/components/heading';
 import Section from '@/components/section';
+import Banner from '@/components/banner/banner';
+import Paragraph from '@/components/paragraph';
 import Transition from '@/components/transition';
 import Literal from '@/components/literal';
 import List from '@/components/list';
@@ -20,6 +22,8 @@ export const components = (injectedProps?: InjectedProps) =>
     Image: (props) => <Image {...props} {...injectedProps} />,
     Include: (props) => <Include {...props} {...injectedProps} />,
     Reference: (props) => <Reference {...props} {...injectedProps} />,
+    // standard markdown elements
+    p: ({ children, ...props }) => <Paragraph {...props}>{children}</Paragraph>,
     // dummy mappings for everything else
     Tip: ({ children, ...props }) => (
       <Admonition name="tip" {...props}>
@@ -36,7 +40,7 @@ export const components = (injectedProps?: InjectedProps) =>
         {children}
       </Admonition>
     ),
-    Banner: ({ children }) => <span>{children}</span>,
+    Banner: ({ children, ...props }) => <Banner {...props}>{children}</Banner>,
     Blockquote: ({ children }) => <blockquote>{children}</blockquote>,
     Button: ({ children }) => <span>{children}</span>,
     Card: ({ children }) => <span>{children}</span>,
@@ -53,6 +57,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Cond: ({ children }) => <span>{children}</span>,
     Container: ({ children }) => <span>{children}</span>,
     CTABanner: ({ children }) => <span>{children}</span>,
+    DefaultDomain: ({ children }) => <span>{children}</span>,
     DefinitionList: ({ children }) => <span>{children}</span>,
     DefinitionListItem: ({ children }) => <span>{children}</span>,
     Deprecated: ({ children }) => <span>{children}</span>,
@@ -86,7 +91,6 @@ export const components = (injectedProps?: InjectedProps) =>
     Only: ({ children }) => <span>{children}</span>,
     Output: ({ children }) => <span>{children}</span>,
     OpenAPIChangelog: ({ children }) => <span>{children}</span>,
-    Paragraph: ({ children }) => <span>{children}</span>,
     Procedure: ({ children }) => <span>{children}</span>,
     Ref: ({ children }) => <span>{children}</span>,
     ReleaseSpecification: ({ children }) => <span>{children}</span>,

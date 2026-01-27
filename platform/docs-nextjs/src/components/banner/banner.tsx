@@ -56,7 +56,8 @@ const bannerStyle = ({ variant }: BannerNode['options']) => css`
 `;
 
 export interface BannerProps {
-  nodeChildren: ASTNode[];
+  children?: React.ReactNode;
+  nodeChildren?: ASTNode[];
   options?: BannerOptions;
 }
 
@@ -65,9 +66,9 @@ export interface BannerOptions {
   locale?: string;
 }
 
-const Banner = ({ nodeChildren, options, ...rest }: BannerProps) => {
+const Banner = ({ children, nodeChildren, options, ...rest }: BannerProps) => {
   const { setHasBanner } = usePageContext();
-  const children = nodeChildren;
+
   // Get the current locale (language + region) i.e. es-US, fr-FR
   const locale = getCurrLocale();
 
@@ -91,9 +92,7 @@ const Banner = ({ nodeChildren, options, ...rest }: BannerProps) => {
         }),
       )}
     >
-      {children.map((child, i) => (
-        <ComponentFactory {...rest} key={i} nodeData={child} />
-      ))}
+      {children ?? nodeChildren?.map((child, i) => <ComponentFactory {...rest} key={i} nodeData={child} />)}
     </LeafyBanner>
   );
 };
