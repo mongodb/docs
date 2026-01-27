@@ -120,6 +120,21 @@ If your tests are failing, these are a few common causes:
     locally in Docker, check that your Docker container is running and exposes
     the port you use in your connection string.
 
+- Tests take a long time to run or time out.
+
+  - Tests may take a long time to run if there is a problem with your environment
+    configuration. Many things can cause timeouts, including:
+
+    - Problems with the connection string: refer to the previous section for
+      help troubleshooting the connection string.
+    - Deployment unavailable: check that your Atlas cluster or local MongoDB
+      deployment is running and accessible. If using Atlas, make sure your
+      cluster is not paused and that it is accessible to your IP address.
+    - SSL errors related to certificates: If you get an error resembling
+      ``[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed``
+      refer to the `PyMongo TLS documentation <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/security/tls/#certificate_verify_failed>`__
+      for options to resolve the issue.
+
 - Tests run, but do not pass. This could be related to a few types of issues:
 
   - Shared state. You may have issues related to tests interacting with each
