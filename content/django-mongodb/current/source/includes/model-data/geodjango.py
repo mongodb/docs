@@ -16,5 +16,5 @@ class Theater(models.Model):
         managed = False
     
     def __str__(self):
-        return self.theater_id
+        return str(self.theater_id)
 # end-geo-models
