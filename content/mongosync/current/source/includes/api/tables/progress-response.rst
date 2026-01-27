@@ -35,6 +35,35 @@
        Index validation continues until the :ref:`commit
        <c2c-api-commit>` is complete.
 
+   * - ``indexBuilding``
+     - object
+     - Shows real-time progress of index builds on the destination cluster if you
+       set ``buildIndexes`` to ``afterDataCopy`` or ``excludeHashedAfterCopy``
+       when calling ``start``. This object is only displayed during the
+       :ref:`Change Event Application <c2c-cea>` phase.
+
+       :gold:`IMPORTANT:` Because ``mongosync`` creates indexes for the largest
+       collections first, the percentage of indexes built might not linearly
+       correspond to the percentage of time elapsed.
+   
+   * - ``indexBuilding.indexesBuilt``
+     - integer
+     - The number of indexes that ``mongosync`` has finished building.
+
+   * - ``indexBuilding.totalIndexesToBuild``
+     - integer
+     - The total number of indexes that ``mongosync`` needs to build, 
+       including those that it has finished building.
+
+   * - ``indexBuilding.collectionsFinished``
+     - integer
+     - The number of collections that ``mongosync`` has completed index builds for.
+
+   * - ``indexBuilding.collectionsTotal``
+     - integer
+     - The total number of collections that ``mongosync`` needs to build indexes
+       for, including those that have been completed.
+
    * - ``info``
      - string
      - Provides extra information on the synchronization progress.
@@ -142,6 +171,31 @@
      - string
      - Destination cluster. Returned in the form
        ``<cluster name>: <host>:<port>``.
+  
+   * - ``estimatedOplogTimeRemaining``
+     - string
+     - Shows estimate of the oplog time available on the source cluster.
+       Possible values include a duration (for example, ``"12 hours"``,
+       ``"4 hours"``, or ``"45 minutes"``) and special cases such as
+       ``"more than 72 hours"``, ``"less than 15 minutes"``, and
+       ``"not checked yet"``.
+
+       ``mongosync`` calculates ``estimatedOplogTimeRemaining`` as the time window
+       between the oldest available oplog entry on the source cluster and the
+       oldest oplog entry that ``mongosync`` still needs to complete
+       successfully. ``mongosync`` updates this value every five minutes.
+
+       :gold:`IMPORTANT:` If you increase the oplog size on the source cluster,
+       ``estimatedOplogTimeRemaining`` might not increase immediately. As
+       ``mongosync`` processes the source oplog, the available oplog window
+       typically increases.
+
+       ``mongosync`` reports ``estimatedOplogTimeRemaining`` only while it checks
+       oplog time. ``mongosync`` includes this field only when it is in the
+       ``RUNNING`` state and only before the ``/progress`` endpoint returns
+       ``canWrite=true``.
+    
+       .. versionadded:: 1.19
 
    * - ``estimatedSecondsToCEACatchup``
      - integer
@@ -311,3 +365,21 @@
 
        .. versionadded:: 1.9
 
+   * - ``warnings``
+     - array of strings
+     - Warning messages that ``mongosync`` detects. If ``mongosync`` detects no
+       warnings, it omits this field.
+
+       If the estimated oplog time remaining is very low, ``mongosync`` adds a
+       warning that describes the issue and links to the documentation. For example:
+
+       .. code-block:: json
+
+          "warnings": [
+            "The amount of available oplog on the source cluster is too small for mongosync to complete successfully.
+            For more details, see https://www.mongodb.com/docs/cluster-to-cluster-sync/current/reference/oplog-sizing/."
+          ]
+
+       For more details, see :ref:`c2c-oplog-sizing`.
+
+       .. versionadded:: 1.19

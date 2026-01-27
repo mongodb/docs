@@ -292,6 +292,12 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: '1.19',
+            contentSite: 'mongosync',
+            url: '/docs/mongosync/:version/release-notes/1.19',
+            versions: { excludes: mongosyncVersions.before('v1.19') },
+          },
+          {
             label: '1.18',
             contentSite: 'mongosync',
             url: '/docs/mongosync/:version/release-notes/1.18',

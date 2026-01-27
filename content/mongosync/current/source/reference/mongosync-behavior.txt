@@ -409,6 +409,50 @@ with the migrated cluster.
 Performance
 -----------
 
+.. _mongosync-index-build-optimizations:
+
+Index Build Optimizations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.19
+
+Index Build Batch Sizes
+'''''''''''''''''''''''
+
+If your source cluster runs MongoDB 6.0 or later, or you set
+``buildIndexes`` to ``afterDataCopy`` or ``excludeHashedAfterCopy``
+when running :ref:`c2c-api-start`, ``mongosync`` builds indexes on the
+destination cluster after data copy. It programmatically computes an 
+appropriate batch size when calling :dbcommand:`createIndexes` to build 
+indexes on destination clusters hosted on MongoDB Atlas.
+For non-Atlas clusters, ``mongosync`` resorts to a default batch size of 2, as
+it cannot reliably assess the memory allocated for index builds.
+
+You can find the computed batch size in the ``mongosync`` logs by searching
+for "``createIndexes batch size``".
+
+To explicitly set a batch size for index builds, see the :option:`--createIndexesBatchSize`
+configuration option.
+
+Index Build Parallelism
+'''''''''''''''''''''''
+
+``mongosync`` automatically parallelizes index builds on Atlas destination clusters
+by concurrently issuing 12 :dbcommand:`createIndexes` commands and relying on the
+destination cluster's :parameter:`maxNumActiveUserIndexBuilds` parameter to 
+cap the number of concurrent ``createIndexes`` commands. Non-Atlas destination clusters 
+with pre-existing data have serial index builds to avoid overwhelming the 
+destination CPU. If you have a non-Atlas destination cluster and set 
+``preExistingDestinationData`` to ``true`` when you call the :ref:`c2c-api-start` 
+endpoint, you cannot update index build parallelism.
+
+To explicitly tune ``mongosync``'s index build parallelism, adjust the 
+:parameter:`maxNumActiveUserIndexBuilds` setting on the destination cluster.
+Increasing this value improves overall index build speeds but raises CPU load on the destination.
+Monitor CPU utilization closely to avoid performance degradation and 
+unintended auto-scaling events, which can occur when the cluster's CPU utilization
+exceeds :ref:`these limits <cluster-autoscaling>`.
+
 Resilience
 ~~~~~~~~~~
 

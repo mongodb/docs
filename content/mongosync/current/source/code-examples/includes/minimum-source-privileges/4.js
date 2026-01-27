@@ -2,9 +2,7 @@
    {
       "resource": { "cluster": true },
       "actions": [
-         "addShard",
          "appendOplogNote",
-         "flushRouterConfig",
          "getDefaultRWConcern",
          "getShardMap",
          "hostInfo",

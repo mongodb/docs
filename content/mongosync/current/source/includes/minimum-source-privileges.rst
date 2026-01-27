@@ -27,7 +27,7 @@
        .. literalinclude:: /code-examples/includes/minimum-source-privileges/3.js
           :language: javascript
 
-   * - V4.4 Migration
+   * - V5.0 Migration
      - .. literalinclude:: /code-examples/includes/minimum-source-privileges/4.js
           :language: javascript
 
