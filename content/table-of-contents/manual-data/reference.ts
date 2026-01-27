@@ -478,6 +478,12 @@ const tocData: TocItem[] = [
             versions: { excludes: versionsBeforeV8_3 },
           },
           {
+            label: 'stopShardDraining',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/command/stopShardDraining',
+            versions: { excludes: versionsBeforeV8_3 },
+          },
+          {
             label: 'transitionFromDedicatedConfigServer',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/transitionFromDedicatedConfigServer',
