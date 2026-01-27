@@ -148,6 +148,9 @@ Bug Fixes
 - Resolves blocked automation configuration changes when ``mms.mail.transport`` 
   is present.
 - Accounts for deleted but retained snapshots when performing dead bytes calculation.
+- Fixes an issue where |ftdc| logs generated through the :guilabel:`Request Logs` button in the |mms| UI were 
+  corrupted and unusable, causing ``bsondump`` to fail with ``invalid BSONSize`` 
+  errors.
 
 .. _opsmgr-server-8.0.16:
 
