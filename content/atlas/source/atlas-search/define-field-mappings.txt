@@ -95,6 +95,10 @@ You can enable or configure dynamic mappings:
    regularly or that are unknown. Always use dynamic mappings within a
    document, not at the parent document level. 
 
+.. seealso::
+
+   - :ref:`fts-regex-naming-pattern-index`
+
 When you use dynamic mappings to index your data: 
 
 - |fts| also dynamically indexes all nested fields supported by the
@@ -168,6 +172,12 @@ indexed as any |fts| field type except ``document``,
 
 A ``typeSet`` has the following syntax:
 
+.. note:: 
+
+   You can't configure a ``typeSet`` from the {+atlas-ui+}
+   :guilabel:`Visual Editor`. Use the {+atlas-ui+} :guilabel:`JSON Editor`
+   instead.
+
 .. literalinclude:: /includes/fts/syntax/fts-index-definition-syntax-dynamic-object.json 
    :language: json
    :linenos:
@@ -183,11 +193,7 @@ Before configuring a ``typeSet``, consider the following:
   For example, you can't define multiple configurations for the
   ``number`` type in the same ``typeSet`` definition. 
   
-- You can configure dynamic mappings with the ``multi`` analyzer. 
-
-You can't configure a ``typeSet`` from the {+atlas-ui+}
-:guilabel:`Visual Editor`. Use the {+atlas-ui+} :guilabel:`JSON Editor`
-instead. 
+- You can configure dynamic mappings with the ``multi`` analyzer.  
 
 For index examples that demonstrate using custom ``typeSet`` configuration, see
 :ref:`fts-dynamic-mapping-examples`.
@@ -436,24 +442,7 @@ Dynamic Mapping Examples
 The following index definition examples demonstrate dynamic mappings.
 
 .. collapsible::
-   :heading: Enable Dynamic Mapping 
-   :sub_heading: Enable dynamic mappings using the boolean flag to automatically index all fields using the default typeSet.
-   :expanded: false
-
-   In this index definition, the ``dynamic`` boolean flag is set to
-   ``true`` to automatically index all dynamically indexable fields in
-   the collection. 
-
-   .. code-block:: json 
-        
-      {
-        mappings: {
-          "dynamic": true
-        }
-      }
-
-.. collapsible::
-   :heading: Configure Dynamic Mapping 
+   :heading: Use a typeSet with Dynamic Mapping 
    :sub_heading: Configure dynamic mappings to automatically index only specified field types using custom typeSet definition.
    :expanded: false
 
@@ -558,8 +547,8 @@ The following index definition examples demonstrate dynamic mappings.
       }
 
 .. collapsible::
-   :heading: Enable Dynamic Mappings and Configure Dynamic Mappings 
-   :sub_heading: Enable dynamic mappings at the root level using default typeSet and configure dynamic mappings for nested fields using custom typeSet definition.
+   :heading: Exclude Fields Example
+   :sub_heading: Configure dynamic mappings, but exclude fields from being indexed using static mappings.
    :expanded: false
 
    This index definition: 
@@ -570,38 +559,36 @@ The following index definition examples demonstrate dynamic mappings.
      <ref-standard-analyzer>`. You can change the search analyzer 
      if you want the query term to be parsed differently than how it 
      is stored in your |fts| index.
-   - Enables automatic indexing of all dynamically indexable fields at
-     the root level.
-   - Enables automatic indexing of all dynamically indexable fields
-     inside the ``tomatoes`` document, but configures automatic indexing 
-     of only the ``number`` type in the ``tomatoes.viewer`` document.  
+   - Configures dynamic mappings for specific field types using the
+     ``typeSet`` named ``indexedTypes``, which specifies the following behavior:
+
+     - Automatically index the fields of type ``string`` as the
+       ``token`` type. 
+     - Automatically index the fields of type ``number`` as the 
+       ``number`` type. 
+
+   - Excludes the ``plot`` field from being indexed.
 
    .. code-block:: json 
 
       {
         "analyzer": "lucene.standard",
-        "searchAnalyzer": "lucene.standard",
+        "searchAnalyzer": "lucene.standard",       
         "mappings": {
-          "dynamic": true,
+          "dynamic": {
+            "typeSet": "indexedTypes"
+          },
           "fields": {
-            "tomatoes": {
-              "type": "document",
-              "dynamic": true,
-              "fields": {
-                "viewer": {
-                  "type": "document",
-                  "dynamic": {
-                    "typeSet": "numericOnly"
-                  }
-                }
-              }
-            }
+            "plot": []
           }
         },
         "typeSets": [
           {
-            "name": "numericOnly",
+            "name": "indexedTypes",
             "types": [
+              {
+                "type": "token"
+              },
               {
                 "type": "number"
               }
@@ -701,57 +688,6 @@ The following index definition example demonstrates static mappings.
             }
           }
         }
-      }
-
-.. collapsible::
-   :heading: Exclude Fields Example
-   :sub_heading: Configure dynamic mappings, but exclude fields from being indexed using static mappings.
-   :expanded: false
-
-   This index definition: 
-
-   - Specifies the default index analyzer as :ref:`lucene.standard
-     <ref-standard-analyzer>`.
-   - Specifies the default search analyzer as :ref:`lucene.standard
-     <ref-standard-analyzer>`. You can change the search analyzer 
-     if you want the query term to be parsed differently than how it 
-     is stored in your |fts| index.
-   - Configures dynamic mappings for specific field types using the
-     ``typeSet`` named ``indexedTypes``, which specifies the following:
-
-     - The fields of type ``string`` must be automatically indexed as
-       ``token`` type using the default settings for the ``token`` type.
-     - The fields of type ``number`` must be automatically indexed as
-       ``number`` type using the default settings for the ``number`` type. 
-
-   - Excludes the ``plot`` field from being indexed.
-
-   .. code-block:: json 
-
-      {
-        "analyzer": "lucene.standard",
-        "searchAnalyzer": "lucene.standard",       
-        "mappings": {
-          "dynamic": {
-            "typeSet": "indexedTypes"
-          },
-          "fields": {
-            "plot": []
-          }
-        },
-        "typeSets": [
-          {
-            "name": "indexedTypes",
-            "types": [
-              {
-                "type": "token"
-              },
-              {
-                "type": "number"
-              }
-            ]
-          }
-        ]
       }
 
 .. _fts-combined-mapping-example:
@@ -974,7 +910,6 @@ with static mappings.
           }
         ]
       }
-
 
 .. toctree::
    :titlesonly:

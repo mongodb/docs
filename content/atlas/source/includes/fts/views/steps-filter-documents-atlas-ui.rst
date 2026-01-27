@@ -24,4 +24,4 @@
       
    .. include:: /includes/fts/search-index-management/procedures/steps-fts-finish-index-creation.rst
 
-   .. include:: /includes/fts/views/step-run-query-view-filter.rst
+   .. include:: /includes/fts/views/step-run-query-view-filter-ui.rst

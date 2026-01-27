@@ -431,11 +431,6 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: 'Transform Documents & Filter Collections',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/atlas-search/transform-documents-collections',
-      },
-      {
         label: 'Search Playground',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/atlas-search/playground',

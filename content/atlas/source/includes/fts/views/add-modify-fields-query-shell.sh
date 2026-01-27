@@ -1,5 +1,3 @@
-use sample_airbnb
-
 db.listingsAndReviews_totalPrice.aggregate([
   {
     $search: {

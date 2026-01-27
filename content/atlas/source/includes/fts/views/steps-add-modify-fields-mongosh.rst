@@ -21,4 +21,4 @@
       .. literalinclude:: /includes/fts/views/add-modify-fields-create-index.sh
          :language: sh
 
-   .. include:: /includes/fts/views/step-run-query-view-add-modify.rst
+   .. include:: /includes/fts/views/step-run-query-view-add-modify-mongosh.rst

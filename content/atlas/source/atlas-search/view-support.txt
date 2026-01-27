@@ -12,31 +12,18 @@ Use Views with |fts|
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. |product-name| replace:: |fts|
 
 You can create a |fts| index on a :manual:`View 
-</core/views/>` to transform documents and collections so that you can 
-partially index a collection, support incompatible data types or 
-data models, and more.
+</core/views/>` to transform documents and collections. This enables
+you to partially index a collection, support incompatible data types
+or data models, and more.
 
 The following examples use the :ref:`sample_mflix <sample-mflix>` 
 and :ref:`sample_airbnb <sample-airbnb>` sample databases.
-
-----------
-
-.. |arrow| unicode:: U+27A4
-
-|arrow| Use the **Select your language** drop-down menu to set the 
-interface for the examples on this page.
-
-.. tabs-selector:: drivers
-   :default-tabid: shell
-
-----------
-
 
 .. include:: /includes/search-shared/fact-view-disambiguation.rst
 
@@ -45,63 +32,116 @@ interface for the examples on this page.
 - To retrieve the transformed document, use the ``storedSource`` 
   :ref:`option <index-definition-options>`.
 
+Permissions Required
+--------------------
+
+To create a View, your role must have the :authaction:`createCollection`
+privilege. 
+
 .. _partially-indexed-collection:
 
-Example: Filter Documents
--------------------------
+Examples 
+--------
 
-To create a View, you must have the :authaction:`createCollection` 
-privilege.
+The following examples demonstrate how to create a View, partially index 
+documents, and run queries against the view using the index.
 
-You can partially index a collection to filter documents. The following 
-example creates a View on the ``sample_mflix.movies`` collection so 
-that you can search for only movies released after January 1, 
-2000.
+.. collapsible::
+   :heading: Filter Documents
+   :sub_heading: Filter documents to partially index a collection.
+   :expanded: false
 
-.. |search-type| replace:: :guilabel:`MongoDB Search`
-.. |index-name| replace:: ``releasedAfter2000Index``
-.. |database-name| replace:: ``sample_mflix``
-.. |collection-name| replace:: ``movies_ReleasedAfter2000``
-.. |source-collection| replace:: ``movies``
+   You can filter documents to partially index a collection. The following 
+   example creates a View on the ``sample_mflix.movies`` collection so 
+   that you can search for only movies released after January 1, 
+   2000.
 
-.. tabs-drivers::
+   .. tabs:: 
 
-   .. tab::
-      :tabid: shell
+      .. tab:: Atlas UI 
+         :tabid: atlas-ui
 
-      .. include:: /includes/fts/views/filter-documents-mongosh.rst
+         .. |search-type| replace:: :guilabel:`MongoDB Search`
+         .. |index-name| replace:: ``releasedAfter2000Index``
+         .. |database-name| replace:: ``sample_mflix``
+         .. |collection-name| replace:: ``movies_ReleasedAfter2000``
+         .. |source-collection| replace:: ``movies``
 
-   .. tab::
-      :tabid: atlas-ui
+         .. include:: /includes/fts/views/steps-filter-documents-atlas-ui.rst
 
-      .. include:: /includes/fts/views/filter-documents-atlas-ui.rst
+      .. tab:: MongoDB Shell 
+         :tabid: mongosh
 
-Example: Add or Modify Fields
------------------------------
+         .. include:: /includes/fts/views/steps-filter-documents-mongosh.rst
 
-The following example lets you search the
-``sample_airbnb.listingsAndReviews`` collection for accomodatations 
-based on a new ``totalPrice`` field, which is the sum of the ``price`` 
-and ``cleaningFee`` fields.  Also, since |fts| doesn't support 
-``Decimal128`` types, we transform the values to ``Double``.
+.. collapsible::
+   :heading: Add or Modify Fields
+   :sub_heading: Add of modify fields using a View.
+   :expanded: false
 
-.. |search-type| replace:: :guilabel:`MongoDB Search`
-.. |index-name| replace:: ``totalPriceIndex``
-.. |database-name| replace:: ``sample_airbnb``
-.. |collection-name| replace:: ``listingsAndReviews_totalPrice``
-.. |source-collection| replace:: ``listingsAndReviews``
+   The following example lets you search the
+   ``sample_airbnb.listingsAndReviews`` collection for accomodatations 
+   based on a new ``totalPrice`` field, which is the sum of the ``price`` 
+   and ``cleaningFee`` fields.  Also, since |fts| doesn't support 
+   ``Decimal128`` types, we transform the values to ``Double``.
 
-.. tabs-drivers::
+   .. tabs:: 
 
-   .. tab::
-      :tabid: shell
+      .. tab:: Atlas UI 
+         :tabid: atlas-ui
 
-      .. include:: /includes/fts/views/add-modify-fields-mongosh.rst
+         .. |search-type| replace:: :guilabel:`MongoDB Search`
+         .. |index-name| replace:: ``totalPriceIndex``
+         .. |database-name| replace:: ``sample_airbnb``
+         .. |collection-name| replace:: ``listingsAndReviews_totalPrice``
+         .. |source-collection| replace:: ``listingsAndReviews``
 
-   .. tab::
-      :tabid: atlas-ui
+         .. include:: /includes/fts/views/steps-add-modify-fields-atlas-ui.rst
 
-      .. include:: /includes/fts/views/add-modify-fields-atlas-ui.rst
+      .. tab:: MongoDB Shell 
+         :tabid: mongosh
+
+         .. include:: /includes/fts/views/steps-add-modify-fields-mongosh.rst
+
+.. _fts-regex-naming-pattern-index:
+
+.. collapsible::
+   :heading: Configure Regex Naming Pattern
+   :sub_heading: Configure dynamic indexing for fields with naming patterns using regex.
+   :expanded: false
+
+   To index fields matching a naming pattern, use a :ref:`View
+   <fts-transform-documents-collections>` to transform your data so that
+   the fields to index are nested in a sub-document. This enables you to
+   use dynamic mappings for the sub-document path so that you can 
+   automatically search all new fields with the suffix ``_type``, without 
+   any changes to your index definition.  
+   
+   The following ``View`` named ``listings_SearchableTypes`` only
+   matches field names that end with ``_type`` in the
+   ``sample_airbnb.listingsAndReviews`` collection. Specifically, the 
+   :pipeline:`$set` stage adds a new field named ``searchable_types``,
+   which contains the filtered fields with the term ``_type`` in the
+   field name. The :expression:`$arrayToObject` contains the filter input 
+   (entire document) and condition (regex match for ``_type``).
+
+   .. tabs:: 
+
+      .. tab:: Atlas UI 
+         :tabid: atlas-ui
+
+         .. |search-type| replace:: :guilabel:`MongoDB Search`
+         .. |index-name| replace:: ``listingsSearchableTypes``
+         .. |database-name| replace:: ``sample_airbnb``
+         .. |collection-name| replace:: ``listings_SearchableTypes``
+         .. |source-collection| replace:: ``listingsAndReviews``
+
+         .. include:: /includes/fts/views/steps-regex-naming-pattern-atlas-ui.rst
+
+      .. tab:: MongoDB Shell 
+         :tabid: mongosh
+
+         .. include:: /includes/fts/views/steps-regex-naming-pattern-mongosh.rst
 
 Edit a View
 -------------------
@@ -114,7 +154,7 @@ View for movies before 2000.
    :copyable: true
 
 After you run this command, |fts| automatically detects the change in
-the View definition and performs a reindexing with no downtime.
+the View definition and performs reindexing with no downtime.
 
 Return the Pipelines for a View
 ---------------------------------------

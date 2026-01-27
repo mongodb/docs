@@ -1,5 +1,3 @@
-use sample_mflix
-
 db.movies_ReleasedAfter2000.aggregate([
   {
     $search: {

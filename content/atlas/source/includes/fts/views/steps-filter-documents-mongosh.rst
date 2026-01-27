@@ -21,4 +21,4 @@
       .. literalinclude:: /includes/fts/views/filter-documents-create-index.sh
          :language: sh
 
-   .. include:: /includes/fts/views/step-run-query-view-filter.rst
+   .. include:: /includes/fts/views/step-run-query-view-filter-mongosh.rst
