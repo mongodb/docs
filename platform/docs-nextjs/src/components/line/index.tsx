@@ -2,11 +2,16 @@ import type { ASTNode } from '@/types/ast';
 import ComponentFactory from '../component-factory';
 
 export type LineProps = {
-  nodeChildren: ASTNode[];
+  children?: React.ReactNode;
+  nodeChildren?: ASTNode[];
 };
 
-const Line = ({ nodeChildren, ...rest }: LineProps) => {
-  if (nodeChildren.length !== 0) {
+const Line = ({ children, nodeChildren, ...rest }: LineProps) => {
+  if (children) {
+    return <div className="line">{children}</div>;
+  }
+
+  if (nodeChildren && nodeChildren.length !== 0) {
     return (
       <div className="line">
         {nodeChildren.map((child, index) => (
@@ -15,6 +20,7 @@ const Line = ({ nodeChildren, ...rest }: LineProps) => {
       </div>
     );
   }
+
   return (
     <div className="line">
       <br />

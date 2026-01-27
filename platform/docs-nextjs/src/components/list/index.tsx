@@ -15,12 +15,13 @@ const listStyles = css`
 `;
 
 export type ListProps = {
-  nodeChildren: ParentNode['children'];
-  enumtype: ListNode['enumtype'];
-  startat: ListNode['startat'];
+  children?: React.ReactNode;
+  nodeChildren?: ParentNode['children'];
+  enumtype?: ListNode['enumtype'];
+  startat?: ListNode['startat'];
 };
 
-const List = ({ nodeChildren, enumtype, startat, ...rest }: ListProps) => {
+const List = ({ children, nodeChildren, enumtype, startat, ...rest }: ListProps) => {
   // We can default to ordered if the enumtype value is not unordered
   const ListTag = enumtype === 'unordered' ? 'ul' : 'ol';
 
@@ -33,9 +34,10 @@ const List = ({ nodeChildren, enumtype, startat, ...rest }: ListProps) => {
       {...(typeAttr ? { type: typeAttr } : {})}
       {...(startAttr ? { start: startAttr } : {})}
     >
-      {nodeChildren.map((listChild, index) => (
-        <ComponentFactory {...rest} nodeData={listChild} key={`list-component-${index}`} />
-      ))}
+      {children ??
+        nodeChildren?.map((listChild, index) => (
+          <ComponentFactory {...rest} nodeData={listChild} key={`list-component-${index}`} />
+        ))}
     </ListTag>
   );
 };

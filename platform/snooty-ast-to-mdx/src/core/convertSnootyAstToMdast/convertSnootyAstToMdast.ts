@@ -420,7 +420,12 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
       return convertChildren({ nodes: node.children, depth, ctx });
 
     case 'transition':
-      return { type: 'thematicBreak' };
+      return {
+        type: 'mdxJsxFlowElement',
+        name: 'Transition',
+        attributes: [],
+        children: [],
+      };
 
     case 'card-group': {
       const attributes: MdastNode[] = toJsxAttributes(node.options);

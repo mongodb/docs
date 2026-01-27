@@ -2,14 +2,13 @@ import type { ASTNode } from '@/types/ast';
 import ComponentFactory from '../component-factory';
 
 export type LineBlockProps = {
-  nodeChildren: ASTNode[];
+  children?: React.ReactNode;
+  nodeChildren?: ASTNode[];
 };
 
-const LineBlock = ({ nodeChildren, ...rest }: LineBlockProps) => (
+const LineBlock = ({ children, nodeChildren, ...rest }: LineBlockProps) => (
   <div className="line-block">
-    {nodeChildren.map((child, index) => (
-      <ComponentFactory {...rest} key={index} nodeData={child} />
-    ))}
+    {children ?? nodeChildren?.map((child, index) => <ComponentFactory {...rest} key={index} nodeData={child} />)}
   </div>
 );
 

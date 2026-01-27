@@ -35,19 +35,18 @@ export type FormatTextOptions = {
 };
 
 export type LiteralProps = {
-  nodeChildren: LiteralNode['children'];
+  children?: React.ReactNode;
+  nodeChildren?: LiteralNode['children'];
   formatTextOptions?: FormatTextOptions;
 };
 
-const Literal = ({ nodeChildren, formatTextOptions }: LiteralProps) => {
+const Literal = ({ children, nodeChildren, formatTextOptions }: LiteralProps) => {
   const navigationStyle = formatTextOptions?.literalEnableInline ?? false;
   const CurrInlineCode = navigationStyle ? StyledNavigationInlineCode : InlineCode;
 
   return (
     <CurrInlineCode className={cx(navigationStyle ? '' : inlineCodeStyling, wordWrapStyle)}>
-      {nodeChildren.map((node, i) => (
-        <ComponentFactory nodeData={node} key={i} />
-      ))}
+      {children ?? nodeChildren?.map((node, i) => <ComponentFactory nodeData={node} key={i} />)}
     </CurrInlineCode>
   );
 };

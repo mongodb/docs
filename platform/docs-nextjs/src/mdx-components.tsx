@@ -5,6 +5,12 @@ import { Reference } from '@/mdx-components/Reference';
 import Admonition from '@/components/admonition';
 import Heading from '@/components/heading';
 import Section from '@/components/section';
+import Transition from '@/components/transition';
+import Literal from '@/components/literal';
+import List from '@/components/list';
+import ListItem from '@/components/list/listItem';
+import Line from '@/components/line';
+import LineBlock from '@/components/line-block';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -31,7 +37,7 @@ export const components = (injectedProps?: InjectedProps) =>
       </Admonition>
     ),
     Banner: ({ children }) => <span>{children}</span>,
-    Blockquote: ({ children }) => <span>{children}</span>,
+    Blockquote: ({ children }) => <blockquote>{children}</blockquote>,
     Button: ({ children }) => <span>{children}</span>,
     Card: ({ children }) => <span>{children}</span>,
     CardGroup: ({ children }) => <span>{children}</span>,
@@ -52,7 +58,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Deprecated: ({ children }) => <span>{children}</span>,
     DeprecatedVersionSelector: ({ children }) => <span>{children}</span>,
     Describe: ({ children }) => <span>{children}</span>,
-    Emphasis: ({ children }) => <span>{children}</span>,
+    Emphasis: ({ children }) => <em>{children}</em>,
     Extract: ({ children }) => <span>{children}</span>,
     Field: ({ children }) => <span>{children}</span>,
     FieldList: ({ children }) => <span>{children}</span>,
@@ -68,12 +74,12 @@ export const components = (injectedProps?: InjectedProps) =>
     Input: ({ children }) => <span>{children}</span>,
     IoCodeBlock: ({ children }) => <span>{children}</span>,
     Kicker: ({ children }) => <span>{children}</span>,
-    Line: ({ children }) => <span>{children}</span>,
-    LineBlock: ({ children }) => <span>{children}</span>,
-    List: ({ children }) => <span>{children}</span>,
-    ListItem: ({ children }) => <span>{children}</span>,
+    Line: ({ children, ...props }) => <Line {...props}>{children}</Line>,
+    LineBlock: ({ children, ...props }) => <LineBlock {...props}>{children}</LineBlock>,
+    List: ({ children, ...props }) => <List {...props}>{children}</List>,
+    ListItem: ({ children, ...props }) => <ListItem {...props}>{children}</ListItem>,
     ListTable: ({ children }) => <span>{children}</span>,
-    Literal: ({ children }) => <span>{children}</span>,
+    Literal: ({ children, ...props }) => <Literal {...props}>{children}</Literal>,
     LiteralBlock: ({ children }) => <span>{children}</span>,
     LiteralInclude: ({ children }) => <span>{children}</span>,
     MethodSelector: ({ children }) => <span>{children}</span>,
@@ -91,18 +97,18 @@ export const components = (injectedProps?: InjectedProps) =>
     See: ({ children }) => <span>{children}</span>,
     SeeAlso: ({ children }) => <span>{children}</span>,
     SharedInclude: ({ children }) => <span>{children}</span>,
-    Strong: ({ children }) => <span>{children}</span>,
-    Superscript: ({ children }) => <span>{children}</span>,
-    Subscript: ({ children }) => <span>{children}</span>,
+    Strong: ({ children }) => <strong>{children}</strong>,
+    Superscript: ({ children }) => <sup>{children}</sup>,
+    Subscript: ({ children }) => <sub>{children}</sub>,
     Tabs: ({ children }) => <span>{children}</span>,
     Tab: ({ children }) => <span>{children}</span>,
     TabsSelector: ({ children }) => <span>{children}</span>,
     Target: ({ children }) => <span>{children}</span>,
-    Text: ({ children }) => <span>{children}</span>,
+    Text: ({ children }) => <>{children}</>,
     Time: ({ children }) => <span>{children}</span>,
     TitleReference: ({ children }) => <span>{children}</span>,
     Toctree: ({ children }) => <span>{children}</span>,
-    Transition: ({ children }) => <span>{children}</span>,
+    Transition: () => <Transition />,
     VersionAdded: ({ children }) => <span>{children}</span>,
     VersionChanged: ({ children }) => <span>{children}</span>,
     UseSampleData: ({ children }) => <span>{children}</span>,

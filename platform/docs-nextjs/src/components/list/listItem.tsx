@@ -12,15 +12,17 @@ const listParagraphStyles = css`
 `;
 
 export type ListItemProps = {
-  nodeChildren: ParentNode['children'];
+  children?: React.ReactNode;
+  nodeChildren?: ParentNode['children'];
 };
 
-const ListItem = ({ nodeChildren, ...rest }: ListItemProps) => {
+const ListItem = ({ children, nodeChildren, ...rest }: ListItemProps) => {
   return (
     <li className={cx(listParagraphStyles)}>
-      {nodeChildren.map((element, index) => (
-        <ComponentFactory {...rest} nodeData={element} key={index} skipPTag={false} />
-      ))}
+      {children ??
+        nodeChildren?.map((element, index) => (
+          <ComponentFactory {...rest} nodeData={element} key={index} skipPTag={false} />
+        ))}
     </li>
   );
 };
