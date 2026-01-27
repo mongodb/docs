@@ -1,0 +1,354 @@
+.. _csharp-serialization:
+
+=============
+Serialization
+=============
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: class, map, poco, polymorphism, guid, deserialize
+   :description: Learn to perform serialization with the .NET/C# Driver, including using serializers, custom serializers, and conventions for mapping C# objects to BSON documents.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. toctree::
+   :caption: Custom Types
+
+   Class Mapping </serialization/class-mapping>
+   POCOs </serialization/poco>
+   Polymorphic Objects </serialization/polymorphic-objects>
+   GUIDs </serialization/guids>
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-long+} to perform
+serialization. Serialization is the process of mapping a C# object to a BSON
+document for storage in MongoDB.
+
+.. tip:: Serialization
+
+   To learn more about serialization, see the :wikipedia:`Serialization <Serialization>`
+   article on Wikipedia.
+
+Serializers
+-----------
+
+Serializers are classes that handle the translation of C# objects to and
+from BSON documents. Serializers implement the ``IBsonSerializer``
+interface. The {+driver-short+} has many built-in serializers made to handle
+primitive types, collection types, and custom classes.
+
+For a full list of available serializers, see the
+`Serializers namespace API documentation <{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.Serializers.html>`__.
+
+.. _csharp-faq-object-serializer:
+
+ObjectSerializer
+----------------
+
+The ``ObjectSerializer`` class allows serialization and deserialization only of types
+that are considered safe. When you construct an ``ObjectSerializer``,
+you can pass in a delegate of type ``Func<Type, bool>``. This delegate
+accepts an object type and returns a boolean value indicating whether the
+type is safe for serialization.
+
+In most cases, pass in the ``ObjectSerializer.DefaultAllowedTypes()``
+delegate. This method returns true for several well-known
+framework types that we have deemed safe. To serialize custom types,
+create a boolean expression that evaluates to ``true`` for the
+types you want to include. Then, add this expression to the end of the 
+delegate you pass to the ``ObjectSerializer`` constructor.
+
+In the following example,
+the ``ObjectSerializer`` will serialize and deserialize any type that is allowed by 
+``ObjectSerializer.DefaultAllowedTypes()`` or whose full name begins with 
+``"MyNamespace"``:
+
+.. code-block:: csharp
+
+   var objectSerializer = new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type)
+       || type.FullName.StartsWith("MyNamespace"));
+   BsonSerializer.RegisterSerializer(objectSerializer);
+
+To allow anonymous types to be serialized, add the boolean expression
+``type.FullName.StartsWith("<>f__AnonymousType"))`` to your delegate,
+as shown in the following example:
+
+.. code-block:: csharp
+
+   var objectSerializer = new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type)
+       || type.FullName.StartsWith("<>f__AnonymousType"));
+   BsonSerializer.RegisterSerializer(objectSerializer);
+
+Create and register your ``ObjectSerializer`` at the start of your program,
+before doing anything else.
+
+Serializer Registry
+-------------------
+
+The serializer registry contains all registered serializers that are available
+to your application. Many of the built-in serializers are automatically
+registered to the serializer registry during startup of your application.
+
+Register a Serializer
+~~~~~~~~~~~~~~~~~~~~~
+
+Before you can use a custom serializer, you must add it to the
+serializer registry, as shown in the following example:
+
+.. code-block:: csharp
+
+   BsonSerializer.RegisterSerializer(new CustomTypeSerializer());
+
+After you register the serializer, the driver uses it to serialize any
+values that are mapped by the serializer.
+
+Access a Serializer from the Registry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To access a specific serializer from the registry, use the
+``SerializerRegistry`` property of the ``BsonSerializer`` class as
+follows:
+
+.. code-block:: csharp
+
+   var intSerializer = BsonSerializer.SerializerRegistry.GetSerializer<int>();
+
+.. important::
+
+   The serializer registry is a global registry. This means that you cannot use
+   multiple registries in a single application.
+
+Custom Serializers
+~~~~~~~~~~~~~~~~~~
+
+To create your own custom serializer, implement the ``IBsonSerializer`` base class, set
+the ``ValueType`` member, and override the ``Deserialize()`` and ``Serialize()`` methods.
+
+The following code example shows a custom ``BsonRegularExpression`` serializer:
+
+.. code-block:: csharp
+
+   class CustomRegularExpressionSerializer : IBsonSerializer
+   {
+      public Type ValueType => typeof(Regex);
+      
+      public object Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+      {
+         var type = context.Reader.CurrentBsonType;
+         switch (type)
+         {
+            case BsonType.RegularExpression:
+               return context.Reader.ReadRegularExpression().AsRegex;
+            case BsonType.String:
+               var pattern = context.Reader.ReadString()
+               return new Regex(pattern);
+            default:
+               throw new NotSupportedException($"Cannot convert a {type} to a RegularExpression.");
+         }
+      }
+      
+      public void Serialize(BsonSerializationContext context, BsonSerializationArgs args, object value)
+      {
+         var regex = (Regex) value;
+         context.Writer.WriteRegularExpression(regex);
+      }
+   }
+
+Opt-in Interfaces
+-----------------
+
+The {+driver-short+} has several optional interfaces that your custom serializer
+class can implement, depending on the type of data the serializer handles.
+
+IBsonIdProvider
+~~~~~~~~~~~~~~~
+
+The `IBsonIdProvider
+<{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.IBsonIdProvider.html>`__
+interface provides the ``GetDocumentId()`` and ``SetDocumentId()``
+methods, and is useful if the object you are serializing uses an ``_id`` type other than ``ObjectId``.
+
+The following code example shows a custom serializer that implements the ``IBsonIdProvider`` interface:
+
+.. literalinclude:: /includes/code-examples/Serialization.cs
+   :language: csharp
+   :start-after: // start-ibson-id-provider
+   :end-before: // end-ibson-id-provider
+   :dedent:
+
+IBsonDocumentSerializer
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Implementing the `IBsonDocumentSerializer
+<{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.IBsonDocumentSerializer.html>`__
+interface enables the driver to access the member
+information of the object you are serializing. This allows the driver to
+properly construct type-safe queries when using a custom serializer.
+
+The following code example shows a custom serializer that implements the ``IBsonDocumentSerializer`` interface:
+
+.. literalinclude:: /includes/code-examples/Serialization.cs
+   :language: csharp
+   :start-after: // start-ibson-document-serializer
+   :end-before: // end-ibson-document-serializer
+   :dedent:
+
+IBsonArraySerializer
+~~~~~~~~~~~~~~~~~~~~
+
+Implementing the `IBsonArraySerializer
+<{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.IBsonArraySerializer.html>`__
+interface enables the driver to access serialization information for individual
+items in an array.
+
+The following code example shows a custom serializer that implements the ``IBsonArraySerializer`` interface:
+
+.. literalinclude:: /includes/code-examples/Serialization.cs
+   :language: csharp
+   :start-after: // start-ibson-array-serializer
+   :end-before: // end-ibson-array-serializer
+   :dedent:
+
+.. _csharp-conventions:
+
+Conventions
+-----------
+
+Convention packs allow you to define and apply
+**conventions** to your classes and their members that the driver uses during serialization.
+Conventions specify how data is mapped between your
+{+language+} objects and MongoDB documents without requiring you to decorate
+each class with attributes. 
+
+The {+driver-short+} provides built-in conventions that you can use to
+customize the serialization process. The following table describes some of the
+built-in conventions:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Convention
+     - Description
+
+   * - `CamelCaseElementNameConvention <{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.Conventions.CamelCaseElementNameConvention.html>`__
+     - Converts element names to camel case during serialization and deserialization.
+     
+   * - `EnumRepresentationConvention <{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.Conventions.EnumRepresentationConvention.html>`__
+     - Converts enum values to a specified representation during serialization
+       and deserialization.
+     
+   * - `IgnoreExtraElementsConvention <{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.Conventions.IgnoreExtraElementsConvention.html>`__
+     - Specifies whether to ignore extra elements in a document during deserialization.
+     
+   * - `ObjectSerializerAllowedTypesConvention <{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.Conventions.ObjectSerializerAllowedTypesConvention.html>`__
+     - Specifies which types are allowed to be serialized using an object
+       serializer.
+
+To view a full list of available conventions, see the `Conventions
+<{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.Conventions.html>`__
+class reference in the API Documentation.
+
+You can register a convention by instantiating a ``ConventionPack`` with the
+specified conventions, then passing it to the
+``ConventionRegistry.Register()`` method, as shown in the following example:
+
+.. code-block:: csharp
+
+   var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
+   ConventionRegistry.Register("CamelCaseConvention", camelCaseConvention, t => true);
+
+.. _csharp-array-serialization:
+
+Improve Array Serialization Performance
+---------------------------------------
+
+You can improve your application's performance by representing
+arrays of primitives as `Memory<T> <https://learn.microsoft.com/en-us/dotnet/api/system.memory-1?view=net-8.0>`__
+and `ReadOnlyMemory<T> <https://learn.microsoft.com/en-us/dotnet/api/system.readonlymemory-1?view=net-8.0>`__
+structs instead of by using types such as standard {+language+} arrays or
+``BsonArray`` objects. The driver implements fast serialization and
+deserialization paths for ``Memory<T>`` and ``ReadOnlyMemory<T>``, which
+enhances speed and reduces memory usage.
+
+.. note::
+
+   Truncation and overflow checks are not supported for ``Memory<T>`` or
+   ``ReadOnlyMemory<T>``, but these checks are implemented for standard
+   arrays.
+
+You can effect these performance improvements by storing the following
+primitive types in ``Memory<T>`` or ``ReadOnlyMemory<T>`` structs:
+
+- ``bool``
+- ``sbyte``
+- ``byte``
+- ``char``
+- ``short``
+- ``ushort``
+- ``int``
+- ``uint``
+- ``long``
+- ``ulong``
+- ``float``
+- ``double``
+- ``decimal``
+
+The following example defines a ``Line`` POCO that contains array fields
+modeled by ``Memory`` and ``ReadOnlyMemory`` structs:
+
+.. literalinclude:: /includes/fundamentals/code-examples/MemorySerialization.cs
+   :start-after: start-line-class
+   :end-before: end-line-class
+   :language: csharp
+   :dedent:
+
+The following document represents how a sample ``Line`` object is
+represented in MongoDB:
+
+.. code-block:: json
+
+   {
+     "_id": ...,
+     "X": [ 1, 2, 3, 4, 5 ],
+     "Y": [ 1, 1.409999966621399, 1.7300000190734863, 2, 2.240000009536743 ]
+   }
+
+.. tip:: Model Vectors
+
+   :ref:`csharp-atlas-vector-search` involves creating and querying
+   large numerical arrays. If your application uses
+   {+vector-search+}, you might benefit from the performance
+   improvements from using ``Memory`` and ``ReadOnlyMemory`` to store
+   array representations of embeddings and query vectors. To learn more,
+   see :ref:`csharp-supported-vector-types` in the {+vector-search+} guide.
+
+Additional Information
+----------------------
+
+To learn more about using the {+driver-short+} to serialize {+language+} objects, 
+see the following pages:
+
+- :ref:`csharp-class-mapping`
+- :ref:`csharp-poco`
+- :ref:`csharp-polymorphism`
+- :ref:`csharp-guids`
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `SerializerRegistry <{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.BsonSerializer.SerializerRegistry.html>`__
+- `BsonSerializer <{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.BsonSerializer.html>`__
+- `IBsonSerializer <{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.IBsonSerializer.html>`__
+- `ConventionPack <{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.Conventions.ConventionPack.html>`__
+- `ConventionRegistry <{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.Conventions.ConventionRegistry.html>`__
+- `Register() <{+api-root+}/MongoDB.Bson.Serialization.Conventions.ConventionRegistry.Register.html#MongoDB_Bson_Serialization_Conventions_ConventionRegistry_Register_System_String_MongoDB_Bson_Serialization_Conventions_IConventionPack_System_Func_System_Type_System_Boolean__>`__

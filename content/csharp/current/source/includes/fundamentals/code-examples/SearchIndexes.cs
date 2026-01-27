@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
@@ -31,28 +32,21 @@ public class SearchIndexes
     // end-as-model
 
     // begin-avs-model
-    var def = new BsonDocument
-    {
-        { "fields", new BsonArray
-            {
-                new BsonDocument
-                {
-                    { "type", "vector" },
-                    { "path", "plot_embedding" },
-                    { "numDimensions", 1536 },
-                    { "similarity", "euclidean" }
-                }
-            }
-        }
-    };
-
-
-    var indexModel = new CreateSearchIndexModel(
+    var model = new CreateVectorSearchIndexModel<Movie> (
+      model => model.PlotEmbedding,
       "vs_idx",
-      SearchIndexType.VectorSearch,
-      def
-    );
+      VectorSimilarity.Euclidean,
+      1536);
     // end-avs-model
+
+    // begin-auto-embedding-model
+    var model = new CreateAutoEmbeddingVectorSearchIndexModel<EmbeddedMovie>(
+      m => m.Plot,
+      "auto_embedding_index",
+      "voyage-4",
+      m => m.Runtime, m => m.Year  // Optional filter fields
+    );
+    // end-auto-embedding-model
 
     // begin-atlas-create-one
     var indexModel = new CreateSearchIndexModel(
@@ -80,24 +74,11 @@ public class SearchIndexes
       }
     );
 
-    var vectorModel = new CreateSearchIndexModel(
+    var vectorModel = new CreateVectorSearchIndexModel<Movie>(
+      m => m.PlotEmbedding,
       "vs_idx",
-      SearchIndexType.VectorSearch,
-      new BsonDocument
-      {
-          { "fields", new BsonArray
-              {
-                  new BsonDocument
-                  {
-                      { "type", "vector" },
-                      { "path", "plot_embedding" },
-                      { "numDimensions", 1536 },
-                      { "similarity", "euclidean" }
-                  }
-              }
-          }
-      }
-    );
+      VectorSimilarity.Euclidean,
+      1536);
 
     var models = new List<CreateSearchIndexModel> { searchModel, vectorModel };
     var indexes = movieCollection.SearchIndexes.CreateMany(models);

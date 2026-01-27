@@ -1,0 +1,133 @@
+name: Verify Redirects
+
+on:
+  pull_request_target:
+
+jobs:
+  verify-redirects:
+    name: Verify Redirects
+    runs-on: ubuntu-latest
+    env:
+      REDIRECTS_FILE: "pr/config/redirects"
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Check Out Base Branch
+        uses: actions/checkout@v4
+      
+      - name: Checkout PR Head Branch  
+        uses: actions/checkout@v4  
+        with:  
+          token: ${{ secrets.GITHUB_TOKEN }}  
+          ref: ${{ github.event.pull_request.head.ref }}  
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          path: pr
+      
+      - name: Get Changed Files
+        id: changed-files
+        uses: tj-actions/changed-files@c65cd883420fd2eb864698a825fc4162dd94482c
+        with:
+          include_all_old_new_renamed_files: true
+
+      - name: Find Missing Redirects for Renamed Files
+        id: renamed-files
+        if: steps.changed-files.outputs.renamed_files_count > 0
+        env:
+          RENAMED_FILES: ${{ steps.changed-files.outputs.all_old_new_renamed_files }}
+        run: |
+          renamed_redirects=""
+
+          for file in $RENAMED_FILES; do
+
+            # only run for .txt files
+            if [[ ! "$file" == *.txt ]]; then
+              continue
+            fi
+
+            # format old and new URLs
+            old=$(echo "$file" | cut -d',' -f1)
+            old="${old#source}"
+            old="${old%.txt}"
+            new=$(echo "$file" | cut -d',' -f2)
+            new="${new#source}"
+            new="${new%.txt}"
+            
+            redirect='${prefix}/${version}'"$old"'/ -> ${base}/${version}'"$new"'/'
+
+            # if redirect not already in file, add to string to add to PR description
+            if ! grep -q "$redirect" $REDIRECTS_FILE; then
+              renamed_redirects+="<li>[&lt;v&gt;-*]: $redirect</li>"
+            fi
+          done
+
+          echo "redirects=${renamed_redirects}" >> "$GITHUB_OUTPUT"  
+
+      - name: Find Missing Redirects for Deleted Files
+        id: deleted-files
+        if: steps.changed-files.outputs.deleted_files_count > 0
+        env:
+          DELETED_FILES: ${{ steps.changed-files.outputs.deleted_files }}
+        run: |
+          deleted_redirects=""
+
+          for file in $DELETED_FILES; do
+
+            # only run for .txt files
+            if [[ ! "$file" == *.txt ]]; then
+              continue
+            fi
+            
+            # format old URL
+            old=$(echo "$file" | cut -d',' -f1)
+            old="${old#source}"
+            old="${old%.txt}"
+            
+            redirect='${prefix}/${version}'"$old"'/ -> ${base}/${version}/'
+            
+            # escape special characters before searching for string           
+            escaped_redirect=$(printf '%s\n' "$redirect" | sed 's/[[*${}|\\]/\\&/g')
+
+            # if redirect not already in file, add to string to add to PR description
+            if ! grep -qE "${escaped_redirect}$" $REDIRECTS_FILE; then
+              deleted_redirects+="<li>[&lt;v&gt;-*]: $redirect</li>"
+            fi
+          done
+          
+          echo "redirects=${deleted_redirects}" >> "$GITHUB_OUTPUT"  
+
+      - name: Build Redirect HTML
+        id: build-redirect-html
+        env:
+          RENAMED_REDIRECTS: ${{ steps.renamed-files.outputs.redirects }}
+          DELETED_REDIRECTS: ${{ steps.deleted-files.outputs.redirects }}
+        run: |
+          redirect_html=''
+          combined_redirects="${RENAMED_REDIRECTS}${DELETED_REDIRECTS}"
+
+          if [ -n "$combined_redirects" ]; then
+            redirect_html="<h3>Suggested redirects for moved, renamed, and deleted files:</h3><p><em>Replace &lt;v&gt; with the earliest backport target version</p></em>$combined_redirects"
+          fi
+
+          echo "redirect_html=${redirect_html}" >> "$GITHUB_OUTPUT"
+
+      - name: Update PR Description
+        uses: MongoCaleb/pr-description-action@4bdfe35b98f64532b419ad20b350a92546cd3aa1
+        with:
+          regex: "- \\[( |x)\\] Did you add redirects\\?.*"
+          appendContentOnMatchOnly: false
+          regexFlags: is
+          content: "- [ ] Did you add redirects?\n ${{ steps.build-redirect-html.outputs.redirect_html }}"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for duplicates in redirects file
+        run: |
+          if [[ -f "$REDIRECTS_FILE" ]]; then  
+            duplicates=$(sort "$REDIRECTS_FILE" | uniq -d)  
+            if [[ -n "$duplicates" ]]; then  
+              echo "Duplicate lines found in $REDIRECTS_FILE:" 
+              echo "$duplicates"  
+              exit 1 # error
+            fi
+          else  
+             "Redirects file doesn't exist. Skipping duplicate check."  
+          fi

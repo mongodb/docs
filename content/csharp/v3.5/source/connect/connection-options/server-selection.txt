@@ -1,0 +1,195 @@
+.. _csharp-server-selection:
+
+==========================
+Customize Server Selection
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, read preference, write
+
+Overview
+--------
+
+All MongoDB drivers follow a defined algorithm when selecting a server to read or write
+from. By using the ``ClusterConfigurator`` property of a ``MongoClient`` object, you can
+customize this algorithm to choose the server that works best for your application.
+
+.. important::
+
+   Customizing the server selection algorithm might have unintended consequences,
+   such as degraded read or write performance.
+
+Default Algorithm
+-----------------
+
+When the {+driver-short+} executes a read operation, it performs the following steps,
+in order, to select a MongoDB deployment:
+
+1. Selects all servers that match the active read preference from the list of known servers.
+
+#. If at least one readable server exists, the driver calls the user-defined
+   server-selector function and passes in the list from the previous step.
+
+#. Applies the ``LocalThreshold`` connection setting to the list of
+   servers returned from the function.
+
+#. Selects a server at random from the servers still on the list and
+   executes the operation against this server.
+
+When the {+driver-short+} executes a write operation, it begins by selecting all writeable
+servers, not just those that match the active read preference. The remaining steps are
+identical.
+
+To learn more about the default server selection algorithm, which the driver follows
+when you don't specify any custom server selection logic, see
+:manual:`Server Selection Algorithm </core/read-preference-mechanics/>` in the
+{+mdb-server+} manual.
+
+.. _csharp-server-selection-algorithm:
+
+Specifying Other Server Selection Algorithms
+--------------------------------------------
+
+You can specify different server selection logic by passing an instance of a server selector
+class to the ``PreServerSelector`` or ``PostServerSelector`` property of the ``ClusterConfigurator``. The
+``PreServerSelector`` property specifies a server selector that runs before the
+standard server selection logic runs, while the ``PostServerSelector`` property
+specifies a server selector that runs after standard server selection logic runs. You can
+then pass your ``ClusterConfigurator`` instance to the ``MongoClientSettings`` object when you create a
+``MongoClient`` instance to apply your custom server selection logic.
+
+The following table lists the different types of server selectors you can pass to the
+``ClusterConfigurator`` property:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Server Selector
+     - Description
+
+   * - ``CompositeServerSelector``
+     - Selects servers based on multiple partial selectors
+
+   * - ``DelegateServerSelector``
+     - Wraps a delegate server selector
+
+   * - ``EndPointServerSelector``
+     - Selects servers based on their endpoint
+
+   * - ``LatencyLimitingServerSelector``
+     - Selects servers within an acceptable latency range
+
+   * - ``PriorityServerSelector``
+     - Selects a server based on a collection of servers to deprioritize
+
+   * - ``RandomServerSelector``
+     - Selects a random server
+
+   * - ``ReadPreferenceServerSelector``
+     - Selects servers based on a specified read preference
+
+The following example instructs a ``MongoClient`` to use the ``RandomServerSelector``
+class to select a server at random before the standard server selection logic runs:
+
+.. literalinclude:: /includes/fundamentals/code-examples/connection/ServerSelection.cs
+   :start-after: start-server-selector
+   :end-before: end-server-selector
+   :language: csharp
+   :dedent:
+
+To learn more about the different server selector classes, see the
+`ServerSelectors API documentation <{+api-root+}/MongoDB.Driver/MongoDB.Driver.Core.Clusters.ServerSelectors.html>`__.
+
+Implementing Custom Server Selection Logic
+------------------------------------------
+
+You can implement your own custom server selection logic by creating a class that
+inherits from the ``IServerSelector`` interface and overrides the
+``SelectServers()`` method. The following example shows a simple custom server
+selection class that selects servers with a ``ServerType`` of
+``ServerType.ReplicaSetSecondary``:
+
+.. literalinclude:: /includes/fundamentals/code-examples/connection/ServerSelection.cs
+   :start-after: start-custom-class
+   :end-before: end-custom-class
+   :language: csharp
+   :dedent:
+
+You can then pass an instance of this class to the ``PreServerSelector`` or
+``PostServerSelector`` property of a ``ClusterConfigurator`` instance, as shown in the
+:ref:`csharp-server-selection-algorithm` section.
+
+Using Settings to Configure Server Selection
+--------------------------------------------
+
+You can specify the following server selection settings in your ``MongoClient`` object or
+in your connection URI:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Setting
+     - Description
+
+   * - ``LocalThreshold``
+     - | The latency window for server eligibility. If a server's round trip takes longer
+       | than the fastest server's round-trip time plus this value, the server isn't
+       | eligible for selection.
+       |
+       | **Data Type**: ``TimeSpan``
+       | **Default**: 15 milliseconds
+       | **Connection URI Example**: ``localThresholdMS=0``
+       
+   * - ``ReadPreference``
+     - | The client's default read-preference settings. ``MaxStaleness`` represents the
+       | longest replication lag (in real time) that a secondary can experience and
+       | still be eligible for server selection. Specifying ``-1`` means no maximum.
+       | See :ref:`read preference <read-preference>` for more information.
+       |
+       | **Data Type**: `ReadPreference <{+api-root+}/MongoDB.Driver/MongoDB.Driver.ReadPreference.html>`__
+       | **Default**: ``ReadPreference.Primary``
+       | **Connection URI Example**:
+
+       .. code-block:: none
+          :copyable: false
+
+          readPreference=primaryPreferred
+          &maxStalenessSeconds=90
+          &readPreferenceTags=dc:ny,rack:1
+
+   * - ``ServerSelectionTimeout``
+     - | The length of time the driver tries to select a server before timing out.
+       |
+       | **Data Type**: ``TimeSpan``
+       | **Default**: 30 seconds
+       | **Connection URI Example**: ``serverSelectionTimeoutMS=15000``
+
+Troubleshooting
+---------------
+
+.. include:: /includes/troubleshooting/server-selection-timeout.rst
+
+API Documentation
+-----------------
+
+To learn more about the classes and methods used in this guide, see the following API
+documentation:
+
+- `MongoClient <{+api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClient.html>`__
+- `MongoClientSettings <{+api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClientSettings.html>`__
+- `ClusterConfigurator <{+api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClientSettings.ClusterConfigurator.html>`__
+- `ServerSelectors <{+api-root+}/MongoDB.Driver/MongoDB.Driver.Core.Clusters.ServerSelectors.html>`__
+- `IServerSelector <{+api-root+}/MongoDB.Driver/MongoDB.Driver.Core.Clusters.ServerSelectors.IServerSelector.html>`__
+- `SelectServer() <{+api-root+}/MongoDB.Driver/MongoDB.Driver.Core.Clusters.ServerSelectors.IServerSelector.SelectServers.html>`__

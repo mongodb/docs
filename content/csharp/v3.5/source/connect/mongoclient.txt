@@ -1,0 +1,137 @@
+.. _csharp-connect-to-mongodb:
+.. _csharp-create-mongoclient:
+
+====================
+Create a MongoClient
+====================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: connection string, URI, server, Atlas, settings
+   :description: Learn how to create a MongoClient to connect to a MongoDB deployment URI and customize connection behavior.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This guide shows you how to connect to a MongoDB instance or replica set
+deployment by using the {+driver-short+}.
+
+Overview
+--------
+
+Connecting to a MongoDB deployment requires the following components:
+
+- **Connection URI**, also known as a *connection string*, which tells the {+driver-short+}
+  which MongoDB deployment to connect to.
+- **MongoClient** object, which creates and sustains the connection to the MongoDB deployment
+  and lets you perform data operations.
+
+You can also specify connection settings in either of these components to customize the way
+the {+driver-short+} behaves while connected to MongoDB.
+
+This guide shows you how to create a connection URI and use a ``MongoClient`` object
+to connect to MongoDB.
+
+Connection URI
+--------------
+
+A standard connection URI includes the following components:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Component
+     - Description
+
+   * - ``mongodb://``
+
+     - Required. A prefix that identifies this as a string in the
+       standard connection format.
+
+   * - ``username:password``
+
+     - Optional. Authentication credentials. If you include these, the client
+       authenticates the user against the database specified in ``authSource``.
+       For more information about authentication settings, see
+       :ref:`csharp-authentication-mechanisms`. 
+
+   * - ``host[:port]``
+
+     - Required. The host and optional port number where MongoDB is running. If you don't
+       include the port number, the driver uses the default port ``27017``.
+
+   * - ``/defaultauthdb``
+     
+     - Optional. The authentication database to use if the
+       connection string includes ``username:password@``
+       authentication credentials but not the ``authSource`` option. If you don't include 
+       this component, the client authenticates the user against the ``admin`` database.
+
+   * - ``?<options>``
+
+     - Optional. A query string that specifies connection-specific
+       options as ``<name>=<value>`` pairs. See
+       :ref:`csharp-connection-options` for a full description of
+       these options.
+
+For more information about creating a connection string, see
+:manual:`Connection Strings </reference/connection-string>` in the
+MongoDB Server documentation.
+
+MongoClient
+-----------
+
+To create a connection to MongoDB, pass a connection URI to the
+``MongoClient`` constructor. In the following example, the driver uses a sample
+connection URI to connect to a MongoDB deployment running on port ``27017`` of ``localhost``:
+
+.. code-block:: csharp
+
+   const string uri = "mongodb://localhost:27017/";
+   var client = new MongoClient(uri);
+
+Manage MongoClient Disposables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you use ``MongoClient``, we recommend giving it a singleton
+lifetime scope. However, this might cause excessive memory usage and
+undisposed resources.
+
+In v3.0 and later of the {+driver-short+}, a new ``MongoClient`` implements
+``IDisposable`` to dispose of resources while using a singleton lifetime scope. This
+implementation allows the ``MongoClient`` class and any classes that implement the
+``IMongoClient`` interface to access a ``Dispose()`` method. After you dispose of the
+client, any member connections return an ``ObjectDisposedException`` error.
+
+Disposing of ``MongoClient`` does not dispose of the cluster and the underlying connections. To dispose of these resources, call
+``ClusterRegistry.UnregisterAndDisposeCluster()``. To learn more about the
+``ClusterRegistry.UnregisterAndDisposeCluster()`` method, see
+`UnregisterAndDisposeCluster()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.ClusterRegistry.UnregisterAndDisposeCluster.html>`__ in the {+driver-short+} API documentation.
+
+Configure the Connection
+------------------------
+
+You can configure your connection in the following ways:
+
+- Specifying parameters in the connection URI
+- Specifying settings on a ``MongoClientSettings`` or ``MongoUrlBuilder`` object
+
+To learn more about configuring your connection, see the
+:ref:`csharp-connection-options` guide.
+
+API Documentation
+-----------------
+
+To learn more about creating a ``MongoClient`` object with the {+driver-short+},
+see the following API documentation:
+
+- `MongoClient <{+api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClient.html>`__
+- `MongoClientSettings <{+api-root+}/MongoDB.Driver/MongoDB.Driver.MongoClientSettings.html>`__

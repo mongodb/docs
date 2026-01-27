@@ -1,0 +1,324 @@
+.. _csharp-db-coll:
+.. _csharp-databases-collections:
+
+=========================
+Databases and Collections
+=========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: access data, delete data, organize connections
+   :description: Learn how to use the .NET/C# Driver to manage MongoDB databases and collections, including accessing, listing, creating, and dropping them.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to access
+and manage MongoDB databases and collections.
+
+MongoDB organizes data in a hierarchical structure. A MongoDB
+deployment contains one or more **databases**, and each database
+contains one or more **collections**. In each collection, MongoDB stores
+data as **documents** that contain field-and-value pairs.
+
+To learn more about the document data format,
+see :manual:`Documents </core/document/>` in the Server manual.
+
+Access a Database
+-----------------
+
+You can access a database by retrieving an `IMongoDatabase
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoDatabase.html>`__
+instance from your ``IMongoClient`` instance. You can use
+the returned ``IMongoDatabase`` instance to perform database-level operations and access
+collections that the database contains.
+
+To create an ``IMongoDatabase``, call the `GetDatabase()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoClient.GetDatabase.html>`__
+method on an `IMongoClient
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoClient.html>`__
+instance, passing the database name as a
+parameter. You can also pass an optional `MongoDatabaseSettings
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.MongoDatabaseSettings.html>`__
+as a parameter to customize how you access a database.
+
+If you pass the name of a nonexistent database to the ``GetDatabase()``
+method, the driver still returns an
+``IMongoDatabase`` instance. When you insert any data into a collection in this
+database, the server creates the database and collection at that time.
+
+The following example creates a client, then uses the ``GetDatabase()``
+method to access a database called ``test_db``:
+
+.. code-block:: csharp
+   :emphasize-lines: 2
+
+   var client = new MongoClient("<connection string>");
+   var myDB = mongoClient.GetDatabase("test_db");
+
+List Databases
+--------------
+
+To see a list of your deployment's databases, call the synchronous `ListDatabaseNames()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoClient.ListDatabaseNames.html>`__
+method or asynchronous `ListDatabaseNamesAsync()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoClient.ListDatabaseNamesAsync.html>`__
+method on your ``IMongoClient`` instance.
+
+To see detailed information about each database, call the synchronous `ListDatabases()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoClient.ListDatabases.html>`__ method or
+asynchronous `ListDatabasesAsync()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoClient.ListDatabasesAsync.html>`__
+method on your ``IMongoClient`` instance. These methods return fields describing
+the databases in the cluster, such as their sizes and whether they contain data.
+
+The following code shows how to use the synchronous ``ListDatabaseNames()`` method or the
+asynchronous ``ListDatabaseNamesAsync()`` method to list the names of the databases in a
+cluster:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: list-db-sync
+
+      .. code-block:: csharp
+         :copyable: true
+
+         mongoClient.ListDatabaseNames();
+
+   .. tab:: Asynchronous
+      :tabid: list-db-async
+
+      .. code-block:: csharp
+         :copyable: true
+
+         await mongoClient.ListDatabaseNamesAsync();
+
+Drop a Database
+---------------
+
+Dropping a database permanently deletes all the data in that database's
+collections. To drop a database, call the synchronous `DropDatabase()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoClient.DropDatabase.html>`__
+method or asynchronous `DropDatabaseAsync()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoClient.DropDatabaseAsync.html>`__
+method on your ``IMongoClient`` instance, passing the database name as
+the parameter.
+
+The following code shows how to use the synchronous ``DropDatabase()`` method or the asynchronous
+``DropDatabaseAsync()`` method to drop a database called ``test_db``:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: drop-db-sync
+
+      .. code-block:: csharp
+         :copyable: true
+         
+         mongoClient.DropDatabase("test_db");
+
+   .. tab:: Asynchronous
+      :tabid: drop-db-async
+
+      .. code-block:: csharp
+         :copyable: true
+
+         await mongoClient.DropDatabaseAsync("test_db");
+
+.. warning:: Dropping a Database Deletes Data
+
+   Dropping a database permanently deletes all
+   documents in the database's collections and all indexes on those collections.
+   After you drop a database, you cannot access or restore any of its data.
+
+Access a Collection
+-------------------
+
+You can access a collection by retrieving an `IMongoCollection
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoCollection-1.html>`__
+instance from your database. You can use an ``IMongoCollection``
+instance to perform data operations,
+create aggregations, and manage indexes. To retrieve an
+``IMongoCollection``, call the `GetCollection()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoDatabase.GetCollection.html>`__
+method on an ``IMongoDatabase`` instance.  You can also pass an optional `MongoCollectionSettings
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.MongoCollectionSettings.html>`__
+as a parameter to customize how you access a collection.
+
+If you pass the name of a nonexistent collection to this method, the
+driver still returns an ``IMongoCollection`` instance. When you insert
+any data into this collection, the server creates it. To learn how to
+explicitly create a collection, see the :ref:`Create a Collection
+<csharp-create-collection>` section of this guide.
+
+This example uses the ``GetCollection()`` method to
+access a collection called ``coll_xyz`` from a database referenced by
+the ``myDB`` variable:
+
+.. code-block:: csharp
+
+   var myColl = myDB.GetCollection<BsonDocument>("coll_xyz");
+
+.. _csharp-coll-parameterization:
+
+Collection Parameterization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You must parameterize your ``IMongoCollection`` instance by specifying what
+data type you want to serialize the collection's
+data into. When you call a method on a ``IMongoCollection`` instance that is
+parameterized with a specific type, the method accepts or returns
+instances of this type.
+
+The following example shows how to parameterize a
+collection with the ``BsonDocument`` type:
+
+.. code-block:: csharp
+   
+   var collection = database.GetCollection<BsonDocument>("coll_xyz", settings);
+
+.. tip::
+
+   We recommend that you parameterize your ``IMongoCollection`` instance with a
+   custom type that models your data instead of the ``BsonDocument`` type.
+   You can avoid repetitive serialization and validation by defining a
+   type that models your specific data.
+
+   To learn more about serialization in the {+driver-short+}, see the
+   guide on :ref:`csharp-serialization`.
+
+.. _csharp-create-collection:
+
+Create a Collection
+-------------------
+
+You can explicitly create a collection by calling the synchronous `CreateCollection()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoDatabase.CreateCollection.html>`__
+method or asynchronous `CreateCollectionAsync()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoDatabase.CreateCollectionAsync.html>`__
+method on your ``IMongoDatabase`` instance.
+
+This method takes the collection name and an
+optional `CreateCollectionOptions
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.CreateCollectionOptions.html>`__ type as
+parameters. You can then access the created collection to perform data
+operations, create aggregations, and manage indexes.
+
+The following code shows how to use the synchronous
+``CreateCollection()`` method or the asynchronous
+``CreateCollectionAsync()`` method to create a collection called
+``coll_abc`` within a database referenced by the ``myDB`` variable:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: create-coll-sync
+
+      .. code-block:: csharp
+         :copyable: true
+         
+         myDB.CreateCollection("coll_abc");
+
+   .. tab:: Asynchronous
+      :tabid: create-coll-async
+
+      .. code-block:: csharp
+         :copyable: true
+
+         await myDB.CreateCollectionAsync("coll_abc");
+
+List Collections
+----------------
+
+To see a list of collections in a database, call the synchronous `ListCollectionNames()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoDatabase.ListCollectionNames.html>`__
+method or asynchronous `ListCollectionNamesAsync()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoDatabase.ListCollectionNamesAsync.html>`__
+method on your ``IMongoDatabase`` instance.
+
+To see detailed information about each database, call the synchronous `ListCollections()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoDatabase.ListCollections.html>`__
+method or asynchronous `ListCollectionsAsync()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoDatabase.ListCollectionsAsync.html>`__
+method on your ``IMongoDatabase`` instance. These methods return fields describing
+the collections in the database, such as their types and settings.
+
+The following code shows how to use the synchronous ``ListCollectionNames()`` method or
+the asynchronous ``ListCollectionNamesAsync()`` method to list the names of the
+collections in a database:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: list-coll-sync
+
+      .. code-block:: csharp
+         :copyable: true
+
+         myDB.ListCollectionNames();
+
+   .. tab:: Asynchronous
+      :tabid: list-coll-async
+
+      .. code-block:: csharp
+         :copyable: true
+
+         await myDB.ListCollectionNamesAsync();
+
+.. _csharp-drop-collection:
+
+Drop a Collection
+-----------------
+
+Dropping a collection permanently deletes all the data in that collection. To drop a
+collection, call the synchronous `DropCollection()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoDatabase.DropCollection.html>`__ or
+the asynchronous `DropCollectionAsync()
+<{+api-root+}/MongoDB.Driver/MongoDB.Driver.IMongoDatabase.DropCollectionAsync.html>`__
+method on your ``IMongoCollection`` instance.
+
+The following code shows how to use the synchronous ``DropCollection()`` method or the asynchronous
+``DropCollectionAsync()`` method to drop a database called ``coll_abc``:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: drop-coll-sync
+
+      .. code-block:: csharp
+         :copyable: true
+         
+         myDB.DropCollection("coll_abc");
+   .. tab:: Asynchronous
+      :tabid: drop-coll-async
+
+      .. code-block:: csharp
+         :copyable: true
+
+         await myDB.DropCollectionAsync("coll_abc");
+
+.. warning:: Dropping a Collection Deletes Data
+
+   Dropping a collection from your database permanently deletes all
+   documents within that collection and all indexes on that collection.
+   After you drop a collection, you cannot access or restore any of its data.
+
+Additional Information
+----------------------
+
+For more information about the concepts in this guide, see the following documentation:
+
+- :ref:`Insert Documents <csharp-insert-guide>` guide
+- :manual:`Databases and Collections </core/databases-and-collections/>`
+  in the Server manual
+- :manual:`Documents </core/document/>` in the Server manual

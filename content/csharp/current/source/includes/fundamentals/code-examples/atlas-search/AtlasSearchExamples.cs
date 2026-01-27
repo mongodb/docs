@@ -279,6 +279,30 @@ public class AtlasSearchExamples
         return result;
     }
 
+    public static List<Guitar> VectorSearchExample()
+    {
+        // start-vector-search
+        // Query vector representing "high-quality electric guitars"
+        var queryVector = new[] { <list of vectors> };
+        
+        var options = new VectorSearchOperatorOptions<Guitar>()
+        {
+            Filter = Builders<Guitar>.Filter.Gte(g => g.Rating, 8),
+            NumberOfCandidates = 50
+        };
+
+        var result = guitarsCollection.Aggregate()
+            .Search(Builders<Guitar>.Search.VectorSearch(
+                g => g.DescriptionEmbeddings,
+                queryVector,
+                10,
+                options))
+            .ToList();
+        // end-vector-search
+
+        return result;
+    }
+
     public static List<Guitar> WildcardSearch()
     {
         // start-wildcard-search

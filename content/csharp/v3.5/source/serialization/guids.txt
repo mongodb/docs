@@ -1,0 +1,269 @@
+.. _csharp-guids:
+
+=====
+GUIDs
+=====
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: .NET, attribute, property, code example, class, map, bson, CSUUID
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to serialize **globally unique identifiers**  
+(`GUIDs <https://learn.microsoft.com/en-us/dynamicsax-2012/developer/guids>`__),
+also known as **universally unique identifiers** (UUIDs).
+
+.. tip:: ObjectId
+
+   In MongoDB applications, you can use the
+   `ObjectId <{+api-root+}/api/MongoDB.Bson/MongoDB.Bson.ObjectId.html>`__ type
+   as a unique identifier for a document. Consider using ``ObjectId`` instances in place
+   of GUIDs in MongoDB applications where possible.
+
+GUIDs in MongoDB
+----------------
+
+A GUID is a 16-byte integer that you can use as a unique ID for a MongoDB document.
+The following code block shows an example GUID:
+
+.. code-block::
+   :copyable: false
+
+   00112233-4455-6677-8899-aabbccddeeff
+
+Originally, MongoDB represented GUIDs as ``BsonBinaryData``
+values of :manual:`subtype 3. </reference/bson-types/#binary-data>`
+Because subtype 3 didn't standardize the byte order of GUIDs
+during encoding, different MongoDB drivers encoded GUIDs with different
+byte orders.
+
+The following tabs show different driver encodings of the preceding GUID to
+``BsonBinaryData`` subtype 3:
+
+.. tabs::
+
+   .. tab:: {+driver-short+}
+      :tabid: csharp
+
+      .. code-block:: csharp
+         :copyable: false
+
+         33221100-5544-7766-8899-aabbccddeeff
+
+   .. tab:: PyMongo
+      :tabid: pymongo
+
+      .. code-block:: python
+         :copyable: false
+
+         00112233-4455-6677-8899-aabbccddeeff
+
+   .. tab:: Java Driver
+      :tabid: java
+
+      .. code-block:: java
+         :copyable: false
+
+         77665544-3322-1100-ffee-ddccbbaa9988
+
+To standardize GUID byte order across applications, we added ``BsonBinaryData`` subtype 4,
+which all MongoDB drivers encode in the same way. If your application uses GUIDs, we
+recommend using ``BsonBinaryData`` subtype 4 to store them.
+
+.. note:: Empty GUIDs
+
+   When serializing ``Guid.Empty`` values, the {+driver-short+} treats these values as
+   unset IDs. Unset IDs receive a new GUID when inserted into a collection.
+   The following example demonstrates this behavior:
+
+   .. code-block:: csharp
+      :copyable: true
+
+      var doc = new MyDocument { Name = "Test" }; // Id will default to Guid.Empty
+      collection.InsertOne(doc); // doc.Id will now contain a generated GUID, not Guid.Empty
+
+   To store documents with a ``Guid.Empty`` value as an ID in the collection, 
+   turn off auto ID generation by using a ``MongoCollectionSettings`` object. The following code example
+   demonstrates how to disable auto ID generation:
+
+   .. code-block:: csharp
+      :copyable: true
+
+      var collectionSettings = new MongoCollectionSettings { AssignIdOnInsert = false }       
+      var collection = database.GetCollection<MyDocument>("MyCollection", collectionSettings); 
+
+For a list of all ``BsonBinaryData`` subtypes, see the
+API documentation for the `BsonBinarySubType <{+api-root+}/MongoDB.Bson/MongoDB.Bson.BsonBinarySubType.html>`__
+enum.
+
+Serializing GUIDs
+-----------------
+
+Although we recommend using subtype 4 for all new ``BsonBinaryData`` GUIDs, some older
+MongoDB collections might contain some GUID fields that use subtype 3 and others that use
+subtype 4. To account for these differences, the {+driver-short+} handles GUID
+serialization at the level of individual properties.
+
+The {+driver-short+} uses the ``GuidRepresentation`` enum to represent the different
+``BsonBinaryData`` subtypes. The following table shows the ``GuidRepresentation`` enum
+members and the corresponding ``BsonBinaryData`` subtypes:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 10 
+
+   * - GuidRepresentation Member
+     - BsonBinaryData Subtype
+   
+   * - ``Standard``
+     - 4
+   
+   * - ``CSharpLegacy``
+     - 3
+   
+   * - ``JavaLegacy``
+     - 3
+   
+   * - ``PythonLegacy``
+     - 3
+   
+   * - ``Unspecified``
+     - N/A
+
+The ``CSharpLegacy``, ``JavaLegacy``, and ``PythonLegacy`` GUID
+representations are all equivalent to ``BsonBinaryData`` subtype 3, but
+use different byte orders.
+
+.. _csharp-guid-legacy-construct:
+
+.. note:: Construct Legacy GUIDs
+
+   To construct legacy (subtype 3) GUID values, you must use the
+   ``BsonBinaryData()`` constructor to explicitly specify the legacy GUID
+   type by passing the ``GuidRepresentation.CSharpLegacy`` parameter. The
+   following code demonstrates how to create a legacy GUID to use in a
+   query filter:
+   
+   .. code-block:: csharp
+      :emphasize-lines: 2
+   
+      var guid = new Guid("00112233-4455-6677-8899-aabbccddeeff");
+      var legacyGuid = new BsonBinaryData(guid, GuidRepresentation.CSharpLegacy);
+      var filter = new BsonDocument("legacyGuidField", legacyGuid);
+
+The following sections describe the ways in which you can configure GUID representation
+in your application.
+
+Configure with Attributes
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you're using the {+driver-short+} to
+:ref:`automap your {+language+} classes to document schemas <csharp-class-mapping>`,
+you can add the ``BsonGuidRepresentation`` attribute to a GUID property 
+to specify its representation. This attribute accepts a value from the
+`GuidRepresentation <{+api-root+}/MongoDB.Bson/MongoDB.Bson.GuidRepresentation.html>`__
+enum.
+
+The following code example specifies the ``Standard`` GUID representation for the
+``G`` property: 
+
+.. code-block:: csharp
+
+   public class Widget
+   {
+       public int Id { get; set; }
+
+      [BsonGuidRepresentation(GuidRepresentation.Standard)]
+      public Guid G { get; set; }
+   }
+
+Configure in Code
+~~~~~~~~~~~~~~~~~
+
+If you're writing your own serialization code, you can use the 
+``GuidSerializer`` class to serialize and deserialize individual GUID values to and 
+from BSON fields. To ensure that the driver handles GUIDs correctly, use the 
+``GuidRepresentation`` parameter when you construct a ``GuidSerializer``.
+
+The following code sample creates an instance of the ``GuidSerializer`` class 
+for serializing properties that use ``BsonBinaryData`` subtype 4: 
+
+.. code-block::
+
+   var guidSerializer = new GuidSerializer(GuidRepresentation.Standard);
+
+If most of your GUIDs use the same representation, you can register a ``GuidSerializer``
+globally. To create and register a ``GuidSerializer``, run the following code early
+in your application, such as during the bootstrapping phase:
+
+.. code-block:: csharp
+
+   BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+
+.. tip::
+
+   When you're working with two ``BsonBinaryData`` subtypes, you can combine a global
+   serializer with the  ``BsonGuidRepresentation`` property attribute. For example, you
+   can register a global serializer for the most commonly used GUID subtype, then use
+   the ``BsonGuidRepresentation`` attribute to denote any GUID properties of another subtype.  
+
+.. important::
+
+   If you don't globally register a serializer, you must apply the ``BsonGuidRepresentation``
+   attribute to every serializable GUID property. Otherwise, the driver throws an exception
+   when it tries to serialize the property.
+
+Serializing Objects
+-------------------
+
+You can use an ``ObjectSerializer`` to serialize hierarchical objects to subdocuments. 
+To ensure that GUIDs in these objects are serialized and deserialized correctly,
+select the correct GUID representation when constructing your ``ObjectSerializer``. 
+
+The following code sample shows how to 
+create an ``ObjectSerializer`` for a GUID representation of subtype 4:
+
+.. code-block:: csharp
+
+   var objectDiscriminatorConvention = BsonSerializer.LookupDiscriminatorConvention(typeof(object));
+   var objectSerializer = new ObjectSerializer(objectDiscriminatorConvention, GuidRepresentation.Standard);
+
+If your application relies on an ``ObjectSerializer`` to serialize any GUIDs, you 
+must also register the serializer early in your application, such as during the 
+bootstrapping phase. The serializer that you 
+register will be used globally whenever an object serializer is needed and has not 
+been otherwise specified.
+
+To register your ``ObjectSerializer``, pass it to the ``BsonSerializer.RegisterSerializer()``
+method:
+
+.. code-block:: csharp
+   :emphasize-lines: 3
+
+   var objectDiscriminatorConvention = BsonSerializer.LookupDiscriminatorConvention(typeof(object));
+   var objectSerializer = new ObjectSerializer(objectDiscriminatorConvention, GuidRepresentation.Standard);
+   BsonSerializer.RegisterSerializer(objectSerializer);
+
+Additional Information
+----------------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `BsonBinaryData <{+api-root+}/MongoDB.Bson/MongoDB.Bson.BsonBinaryData.html>`__
+- `BsonGuidRepresentation <{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.Attributes.BsonGuidRepresentationAttribute.html>`__
+- `GuidSerializer <{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.Serializers.GuidSerializer.html>`__
+- `ObjectSerializer <{+api-root+}/MongoDB.Bson/MongoDB.Bson.Serialization.Serializers.ObjectSerializer.html>`__
+- `GuidRepresentation <{+api-root+}/MongoDB.Bson/MongoDB.Bson.GuidRepresentation.html>`__
