@@ -65,7 +65,7 @@ When creating and managing {+fts+} indexes, consider the following:
      create new {+fts+} indexes once the :dbcommand:`movePrimary`
      operation is complete.
 
-   - .. include:: /includes/search-shared/fact-fcis-aws.rst
+   - .. include:: /includes/search-shared/fact-fcis.rst
 
    To learn more about {+fts+} node architecture, see
    :ref:`fts-deployment-options`. 

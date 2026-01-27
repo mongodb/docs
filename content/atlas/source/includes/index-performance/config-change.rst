@@ -15,4 +15,4 @@ We recommend deploying :ref:`dedicated Search Nodes
 run only the ``mongot`` process and therefore improve the availability, 
 performance, and workload balancing of the ``mongot`` process.
 
-.. include:: /includes/search-shared/fact-fcis-aws.rst
+.. include:: /includes/search-shared/fact-fcis.rst
