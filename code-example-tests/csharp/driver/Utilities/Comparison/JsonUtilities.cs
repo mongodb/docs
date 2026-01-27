@@ -18,6 +18,7 @@ public class JsonUtilities
         var trimmed = input.Trim();
 
         // Check for basic JSON structure patterns
+
         return (trimmed.StartsWith('{') && trimmed.EndsWith('}')) ||
                (trimmed.StartsWith('[') && trimmed.EndsWith(']')) ||
                (trimmed.StartsWith('"') && trimmed.EndsWith('"') && trimmed.Length > 1) ||
@@ -25,6 +26,7 @@ public class JsonUtilities
                trimmed.Equals("false", StringComparison.OrdinalIgnoreCase) ||
                trimmed.Equals("null", StringComparison.OrdinalIgnoreCase) ||
                IsNumericJson(trimmed);
+
     }
 
     /// <summary>

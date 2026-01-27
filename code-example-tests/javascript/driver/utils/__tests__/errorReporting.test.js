@@ -41,7 +41,12 @@ describe('Error Reporting for Technical Writers', () => {
     it('should format objects in error messages', () => {
       const expected = { _id: 'abc', name: 'John', age: 30 };
       const actual = { _id: 'xyz', name: 'Jane', age: 25 };
-      const error = new ComparisonError('user', expected, actual, 'User data mismatch');
+      const error = new ComparisonError(
+        'user',
+        expected,
+        actual,
+        'User data mismatch'
+      );
 
       const message = error.toString();
 
@@ -51,7 +56,12 @@ describe('Error Reporting for Technical Writers', () => {
 
     it('should truncate very long values for readability', () => {
       const longString = 'x'.repeat(300);
-      const error = new ComparisonError('field', longString, 'short', 'Length mismatch');
+      const error = new ComparisonError(
+        'field',
+        longString,
+        'short',
+        'Length mismatch'
+      );
 
       const message = error.toString();
 
@@ -61,8 +71,18 @@ describe('Error Reporting for Technical Writers', () => {
     });
 
     it('should handle null and undefined values', () => {
-      const error1 = new ComparisonError('field', null, undefined, 'Null vs undefined');
-      const error2 = new ComparisonError('field', undefined, null, 'Undefined vs null');
+      const error1 = new ComparisonError(
+        'field',
+        null,
+        undefined,
+        'Null vs undefined'
+      );
+      const error2 = new ComparisonError(
+        'field',
+        undefined,
+        null,
+        'Undefined vs null'
+      );
 
       expect(error1.toString()).toContain('null');
       expect(error1.toString()).toContain('undefined');
@@ -73,7 +93,12 @@ describe('Error Reporting for Technical Writers', () => {
     it('should handle arrays in error messages', () => {
       const expected = [1, 2, 3];
       const actual = [1, 2, 4];
-      const error = new ComparisonError('results', expected, actual, 'Array mismatch');
+      const error = new ComparisonError(
+        'results',
+        expected,
+        actual,
+        'Array mismatch'
+      );
 
       const message = error.toString();
 
@@ -285,7 +310,10 @@ describe('Error Reporting for Technical Writers', () => {
     describe('fileParseError', () => {
       it('should provide helpful file parsing error messages', () => {
         const error = new Error('Unexpected token');
-        const message = ErrorMessageBuilder.fileParseError('movies/expected.txt', error);
+        const message = ErrorMessageBuilder.fileParseError(
+          'movies/expected.txt',
+          error
+        );
 
         expect(message).toContain('Failed to parse');
         expect(message).toContain('movies/expected.txt');
@@ -294,7 +322,10 @@ describe('Error Reporting for Technical Writers', () => {
 
       it('should help writers identify syntax errors', () => {
         const error = new Error('Invalid JSON syntax');
-        const message = ErrorMessageBuilder.fileParseError('results.txt', error);
+        const message = ErrorMessageBuilder.fileParseError(
+          'results.txt',
+          error
+        );
 
         expect(message).toContain('results.txt');
         expect(message).toContain('Invalid JSON syntax');
@@ -507,7 +538,12 @@ describe('Error Reporting for Technical Writers', () => {
       const expected = { title: 'Test', year: 2020, rating: 8.5 };
       const actual = { title: 'Test', year: 2020, rating: 8.6 };
 
-      const result = ComparisonResult.failure('movie', expected, actual, 'Value mismatch');
+      const result = ComparisonResult.failure(
+        'movie',
+        expected,
+        actual,
+        'Value mismatch'
+      );
       const summary = result.getErrorSummary();
 
       // Should be formatted JSON, not [object Object]
@@ -517,4 +553,3 @@ describe('Error Reporting for Technical Writers', () => {
     });
   });
 });
-

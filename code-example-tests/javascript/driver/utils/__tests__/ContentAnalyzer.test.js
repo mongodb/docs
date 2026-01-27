@@ -135,7 +135,10 @@ describe('ContentAnalyzer', () => {
     });
 
     it('should detect ellipsis in objects', () => {
-      const result = ContentAnalyzer.analyzePatterns({ _id: '...', name: 'test' });
+      const result = ContentAnalyzer.analyzePatterns({
+        _id: '...',
+        name: 'test',
+      });
       expect(result.hasEllipsis).toBe(true);
     });
 
@@ -304,4 +307,3 @@ describe('ContentAnalyzer', () => {
     });
   });
 });
-

@@ -1,0 +1,42 @@
+[
+  {
+    _id: '6973b6508c09e14b2552a939',
+    symbol: 'GOOG',
+    date: '2021-12-18T15:57:00.000Z',
+    close: 253.62,
+    volume: 40182,
+    averageMonthClosingPrice: 253.62,
+  },
+  {
+    _id: '6973b6508c09e14b2552a938',
+    symbol: 'MDB',
+    date: '2021-12-18T15:58:00.000Z',
+    close: 252.94,
+    volume: 44042,
+    averageMonthClosingPrice: 252.94,
+  },
+  {
+    _id: '6973b6508c09e14b2552a937',
+    symbol: 'MDB',
+    date: '2021-12-18T15:59:00.000Z',
+    close: 252.47,
+    volume: 55046,
+    averageMonthClosingPrice: 252.70499999999998,
+  },
+  {
+    _id: '6973b6508c09e14b2552a93b',
+    symbol: 'MSFT',
+    date: '2021-12-18T15:55:00.000Z',
+    close: 254.03,
+    volume: 40270,
+    averageMonthClosingPrice: 254.03,
+  },
+  {
+    _id: '6973b6508c09e14b2552a93a',
+    symbol: 'MSFT',
+    date: '2021-12-18T15:56:00.000Z',
+    close: 253.63,
+    volume: 27890,
+    averageMonthClosingPrice: 253.82999999999998,
+  },
+];

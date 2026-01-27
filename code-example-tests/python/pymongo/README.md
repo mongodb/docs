@@ -549,6 +549,15 @@ CONNECTION_STRING="<your-connection-string>"
 Replace the `<your-connection-string>` placeholder with the connection
 string from the deployment you created in the prior step.
 
+### Install Certificates for Atlas Connections
+
+When the MongoDB Python client connects to MongoDB Atlas, it requires the 
+necessary root or intermediate CA certificates required to trust the Atlas 
+server's certificate. To ensure your connection to Atlas works, install the 
+certificates by running the following command in your terminal:
+
+`open /Applications/Python\ 3.12/Install\ Certificates.command`
+
 ### Run All Tests from the command line
 
 From the root of the `/python/pymongo` directory, run:

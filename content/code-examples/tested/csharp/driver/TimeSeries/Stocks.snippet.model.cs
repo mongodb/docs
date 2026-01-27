@@ -6,6 +6,9 @@ public class Stocks
     [BsonElement("ticker")]
     public string Ticker { get; set; } = "";
 
+    [BsonElement("symbol")]
+    public string Symbol { get; set; } = "";
+
     [BsonElement("date")]
     public DateTime Date { get; set; }
 

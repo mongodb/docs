@@ -267,7 +267,8 @@ function convertStandaloneEllipsisToField(str) {
     if (standaloneMatch) {
       // Count braces/brackets to determine current context
       // We need to look at what's on the stack based on all previous lines
-      let currentContext = contextStack.length > 0 ? contextStack[contextStack.length - 1] : null;
+      let currentContext =
+        contextStack.length > 0 ? contextStack[contextStack.length - 1] : null;
 
       if (currentContext === 'object') {
         // We're inside an object, convert to key-value pair
@@ -287,7 +288,9 @@ function convertStandaloneEllipsisToField(str) {
             break;
           }
         }
-        result.push(`${standaloneMatch[1]}"...": "..."${comma}${standaloneMatch[3]}`);
+        result.push(
+          `${standaloneMatch[1]}"...": "..."${comma}${standaloneMatch[3]}`
+        );
       } else {
         // We're inside an array or at top level, keep as-is
         result.push(line);

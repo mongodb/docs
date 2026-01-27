@@ -30,9 +30,9 @@ function compareWithDetails(expected, actual, path, options = {}) {
   if (ellipsisResult.isHandled) {
     return {
       isMatch: ellipsisResult.matches,
-      errors: ellipsisResult.matches ? [] : [
-        new ComparisonError(path, expected, actual, 'Pattern mismatch')
-      ],
+      errors: ellipsisResult.matches
+        ? []
+        : [new ComparisonError(path, expected, actual, 'Pattern mismatch')],
     };
   }
 
@@ -101,9 +101,16 @@ function compareArraysWithDetails(expectedArr, actualArr, path, options) {
   if (ellipsisResult.isHandled && !ellipsisResult.requiresEllipsisMatching) {
     return {
       isMatch: ellipsisResult.matches,
-      errors: ellipsisResult.matches ? [] : [
-        new ComparisonError(path, expectedArr, actualArr, 'Array pattern mismatch')
-      ],
+      errors: ellipsisResult.matches
+        ? []
+        : [
+            new ComparisonError(
+              path,
+              expectedArr,
+              actualArr,
+              'Array pattern mismatch'
+            ),
+          ],
     };
   }
 
@@ -171,9 +178,16 @@ function compareObjectsWithDetails(expectedObj, actualObj, path, options) {
   if (ellipsisResult.isHandled) {
     return {
       isMatch: ellipsisResult.matches,
-      errors: ellipsisResult.matches ? [] : [
-        new ComparisonError(path, expectedObj, actualObj, 'Object pattern mismatch')
-      ],
+      errors: ellipsisResult.matches
+        ? []
+        : [
+            new ComparisonError(
+              path,
+              expectedObj,
+              actualObj,
+              'Object pattern mismatch'
+            ),
+          ],
     };
   }
 
@@ -181,13 +195,13 @@ function compareObjectsWithDetails(expectedObj, actualObj, path, options) {
   const keyAnalysis = compareObjectKeys(expectedObj, actualObj, options);
 
   // Get keys to compare
-  const keysA = Object.keys(expectedObj).filter(k => k !== '...');
-  const keysB = Object.keys(actualObj).filter(k => k !== '...');
+  const keysA = Object.keys(expectedObj).filter((k) => k !== '...');
+  const keysB = Object.keys(actualObj).filter((k) => k !== '...');
   const keySetA = new Set(keysA);
   const keySetB = new Set(keysB);
 
   // Check for missing keys (in expected but not in actual)
-  const missingKeys = keysA.filter(k => !keySetB.has(k));
+  const missingKeys = keysA.filter((k) => !keySetB.has(k));
   if (missingKeys.length > 0) {
     for (const key of missingKeys) {
       errors.push(
@@ -203,7 +217,7 @@ function compareObjectsWithDetails(expectedObj, actualObj, path, options) {
 
   // Check for extra keys (in actual but not in expected)
   if (!keyAnalysis.allowOmittedFields) {
-    const extraKeys = keysB.filter(k => !keySetA.has(k));
+    const extraKeys = keysB.filter((k) => !keySetA.has(k));
     if (extraKeys.length > 0) {
       for (const key of extraKeys) {
         errors.push(
@@ -249,4 +263,3 @@ function compareObjectsWithDetails(expectedObj, actualObj, path, options) {
 module.exports = {
   compareWithDetails,
 };
-

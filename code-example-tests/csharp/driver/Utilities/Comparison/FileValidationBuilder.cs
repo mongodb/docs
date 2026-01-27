@@ -155,11 +155,10 @@ public sealed class FileValidationBuilder : IBuilder
 
             var result = PerformValidation(parseResult.Data!, expected);
             if (!result.IsSuccess)
-                if (result.Error != null)
-                {
-                    var error = (ComparisonError)result;
-                    return new ComparisonError($"Validation error: {error.Message}");
-                }
+            {
+                var error = (ComparisonError)result;
+                return new ComparisonError($"Validation error: {error.Message}");
+            }
         }
 
         return new ComparisonSuccess();

@@ -32,9 +32,7 @@ describe('Aggregation pipeline filter tutorial tests', () => {
     const result = await runFilterTutorial();
     const outputFilepath = 'aggregation/pipelines/filter/tutorial-output.sh';
 
-    Expect.that(result)
-      .withUnorderedSort()
-      .shouldMatch(outputFilepath);
+    Expect.that(result).withUnorderedSort().shouldMatch(outputFilepath);
   });
 
   it('Should return grouped output that includes the three specified customer order records', async () => {
@@ -42,9 +40,7 @@ describe('Aggregation pipeline filter tutorial tests', () => {
     const result = await runGroupTutorial();
     const outputFilepath = 'aggregation/pipelines/group/tutorial-output.sh';
 
-    Expect.that(result)
-      .withUnorderedSort()
-      .shouldMatch(outputFilepath);
+    Expect.that(result).withUnorderedSort().shouldMatch(outputFilepath);
   });
 
   it('Should return unpacked output grouped by product name', async () => {
@@ -52,9 +48,7 @@ describe('Aggregation pipeline filter tutorial tests', () => {
     const result = await runUnwindTutorial();
     const outputFilepath = 'aggregation/pipelines/unwind/tutorial-output.sh';
 
-    Expect.that(result)
-      .withUnorderedSort()
-      .shouldMatch(outputFilepath);
+    Expect.that(result).withUnorderedSort().shouldMatch(outputFilepath);
   });
 
   it('Should return joined data with the customer product name and category', async () => {
@@ -63,9 +57,7 @@ describe('Aggregation pipeline filter tutorial tests', () => {
     const outputFilepath =
       'aggregation/pipelines/join-one-to-one/tutorial-output.sh';
 
-    Expect.that(result)
-      .withUnorderedSort()
-      .shouldMatch(outputFilepath);
+    Expect.that(result).withUnorderedSort().shouldMatch(outputFilepath);
   });
 
   it('Should return joined data based on multiple fields', async () => {
@@ -74,8 +66,6 @@ describe('Aggregation pipeline filter tutorial tests', () => {
     const outputFilepath =
       'aggregation/pipelines/join-multi-field/tutorial-output.sh';
 
-    Expect.that(result)
-      .withUnorderedSort()
-      .shouldMatch(outputFilepath);
+    Expect.that(result).withUnorderedSort().shouldMatch(outputFilepath);
   });
 });

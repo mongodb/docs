@@ -195,4 +195,3 @@ module.exports = {
   normalizeForComparison,
   ensureComparableFormat,
 };
-

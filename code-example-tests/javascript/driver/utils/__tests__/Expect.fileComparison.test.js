@@ -63,9 +63,7 @@ describe('Expect API (file-based comparison tests)', () => {
       fs.writeFileSync(tempFile, expected);
       const actual = [{ a: 1 }, { a: 2 }];
       expect(() => {
-        Expect.that(actual)
-          .withOrderedSort()
-          .shouldMatch('temp-output.json');
+        Expect.that(actual).withOrderedSort().shouldMatch('temp-output.json');
       }).not.toThrow();
     });
 
@@ -81,9 +79,7 @@ describe('Expect API (file-based comparison tests)', () => {
       fs.writeFileSync(tempFile, expected);
       const actual = [{ a: 2 }, { a: 1 }];
       expect(() => {
-        Expect.that(actual)
-          .withOrderedSort()
-          .shouldMatch('temp-output.json');
+        Expect.that(actual).withOrderedSort().shouldMatch('temp-output.json');
       }).toThrow();
     });
 
@@ -482,9 +478,7 @@ describe('Expect API (file-based comparison tests)', () => {
       ];
 
       expect(() => {
-        Expect.that(actual)
-          .withOrderedSort()
-          .shouldMatch('temp-output.json');
+        Expect.that(actual).withOrderedSort().shouldMatch('temp-output.json');
       }).not.toThrow();
     });
 
@@ -536,9 +530,7 @@ describe('Expect API (file-based comparison tests)', () => {
       ];
 
       expect(() => {
-        Expect.that(actual)
-          .withOrderedSort()
-          .shouldMatch('temp-output.json');
+        Expect.that(actual).withOrderedSort().shouldMatch('temp-output.json');
       }).not.toThrow();
     });
 
@@ -606,9 +598,7 @@ describe('Expect API (file-based comparison tests)', () => {
       ];
 
       expect(() => {
-        Expect.that(actual)
-          .withOrderedSort()
-          .shouldMatch('temp-output.json');
+        Expect.that(actual).withOrderedSort().shouldMatch('temp-output.json');
       }).not.toThrow();
     });
 
@@ -675,9 +665,7 @@ describe('Expect API (file-based comparison tests)', () => {
       ];
 
       expect(() => {
-        Expect.that(actual)
-          .withOrderedSort()
-          .shouldMatch('temp-output.json');
+        Expect.that(actual).withOrderedSort().shouldMatch('temp-output.json');
       }).not.toThrow();
     });
 

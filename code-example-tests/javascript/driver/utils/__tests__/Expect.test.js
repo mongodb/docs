@@ -143,7 +143,12 @@ describe('Expect API', () => {
   describe('shouldMatch - ignored fields', () => {
     it('should ignore specified fields during comparison', () => {
       const actual = { _id: 'abc123', name: 'test', timestamp: '2023-01-01' };
-      const expected = { _id: '...', name: 'test', timestamp: '...', '...': '...' };
+      const expected = {
+        _id: '...',
+        name: 'test',
+        timestamp: '...',
+        '...': '...',
+      };
 
       expect(() => {
         Expect.that(actual)
@@ -157,9 +162,7 @@ describe('Expect API', () => {
       const expected = { name: 'wrong', value: 42 };
 
       expect(() => {
-        Expect.that(actual)
-          .withIgnoredFields('_id')
-          .shouldMatch(expected);
+        Expect.that(actual).withIgnoredFields('_id').shouldMatch(expected);
       }).toThrow();
     });
   });
@@ -335,8 +338,7 @@ describe('Expect API', () => {
       ];
 
       expect(() => {
-        Expect.that(actual)
-          .shouldMatch(expected);
+        Expect.that(actual).shouldMatch(expected);
       }).not.toThrow();
     });
 
@@ -357,13 +359,24 @@ describe('Expect API', () => {
       ];
 
       const expected = [
-        { _id: 'Action', count: '...', avgRating: '...', updatedAt: '...', '...': '...' },
-        { _id: 'Drama', count: '...', avgRating: '...', updatedAt: '...', '...': '...' },
+        {
+          _id: 'Action',
+          count: '...',
+          avgRating: '...',
+          updatedAt: '...',
+          '...': '...',
+        },
+        {
+          _id: 'Drama',
+          count: '...',
+          avgRating: '...',
+          updatedAt: '...',
+          '...': '...',
+        },
       ];
 
       expect(() => {
-        Expect.that(actual)
-          .shouldMatch(expected);
+        Expect.that(actual).shouldMatch(expected);
       }).not.toThrow();
     });
   });
@@ -396,9 +409,7 @@ describe('Expect API', () => {
         const expected = [{ x: 10 }, { y: 20 }, { z: 30 }];
 
         expect(() => {
-          Expect.that(actual)
-            .shouldResemble(expected)
-            .withSchema({ count: 3 });
+          Expect.that(actual).shouldResemble(expected).withSchema({ count: 3 });
         }).not.toThrow();
       });
 
@@ -407,9 +418,7 @@ describe('Expect API', () => {
         const expected = [];
 
         expect(() => {
-          Expect.that(actual)
-            .shouldResemble(expected)
-            .withSchema({ count: 0 });
+          Expect.that(actual).shouldResemble(expected).withSchema({ count: 0 });
         }).not.toThrow();
       });
 
@@ -418,13 +427,11 @@ describe('Expect API', () => {
         const expected = [{ x: 10, y: 20 }];
 
         expect(() => {
-          Expect.that(actual)
-            .shouldResemble(expected)
-            .withSchema({
-              count: 1,
-              requiredFields: [],
-              fieldValues: {},
-            });
+          Expect.that(actual).shouldResemble(expected).withSchema({
+            count: 1,
+            requiredFields: [],
+            fieldValues: {},
+          });
         }).not.toThrow();
       });
     });
@@ -435,9 +442,7 @@ describe('Expect API', () => {
         const expected = [{ x: 1 }, { y: 2 }, { z: 3 }];
 
         expect(() => {
-          Expect.that(actual)
-            .shouldResemble(expected)
-            .withSchema({ count: 3 });
+          Expect.that(actual).shouldResemble(expected).withSchema({ count: 3 });
         }).toThrow(/actual output has 2 documents, expected 3/);
       });
 
@@ -446,21 +451,15 @@ describe('Expect API', () => {
         const expected = [{ x: 1 }];
 
         expect(() => {
-          Expect.that(actual)
-            .shouldResemble(expected)
-            .withSchema({ count: 3 });
+          Expect.that(actual).shouldResemble(expected).withSchema({ count: 3 });
         }).toThrow(/expected output has 1 documents, expected 3/);
       });
     });
 
     describe('requiredFields validation', () => {
       it('should pass when all required fields are present', () => {
-        const actual = [
-          { _id: '1', name: 'Test', extra: 'field' },
-        ];
-        const expected = [
-          { _id: '2', name: 'Other', different: 'value' },
-        ];
+        const actual = [{ _id: '1', name: 'Test', extra: 'field' }];
+        const expected = [{ _id: '2', name: 'Other', different: 'value' }];
 
         expect(() => {
           Expect.that(actual)
@@ -561,7 +560,9 @@ describe('Expect API', () => {
               count: 1,
               fieldValues: { year: 2020 },
             });
-        }).toThrow(/actual\[0\] is missing field 'year' required by fieldValues/);
+        }).toThrow(
+          /actual\[0\] is missing field 'year' required by fieldValues/
+        );
       });
     });
 
@@ -708,9 +709,7 @@ describe('Expect API', () => {
         const expected = [{ a: 1 }];
 
         expect(() => {
-          Expect.that(actual)
-            .shouldResemble(expected)
-            .shouldMatch(expected);
+          Expect.that(actual).shouldResemble(expected).shouldMatch(expected);
         }).toThrow(/shouldMatch\(\) cannot be used with shouldResemble\(\)/);
       });
 
@@ -730,7 +729,9 @@ describe('Expect API', () => {
 
         expect(() => {
           Expect.that(actual).withSchema({ count: 1 });
-        }).toThrow(/withSchema\(\) requires shouldResemble\(\) to be called first/);
+        }).toThrow(
+          /withSchema\(\) requires shouldResemble\(\) to be called first/
+        );
       });
     });
 
@@ -740,9 +741,7 @@ describe('Expect API', () => {
         const expected = [{ b: 2 }];
 
         expect(() => {
-          Expect.that(actual)
-            .shouldResemble(expected)
-            .withSchema({});
+          Expect.that(actual).shouldResemble(expected).withSchema({});
         }).toThrow(/requires a non-negative count number/);
       });
 
@@ -864,9 +863,7 @@ describe('Expect API', () => {
         const expected = [{ b: 2 }];
 
         expect(() => {
-          Expect.that(actual)
-            .shouldResemble(expected)
-            .withSchema({ count: 1 });
+          Expect.that(actual).shouldResemble(expected).withSchema({ count: 1 });
         }).toThrow(/actual output must be an array or document/);
       });
 
@@ -875,9 +872,7 @@ describe('Expect API', () => {
         const expected = [{ b: 2 }];
 
         expect(() => {
-          Expect.that(actual)
-            .shouldResemble(expected)
-            .withSchema({ count: 1 });
+          Expect.that(actual).shouldResemble(expected).withSchema({ count: 1 });
         }).toThrow(/actual output is null/);
       });
     });
@@ -904,7 +899,9 @@ describe('Expect API', () => {
       it('should handle Date comparison in fieldValues', () => {
         const date = new Date('2023-01-01T00:00:00Z');
         const actual = [{ created: date, status: 'active' }];
-        const expected = [{ created: new Date('2023-06-15'), status: 'active' }];
+        const expected = [
+          { created: new Date('2023-06-15'), status: 'active' },
+        ];
 
         expect(() => {
           Expect.that(actual)
@@ -941,7 +938,12 @@ describe('Expect API', () => {
         const actual = [
           { _id: 'doc1', title: 'Inception', genre: 'Sci-Fi', score: 0.95 },
           { _id: 'doc2', title: 'Interstellar', genre: 'Sci-Fi', score: 0.88 },
-          { _id: 'doc3', title: 'The Dark Knight', genre: 'Sci-Fi', score: 0.82 },
+          {
+            _id: 'doc3',
+            title: 'The Dark Knight',
+            genre: 'Sci-Fi',
+            score: 0.82,
+          },
         ];
 
         const expected = [
@@ -988,4 +990,3 @@ describe('Expect API', () => {
     });
   });
 });
-

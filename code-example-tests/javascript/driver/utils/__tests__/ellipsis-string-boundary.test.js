@@ -35,7 +35,9 @@ describe('Ellipsis String Boundary Tests', () => {
       const result = parseExpectedOutput(input);
 
       expect(result.success).toBe(true);
-      expect(result.data[0].plot).toBe('What do you love the most?", "What scares you the most?",...');
+      expect(result.data[0].plot).toBe(
+        'What do you love the most?", "What scares you the most?",...'
+      );
       expect(result.data[0].title).toBe('Test Movie');
       expect(result.data[0].year).toBe(2024);
     });
@@ -193,4 +195,3 @@ describe('Ellipsis String Boundary Tests', () => {
     });
   });
 });
-

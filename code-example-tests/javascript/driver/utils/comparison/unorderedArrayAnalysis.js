@@ -159,4 +159,3 @@ module.exports = {
   analyzeUnorderedMismatch,
   buildUnorderedArrayErrors,
 };
-

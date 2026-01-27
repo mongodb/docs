@@ -101,8 +101,10 @@ class ComparisonResult {
       return this.errors[0].toString();
     }
 
-    return `Comparison failed with ${this.errors.length} errors:\n\n` +
-      this.errors.map((err, i) => `${i + 1}. ${err.toString()}`).join('\n\n');
+    return (
+      `Comparison failed with ${this.errors.length} errors:\n\n` +
+      this.errors.map((err, i) => `${i + 1}. ${err.toString()}`).join('\n\n')
+    );
   }
 }
 
@@ -185,7 +187,7 @@ class ErrorMessageBuilder {
    * @returns {string} Error message
    */
   static extraKeys(keys) {
-    const keyList = keys.map(k => `"${k}"`).join(', ');
+    const keyList = keys.map((k) => `"${k}"`).join(', ');
     return `Unexpected extra keys: ${keyList}`;
   }
 
@@ -228,4 +230,3 @@ module.exports = {
   PathTracker,
   ErrorMessageBuilder,
 };
-

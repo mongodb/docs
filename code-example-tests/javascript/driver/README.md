@@ -131,7 +131,8 @@ To add a test for a new code example:
 
 This test suite uses the [Jest](https://jestjs.io/docs/getting-started)
 testing framework to verify that our code examples compile, run, and produce
-the expected output when executed.
+the expected output when executed. If Jest is not installed, install it with
+`npm install --save-dev jest`.
 
 Each test file starts with a `describe` block that groups together related
 test cases. Within the `describe` block, you can execute many individual test
@@ -431,9 +432,9 @@ const expectedOutput = await loadExpectedOutputFile();
 Expect.that(actualResults)
   .shouldResemble(expectedOutput)
   .withSchema({
-    count: 20,                                // Exact number of documents expected
+    count: 20, // Exact number of documents expected
     requiredFields: ['_id', 'title', 'year'], // Fields that must exist in every document
-    fieldValues: { year: 2012 }               // Values that must match in every document
+    fieldValues: { year: 2012 }, // Values that must match in every document
   });
 ```
 
@@ -453,10 +454,10 @@ Use for exact content comparison with optional ellipsis pattern matching:
 
 ```javascript
 Expect.that(result)
-  .withUnorderedSort()              // Default behavior - arrays compared without order
-  .withOrderedSort()                // Arrays compared in strict order
-  .withIgnoredFields('field1', 'field2')  // Ignore specified fields during comparison
-  .shouldMatch(expectedValue);      // Performs the comparison
+  .withUnorderedSort() // Default behavior - arrays compared without order
+  .withOrderedSort() // Arrays compared in strict order
+  .withIgnoredFields('field1', 'field2') // Ignore specified fields during comparison
+  .shouldMatch(expectedValue); // Performs the comparison
 ```
 
 You can chain multiple methods together:
@@ -474,11 +475,12 @@ Use when results may vary but should conform to a known structure:
 
 ```javascript
 Expect.that(result)
-  .shouldResemble(expectedOutput)             // Mark for schema-based validation
-  .withSchema({                               // Define validation criteria
-    count: 20,                                // Required: exact document count
+  .shouldResemble(expectedOutput) // Mark for schema-based validation
+  .withSchema({
+    // Define validation criteria
+    count: 20, // Required: exact document count
     requiredFields: ['_id', 'title', 'year'], // Optional: fields that must exist
-    fieldValues: { year: 2012 }               // Optional: values that must match
+    fieldValues: { year: 2012 }, // Optional: values that must match
   });
 ```
 

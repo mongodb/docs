@@ -485,4 +485,3 @@ class Expect {
 
 module.exports = Expect;
 module.exports.Expect = Expect;
-

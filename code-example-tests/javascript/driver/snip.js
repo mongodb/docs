@@ -111,13 +111,15 @@ async function runFormatter(directory) {
     const results = await Promise.all(jsFiles.map(formatFile));
 
     // Summarize results
-    const successful = results.filter(r => r.success);
-    const failed = results.filter(r => !r.success);
+    const successful = results.filter((r) => r.success);
+    const failed = results.filter((r) => !r.success);
 
     console.log(`Successfully formatted ${successful.length} file(s).`);
 
     if (failed.length > 0) {
-      console.log(`\nSkipped ${failed.length} file(s) that could not be formatted:`);
+      console.log(
+        `\nSkipped ${failed.length} file(s) that could not be formatted:`
+      );
       failed.forEach(({ file }) => {
         const relativePath = path.relative(directory, file);
         console.log(`  - ${relativePath}`);

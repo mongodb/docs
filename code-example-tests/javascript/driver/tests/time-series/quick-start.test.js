@@ -27,9 +27,7 @@ describe('Time series quick start tests', () => {
     const outputFilepath =
       'time-series/quick-start/quick-start-meta-field-output.sh';
 
-    Expect.that(result)
-      .withUnorderedSort()
-      .shouldMatch(outputFilepath);
+    Expect.that(result).withUnorderedSort().shouldMatch(outputFilepath);
   });
 
   it('Should return the expected result from the time field query', async () => {
@@ -37,8 +35,6 @@ describe('Time series quick start tests', () => {
     const outputFilepath =
       'time-series/quick-start/quick-start-time-field-output.sh';
 
-    Expect.that(result)
-      .withUnorderedSort()
-      .shouldMatch(outputFilepath);
+    Expect.that(result).withUnorderedSort().shouldMatch(outputFilepath);
   });
 });

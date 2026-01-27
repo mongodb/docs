@@ -58,16 +58,14 @@ describe('Time series create and query tests', () => {
     const result = await queryCollectionTimeField();
     const outputFilepath =
       'time-series/create-query/create-query-time-field-output.sh';
-    Expect.that(result)
-      .shouldMatch(outputFilepath);
+    Expect.that(result).shouldMatch(outputFilepath);
   });
 
   it('Should return the expected result from the meta field query', async () => {
     const result = await queryCollectionMetaField();
     const outputFilepath =
       'time-series/create-query/create-query-meta-field-output.sh';
-    Expect.that(result)
-      .shouldMatch(outputFilepath);
+    Expect.that(result).shouldMatch(outputFilepath);
   });
 
   it('Should return the expected result from the find one query', async () => {

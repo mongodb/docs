@@ -1,8 +1,5 @@
 const { areObjectsEqual } = require('./areObjectsEqual');
-const {
-  ComparisonResult,
-  ErrorMessageBuilder,
-} = require('./errorReporting');
+const { ComparisonResult, ErrorMessageBuilder } = require('./errorReporting');
 const {
   readAndParseFile,
   parseExpectedOutput,
@@ -39,7 +36,8 @@ class ComparisonEngine {
    */
   static compare(expected, actual, options = {}) {
     // Detect content types
-    const baseDir = options.baseDir || path.resolve(__dirname, '../../examples');
+    const baseDir =
+      options.baseDir || path.resolve(__dirname, '../../examples');
     const expectedType = ContentAnalyzer.detectType(expected, baseDir);
     const actualType = ContentAnalyzer.detectType(actual);
 
@@ -151,7 +149,8 @@ class ComparisonEngine {
     // Build comparison options
     const comparisonOptions = {
       comparisonType: options.arrayComparison || 'unordered',
-      ignoreFieldValues: options.ignoreFields || options.ignoreFieldValues || [],
+      ignoreFieldValues:
+        options.ignoreFields || options.ignoreFieldValues || [],
       allowOmittedFieldsWithEllipsis: hasOmittedFields,
     };
 
@@ -222,7 +221,8 @@ class ComparisonEngine {
     // Build comparison options
     const comparisonOptions = {
       comparisonType: options.arrayComparison || 'unordered',
-      ignoreFieldValues: options.ignoreFields || options.ignoreFieldValues || [],
+      ignoreFieldValues:
+        options.ignoreFields || options.ignoreFieldValues || [],
       allowOmittedFieldsWithEllipsis: hasOmittedFields,
     };
 
@@ -275,7 +275,8 @@ class ComparisonEngine {
     // Build comparison options
     const comparisonOptions = {
       comparisonType: options.arrayComparison || 'unordered',
-      ignoreFieldValues: options.ignoreFields || options.ignoreFieldValues || [],
+      ignoreFieldValues:
+        options.ignoreFields || options.ignoreFieldValues || [],
       allowOmittedFieldsWithEllipsis: patterns.hasEllipsis,
     };
 
@@ -411,4 +412,3 @@ class ComparisonEngine {
 module.exports = {
   ComparisonEngine,
 };
-

@@ -154,8 +154,10 @@ class ContentAnalyzer {
     const trimmed = str.trim();
 
     // Check if it starts with { or [ (object or array syntax)
-    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-        (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+    if (
+      (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+      (trimmed.startsWith('[') && trimmed.endsWith(']'))
+    ) {
       return true;
     }
 
@@ -206,11 +208,11 @@ class ContentAnalyzer {
    * @returns {boolean} True if it looks like JSON Lines
    */
   static _looksLikeJSONLines(str) {
-    const lines = str.split('\n').filter(line => line.trim());
+    const lines = str.split('\n').filter((line) => line.trim());
     if (lines.length < 2) return false;
 
     // Check if multiple lines start with { or [
-    const jsonLineCount = lines.filter(line => {
+    const jsonLineCount = lines.filter((line) => {
       const trimmed = line.trim();
       return trimmed.startsWith('{') || trimmed.startsWith('[');
     }).length;
@@ -236,7 +238,7 @@ class ContentAnalyzer {
       /BinData\s*\(/,
     ];
 
-    return mongoPatterns.some(pattern => pattern.test(str));
+    return mongoPatterns.some((pattern) => pattern.test(str));
   }
 
   /**
@@ -251,12 +253,14 @@ class ContentAnalyzer {
     if (typeof obj === 'string' && obj.includes('...')) return true;
 
     if (Array.isArray(obj)) {
-      return obj.some(item => this._hasEllipsisInObject(item));
+      return obj.some((item) => this._hasEllipsisInObject(item));
     }
 
     if (typeof obj === 'object' && obj !== null) {
       if (obj['...'] === '...') return true;
-      return Object.values(obj).some(value => this._hasEllipsisInObject(value));
+      return Object.values(obj).some((value) =>
+        this._hasEllipsisInObject(value)
+      );
     }
 
     return false;
@@ -277,21 +281,30 @@ class ContentAnalyzer {
     }
 
     // If expected is a pattern string and actual is structured, use pattern matching
-    if (expectedType === ContentType.PATTERN_STRING &&
-        (actualType === ContentType.OBJECT || actualType === ContentType.ARRAY)) {
+    if (
+      expectedType === ContentType.PATTERN_STRING &&
+      (actualType === ContentType.OBJECT || actualType === ContentType.ARRAY)
+    ) {
       return ComparisonStrategy.PATTERN_TO_OBJECT;
     }
 
     // Both are structured types (arrays or objects) - use structural comparison
-    if ((expectedType === ContentType.ARRAY || expectedType === ContentType.OBJECT ||
-         expectedType === ContentType.STRUCTURED_STRING) &&
-        (actualType === ContentType.ARRAY || actualType === ContentType.OBJECT)) {
+    if (
+      (expectedType === ContentType.ARRAY ||
+        expectedType === ContentType.OBJECT ||
+        expectedType === ContentType.STRUCTURED_STRING) &&
+      (actualType === ContentType.ARRAY || actualType === ContentType.OBJECT)
+    ) {
       return ComparisonStrategy.STRUCTURAL;
     }
 
     // Both are text types - use text comparison with normalization
-    if ((expectedType === ContentType.TEXT_BLOCK || expectedType === ContentType.PLAIN_STRING) &&
-        (actualType === ContentType.TEXT_BLOCK || actualType === ContentType.PLAIN_STRING)) {
+    if (
+      (expectedType === ContentType.TEXT_BLOCK ||
+        expectedType === ContentType.PLAIN_STRING) &&
+      (actualType === ContentType.TEXT_BLOCK ||
+        actualType === ContentType.PLAIN_STRING)
+    ) {
       return ComparisonStrategy.TEXT_WITH_NORMALIZATION;
     }
 
@@ -305,4 +318,3 @@ module.exports = {
   ContentType,
   ComparisonStrategy,
 };
-

@@ -28,7 +28,7 @@ describe('Unordered Array Error Messages', () => {
         expect(error.message).toContain('Comparison failed');
 
         // ✅ Shows summary of what failed
-        expect(error.message).toContain('1 of 3 elements don\'t match');
+        expect(error.message).toContain("1 of 3 elements don't match");
 
         // ✅ Shows which elements matched
         expect(error.message).toContain('matches actual[0] ✓');
@@ -75,7 +75,7 @@ describe('Unordered Array Error Messages', () => {
       const actual = [
         { id: 1, title: 'Casablanca', year: 1942 },
         { id: 2, title: 'The Godfather', year: 1973 }, // Wrong year
-        { id: 3, title: 'Pulp Fiction', year: 1995 },   // Wrong year
+        { id: 3, title: 'Pulp Fiction', year: 1995 }, // Wrong year
       ];
 
       const expected = [
@@ -93,7 +93,7 @@ describe('Unordered Array Error Messages', () => {
         console.log('=== End Error Message ===\n');
 
         // ✅ Shows summary
-        expect(error.message).toContain('2 of 3 elements don\'t match');
+        expect(error.message).toContain("2 of 3 elements don't match");
 
         // ✅ Shows which element matched
         expect(error.message).toContain('matches actual[0] ✓');
@@ -116,9 +116,7 @@ describe('Unordered Array Error Messages', () => {
         { id: 1, titel: 'Casablanca', year: 1942 }, // Typo: "titel" instead of "title"
       ];
 
-      const expected = [
-        { id: 1, title: 'Casablanca', year: 1942 },
-      ];
+      const expected = [{ id: 1, title: 'Casablanca', year: 1942 }];
 
       try {
         Expect.that(actual).shouldMatch(expected);
@@ -184,7 +182,7 @@ describe('Unordered Array Error Messages', () => {
         { title: 'The Godfather', year: 1972, rating: 9.2 },
         { title: 'The Dark Knight', year: 2008, rating: 9.0 },
         { title: 'Pulp Fiction', year: 1994, rating: 8.9 },
-        { title: 'Schindler\'s List', year: 1993, rating: 8.9 },
+        { title: "Schindler's List", year: 1993, rating: 8.9 },
         { title: 'The Shawshank Redemption', year: 1995, rating: 9.3 }, // Wrong year (should be 1994)
       ];
 
@@ -193,7 +191,7 @@ describe('Unordered Array Error Messages', () => {
         { title: 'The Godfather', year: 1972, rating: 9.2 },
         { title: 'The Dark Knight', year: 2008, rating: 9.0 },
         { title: 'Pulp Fiction', year: 1994, rating: 8.9 },
-        { title: 'Schindler\'s List', year: 1993, rating: 8.9 },
+        { title: "Schindler's List", year: 1993, rating: 8.9 },
         { title: 'The Shawshank Redemption', year: 1994, rating: 9.3 },
       ];
 
@@ -211,7 +209,7 @@ describe('Unordered Array Error Messages', () => {
         // - Exactly what the difference is (1995 vs 1994)
 
         // Verify the detailed error reporting works for large arrays
-        expect(error.message).toContain('1 of 6 elements don\'t match');
+        expect(error.message).toContain("1 of 6 elements don't match");
 
         // Shows which 5 matched
         expect(error.message).toContain('matches actual[0] ✓');
@@ -230,4 +228,3 @@ describe('Unordered Array Error Messages', () => {
     });
   });
 });
-
