@@ -12,7 +12,7 @@ You'll need to gather the following variables to pass to the process command as 
 ## Run the tool
 
 ```
-python3 main.py --repo-url git@github.com:mongodb/mongodb-atlas-kubernetes.git --version v2.11.1 --manual-crds
+python3 main.py --repo-url git@github.com:mongodb/mongodb-atlas-kubernetes.git --version v2.12.0 --manual-crds
 ```
 
 In the above, the repo url and release version are set with the flags `--repo-url` and `--version` respectively, and the `--manual-crds` flag indicates that the target for this process are the reference entries for the manually created CRs (as opposed to those 

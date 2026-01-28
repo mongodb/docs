@@ -1,0 +1,248 @@
+.. _ak8so-dry-run:
+
+================
+|ak8so| Dry Run
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+With the |ak8so| Dry Run feature, you can see what |ak8so| is going to change in 
+|service|, with those custom resources applied to the K8S cluster. The |ak8so| 
+emits events for every resource that it is going to create/update/delete in 
+|service|. Events emitted by the |ak8so| running in Dry Run mode can be 
+filtered by "Dry Run" reason. This feature is useful for :ref:`upgrading your Atlas Operator resources <upgrade-atlas-operator>`.
+
+Prerequisites
+-------------
+
+In order to use the |ak8so| Dry Run feature, you need to:
+
+- Have access to a **new Kubernetes or OpenShift cluster**.
+- Apply |ak8so| custom resources to your **new Kubernetes cluster**. 
+  When you apply your resources, make sure you provide a `secret with credentials <https://www.mongodb.com/docs/atlas/operator/stable/ak8so-quick-start/#create-a-secret-with-your-api-keys-and-organization-id>`__.
+  You need a new cluster, because upgrading CRDs on your existing |k8s| cluster 
+  might leave |ak8so| unable to reconcile existing custom resources. Moreover, 
+  the CRDs that are applied can be a newer version with potential breaking changes.
+
+  .. note:: 
+
+     Only one version of the AKO CRDs can exist in a specific |k8s| cluster. 
+     This means that to test upgrading to a new version of the |ak8so|, you 
+     need to deploy a new |k8s| cluster (possibly a temporary cluster) to 
+     execute the dry run.
+
+- Install CRDs to your cluster for the version of the |ak8so| you want to execute dry-run for.
+- Create a ``mongodb-atlas-operator`` service account in your |k8s| cluster. 
+- Create a `role <https://github.com/mongodb/mongodb-atlas-kubernetes/blob/main/config/rbac/clusterwide/role.yaml>`__ 
+  and `rolebinding <https://github.com/mongodb/mongodb-atlas-kubernetes/blob/main/config/rbac/clusterwide/role_binding.yaml>`__ 
+  for your `service account <https://github.com/mongodb/mongodb-atlas-kubernetes/blob/main/config/rbac/service_account.yaml>`__ 
+  with the following permissions related to your |ak8so| custom resources. You 
+  can either create these resources manually or with the :ref:`Atlas CLI <ak8so-quick-start-ref>`.
+  
+  - ``list``
+  - ``get``
+  - ``create``
+  - ``update``
+  - ``delete`` 
+
+Dry Run Events
+--------------
+
+The Dry Run process emits either the following message types, each of which 
+can be either of the type ``Normal`` or ``Warning``:
+
+- ``Would [verb] ([HTTP-Method]) [Atlas resource URL]``
+  
+  - A description of a given |ak8so| resource and the |k8s| required |k8s| 
+    process should the change be applied to your |service| environment. When in 
+    Dry Run mode, |ak8so| only emits dry-run events for HTTP verbs 
+    that would create/update/delete resources in |service|, such as 
+    ``POST``, ``PATCH``, ``PUT``, ``DELETE``. 
+
+- ``Done``
+
+  - No further dry-run events will be reported.
+
+- ``Finished``
+
+  - The |k8s| Job running the dry-run process has completed.
+
+Procedure
+---------
+
+.. tabs::
+
+   .. tab:: kubectl
+      :tabid: kubectl-dry-run
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Apply the following |k8s| Job.
+
+            Save the following example in a file called ``dry-run-job.yaml`` 
+            and apply it to your cluster by running ``kubectl apply -f dry-run-job.yaml``. 
+            This will start |ak8so| as a |k8s| Job with the ``--dry-run`` parameter. 
+            Every reconciliation in the |ak8so| will run only once, emitting 
+            events for each resource if there are changes between the resource 
+            spec and its state in |service|.
+
+            You can run this command multiple times without making any changes 
+            to your |service| resources.
+
+            .. literalinclude:: /includes/dry-run-example.yaml
+               :linenos: 
+               :copyable:
+               :language: yaml
+
+         .. step:: List the dry-run output.
+
+            When the |k8s| Job is finished, you can list the events emitted 
+            by running the following command:
+
+            .. code-block:: bash
+
+               kubectl -n mongodb-atlas-system get events --field-selector reason=DryRun
+
+            This command will return output similar to the following:
+
+            .. code-block:: bash
+
+               LAST SEEN   TYPE      REASON   OBJECT                    MESSAGE
+               103s        Normal    DryRun   atlasproject/my-project   Would delete (DELETE) /api/atlas/v1.0/groups/6558f184beba40022cbb2043/integrations/SLACK
+               101s        Warning   DryRun   atlasproject/my-project   finished dry run
+
+   .. tab:: Atlas CLI 
+      :tabid: atlas-cli-dry-run
+
+      .. procedure:: 
+         :style: normal
+
+         .. step:: Install the |ak8so| CRDs, RBAC and Service Account resources.
+
+            .. code-block:: bash
+
+               atlas kubernetes operator install --targetNamespace=mongodb-atlas-system --config-only
+
+         .. step:: Run the following Atlas CLI command.
+
+            Run the following |service| CLI command to start the dry run process. 
+            You can run this command multiple times without making any changes 
+            to your |service| resources.
+
+            .. code-block:: bash
+
+               atlas kubernetes dry-run --targetNamespace=mongodb-atlas-system --watch
+
+            .. note:: 
+
+               If the ``--watch`` flag is not provided, the |service| CLI exits  
+               after completing the installation.
+
+         .. step:: List the dry-run output.
+
+            When the |k8s| Job is finished, you can list the events emitted 
+            by running the following command:
+
+            .. code-block:: bash
+
+               kubectl -n mongodb-atlas-system get events --field-selector reason=DryRun
+
+            This command will return output similar to the following:
+
+            .. code-block:: bash
+
+               LAST SEEN   TYPE      REASON   OBJECT                    MESSAGE
+               103s        Normal    DryRun   atlasproject/my-project   Would delete (DELETE) /api/atlas/v1.0/groups/6558f184beba40022cbb2043/integrations/SLACK
+               101s        Warning   DryRun   atlasproject/my-project   finished dry run
+
+
+Log Resource Diffs
+------------------
+
+When ``--log-level`` is set to ``debug``, the |ak8so| provides a detailed diff of 
+the changes that you make to |service| resources that are managed by the |ak8so|. 
+This diff is particularly useful when used in conjunction with the Dry Run 
+feature, as it allows you to see the differences between the current state of 
+your |ak8so| custom resources and the state that the |ak8so| would apply to your 
+|service| environment.
+
+This diff feature is informed by comparing the result of any PUT or PATCH 
+requests sent to |service| with the current state of the |ak8so| 
+custom resources in your |service| environment. 
+
+.. note:: 
+
+   To facilitate this comparison, the |ak8so| makes a GET request to |service| to 
+   learn the current state of resources in |service|. As such, we recommend 
+   that you only set the log level to debug in non-production environments,
+   as this feature can increase the load on |service|. 
+
+To see the differences, you need to set the ``--log-level=debug`` flag when 
+running the |ak8so| command. Because the |ak8so| uses structured 
+logging, we recommend analyzing the JSON diff in a structured logging viewer 
+for better human readability. The following example shows a rendered |ak8so| 
+``DEBUG`` log line in YAML format, as displayed in a structured logging viewer:
+
+.. io-code-block::
+   
+   .. input:: 
+      :language: yaml
+
+      apiVersion: atlas.mongodb.com/v1
+      kind: AtlasDeployment
+      metadata:
+        name: test
+        namespace: flex
+      spec:
+        flexSpec:
+          name: test
+          providerSettings:
+            backingProviderName: AWS
+            regionName: US_EAST_1
+          terminationProtectionEnabled: true -> false
+        projectRef:
+          name: test
+
+
+   .. output:: 
+      :visible: false
+
+       1 | diff: |
+       2 |    {
+       3 |   -  "backupSettings": {
+       4 |   -    "enabled": true
+       5 |   -  },
+       6 |   -  "clusterType": "REPLICASET",
+       7 |   -  "connectionStrings": {
+       8 |   -    "standard": "...",
+       9 |   -    "standardSrv": "..."
+      10 |   -  },
+      11 |   -  "createDate": "2025-07-21T09:52:06Z",
+      12 |   -  "groupId": "687e0db8823af91...",
+      13 |   -  "id": "687e0dc6426db7026...",
+      14 |   -  "mongoDBVersion": "8.0.11",
+      15 |   -  "name": "test",
+      16 |   -  "providerSettings": {
+      17 |   -    "backingProviderName": "AWS",
+      18 |   -    "diskSizeGB": 5,
+      19 |   -    "providerName": "FLEX",
+      20 |   -    "regionName": "US_EAST_1"
+      21 |   -  },
+      22 |   -  "stateName": "IDLE",
+      23 |      "tags": [
+      24 |      ],
+      25 |   -  "terminationProtectionEnabled": false,
+      26 |   +  "terminationProtectionEnabled": true,
+      27 |   -  "versionReleaseSystem": "LTS"
+      28 |    }
+      29 | level: DEBUG
+      30 | msg: JSON diff
+      31 | time: 2025-07-22T18:07:01.163+0200
+      32 | url: https://...

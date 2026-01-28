@@ -1,0 +1,497 @@
+.. _atlasdeployment-custom-resource:
+
+===================================
+``AtlasDeployment`` Custom Resource
+===================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: flex cluster
+   :description: Configure MongoDB clusters or Flex clusters in Atlas using the `AtlasDeployment` custom resource, with guidance on migration to Flex clusters and Kubernetes Operator updates.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _ak8so-migration-to-flex:
+
+Migration to {+Flex-Clusters+}
+-------------------------------
+
+.. important:: Migration to {+Flex-Clusters+}
+
+   * .. include:: /includes/fact-ak8so-migration-to-flex.rst
+
+   * Replace references to :ref:`spec.serverlessSpec <atlasdeployment-spec-serverlessspec>` with configuration for
+     :ref:`spec.flexSpec <atlasdeployment-spec-flexspec>`.
+
+   * |ak8so| rejects new ``AtlasDeployment`` custom resources that define 
+     :ref:`spec.serverlessSpec <atlasdeployment-spec-serverlessspec>`. You can only use ``spec.serverlessSpec`` to 
+     manage existing {+Serverless-instances+}.
+
+
+Breaking Changes with |ak8so| 2.0
+----------------------------------
+
+.. important:: Action Required for Breaking Changes with |ak8so| 2.0
+
+   * With |ak8so| 2.0, ``deploymentSpec`` replaces ``advancedDeploymentSpec`` in 
+     the ``AtlasDeployment`` custom resource. You must update your ``AtlasDeployment`` 
+     custom resource as follows:
+
+     * If you use ``advancedDeploymentSpec``, rename it to ``deploymentSpec``. 
+       You don't need to change any formatting.
+
+     * If you used ``deploymentSpec`` prior to |ak8so| 2.0, rewrite your 
+       ``AtlasDeployment`` custom resource to match the formatting used in 
+       :ref:`the examples <atlasdeployment-examples>`.
+
+   * |ak8so| uses :ref:`custom resource <custom-resources>` configuration
+     files to manage your |service| configuration. As of |ak8so| 2.0,
+     custom resources you delete in |k8s| are no longer deleted in 
+     |service|. Instead, |ak8so| simply stops managing those resources.  
+     For example, if you delete an :ref:`atlasproject-custom-resource`
+     in |k8s|, |ak8so| no longer automatically deletes the corresponding project
+     from |service|, preventing accidental or unexpected deletions. To learn more, 
+     including how to :ref:`revert this behavior <revert-deletion-protection>` to 
+     the default used prior to |ak8so| 2.0, see :ref:`deletion-protection`.
+
+About the AtlasDeployment Custom Resource
+-----------------------------------------
+
+The ``AtlasDeployment`` custom resource configures your MongoDB {+cluster+}
+or {+Flex-cluster+} in |service|. When you create the ``AtlasDeployment``
+custom resource, |ak8so| tries to create or update a {+cluster+} or
+{+Flex-cluster+} in |service|.
+
+|ak8so| does one of the following actions depending on the values you
+specify in the ``AtlasDeployment`` custom resource:
+
+- If you specify values for fields under :ref:`spec.deploymentSpec <atlasdeployment-spec-deploymentspec>`, |ak8so|
+  uses the |service| :oas-bump-atlas-tag:`Clusters API Resource <clusters>`
+  to create a new {+cluster+} or update an existing {+cluster+}.
+- If you specify values for fields under :ref:`spec.flexSpec <atlasdeployment-spec-flexspec>`, |ak8so|
+  uses the |service| :oas-bump-atlas-tag:`Flex Instance API Resource <flex-clusters>`
+  to create a new {+Flex-cluster+} or update an existing {+Flex-cluster+}.
+
+.. note::
+
+   Don't specify values for fields under :ref:`spec.serverlessSpec <atlasdeployment-spec-serverlessspec>` because
+   {+Serverless-instances+} are deprecated. Instead, specify fields under
+   :ref:`spec.flexSpec <atlasdeployment-spec-flexspec>`. To learn more, see :ref:`ak8so-migration-to-flex`.
+
+Creating a free tier |service| cluster takes less than 15 seconds.
+
+Creating or updating a {+Flex-cluster+} or Dedicated cluster can take
+up to 10 minutes. |ak8so| monitors the update process.
+
+You can run the following command to check on the status:
+
+.. code-block:: sh
+
+   kubectl get atlasdeployment -o yaml
+
+The following example shows the status section of a {+cluster+} that is
+provisioning:
+
+.. code-block:: sh
+
+   status:
+     conditions:
+     - lastTransitionTime: "2024-03-18T16:32:43Z"
+       status: "False"
+       type: ClusterReady
+       reason: ClusterCreating 
+       message: Cluster is provisioning
+
+The ``ClusterReady`` status will change to ``True`` when the {+cluster+}
+or {+Serverless-instance+} is ready.
+
+.. _atlasdeployment-examples:
+
+Examples
+--------
+
+Status Example
+~~~~~~~~~~~~~~
+
+The following example shows the ``AtlasDeployment`` resource with a
+``ClusterReady`` status of ``True``:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: my-atlas-cluster
+     namespace: mongodb-atlas-system
+   spec:
+     projectRef:
+       name: my-project
+     deploymentSpec:
+       name: test-cluster
+       tags: 
+       - key: "environment"
+         value: "production"
+       replicationSpecs:
+         - zoneName: US-Zone
+           numShards: 3
+           regionConfigs:
+             - regionName: CENTRAL_US
+               providerName: GCP
+               backingProviderName: GCP
+               priority: 7
+               electableSpecs:
+                 instanceSize: M10
+                 nodeCount: 3
+   status:
+     conditions:
+     - lastTransitionTime: "2024-03-18T16:32:43Z"
+       status: "True"
+       type: Ready
+     - lastTransitionTime: "2024-03-18T16:32:43Z"
+       status: "True"
+       type: ClusterReady
+     connectionStrings:
+       standard: mongodb://test-cluster-shard-00-00.kpc8f.mongodb.net:27017,test-cluster-shard-00-01.kpc8f.mongodb.net:27017,test-cluster-shard-00-02.kpc8f.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-1gm1pv-shard-0
+       standardSrv: mongodb+srv://test-cluster.kpc8f.mongodb.net
+     mongoDBVersion: 6.0
+     mongoURIUpdated: "2024-03-12T12:21:41Z"
+     observedGeneration: 1
+     stateName: IDLE
+
+Configuration Example
+~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasDeployment`` custom resource 
+specification configured for auto-scaling multi-region {+clusters+}:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: test-cluster-name
+     namespace: mongodb-atlas-system
+   spec:
+     projectRef:
+       name: development
+     deploymentSpec:
+       clusterType: REPLICASET
+       name: service-name
+       tags: 
+       - key: "environment"
+         value: "production"
+       backupEnabled: true
+       replicationSpecs:
+         - numShards: 1
+           regionConfigs:
+            - regionName: EASTERN_US
+              providerName: GCP
+              autoScaling:
+                diskGB:
+                  enabled: true
+                compute:
+                  enabled: true
+                  scaleDownEnabled: true
+                  minInstanceSize: M30
+                  maxInstanceSize: M40
+              analyticsSpecs:
+                instanceSize: M30
+                nodeCount: 1
+              electableSpecs:
+                instanceSize: M30
+                nodeCount: 3
+              priority: 7
+              readOnlySpecs:
+                instanceSize: M30
+                nodeCount: 1
+
+.. _ak8so-advanced-options:
+
+Additional Options Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasDeployment`` custom resource
+specification configured with some of the :oas-bump-atlas-tag:`additional options
+<clusters>`.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: my-atlas-cluster
+   spec:
+     projectRef:
+       name: my-project
+     deploymentSpec:
+       name: test-cluster
+       tags: 
+       - key: "environment"
+         value: "production"
+       replicationSpecs:
+         - zoneName: Zone 1
+           regionConfigs:
+            - electableSpecs:
+                instanceSize: M10
+                nodeCount: 3
+              providerName: AWS
+              regionName: US_EAST_1
+              priority: 7
+     processArgs:
+       javascriptEnabled: false
+
+.. _ak8so-flex-instance:
+
+{+Flex-Cluster+} Example
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _ak8so-flex-notes:
+
+Notes on Transition To {+Flex-Clusters+}
+++++++++++++++++++++++++++++++++++++++++++
+
+.. include:: /includes/fact-ak8so-flex.rst
+
+The following example shows an ``AtlasDeployment`` custom resource
+specification configured for a {+Flex-cluster+}:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: test-cluster-name
+     namespace: mongodb-atlas-system
+   spec:
+     projectRef:
+       name: my-project
+     flexSpec:
+       name: flex-cluster
+       tags:
+         - key: "environment"
+           value: "production"
+       providerSettings:
+         backingProviderName: AWS
+         regionName: US_EAST_1
+
+.. _ak8so-serverless-instance:
+
+{+Serverless-Instance+} Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   Don't specify values for fields under :ref:`spec.serverlessSpec <atlasdeployment-spec-serverlessspec>`
+   because {+Serverless-instances+} are deprecated. Instead, specify fields
+   under :ref:`spec.flexSpec <atlasdeployment-spec-flexspec>`. To learn more, see :ref:`ak8so-migration-to-flex`.
+
+The following example shows an ``AtlasDeployment`` custom resource
+specification configured for a {+Serverless-instance+}:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: test-cluster-name
+     namespace: mongodb-atlas-system
+   spec:
+     projectRef:
+       name: development
+     serverlessSpec:
+       name: serverless-instance
+       tags: 
+       - key: "environment"
+         value: "production"
+       providerSettings:
+         providerName: AWS
+         regionName: US_EAST_1
+
+.. _ak8so-advanced-clusters:
+
+Multi-Region {+Cluster+} Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+Clusters+} can span regions and cloud service providers. To learn more,
+see :ref:`create-new-cluster-considerations`.
+
+.. note::
+
+   While the |service| :oas-bump-atlas-tag:`{+Cluster+} API 
+   Resource <clusters>` sends requests using the 
+   ``v1.5`` |service| |api| versions, the |ak8so| ``apiVersion`` field 
+   uses ``v1``. In this case, ``v1`` refers to the version of 
+   the |k8s| |api|.
+
+The following example shows an ``AtlasDeployment`` custom 
+resource specification configured for multi-region {+clusters+}:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: my-atlas-cluster
+   spec:
+     projectRef:
+       name: my-project
+     deploymentSpec:
+       clusterType: REPLICASET
+       name: tenantCluster
+       tags: 
+       - key: "environment"
+         value: "production"
+       replicationSpecs:
+         - zoneName: Zone 1
+           regionConfigs:
+           priority: 7
+           - electableSpecs:
+               instanceSize: M10
+               nodeCount: 3
+             providerName: AWS
+             regionName: US_EAST_1
+
+Multiple Cloud Service Providers Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasDeployment`` custom resource
+specification configured to span multiple cloud service providers:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: my-atlas-cluster
+   spec:
+     projectRef:
+       name: my-project
+     deploymentSpec:
+       clusterType: REPLICASET
+       name: tenantCluster
+       tags: 
+       - key: "environment"
+         value: "production"
+       replicationSpecs:
+         - regionConfigs:
+           - electableSpecs:
+               instanceSize: M10
+               nodeCount: 3
+             providerName: AWS
+             regionName: US_EAST_1
+             priority: 7
+           - electableSpecs:
+               instanceSize: M10
+               nodeCount: 2
+             providerName: AZURE
+             regionName: US_EAST_2
+             priority: 6
+           - electableSpecs:
+               instanceSize: M10
+               nodeCount: 2
+             providerName: GCP
+             regionName: CENTRAL_US
+             priority: 5
+
+Search Index Example
+~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasDeployment`` custom resource
+specification configured to create a search index for the collection
+``listingsAndReviews`` and ``grades``:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: my-atlas-cluster
+     namespace: mongodb-atlas-system
+   spec:
+     deploymentSpec:
+       backupEnabled: true
+       clusterType: REPLICASET
+       name: Test-cluster-M10
+       replicationSpecs:
+       - regionConfigs:
+         - backingProviderName: AWS
+           electableSpecs:
+             instanceSize: M10
+             nodeCount: 3
+           priority: 7
+           providerName: AWS
+           regionName: US_EAST_1
+         zoneName: Zone 1
+       searchIndexes:
+       - DBName: sample_training
+         collectionName: grades
+         name: test-vector-search-index
+         type: vectorSearch
+         vectorSearch:
+           fields:
+           - numDimensions: 1000
+             path: student_id
+             similarity: euclidean
+             type: vector
+       - DBName: sample_airbnb
+         collectionName: listingsAndReviews
+         name: my-index
+         search:
+           mappings:
+             dynamic: true
+           searchConfigurationRef:
+             name: atlassearchindexconfig-sample
+             namespace: mongodb-atlas-system
+         type: search
+       terminationProtectionEnabled: false
+     projectRef:
+       name: my-project
+       namespace: mongodb-atlas-system
+
+Search Nodes Example
+~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasDeployment`` custom resource
+specification configured to create search nodes:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: my-atlas-cluster
+     namespace: mongodb-atlas-system
+   spec:
+     deploymentSpec:
+       backupEnabled: true
+       clusterType: REPLICASET
+       name: Test-cluster-M10
+       replicationSpecs:
+       - regionConfigs:
+         - backingProviderName: AWS
+           electableSpecs:
+             instanceSize: M10
+             nodeCount: 3
+           priority: 7
+           providerName: AWS
+           regionName: US_EAST_1
+         zoneName: Zone 1
+       searchNodes:
+       - instanceSize: S20_HIGHCPU_NVME
+         nodeCount: 2
+   
+.. _atlasdeployment-crd-params:
+
+Parameters
+----------
+
+.. include:: /includes/manual-crds/atlas-deployment.rst

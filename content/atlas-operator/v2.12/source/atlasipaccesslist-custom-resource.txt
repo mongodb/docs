@@ -1,0 +1,101 @@
+.. _atlasipaccesslist-custom-resource:
+
+=====================================
+``AtlasIPAccessList`` Custom Resource
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/subresource-deprecation.rst
+
+The ``AtlasIPAccessList`` custom resource configures an :atlas:`IP
+access list </security/ip-access-list>` for an |service| project. An IP access list
+allows you to secure your project using a minimum-access policy.
+
+.. include:: /includes/fact-ak8so-crds.rst
+
+|ak8so| does one of the following actions using the |service|
+:oas-bump-atlas-tag:`Project IP Access List API Resource
+<project-ip-access-list>`:
+
+- Creates a new IP access list.
+- Replace an existing IP access list.
+
+Examples
+--------
+
+.. _atlasipaccesslist-example-basic:
+
+Basic Example
+~~~~~~~~~~~~~
+
+The following example shows an ``AtlasIPAccessList`` custom resource
+that permits access to the ``my-project`` project from the following
+sources:
+
+- CIDR block ``192.168.1.0/24``
+- IP address ``10.0.0.1``
+- :aws:`AWS security group
+  <vpc/latest/userguide/vpc-security-groups>`
+
+Access from ``10.0.0.1`` expires after the 31st of March, 2025.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasIPAccessList
+   metadata:
+     name: atlasipaccesslist-sample
+   spec:
+     projectRef:
+       name: my-project
+       namespace: my-operator-namespace
+     entries:
+       - cidrBlock: 192.168.1.0/24
+       - ipAddress: 10.0.0.1
+	 deleteAfterDate: 2025-03-31T23:59:59+02:00
+       - awsSecurityGroup: sg-1234
+	 comment: "AWS Access to my network peering"
+
+Independent CRD Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasIPAccessList`` :ref:`independent
+CRD <ak8so-independent-crd>` that permits access from the same CIDR
+block and IP address permitted by the :ref:`Basic Example
+<atlasipaccesslist-example-basic>`. This custom resource definition
+allows you to create an IP access list in a project you manage
+outside the instance of |ak8so| with which you define this
+resource. To enable independent operation, you must use an
+``externalProjectRef`` instead of a ``projectRef``, and you must
+supply a ``connectionSecret`` directly since this resource can't
+inherit API credentials from its parent project.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasIPAccessList
+   metadata:
+     name: atlasipaccesslist-sample
+   spec:
+     externalProjectRef:
+       projectId: 66e2f2b621571b7e69a89b66
+     connectionSecret:
+       name: atlas-connection-secret
+     entries:
+       - cidrBlock: 192.168.1.0/24
+       - ipAddress: 10.0.0.1
+	 deleteAfterDate: 2025-03-31T23:59:59+02:00
+       - awsSecurityGroup: sg-1234
+	 comment: "AWS Access to my network peering"
+
+Parameters
+----------
+
+.. include:: /includes/manual-crds/atlas-ipaccess-list.rst
