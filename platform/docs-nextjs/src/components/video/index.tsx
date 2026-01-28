@@ -6,8 +6,9 @@ import styled from '@emotion/styled';
 import { css } from '@leafygreen-ui/emotion';
 import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
-import { STRUCTURED_DATA_CLASSNAME, VideoObjectSd } from '../../utils/structured-data';
-import type { VideoNode } from '../../types/ast';
+import { STRUCTURED_DATA_CLASSNAME } from '@/utils/structured-data/structured-data';
+import { VideoObjectSd } from '@/utils/structured-data/video-object-sd';
+import type { VideoNode } from '@/types/ast';
 import VideoPlayButton from './VideoPlayButton';
 
 // Imported both players to keep bundle size low and rendering the one associated to the URL being passed in

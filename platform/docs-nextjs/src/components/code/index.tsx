@@ -10,15 +10,16 @@ import Tooltip from '@leafygreen-ui/tooltip';
 import { palette } from '@leafygreen-ui/palette';
 import { TabContext } from '@/context/tabs-context';
 import { reportAnalytics } from '@/utils/report-analytics';
-// import { usePageContext } from '@/context/page-context';
+import { usePageContext } from '@/context/page-context';
 import type { LanguageOption } from '@/components/code/code-context';
 import type { DriverMap } from '@/components/icons/DriverIconMap';
 import { DRIVER_ICON_MAP } from '@/components/icons/DriverIconMap';
 import type { CodeNode } from '@/types/ast';
 import { getLanguage } from '@/utils/get-language';
-// import { STRUCTURED_DATA_CLASSNAME, SoftwareSourceCodeSd } from '../../utils/structured-data';
+import { STRUCTURED_DATA_CLASSNAME } from '@/utils/structured-data/structured-data';
 import { CodeContext } from './code-context';
 import { baseCodeStyle, borderCodeStyle, lgStyles } from './style';
+import { SoftwareSourceCodeSd } from '@/utils/structured-data/software-source-code-sd';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 
 const codeContainerStyle = css`
@@ -79,7 +80,7 @@ const Code = ({
 }: CodeNode) => {
   const { setActiveTab } = useContext(TabContext);
   const { languageOptions, codeBlockLanguage } = useContext(CodeContext);
-  // const { slug } = usePageContext();
+  const { slug } = usePageContext();
   const code = value;
   let language = (languageOptions?.length > 0 && codeBlockLanguage) || getLanguage(lang);
 
@@ -131,12 +132,9 @@ const Code = ({
   }, [code]);
 
   const softwareSourceCodeSd = useMemo(() => {
-    // TODO: DOP-5971: implement structured data
-    // const sd = new SoftwareSourceCodeSd({ code, lang, slug });
-    // return sd.isValid() ? sd.toString() : undefined;
-    return undefined;
-  }, []);
-  // }, [code, lang, slug]);
+    const sd = new SoftwareSourceCodeSd({ code, lang, slug });
+    return sd.isValid() ? sd.toString() : undefined;
+  }, [code, lang, slug]);
 
   const captionAndWhitespaceStyle = css`
     // Remove whitespace when copyable false
@@ -162,7 +160,7 @@ const Code = ({
     <>
       {softwareSourceCodeSd && (
         <script
-          // className={STRUCTURED_DATA_CLASSNAME}
+          className={STRUCTURED_DATA_CLASSNAME}
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: softwareSourceCodeSd,

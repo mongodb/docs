@@ -8,7 +8,8 @@ import type { ASTNode, Directive, ProcedureNode, StepNode } from '@/types/ast';
 import { isDirectiveNode, isParentNode } from '@/types/ast-utils';
 import { AncestorComponentContextProvider, useAncestorComponentContext } from '@/context/ancestor-components-context';
 import { useHeadingContext } from '@/context/heading-context';
-import { constructHowToSd, STRUCTURED_DATA_CLASSNAME } from '@/utils/structured-data';
+import { STRUCTURED_DATA_CLASSNAME } from '@/utils/structured-data/structured-data';
+import { constructHowToSd } from '@/utils/structured-data/how-to-sd';
 import Step from './step';
 
 type ProcedureStyle = 'connected' | 'normal';

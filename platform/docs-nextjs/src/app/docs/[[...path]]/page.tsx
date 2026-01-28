@@ -11,6 +11,8 @@ import { cookies } from 'next/headers';
 import envConfig from '@/utils/env-config';
 import type { ServerSideChangelogData } from '@/types/openapi';
 import { getChangelogData } from '@/services/db/openapi';
+import DocsLandingSD from '@/components/structured-data/docs-landing-sd';
+import TechArticleSd from '@/components/structured-data/tech-article-sd';
 import type { Docset } from '@/types/data';
 
 interface PageProps {
@@ -36,8 +38,9 @@ export default async function Page({ params: { path } }: PageProps) {
   ]);
   const env = envConfig.DB_ENV;
 
+  const template = pageDoc?.ast?.options?.template;
   let changelogData: ServerSideChangelogData | undefined;
-  if (pageDoc?.ast?.options?.template === 'changelog') {
+  if (template === 'changelog') {
     changelogData = await getChangelogData();
   }
 
@@ -49,10 +52,15 @@ export default async function Page({ params: { path } }: PageProps) {
     // Get locale links with custom className for Smartling
     // NOTE: this is done manual vs within generateMetadata for Smartling no-translate classes
     const localeLinks = getLocaleLinks(pageDoc);
+    const slug = pageDoc.filename.split('.')[0];
+    const isDocsLandingHomepage = metadata.project === 'landing' && template === 'landing' && slug === '/';
 
     return (
       <>
         {localeLinks}
+        <TechArticleSd pageDoc={pageDoc} metadata={metadata} />
+        {isDocsLandingHomepage && <DocsLandingSD />}
+
         <CustomTemplate
           cookies={cookieValues}
           pageDoc={pageDoc}

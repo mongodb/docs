@@ -1,3 +1,5 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import { createContext, useContext, useMemo } from 'react';
 import type { TocItem } from '@/components/unified-sidenav/types';

@@ -21,6 +21,7 @@ import layoutStyles from '@/app/layout.module.scss';
 import ProductLandingTemplate from '@/components/templates/product-landing';
 import type { PageTemplateType } from '@/types/ast';
 import type { ServerSideChangelogData } from '@/types/openapi';
+import BreadcrumbSd from '@/components/structured-data/breadcrumb-sd';
 import Header from '@/components/header';
 
 type TemplateComponent = React.ComponentType<BaseTemplateProps>;
@@ -100,6 +101,9 @@ export const CustomTemplate = ({
 }: CustomTemplateProps) => {
   const template = pageDoc.ast.options?.template || 'document';
   const { Template, renderSidenav } = getTemplate(pageDoc.ast.options?.template || 'document');
+  const slug = pageDoc.filename.split('.')[0];
+
+  const needsBreadcrumbs = template === 'document' || template === undefined;
 
   return (
     <RootProvider
@@ -112,6 +116,7 @@ export const CustomTemplate = ({
       changelogData={changelogData}
       template={template}
     >
+      {needsBreadcrumbs && <BreadcrumbSd slug={slug} />}
       <Header eol={metadata?.eol ?? false} />
       {renderSidenav && <UnifiedSidenav />}
       <div className={layoutStyles['content-container']}>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { SideNavItem } from '@leafygreen-ui/side-nav';
 import Icon from '@leafygreen-ui/icon';
 import { css as LeafyCSS, css, cx } from '@leafygreen-ui/emotion';
@@ -92,9 +92,14 @@ const logoTextStyling = LeafyCSS`
 `;
 
 const DocsHomeButton = () => {
+  const [isMounted, setIsMounted] = useState(false);
   const viewport = useViewport(false);
   const { isTabletOrMobile, isDesktop } = useScreenSize();
   const { darkMode } = useDarkMode();
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const sideNavHome = useMemo(
     () => (
@@ -119,11 +124,13 @@ const DocsHomeButton = () => {
     ),
     [darkMode],
   );
-  return (
-    <div className={cx(containerStyle(isDesktop))}>
-      {!isTabletOrMobile && viewport.scrollY > parseInt(theme.header.navbarHeight, 10) ? homeNav : sideNavHome}
-    </div>
-  );
+
+  // During SSR and initial hydration, always render sideNavHome to match server
+  // After hydration, use the scroll-based condition
+  const shouldShowHomeNav =
+    isMounted && !isTabletOrMobile && viewport.scrollY > parseInt(theme.header.navbarHeight, 10);
+
+  return <div className={cx(containerStyle(isDesktop))}>{shouldShowHomeNav ? homeNav : sideNavHome}</div>;
 };
 
 export default DocsHomeButton;

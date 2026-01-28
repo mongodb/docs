@@ -60,7 +60,7 @@ export const getLanguage = (lang: string) => {
  * @param {string | undefined} lang The language passed to the code block directive
  * @returns {string | undefined} The formal name of the language, if it exists
  */
-export const getFullLanguageName = (lang: string, slug: string) => {
+export const getFullLanguageName = (lang?: string, slug?: string) => {
   const normalizedLang = lang?.toLowerCase() as keyof typeof LANGUAGE_NAMES;
   if (!normalizedLang || ['none', 'text'].includes(normalizedLang)) {
     return undefined;
