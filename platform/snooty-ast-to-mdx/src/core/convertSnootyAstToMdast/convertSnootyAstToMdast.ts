@@ -280,7 +280,7 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
       return {
         type: 'mdxJsxTextElement',
         name: 'Reference',
-        attributes: [{ type: 'mdxJsxAttribute', name: 'key', value: url }],
+        attributes: [{ type: 'mdxJsxAttribute', name: 'name', value: url }],
         children: [],
       };
     }

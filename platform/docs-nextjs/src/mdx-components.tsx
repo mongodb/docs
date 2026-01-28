@@ -96,6 +96,7 @@ export const components = (injectedProps?: InjectedProps) =>
     ReleaseSpecification: ({ children }) => <span>{children}</span>,
     Root: ({ children }) => <span>{children}</span>,
     Rubric: ({ children }) => <span>{children}</span>,
+    Replacement: ({ children }) => <span>{children}</span>,
     SearchResults: ({ children }) => <span>{children}</span>,
     Section: ({ children }) => <Section>{children}</Section>,
     See: ({ children }) => <span>{children}</span>,

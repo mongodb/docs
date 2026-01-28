@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { REFERENCE_PREFIX } from '@/mdx-utils/get-blob-key';
 import { getBlobString } from '@/mdx-utils/blob-read';
 
@@ -11,10 +12,17 @@ export const Reference = async ({ projectPath, name }: ReferenceProps) => {
   const fullPath = `${REFERENCE_PREFIX}/${projectPath}/_references.json`;
   const references = await getBlobString(fullPath);
 
-  const notFoundText = `Reference (${name}) not found in project (${projectPath})`;
-
   const parsedReferences = JSON.parse(references ?? '{}');
-  const value = parsedReferences?.['refs']?.[name] ?? notFoundText;
+  const ref = parsedReferences?.refs?.[name];
 
-  return value;
+  if (!ref) {
+    return `Reference (${name}) not found in project (${projectPath})`;
+  }
+
+  const isAbsoluteUrl = ref.url.startsWith('http');
+  if (!isAbsoluteUrl) {
+    // TODO: handle relative refs
+  }
+
+  return <Link href={ref.url}>{ref.title}</Link>;
 };
