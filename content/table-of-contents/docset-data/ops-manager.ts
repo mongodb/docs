@@ -843,6 +843,11 @@ const tocData: TocItem[] = [
             url: '/docs/ops-manager/:version/tutorial/configure-for-saml-authentication',
           },
           {
+            label: 'Configure OIDC',
+            contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/tutorial/configure-for-oidc-authentication',
+          },
+          {
             label: 'Secure with Authentication',
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/tutorial/nav/security-enable-authentication',
