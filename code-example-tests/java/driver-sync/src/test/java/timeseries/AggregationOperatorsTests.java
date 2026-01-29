@@ -1,10 +1,10 @@
-import aggregation.pipelines.AggTutorial;
+package timeseries;
+
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import mongodb.comparison.Expect;
 import org.junit.jupiter.api.*;
-import timeseries.AggregationOperators;
 
 public class AggregationOperatorsTests {
 
