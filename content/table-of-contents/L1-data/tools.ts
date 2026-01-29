@@ -60,7 +60,7 @@ const tocData: TocItem[] = [
       {
         label: 'SQL Interface',
         contentSite: 'sql-interface',
-        url: 'https://www.mongodb.com/docs/sql-interface',
+        url: '/docs/sql-interface/',
         showSubNav: true,
         items: SQLInterfaceData,
       },
