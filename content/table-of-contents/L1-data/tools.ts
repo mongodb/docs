@@ -59,8 +59,8 @@ const tocData: TocItem[] = [
     items: [
       {
         label: 'SQL Interface',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/data-federation/query/connect-with-sql-overview',
+        contentSite: 'sql-interface',
+        url: 'https://www.mongodb.com/docs/sql-interface',
         showSubNav: true,
         items: SQLInterfaceData,
       },

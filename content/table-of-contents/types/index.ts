@@ -252,6 +252,7 @@ export type DocSite =
   | 'docs'
   | 'guides'
   | 'spark-connector'
+  | 'sql-interface'
   | 'atlas-charts'
   | 'docs-relational-migrator'
   | 'visual-studio-extension';

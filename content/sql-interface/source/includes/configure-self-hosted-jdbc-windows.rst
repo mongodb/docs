@@ -4,7 +4,7 @@ Set Up On-Premise SQL Interface for JDBC
 .. procedure::
    :style: normal
 
-   .. include:: /includes/sql-interface/schema-builder-windows.rst
+   .. include:: /includes/schema-builder-windows.rst
 
    .. step:: Download and Install Your SQL Driver
 

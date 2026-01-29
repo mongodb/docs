@@ -1,47 +1,46 @@
-Set Up On-Premise {+sql-interface+} for DBeaver on Windows
-----------------------------------------------------------
-
 .. procedure::
    :style: normal
 
-   .. include:: /includes/sql-interface/schema-builder-windows.rst
+   .. include:: /includes/nav/steps-data-federation.rst
+   
+   .. step:: Click :guilabel:`Connect` to open the {+fdi+} connection modal.
 
-   .. step:: Download and Install Your SQL Driver
+   .. step:: Select :guilabel:`{+asql+}`.
 
-      Download and install the JDBC MongoDB SQL driver.
+   .. step:: Select :guilabel:`JDBC Driver`.
 
-      .. list-table::
-         :header-rows: 1
-         :widths: 20 40 40
+      .. note::
+   
+         This tutorial uses the JDBC Driver to connect.
+         See :ref:`sql-connect` for alternative connection methods.
 
-         * - Driver Type
-           - Compatible Operating Systems
-           - Installation Instructions
+   .. step:: Copy your connection information.
 
-         * - **JDBC Driver**
-           - Windows x86_64
-           - :ref:`JDBC Installation Guide <sql-connect-jdbc>`
+      {+adf+} provides a connection string to connect to your 
+      {+fdi+}. You'll need this in a later step.
 
-   .. step:: DBeaver Community
+   .. step:: Connect from DBeaver.
 
-      2. Launch DBeaver.
+      a. Launch DBeaver.
 
-      3. Add a new driver.
+      #. Add a new driver.
 
-         a. In DBeaver, click :guilabel:`Database` and select  
+         i. In DBeaver, click :guilabel:`Database` and select  
             :guilabel:`Driver Manager` from the dropdown menu.
+            
          #. Click :guilabel:`New` to open the 
             :guilabel:`Create new driver` modal.
+
          #. In the :guilabel:`Settings` tab, enter the following 
             information:
 
             .. list-table::
                :stub-columns: 1
                :widths: 10 20
-
+               
                * - Driver Name
                  - ``MongoDB``
-
+                    
                * - Class Name
                  - ``com.mongodb.jdbc.MongoDriver``
 
@@ -53,10 +52,10 @@ Set Up On-Premise {+sql-interface+} for DBeaver on Windows
 
          #. Click :guilabel:`OK`. The 
             :guilabel:`Create new driver` modal closes.
+         
+      #. Create a database connection.
 
-      4. Create a database connection.
-
-         a. In DBeaver, click :guilabel:`Database` and select  
+         i. In DBeaver, click :guilabel:`Database` and select  
             :guilabel:`New Database Connection` from the dropdown 
             menu to open the :guilabel:`Connect to a database` modal.
 
@@ -74,7 +73,7 @@ Set Up On-Premise {+sql-interface+} for DBeaver on Windows
             .. list-table::
                :stub-columns: 1
                :widths: 10 20
-      
+               
                * - JDBC URL
                  - Your connection string from step 5.
 
@@ -98,9 +97,3 @@ Set Up On-Premise {+sql-interface+} for DBeaver on Windows
                * - user
                  - The MongoDB user to connect with. Not required if 
                    you entered a ``Username`` in the previous step.
-
-               * - password
-                 - The MongoDB user's password. Not required if you 
-                   entered a ``Password`` in the previous step.
-
-      5. Click :guilabel:`Finish`.

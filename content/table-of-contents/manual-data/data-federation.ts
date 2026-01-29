@@ -303,8 +303,8 @@ const tocData: TocItem[] = [
   },
   {
     label: 'SQL',
-    contentSite: 'cloud-docs',
-    url: 'https://www.mongodb.com/docs/atlas/data-federation/query/connect-with-sql-overview/',
+    contentSite: 'sql-interface',
+    url: 'https://www.mongodb.com/docs/sql-interface',
   },
   {
     label: 'Data Federation Tutorials',
