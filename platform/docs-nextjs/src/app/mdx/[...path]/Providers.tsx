@@ -3,13 +3,17 @@
 import { ChatbotProvider } from '@/context/chatbot-context';
 import { MetadataProvider } from '@/utils/use-snooty-metadata';
 import { HeadingContextProvider } from '@/context/heading-context';
+import type { RemoteMetadata } from '@/types/data';
 import { UnifiedTocProvider } from '@/context/unified-toc-context';
 
-export const Providers = ({ children }: { children: React.ReactNode }) => {
+interface ProvidersProps {
+  children: React.ReactNode;
+  metadata: RemoteMetadata;
+}
+
+export const Providers = ({ children, metadata }: ProvidersProps) => {
   return (
-    // TODO: fix this value
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    <MetadataProvider value={{} as any}>
+    <MetadataProvider value={metadata}>
       <UnifiedTocProvider>
         <HeadingContextProvider sectionDepth={0}>
           <ChatbotProvider>{children}</ChatbotProvider>

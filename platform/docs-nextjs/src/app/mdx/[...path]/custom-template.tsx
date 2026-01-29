@@ -84,7 +84,7 @@ interface CustomTemplateProps {
   content: React.ReactNode;
   frontmatter?: MDXFrontmatter;
   path: string[];
-  metadata?: RemoteMetadata;
+  metadata: RemoteMetadata;
 }
 
 export const CustomTemplate = ({ content, frontmatter, path, metadata }: CustomTemplateProps) => {
@@ -97,7 +97,7 @@ export const CustomTemplate = ({ content, frontmatter, path, metadata }: CustomT
   };
 
   return (
-    <Providers>
+    <Providers metadata={metadata}>
       <Header eol={metadata?.eol ?? false} />
       {renderSidenav && <UnifiedSidenav />}
       <div className={layoutStyles['content-container']}>

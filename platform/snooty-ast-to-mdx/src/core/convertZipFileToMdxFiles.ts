@@ -39,7 +39,6 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
     if (
       file.type !== 'File' ||
       !file.path.endsWith('.bson') ||
-      file.path === 'site.bson' ||
       IGNORED_FILE_SUFFIXES.some((suffix) => file.path.endsWith(suffix))
     ) {
       continue;
@@ -67,6 +66,17 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
       console.warn(
         `\nWarning: ${file.path} contains ${docs.length} BSON documents - only the first one will be converted to MDX.\n`,
       );
+    }
+
+    if (file.path === 'site.bson') {
+      // Write site.bson metadata as _site.json in the base directory
+      const siteData = docs[0];
+      // Remove static_files property before writing
+      delete siteData.static_files;
+      const siteJsonPath = path.join(zipBaseName, '_site.json');
+      const siteJsonContent = `${JSON.stringify(siteData, null, 2)}\n`;
+      await fs.writeFile(siteJsonPath, siteJsonContent, 'utf-8');
+      continue;
     }
 
     const tree = docs[0] as SnootyNode;

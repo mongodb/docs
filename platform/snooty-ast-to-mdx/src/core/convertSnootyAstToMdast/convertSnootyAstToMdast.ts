@@ -8,7 +8,6 @@ import { convertDirectiveLiteralInclude } from './convertDirectiveLiteralInclude
 import { convertDirectiveListTable } from './convertDirectiveListTable';
 import { parseSnootyArgument } from './parseSnootyArgument';
 
-const MAX_HEADING_DEPTH = 6;
 const HIDDEN_NODES = ['toctree', 'index', 'seealso'];
 
 interface ConvertChildrenArgs {
