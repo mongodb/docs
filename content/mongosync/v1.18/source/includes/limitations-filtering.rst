@@ -1,6 +1,8 @@
 - Filtering is not supported with :ref:`reversible sync
   <c2c-api-reverse>`.
-- The destination cluster must not contain user data prior to starting.
+- The destination cluster must not contain user data prior to starting
+  unless you set the :ref:`preExistingDestinationData <c2c-pre-existing-dest-data>`
+  parameter to ``true`` when you call ``/start``.
 - The destination cluster must not contain the
   ``mongosync_reserved_for_internal_use`` system database prior to
   starting.
