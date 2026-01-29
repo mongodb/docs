@@ -1,0 +1,854 @@
+.. _golang-monitoring:
+
+==========================
+Monitor Application Events
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. meta::
+   :keywords: event
+   :description: Explore cluster, command, and connection pool monitoring in the MongoDB Go Driver.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+Overview
+--------
+
+In this guide, you can learn how to set up and configure **monitoring** in the
+{+driver-long+}. You can monitor **events** by using the {+driver-short+} to 
+subscribe to them in your application.
+
+Monitoring involves collecting information about the activities of a running
+program, which you can use with an application performance management
+library. 
+
+An event is any action that occurs within the driver during its operation. The
+{+driver-short+} includes functionality for listening to a subset of these
+events.
+
+Monitoring the {+driver-short+} lets you understand the driver's resource usage
+and performance, and can help you make informed decisions when designing and
+debugging your application.
+
+In this guide you will learn how to perform these tasks:
+
+- :ref:`Monitor Command Events <golang-command-monitoring>`
+- :ref:`Monitor Server Discovery and Monitoring (SDAM) Events <golang-cluster-monitoring>`
+- :ref:`Monitor Connection Pool Events <golang-connection-pool-monitoring>`
+
+This guide shows how to use information about the activity of the driver in code.
+To learn how to record events in the driver, see the {+driver-short+}'s 
+:ref:`Logging <golang-logging>` guide. 
+
+.. _golang-command-monitoring:
+
+Monitor Command Events
+----------------------
+
+A command event is an event related to a MongoDB database command. You can
+access one or more command monitoring events by using the driver to subscribe to
+them in your application.
+
+To learn more about MongoDB database commands, see the
+:manual:`Database Commands </reference/command/>` guide in the Server Manual.
+
+Subscribe to Events
+~~~~~~~~~~~~~~~~~~~
+
+You can access details about command events by subscribing to them
+in your application. The following example demonstrates how to subscribe
+to the ``CommandStartedEvent`` event by instantiating a
+``CommandMonitor`` and connecting to a deployment:
+
+.. code-block:: go
+
+   var eventArray []*event.CommandStartedEvent
+   cmdMonitor := &event.CommandMonitor{
+       Started: func(ctx context.Context, e *event.CommandStartedEvent) {
+           eventArray = append(eventArray, e)
+       },
+   }
+   clientOpts := options.Client().ApplyURI(uri).SetMonitor(cmdMonitor)
+   client, err := mongo.Connect(clientOpts)
+
+Event Descriptions
+~~~~~~~~~~~~~~~~~~
+
+You can subscribe to one or more of the following command monitoring
+events:
+
+.. list-table::
+   :widths: 33 67
+   :header-rows: 1
+
+   * - Event Name
+     - Description
+
+   * - ``CommandStartedEvent``
+     - Created when a command starts.
+
+   * - ``CommandSucceededEvent``
+     - Created when a command succeeds.
+
+   * - ``CommandFailedEvent``
+     - Created when a command does not succeed.
+
+Example Event Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following sections show sample output for each type of command monitoring event.
+
+CommandStartedEvent
+```````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.CommandStartedEvent
+   {
+       "Command": "...",
+       "DatabaseName": "...",
+       "CommandName": "...",
+       "RequestID": ...,
+       "ConnectionID": "...",
+       "ServerConnectionID": ...,
+       "ServiceID": "..."
+   }
+
+CommandSucceededEvent
+`````````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.CommandSucceededEvent
+   {
+       "DurationNanos": 38717583,
+       "Duration": 38717583,
+       "CommandName": "insert",
+       "RequestID": 13,
+       "ConnectionID": "...",
+       "ServerConnectionID": ...,
+       "ServiceID": null,
+       "Reply": "..."
+   }
+
+CommandFailedEvent
+``````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.CommandFailedEvent
+   {
+       "DurationNanos": 38717583,
+       "Duration": 38717583,
+       "CommandName": "insert",
+       "RequestID": 13,
+       "ConnectionID": "...",
+       "ServerConnectionID": ...,
+       "ServiceID": null,
+       "Failure": "..."
+   }
+
+.. _golang-cluster-monitoring:
+
+Monitor Server Discovery and Monitoring Events
+----------------------------------------------
+
+The {+driver-short+} creates topology events, also known as SDAM events, when
+there is a change in the state of the instance or cluster that you connected to.
+For example, the driver creates an event when you establish a new connection or
+if the cluster elects a new primary node.
+
+The following sections demonstrate how to record topology changes in your application
+and explore the information provided in these events.
+
+Subscribe to Events
+~~~~~~~~~~~~~~~~~~~
+
+You can access details about SDAM events by subscribing to them
+in your application. The following example demonstrates how to subscribe
+to the ``ServerClosed`` event by instantiating a
+``ServerMonitor`` and connecting to a deployment:
+
+.. code-block:: go
+
+   var eventArray []*event.ServerClosedEvent
+   srvMonitor := &event.ServerMonitor{
+       ServerClosed: func(e *event.ServerClosedEvent) {
+           eventArray = append(eventArray, e)
+       },
+   }
+   clientOpts := options.Client().ApplyURI(uri).SetServerMonitor(srvMonitor)
+   client, err := mongo.Connect(clientOpts)
+
+Event Descriptions
+~~~~~~~~~~~~~~~~~~
+
+You can subscribe to the following SDAM events by specifying properties
+of a ``ServerMonitor`` instance:
+
+.. list-table::
+   :widths: 35 65 
+   :header-rows: 1
+
+   * - Event Name
+     - Description
+
+   * - ``ServerDescriptionChangedEvent``
+     - Created when an instance state changes (such as from secondary to primary).
+
+   * - ``ServerOpeningEvent``
+     - Created when the server is initialized.
+
+   * - ``ServerClosedEvent``
+     - Created when the server is closed.
+
+   * - ``TopologyDescriptionChangedEvent``
+     - Created when the topology changes, such as an election of a new
+       primary or disconnection of a ``mongos`` proxy.
+
+   * - ``TopologyOpeningEvent``
+     - Created when the topology is initialized.
+
+   * - ``TopologyClosedEvent``
+     - Created when the topology is closed.
+
+   * - ``ServerHeartbeatStartedEvent``
+     - Created when the heartbeat is started.
+
+   * - ``ServerHeartbeatSucceededEvent``
+     - Created when the heartbeat succeeds.
+
+   * - ``ServerHeartbeatFailedEvent``
+     - Created when the heartbeat fails.
+
+Example Event Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following sections show sample output for each type of SDAM event.
+
+ServerDescriptionChangedEvent
+`````````````````````````````
+
+.. code-block:: none
+   :copyable: false
+      
+   *event.ServerDescriptionChangedEvent
+   {
+       "Address": "...",
+       "TopologyID": "...",
+       "PreviousDescription": {
+           "Addr": "...",
+           "Arbiters": null,
+           "AverageRTT": 0,
+           "AverageRTTSet": false,
+           "Compression": null,
+           "CanonicalAddr": "...",
+           "ElectionID": "...",
+           "HeartbeatInterval": 0,
+           "HelloOK": false,
+           "Hosts": null,
+           "LastError": null,
+           "LastUpdateTime": "...",
+           "LastWriteTime": "...",
+           "MaxBatchCount": 0,
+           "MaxDocumentSize": 0,
+           "MaxMessageSize": 0,
+           "Members": null,
+           "Passives": null,
+           "Passive": false,
+           "Primary": "...",
+           "ReadOnly": false,
+           "ServiceID": null,
+           "SessionTimeoutMinutes": 0,
+           "SetName": "...",
+           "SetVersion": 0,
+           "Tags": null,
+           "TopologyVersion": null,
+           "Kind": 0,
+           "WireVersion": null
+       },
+       "NewDescription": {
+           "Addr": "...",
+           "Arbiters": null,
+           "AverageRTT": ...,
+           "AverageRTTSet": true,
+           "Compression": null,
+           "CanonicalAddr": "...",
+           "ElectionID": "...",
+           "HeartbeatInterval": ...,
+           "HelloOK": true,
+           "Hosts": [...],
+           "LastError": null,
+           "LastUpdateTime": "...",
+           "LastWriteTime": "...",
+           "MaxBatchCount": ...,
+           "MaxDocumentSize": ...,
+           "MaxMessageSize": ...,
+           "Members": [...],
+           "Passives": null,
+           "Passive": false,
+           "Primary": "...",
+           "ReadOnly": false,
+           "ServiceID": null,
+           "SessionTimeoutMinutes": 30,
+           "SetName": "...",
+           "SetVersion": 9,
+           "Tags": [...],
+           "TopologyVersion": {...},
+           "Kind": 10,
+           "WireVersion": {...}
+       }
+   }
+
+.. _golang-monitoring-kind-field:
+
+``Kind`` Field Value
+++++++++++++++++++++
+
+The ``Kind`` field in an event document represents the type of a
+single server in a topology and can have the following values:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Value
+     - Description
+   * - ``0``
+     - Unknown instance
+   * - ``1``
+     - Standalone instance
+   * - ``2``
+     - Replica set member
+   * - ``6``
+     - Primary instance
+   * - ``10``
+     - Secondary instance
+   * - ``18``
+     - Arbiter instance
+   * - ``34``
+     - Replica set ghost (a member that cannot be queried)
+   * - ``256``
+     - ``mongos`` proxy instance
+   * - ``512``
+     - Load balancer instance
+
+ServerOpeningEvent
+``````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.ServerOpeningEvent
+   {
+       "Address": "...",
+       "TopologyID": "..."
+   }
+
+ServerClosedEvent
+`````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.ServerClosedEvent
+   {
+       "Address": "...",
+       "TopologyID": "..."
+   }
+
+TopologyDescriptionChangedEvent
+```````````````````````````````
+
+.. important::
+
+   Because the driver calls ``TopologyDescriptionChangedEvent`` when the
+   deployment topology is locked, the callback (function argument) for this event
+   must not attempt any operation that requires server selection on
+   the same client.
+
+.. code-block:: none
+   :copyable: false
+
+   *event.TopologyDescriptionChangedEvent
+   {
+       "TopologyID": "...",
+       "PreviousDescription": {
+           "Servers": [
+               {
+                   "Addr": "...",
+                   "Arbiters": null,
+                   "AverageRTT": 0,
+                   "AverageRTTSet": false,
+                   "Compression": null,
+                   "CanonicalAddr": "...",
+                   "ElectionID": "...",
+                   "HeartbeatInterval": 0,
+                   "HelloOK": false,
+                   "Hosts": null,
+                   "LastError": null,
+                   "LastUpdateTime": "...",
+                   "LastWriteTime": "...",
+                   "MaxBatchCount": 0,
+                   "MaxDocumentSize": 0,
+                   "MaxMessageSize": 0,
+                   "Members": null,
+                   "Passives": null,
+                   "Passive": false,
+                   "Primary": "...",
+                   "ReadOnly": false,
+                   "ServiceID": null,
+                   "SessionTimeoutMinutes": 0,
+                   "SetName": "...",
+                   "SetVersion": 0,
+                   "Tags": null,
+                   "TopologyVersion": null,
+                   "Kind": 0,
+                   "WireVersion": null
+               },
+               ...
+           ],
+           "SetName": "...",
+           "Kind": 10,
+           "SessionTimeoutMinutes": 30,
+           "CompatibilityErr": null
+       },
+       "NewDescription": {
+           "Servers": [...],
+           "SetName": "...",
+           "Kind": 10,
+           "SessionTimeoutMinutes": 30,
+           "CompatibilityErr": null
+       }
+   }
+
+To interpret the value of the ``Kind`` field, see the :ref:`Kind Field
+Value section <golang-monitoring-kind-field>`.
+
+TopologyOpeningEvent
+````````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.TopologyOpeningEvent
+   {
+       "TopologyID": "..."
+   }
+
+TopologyClosedEvent
+```````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.TopologyClosedEvent
+   {
+       "TopologyID": "..."
+   }
+
+ServerHeartbeatStartedEvent
+```````````````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.ServerHeartbeatStartedEvent
+   {
+       "ConnectionID": "...",
+       "Awaited": true
+   }
+
+ServerHeartbeatSucceededEvent
+`````````````````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.ServerHeartbeatSucceededEvent
+   {
+    "DurationNanos": ...,
+       "Reply": {
+           "Addr": "...",
+           "Arbiters": null,
+           "AverageRTT": 0,
+           "AverageRTTSet": false,
+           "Compression": null,
+           "CanonicalAddr": "...",
+           "ElectionID": "...",
+           "HeartbeatInterval": 0,
+           "HelloOK": true,
+           "Hosts": [...],
+           "LastError": null,
+           "LastUpdateTime": "...",
+           "LastWriteTime": "...",
+           "MaxBatchCount": ...,
+           "MaxDocumentSize": ...,
+           "MaxMessageSize": ...,
+           "Members": [...],
+           "Passives": null,
+           "Passive": false,
+           "Primary": "...",
+           "ReadOnly": false,
+           "ServiceID": null,
+           "SessionTimeoutMinutes": 30,
+           "SetName": "...",
+           "SetVersion": 9,
+           "Tags": [...],
+           "TopologyVersion": {...},
+           "Kind": 6,
+           "WireVersion": {...}
+       },
+       "ConnectionID": "...",
+       "Awaited": true
+   }
+
+To interpret the value of the ``Kind`` field, see the :ref:`Kind Field
+Value section <golang-monitoring-kind-field>`.
+
+ServerHeartbeatFailedEvent
+``````````````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.ServerHeartbeatFailedEvent
+   {
+       "DurationNanos": ...,
+       "Failure": "<error message>"
+       "ConnectionID": "...",
+       "Awaited": true
+   }
+
+.. _golang-connection-pool-monitoring:
+
+Monitor Connection Pool Events
+------------------------------
+
+A connection pool is a set of open TCP connections that your driver maintains with a
+MongoDB instance. Connection pools help reduce the number of network handshakes
+your application needs to perform and can help your application run faster.
+
+The following sections demonstrate how to record connection pool events in your
+application and explore the information provided in these events.
+
+Subscribe to Events
+~~~~~~~~~~~~~~~~~~~
+
+You can access details about connection pool events by subscribing to them
+in your application. The following example demonstrates how to subscribe
+to the ``PoolEvent`` event by instantiating a
+``PoolMonitor`` and connecting to a deployment:
+
+.. code-block:: go
+
+   var eventArray []*event.PoolEvent
+   cxnMonitor := &event.PoolMonitor{
+       Started: func(e *event.PoolEvent) {
+           eventArray = append(eventArray, e)
+       },
+   }
+   clientOpts := options.Client().ApplyURI(uri).SetPoolMonitor(cxnMonitor)
+   client, err := mongo.Connect(clientOpts)
+
+Event Descriptions
+~~~~~~~~~~~~~~~~~~
+
+The following table describes the types of pool events that the driver
+emits:
+
+.. list-table::
+   :widths: 33 67
+   :header-rows: 1
+
+   * - Pool Event Type
+     - Description
+
+   * - ``ConnectionPoolCreated``
+     - Created when a connection pool is created.
+
+   * - ``ConnectionPoolReady``
+     - Created when a connection pool is ready.
+
+   * - ``ConnectionPoolCleared``
+     - Created when all the connections in the pool are closed.
+
+   * - ``ConnectionPoolClosed``
+     - Created when a connection pool is closed, before the destruction of
+       the server instance.
+
+   * - ``ConnectionCreated``
+     - Created when a connection is created, but not necessarily
+       when it is used for an operation.
+
+   * - ``ConnectionReady``
+     - Created after a connection completes a
+       handshake and is ready to be used for operations.
+
+   * - ``ConnectionClosed``
+     - Created when a connection is closed.
+
+   * - ``ConnectionCheckOutStarted``
+     - Created when an operation attempts to acquire a connection for
+       execution.
+
+   * - ``ConnectionCheckOutFailed``
+     - Created when an operation cannot acquire a connection for
+       execution.
+
+   * - ``ConnectionCheckedOut``
+     - Created when an operation successfully acquires a connection for
+       execution.
+
+   * - ``ConnectionCheckedIn``
+     - Created when a connection is checked back into the pool after an operation
+       is executed.
+
+Example Event Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following sections show sample output for each type of connection
+pool monitoring event.
+
+ConnectionPoolCreated
+`````````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionPoolCreated",
+       "address": "...",
+       "connectionId": 0,
+       "options": {
+           "maxPoolSize": 100,
+           "minPoolSize": 0,
+           "maxIdleTimeMS": 0
+       },
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionPoolReady
+```````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionPoolReady",
+       "address": "...",
+       "connectionId": 0,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionPoolCleared
+`````````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionPoolCleared",
+       "address": "...",
+       "connectionId": 0,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionPoolClosed
+````````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionPoolClosed",
+       "address": "...",
+       "connectionId": 0,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionCreated
+`````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionCreated",
+       "address": "...",
+       "connectionId": 1,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionReady
+````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionReady",
+       "address": "...",
+       "connectionId": 1,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionClosed
+`````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionClosed",
+       "address": "...",
+       "connectionId": 1,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionCheckOutStarted
+`````````````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionCheckOutStarted",
+       "address": "...",
+       "connectionId": 0,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionCheckOutFailed
+````````````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionCheckOutFailed",
+       "address": "...",
+       "connectionId": 0,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionCheckedOut
+`````````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionCheckedOut",
+       "address": "...",
+       "connectionId": 1,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionCheckedIn
+```````````````````
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionCheckedIn",
+       "address": "...",
+       "connectionId": 1,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+Additional Information
+----------------------
+
+To learn more about monitoring a MongoDB deployment, see the :website:`How
+to Monitor MongoDB
+</basics/how-to-monitor-mongodb-and-what-metrics-to-monitor>` article.
+
+To learn more about connecting to MongoDB, see the
+:ref:`golang-mongoclient` guide.
+
+To learn more about performing MongoDB operations, see the
+:ref:`CRUD Operations <golang-insert-guide>` section.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `event <{+api+}/event>`__ package
+
+Command Events
+``````````````
+
+- `CommandMonitor <{+api+}/event#CommandMonitor>`__ type
+- `SetMonitor() <{+api+}/mongo/options#ClientOptions.SetMonitor>`__ method
+- `CommandStartedEvent <{+api+}/event#CommandStartedEvent>`__ type
+- `CommandSucceededEvent <{+api+}/event#CommandSucceededEvent>`__ type
+- `CommandFailedEvent <{+api+}/event#CommandFailedEvent>`__ type
+
+SDAM Events
+```````````
+- `ServerMonitor <{+api+}/event#ServerMonitor>`__ type
+- `SetServerMonitor() <{+api+}/mongo/options#ClientOptions.SetServerMonitor>`__ method
+
+Connection Pool Events
+``````````````````````
+
+- `PoolMonitor <{+api+}/event#PoolMonitor>`__ type
+- `PoolEvent <{+api+}/event#PoolEvent>`__ type
+- `SetPoolMonitor() <{+api+}/mongo/options#ClientOptions.SetPoolMonitor>`__ method

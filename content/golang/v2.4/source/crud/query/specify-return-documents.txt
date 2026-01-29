@@ -1,0 +1,525 @@
+.. _golang-specify-documents-to-return:
+
+===========================
+Specify Documents to Return
+===========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: read, paginate, pagination, order, code example
+
+Overview
+--------
+
+In this guide, you can learn how to specify which documents to return from a read
+operation by using the following methods:
+
+- ``SetSort()``: Specifies the sort order for the returned documents.
+- ``SetSkip()``: Specifies the number of documents to skip before returning query results.
+- ``SetLimit()``: Specifies the maximum number of documents to return from a query.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the following ``Course`` struct as a model for documents
+in the ``courses`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/sort.go
+   :start-after: start-course-struct
+   :end-before: end-course-struct
+   :language: go
+   :dedent:
+
+To run the examples in this guide, load the sample data into the
+``db.courses`` collection by using the following snippet:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/sort.go
+   :language: go
+   :dedent:
+   :start-after: begin insertDocs
+   :end-before: end insertDocs
+
+.. include:: /includes/fundamentals/automatic-db-coll-creation.rst
+
+Each document represents a description of a university course and
+includes the course title and maximum enrollment, corresponding to
+the ``title`` and ``enrollment`` fields in each document.
+
+.. _golang-sort-results:
+
+Sort
+----
+
+To specify the order of your results, pass an interface specifying the
+sort fields and direction to the ``SetSort()`` method of an operation's options.
+
+The following operations take ``SetSort()`` as an option:
+
+- ``Find()``
+- ``FindOne()``
+- ``FindOneAndDelete()``
+- ``FindOneAndUpdate()``
+- ``FindOneAndReplace()``
+- ``GridFSBucket.Find()``
+
+You can set an **ascending** or **descending** sort direction.
+
+Ascending
+~~~~~~~~~
+
+An ascending sort orders your results from smallest to largest. To
+specify this sort, pass the field you want to sort by and ``1`` to the
+``SetSort()`` method.
+
+.. tip::
+
+   With an ascending sort, the method orders values of type
+   ``Boolean`` from ``false`` to ``true``, ``String`` type values
+   from a to z and numeric type values from negative infinity to
+   positive infinity.
+
+The following example specifies an ascending sort on the ``enrollment`` field:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{}
+      opts := options.Find().SetSort(bson.D{{"enrollment", 1}})
+      
+      cursor, err := coll.Find(context.TODO(), filter, opts)
+      
+      var results []Course
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"title":"Modern Poetry","enrollment":12}
+      {"title":"World Fiction","enrollment":35}
+      {"title":"Plate Tectonics","enrollment":35}
+      {"title":"Abstract Algebra","enrollment":60}
+
+Descending
+~~~~~~~~~~
+
+A descending sort orders your results from largest to smallest. To
+specify this sort, pass the field you want to sort by and ``-1`` to the
+``SetSort()`` method.
+
+.. tip::
+
+   With an descending sort, the method orders values of type
+   ``Boolean`` from ``true`` to ``false``, ``String`` type values
+   from z to a and numeric type values from positive infinity to
+   negative infinity.
+
+The following example specifies a descending sort on the ``enrollment`` field:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{}
+      opts := options.Find().SetSort(bson.D{{"enrollment", -1}})
+      
+      cursor, err := coll.Find(context.TODO(), filter, opts)
+      
+      var results []Course
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"title":"Abstract Algebra","enrollment":60}
+      {"title":"World Fiction","enrollment":35}
+      {"title":"Plate Tectonics","enrollment":35}
+      {"title":"Modern Poetry","enrollment":12}
+
+Handling Ties
+~~~~~~~~~~~~~
+
+A tie occurs when two or more documents have identical values in the
+field you are using to sort your results. MongoDB does not guarantee
+order if ties occur. 
+
+For example, in the sample data, there is a tie for ``enrollment`` in
+the following documents:
+
+.. code-block:: none
+   :copyable: false
+
+   {"title":"World Fiction","enrollment":35}
+   {"title":"Plate Tectonics","enrollment":35}
+
+You can sort on additional fields to resolve ties in the original sort.
+If you want to guarantee a specific order for documents, select sort fields
+that do not result in ties.
+
+The following example specifies a descending sort on the ``enrollment`` field,
+then an ascending sort on the ``title`` field:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+
+      filter := bson.D{}
+      opts := options.Find().SetSort(bson.D{{"enrollment", -1}, {"title", 1}})
+      
+      cursor, err := coll.Find(context.TODO(), filter, opts)
+      
+      var results []Course
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"title":"Abstract Algebra","enrollment":60}
+      {"title":"Plate Tectonics","enrollment":35}
+      {"title":"World Fiction","enrollment":35}
+      {"title":"Modern Poetry","enrollment":12}
+
+Aggregation
+~~~~~~~~~~~
+
+You can also include the :manual:`$sort </reference/operator/aggregation/sort/>`
+stage to specify a sort in an aggregation pipeline.
+
+The following example specifies a descending sort on the ``enrollment``
+field, then an ascending sort on the ``title`` field:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      sortStage := bson.D{{"$sort", bson.D{{"enrollment", -1}, {"title", 1}}}}
+
+      cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{sortStage})
+      if err != nil {
+          panic(err)
+      }
+
+      var results []Course
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"title":"Abstract Algebra","enrollment":60}
+      {"title":"Plate Tectonics","enrollment":35}
+      {"title":"World Fiction","enrollment":35}
+      {"title":"Modern Poetry","enrollment":12}
+
+.. _golang-skip:
+
+Skip
+----
+
+To skip a specified number of returned results from a query, pass the
+number of documents you want to skip to the ``SetSkip()`` method of
+the read operation's options.
+
+The following read operations take ``SetSkip()`` as an option:
+
+- ``Find()``
+- ``FindOne()``
+- ``CountDocuments()``
+- ``GridFSBucket.Find()``
+
+If the number of documents exceeds the number of matched documents for a
+query, that query returns no documents.
+
+Find operations return documents in a natural order that is not sorted
+on any field. To avoid skipping random documents, use the ``SetSort()``
+method to sort documents on a field with unique values before setting a
+skip option.
+
+The following example performs a ``Find()`` operation with the following
+behavior:
+
+- Sorts the results in ascending order on the ``enrollment`` field
+- Skips the first two documents
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      opts := options.Find().SetSort(bson.D{{"enrollment", 1}}).SetSkip(2)
+      
+      cursor, err := coll.Find(context.TODO(), bson.D{}, opts)
+      
+      var results []Course
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"title":"Plate Tectonics","enrollment":35}
+      {"title":"Abstract Algebra","enrollment":60}
+
+.. _golang-skip-aggregation:
+
+Aggregation
+~~~~~~~~~~~
+
+You can also include the :manual:`$skip </reference/operator/aggregation/skip/>`
+stage in an aggregation pipeline to skip documents.
+
+The following example performs an ``Aggregate()`` operation with the following
+behavior:
+
+- Sorts the results in descending order on the ``enrollment`` field
+- Skips the first document
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      sortStage := bson.D{{"$sort", bson.D{{"enrollment", -1}}}}
+      skipStage := bson.D{{"$skip", 1}}
+      
+      cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{sortStage, skipStage})
+      if err != nil {
+          panic(err)
+      }
+      
+      var results []Course
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"title":"Plate Tectonics","enrollment":35}
+      {"title":"World Fiction","enrollment":35}
+      {"title":"Modern Poetry","enrollment":12}
+
+.. _golang-limit:
+
+Limit
+-----
+
+To limit the number of documents returned from a query, pass the
+number of documents you want returned to the ``SetLimit()`` method of
+the read operation's options.
+
+The following read operations take ``SetLimit()`` as an option:
+
+- ``Find()``
+- ``CountDocuments()``
+- ``GridFSBucket.Find()``
+
+If the limit is ``0`` or exceeds the number of matched
+documents, the method returns all the documents. If the limit is a
+negative number, the method uses the absolute value of the negative
+number as the limit and closes the cursor after retrieving
+documents.
+
+The following example shows how to return two documents that have an
+``enrollment`` field value greater than 20:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{{"enrollment", bson.D{{"$gt", 20}}}}
+      opts := options.Find().SetLimit(2)
+      
+      cursor, err := coll.Find(context.TODO(), filter, opts)
+      
+      var results []Course
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"title":"World Fiction","enrollment":35}
+      {"title":"Abstract Algebra","enrollment":60}
+
+Multiple Options
+~~~~~~~~~~~~~~~~
+
+The driver performs the limit behavior last regardless of the order in which you set
+any other options. For example, the following option configurations produce the same 
+result, regardless of the order in which ``SetLimit()`` is called:
+
+.. code-block:: go
+   :copyable: false
+
+   opts := options.Find().SetSort(bson.D{{"enrollment", -1}}).SetSkip(1).SetLimit(2)
+   opts := options.Find().SetLimit(2).SetSort(bson.D{{"enrollment", -1}}).SetSkip(1)
+
+The following example performs a ``Find()`` operation with the following behavior:
+
+- Sorts the results in descending order on the ``enrollment`` field
+- Skips the first document
+- Returns the first two of the remaining documents
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{}
+      opts := options.Find().SetSort(bson.D{{"enrollment", -1}}).SetLimit(2).SetSkip(1)
+      
+      cursor, err := coll.Find(context.TODO(), filter, opts)
+      
+      var results []Course
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"title":"Abstract Algebra","enrollment":60}
+      {"title":"Plate Tectonics","enrollment":35}
+
+.. _golang-limit-aggregation:
+
+Aggregation
+~~~~~~~~~~~
+
+You can also include the :manual:`$limit </reference/operator/aggregation/limit/>`
+stage to specify a limit in an aggregation pipeline.
+
+The following example shows how to return three documents:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      limitStage := bson.D{{"$limit", 3}}
+      
+      cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{limitStage})
+      if err != nil {
+          panic(err)
+      }
+      
+      var results []Course
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
+      }
+      for _, result := range results {
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"title":"World Fiction","enrollment":35}
+      {"title":"Abstract Algebra","enrollment":60}
+      {"title":"Modern Poetry","enrollment":12}
+
+
+Additional Information
+----------------------
+
+To learn more about the operations discussed in this guide, see the following
+documentation:
+
+- :ref:`golang-query-document`
+- :ref:`golang-retrieve`
+- :ref:`golang-compound-operations`
+- :ref:`golang-aggregation`
+
+To learn about sorting text scores from your text queries, see :ref:`golang-search-text`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API Documentation:
+
+- `Find() <{+api+}/mongo#Collection.Find>`__
+- `FindOptionsBuilder.SetSort() <{+api+}/mongo/options#FindOptionsBuilder.SetSort>`__
+- `Aggregate() <{+api+}/mongo#Collection.Aggregate>`__
+- `FindOne() <{+api+}/mongo#Collection.FindOne>`__
+- `FindOneAndDelete() <{+api+}/mongo#Collection.FindOneAndDelete>`__
+- `FindOneAndUpdate() <{+api+}/mongo#Collection.FindOneAndUpdate>`__
+- `FindOneAndReplace() <{+api+}/mongo#Collection.FindOneAndReplace>`__
+- `CountDocuments() <{+api+}/mongo#Collection.CountDocuments>`__
+- `GridFSBucket.Find() <{+api+}/mongo#GridFSBucket.Find>`__
