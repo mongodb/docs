@@ -52,7 +52,6 @@ The |fts| ``embeddedDocuments`` type takes the following parameters:
        field types to index. To learn more, see
        :ref:`fts-configure-dynamic-mappings`. 
 
-       .. include:: /includes/fts/facts/fact-cdi-preview.rst
      - 
 
    * - ``fields``

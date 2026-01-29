@@ -22,8 +22,6 @@ Try an Example for the |fts-field-type| Type
    :sub_heading: Dynamically index string fields as the autocomplete type.
    :expanded: false
 
-   .. include:: /includes/fts/facts/fact-cdi-preview.rst
-
    .. include:: /includes/fts/field-types/autocomplete/cdi-example-description.rst
 
    .. literalinclude:: /includes/fts/field-types/autocomplete/configure_dynamic_index.go
