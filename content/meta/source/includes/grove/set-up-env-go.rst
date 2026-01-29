@@ -7,8 +7,7 @@
 
       If you do not yet have Go installed, refer to the
       `Go installation page <https://go.dev/doc/install>`__
-      for details. We recommend using a Go version manager like
-      `g <https://github.com/stefanmaric/g>`__ to manage your Go versions.
+      for details.
 
       With Go installed, run the following command from the root of the
       ``code-example-tests/go/driver`` directory to install dependencies:
