@@ -1,0 +1,343 @@
+.. _security-oidc:
+
+===============================================
+Configure |mms| Users for |oidc| Authentication
+===============================================
+
+.. meta::
+   :description: Configure |mms| for OIDC user authentication
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+You can use OpenID Connect (|oidc|) to manage |mms| user authentication
+and authorization with an external Identity Provider (|idp|). When you
+try to access |mms| without an authenticated session, |mms| redirects
+you to your |idp| to log in. After you authenticate, you return to
+|mms|.
+
+This tutorial describes how to:
+
+- Configure |oidc| authentication for |mms|.
+- Map |oidc| groups to |mms| :ref:`organization-roles` and
+  :ref:`project-roles`.
+- Manage organization and project role mappings with the public API.
+
+Considerations
+--------------
+
+Use HTTPS for |oidc|
+~~~~~~~~~~~~~~~~~~~~
+
+HTTPS is strongly recommended for |mms| in general, and especially for
+|oidc|. Some |idp| integrations might not work correctly if |mms| does not use
+HTTPS.
+
+Prerequisites
+-------------
+
+To configure |oidc| integration, you must perform the following actions in
+your |idp|:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a client application for |mms|.
+
+      Add your |mms| URL to the list of allowed redirect URIs.
+
+   .. step:: (Conditional) Create a user that maps to your |mms| :guilabel:`Global Owner`.
+
+      This step is required only if you need to keep the same user.
+
+   .. step:: Create a group for the :authrole:`Global Owner` role and add the user to it.
+
+   .. step:: Create groups for other roles as needed.
+
+Procedure
+---------
+
+To configure |oidc| authentication:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Select |oidc| as the authentication method.
+
+      In |mms|:
+
+      a. Click :guilabel:`Admin`, :guilabel:`General`,
+         :guilabel:`Ops Manager Config`, :guilabel:`User
+         Authentication`.
+      #. Set the :guilabel:`User Authentication Method` option to :guilabel:`OIDC`.
+
+   .. step:: Configure the |oidc| connection settings.
+
+      Specify values for the required fields, then set optional fields as
+      needed.
+
+      The following table maps the |mms| UI fields to the
+      configuration file fields.
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 30 10 30
+
+         * - |mms| UI field
+           - Config file field
+           - Required
+           - Description
+
+         * - :guilabel:`Issuer URI`
+           - ``mms.oidc.issuer.uri``
+           - Yes
+           - Issuer URI or |oidc| metadata discovery document URL.
+
+         * - :guilabel:`Client ID`
+           - ``mms.oidc.client.id``
+           - Yes
+           - Client identifier assigned to |mms| by the |idp|.
+
+         * - :guilabel:`Client Secret`
+           - ``mms.oidc.client.secret``
+           - Yes
+           - Client secret assigned to |mms| by the |idp|.
+
+         * - :guilabel:`Custom CA Certificate (PEM)`
+           - ``mms.oidc.customCaCertificate``
+           - No
+           - PEM-encoded CA certificate or certificates to
+             trust when connecting to the |idp|. Use this when your |idp|
+             uses a self-signed or private CA certificate. You can
+             concatenate multiple certificates.
+
+         * - :guilabel:`Enable PKCE (Proof Key for Code Exchange)`
+           - ``mms.oidc.pkce.enabled``
+           - Yes
+           - PKCE enablement for the authorization code flow. Recommended and 
+             enabled by default. Disable only if your |idp| does not support 
+             PKCE for confidential clients. Default value: ``true``.
+
+         * - :guilabel:`Requested Scopes`
+           - ``mms.oidc.requestedScopes``
+           - No
+           - Scope list that |mms| requests from the authorization endpoint.
+
+         * - :guilabel:`Service Provider Base URL`
+           - ``mms.oidc.sp.baseUrl``
+           - No
+           - Base URL for the |oidc| service provider. If you do not set
+             this value, |mms| uses ``mms.centralUrl``. Use this
+             when you need different URLs to access |mms|.
+
+         * - :guilabel:`Global Role Owner Groups`
+           - ``mms.oidc.global.role.owner``
+           - Yes
+           - Comma-separated list of |idp| groups whose members are
+             assigned the Global Owner role. Global Owners have full 
+             privileges over this deployment, including all administrative 
+             permissions.
+
+         * - :guilabel:`Global Automation Admin Groups`
+           - ``mms.oidc.global.role.automationAdmin``
+           - No
+           - Comma-separated list of |idp| groups whose members are
+             assigned the Global Automation Admin role.
+
+         * - :guilabel:`Global Backup Admin Groups`
+           - ``mms.oidc.global.role.backupAdmin``
+           - No
+           - Comma-separated list of |idp| groups whose members are
+             assigned the Global Backup Admin role.
+
+         * - :guilabel:`Global Monitoring Admin Groups`
+           - ``mms.oidc.global.role.monitoringAdmin``
+           - No
+           - Comma-separated list of |idp| groups whose members are
+             assigned the Global Monitoring Admin role.
+
+         * - :guilabel:`Global User Admin Groups`
+           - ``mms.oidc.global.role.userAdmin``
+           - No
+           - Comma-separated list of |idp| groups whose members are
+             assigned the Global User Admin role.
+
+         * - :guilabel:`Global Read Only Groups`
+           - ``mms.oidc.global.role.readOnly``
+           - No
+           - Comma-separated list of |idp| groups whose members are
+             assigned the Global Read Only role.
+
+         * - :guilabel:`OIDC Claim for User First Name`
+           - ``mms.oidc.user.claims.firstName``
+           - No
+           - Claim that contains the user first name.
+             Default value: ``given_name``.
+
+         * - :guilabel:`OIDC Claim for User Last Name`
+           - ``mms.oidc.user.claims.lastName``
+           - No
+           - Claim that contains the user last name.
+             Default value: ``family_name``.
+
+         * - :guilabel:`OIDC Claim for User Email`
+           - ``mms.oidc.user.claims.email``
+           - No
+           - Claim that contains the user email address.
+             Default value: ``email``.
+
+         * - :guilabel:`OIDC Claim for Group Member`
+           - ``mms.oidc.group.claims.member``
+           - No
+           - Claim that contains the list of groups |mms|
+             uses to map roles to projects and organizations.
+             Default value: ``groups``.
+
+   .. step:: Map |oidc| groups to organization and project roles.
+
+      Associate |oidc| groups with organization roles and project roles in
+      the |mms| UI.
+
+      .. note::
+
+         If you migrate from |saml| to |oidc|, |mms| preserves your existing mappings.
+
+How role mappings work
+----------------------
+
+|oidc| role mappings work the same way as |saml| role mappings. You map |idp|
+groups to |mms| roles for organizations and projects. When a user
+logs in, |mms| assigns roles based on the user's group membership.
+
+Organization role mappings
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Organization role mappings associate |idp| groups with organization roles.
+
+The organization mapping fields include:
+
+- OIDC Groups for Organization Owner Role
+- OIDC Groups for Organization Project Creator Role
+- OIDC Groups for Organization Read Only Role
+- OIDC Groups for Organization Member Role
+
+Project role mappings
+~~~~~~~~~~~~~~~~~~~~~
+
+Project role mappings associate |idp| groups with project roles.
+
+The project mapping fields include:
+
+- OIDC Groups for Project Owner Role
+- OIDC Groups for Read Only Role
+- OIDC Groups for Automation Admin Role
+- OIDC Groups for Backup Admin Role
+- OIDC Groups for Monitoring Admin Role
+- OIDC Groups for User Admin Role
+- OIDC Groups for Data Access Admin Role
+- OIDC Groups for Data Access Read Write Role
+- OIDC Groups for Data Access Read Only Role
+
+Manage role mappings with the public API
+----------------------------------------
+
+You can manage |idp| role mappings programmatically using the
+``idpGroupMappings`` field in the following public APIs:
+
+- Get organizations.
+
+  - :ref:`organization-get-all`
+  - :ref:`organization-get-one`
+
+- Get projects.
+
+  - :ref:`organization-get-all-projects`
+  - :ref:`get-one-group-by-id`
+  - :ref:`get-one-group-by-name`
+  - :ref:`get-one-group-by-agent-api-key`
+
+- Create and update organizations. 
+
+  - :ref:`organization-create-one`
+  - :ref:`organization-rename`
+
+- Create and update projects.
+
+  - :ref:`create-one-group`
+  - :ref:`change-one-group-name`
+
+The ``idpGroupMappings`` field is an array that maps |mms| roles
+to |idp| groups.
+
+.. code-block:: json
+
+   {
+     "idpGroupMappings": [
+       {
+         "idpGroups": [
+           "name_of_your_idp_group",
+           "another_name_of_idp_group"
+         ],
+         "roleName": "GROUP_USER_ADMIN"
+       }
+     ]
+   }
+
+The following values are valid for organization ``roleName``:
+
+- ``ORG_OWNER``
+- ``ORG_GROUP_CREATOR``
+- ``ORG_BILLING_ADMIN``
+- ``ORG_READ_ONLY``
+- ``ORG_MEMBER``
+
+The following values are valid for project ``roleName``:
+
+- ``GROUP_OWNER``
+- ``GROUP_READ_ONLY``
+- ``GROUP_AUTOMATION_ADMIN``
+- ``GROUP_BACKUP_ADMIN``
+- ``GROUP_MONITORING_ADMIN``
+- ``GROUP_USER_ADMIN``
+- ``GROUP_BILLING_ADMIN``
+- ``GROUP_DATA_ACCESS_ADMIN``
+- ``GROUP_DATA_ACCESS_READ_ONLY``
+- ``GROUP_DATA_ACCESS_READ_WRITE``
+- ``GROUP_CHARTS_ADMIN``
+- ``GROUP_CLUSTER_MANAGER``
+- ``GROUP_SEARCH_INDEX_EDITOR``
+
+Backchannel logout
+------------------
+
+|mms| supports |oidc| backchannel logout. When your |idp| sends a
+logout token, |mms| invalidates the user's session.
+
+Endpoint
+~~~~~~~~
+
+- ``POST {OPSMANAGER-HOST}:{PORT}/oidc/backchannel-logout``
+
+Request
+~~~~~~~
+
+Send a form-encoded request with the ``logout_token`` parameter
+containing a signed JWT.
+
+Requirements
+~~~~~~~~~~~~
+
+- Include a valid ``sub`` (subject) claim.
+- You can include the ``sid`` (session ID) claim for targeted session
+  invalidation.
+
+|mms| does not support service provider initiated logout. To log
+out, users must log out from the |idp|.
