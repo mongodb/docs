@@ -37,7 +37,7 @@
    .. wayfinding-option:: https://www.mongodb.com/docs/languages/kotlin/kotlin-sync-driver/current/read/distinct/
       :id: kotlin-sync
 
-   .. wayfinding-option:: https://www.rubydoc.info/github/mongoid/mongoid/Mongoid%2FContextual%2FMongo:distinct
+   .. wayfinding-option:: https://www.mongodb.com/docs/mongoid/current/api/Mongoid/Contextual/Mongo.html#distinct-instance_method
       :id: mongoid
 
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/rust/current/usage-examples/distinct/

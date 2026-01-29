@@ -18,7 +18,7 @@ a client certificate that your {+kmip-kms+} accepts:
       .. note:: Configure Client With SSLContext
 
          If you would rather configure your client application using an SSL context, use the 
-         `kmsProviderSslContextMap <{+java-api-docs+}/mongodb-driver-core/com/mongodb/ClientEncryptionSettings.Builder.html#kmsProviderSslContextMap(java.util.Map)>`__
+         `kmsProviderSslContextMap <{+java-api-docs+}/driver-core/com/mongodb/ClientEncryptionSettings.Builder.html#kmsProviderSslContextMap(java.util.Map)>`__
          method.
 
    .. tab::
