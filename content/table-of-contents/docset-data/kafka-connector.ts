@@ -7,9 +7,6 @@ const tocData: TocItem[] = [
     contentSite: 'kafka-connector',
     group: true,
     versionDropdown: true,
-    versions: {
-      includes: kafkaConnectorVersions.after('v1.13', { inclusive: true }),
-    },
     items: [
       {
         label: 'Overview',
