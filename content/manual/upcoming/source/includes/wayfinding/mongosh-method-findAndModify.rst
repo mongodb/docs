@@ -40,7 +40,7 @@
    .. wayfinding-option:: https://mongodb.github.io/mongo-java-driver/5.2/apidocs/mongodb-driver-kotlin-sync/mongodb-driver-kotlin-sync/com.mongodb.kotlin.client/-mongo-collection/find-one-and-update.html?query=fun%20findOneAndUpdate(clientSession:%20ClientSession,%20filter:%20Bson,%20update:%20Bson,%20options:%20FindOneAndUpdateOptions%20=%20FindOneAndUpdateOptions()):%20T?
       :id: kotlin-sync
 
-   .. wayfinding-option:: https://www.rubydoc.info/github/mongoid/mongoid/Mongoid/Contextual/Mongo:find_one_and_update
+   .. wayfinding-option:: https://www.rubydoc.info/github/mongodb/mongoid/Mongoid/Contextual/Mongo#find_one_and_update-instance_method 
       :id: mongoid
 
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/rust/current/fundamentals/crud/compound-operations/#find-and-update-a-document

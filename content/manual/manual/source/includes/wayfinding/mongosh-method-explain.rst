@@ -13,7 +13,7 @@
    .. wayfinding-option:: https://mongodb.github.io/mongo-csharp-driver/2.29.0/api/MongoDB.Driver/MongoDB.Driver.Core.Operations.ExplainOperation.-ctor.html
       :id: csharp
 
-   .. wayfinding-option:: https://mongoc.org/libmongoc/current/mongoc_collection_find.html#the-explain-command
+   .. wayfinding-option:: https://mongoc.org/libmongoc/1.25.4/mongoc_collection_find.html#the-explain-command
       :id: c
 
    .. wayfinding-option:: https://www.mongodb.com/docs/languages/cpp/cpp-driver/upcoming/aggregation/#explain-an-aggregation
