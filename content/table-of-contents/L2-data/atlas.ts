@@ -980,7 +980,7 @@ const tocData: TocItem[] = [
       {
         label: 'AI Models',
         contentSite: 'voyageai',
-        url: '/docs/voyageai/billing',
+        url: '/docs/voyageai/management/billing',
       },
       {
         label: 'Stream Processing',
