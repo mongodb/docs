@@ -487,11 +487,13 @@ const tocData: TocItem[] = [
             label: 'transitionFromDedicatedConfigServer',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/transitionFromDedicatedConfigServer',
+            versions: { excludes: ['v7.0'] },
           },
           {
             label: 'transitionToDedicatedConfigServer',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/transitionToDedicatedConfigServer',
+            versions: { excludes: ['v7.0'] },
           },
           {
             label: 'unsetSharding',
