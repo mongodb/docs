@@ -33,7 +33,6 @@ export const LAZY_COMPONENTS: LazyComponentMapType = (
       const node = props.nodeData as OpenAPINode;
       const openAPIProps: OpenAPIProps = {
         nodeChildren: node.children,
-        argument: node.argument,
         options: node.options,
       };
       return <LazyComponent {...openAPIProps} />;

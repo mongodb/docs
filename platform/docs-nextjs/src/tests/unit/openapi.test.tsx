@@ -53,17 +53,6 @@ const shallowRender = ({
 
   return render(
     <OpenAPI
-      argument={[
-        {
-          type: 'text',
-          value: nodeValue,
-          position: {
-            start: {
-              line: 0,
-            },
-          },
-        },
-      ]}
       nodeChildren={mockChildren}
       options={{
         'uses-realm': usesRealm,

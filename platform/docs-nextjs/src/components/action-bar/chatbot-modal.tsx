@@ -21,7 +21,7 @@ const ChatbotModal = () => {
       setChatbotClicked(false);
       setText('');
     }
-  }, [chatbotClicked, openChat, setChatbotClicked, setText, text]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [chatbotClicked, openChat, setChatbotClicked, setText, text, setInputText]);
 
   return (
     <ModalView

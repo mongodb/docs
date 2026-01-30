@@ -139,11 +139,10 @@ const MenuTitleContainer = ({ pageTitle }: { pageTitle: string }) => {
 
 export type OpenAPIProps = {
   nodeChildren: OpenAPINode['children'];
-  argument: OpenAPINode['argument'];
   options: OpenAPINode['options'];
 };
 
-const OpenAPI = ({ argument: _argument, nodeChildren, options, ...rest }: OpenAPIProps) => {
+const OpenAPI = ({ nodeChildren, options, ...rest }: OpenAPIProps) => {
   const usesRST = options?.['uses-rst'];
   const topValues = useStickyTopValues();
   const { options: pageOptions } = usePageContext();

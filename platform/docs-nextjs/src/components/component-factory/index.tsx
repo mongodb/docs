@@ -52,11 +52,12 @@ import type {
   FigureNode,
   ComposableNode,
   ComposableTutorialNode,
+  IOCodeBlockNode,
   WayfindingNode,
 } from '@/types/ast';
 import type { LazyComponentMap } from '@/components/component-factory/lazy';
 import { LAZY_COMPONENTS } from '@/components/component-factory/lazy';
-import { isParentNode, isRoleName } from '@/types/ast-utils';
+import { isRoleName } from '@/types/ast-utils';
 import Admonition, { type AdmonitionProps } from '@/components/admonition';
 import { admonitionMap } from '@/components/admonition/constants';
 import Text, { type TextProps } from '@/components/text';
@@ -146,6 +147,7 @@ import DeprecatedVersionSelector from '@/components/deprecated-version-selector'
 import SearchResults from '@/components/search-results';
 import Transition from '@/components/transition';
 import OpenAPIChangelog from '@/components/open-api-changelog';
+import CodeIO, { type CodeIOProps } from '@/components/code/code-io';
 import { Wayfinding, type WayfindingProps } from '@/components/wayfinding/Wayfinding';
 
 const IGNORED_NAMES = new Set([
@@ -225,7 +227,7 @@ const getComponent = (() => {
         collapsible: Collapsible as React.ComponentType<SupportedComponentProps>,
         'community-driver': CommunityPillLink as React.ComponentType<SupportedComponentProps>,
         'composable-tutorial': ComposableTutorial as React.ComponentType<SupportedComponentProps>,
-        // 'io-code-block': CodeIO, // TODO: DOP-6492
+        'io-code-block': CodeIO as React.ComponentType<SupportedComponentProps>,
         cond: Cond as React.ComponentType<SupportedComponentProps>,
         'cta-banner': CTABanner as React.ComponentType<SupportedComponentProps>,
         definitionList: DefinitionList as React.ComponentType<SupportedComponentProps>,
@@ -348,6 +350,7 @@ type SupportedComponentProps =
   | FieldListProps
   | DefinitionListItemProps
   | DefinitionListProps
+  | CodeIOProps
   | SectionProps
   | TextProps
   | ParagraphProps
@@ -467,6 +470,9 @@ const renderComponentWithProps = (
         caption={codeNode.caption}
       />
     );
+  } else if (ComponentType === getComponent('io-code-block')) {
+    const ioCodeBlockNode = nodeData as IOCodeBlockNode;
+    return <ComponentType nodeChildren={ioCodeBlockNode.children} />;
   } else if (ComponentType == getComponent('community-driver')) {
     const { argument, options } = nodeData as CommunityDriverPill;
     return <ComponentType argument={argument} options={options} {...propsToDrill} />;

@@ -5,7 +5,6 @@ import { TabProvider } from '@/context/tabs-context';
 import * as browserStorage from '@/utils/browser-storage';
 import type { CodeNode, Selectors } from '@/types/ast';
 
-// data for this component
 import mockData from '@/tests/data/code.test.json';
 
 const mockSelectors = {
