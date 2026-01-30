@@ -4,7 +4,7 @@
 
       .. include:: /includes/wayfinding-description.rst
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/current/fundamentals/indexes/#remove-an-index-using-an-index-specification-document
+   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/current/indexes/#remove-an-index
       :id: java-sync
 
    .. wayfinding-option:: https://mongodb.github.io/mongo-java-driver/5.1/apidocs/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoCollection.html#dropIndex(org.bson.conversions.Bson)
@@ -16,7 +16,7 @@
    .. wayfinding-option:: https://mongoc.org/libmongoc/current/mongoc_collection_drop_index.html
       :id: c
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/languages/cpp/cpp-driver/upcoming/work-with-indexes/#remove-an-index
+   .. wayfinding-option:: https://www.mongodb.com/docs/languages/cpp/cpp-driver/current/indexes/#remove-an-index
       :id: cpp
 
    .. wayfinding-option:: https://pymongo.readthedocs.io/en/stable/api/pymongo/collection.html#pymongo.collection.Collection.drop_index

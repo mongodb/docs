@@ -4,7 +4,7 @@
 
       .. include:: /includes/wayfinding-description.rst
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/current/fundamentals/indexes/
+   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/current/indexes/
       :id: java-sync
 
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/csharp/current/fundamentals/indexes/
@@ -46,7 +46,7 @@
    .. wayfinding-option:: https://www.mongodb.com/docs/languages/java/reactive-streams-driver/current/tutorials/indexes/
       :id: java-rs
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/languages/cpp/cpp-driver/current/tutorial/#create-indexes
+   .. wayfinding-option:: https://www.mongodb.com/docs/languages/cpp/cpp-driver/current/indexes/
       :id: cpp
 
    .. wayfinding-option:: https://mongodb.github.io/mongo-swift-driver/docs/current/MongoSwift/Structs/MongoCollection.html#/s:10MongoSwift0A10CollectionV11createIndex_7options7sessionSSAA0E5ModelV_AA06CreateE7OptionsVSgAA13ClientSessionCSgtYaKF
