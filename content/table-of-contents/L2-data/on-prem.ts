@@ -962,7 +962,7 @@ const tocData: TocItem[] = [
                     label: 'ShardMissingCollectionRoutingInfo',
                     contentSite: 'docs',
                     url: '/docs/:version/reference/inconsistency-type/ShardMissingCollectionRoutingInfo',
-                    versions: { excludes: ['v7.0'] },
+                    versions: { includes: ['v8.0'] },
                   },
                   {
                     label: 'ShardThinksCollectionIsUnsharded',
