@@ -192,19 +192,29 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
-        label: 'App-Driven Analytics',
+        label: 'Aviation Operations',
         contentSite: 'atlas-architecture',
         collapsible: true,
         items: [
+          {
+            label: 'Agentic Voice Assistant for Airport Operations',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/agentic-airport-operations',
+          },
           {
             label: 'Elevate Flight Operations with Real-Time Analytics',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/flight-management',
           },
+          {
+            label: 'Real-Time IoT Analytics',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-rocket-launch',
+          },
         ],
       },
       {
-        label: 'Gen AI',
+        label: 'Connected Vehicles',
         contentSite: 'atlas-architecture',
         collapsible: true,
         items: [
@@ -219,27 +229,63 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/agentic-fleet-management',
           },
           {
-            label: 'Agentic Voice Assistant for Airport Operations',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/agentic-airport-operations',
-          },
-          {
-            label: 'AI-Driven Inventory Classification',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/inventory-optimization',
-          },
-          {
             label: 'Automotive Diagnostics',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-automotive-diagnostics',
           },
           {
-            label: 'Context-Aware RAG for Technical Documents',
+            label: 'Context-Aware RAG for Technical Docs',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/rag-technical-documents',
           },
           {
-            label: 'Rapid AI Agent Deployment',
+            label: 'Transform the Driver Experience',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-car-assistant',
+          },
+        ],
+      },
+      {
+        label: 'Energy Management',
+        contentSite: 'atlas-architecture',
+        collapsible: true,
+        items: [
+          {
+            label: 'Power Smart Meter Analysis',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/smart-meter',
+          },
+          {
+            label: 'Real-Time Audio Diagnostics',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/audio-based-AI-diagnostics',
+          },
+        ],
+      },
+      {
+        label: 'Intelligent Logistics',
+        contentSite: 'atlas-architecture',
+        collapsible: true,
+        items: [
+          {
+            label: 'AI-Driven Inventory Classification',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/inventory-optimization',
+          },
+        ],
+      },
+      {
+        label: 'Smart Factory',
+        contentSite: 'atlas-architecture',
+        collapsible: true,
+        items: [
+          {
+            label: 'Build an IoT Data Hub',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/iot-datahub-smart-manufacturing',
+          },
+          {
+            label: 'Framework for Rapid AI Agent Deployment',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-agentic-ai-framework',
           },
@@ -253,45 +299,6 @@ const tocData: TocItem[] = [
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-predictive-maintenance',
           },
-          {
-            label: 'Transform the Driver Experience',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-car-assistant',
-          },
-        ],
-      },
-      {
-        label: 'IoT',
-        contentSite: 'atlas-architecture',
-        collapsible: true,
-        items: [
-          {
-            label: 'Building an IoT Data Hub',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/iot-datahub-smart-manufacturing',
-          },
-          {
-            label: 'Power Smart Meter Solution',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/smart-meter',
-          },
-          {
-            label: 'Real-Time Audio Diagnostics',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/audio-based-AI-diagnostics',
-          },
-          {
-            label: 'Real-Time IoT Analytics',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-rocket-launch',
-          },
-        ],
-      },
-      {
-        label: 'Modernization',
-        contentSite: 'atlas-architecture',
-        collapsible: true,
-        items: [
           {
             label: 'Unified Namespace Data Integrity',
             contentSite: 'atlas-architecture',
