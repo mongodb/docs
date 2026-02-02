@@ -90,7 +90,7 @@ const tocData: TocItem[] = [
       {
         label: 'API Documentation',
         isExternal: true,
-        url: 'https://mongodb.github.io/mongo-efcore-provider/9.0.3/api',
+        url: 'https://mongodb.github.io/mongo-efcore-provider/9.0.4/api',
       },
     ],
   },
