@@ -267,6 +267,7 @@ Static Imports for Builders
 Line Length and Breaks
 ~~~~~~~~~~~~~~~~~~~~~~
 
+- Try to keep lines under 80 characters when possible.
 - Break long lines at natural breaking points for the sake of readability,
   but not at the expense of Java best practices.
 - Break long chained calls onto separate lines aligned under the first call.
