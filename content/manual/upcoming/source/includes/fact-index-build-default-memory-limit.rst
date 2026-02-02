@@ -7,10 +7,11 @@ build 10 indexes with one :dbcommand:`createIndexes` command, MongoDB allocates 
 When you reach the memory limit, MongoDB creates temporary files in the ``_tmp`` subdirectory 
 within :option:`--dbpath <mongod --dbpath>` to complete the build.
 
-You can adjust the memory limit with the :parameter:`maxIndexBuildMemoryUsageMegabytes` parameter. 
-Setting a higher memory limit may result in faster completion of index
-builds. However, setting this limit too high relative to the unused RAM
-on your system can result in memory exhaustion and server shutdown.
+Adjust the memory limit with the
+:parameter:`maxIndexBuildMemoryUsageMegabytes` parameter.
+Increasing this parameter is only necessary in rare cases, such as when you run many
+simultaneous index builds with a single :dbcommand:`createIndexes` command
+or when you index a data set larger than 500GB.
 
 Each :dbcommand:`createIndexes` command has a limit of :parameter:`maxIndexBuildMemoryUsageMegabytes`.
 When using the default :parameter:`maxNumActiveUserIndexBuilds` of 3, the 
