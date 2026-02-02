@@ -236,14 +236,14 @@
        | ``SYSTEM_MEMORY_AVAILABLE``
        | (mongodb.atlas.system.memory.available)
      - System
-     - Gauge that indicates physical memory used, in bytes.
+     - Gauge that indicates physical memory used, in kilobytes.
 
    * - | ``MAX_SYSTEM_MEMORY_USED``
        | (mongodb.atlas.system.memory.max.used)
        | ``MAX_SYSTEM_MEMORY_AVAILABLE``
        | (mongodb.atlas.system.memory.max.available)
      - System
-     - Gauge that indicates the maximum physical memory used, in bytes.
+     - Gauge that indicates the maximum physical memory used, in kilobytes.
 
    * - | ``SYSTEM_NORMALIZED_CPU_USER`` 
        | (mongodb.atlas.system.cpu.norm.user)
