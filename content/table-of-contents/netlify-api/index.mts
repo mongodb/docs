@@ -35,20 +35,30 @@ const siteId = "d08bd0f0-b557-41b8-b3a6-1d033e9bcb6f"; // The ID for MongoDB VSC
   // if all-prod is true trigger the build all workflow for prod sites
   if(allPredprod) {
     console.log('Running a build all preprod deploy');
-    triggerAllSitesDeploys({ client, branchName: PROD_PREPROD_BRANCH_NAMES.PREPRD });
+    await triggerAllSitesDeploys({ client, branchName: PROD_PREPROD_BRANCH_NAMES.PREPRD });
 
   } else if(allProd) {
     console.log('Running a build all prod deploy');
-    triggerAllSitesDeploys({ client, branchName: PROD_PREPROD_BRANCH_NAMES.MAIN });
+    await triggerAllSitesDeploys({ client, branchName: PROD_PREPROD_BRANCH_NAMES.MAIN });
     
   } else {
     console.log('Running a branch deploy');
-    triggerBranchDeploy({
+    await triggerBranchDeploy({
       siteId,
       branch,
       client
-    })
+    });
   }
 
   
-})();
+})().catch((_error) => {
+  console.error('');
+  console.error('======================================');
+  console.error('  ❌ DEPLOY FAILED');
+  console.error('======================================');
+  console.error('');
+  console.error('See error details above. If this is an authentication');
+  console.error('issue (401/403), the token may need to be regenerated.');
+  console.error('');
+  process.exit(1);
+});

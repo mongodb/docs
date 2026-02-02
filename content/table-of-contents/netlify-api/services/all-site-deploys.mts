@@ -92,6 +92,21 @@ export const triggerAllSitesDeploys = async ({
       })
     );
   } catch (error) {
-    console.error("error", error);
+    // Check for specific Netlify API errors
+    if (error instanceof Error && 'status' in error) {
+      const status = (error as { status: number }).status;
+      if (status === 401 || status === 403) {
+        console.error('');
+        console.error('⚠️  Possible authentication issue detected.');
+        console.error('   This may indicate the NETLIFY_ACCESS_TOKEN has expired or is invalid.');
+        console.error('');
+        console.error('   To fix, check if the token needs to be regenerated:');
+        console.error('   1. Generate a new token: https://app.netlify.com/user/applications');
+        console.error('   2. Update the secret: https://github.com/10gen/docs-mongodb-internal/settings/secrets/actions');
+        console.error('');
+      }
+    }
+    console.error("Error triggering all site deploys:", error);
+    throw error; // Re-throw to fail the GitHub Action
   }
 };
