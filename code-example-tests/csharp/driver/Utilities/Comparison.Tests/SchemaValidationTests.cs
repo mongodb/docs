@@ -1648,5 +1648,146 @@ public class SchemaValidationTests
 
             Assert.That(result.IsSuccess, Is.True);
         }
+
+        [Test]
+        [Description("Tests that array indexing in field paths works correctly with nested objects")]
+        public void ShouldResemble_WithArrayIndexInPath_Succeeds()
+        {
+            var expected = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "stages", new object[]
+                        {
+                            new Dictionary<string, object>
+                            {
+                                { "$cursor", new Dictionary<string, object>
+                                    {
+                                        { "queryPlanner", new Dictionary<string, object>
+                                            {
+                                                { "winningPlan", new Dictionary<string, object>
+                                                    {
+                                                        { "stage", "IXSCAN" }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var actual = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "stages", new object[]
+                        {
+                            new Dictionary<string, object>
+                            {
+                                { "$cursor", new Dictionary<string, object>
+                                    {
+                                        { "queryPlanner", new Dictionary<string, object>
+                                            {
+                                                { "winningPlan", new Dictionary<string, object>
+                                                    {
+                                                        { "stage", "IXSCAN" }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var result = Expect.That(actual)
+                .ShouldResemble(expected)
+                .WithSchema(new SchemaValidationOptions
+                {
+                    Count = 1,
+                    RequiredFields = new[] { "stages[0].$cursor.queryPlanner.winningPlan.stage" },
+                    FieldValues = new Dictionary<string, object?> { { "stages[0].$cursor.queryPlanner.winningPlan.stage", "IXSCAN" } }
+                });
+
+            Assert.That(result.IsSuccess, Is.True);
+        }
+
+        [Test]
+        [Description("Tests that array indexing fails when the indexed element doesn't exist")]
+        public void ShouldResemble_WithArrayIndexOutOfBounds_ThrowsException()
+        {
+            var expected = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "stages", new object[]
+                        {
+                            new Dictionary<string, object>
+                            {
+                                { "$cursor", new Dictionary<string, object>
+                                    {
+                                        { "queryPlanner", new Dictionary<string, object>
+                                            {
+                                                { "winningPlan", new Dictionary<string, object>
+                                                    {
+                                                        { "stage", "IXSCAN" }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var actual = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "stages", new object[]
+                        {
+                            new Dictionary<string, object>
+                            {
+                                { "$cursor", new Dictionary<string, object>
+                                    {
+                                        { "queryPlanner", new Dictionary<string, object>
+                                            {
+                                                { "winningPlan", new Dictionary<string, object>
+                                                    {
+                                                        { "stage", "IXSCAN" }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            // Try to access stages[5] which doesn't exist (only stages[0] exists)
+            var exception = Assert.Throws<ComparisonException>(() =>
+                Expect.That(actual)
+                    .ShouldResemble(expected)
+                    .WithSchema(new SchemaValidationOptions
+                    {
+                        Count = 1,
+                        RequiredFields = new[] { "stages[5].$cursor.queryPlanner.winningPlan.stage" }
+                    }));
+
+            Assert.That(exception?.Message, Does.Contain("Missing required field 'stages[5].$cursor.queryPlanner.winningPlan.stage'"));
+        }
     }
 }

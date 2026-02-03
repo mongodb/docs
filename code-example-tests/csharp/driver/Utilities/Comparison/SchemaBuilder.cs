@@ -232,13 +232,14 @@ public class SchemaBuilder : ISchemaBuilder
     }
 
     /// <summary>
-    ///     Attempts to get a value from a nested structure using dot notation (e.g., "queryPlanner.winningPlan").
+    ///     Attempts to get a value from a nested structure using dot notation and array indexing.
+    ///     Supports paths like "queryPlanner.winningPlan.stage" and "stages[0].$cursor.queryPlanner.winningPlan.stage".
     ///     Returns true if the path exists, false otherwise.
     /// </summary>
     private static bool TryGetNestedValue(Dictionary<string, object?> doc, string fieldPath, out object? value)
     {
         value = null;
-        var pathParts = fieldPath.Split('.');
+        var pathParts = ParseFieldPath(fieldPath);
         object? current = doc;
 
         foreach (var part in pathParts)
@@ -249,26 +250,125 @@ public class SchemaBuilder : ISchemaBuilder
             // Normalize the current value to handle BSON types
             var normalizedCurrent = ValueNormalizer.Normalize(current);
 
-            if (normalizedCurrent is IDictionary<string, object?> dictNullable)
+            if (part.IsArrayIndex)
             {
-                if (!dictNullable.TryGetValue(part, out current))
+                // Handle array indexing
+                if (normalizedCurrent is IList list)
+                {
+                    if (part.ArrayIndex < 0 || part.ArrayIndex >= list.Count)
+                        return false;
+                    current = list[part.ArrayIndex];
+                }
+                else if (normalizedCurrent is object?[] array)
+                {
+                    if (part.ArrayIndex < 0 || part.ArrayIndex >= array.Length)
+                        return false;
+                    current = array[part.ArrayIndex];
+                }
+                else
+                {
+                    // Not an array/list, can't index
                     return false;
-            }
-            else if (normalizedCurrent is IDictionary<string, object> dict)
-            {
-                if (!dict.TryGetValue(part, out var temp))
-                    return false;
-                current = temp;
+                }
             }
             else
             {
-                // Current value is not a dictionary, can't navigate further
-                return false;
+                // Handle dictionary key access
+                if (normalizedCurrent is IDictionary<string, object?> dictNullable)
+                {
+                    if (!dictNullable.TryGetValue(part.FieldName, out current))
+                        return false;
+                }
+                else if (normalizedCurrent is IDictionary<string, object> dict)
+                {
+                    if (!dict.TryGetValue(part.FieldName, out var temp))
+                        return false;
+                    current = temp;
+                }
+                else
+                {
+                    // Current value is not a dictionary, can't navigate further
+                    return false;
+                }
             }
         }
 
         value = current;
         return true;
+    }
+
+    /// <summary>
+    ///     Parses a field path into individual parts, handling both dot notation and array indexing.
+    ///     For example, "stages[0].$cursor.queryPlanner" becomes:
+    ///     [FieldName("stages"), ArrayIndex(0), FieldName("$cursor"), FieldName("queryPlanner")]
+    /// </summary>
+    private static List<PathPart> ParseFieldPath(string fieldPath)
+    {
+        var parts = new List<PathPart>();
+        var segments = fieldPath.Split('.');
+
+        foreach (var segment in segments)
+        {
+            // Check if segment contains array indexing like "stages[0]" or "items[2]"
+            var bracketIndex = segment.IndexOf('[');
+            if (bracketIndex >= 0)
+            {
+                // Extract field name before the bracket (if any)
+                if (bracketIndex > 0)
+                {
+                    var fieldName = segment.Substring(0, bracketIndex);
+                    parts.Add(new PathPart(fieldName));
+                }
+
+                // Extract all array indices from the segment (handles cases like "arr[0][1]")
+                var remaining = segment.Substring(bracketIndex);
+                while (remaining.Length > 0 && remaining.StartsWith("["))
+                {
+                    var closeBracket = remaining.IndexOf(']');
+                    if (closeBracket < 0)
+                        break;
+
+                    var indexStr = remaining.Substring(1, closeBracket - 1);
+                    if (int.TryParse(indexStr, out var arrayIndex))
+                    {
+                        parts.Add(new PathPart(arrayIndex));
+                    }
+
+                    remaining = remaining.Substring(closeBracket + 1);
+                }
+            }
+            else
+            {
+                // Simple field name
+                parts.Add(new PathPart(segment));
+            }
+        }
+
+        return parts;
+    }
+
+    /// <summary>
+    ///     Represents a single part of a field path - either a field name or an array index.
+    /// </summary>
+    private readonly struct PathPart
+    {
+        public string FieldName { get; }
+        public int ArrayIndex { get; }
+        public bool IsArrayIndex { get; }
+
+        public PathPart(string fieldName)
+        {
+            FieldName = fieldName;
+            ArrayIndex = -1;
+            IsArrayIndex = false;
+        }
+
+        public PathPart(int arrayIndex)
+        {
+            FieldName = string.Empty;
+            ArrayIndex = arrayIndex;
+            IsArrayIndex = true;
+        }
     }
 
     /// <summary>
