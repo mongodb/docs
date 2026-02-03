@@ -233,6 +233,29 @@
          :sub_heading: Sample configuration for deploying mongot with support for automated embedding.
          :expanded: false
 
+         If you want to use automated embedding, you **must** do the following: 
+         
+         - Set the embedding service provider endpoint URL (on line 29). If you used the 
+           {+atlas-ui+} to create the |api| keys, you can specify the following, which is 
+           the default, as the ``providerEndpoint``: 
+
+           .. code-block:: shell 
+
+              https://ai.mongodb.com/v1/embeddings
+
+           If you created the key from |voyage|, override with the following endpoint URL 
+           for |voyage|:
+
+           .. code-block:: shell 
+
+              https://api.voyageai.com/v1/embeddings
+      
+         - Configure one instance of ``mongot`` as the leader responsible for writing 
+           to the automated embedding View. For deployments with multiple instances, 
+           you can designate only one instance as the leader for writing to materialized 
+           view by setting the boolean flag for the ``embedding.isAutoEmbeddingViewWriter`` 
+           (on line 30) to ``true``. Set this flag to ``false`` for all other instances.
+
          .. include:: /includes/search-in-community/sample-mongot-with-auto-embed-conf-docker.rst
 
       Save your file to ``mongot.config`` or your preferred file location.

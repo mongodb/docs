@@ -1,5 +1,5 @@
 This quick start demonstrates how to deploy |fts| and {+avs+} in Docker,
-load sample data into the MongoDB cluster, create a vector search index 
+load sample data into the MongoDB cluster, create a {+avs+} index 
 for the sample data, and run vector search queries against the sample data.
 
 *Time required: 20 minutes*
@@ -38,24 +38,12 @@ This tutorial creates the following architecture:
 Before You Begin
 ----------------
 
-Before you begin, you must complete the following prerequisites:
+Before you begin, you must download the following:
 
-- Download Docker v4.40 or higher
-- Download Docker Compose
-- Download the ``curl`` command 
-- Download ``mongosh`` locally or have access to it through Docker
-
-Optionally, create |voyage| |api| key from the :ref:`{+atlas-ui+}
-<voyage-api-keys>` or directly from :voyage-docs:`Voyage AI
-</api-key-and-installation>` to configure {+avs+} to 
-:ref:`automatically generate embeddings <avs-auto-embeddings>` for text 
-fields in your collection.
-
-.. note:: 
-
-   Your provider endpoint for generating embeddings depends on
-   whether you create the |api| key from the {+atlas-ui+} or
-   directly from |voyage|. 
+- Docker v4.40 or higher
+- Docker Compose
+- ``curl`` command 
+- ``mongosh`` locally or have access to it through Docker
 
 .. _community-search-quick-start:
 
@@ -94,7 +82,7 @@ Configure MongoDB Community Edition
 
       .. important::
 
-         Do not include trailing newlines in your password file. ``mongot``
+         Do not include trailing new lines in your password file. ``mongot``
          rejects password files that contain trailing newlines. 
 
       Select your operating system and run the command to create your password file:
@@ -138,43 +126,6 @@ Configure MongoDB Community Edition
 
          - Most text editors automatically add newlines to files when you
            edit files manually. 
-
-   .. step:: If you want to use Automated Embedding in {+avs+}, set up the credentials file for |api| authentication. 
-
-      Create credentials files for ``mongot`` to connect to |voyage| if you 
-      want {+avs+} to automatically generate embeddings for text fields in 
-      your collection and text strings in your queries.
-
-      .. note::
-
-         If you create a Voyage AI API key through the `Atlas UI <https://www.mongodb.com/docs/voyageai/management/api-keys/>`__, the key only 
-         authenticates requests to ``https://ai.mongodb.com/v1/embeddings``. 
-         
-         Conversely, API keys created through `VoyageAI <https://docs.voyageai.com/docs/api-key-and-installation>`__ directly only 
-         authenticate requests to ``https://api.voyageai.com/v1/embeddings``. 
-
-         Requests that include an API key to the opposite endpoint result in an 
-         authentication error (``403``).
-      
-      a. Run the following command after replacing ``<your-voyage-api-key>``
-         with your valid |voyage| |api| key to create two files named
-         ``voyage-api-indexing-key`` and ``voyage-api-query-key``: 
-
-         .. code-block:: shell
-
-            echo -n "<your-voyage-api-key>" > voyage-api-indexing-key
-            echo -n "<your-voyage-api-key>" > voyage-api-query-key
-
-      #. Set the permissions on the |api| key file to ``400``.
-
-         .. code-block:: shell
-
-            chmod 400 voyage-api-indexing-key 
-            chmod 400 voyage-api-query-key
-
-      .. note:: 
-
-         The ``mongot`` process uses these |api| keys to generate embeddings.
 
    .. step:: Set up your configuration files.
 
@@ -222,8 +173,6 @@ Configure MongoDB Community Edition
                      - mongot_data:/data/mongot
                      - ./mongot.conf:/mongot-community/config.default.yml
                      - ./pwfile:/mongot-community/pwfile:ro
-                     - ./voyage-api-query-key:/mongot-community/voyage-api-query-key:ro # Omit if you don't want Automated Embedding
-                     - ./voyage-api-indexing-key:/mongot-community/voyage-api-indexing-key:ro # Omit if you don't want Automated Embedding
                   depends_on:
                      - mongod
                   ports:
@@ -327,14 +276,10 @@ Configure MongoDB Community Edition
             replication:
                replSetName: rs0
 
-      Select one of the two following ``mongot.conf`` configurations based on
-      whether you created |voyage| |api| keys for Automated Embedding in the 
-      {+atlas-ui+} or directly from |voyage|.
-
       .. collapsible::
-         :heading: mongot.conf (Voyage API Key Created from the {+atlas-ui+})
+         :heading: mongot.conf 
          :expanded: false
-
+               
          .. code-block:: shell
             :linenos:
 
@@ -353,46 +298,6 @@ Configure MongoDB Community Edition
                   address: "mongot.search-community:27028"
                   tls:
                      mode: "disabled"
-            embedding:
-               queryKeyFile: "/mongot-community/voyage-api-query-key"
-               indexingKeyFile: "/mongot-community/voyage-api-indexing-key"
-               providerEndpoint: "https://ai.mongodb.com/v1/embeddings"
-               isAutoEmbeddingViewWriter: true
-            metrics:
-               enabled: true
-               address: "mongot.search-community:9946"
-            healthCheck:
-               address: "mongot.search-community:8080"
-            logging:
-               verbosity: INFO
-
-      .. collapsible::
-         :heading: mongot.conf (Voyage API Key Created directly from Voyage AI)
-         :expanded: false
-
-         .. code-block:: shell
-            :linenos:
-
-            syncSource:
-               replicaSet:
-                  hostAndPort: "mongod.search-community:27017"
-                  username: "mongotUser"
-                  passwordFile: "/mongot-community/pwfile"
-                  authSource: "admin"
-                  tls: false
-                  readPreference: "primaryPreferred"
-            storage:
-               dataPath: "data/mongot"
-            server:
-               grpc:
-                  address: "mongot.search-community:27028"
-                  tls:
-                     mode: "disabled"
-            embedding:
-               queryKeyFile: "/mongot-community/voyage-api-query-key"
-               indexingKeyFile: "/mongot-community/voyage-api-indexing-key"
-               providerEndpoint: "https://api.voyageai.com/v1/embeddings"
-               isAutoEmbeddingViewWriter: true
             metrics:
                enabled: true
                address: "mongot.search-community:9946"

@@ -26,5 +26,5 @@
    embedding: 
       queryKeyFile: /etc/mongot/voyage-api-query-key 
       indexingKeyFile: /etc/mongot/voyage-api-indexing-key 
-      providerEndpoint: https://ai.mongodb.com/v1/embeddings # Replace with the following endpoint URL if you created the API key directly from Voyage AI: https://api.voyageai.com/v1/embeddings
+      providerEndpoint: <PROVIDER-ENDPOINT>
       isAutoEmbeddingViewWriter: true # Designate this as leader instance for writing the automated embedding to the View.

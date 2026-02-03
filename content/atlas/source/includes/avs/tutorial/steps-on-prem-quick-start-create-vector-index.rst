@@ -31,27 +31,11 @@
    .. step:: Run the :method:`db.collection.createSearchIndex()` method.
 
       You can create an index of ``vector`` type to run queries using 
-      vector embeddings or ``autoEmbed`` type to run natural language 
-      queries. 
+      vector embeddings. 
 
-      .. tabs:: 
+      .. literalinclude:: /includes/avs/index-management/create-index/basic-example-mongosh.sh  
+         :language: shell
+         :copyable: true 
+         :linenos:
 
-         .. tab:: vector Type 
-            :tabid: vector
-
-            .. literalinclude:: /includes/avs/index-management/create-index/basic-example-mongosh.sh  
-               :language: shell
-               :copyable: true 
-               :linenos:
-
-            .. include:: /includes/avs/tutorial/avs-quick-start-basic-index-description.rst
-
-         .. tab:: autoEmbed Type 
-            :tabid: autoEmbed
-
-            .. literalinclude:: /includes/avs/index-management/create-index/auto-embed-example-mongosh.sh  
-               :language: shell
-               :copyable: true 
-               :linenos:
-
-            .. include:: /includes/avs/tutorial/avs-quick-start-auto-embed-index-description.rst
+      .. include:: /includes/avs/tutorial/avs-quick-start-basic-index-description.rst

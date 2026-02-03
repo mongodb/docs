@@ -4,7 +4,8 @@ db.embedded_movies.aggregate([
       "index": "vector_index",
       "path": "plot_embedding_voyage_3_large",
       "queryVector": QUERY_EMBEDDING,
-      "numCandidates": 150
+      "numCandidates": 150,
+      "limit": 10
     }
   },
   {

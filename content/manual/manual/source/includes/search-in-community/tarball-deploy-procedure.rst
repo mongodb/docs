@@ -253,24 +253,32 @@
          :sub_heading: Sample configuration for mongot with the configuration for automated embedding.
          :expanded: false
 
-         If you want to use automated embedding, you must do the following: 
+         If you want to use automated embedding, you **must** do the following: 
          
-         - Configure one instance of ``mongot`` as the leader responsible for writing 
-           to the automated embedding View. For deployments with multiple instances, 
-           you can designate only one instance as the leader for writing to materialized 
-           view by setting the boolean flag for the ``embedding.isAutoEmbeddingViewWriter`` 
-           to ``true``. Set this flag to ``false`` for all other instances. 
-         - Set the embedding service provider endpoint URL. If you used the {+atlas-ui+} to create the 
-           |api| keys, you can specify the following, which is the default, as the ``providerEndpoint``: 
+         - Set the embedding service provider endpoint URL (on line 13). If you used the 
+           {+atlas-ui+} to create the |api| keys, you can specify the following, which is 
+           the default, as the ``providerEndpoint``: 
 
            .. code-block:: shell 
 
               https://ai.mongodb.com/v1/embeddings
 
-           Otherwise, override with the endpoint URL for |voyage|.
+           If you created the key from |voyage|, override with the following endpoint URL 
+           for |voyage|:
+
+           .. code-block:: shell 
+
+              https://api.voyageai.com/v1/embeddings
       
+         - Configure one instance of ``mongot`` as the leader responsible for writing 
+           to the automated embedding View. For deployments with multiple instances, 
+           you can designate only one instance as the leader for writing to materialized 
+           view by setting the boolean flag for the ``embedding.isAutoEmbeddingViewWriter`` 
+           (on line 14) to ``true``. Set this flag to ``false`` for all other instances.
+
          .. code-block:: bash
             :linenos:
+            :emphasize-lines: 13
 
             syncSource:
                replicaSet:
@@ -284,7 +292,7 @@
             embedding:
                queryKeyFile: /etc/mongot/secrets/voyage-api-indexing-key # Replace with the path where you stored the API key.
                indexingKeyFile: /etc/mongot/secrets/voyage-api-query-key # Replace with the path where you stored the API key.
-               providerEndpoint: https://ai.mongodb.com/v1/embeddings # Replace with the following endpoint URL if you created API key directly from Voyage AI: https://api.voyageai.com/v1/embeddings.
+               providerEndpoint: <Provider-Endpoint> lowing endpoint URL if you created API key directly from Voyage AI: .
                isAutoEmbeddingViewWriter: true # Designate this as leader instance for writing the automated embeddings to the View.
             server:
                grpc:
