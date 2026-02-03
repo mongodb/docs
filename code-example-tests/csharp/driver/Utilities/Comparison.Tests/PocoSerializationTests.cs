@@ -42,7 +42,7 @@ public class PocoSerializationTests
 
         try
         {
-            Expect.That(expectedOutputPath).ShouldMatch(actualPoco);
+            Expect.That(actualPoco).ShouldMatch(expectedOutputPath);
         }
         finally
         {
@@ -78,7 +78,7 @@ public class PocoSerializationTests
 
         try
         {
-            Expect.That(expectedOutputPath).ShouldMatch(actualPoco);
+            Expect.That(actualPoco).ShouldMatch(expectedOutputPath);
         }
         finally
         {
@@ -134,7 +134,7 @@ public class PocoSerializationTests
 
         try
         {
-            Expect.That(expectedOutputPath).ShouldMatch(actualPoco);
+            Expect.That(actualPoco).ShouldMatch(expectedOutputPath);
         }
         finally
         {
@@ -166,7 +166,7 @@ public class PocoSerializationTests
 
         try
         {
-            Expect.That(expectedOutputPath).ShouldMatch(actualRecord);
+            Expect.That(actualRecord).ShouldMatch(expectedOutputPath);
         }
         finally
         {
@@ -197,7 +197,7 @@ public class PocoSerializationTests
 
         try
         {
-            Expect.That(expectedOutputPath).ShouldMatch(actualStruct);
+            Expect.That(actualStruct).ShouldMatch(expectedOutputPath);
         }
         finally
         {
@@ -248,7 +248,7 @@ public class PocoSerializationTests
 
         try
         {
-            Expect.That(expectedOutputPath).ShouldMatch(actualArray);
+            Expect.That(actualArray).ShouldMatch(expectedOutputPath);
         }
         finally
         {
@@ -282,7 +282,7 @@ public class PocoSerializationTests
 
         try
         {
-            Expect.That(expectedOutputPath).ShouldMatch(actualPoco);
+            Expect.That(actualPoco).ShouldMatch(expectedOutputPath);
         }
         finally
         {
@@ -315,7 +315,7 @@ public class PocoSerializationTests
 
         try
         {
-            Expect.That(expectedOutputPath).ShouldNotMatch(actualPoco);
+            Expect.That(actualPoco).ShouldNotMatch(expectedOutputPath);
         }
         finally
         {

@@ -9,8 +9,9 @@ public interface IBuilder
     ///     Initiates schema-based validation where results may vary but must conform to a defined schema.
     ///     This is mutually exclusive with ShouldMatch() - use one or the other.
     ///     Requires WithSchema() to be called to complete validation.
+    ///     If expected is a file path, the file will be loaded and parsed.
     /// </summary>
-    /// <param name="expected">The expected output to validate against the schema</param>
+    /// <param name="expected">The expected output to validate against the schema (can be a file path)</param>
     /// <returns>ISchemaBuilder that requires WithSchema() to complete validation</returns>
     /// <remarks>
     ///     Use this when MongoDB results may vary (e.g., Vector Search) but you know:
@@ -19,6 +20,17 @@ public interface IBuilder
     ///     - Specific field values that must match
     /// </remarks>
     ISchemaBuilder ShouldResemble(object? expected);
+
+    /// <summary>
+    ///     Async version of ShouldResemble. Initiates schema-based validation where results may vary
+    ///     but must conform to a defined schema. This is mutually exclusive with ShouldMatch() - use one or the other.
+    ///     Requires WithSchema() to be called to complete validation.
+    ///     If expected is a file path, the file will be loaded and parsed.
+    /// </summary>
+    /// <param name="expected">The expected output to validate against the schema (can be a file path)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>ISchemaBuilder that requires WithSchema() to complete validation</returns>
+    Task<ISchemaBuilder> ShouldResembleAsync(object? expected, CancellationToken cancellationToken = default);
 
     IBuilder WithOrderedSort();
     IBuilder WithUnorderedSort();

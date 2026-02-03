@@ -33,7 +33,7 @@ public class MigrateTests
         var outputLocation = "Examples/TimeSeries/OutputFiles/MigrateAggOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
-        Expect.That(fullPath).ShouldMatch(results);
+        Expect.That(results).ShouldMatch(fullPath);
     }
 
     [TearDown]

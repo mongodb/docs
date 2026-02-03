@@ -1282,4 +1282,371 @@ public class SchemaValidationTests
             Assert.That(result.IsSuccess, Is.True);
         }
     }
+
+    [TestFixture]
+    public class DotNotationTests
+    {
+        [Test]
+        [Description("Tests that dot notation works for RequiredFields to check nested field existence")]
+        public void ShouldResemble_WithDotNotationRequiredField_Succeeds()
+        {
+            var expected = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "_id", "1" },
+                    { "queryPlanner", new Dictionary<string, object>
+                        {
+                            { "winningPlan", new Dictionary<string, object>
+                                {
+                                    { "stage", "IXSCAN" }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var actual = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "_id", "2" },
+                    { "queryPlanner", new Dictionary<string, object>
+                        {
+                            { "winningPlan", new Dictionary<string, object>
+                                {
+                                    { "stage", "COLLSCAN" }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var result = Expect.That(actual)
+                .ShouldResemble(expected)
+                .WithSchema(new SchemaValidationOptions
+                {
+                    Count = 1,
+                    RequiredFields = new[] { "queryPlanner.winningPlan.stage" }
+                });
+
+            Assert.That(result.IsSuccess, Is.True);
+        }
+
+        [Test]
+        [Description("Tests that dot notation works for FieldValues to validate nested field values")]
+        public void ShouldResemble_WithDotNotationFieldValue_Succeeds()
+        {
+            var expected = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "_id", "1" },
+                    { "queryPlanner", new Dictionary<string, object>
+                        {
+                            { "winningPlan", new Dictionary<string, object>
+                                {
+                                    { "inputStage", new Dictionary<string, object>
+                                        {
+                                            { "indexName", "timestamp_1" }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var actual = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "_id", "2" },
+                    { "queryPlanner", new Dictionary<string, object>
+                        {
+                            { "winningPlan", new Dictionary<string, object>
+                                {
+                                    { "inputStage", new Dictionary<string, object>
+                                        {
+                                            { "indexName", "timestamp_1" }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var result = Expect.That(actual)
+                .ShouldResemble(expected)
+                .WithSchema(new SchemaValidationOptions
+                {
+                    Count = 1,
+                    RequiredFields = new[] { "queryPlanner.winningPlan.inputStage.indexName" },
+                    FieldValues = new Dictionary<string, object?> { { "queryPlanner.winningPlan.inputStage.indexName", "timestamp_1" } }
+                });
+
+            Assert.That(result.IsSuccess, Is.True);
+        }
+
+        [Test]
+        [Description("Tests that dot notation fails when nested field is missing")]
+        public void ShouldResemble_WithDotNotationMissingNestedField_ThrowsException()
+        {
+            var expected = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "_id", "1" },
+                    { "queryPlanner", new Dictionary<string, object>
+                        {
+                            { "winningPlan", new Dictionary<string, object>
+                                {
+                                    { "stage", "IXSCAN" }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var actual = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "_id", "2" },
+                    { "queryPlanner", new Dictionary<string, object>
+                        {
+                            { "winningPlan", new Dictionary<string, object>
+                                {
+                                    // Missing 'inputStage' field
+                                    { "stage", "COLLSCAN" }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var exception = Assert.Throws<ComparisonException>(() =>
+                Expect.That(actual)
+                    .ShouldResemble(expected)
+                    .WithSchema(new SchemaValidationOptions
+                    {
+                        Count = 1,
+                        RequiredFields = new[] { "queryPlanner.winningPlan.inputStage.indexName" }
+                    }));
+
+            Assert.That(exception?.Message, Does.Contain("Missing required field 'queryPlanner.winningPlan.inputStage.indexName'"));
+        }
+
+        [Test]
+        [Description("Tests that dot notation fails when nested field value doesn't match")]
+        public void ShouldResemble_WithDotNotationMismatchedFieldValue_ThrowsException()
+        {
+            var expected = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "_id", "1" },
+                    { "queryPlanner", new Dictionary<string, object>
+                        {
+                            { "winningPlan", new Dictionary<string, object>
+                                {
+                                    { "inputStage", new Dictionary<string, object>
+                                        {
+                                            { "indexName", "timestamp_1" }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var actual = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "_id", "2" },
+                    { "queryPlanner", new Dictionary<string, object>
+                        {
+                            { "winningPlan", new Dictionary<string, object>
+                                {
+                                    { "inputStage", new Dictionary<string, object>
+                                        {
+                                            { "indexName", "wrong_index" }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var exception = Assert.Throws<ComparisonException>(() =>
+                Expect.That(actual)
+                    .ShouldResemble(expected)
+                    .WithSchema(new SchemaValidationOptions
+                    {
+                        Count = 1,
+                        RequiredFields = new[] { "queryPlanner.winningPlan.inputStage.indexName" },
+                        FieldValues = new Dictionary<string, object?> { { "queryPlanner.winningPlan.inputStage.indexName", "timestamp_1" } }
+                    }));
+
+            Assert.That(exception?.Message, Does.Contain("Field 'queryPlanner.winningPlan.inputStage.indexName' has value '\"wrong_index\"', but schema requires '\"timestamp_1\"'"));
+        }
+
+        [Test]
+        [Description("Tests that simple field names without dots use direct lookup")]
+        public void ShouldResemble_WithSimpleFieldName_UsesDirectLookup()
+        {
+            var expected = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "_id", "1" },
+                    { "title", "Movie A" },
+                    { "year", 2020 }
+                }
+            };
+
+            var actual = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "_id", "2" },
+                    { "title", "Movie B" },
+                    { "year", 2020 }
+                }
+            };
+
+            var result = Expect.That(actual)
+                .ShouldResemble(expected)
+                .WithSchema(new SchemaValidationOptions
+                {
+                    Count = 1,
+                    RequiredFields = new[] { "title", "year" },
+                    FieldValues = new Dictionary<string, object?> { { "year", 2020 } }
+                });
+
+            Assert.That(result.IsSuccess, Is.True);
+        }
+
+        [Test]
+        [Description("Tests that dot notation works with BsonDocument nested structures")]
+        public void ShouldResemble_WithDotNotationAndBsonDocument_Succeeds()
+        {
+            var expected = new List<BsonDocument>
+            {
+                new()
+                {
+                    { "_id", new ObjectId("507f1f77bcf86cd799439011") },
+                    { "queryPlanner", new BsonDocument
+                        {
+                            { "winningPlan", new BsonDocument
+                                {
+                                    { "inputStage", new BsonDocument
+                                        {
+                                            { "indexName", "timestamp_1" }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var actual = new List<BsonDocument>
+            {
+                new()
+                {
+                    { "_id", new ObjectId("507f1f77bcf86cd799439012") },
+                    { "queryPlanner", new BsonDocument
+                        {
+                            { "winningPlan", new BsonDocument
+                                {
+                                    { "inputStage", new BsonDocument
+                                        {
+                                            { "indexName", "timestamp_1" }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var result = Expect.That(actual)
+                .ShouldResemble(expected)
+                .WithSchema(new SchemaValidationOptions
+                {
+                    Count = 1,
+                    RequiredFields = new[] { "queryPlanner.winningPlan.inputStage.indexName" },
+                    FieldValues = new Dictionary<string, object?> { { "queryPlanner.winningPlan.inputStage.indexName", "timestamp_1" } }
+                });
+
+            Assert.That(result.IsSuccess, Is.True);
+        }
+
+        [Test]
+        [Description("Tests that mixed dot notation and simple field names work together")]
+        public void ShouldResemble_WithMixedDotNotationAndSimpleFields_Succeeds()
+        {
+            var expected = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "_id", "1" },
+                    { "title", "Movie A" },
+                    { "metadata", new Dictionary<string, object>
+                        {
+                            { "director", new Dictionary<string, object>
+                                {
+                                    { "name", "John Smith" }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var actual = new[]
+            {
+                new Dictionary<string, object>
+                {
+                    { "_id", "2" },
+                    { "title", "Movie B" },
+                    { "metadata", new Dictionary<string, object>
+                        {
+                            { "director", new Dictionary<string, object>
+                                {
+                                    { "name", "John Smith" }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var result = Expect.That(actual)
+                .ShouldResemble(expected)
+                .WithSchema(new SchemaValidationOptions
+                {
+                    Count = 1,
+                    RequiredFields = new[] { "_id", "title", "metadata.director.name" },
+                    FieldValues = new Dictionary<string, object?> { { "metadata.director.name", "John Smith" } }
+                });
+
+            Assert.That(result.IsSuccess, Is.True);
+        }
+    }
 }

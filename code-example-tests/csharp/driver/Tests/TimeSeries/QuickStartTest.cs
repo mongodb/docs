@@ -31,7 +31,7 @@ public class QuickStartTest
         var outputLocation = $"Examples/TimeSeries/OutputFiles/MetaFieldOutput.txt";
         var fullPath = $"{solutionRoot}{outputLocation}";
 
-        Expect.That(fullPath).WithIgnoredFields("symbol").ShouldMatch(results);
+        Expect.That(results).WithIgnoredFields("symbol").ShouldMatch(fullPath);
     }
 
     [Test]
@@ -46,8 +46,8 @@ public class QuickStartTest
         var outputLocation = $"Examples/TimeSeries/OutputFiles/TimeFieldQueryOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
-        Expect.That(fullPath).WithIgnoredFields("symbol")
-            .ShouldMatch(results);
+        Expect.That(results).WithIgnoredFields("symbol")
+            .ShouldMatch(fullPath);
     }
 
     [TearDown]

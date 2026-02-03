@@ -121,7 +121,7 @@ public class IntegrationTests
 
         var filePath = GetTestDataPath("integration-complex.txt");
 
-        var result = Expect.That(filePath).ShouldMatch(actualOutput);
+        var result = Expect.That(actualOutput).ShouldMatch(filePath);
 
         Assert.That(result.Error == null);
     }
@@ -200,7 +200,7 @@ public class IntegrationTests
         var filePath = GetTestDataPath("integration-complex.txt");
 
 
-        Expect.That(filePath).ShouldMatch(actualOutput);
+        Expect.That(actualOutput).ShouldMatch(filePath);
     }
 
     [Test]
@@ -252,9 +252,9 @@ public class IntegrationTests
         var filePath = GetTestDataPath("integration-complex.txt");
 
 
-        Expect.That(filePath)
+        Expect.That(actualOutput)
             .WithOrderedSort()
-            .ShouldNotMatch(actualOutput);
+            .ShouldNotMatch(filePath);
     }
 
     [Test]
@@ -615,7 +615,8 @@ public class IntegrationTests
 
         var filePath = GetTestDataPath("integration-complex.txt");
 
-        Expect.That(actualOutput).ShouldMatch(filePath);
+        // This test verifies error reporting - the actual differs from expected (theme: "light" vs "dark")
+        Expect.That(actualOutput).ShouldNotMatch(filePath);
     }
 
     [Test]

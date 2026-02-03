@@ -59,8 +59,8 @@ public class ExampleStubTest
 
         // Alternative fluent syntax examples using file-based validation:
         /*
-         Expect.That("path/to/expected-output.txt")
-            .ShouldMatch(results);
+         Expect.That(results)
+            .ShouldMatch("path/to/expected-output.txt");
         */
 
         // You can also set options. Here are a few examples:

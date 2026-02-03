@@ -113,10 +113,10 @@ public class ComparisonEngineTests
             var actualArray = new object[] { "a", "b", "c" };
             var expectedArray = new object[] { "a", "b", "c" };
 
-            Expect.That(expectedArray)
+            Expect.That(actualArray)
                 .WithOrderedSort()
                 .WithIgnoredFields("_id", "name")
-                .ShouldMatch(actualArray);
+                .ShouldMatch(expectedArray);
         }
 
         [Test]
@@ -219,7 +219,7 @@ public class ComparisonEngineTests
             var expected = new Dictionary<string, object> { { "name", "Alice" } };
             var actual = new Dictionary<string, object> { { "name", "Bob" } };
 
-            Expect.That(expected).ShouldNotMatch(actual);
+            Expect.That(actual).ShouldNotMatch(expected);
 
         }
 
@@ -377,7 +377,7 @@ public class ComparisonEngineTests
                     }
                 }
             };
-            Expect.That(expected).ShouldNotMatch(actual);
+            Expect.That(actual).ShouldNotMatch(expected);
         }
     }
 
@@ -401,7 +401,7 @@ public class ComparisonEngineTests
                 { "timestamp", "different-time" } // Different but ignored
             };
 
-            Expect.That(expected).WithIgnoredFields("_id", "timestamp").ShouldMatch(actual);
+            Expect.That(actual).WithIgnoredFields("_id", "timestamp").ShouldMatch(expected);
         }
 
         [Test]
@@ -419,7 +419,7 @@ public class ComparisonEngineTests
                 { "_id", "different-id" } // This is ignored
             };
 
-            Expect.That(expected).WithIgnoredFields("_id").ShouldNotMatch(actual);
+            Expect.That(actual).WithIgnoredFields("_id").ShouldNotMatch(expected);
 
         }
 
@@ -467,9 +467,9 @@ public class ComparisonEngineTests
                     }
                 }
             };
-            Expect.That(expected)
+            Expect.That(actual)
                 .WithUnorderedSort()
-                .WithIgnoredFields("_id", "createdAt").ShouldMatch(actual);
+                .WithIgnoredFields("_id", "createdAt").ShouldMatch(expected);
         }
     }
 
@@ -514,7 +514,7 @@ public class ComparisonEngineTests
             var expected = new Dictionary<string, object> { { "name", "Alice" } };
             var actual = new Dictionary<string, object> { { "name", "Alice" } };
 
-            await Expect.That(expected).ShouldMatchAsync(actual);
+            await Expect.That(actual).ShouldMatchAsync(expected);
         }
 
         [Test]
@@ -525,7 +525,7 @@ public class ComparisonEngineTests
             var actual = new Dictionary<string, object> { { "name", "Alice" } };
 
             var stopwatch = Stopwatch.StartNew();
-            await Expect.That(expected).ShouldMatchAsync(actual);
+            await Expect.That(actual).ShouldMatchAsync(expected);
             stopwatch.Stop();
 
             Assert.That(stopwatch.ElapsedMilliseconds, Is.LessThan(1000)); // Should complete well before timeout;
@@ -541,7 +541,7 @@ public class ComparisonEngineTests
             cts.Cancel(); // Cancel immediately
 
             Assert.ThrowsAsync<OperationCanceledException>(async () =>
-                await Expect.That(expected).ShouldMatchAsync(actual, cts.Token));
+                await Expect.That(actual).ShouldMatchAsync(expected, cts.Token));
         }
     }
 
@@ -732,7 +732,7 @@ public class ComparisonEngineTests
             var actual = new Dictionary<string, object> { { "test", "value" } };
 
             Assert.ThrowsAsync<OperationCanceledException>(async () =>
-                await Expect.That(expected).ShouldMatchAsync(actual, cts.Token));
+                await Expect.That(actual).ShouldMatchAsync(expected, cts.Token));
         }
     }
 
@@ -909,7 +909,7 @@ public class ComparisonEngineTests
 
             Parallel.For(0, testData.Length, i =>
             {
-                var result = Expect.That(testData[i].Expected).ShouldMatch(testData[i].Actual);
+                var result = Expect.That(testData[i].Actual).ShouldMatch(testData[i].Expected);
                 results[i] = result.IsSuccess;
             });
 
@@ -926,7 +926,7 @@ public class ComparisonEngineTests
                     var expected = new Dictionary<string, object> { { "id", i }, { "name", $"Item{i}" } };
                     var actual = new Dictionary<string, object> { { "id", i }, { "name", $"Item{i}" } };
 
-                    return await Expect.That(expected).ShouldMatchAsync(actual);
+                    return await Expect.That(actual).ShouldMatchAsync(expected);
                 })
                 .ToArray();
 
@@ -974,7 +974,7 @@ public class ComparisonEngineTests
                                    Staten Island
                                    """;
 
-        var result = Expect.That(expected).ShouldMatch(actualWithWhitespace);
+        var result = Expect.That(actualWithWhitespace).ShouldMatch(expected);
 
         Assert.That(result.IsSuccess, Is.True);
     }

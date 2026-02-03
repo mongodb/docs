@@ -44,7 +44,7 @@ public class OutputValidatorTests
         };
         var filePath = GetTestDataPath("simple-output.txt");
 
-        var result = Expect.That(filePath).ShouldMatch(actualOutput);
+        var result = Expect.That(actualOutput).ShouldMatch(filePath);
 
         Assert.That(result.Error, Is.Null);
     }
@@ -61,7 +61,7 @@ public class OutputValidatorTests
         };
         var filePath = GetTestDataPath("simple-output.txt");
 
-        Expect.That(filePath).ShouldNotMatch(actualOutput);
+        Expect.That(actualOutput).ShouldNotMatch(filePath);
     }
 
     [Test]
@@ -76,7 +76,7 @@ public class OutputValidatorTests
         };
         var filePath = GetTestDataPath("simple-output.txt");
 
-        Expect.That(filePath).ShouldMatch(actualOutput);
+        Expect.That(actualOutput).ShouldMatch(filePath);
     }
 
     [Test]
@@ -91,9 +91,9 @@ public class OutputValidatorTests
         };
         var filePath = GetTestDataPath("simple-output.txt");
 
-        Expect.That(filePath)
+        Expect.That(actualOutput)
             .WithOrderedSort()
-            .ShouldMatch(actualOutput);
+            .ShouldMatch(filePath);
     }
 
     [Test]
@@ -115,9 +115,9 @@ public class OutputValidatorTests
         };
         var filePath = GetTestDataPath("with-ignored-fields.txt");
 
-        Expect.That(filePath)
+        Expect.That(actualOutput)
             .WithIgnoredFields("_id", "timestamp")
-            .ShouldMatch(actualOutput);
+            .ShouldMatch(filePath);
     }
 
     [Test]
@@ -132,9 +132,9 @@ public class OutputValidatorTests
         };
         var filePath = GetTestDataPath("ordered-array.txt");
 
-        Expect.That(filePath)
+        Expect.That(actualOutput)
             .WithOrderedSort()
-            .ShouldMatch(actualOutput);
+            .ShouldMatch(filePath);
     }
 
     [Test]
@@ -191,8 +191,8 @@ public class OutputValidatorTests
         var actualOutput = new Dictionary<string, object> { { "name", "Alice" }, { "age", 25 }, { "active", true } };
         var filePath = GetTestDataPath("simple-output.txt");
 
-        Expect.That(filePath)
-            .ShouldNotMatch(actualOutput);
+        Expect.That(actualOutput)
+            .ShouldNotMatch(filePath);
     }
 
     [Test]
@@ -202,7 +202,7 @@ public class OutputValidatorTests
         var actualOutput = new Dictionary<string, object> { { "name", "Bob" } }; // Wrong name
         var filePath = GetTestDataPath("simple-output.txt");
 
-        Expect.That(filePath).ShouldNotMatch(actualOutput);
+        Expect.That(actualOutput).ShouldNotMatch(filePath);
     }
 
     [Test]
@@ -214,8 +214,8 @@ public class OutputValidatorTests
             var actualOutput = new { name = "Alice" };
             var nonExistentPath = GetTestDataPath("non-existent-file.txt");
 
-            Expect.That(nonExistentPath)
-                .ShouldNotMatch(actualOutput);
+            Expect.That(actualOutput)
+                .ShouldNotMatch(nonExistentPath);
 
         }
         catch (ArgumentException ae)
@@ -236,8 +236,8 @@ public class OutputValidatorTests
         var actualOutput = new { name = "Alice" };
         var filePath = GetTestDataPath("invalid-syntax.txt");
 
-        Expect.That(filePath)
-            .ShouldNotMatch(actualOutput);
+        Expect.That(actualOutput)
+            .ShouldNotMatch(filePath);
     }
 
     [Test]
@@ -247,8 +247,8 @@ public class OutputValidatorTests
         var actualOutput = new Dictionary<string, object> { { "name", "Alice" }, { "age", 25 }, { "active", true } };
         var absolutePath = Path.GetFullPath(GetTestDataPath("simple-output.txt"));
 
-        Expect.That(absolutePath)
-            .ShouldMatch(actualOutput);
+        Expect.That(actualOutput)
+            .ShouldMatch(absolutePath);
     }
 
     [Test]
@@ -263,7 +263,7 @@ public class OutputValidatorTests
         };
         var filePath = GetTestDataPath("simple-output.txt");
 
-        Expect.That(filePath).ShouldMatch(actualOutput);
+        Expect.That(actualOutput).ShouldMatch(filePath);
     }
 
     [Test]
@@ -278,7 +278,7 @@ public class OutputValidatorTests
         };
         var filePath = GetTestDataPath("ordered-array.txt");
 
-        Expect.That(filePath).ShouldMatch(actualOutput);
+        Expect.That(actualOutput).ShouldMatch(filePath);
     }
 
     [TestFixture]
@@ -309,10 +309,10 @@ public class OutputValidatorTests
 
             try
             {
-                Expect.That(tempFile)
+                Expect.That(actualOutput)
                     .WithIgnoredFields("_id")
                     .WithOrderedSort()
-                    .ShouldMatch(actualOutput);
+                    .ShouldMatch(tempFile);
             }
             finally
             {
@@ -374,11 +374,11 @@ public class OutputValidatorTests
 
             try
             {
-                Expect.That(tempFile)
+                Expect.That(actualOutput)
                     .WithIgnoredFields("_id")
                     .WithOrderedSort()
                     .WithIgnoredFields("timestamp", "sessionId")
-                    .ShouldMatch(actualOutput);
+                    .ShouldMatch(tempFile);
             }
             finally
             {
@@ -447,7 +447,7 @@ public class OutputValidatorTests
                                             """);
                 var actualOutput = new Dictionary<string, object> { { "test", "value" } };
 
-                Expect.That(absolutePath).ShouldMatch(actualOutput);
+                Expect.That(actualOutput).ShouldMatch(absolutePath);
             }
             finally
             {
@@ -476,7 +476,7 @@ public class OutputValidatorTests
                                             """);
                 var actualOutput = new { test = "value" };
 
-                Expect.That(tempFile).ShouldNotMatch(actualOutput);
+                Expect.That(actualOutput).ShouldNotMatch(tempFile);
             }
             finally
             {
@@ -554,9 +554,9 @@ public class OutputValidatorTests
                 new { category = "Clothing", totalSales = 1200.00 }
             };
 
-            var wrongOrderResult = Expect.That(expectedText)
+            var wrongOrderResult = Expect.That(wrongOrderResults)
                 .WithOrderedSort()
-                .ShouldNotMatch(wrongOrderResults);
+                .ShouldNotMatch(expectedText);
         }
 
         /// <summary>

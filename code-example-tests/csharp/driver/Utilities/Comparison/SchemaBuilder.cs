@@ -167,6 +167,7 @@ public class SchemaBuilder : ISchemaBuilder
 
     /// <summary>
     ///     Validates all documents against the schema requirements.
+    ///     Only validates nested fields when dot notation is used in field paths.
     /// </summary>
     private static void ValidateDocumentsAgainstSchema(Dictionary<string, object?>[] docs, string source, SchemaValidationOptions schema)
     {
@@ -178,30 +179,96 @@ public class SchemaBuilder : ISchemaBuilder
             // Check required fields exist
             foreach (var requiredField in schema.RequiredFields)
             {
-                if (!doc.ContainsKey(requiredField))
+                // Only use nested path navigation if dot notation is used
+                if (requiredField.Contains('.'))
                 {
-                    throw new ComparisonException(
-                        $"Schema validation failed at {docPath}: Missing required field '{requiredField}'.");
+                    if (!TryGetNestedValue(doc, requiredField, out _))
+                    {
+                        throw new ComparisonException(
+                            $"Schema validation failed at {docPath}: Missing required field '{requiredField}'.");
+                    }
+                }
+                else
+                {
+                    if (!doc.ContainsKey(requiredField))
+                    {
+                        throw new ComparisonException(
+                            $"Schema validation failed at {docPath}: Missing required field '{requiredField}'.");
+                    }
                 }
             }
 
             // Check field values match
-            foreach (var (fieldName, expectedValue) in schema.FieldValues)
+            foreach (var (fieldPath, expectedValue) in schema.FieldValues)
             {
-                if (!doc.ContainsKey(fieldName))
+                object? actualValue;
+
+                // Only use nested path navigation if dot notation is used
+                if (fieldPath.Contains('.'))
                 {
-                    throw new ComparisonException(
-                        $"Schema validation failed at {docPath}: Missing field '{fieldName}' which is required by fieldValues.");
+                    if (!TryGetNestedValue(doc, fieldPath, out actualValue))
+                    {
+                        throw new ComparisonException(
+                            $"Schema validation failed at {docPath}: Missing field '{fieldPath}' which is required by fieldValues.");
+                    }
+                }
+                else
+                {
+                    if (!doc.ContainsKey(fieldPath))
+                    {
+                        throw new ComparisonException(
+                            $"Schema validation failed at {docPath}: Missing field '{fieldPath}' which is required by fieldValues.");
+                    }
+                    actualValue = doc[fieldPath];
                 }
 
-                var actualValue = doc[fieldName];
                 if (!ValuesAreEqual(expectedValue, actualValue))
                 {
                     throw new ComparisonException(
-                        $"Schema validation failed at {docPath}: Field '{fieldName}' has value '{FormatValue(actualValue)}', but schema requires '{FormatValue(expectedValue)}'.");
+                        $"Schema validation failed at {docPath}: Field '{fieldPath}' has value '{FormatValue(actualValue)}', but schema requires '{FormatValue(expectedValue)}'.");
                 }
             }
         }
+    }
+
+    /// <summary>
+    ///     Attempts to get a value from a nested structure using dot notation (e.g., "queryPlanner.winningPlan").
+    ///     Returns true if the path exists, false otherwise.
+    /// </summary>
+    private static bool TryGetNestedValue(Dictionary<string, object?> doc, string fieldPath, out object? value)
+    {
+        value = null;
+        var pathParts = fieldPath.Split('.');
+        object? current = doc;
+
+        foreach (var part in pathParts)
+        {
+            if (current == null)
+                return false;
+
+            // Normalize the current value to handle BSON types
+            var normalizedCurrent = ValueNormalizer.Normalize(current);
+
+            if (normalizedCurrent is IDictionary<string, object?> dictNullable)
+            {
+                if (!dictNullable.TryGetValue(part, out current))
+                    return false;
+            }
+            else if (normalizedCurrent is IDictionary<string, object> dict)
+            {
+                if (!dict.TryGetValue(part, out var temp))
+                    return false;
+                current = temp;
+            }
+            else
+            {
+                // Current value is not a dictionary, can't navigate further
+                return false;
+            }
+        }
+
+        value = current;
+        return true;
     }
 
     /// <summary>

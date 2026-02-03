@@ -28,9 +28,9 @@ public class TutorialTests
         var results = example.PerformAggregation();
         var fullPath = examplesFolder + "FilterTutorialOutput.txt";
 
-        Expect.That(fullPath)
+        Expect.That(results)
             .WithOrderedSort()
-            .ShouldMatch(results);
+            .ShouldMatch(fullPath);
     }
 
     [Test]
@@ -43,9 +43,9 @@ public class TutorialTests
 
         var fullPath = examplesFolder + "GroupTutorialOutput.txt";
 
-        Expect.That(fullPath)
+        Expect.That(results)
             .WithOrderedSort()
-            .ShouldMatch(results);
+            .ShouldMatch(fullPath);
 
     }
 
@@ -59,7 +59,7 @@ public class TutorialTests
 
         var fullPath = examplesFolder + "UnwindTutorialOutput.txt";
 
-        Expect.That(fullPath).ShouldMatch(results);
+        Expect.That(results).ShouldMatch(fullPath);
     }
 
     [Test]
@@ -72,9 +72,9 @@ public class TutorialTests
 
         var fullPath = examplesFolder + "JoinTutorialOutput.txt";
 
-        Expect.That(fullPath)
+        Expect.That(results)
             .WithOrderedSort()
-            .ShouldMatch(results);
+            .ShouldMatch(fullPath);
     }
 
     [Test]
@@ -87,9 +87,9 @@ public class TutorialTests
 
         var fullPath = examplesFolder + "JoinMultifieldTutorialOutput.txt";
 
-        Expect.That(fullPath)
+        Expect.That(results)
             .WithOrderedSort()
-            .ShouldMatch(results);
+            .ShouldMatch(fullPath);
     }
 
     [TearDown]

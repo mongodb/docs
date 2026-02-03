@@ -26,7 +26,7 @@ public class AggregationOperatorsTest
         var outputLocation = $"Examples/TimeSeries/OutputFiles/AveragePriceOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
-        Expect.That(fullPath).ShouldMatch(result);
+        Expect.That(result).ShouldMatch(fullPath);
     }
 
     [Test]
@@ -39,7 +39,7 @@ public class AggregationOperatorsTest
         var outputLocation = $"Examples/TimeSeries/OutputFiles/RollingAverageOutput.txt";
         var fullPath = Path.Combine(solutionRoot, outputLocation);
 
-        Expect.That(fullPath).WithIgnoredFields("_id", "ticker").ShouldMatch(result);
+        Expect.That(result).WithIgnoredFields("_id", "ticker").ShouldMatch(fullPath);
     }
 
     [TearDown]
