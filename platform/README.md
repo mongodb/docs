@@ -66,6 +66,14 @@ pnpm dev
 
 **NOTE:** If the page (and included images/MDX files) are not yet loaded (in case `blobs:seed` is still running), you can simply save the necessary files and `blobs:watch` will update the blob storage immediately.
 
+### Troubleshooting
+
+In case your development setup stops working for some reason, first ensure that it's NOT an issue with your local node_modules or cached/built files. To quickly validate this, you can run the following command:
+```bash
+pnpm install:clean
+```
+This will clean out your local node_modules, cache files, build artifacts, and pnpm store. It will then re-install all dependencies. The first time you run this, you will need to ensure the script has permission to run: `chmod +x ./tools/clean-install.sh`
+
 ## Workspace Structure
 
 The monorepo is organized as follows:
