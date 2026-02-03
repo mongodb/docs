@@ -162,16 +162,16 @@ and how to implement them:
        - ``transform_python()`` method: Function that transforms a custom type value into a type
          that BSON can encode
 
-Because the example ``EnumCodec`` custom type can be converted to and from a
+Because the ``Status`` enum can be converted to and from a
 ``str`` instance, you must define how to encode and decode this type.
-Therefore, the ``Enum`` type codec class must inherit from
+To do so, define a ``StatusCodec`` class that inherits from
 the ``TypeCodec`` base class:
 
 .. code-block:: python
 
    from bson.codec_options import TypeCodec
 
-   class EnumCodec(TypeCodec):
+   class StatusCodec(TypeCodec):
        python_type = Status
        bson_type = str
        
@@ -193,15 +193,15 @@ To do so, create an instance of the ``TypeRegistry`` class, passing in an instan
 of your type codec class inside a list. If you create multiple custom codecs, you can
 pass them all to the ``TypeRegistry`` constructor.
 
-The following code examples adds an instance of the ``EnumCodec`` type codec to
+The following code example adds an instance of the ``StatusCodec`` type codec to
 the type registry:
 
 .. code-block:: python
 
    from bson.codec_options import TypeRegistry
     
-   enum_codec = EnumCodec()
-   type_registry = TypeRegistry([enum_codec])
+   status_codec = StatusCodec()
+   type_registry = TypeRegistry([status_codec])
 
 .. note::
 
@@ -374,12 +374,12 @@ codec for it, {+driver-short+} raises an error. Select the
             bson.errors.InvalidDocument: Invalid document {'status': <ExtendedStatus.ACTIVE: 'active'>, '_id': ObjectId('...')} | cannot encode object: <ExtendedStatus.ACTIVE: 'active'>, of type: <enum 'ExtendedStatus'>
 
 To encode an instance of the ``ExtendedStatus`` class, you must define a type codec for
-the class. This type codec must inherit from the parent class's codec, ``EnumCodec``,
+the class. This type codec must inherit from the parent class's codec, ``StatusCodec``,
 as shown in the following example:
 
 .. code-block:: python
 
-   class ExtendedStatusCodec(EnumCodec):
+   class ExtendedStatusCodec(StatusCodec):
        @property
        def python_type(self):
            # The Python type encoded by this type codec
@@ -404,7 +404,7 @@ of the custom type. Select the
             from bson.codec_options import CodecOptions
 
             extended_status_codec = ExtendedStatusCodec()
-            type_registry = TypeRegistry([enum_codec, extended_status_codec])
+            type_registry = TypeRegistry([status_codec, extended_status_codec])
             codec_options = CodecOptions(type_registry=type_registry)
 
             collection = database.get_collection("test", codec_options=codec_options)
@@ -431,7 +431,7 @@ of the custom type. Select the
             from bson.codec_options import CodecOptions
 
             extended_status_codec = ExtendedStatusCodec()
-            type_registry = TypeRegistry([enum_codec, extended_status_codec])
+            type_registry = TypeRegistry([status_codec, extended_status_codec])
             codec_options = CodecOptions(type_registry=type_registry)
 
             collection = database.get_collection("test", codec_options=codec_options)
@@ -447,7 +447,7 @@ of the custom type. Select the
 
 .. note::
   
-   The ``transform_bson()`` method of the ``EnumCodec`` class results in
+   The ``transform_bson()`` method of the ``StatusCodec`` class results in
    these values being decoded as ``Status``, not ``ExtendedStatus``.
 
 Define a Fallback Encoder
