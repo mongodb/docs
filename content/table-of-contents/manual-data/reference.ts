@@ -1350,6 +1350,11 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/method/cursor.count',
           },
           {
+            label: 'cursor.disableBlockWarnings',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/method/cursor.disableBlockWarnings',
+          },
+          {
             label: 'cursor.explain',
             contentSite: 'docs',
             url: '/docs/:version/reference/method/cursor.explain',
