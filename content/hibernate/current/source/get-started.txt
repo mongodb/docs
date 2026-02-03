@@ -185,21 +185,6 @@ when applicable, and connection options.
 
          mongodb+srv://<db_username>:<db_password>@<cluster>/sample_mflix?<options>
 
-   .. step:: Encode your connection string for XML
-
-      Before adding your connection string to an XML configuration file in an
-      upcoming step, you must encode the following special characters in your
-      connection string:
-
-      - ``&``: Replace with ``&amp;``
-      - ``'``: Replace with ``&apos;``
-      - ``"``: Replace with ``&quot;``
-      - ``<``: Replace with ``&lt;``
-      - ``>``: Replace with ``&gt;``
-
-      By default, your Atlas connection string includes connection options separated
-      by the ``&`` character. Ensure that you XML-encode this character.
-
 After completing these steps, you have a connection string that
 contains your username, password, and database.
 
@@ -217,17 +202,17 @@ you can create a {+language+} application that connects to MongoDB.
    .. step:: Connect your application to MongoDB
 
       Navigate to your ``MongoHibernateQuickstart`` project's ``src/main/resources`` directory
-      and create a new file named ``hibernate.cfg.xml``, which stores your application's
+      and create a new file named ``hibernate.properties``, which stores your application's
       configuration settings.
 
       Copy the following code into this file:
 
-      .. literalinclude:: /includes/get-started/hibernate.cfg.xml
+      .. literalinclude:: /includes/get-started/hibernate.properties
          :copyable: true
-         :language: xml
-         :emphasize-lines: 14
+         :language: java
+         :emphasize-lines: 3
 
-      In the ``jakarta.persistence.jdbc.url`` property, replace the ``connection-string``
+      In the ``jakarta.persistence.jdbc.url`` property, replace the ``<connection string>``
       placeholder with the connection string that you created in the :ref:`previous step <hibernate-connection-string>`.
 
    .. step:: Create a utility class to manage sessions
@@ -240,7 +225,7 @@ you can create a {+language+} application that connects to MongoDB.
          corresponding directory.
 
       In your project's ``src/main/java/org/example`` directory, create a new file called ``HibernateUtil.java``.
-      This utility class creates a ``SessionFactory`` based on your ``hibernate.cfg.xml`` configuration file.
+      This utility class creates a ``SessionFactory`` based on your configuration file.
       
       Copy the following code into this file:
 
@@ -297,7 +282,7 @@ has the following file structure:
    │       │       ├── Main.java
    │       │       └── Movie.java
    │       └── resources
-   │           └── hibernate.cfg.xml
+   │           └── hibernate.properties
    ├── .gitignore
    ├── pom.xml (for Maven projects)
    └── build.gradle (for Gradle projects)
@@ -346,9 +331,6 @@ translates into MongoDB queries.
       .. code-block:: none
          :copyable: false
 
-         Hibernate: {"aggregate": "movies", "pipeline": [{"$match": {"title": {"$eq": {"$undefined": true}}}},
-         {"$project": {"_id": true, "cast": true, "plot": true, "title": true, "year": true}}]}
-
          Title: Little Women, Year: 1949
          Title: Little Women, Year: 1994
       
@@ -374,7 +356,7 @@ your ``Movie`` objects.
          var plot = "Mismatched cousins David and Benji tour Poland to honor their grandmother. " +
                 "Their adventure becomes complicated as old tensions resurface while exploring their family history.";
          var year = 2024;
-         var cast = List.of("Jesse Eisenberg", "Kieran Culkin", "Will Sharpe");
+         var cast = new ArrayList<>(List.of("Jesse Eisenberg", "Kieran Culkin", "Will Sharpe"));
 
          var myMovie = new Movie(title, plot, year, cast);
          session.persist(myMovie);
@@ -390,14 +372,11 @@ your ``Movie`` objects.
 
       .. code-block:: java
 
-         var currentCast = new ArrayList<>(myMovie.getCast());
-         currentCast.add("Jennifer Grey");
-         myMovie.setCast(currentCast);
+         myMovie.getCast().add("Jennifer Grey");
          System.out.println("Movie updated with new cast: " + myMovie.getCast());
 
-      This code retrieves the current ``cast`` value, adds a new cast member to it,
-      and updates the ``cast`` field of the ``myMovie`` entity instance. The
-      {+extension-short+} applies this change to the corresponding document
+      This code retrieves the current ``cast`` value and adds a new cast member to it.
+      The {+extension-short+} applies this change to the corresponding document
       in the database.
 
    .. step:: Delete a document
@@ -420,9 +399,6 @@ your ``Movie`` objects.
 
       .. code-block:: none
          :copyable: false
-
-         Hibernate: {"insert": "movies", "documents": [{"cast": {"$undefined": true}, "plot": {"$undefined": true}, "title": {"$undefined": true}, "year": {"$undefined": true}, "_id": {"$undefined": true}}]}
-         Hibernate: {"delete": "movies", "deletes": [{"q": {"_id": {"$eq": {"$undefined": true}}}, "limit": {"$numberInt": "0"}}]}
 
          Movie created with ID: <ObjectId>
          Movie updated with new cast: [Jesse Eisenberg, Kieran Culkin, Will Sharpe, Jennifer Grey]
