@@ -1,0 +1,536 @@
+.. _arch-center-is-rag-technical-documentation:
+
+====================================
+Context-Aware RAG for Technical Docs
+====================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta:: 
+   :keywords: GenAI, MongoDB Atlas, Manufacturing, RAG, Technical Documentation, Manuals
+   :description: Build context-aware RAG with MongoDB Atlas and transform technical documentation into intelligent systems. Code examples included.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: onecol
+
+**Use cases:** `Artificial Intelligence <https://www.mongodb.com/solutions/use-cases/artificial-intelligence>`__,
+`Content Management <https://www.mongodb.com/solutions/use-cases/content-management>`__,
+`Intelligent Search <https://www.mongodb.com/solutions/use-cases/intelligent-search>`__
+
+**Industries:** 
+`Manufacturing and Mobility <https://www.mongodb.com/solutions/industries/manufacturing>`__
+
+**Products:** 
+`MongoDB Atlas <https://www.mongodb.com/products/platform/atlas-database>`__,
+`MongoDB Atlas Search <https://www.mongodb.com/products/platform/atlas-search>`__,
+`MongoDB Atlas Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__,
+`Hybrid Search <https://www.mongodb.com/docs/atlas/atlas-vector-search/hybrid-search/>`__
+
+**Partners**: 
+`Google Cloud <https://cloud.mongodb.com/ecosystem/google-cloud>`__
+
+Solution Overview
+-----------------
+
+Capital-intensive industries like aerospace, energy, automotive, and
+manufacturing rely on decades of complex technical knowledge. However,
+this technical knowledge is held in collections of static documents such
+as manuals, maintenance guides, and internal wikis, which are stored as
+PDFs or unstructured files that can be difficult to access. As a result,
+frontline workers cannot retrieve precise information in real-time. 
+
+This gap leads to the following challenges for companies:
+
+- **Operational downtime** can cost companies `up to $260,000 per hour
+  <https://insights.output.industries/costs-of-machine-downtime-in-manufacturing/>`__,
+  with some sectors like automotive experiencing costs of $50,000 per
+  minute. Adding to these costs, ABB's `Value of Reliability survey
+  <https://new.abb.com/news/detail/107660/abb-survey-reveals-unplanned-downtime-costs-125000-per-hour>`__
+  found that over two-thirds of industrial businesses experience
+  unplanned outages at least once a month, with typical costs of
+  $125,000 per hour.
+
+- **Production errors and rework** affect `97% of manufacturing
+  professionals <https://www.prnewswire.com/news-releases/manufacturing-firms-suffering-missed-sales-and-product-delays-due-to-poor-documentation-workflows-survey-reveals-301486534.html>`__
+  due to poor documentation.
+
+- **Documentation inefficiencies** reduce gains from other technology
+  initiatives, according to `73% of manufacturing professionals
+  <https://www.themanufacturer.com/articles/manufacturers-suffer-missed-sales-due-to-poor-documentation-workflows/>`__.
+
+To address this gap, this solution presents an architectural framework
+to transform inert documents into a dynamic knowledge base using
+context-aware :abbr:`RAG (Retrieval-Augmented Generation)`. Unlike
+standard RAG systems that lose critical context when splitting documents
+into chunks, context-aware RAG preserves the hierarchical structure and
+relationships in technical documentation. Users can then ask natural
+language questions and receive precise answers from their documentation,
+with the system automatically finding and presenting the most relevant
+information while preserving its original technical context. 
+
+By maintaining document structure during the RAG process, the system
+ensures that safety warnings remain connected to their procedures, and
+that technical specifications retain their proper scope. The resulting
+system makes operations safer, accelerates productivity, and lays the
+path for next-generation industrial :abbr:`AI (Artificial Intelligence)`
+applications. 
+
+Reference Architectures
+-----------------------
+
+The architecture for building a context-aware RAG system consists of
+three core layers: 
+
+- Ingestion pipeline layer
+
+- Data platform layer
+
+- Querying layer 
+
+These layers work together to transform static technical documentation
+into an intelligent knowledge base. Each layer maintains the document
+structure and enables precise keyword matching and semantic
+understanding. This section discusses the ingestion and querying layers,
+while the Data Model Approach section covers the data platform layer in
+more detail. 
+
+The diagram below illustrates the data flow from PDF ingestion to user
+query responses, showing the technical components and their
+interactions. It demonstrates how each layer processes, stores, and
+retrieves technical documentation while preserving context. 
+
+.. figure:: /includes/images/industry-solutions/technical-docs-architecture.svg
+   :figwidth: 750px
+   :alt: An image showing the reference architecture for a context-aware RAG system for technical documents
+
+   Figure 1. Context-aware RAG for technical documents architecture
+
+The Ingestion Pipeline Layer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ingestion pipeline layer transforms raw PDFs into structured data
+that preserves content and context. This improves the quality and
+reliability of your RAG system by ensuring that technical relationships,
+hierarchical structures, and contextual dependencies remain intact
+during the chunking process, preventing critical information loss. Use
+the `Car Manual Data Ingestion Notebook
+<https://github.com/mongodb-industry-solutions/manufacturing-car-manual-RAG/blob/main/Car%20Manual%20Data%20Ingestion%20Notebook.ipynb>`__
+to develop your ingestion pipeline layer. This file provides a detailed
+guide on how implement this layer, and guides you through the following
+process.
+
+**1. Convert Portable Documents to Structure DataFrames**
+
+To develop your ingestion pipeline layer, begin by using the
+``google-cloud-documentai`` Python library to process the PDF source.
+Parse the API response into a structured Pandas DataFrame. Each row
+represents a distinct text block with columns for:
+
+- Bounding box coordinates
+
+- Page number
+
+- Text content
+
+**2. Apply Rules for Structural Inference**
+
+Then, iterate through the DataFrame and apply a rule-based engine to
+infer context, as follows:
+
+- **Header detection:** Text blocks in all-caps or with larger font
+  sizes are identified as section headers.
+
+- **List and procedure recognition:** Horizontal bounding box positions
+  reveal indentation patterns that indicate lists or procedural steps.
+
+- **Semantic chunking strategy:** Text is aggregated into meaningful chunks,
+  continuing until a major heading is encountered, ensuring procedures
+  and tables remain intact.
+
+**3. Enrich Data for High-Quality Retrieval**
+
+Create a string variable named ``breadcrumb_trail`` to capture the
+hierarchical path for each chunk. Prepend this string to the chunk's
+text before sending it to the Google Vertex AI ``textembedding-gecko``
+model. This design improves semantic search relevance by encoding the
+chunk's text, and its contextual position in the document hierarchy,
+with vector embeddings. 
+
+**4. Use an Alternative Approach**
+
+Use contextualized chunk embedding models, such as `voyage-context-3
+<https://www.mongodb.com/company/blog/product-release-announcements/voyage-context-3-focused-chunk-level-details-global-document-context>`__,
+to simplify the process. These models analyze the global context of a
+document when generating an embedding, and provide the following
+advantages:
+
+- **Simplified ingestion:** Reduce manual context augmentation steps
+  like creating and prepending the ``breadcrumb_trail`` variable. The
+  model handles context injection automatically during embedding.
+
+- **Higher retrieval accuracy:** Generate nuanced embeddings that
+  improve retrieval quality for chunks that lack local context.
+
+- **Reduced sensitivity to chunking:** Implement a retrieval process
+  that is less dependent on chunking. The model's global awareness
+  compensates for suboptimal segmentation.
+
+The Querying Layer
+~~~~~~~~~~~~~~~~~~
+
+The querying layer implements a tiered search approach that combines
+exact matching with semantic search. Each tier runs independently and
+their results are combined using score fusion, as follows:
+
+- Tier 1 provides high-precision keyword matching. 
+
+- Tier 2 adds semantic understanding to the final ranking score.
+
+This section demonstrates how to build a query layer that balances
+precision and recall, while maintaining score transparency. Production
+systems use layered approaches for search relevance to measure how
+accurate a retrieved document is in satisfying the user's query.
+
+**Tier 1: Precision with Compound Text Search**
+
+Industrial applications require precision for finding terms like error
+codes or part numbers. You can achieve this precision by using a
+multi-layered strategy inside a ``compound`` operator in Atlas Search,
+as follows:
+
+.. code-block:: json  
+   :copyable: true  
+  
+   {  
+      "$search": {  
+         "index": "manual_text_search_index",  
+         "compound": {  
+            "should": [  
+               // High-Precision: Exact phrase matching with highest boost  
+               {  
+                  "phrase": {  
+                     "query": "car won't start",  
+                     "path": "breadcrumb_trail",  
+                     "score": { "boost": { "value": 10 } }  
+                  } 
+               },  
+               // Balanced Relevance: Individual word matching with medium boost  
+               {  
+                  "text": {  
+                     "query": "car won't start",  
+                     "path": "text",  
+                     "score": { "boost": { "value": 4 } }  
+                  }  
+               },  
+               // High-Recall: Fuzzy matching to catch typos with low boost  
+               {  
+                  "text": {  
+                     "query": "car won't start",  
+                     "path": "text",  
+                     "fuzzy": {},  
+                     "score": { "boost": { "value": 1.5 } }  
+                  }  
+               }  
+            ]  
+         }  
+      }  
+   }  
+
+This query uses the ``should`` clause, which allows you to build
+compound search queries. The resulting scores equal the sum of all
+matching clauses as follows:
+
+- An exact phrase match applies a score multiplier of 10 to ensure the
+  highest rank for documents with the exact phrase.
+
+- Individual word matching applies a score multiplier of 4 to documents
+  containing individual search terms. This feature captures relevant
+  content even when words appear separately.
+
+- Fuzzy matching applies a score multiplier of 1.5. This feature catches
+  documents with typos or variations, and prevents them from outranking
+  exact matches.
+
+**Tier 2: Decomposing Hybrid Search for Transparency**
+
+Use ``$rankFusion`` to combine the precise ``compound`` text query from
+Tier 1 with semantic vector search from Tier 2. This aggregation
+operator delivers keyword matching precision and semantic understanding.
+You can also break down the final score to show exactly how text and
+vector search contribute to each result's ranking. This transparency
+enables developers to: 
+
+- Debug search relevance to identify whether text or vector search
+  drives the ranking result. 
+
+- Understand why certain documents rank higher through clear score
+  breakdowns.
+
+- Optimize A/B testing scenarios with different weighting strategies.
+
+Implement hybrid search using the `search_new.py
+<https://github.com/mongodb-industry-solutions/manufacturing-car-manual-RAG/blob/main/backend/app/db/repositories/search_new.py>`__
+file. This file contains code that does the following:
+
+1. Executes ``$rankFusion`` with ``scoreDetails`` using the
+   following aggregation pipeline:
+
+   .. code-block:: json
+      :copyable: true
+
+      { 
+         $rankFusion: {
+            input: {
+               pipelines: {
+                  <myPipeline1>: <expression>,
+                  <myPipeline2>: <expression>,
+                  ...
+               }
+            },
+            combination: {
+               weights: {
+                  <myPipeline1>: <numeric expression>,
+                  <myPipeline2>: <numeric expression>,
+                  ...
+               }  
+            },
+            scoreDetails: <bool>
+         }
+      }
+
+#. Extracts metadata using the ``$addFields`` operator:
+
+   .. code-block:: json  
+      :copyable: true  
+      
+      {
+         $addFields: {
+            scoreDetails: {
+               $meta: "scoreDetails"
+            }
+         }
+      }
+
+#. Isolates pipeline contributions using the ``$filter`` and
+   ``$arrayElemAt`` operators to parse the ``scoreDetails`` array. This
+   approach creates fields for specific ranks and scores from the
+   ``vectorPipeline`` and ``fullTextPipeline``.
+
+#. Calculates each search method's actual contribution using the
+   :abbr:`RRF (Reciprocal Rank Fusion)` :ref:`formula <rankFusion-rrf>`,
+   multiplied by user-defined weights. It sets the constant ``k`` to 60
+   to control lower-ranked result influence.   
+
+#. Provides transparent results for search rankings, as follows:
+
+   .. code-block:: json  
+      :copyable: true  
+
+      SearchResult(
+         score=0.0123,           # Final combined RRF score
+         vector_score=0.0086,    # Vector pipeline contribution
+         text_score=0.0037       # Text pipeline contribution
+      )
+
+Data Model Approach
+-------------------
+
+The data platform layer is the central component of the reference
+architecture. It serves as the persistent store for all enriched outputs
+from the ingestion pipeline, providing a unified foundation for the
+querying layer. In this solution, the MongoDB document model powers the
+data platform by consolidating text, embeddings, hierarchical context,
+and metadata into a single structure. 
+
+This approach eliminates the need for multiple systems like separate
+databases for metadata, embeddings, and full-text search, reducing
+complexity while preserving the rich context needed for accurate
+retrieval of technical documentation. 
+
+Traditional multi-system designs introduce the following challenges: 
+
+- **Data silos:** Synchronizing and duplicating information across
+  systems increases fragility and creates operational bottlenecks.
+
+- **Operational overhead:** Running, scaling, and securing separate
+  services drives up infrastructure costs.
+
+- **Developer friction:** Integrating and learning disparate APIs slows
+  down innovation.
+
+By contrast, the document model simplifies the architecture. The data
+platform layer natively supports context-aware RAG by storing both the
+content and its contextual relationships, ensuring that search and
+retrieval preserve document hierarchy and meaning. 
+
+Below is a sample of the document model that stores the text of a single
+technical document chunk along with its enriched metadata:
+
+.. code-block:: json  
+   :copyable: true  
+
+   {
+      "_id": {
+         "$oid": "685011ade0cccc356ba545df"
+      },
+      "text": "WARNING: Switching off the engine when your vehicle is still ...",
+      "breadcrumb_trail": "ENGINE START STOP -- WHAT IS AUTOMATIC ENGINE STOP",
+      "heading_level_1": null,
+      "heading_level_2": "WHAT IS AUTOMATIC ENGINE STOP",
+      "heading_level_3": "Starting and Stopping the Engine",
+      "content_type": [
+         "procedure",
+         "safety"
+      ],
+      "metadata": {
+         "source_pages": "122-122",
+         "chunk_length": 1459,
+         "systems": [
+            "engine",
+            "transmission"
+         ]
+      },
+      "id": "chunk_00174",
+      "prev_chunk_id": "chunk_00173",
+      "next_chunk_id": "chunk_00175",
+      "embedding": [
+         -0.016625087708234787,
+         ...,
+         0.005507152993232012,
+         -0.022588932886719704
+      ]
+   }
+
+The document contains the following relevant fields:
+
+- ``text``: Raw text content, targeted by Atlas Search.
+
+- ``breadcrumb_trail``: A human-readable string preserving the full
+  hierarchical context. This field maintains the document's navigational
+  structure for context-aware RAG.
+
+- ``content_type``: An array of tags that powers the multi-select
+  filters in the browse UI. This field uses an index.
+
+- ``metadata.source_pages``: A range of integers that links the chunk
+  back to its original page in the source PDF.
+  
+- ``metadata.systems``: An array of tags used for filtering and populated
+  by keyword mapping.
+
+- ``id``: A unique identifier for the chunk that ensures traceability.
+
+- ``embedding``: A 768-dimensional vector representation of the chunk's
+  contextualized text. This field uses an Atlas Vector Search index for
+  vector retrieval.  
+
+Build the Solution
+------------------
+
+To deploy this solution, follow the instructions of the ``README`` in
+this `GitHub repository
+<https://github.com/mongodb-industry-solutions/manufacturing-car-manual-RAG>`__.
+This repository guides you through the following steps.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set up the prerequisites 
+
+      Install the following dependencies:
+   
+      - Python 3.10+
+   
+      - Node.js 18+
+   
+      - Poetry
+   
+      - A MongoDB Atlas account (version 8.1+)
+   
+      - Docker (optional, for containerized deployment)
+
+   .. step:: Clone the GitHub repository
+
+      Go to the GitHub repository and run these commands in your
+      terminal:
+
+      .. code-block:: sh  
+         :copyable: true  
+
+         git clone https://github.com/mongodb-industry-solutions/manufacturing-car-manual-RAG.git
+         cd manufacturing-car-manual-RAG
+
+   .. step:: Configure MongoDB Atlas
+
+      Create a free MongoDB Atlas cluster and configure network access
+      to allow connections from your development environment.
+
+   .. step:: Define search indexes
+
+      Navigate to Atlas Search and create both text and vector search
+      indexes using the provided JSON configurations in the repository.
+
+   .. step:: Set up the backend and the frontend
+
+      Install Python dependencies with the ``poetry`` library. 
+      
+      Configure environment variables with your MongoDB connection
+      string, and launch the FastAPI backend server. 
+      
+      Install the node modules for the frontend and launch the frontend
+      server.
+
+   .. step:: Run the data ingestion notebook
+
+      Execute the Jupyter notebook to process sample PDF documents and
+      populate your MongoDB collection with contextualized chunks ready
+      for querying.
+
+Key Learnings
+-------------
+
+- **Establish a dynamic system of record for technical knowledge:**
+  Transform static documents into a structured, queryable knowledge base
+  by storing technical information in MongoDB. MongoDB serves as a
+  unified source of truth for your organization’s operations, ensuring
+  that all AI applications access consistent and context-rich
+  information. This system provides a solid foundation for downstream
+  tools such as diagnostic chatbots and predictive maintenance systems.
+
+- **Engineer hybrid search:** Combine text and vector search with
+  ``$rankFusion`` for hybrid search. Decompose final scores to achieve
+  transparency in debugging and relevance tuning.
+
+- **Transform RAG systems:** Use embedding models like 
+  ``voyage-context-3`` to process entire documents and maintain
+  chunk-level detail. This implementation provides up to `20% better
+  retrieval
+  <https://www.mongodb.com/company/blog/product-release-announcements/voyage-context-3-focused-chunk-level-details-global-document-context>`__
+  performance than standard approaches.
+
+Authors
+-------
+
+- Mehar Grewal, MongoDB 
+
+- Rami Pinto, MongoDB
+
+Learn More
+----------
+
+- :ref:`arch-center-is-automotive-diagnostics`
+
+- :ref:`arch-center-is-predictive-maintenance`
+
+- :ref:`arch-center-is-car-assistant`
+
+- To learn how to build a data platform for Gen AI, read the `Building a
+  Unified Data Platform for Gen AI <https://www.mongodb.com/company/blog/innovation/building-unified-data-platform-for-gen-ai>`__
+  blog.

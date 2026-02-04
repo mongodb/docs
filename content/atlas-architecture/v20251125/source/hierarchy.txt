@@ -1,0 +1,967 @@
+.. _arch-center-hierarchy:
+
+=========================================================
+Guidance for {+service+} Orgs, Projects, and {+Clusters+}
+=========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+Organizations, projects, and {+clusters+} are the building blocks
+of your {+service+} enterprise estate: 
+
+- At the organization level, you can implement security controls and
+  create users that work across one or more projects. 
+- Projects offer a more fine-grained security isolation and
+  authorization boundary.
+- {+Clusters+} are your cloud databases in {+service+}.
+
+Use the foundational guidance on this page to design the layout of your
+organizations, projects, and clusters based on your company's
+hierarchy and expected number of {+clusters+} and projects. This
+guidance helps you optimize your security and performance from the
+start while aligning with your enterprise's billing and access needs.
+
+Features for {+service+} Orgs, Projects, and {+Clusters+}
+---------------------------------------------------------
+
+You can use the following levels of hierarchy to define
+security settings and governance for your {+service+} enterprise estate:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40
+
+   * - {+service+} Hierarchy Level
+     - Description
+
+   * - (Optional) Paying Organization
+     - One :term:`organization` can be a paying organization for other
+       organization(s). A paying organization lets you set up 
+       :atlas:`cross-organization billing </billing/#std-label-cross-org-billing>` 
+       to share a billing subscription across multiple organizations. 
+       To learn more about setting up your paying organization when 
+       you establish the |service| subscription, see :atlas:`Manage Billing </billing>`.  
+       In order to enable cross-organization billing, the user performing 
+       the action must have an Org Owner or Billing Admin role of both 
+       organizations that they wish to link. To learn more, see 
+       :atlas:`User Roles </reference/user-roles>`.
+
+       A paying organization is common for large enterprises with many
+       {+BU+}\s or departments that operate independently but where the
+       contract or bill is owned by a central authority.
+
+   * - :term:`Organization`
+     - An :term:`organization` can contain many projects, and it provides
+       a container to apply shared integration and security settings across 
+       those projects and the clusters therein. If 
+       you manage multiple {+service+} organizations, the 
+       :ref:`Atlas Federation Management Console <atlas-federated-authentication>` 
+       allows users with an Org Owner role to manage |idps| for |sso|, 
+       then link them to multiple organizations. 
+       An organization often maps to a {+BU+} or department within a
+       company. The built-in {+service+} Cost Explorer aggregates cloud
+       spend at the organization level and breaks out line items at the 
+       project-level and {+cluster+} level below it. You can customize further
+       by leveraging the billing API.
+
+   * - :term:`Project`
+     - Security configuration for the data plane (including database
+       clusters, network security, and other data services) occurs at the 
+       project-level. A :term:`project` often maps to an application and environment 
+       (for example: Customer Portal app - Production environment). For each 
+       project, based on the selected cloud provider, there is one dedicated 
+       VPC or VNet per region in AWS and Azure. 
+
+   * - :term:`Cluster`
+     - |service| provisions each :term:`cluster` within the dedicated 
+       VPC/VNet(s) for a project. The security configuration is shared
+       among clusters in the project, except for database user roles and 
+       authorization, which you can apply to actions on a :term:`cluster`,
+       database, and collection level.
+
+.. figure:: /includes/images/atlas-project-hierarchy.png
+   :alt: An image showing org, project, and cluster hierarchy.
+   :align: center
+   :lightbox:
+
+.. _arch-center-orgs-projects-clusters-recs:
+
+Recommendations for {+service+} Orgs, Projects, and {+Clusters+}
+----------------------------------------------------------------
+
+.. _arch-center-orgs-projects-clusters-recs-multi:
+
+Multi-Region and Multi-Cloud Deployment Recommendations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For multi-region and multi-cloud deployments, consider the following
+additional recommendations to optimize performance, security, and
+compliance across geographic boundaries:
+
+Network Architecture and Latency
+`````````````````````````````````
+
+- Deploy {+clusters+} in regions closest to your application users
+  to minimize latency.
+- Use dedicated VPCs/VNets per region within each project to maintain
+  network isolation.
+- Configure :atlas:`private endpoints </security-private-endpoint/>`
+  in each region where you deploy {+clusters+} to ensure secure,
+  low-latency connections.
+
+Data Locality and Compliance
+`````````````````````````````
+
+- Create separate projects for different regulatory jurisdictions
+  (for example, GDPR-compliant EU project, SOX-compliant US project)
+  to ensure data residency requirements are met.
+- Use :atlas:`Global {+Clusters+} </global-clusters/>` with zone
+  sharding to automatically route reads and writes to the appropriate
+  geographic region based on shard key values.
+- Tag projects and {+clusters+} with data classification and regional
+  compliance requirements for audit and governance purposes.
+
+Cross-Region Disaster Recovery
+``````````````````````````````
+
+- Deploy {+clusters+} with read replicas in multiple regions to
+  enable failover capabilities.
+- Maintain consistent backup schedules across all regions within
+  the same application environment.
+- Test disaster recovery procedures regularly across regions to
+  ensure business continuity.
+
+Multi-Cloud Considerations
+``````````````````````````
+
+- Use consistent naming conventions across cloud providers to
+  simplify management and monitoring.
+- Standardize security configurations across all cloud environments
+  within the same project.
+- Consider cloud provider-specific features and limitations when
+  planning cross-cloud data replication and network connectivity.
+
+
+All Deployment Paradigm Recommendations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following recommendations apply to all :ref:`deployment paradigms
+<arch-center-paradigms>`.
+
+Development, Testing, Staging, and Production Environments
+``````````````````````````````````````````````````````````
+
+We recommend that you use the following four environments to isolate
+your sandbox and test projects and {+clusters+} from your application
+projects and {+clusters+}:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+
+   * - Environment
+     - Description
+
+   * - Development (Dev)
+     - Allow developers to freely try new things in a safe sandbox
+       environment.
+
+   * - Testing (Test)
+     - Test specific components or functions created in the dev
+       environment.
+     
+   * - Staging
+     - Stage all components and
+       functions together to make sure the entire application works 
+       as expected before deploying to production. Staging is similar to
+       the test environment, but ensures that new components work well 
+       with existing components.
+    
+   * - Production (Prod)
+     - The back end for your application that is live for your
+       end users.
+
+Local {+service+} Deployments
+`````````````````````````````
+
+For development and testing purposes, developers can use the {+atlas-cli+} to 
+:atlascli:`create a local {+service+} deployment</atlas-cli-deploy-local>`.
+By working locally from their machines, developers can cut down on costs
+for external development and testing environments. 
+
+Developers can also :atlascli:`run {+atlas-cli+} commands with Docker </atlas-cli-docker>`
+to build, run, and manage local {+service+} deployments using containers.
+Containers are standardized units that contain all of the software 
+needed to run an application. Containerization allows developers to build
+local {+service+} deployments in secure, reliable, and portable test 
+environments. To learn more, see :atlascli:`Create a Local {+service+} Deployment with Docker </atlas-cli-deploy-docker>`.
+
+Org and Project Hierarchies
+```````````````````````````
+
+Generally, we recommend a paying organization that is managed
+centrally, and one organization for each {+BU+} or department that is
+linked to the paying org. Then, create a project with one {+cluster+}
+each for your lower (dev or test) and upper environments; you can create 
+clusters in these projects. To learn more, see the following information 
+for :ref:`<project-hierarchy-1>`.
+
+If you will easily hit the 250 project limit per organization, we
+recommend creating one organization per environment, such as one each
+for lower and upper environments, or one each for dev, test, staging,
+and production. This setup has the benefit of additional isolation. You can also 
+increase the limits. To learn more, see 
+:atlas:`{+service+} Service Limits </reference/atlas-limits>`.
+
+Network and security configurations, such as allowed IPs and API keys, are shared 
+at the project level, so if you need fine grained access controls for teams working 
+on different applications, we recommend that you create separate projects 
+for each application.
+
+.. _project-hierarchy-1:
+
+Recommended Hierarchy
+``````````````````````
+
+Consider the following hierarchy, which creates fewer Atlas organizations, if 
+you have common teams and permissions across the {+BU+} and less than the 
+raiseable limit of 250 projects per organization.
+
+.. figure:: /includes/images/paying-org-hierarchy.svg
+   :alt: An image showing a paying organization with other organizations nested beneath it.
+   :align: center
+   :lightbox:
+
+.. _project-hierarchy-2:
+
+Recommended Hierarchy 2: Decentralized Business Units/Departments
+``````````````````````````````````````````````````````````````````
+
+Consider the following hierarchy if your organization is highly
+decentralized without a centralized function to serve as the contract
+and billing owner. In this hierarchy, each {+BU+},
+department, or team has their own {+service+} organization. This
+hierarchy is useful if each of your teams is fairly independent, they
+don't share people or permissions within the company, or they want to
+buy credits themselves through the cloud provider marketplace or
+directly with their own contract. There is no paying organization in
+this hierarchy.
+
+.. figure:: /includes/images/no-paying-org-hierarchy.svg
+   :alt: An image showing multiple organizations without a paying organization above them.
+   :align: center
+   :figwidth: 3000px
+   :lightbox:
+
+.. _deployment-hierarchy:
+
+{+Cluster+} Hierarchy
+`````````````````````
+
+To maintain isolation between environments, we recommend that you deploy 
+each cluster within its own project, as shown in the following diagram. 
+This allows administrators to maintain different project configurations between environments
+and uphold the principle of least privilege, which states that users should 
+only be granted the least level of access necessary for their role.
+
+Particularly in production environments, we recommend that you create separate
+projects for each application and environment pair. As these configurations are 
+managed at the project level, this approach reduces the potential for your 
+needing to manually transfer data between production environment clusters should 
+these requirements change for a given application.
+
+You can share project-level configurations such as private endpoints and CMKs 
+across clusters with automation tooling, such as Terraform, at cluster creation. 
+Moreover, automating cluster creation can yield cost savings by standardizing the 
+creation of parallel higher and lower environments for production and development 
+environments respectively.  
+
+To learn more, see :ref:`hierarchy-multiple-clusters`. 
+
+.. figure:: /includes/images/deployment-hierarchy.svg
+   :alt: An image showing one deployment per project in each organization.
+   :align: center
+   :lightbox:
+
+.. _hierarchy-multiple-clusters: 
+
+When to Consider Multiple {+Clusters+} Per Project 
+``````````````````````````````````````````````````
+
+The following diagram shows an organization whose projects each contain multiple {+service+} {+clusters+}, grouped by environment. 
+Deploying multiple {+clusters+} within the same project simplifies administration when one application uses multiple backing clusters, or 
+the same team is responsible for multiple applications across environments. 
+This eases the setup cost for features such as private endpoints and customer-managed keys, 
+because all {+clusters+} in the same project share the same project configuration.
+
+However, this {+cluster+} hierarchy may violate the principle of least privilege.
+
+Deploy multiple {+clusters+} within the same project only if both of the following are true:
+
+- Each team member with access to the project is working on all other
+  applications and {+clusters+} in the project. 
+- You are creating {+clusters+} for development and testing environments. 
+  In staging and production environments, we recommend that {+clusters+} in the same project
+  should belong to the same application and be administered by the same team.
+
+.. figure:: /includes/images/alt-deployment-by-environment.svg
+   :alt: An image showing deployments grouped by environment.
+   :align: center
+   :lightbox:
+
+Resource Tagging
+````````````````
+
+We recommend that you :atlas:`tag clusters or projects </database-deployment-tags>` 
+with the following details to enable easy parsing for reporting and integrations:
+
+- {+BU+} or Department
+- Team name
+- Application name
+- Environment
+- Version
+- Email contact
+- Criticality (indicates the tier of data stored on the {+cluster+},
+  including any sensitive classifications such as {+PII+} or {+PHI+})
+
+To learn more about parsing billing data using tags, see
+:ref:`arch-center-billing-data`.
+
+.. _arch-center-cluster-size-guide:
+
+{+service+} {+Cluster+} Size Guide
+``````````````````````````````````
+
+In a dedicated deployment ({+cluster+} size ``M10``\+), {+service+}
+allocates resources exclusively. We recommend dedicated deployments
+for production use cases because they provide higher security and performance than shared
+clusters.
+
+The following {+cluster+} size guide uses "t-shirt sizing," a common analogy used in software
+development and infrastructure to describe capacity planning in a
+simplified manner. Use t-shirt sizing recommendations only as approximate
+starting points in your sizing analysis. Sizing a {+cluster+} is an iterative process based on
+changing resource needs, performance requirements, workload
+characteristics, and growth expectations.
+
+.. important::
+   
+   This guidance excludes mission-critical applications, high-memory
+   workloads, and high-CPU workloads. For these use cases,
+   contact |mdb-support| for customized guidance.
+
+You can estimate the {+cluster+} resources that your deployment requires by 
+using your organization's approximate data size and workload:
+
+- **Total Storage Required**: 50% of the
+  total raw data size
+- **Total RAM Required**: 10% of the total raw data size
+- **Total CPU Cores Required**: expected peak read/write database
+  operations per second ÷ 4000
+- **Total Storage IOPS Required**: expected peak read/write database operations per
+  second (min IOPS = 5%, max IOPS = 95%)
+
+Use the following {+cluster+} size guide to select a {+cluster+} tier that ensures performance without over-provisioning. 
+This table displays the default storage and performance capabilities for each {+cluster+} tier, as well as 
+whether or not the {+cluster+} tier is suitable for staging and production environments. 
+
+The cluster size guide also includes expected values for a cluster's total data 
+size and default IOPS, which you can augment with additional configurations. 
+Note that the following storage recommendations are per shard, not for the 
+entire cluster. To learn more, see :ref:`arch-center-scalability`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 10 10 10 10 10 10 10
+
+   * - T-Shirt Size
+     - Cluster Tier
+     - Storage Range: AWS/{+gcp+}/Azure
+     - CPUs (#)
+     - Default RAM
+     - Default IOPS
+     - Expected Median Data Size
+     - Expected Peak Reads / Writes
+     - Suitable For
+
+   * - Small
+     - ``M10`` [1]_
+     - 2 GB to 128 GB
+     - 2
+     - 2 GB
+     - 1000
+     - 1 GB to 10 GB
+     - 200
+     - Dev/Test only
+
+   * - Med
+     - ``M30``
+     - 8 GB to 512 GB
+     - 2
+     - 8 GB
+     - 3000
+     - 20 GB to 50 GB
+     - 3000
+     - Prod
+
+   * - Large
+     - ``M50``
+     - 8 GB to 4 TB
+     - 16
+     - 32 GB
+     - 3000
+     - 360 GB to 420 GB
+     - 11000
+     - Prod
+
+   * - X-Large
+     - ``M80``
+     - 8 GB to 4 TB
+     - 32
+     - 128 GB
+     - 3000
+     - 1200 GB to 1750 GB
+     - 39000
+     - Prod
+
+.. [1] ``M10`` is a shared CPU tier. For highly-regulated industries or sensitive data, your minimum and smallest starting tier should be ``M30``.
+
+For example, consider a fictional fintech company, MongoFinance, that must store a total of 400 GB of processed data.
+At peak activity, MongoFinance employees and customers perform up to 3000 reads or writes to MongoFinance databases per second. 
+MongoFinance's storage and performance requirements are best satisfied by a large, or ``M50``, {+cluster+} tier.  
+
+To learn more about {+cluster+} tiers and the regions that support
+them, see the {+service+} documentation for each cloud provider:
+
+- :atlas:`AWS </reference/amazon-aws/>`
+- :atlas:`Azure </reference/microsoft-azure/>`
+- :atlas:`{+gcp+} </reference/google-gcp/>`
+
+.. _arch-center-create-hierarchy-example:
+
+Automation Examples: {+service+} Orgs, Projects, and {+Clusters+}
+-----------------------------------------------------------------
+
+.. include:: /includes/complete-examples-terraform.rst
+
+The following examples create organizations, projects, and {+clusters+}
+using {+service+} :ref:`tools for automation <arch-center-automation>`.
+
+These examples also apply other recommended configurations, including:
+
+.. tabs::
+
+   .. tab:: Dev and Test Environments
+      :tabid: devtest
+
+      - {+Cluster+} tier set to ``M10`` for a dev/test environment. Use the 
+        :ref:`cluster size guide <arch-center-cluster-size-guide>` to learn the recommended cluster tier for your application size.
+      - Single Region, 3-Node Replica Set / Shard deployment topology.
+      - Our examples use AWS, Azure, and Google Cloud interchangeably. You can use any of these three cloud providers, but you must change the region name to match the cloud provider. To learn about the cloud providers and their regions, see :atlas:`Cloud Providers </reference/cloud-providers>`.
+
+   .. tab:: Staging and Prod Environments
+      :tabid: stagingprod
+
+      - {+Cluster+} tier set to ``M30`` for a medium-sized application. Use the 
+        :ref:`cluster size guide <arch-center-cluster-size-guide>` to learn the recommended cluster tier for your application size.
+      - Single Region, 3-Node Replica Set / Shard deployment topology.
+      - Our examples use AWS, Azure, and Google Cloud interchangeably. You can use any of these three cloud providers, but you must change the region name to match the cloud provider. To learn about the cloud providers and their regions, see :atlas:`Cloud Providers </reference/cloud-providers>`.
+
+.. tabs::
+
+   .. tab:: CLI
+      :tabid: cli
+
+      .. note::
+
+         Before you can create resources with the {+atlas-cli+}, you must:
+
+         - :atlas:`Create your paying organization 
+           </billing/#configure-a-paying-organization>` and :atlas:`create an API key </configure-api-access/>` for the
+           paying organization.
+         - :atlascli:`Install the {+atlas-cli+} </install-atlas-cli/>` 
+         - :atlascli:`Connect from the {+atlas-cli+} 
+           </connect-atlas-cli/>` using the steps for :guilabel:`Programmatic Use`.
+
+      Create the Organizations
+      ~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Run the following command for each {+BU+}. Change
+      the IDs and names to use your actual values:
+
+      .. code-block::
+
+         atlas organizations create ConsumerProducts --ownerId 508bb8f5f11b8e3488a0e99e --apiKeyRole ORG_OWNER --apiKeyDescription consumer-products-key
+
+      For more configuration options and info about this example, 
+      see :ref:`atlas-organizations-create`.
+
+      You can create an organization and link it to your paying organization programmatically 
+      by using the {+atlas-admin-api+}. To do so, send a ``POST`` request to the ``https://cloud.mongodb.com/api/atlas/v2/orgs`` endpoint,
+      and specify the paying organization ID in the ``federationSettingsId`` field. The requesting service account or API key must have
+      the "Organization Owner" role and the requesting organization must be a paying organization.
+
+      The following example uses ``cURL`` to send the request:
+
+      .. code-block:: bash
+
+         curl --location '/api/atlas/v2/orgs?envelope=false&pretty=false' \
+         --header 'Content-Type: application/vnd.atlas.2023-01-01+json' \
+         --header 'Accept: application/vnd.atlas.2023-01-01+json' \
+         --data '{
+             "name": "<organization name>",
+             "apiKey": {
+                 "desc": "<organization description>",
+                 "roles": [
+                     "ORG_MEMBER"
+                 ]
+             },
+             "federationSettingsId": "<ID of org to link to>",
+             "orgOwnerId": "<organization owners ID>",
+             "skipDefaultAlertsSettings": false
+         }'
+
+      To learn more about the preceding API call, see the
+      `atlas organizations create <https://www.mongodb.com/docs/atlas/cli/current/command/atlas-organizations-create/#std-label-atlas-organizations-create>`__ API documentation.
+
+      To get the user IDs and organization IDs, see the following
+      commands:
+
+      - :ref:`atlas-organizations-list`
+      - :ref:`atlas-organizations-users-list`
+
+      Create the Projects
+      ~~~~~~~~~~~~~~~~~~~
+
+      Run the following command for each application and environment pair. Change the IDs and names to use your values:
+
+      .. code-block::
+
+         atlas projects create "Customer Portal - Prod" --tag environment=production --orgId 32b6e34b3d91647abb20e7b8
+
+      For more configuration options and info about this example, 
+      see :ref:`atlas-projects-create`.
+
+      To get the project IDs, see the following command:
+
+      - :ref:`atlas-projects-list`
+
+      Configure Encryption with Customer Key Management
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      For staging and production environments, we recommend that you enable encryption with customer key management when you provision your {+clusters+}. For development and testing, consider skipping encryption with customer key management to save costs, unless you're in a highly-regulated industry or storing sensitive data. To learn more, see :ref:`arch-center-orgs-projects-clusters-recs`.
+
+      You can't use the the {+atlas-cli+} to manage encryption with customer key management.
+      Instead, use the following methods:
+
+      - :atlas:`{+atlas-ui+} </security-kms-encryption>`
+      - :oas-bump-atlas-tag:`{+atlas-admin-api+} <encryption-at-rest-using-customer-key-management>`
+
+      Create One {+Cluster+} Per Project
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. tabs::
+
+         .. tab:: Dev and Test Environments
+            :tabid: devtest
+
+            To create a single-region cluster for your development and testing environments, run the following command for each project that you created. Change the IDs and names to use your values:
+
+            .. note::
+
+               You can also use the :oas-bump-atlas-tag:`clusters Atlas Admin API <clusters>` to create a cluster.
+               
+               This example doesn't enable auto-scaling to help control costs in development and testing environments.
+               For staging and production environments, :ref:`auto-scaling should be enabled <arch-center-scalability>`.
+
+            .. code-block::
+
+               atlas clusters create CustomerPortalDev \
+                 --projectId 56fd11f25f23b33ef4c2a331 \
+                 --region EASTERN_US \
+                 --members 3 \
+                 --tier M10 \
+                 --provider GCP \
+                 --mdbVersion 8.0 \
+                 --diskSizeGB 30 \
+                 --tag bu=ConsumerProducts \
+                 --tag teamName=TeamA \
+                 --tag appName=ProductManagementApp \
+                 --tag env=Production \
+                 --tag version=8.0 \
+                 --tag email=marissa@example.com \
+                 --watch
+
+            To configure a multi-region cluster, create the following ``cluster.json`` file for each project that you created. Change the IDs and names to use your values.
+
+            .. code-block:: json
+
+               {  
+                 "name": "CustomerPortalDev",  
+                 "projectId": "56fd11f25f23b33ef4c2a331",  
+                 "clusterType": "REPLICASET",   
+                 "diskSizeGB": 30,  
+                 "mongoDBMajorVersion": "8.0",  
+                 "backupEnabled": true,  
+                 "replicationSpecs": [  
+                   {  
+                     "numShards": 1,  
+                     "regionConfigs": [
+                       {
+                         "providerName": "GCP",  
+                         "regionName": "EASTERN_US",  
+                         "members": 3,  
+                         "priority": 7,
+                         "autoScaling": {
+                           "compute": {
+                             "enabled": true,
+                             "scaleDownEnabled": true
+                           },
+                           "diskGB": {
+                             "enabled": true
+                           }
+                         }
+                       },  
+                       {
+                         "providerName": "GCP",
+                         "regionName": "CENTRAL_US",  
+                         "members": 2,  
+                         "priority": 5,
+                         "autoScaling": {
+                           "compute": {
+                             "enabled": true,
+                             "scaleDownEnabled": true
+                           },
+                           "diskGB": {
+                             "enabled": true
+                           }
+                         }
+                       },  
+                       {
+                         "providerName": "GCP",  
+                         "regionName": "WESTERN_US",  
+                         "members": 2,  
+                         "priority": 4,
+                         "autoScaling": {
+                           "compute": {
+                             "enabled": true,
+                             "scaleDownEnabled": true
+                           },
+                           "diskGB": {
+                             "enabled": true
+                           }
+                         }
+                       }  
+                     ]
+                   }  
+                 ],  
+                 "tags": [  
+                   { "key": "bu", "value": "ConsumerProducts" },  
+                   { "key": "teamName", "value": "TeamA" },  
+                   { "key": "appName", "value": "ProductManagementApp" },  
+                   { "key": "env", "value": "Production" },  
+                   { "key": "version", "value": "8.0" },  
+                   { "key": "email", "value": "marissa@example.com" }  
+                 ]  
+               }
+
+            After you create the preceding configuration file, run the following command to create the cluster:
+
+            .. code-block::
+
+               atlas clusters create --file <path to your configuration file>
+
+         .. tab:: Staging and Prod Environments
+            :tabid: stagingprod
+
+            To create a single-region cluster for your staging and production environments, create the following ``cluster.json`` file for each project that you created. Change the IDs and names to use your values:
+
+            .. code-block:: json
+
+               {
+                   "clusterType": "REPLICASET",
+                   "links": [],
+                   "name": "CustomerPortalProd",
+                   "mongoDBMajorVersion": "8.0",
+                   "replicationSpecs": [
+                     {
+                       "numShards": 1,
+                       "regionConfigs": [
+                         {
+                           "electableSpecs": {
+                             "instanceSize": "M30",
+                             "nodeCount": 3
+                           },
+                           "priority": 7,
+                           "providerName": "GCP",
+                           "regionName": "EASTERN_US",
+                           "analyticsSpecs": {
+                             "nodeCount": 0,
+                             "instanceSize": "M30"
+                           },
+                           "autoScaling": {
+                             "compute": {
+                               "enabled": true,
+                               "scaleDownEnabled": true
+                             },
+                             "diskGB": {
+                               "enabled": true
+                             }
+                           },
+                           "readOnlySpecs": {
+                             "nodeCount": 0,
+                             "instanceSize": "M30"
+                           }
+                         }
+                       ],
+                       "zoneName": "Zone 1"
+                     }
+                   ],
+                   "tag" : [{
+                     "bu": "ConsumerProducts",
+                     "teamName": "TeamA",
+                     "appName": "ProductManagementApp",
+                     "env": "Production",
+                     "version": "8.0",
+                     "email": "marissa@example.com"
+                   }]
+                 }
+
+            After you create the ``cluster.json`` file, run the following command for each project that you created. The command uses the ``cluster.json`` file to create a cluster.
+
+            .. code-block::
+
+               atlas cluster create --projectId 5e2211c17a3e5a48f5497de3 --file cluster.json
+
+            To configure a multi-region cluster, modify the ``replicationSpecs`` array in the preceding ``cluster.json`` file to specify multiple regions, as shown in the following example:
+
+            .. code-block:: json
+
+               {
+                   …
+                   "replicationSpecs": [
+                     {
+                       "numShards": 1,
+                       "regionConfigs": [
+                         {
+                           "electableSpecs": {
+                             "instanceSize": "M30",
+                             "nodeCount": 3
+                           },
+                           "priority": 7,
+                           "providerName": "GCP",
+                           "regionName": "EASTERN_US",
+                           "analyticsSpecs": {
+                             "nodeCount": 0,
+                             "instanceSize": "M30"
+                           },
+                           "autoScaling": {
+                             "compute": {
+                               "enabled": true,
+                               "scaleDownEnabled": true
+                             },
+                             "diskGB": {
+                               "enabled": true
+                             }
+                           },
+                           "readOnlySpecs": {
+                             "nodeCount": 0,
+                             "instanceSize": "M30"
+                           }
+                         },
+                         {
+                           "electableSpecs": {
+                             "instanceSize": "M30",
+                             "nodeCount": 3
+                           },
+                           "priority": 5,
+                           "providerName": "GCP",
+                           "regionName": "CENTRAL_US",
+                           "analyticsSpecs": {
+                             "nodeCount": 0,
+                             "instanceSize": "M30"
+                           },
+                           "autoScaling": {
+                             "compute": {
+                               "enabled": true,
+                               "scaleDownEnabled": true
+                             },
+                             "diskGB": {
+                               "enabled": true
+                             }
+                           },
+                           "readOnlySpecs": {
+                             "nodeCount": 0,
+                             "instanceSize": "M30"
+                           }
+                         },
+                         {
+                           "electableSpecs": {
+                             "instanceSize": "M30",
+                             "nodeCount": 3
+                           },
+                           "priority": 6,
+                           "providerName": "GCP",
+                           "regionName": "WESTERN_US",
+                           "analyticsSpecs": {
+                             "nodeCount": 0,
+                             "instanceSize": "M30"
+                           },
+                           "autoScaling": {
+                             "compute": {
+                               "enabled": true,
+                               "scaleDownEnabled": true
+                             },
+                             "diskGB": {
+                               "enabled": true
+                             }
+                           },
+                           "readOnlySpecs": {
+                             "nodeCount": 0,
+                             "instanceSize": "M30"
+                           }
+                         }
+                       ],
+                       "zoneName": "Zone 1"
+                     }
+                   ],
+                   …
+                 }
+
+            After you create the preceding configuration file, run the following command to create the cluster:
+
+            .. code-block::
+
+               atlas clusters create --file <path to your configuration file>
+
+      For more configuration options and info about these examples, see :ref:`atlas-clusters-create`.
+
+   .. tab:: Terraform
+      :tabid: tf
+
+      .. note::
+
+         Before you
+         can create resources with Terraform, you must:
+
+         - :atlas:`Create your paying organization 
+           </billing/#configure-a-paying-organization>` and :atlas:`create an API key </configure-api-access/>` for the
+           paying organization. Store your API key as environment
+           variables by running the following command in the terminal:
+
+           .. code-block::
+
+              export MONGODB_ATLAS_PUBLIC_KEY="<insert your public key here>"
+              export MONGODB_ATLAS_PRIVATE_KEY="<insert your private key here>"
+
+         - `Install Terraform 
+           <https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli>`__ 
+
+      .. important::
+
+         .. include:: /includes/terraform-provider-v2-note.rst
+
+      Create the Projects and Deployments
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. tabs::
+
+         .. tab:: Dev and Test Environments
+            :tabid: devtest
+
+            For your development and testing environments, create the
+            following files for each application and environment 
+            pair. Place the files for each application and environment
+            pair in their own directory. Change the IDs and names to use your values:
+
+            main.tf
+            ```````
+
+            .. include:: /includes/examples/terraform/dev-test/tf-example-main-devtest.rst 
+
+            variables.tf
+            ````````````
+
+            .. include:: /includes/examples/terraform/tf-example-variables.rst
+
+            terraform.tfvars
+            ````````````````
+
+            .. include:: /includes/examples/terraform/dev-test/tf-example-tfvars-devtest.rst
+
+            provider.tf
+            ```````````
+
+            .. include:: /includes/examples/terraform/tf-example-provider.rst
+
+         .. tab:: Staging and Prod Environments
+            :tabid: stagingprod
+
+            For your staging and production environments, create the
+            following files for each application and environment 
+            pair. Place the files for each application and environment
+            pair in their own directory. Change the IDs and names to use your values:
+
+            main.tf
+            ```````
+
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-main-stagingprod.rst 
+
+            variables.tf
+            ````````````
+
+            .. include:: /includes/examples/terraform/tf-example-variables.rst
+
+            terraform.tfvars
+            ````````````````
+
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-tfvars-stagingprod.rst
+
+            provider.tf
+            ```````````
+
+            .. include:: /includes/examples/terraform/tf-example-provider.rst
+      
+      For more configuration options and info about this example, 
+      see |service-terraform| and the `MongoDB Terraform Blog Post
+      <https://www.mongodb.com/developer/products/atlas/deploy-mongodb-atlas-terraform-aws/>`__.
+
+      After you create the files, navigate to each application and environment pair's directory and run the following
+      command to initialize Terraform:
+
+      .. code-block::
+
+         terraform init
+
+      Run the following command to view the Terraform plan:
+
+      .. code-block::
+
+         terraform plan
+      
+      Run the following command to create one project and one deployment for the application and environment pair. The command uses the files and the |service-terraform| to
+      create the projects and clusters:
+
+      .. code-block::
+
+         terraform apply
+
+      When prompted, type ``yes`` and press :kbd:`Enter` to apply
+      the configuration. 
+
+Next Steps
+----------
+
+After you plan the hierarchy and size for your organizations, projects,
+and {+clusters+}, see the following suggested resources or use the left
+navigation to find features and best practices for each {+waf+} pillar.
+
+- :ref:`arch-center-monitoring-alerts`
+- :ref:`arch-center-network-security`
+- :ref:`arch-center-backups`

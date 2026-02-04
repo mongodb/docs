@@ -1,0 +1,808 @@
+.. _arch-center-monitoring-alerts:
+
+==============================================
+Guidance for {+service+} Monitoring and Alerts
+==============================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: go, shell
+
+.. meta::
+   :description: Learn how to monitor and set up alerts on your Atlas cluster.
+   :keywords: code example, atlas sdk for go, terraform configuration, atlas cli
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+.. dismissible-skills-card::
+   :skill: MongoDB Monitoring Tooling
+   :url: https://learn.mongodb.com/skills?openTab=monitoring%2C+tuning%2C+and+automation
+
+|service-fullname| has a robust set of built-in metrics, telemetry,
+and logs that you can leverage from |service| or integrate into your
+third-party observability and alerting stack. This enables you to
+monitor and manage your |service| deployments and respond to incidents
+proactively and in real time.
+
+Monitoring your deployment allows you to:
+
+- Understand the health and status of your cluster
+- Learn how operations running on the cluster are impacting the
+  database
+- Learn if your hardware is resource constrained
+- Perform workload and query optimization
+- Detect and react to real-time issues to improve your application stack
+
+|service| provides several metrics for monitoring and alerting. You can
+track the health, availability, consumption, and performance of your
+deployments in visual dashboards and by |api|. You can also view various cluster metrics, monitor your
+database performance, configure alerts and alert notification, and
+download activity logs.
+
+Features for {+service+} Monitoring and Alerts
+----------------------------------------------
+
+.. list-table::
+   :widths: 15 85
+   :stub-columns: 1
+
+   * - Metrics
+     - Deployment metrics provide insight into hardware performance and
+       database operation efficiency. |service| collects metrics for
+       your servers, databases, and MongoDB processes and stores metrics
+       data at :atlas:`various granularity levels
+       </monitor-cluster-metrics/#premium-monitoring-granularity>`. For
+       each granularity level,
+       |service| computes metrics as averages of the reported metrics at
+       the next finer granularity level. Many metrics have a burst
+       reporting equivalent.
+
+       You can monitor metrics in the {+atlas-ui+} using the Metrics view, Real-Time
+       Performance Panel, Query Profiler, Performance Advisor and
+       Namespace Insights page. You can also use the {+atlas-cli+} or
+       {+atlas-admin-api+} to funnel metrics into a tool of your choice.
+
+       The following {+atlas-ui+} Metrics view shows the variety of metrics available
+       to monitor for a sample three-node replica set:
+
+       .. figure:: /includes/images/sample-metrics-view.png
+          :alt: An image showing an example Metrics view for a 3 node replica set.
+          :align: center
+          :lightbox:
+
+   * - Alerts
+     - |service| provides alerts for over 200 event types, allowing you
+       to tailor alerts for precise monitoring. |service| issues alerts
+       for the database and server conditions that you configure in your
+       alert settings. When a condition triggers an alert, |service|
+       displays a warning symbol on the cluster and sends alert
+       notifications.
+
+       You can use the {+atlas-ui+}, {+atlas-admin-api+}, {+atlas-cli+},
+       and integrated Terraform resource to configure alerts and alert
+       notification.
+
+   * - Monitoring
+     - |service| monitoring visualizations provide insights into
+       various key
+       metrics, including hardware performance and database operation
+       efficiency. Tools such as real-time performance panels for
+       network and operation visibility, query profilers for tracking
+       efficiency trends, and automated index suggestions allow you to
+       monitor and troubleshoot issues more effectively, driving
+       greater operational efficiency. For example, these charts can
+       help you understand the impact of server restarts and elections
+       on database performance.
+
+   * - Logs
+     - |service| provides logs for each process in the cluster. Each
+       process keeps an account of its activity in its own log file.
+
+       You can download logs by using the {+atlas-ui+}, {+atlas-cli+}, and
+       {+atlas-admin-api+}. To learn more, see :ref:`arch-center-auditing-logging`.
+
+.. _arch-center-monitoring-alerts-recs:
+
+Recommendations for {+service+} Monitoring and Alerts
+-----------------------------------------------------
+
+.. collapsible::
+   :heading: Single-Region Deployment Recommendations
+   :sub_heading: Recommendations that apply only to deployments in a single region
+   :expanded: true
+
+   Single-region deployments have no unique considerations
+   for integrations with third-party alerting tools,
+   such as :ref:`Datadog <datadog-integration>` and :ref:`Prometheus <prometheus-integration>`.
+   See :ref:`arch-center-monitoring-alerts-recs-for-any-deployment`.
+
+.. collapsible::
+   :heading: Multi-Region and Multi-Cloud Deployment Recommendations
+   :sub_heading: Recommendations that apply only to deployments across multiple regions or multiple cloud providers
+   :expanded: true
+
+   In multi-region clusters, consider potential data transfer costs
+   associated with sending logs and metrics across regions. We recommend
+   that you configure your logging and auditing system to minimize
+   inter-region data transfers, possibly by keeping logs local to the
+   region where they are generated.
+
+.. _arch-center-monitoring-alerts-recs-for-any-deployment:
+
+All Deployment Paradigm Recommendations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following recommendations apply to all :ref:`deployment paradigms
+<arch-center-paradigms>`.
+
+Monitor by Using Metrics
+````````````````````````
+
+To monitor your cluster or database performance, you can view the
+cluster metrics such as historical throughput, performance, and
+utilization metrics. The following table lists some (but not all)
+important categories of metrics to monitor:
+
+.. list-table::
+   :widths: 30 70
+   :stub-columns: 1
+
+   * - |service| Cluster Operations and Connection Metrics
+     - - Opcounters
+       - Operation Execution Times
+       - Query Executors and Query Targeting
+       - Connections
+       - Queues
+       - Scan and Order
+
+   * - Hardware Metrics
+     - - Normalized System CPU
+       - Normalized Process CPU
+       - Disk Latency
+       - Disk IOPS
+       - Disk Space Free
+       - System Memory
+       - Swap Usage
+
+   * - Replication Metrics
+     - - Replication Lag
+       - Replication Oplog Window
+       - Replication Headroom
+       - Oplog GB/Hour
+       - Opcounters -repl
+
+You can use the {+atlas-ui+}, {+atlas-admin-api+}, and {+atlas-cli+} to
+view |service| cluster metrics. Additionally, |service| provides
+built-in integrations with third-party tools such as :ref:`Datadog
+<datadog-integration>` and :ref:`Prometheus <prometheus-integration>`,
+and you can also leverage the {+atlas-admin-api+} to integrate with
+other custom metrics tools.
+
+To learn more, see :ref:`monitor-cluster-metrics`.
+
+Monitor by Configuring Alerts
+`````````````````````````````
+
+|service| extends into your existing observability stack so that you can
+get alerts and make data-driven decisions without replacing your current
+tools or changing your workflows. {+service+} can send alert
+notifications with third-party tools like :atlas:`Microsoft Teams
+</tutorial/integrate-msft-teams>`, :ref:`PagerDuty
+<pagerduty-integration>`, :ref:`DataDog <datadog-integration>`, :atlascli:`Opsgenie
+</command/atlas-integrations-create-OPS_GENIE/>`, :atlascli:`Splunk
+On-Call </command/atlas-integrations-create-VICTOR_OPS/>`, and
+:atlas:`other tools </tutorial/third-party-service-integrations/>` to
+give you visibility into both database and full-stack performance in the
+same place.
+
+Configure alerts and notifications for security events, such as failed
+login attempts, unusual access patterns, and data breaches. In dev and
+test environments, we recommend configuring alerts for clusters that
+have been inactive for seven or more days to help you identify which
+clusters can be shut down to save costs.
+
+When you :atlas:`view alerts in the {+atlas-ui+}
+</alert-resolutions/#view-alerts>`, we recommend that you use
+available filters to limit results by host, replica set, cluster,
+shard, and more to help focus on the most critical alerts.
+
+Recommended {+service+} Alert Configurations
+############################################
+
+At the minimum, we recommend configuring the following alerts. These
+alerts recommendations provide a baseline, but you should adjust them
+based on your workload characteristics. Where "high priority" conditions
+are specified in the following table, we recommend that you configure
+multiple alerts for the same condition, one for a low priority level of
+severity, and one for a high priority level of severity. This allows you
+to configure alert notification settings for each separately.
+
+{+service+} configures some alerts by default. To learn about the
+default alert settings, see :ref:`default-alert-settings`.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 25 25 30
+   :stub-columns: 1
+
+   * - Condition
+     - Recommended Alert Threshold: Low Priority
+     - Recommended Alert Threshold: High Priority
+     - Key Insights
+
+   * - Oplog Window
+     - < 24h for 5 minutes
+     - < 1h for 10 minutes
+     - .. include:: /includes/cloud-docs/shared-metric-description-oplog-window.rst
+
+   * - :manual:`Election </core/replica-set-elections/>` events
+     - > 3 for 5 minutes
+     - > 30 for 5 minutes
+     - Monitor election events, which occur when a primary node steps down and a
+       secondary node is elected as the new primary. Frequent election events can
+       disrupt operations and impact availability, causing temporary write
+       unavailability and possible rollback of data. Keeping election events to
+       a minimum ensures consistent write operations and stable cluster performance.
+
+   * - Read :atlas:`IOPS </reference/alert-resolutions/disk-io-utilization/>`
+     - > 4000 for 2 minutes
+     - > 9000 for 5 minutes
+     - .. include:: /includes/cloud-docs/shared-metric-description-iops.rst
+
+   * - Write :atlas:`IOPS </reference/alert-resolutions/disk-io-utilization/>`
+     - > 4000 for 2 minutes
+     - > 9000 for 5 minutes
+     - .. include:: /includes/cloud-docs/shared-metric-description-iops.rst
+
+   * - Read Latency
+     - > 20ms for 5 minutes
+     - > 50 s for 5 minutes
+     - .. include:: /includes/cloud-docs/shared-metric-description-latency.rst
+
+   * - Write Latency
+     - > 20ms for 5 minutes
+     - > 50ms for more than 5 minutes
+     - .. include:: /includes/cloud-docs/shared-metric-description-latency.rst
+
+   * - Swap use
+     - > 2GB for 15 minutes
+     - > 2GB for 15 minutes
+     - .. include:: /includes/cloud-docs/shared-metric-description-memory.rst
+
+   * - Host down
+     - 15 minutes
+     - 24 hours
+     - Monitor your hosts to detect downtime promptly. A host down for more than
+       15 minutes can impact availability, while downtime exceeding 24 hours is
+       critical, risking data accessibility and application performance.
+
+   * - No primary
+     - 5 minutes
+     - 5 minutes
+     - Monitor the status of your replica sets to identify instances where there
+       is no primary node. A lack of a primary for more than 5 minutes can halt
+       write operations and impact application functionality.
+
+   * - Missing active ``mongos``
+     - 15 minutes
+     - 15 minutes
+     - Monitor the status of active ``mongos`` processes to ensure effective query
+       routing in sharded clusters. A missing ``mongos`` can disrupt query routing.
+
+   * - Page faults
+     - > 50/second for 5 minutes
+     - > 100/second for 5 minutes
+     - .. include:: /includes/cloud-docs/shared-metric-description-page-faults.rst
+
+   * - Replication lag
+     - > 240 second for 5 minutes
+     - > 1 hour for 5 minutes
+     - .. include:: /includes/cloud-docs/shared-metric-description-replication-lag.rst
+
+   * - Failed backup
+     - Any occurrence
+     - None
+     - Track backup operations to ensure data integrity. A failed backup can compromise
+       data availability.
+
+   * - Restored backup
+     - Any occurrence
+     - None
+     - Verify restored backups to ensure data integrity and system functionality.
+
+   * - Fallback snapshot failed
+     - Any occurrence
+     - None
+     - Monitor fallback snapshot operations to ensure data redundancy and recovery
+       capability.
+
+   * - Backup schedule behind
+     - > 12 hours
+     - > 12 hours
+     - Check backup schedules to ensure they are on track. Falling behind can
+       risk data loss and compromise recovery plans.
+
+   * - Queued Reads
+     - > 0-10
+     - > 10+
+     - Monitor queued reads to ensure efficient data retrieval. High levels of
+       queued reads may indicate resource constraints or performance bottlenecks,
+       requiring optimization to maintain system responsiveness.
+
+   * - Queued Writes
+     - > 0-10
+     - > 10+
+     - Monitor queued writes to maintain efficient data processing. High levels
+       of queued writes may signal resource constraints or performance bottlenecks, requiring optimization to maintain system responsiveness.
+
+   * - Restarts last hour
+     - > 2
+     - > 2
+     - Track the number of restarts in the last hour to detect instability or
+       configuration issues. Frequent restarts can indicate underlying problems
+       that require immediate investigation to maintain system reliability and uptime.
+
+   * - :manual:`Primary election </core/replica-set-elections/>`
+     - Any occurrence
+     - None
+     - Monitor primary elections to ensure stable cluster operations. Frequent
+       elections can indicate network issues or resource constraints, potentially
+       impacting the availability and performance of the database.
+
+   * - Maintenance no longer needed
+     - Any occurrence
+     - None
+     - Review unnecessary maintenance tasks to optimize resources and minimize disruptions.
+
+   * - Maintenance started
+     - Any occurrence
+     - None
+     - Track the start of maintenance tasks to ensure planned activities proceed smoothly.
+       Proper oversight helps maintain system performance and minimize downtime during maintenance.
+
+   * - Maintenance scheduled
+     - Any occurrence
+     - None
+     - Monitor scheduled maintenance to prepare for potential system impacts.
+
+   * - :atlas:`Steal </alert-basics/#cpu-steal>`
+     - > 5% for 5 minutes
+     - > 20% for 5 minutes
+     - Monitor CPU steal on AWS EC2 clusters with Burstable Performance
+       to identify when CPU usage exceeds the guaranteed baseline due to shared
+       cores. High steal percentages indicate the CPU credit balance is depleted,
+       affecting performance.
+
+   * - CPU
+     - > 75% for 5 minutes
+     - > 75% for 5 minutes
+     - .. include:: /includes/cloud-docs/shared-metric-description-cpu.rst
+
+   * - Disk partition usage
+     - > 90%
+     - > 95% for 5 minutes
+     - Monitor disk partition usage to ensure sufficient storage availability.
+       High usage levels can lead to performance degradation and potential system outages.
+
+To learn more, see :atlas:`Configure and Resolve Alerts </alerts>`.
+
+Monitor by Using {+service+} Built-In Tools
+```````````````````````````````````````````
+
+|service| provides several tools that allow you to proactively monitor and
+improve the performance of your database.
+
+Real-Time Performance Panel
+###########################
+
+The Real-Time Performance Panel (RTPP) in the {+atlas-ui+} provides
+insights into current network traffic, database operations, and hardware
+statistics about the hosts at a one second granularity in the
+{+atlas-ui+}. We recommend that you use :abbr:`RTPP (Real-Time
+Performance Panel)` to:
+
+- Visually identify relevant database operations
+- Evaluate query execution times
+- Evaluate the ratio of documents scanned to documents returned
+- Monitor network load and throughput
+- Discover potential replication lag on secondary members of replica sets
+- Kill operations before they have completed to free up valuable resources
+
+The RTPP is not available to monitor from the {+atlas-admin-api+},
+but you can enable and disable the RTPP from the {+atlas-admin-api+}
+with :oas-bump-atlas-op:`Update One Project Settings
+<updateprojectsettings>`.
+
+To learn more, see :ref:`real-time-metrics-status-tab`.
+
+Query Profiler
+##############
+
+The Query Profiler identifies slow queries and bottlenecks, and suggests
+index refinement and query restructuring to improve the performance of
+your database. It provides visibility into the slowest operations over
+a 24-hour window in the {+atlas-ui+}, making it easier to identify
+trends and outliers in query efficiency. We recommend that you use this
+data to pinpoint and troubleshoot poorly performing queries, reducing
+performance overhead.
+
+You can return log lines for slow queries that the Query Profiler identifies from the {+atlas-admin-api+}
+with :oas-bump-atlas-op:`Return Slow Queries
+<listslowqueries>`.
+
+To learn more, see :ref:`query-profiler`.
+
+Performance Advisor
+###################
+
+The Performance Advisor automatically analyzes logs for slow-running
+queries and recommends indexes to create and drop. It analyzes slow
+queries and provides index suggestions for individual collections,
+ranked by a calculated impact score, and tailored to your workload. This
+gives you an easy, instantaneous way to make high-impact performance
+improvements. We recommend that you monitor regularly, focus on slow
+queries, and enable the profiler selectively to minimize overhead.
+
+You can use the {+atlas-ui+}, {+atlas-cli+}, and the {+atlas-admin-api+}
+to view slow queries and suggestions for improving the performance of
+your queries from the Performance Advisor.
+
+You can return log lines for slow queries that the Performance Advisor identifies from the {+atlas-admin-api+}
+with :oas-bump-atlas-op:`Return Slow Queries
+<listslowqueries>`. To return suggested indexes and more with the {+atlas-admin-api+}, see :oas-bump-atlas-tag:`Performance Advisor
+<performance-advisor>`.
+
+To learn more, see :ref:`performance-advisor`.
+
+Namespace Insights
+##################
+
+The Namespace Insights page in the {+atlas-ui+} allows you to monitor
+collection-level performance and usage metrics. It displays metrics
+(such as the number of CRUD operations on the collection) and statistics
+(like average query execution time) for certain hosts and operation
+types for the collections that you :atlas:`pin for monitoring </namespace-insights/#manage-pinned-namespaces-from-the-dialog>`. This gives you
+more granular visibility into collection-level performance, which you
+can use to optimize database performance, resolve issues, and make
+decisions about scaling, indexing, and query tuning.
+
+To learn more, see :ref:`namespace-insights`.
+
+Activity Feed
+#############
+
+The Organization Activity Feed and Project Activity Feed in the
+{+atlas-ui+} list all events that occur for a given {+service+} organization
+or project, respectively. You can filter each activity feed for event
+type and time range to monitor events such as API access updates, alert
+configuration changes, and more. This allows you to review activity
+records for your organization or project at your desired level of
+granularity.
+
+You use the {+atlas-ui+}, {+atlas-cli+}, and {+atlas-admin-api+} to
+retrieve events from each activity feed. To learn more, see
+:ref:`activity-feed`.
+
+Monitor by Using Logs
+`````````````````````
+
+.. include:: /includes/cloud-docs/logs.rst
+
+You can also :atlas:`push logs to an AWS S3 bucket </push-logs/>`.
+When you configure this feature, {+service+} continually pushes logs from ``mongod``, ``mongos``, and audit logs to an |aws| S3 bucket. {+service+} exports logs every five minutes.
+
+
+Automation Examples: {+service+} Monitoring and Logging
+-------------------------------------------------------
+
+The following examples demonstrate how to enable monitoring using |service|
+:ref:`tools for automation <arch-center-automation>`.
+
+.. tabs::
+
+   .. tab:: Dev and Test Environments
+      :tabid: devtest
+
+   .. tab:: Staging and Prod Environments
+      :tabid: stagingprod
+
+.. tabs::
+   :hidden:
+
+   .. tab:: Dev and Test Environments
+      :tabid: devtest
+
+      .. tabs::
+
+         .. tab:: CLI
+            :tabid: cli
+
+            View Cluster Metrics
+            ~~~~~~~~~~~~~~~~~~~~
+
+            Run the following command to retrieve the amount of used and free
+            space on the specified disk. This metric can be used to determine
+            if the system is running out of free space.
+
+            .. include:: /includes/examples/cli/dev-test/cli-example-metrics-disk-devtest.rst
+
+            Configure Alerts
+            ~~~~~~~~~~~~~~~~
+
+            Run the following command to create an alert notification to an
+            email address when your deployment doesn't have a primary.
+
+            .. include:: /includes/examples/cli/dev-test/cli-example-alerts-no-primary-devtest.rst
+
+            Monitor Database Performance
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+            Run the following command to enable |service|-managed slow operation threshold
+            for your project.
+
+            .. include:: /includes/examples/cli/dev-test/cli-example-performance-advisor-enable-devtest.rst
+
+            Download Logs
+            ~~~~~~~~~~~~~
+
+            Run the following command to download a compressed file that contains the
+            MongoDB logs for the specified host in your project.
+
+            .. include:: /includes/examples/cli/cli-example-download-logs.rst
+
+         .. tab:: Atlas Go SDK
+            :tabid: go-sdk
+
+            .. include:: /includes/complete-examples-go-sdk.rst
+
+            .. include:: /includes/step-authenticate-go-sdk.rst
+
+            View Cluster Metrics
+            ~~~~~~~~~~~~~~~~~~~~
+
+            The following example script demonstrates how to retrieve the amount of
+            used and free space on the specified disk. This metric can be used
+            to determine if the system is running out of free space.
+
+            .. literalinclude:: includes/examples/go-sdk/snippets/main.snippet.get-metrics-dev.go
+               :language: go
+               :caption: monitoring/metrics_process/main.go
+
+            Download Logs
+            ~~~~~~~~~~~~~
+
+            The following example script demonstrates how to download and
+            unzip a compressed file that contains the
+            MongoDB logs for the specified host in your Atlas project:
+
+            .. literalinclude:: includes/examples/go-sdk/snippets/main.snippet.get-logs.go
+              :language: go
+              :caption: monitoring/logs/main.go
+
+         .. tab:: Terraform
+            :tabid: terraform
+
+            .. include:: /includes/complete-examples-terraform.rst
+
+            Before you can create resources with Terraform, you must:
+
+            - :ref:`Create your paying organization
+              <configure-paying-org>` and :ref:`create an API key
+              <atlas-admin-api-access>` for the paying organization.
+              Store your |api| key as environment variables by running the
+              following command in the terminal:
+
+              .. code-block:: shell
+
+                 export MONGODB_ATLAS_PUBLIC_KEY="<insert your public key here>"
+                 export MONGODB_ATLAS_PRIVATE_KEY="<insert your private key here>"
+
+            - `Install Terraform <https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli>`__
+
+            We also recommend `creating a workspace for your environment <https://developer.hashicorp.com/terraform/cloud-docs/recommended-practices/part1#one-workspace-per-environment-per-terraform-configuration>`__.
+
+            Configure Alerts
+            ~~~~~~~~~~~~~~~~
+
+            The following examples demonstrate how to configure alerts
+            and alert notifications. You must create the following files
+            for each example. Place the files for each example in their
+            own directory. Change the IDs and names to use your values:
+
+            variables.tf
+            ````````````
+
+            .. include:: /includes/examples/terraform/dev-test/tf-example-monitoring-variables-devtest.rst
+
+            terraform.tfvars
+            ````````````````
+
+            .. include:: /includes/examples/terraform/dev-test/tf-example-monitoring-tfvars-devtest.rst
+
+            **Example:** Use the following to send an alert notification
+            by email to users with the ``GROUP_CLUSTER_MANAGER`` role
+            when there is a replication lag, which could result in data
+            inconsistencies.
+
+            main.tf
+            ```````
+
+            .. include:: /includes/examples/terraform/dev-test/tf-example-alerts-replication-lag-devtest.rst
+
+   .. tab:: Staging and Prod Environments
+      :tabid: stagingprod
+
+      .. tabs::
+
+         .. tab:: CLI
+            :tabid: cli
+
+            View Cluster Metrics
+            ~~~~~~~~~~~~~~~~~~~~
+
+            Run the sample command to retrieve the following metrics:
+
+            - OPCOUNTERS - Monitor the amount of queries, updates, inserts,
+              and deletes occurring at peak load and ensure that load doesn't
+              increase unexpectedly.
+            - CONNECTIONS - Ensure that the number of sockets used for
+              heartbeats and replication between members isn't above the
+              set limit.
+            - QUERY TARGETING - Ensure the number of keys and documents
+              scanned to the number of documents returned, averaged by
+              second, aren't too high.
+            - SYSTEM CPU - Ensure that the CPU usage is steady.
+            - GLOBAL LOCK QUEUE - Monitor the number of read and write
+              operations that are currently queued and waiting for the
+              read and write lock, and ensure that load doesn't increase
+              unexpectedly.
+
+            .. include:: /includes/examples/cli/staging-prod/cli-example-metrics-processes-stagingprod.rst
+
+            Configure Alerts
+            ~~~~~~~~~~~~~~~~
+
+            Run the following command to send alerts to a group by email when
+            there are possible connection storms based on the number of
+            connections in your project.
+
+            .. include:: /includes/examples/cli/staging-prod/cli-example-alerts-connection-storms-stagingprod.rst
+
+            Monitor Database Performance
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+            Run the following command to retrieve the suggested indexes for collections
+            experiencing slow queries.
+
+            .. include:: /includes/examples/cli/staging-prod/cli-example-return-suggested-indexes-stagingprod.rst
+
+            Download Logs
+            ~~~~~~~~~~~~~
+
+            Run the following command to download a compressed file that contains the
+            MongoDB logs for the specified host in your project.
+
+            .. include:: /includes/examples/cli/cli-example-download-logs.rst
+
+         .. tab:: Atlas Go SDK
+            :tabid: go-sdk
+
+            .. include:: /includes/complete-examples-go-sdk.rst
+
+            .. include:: /includes/step-authenticate-go-sdk.rst
+
+            For more information on authenticating and creating a client, see
+            the complete Atlas SDK for Go example project `in GitHub <https://github.com/mongodb/atlas-architecture-go-sdk>`__.
+
+            View Cluster Metrics
+            ~~~~~~~~~~~~~~~~~~~~
+
+            The following example script demonstrates how to retrieve the following metrics:
+
+            - OPCOUNTERS - Monitor the amount of queries, updates, inserts,
+              and deletes occurring at peak load and ensure that load doesn't
+              increase unexpectedly.
+            - CONNECTIONS - Ensure that the number of sockets used for
+              heartbeats and replication between members isn't above the
+              set limit.
+            - QUERY TARGETING - Ensure the number of keys and documents
+              scanned to the number of documents returned, averaged by
+              second, aren't too high.
+            - SYSTEM CPU - Ensure that the CPU usage is steady.
+            - GLOBAL LOCK QUEUE - Monitor the number of read and write
+              operations that are currently queued and waiting for the
+              read and write lock, and ensure that load doesn't increase
+              unexpectedly.
+
+            .. literalinclude:: includes/examples/go-sdk/snippets/main.snippet.get-metrics-prod.go
+               :language: go
+               :caption: monitoring/metrics_disk/main.go
+
+            Download Logs
+            ~~~~~~~~~~~~~
+
+            The following example script demonstrates how to download and
+            unzip a compressed file that contains the
+            MongoDB logs for the specified host in your Atlas project:
+
+            .. literalinclude:: includes/examples/go-sdk/snippets/main.snippet.get-logs.go
+              :language: go
+              :caption: monitoring/logs/main.go
+
+         .. tab:: Terraform
+            :tabid: terraform
+
+            .. include:: /includes/complete-examples-terraform.rst
+
+            Before you can create resources with Terraform, you must:
+
+            - :ref:`Create your paying organization
+              <configure-paying-org>` and :ref:`create an API key
+              <atlas-admin-api-access>` for the paying organization.
+              Store your |api| key as environment variables by running the
+              following command in the terminal:
+
+              .. code-block:: shell
+
+                 export MONGODB_ATLAS_PUBLIC_KEY="<insert your public key here>"
+                 export MONGODB_ATLAS_PRIVATE_KEY="<insert your private key here>"
+
+            - `Install Terraform <https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli>`__
+
+            We also recommend `creating a workspace for your environment <https://developer.hashicorp.com/terraform/cloud-docs/recommended-practices/part1#one-workspace-per-environment-per-terraform-configuration>`__.
+
+            Configure Alerts
+            ~~~~~~~~~~~~~~~~
+
+            The following examples demonstrate how to configure alerts
+            and alert notifications. You must create the following files
+            for each example. Place these files for each example in their
+            own directory and replace only the ``main.tf`` file. Change
+            the IDs and names to use your values:
+
+            variables.tf
+            ````````````
+
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-monitoring-variables-stagingprod.rst
+
+            terraform.tfvars
+            ````````````````
+
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-monitoring-tfvars-stagingprod.rst
+
+            **Example 1:** Use the following to integrate with
+            third-party services like Datadog and Prometheus for alert notification.
+
+            main.tf
+            ```````
+
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-third-party-integration-stagingprod.rst
+
+            **Example 2:** Use the following to send alert notification
+            to third-party services like Datadog and Prometheus when
+            there is no primary on the replica set for more than 5 minutes.
+
+            main.tf
+            ```````
+
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-alerts-no-primary-stagingprod.rst
+
+            **Example 3:** Use the following to send an alert
+            notification by email to users with the
+            ``GROUP_CLUSTER_MANAGER`` role when there is a replication
+            lag, which could result in data inconsistencies.
+
+            main.tf
+            ```````
+
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-alerts-replication-lag-stagingprod.rst

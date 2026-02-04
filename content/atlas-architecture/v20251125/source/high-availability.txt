@@ -1,0 +1,461 @@
+.. _arch-center-high-availability:
+
+==========================================
+Guidance for {+service+} High Availability
+==========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+High availability is the ability of your application to ensure
+continuous operation and minimize downtime during infrastructure
+outages, system maintenance, and other disruptions. MongoDB's default
+deployment architecture is designed for high availability, with built-in
+features for data redundancy and automatic failover. This page describes
+additional configuration options and deployment architecture
+enhancements you can choose from to prevent disruptions and support
+robust failover mechanisms for zone, region, and cloud provider outages.
+
+{+service+} Features for High Availability
+------------------------------------------
+
+Database Replication 
+~~~~~~~~~~~~~~~~~~~~
+
+MongoDB's default deployment architecture is designed for redundancy.
+{+service+} deploys each cluster as a :manual:`replica set
+</core/replication>` with a minimum of three database instances (also
+called nodes or replica set members), distributed across separate
+availability zones within your selected cloud provider regions.
+Applications write data to the replica set's :manual:`primary node
+</core/replica-set-primary>`, and then {+service+} replicates and stores
+that data across all nodes within your cluster. To control the
+durability of your data storage, you can adjust the :manual:`write
+concern </reference/write-concern>` of your application code to complete
+the write only once a certain number of secondaries have committed the
+write. The default behavior is for data to be persisted on a majority of
+electable nodes before confirming the action.
+
+The following diagram represents how replication works for a default
+three-node replica set:
+
+.. figure:: /includes/images/atlas-database-replication.png
+   :figwidth: 750px
+   :alt: An image showing the replication process in a three-node replica set.
+   :align: center
+   :lightbox:
+
+Automatic Failover
+~~~~~~~~~~~~~~~~~~
+
+In the event that a primary node in a replica set becomes unavailable
+due to an infrastructure outage, scheduled maintenance, or any other
+disruption, {+service+} clusters self-heal by promoting an existing
+secondary node to the role of primary node in a :manual:`replica set
+election </core/replica-set-elections/>`. This failover process is fully
+automatic and completes within seconds without any data loss, including
+operations that were in flight at the time of the failure, which are
+retried after the failure if :manual:`retryable writes
+</core/retryable-writes/>` are enabled. After a replica set election,
+{+service+} restores or replaces the failing member to ensure that the
+cluster is returned to its target configuration as soon as possible. The
+MongoDB client driver also automatically switches all client connections
+during and after the failure.
+
+The following diagram represents the replica set election process:
+
+.. figure:: /includes/images/atlas-self-healing.png
+   :figwidth: 750px
+   :alt: An image showing the self-healing primary election process in a three-node replica set.
+   :align: center
+   :lightbox:
+
+To improve availability for your most critical applications, you can
+scale your deployment by adding nodes, regions, or cloud providers to
+withstand zone, region, or provider outages, respectively. To learn
+more, see the :ref:`arch-center-scale-for-fault-tolerance`
+recommendation below. 
+
+.. _arch-center-ha-recs:
+
+Recommendations for {+service+} High Availability
+-------------------------------------------------
+
+The following recommendations describe additional configuration options
+and deployment architecture enhancements you can make to increase
+availability for your deployment.
+
+Choose a Cluster Tier that Fits your Deployment Goals
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When creating a new cluster, you can choose between a range of cluster
+tiers available under the Dedicated, Flex, or Free deployment types. The
+cluster tier in MongoDB {+service+} specifies the resources (memory,
+storage, vCPUs, and IOPS) available for each node in your cluster.
+Scaling to a higher tier improves your cluster's ability to handle
+spikes in traffic and increases system reliability through faster
+response to high workloads. To determine the recommended cluster tier
+for your application size, see the :ref:`Atlas Cluster Size Guide
+<arch-center-cluster-size-guide>`.
+
+Atlas also supports :ref:`auto-scaling <cluster-autoscaling>` to allow
+the cluster to automatically adjust to spikes in demand. Automating this
+action reduces the risk of an outage due to resource constraints. To
+learn more, see :ref:`arch-center-automation`. 
+
+.. _arch-center-scale-for-fault-tolerance: 
+
+Scale Your Deployment Paradigm for Fault Tolerance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Fault tolerance for an {+service+} deployment can be measured as the
+number of :manual:`replica set </core/replication>` members that can
+become unavailable while your deployment still remains operational. In
+the event of an availability zone, region, or cloud provider outage,
+{+service+} clusters self-heal by promoting an existing secondary node
+to the role of primary node in a :manual:`replica set election
+</core/replica-set-elections>`. A majority of the voting nodes in a
+replica set must be operational in order to run a replica set election
+when a primary node experiences an outage.
+
+To ensure that a replica set can elect a primary in the case of a
+partial-region outage, you should deploy clusters to regions with at
+least three availability zones. Availability zones are separated groups
+of datacenters within a single cloud provider region, each with its own
+power, cooling, and networking infrastructure. {+service+} automatically
+distributes your cluster across availability zones when they are
+supported by your selected cloud provider region, so that if one zone
+experiences an outage, the remaining nodes in your cluster still support
+regional services. Most {+service+}-supported cloud provider regions
+have at least three availability zones. These regions are marked with a
+star icon in the {+atlas-ui+}. For more information about recommended
+regions, see :ref:`create-cluster-cloud-provider-region`. 
+
+To further improve fault tolerance for your most critical applications,
+you can scale your deployment by adding nodes, regions, or cloud
+providers to withstand availability zone, region, or provider outages,
+respectively. You can increase the node count to any odd number of
+nodes, with a maximum of 7 electable nodes and 50 total nodes. You can
+also deploy a cluster to multiple regions to enhance availability across
+a larger geography and enable automatic failover in the case of a
+full-region outage that disables all availability zones within your
+primary region. The same pattern applies to deploying your cluster to
+multiple cloud providers in order to withstand a full cloud provider
+outage.
+
+For guidance on how to choose a deployment that balances your needs for
+high availability, low latency, compliance, and cost, see our
+:ref:`arch-center-paradigms` documentation.
+
+Prevent Accidental Cluster Deletion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can :ref:`enable termination protection
+<create-cluster-termination-protection>` to ensure that a cluster will
+not be accidentally terminated and require downtime to restore from a
+backup. To delete a cluster that has termination protection enabled, you
+must first disable termination protection. By default, Atlas disables
+termination protection for all clusters.
+
+Enabling termination protection is especially important when leveraging
+{+iac+} tools like Terraform to ensure that a redeployment does not
+provision new infrastructure.
+
+Test Automatic Failovers
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before you deploy an application to production, we strongly recommend
+that you simulate various scenarios that require automatic node
+failovers to measure your preparedness for such events. With
+{+service+}, you can :ref:`test primary node failover <test-failover>`
+for a replica set and :ref:`simulate regional outages <test-outage>` for
+a multi-region deployment.
+
+.. _arch-center-majority-write-concern:
+
+Use ``majority`` Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB allows you to specify the level of acknowledgment requested for
+write operations by using :manual:`write concern
+</reference/write-concern>`. {+service+} has a default write
+concern of ``majority``, meaning that data must be replicated across
+more than half of the nodes in your cluster before {+service+} reports
+success. Using ``majority`` instead of a definite number value like
+``2`` allows {+service+} to automatically adjust to requiring
+replication across fewer nodes if you experience a temporary node
+outage, allowing writes to continue after automatic failover.
+This also provides a consistent setting across all environments, so your
+connection string remains the same whether you have three nodes in a
+test environment or a larger number of nodes in production.
+
+Configure Retryable Database Reads and Writes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+service+} supports :manual:`retryable read </core/retryable-reads/>`
+and :manual:`retryable write </core/retryable-writes/>` operations. When
+enabled, {+service+} retries read and write operations once as a
+safeguard against intermittent network outages and replica set elections
+in which the application temporarily cannot find a healthy primary node.
+Retryable writes require an acknowledged :manual:`write concern
+</reference/write-concern>`, meaning your write concern cannot be ``{w:
+0}``. 
+
+Monitor and Plan Your Resource Utilization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To avoid resource capacity issues, we recommend that you monitor
+resource utilization and hold regular capacity planning sessions. {+ps+}
+offers these sessions. See our :ref:`Resource Capacity Disaster Recovery
+Plan <arch-center-resource-capacity>` for our recommendations on how to
+recover from resource capacity issues.
+
+To learn best practices for alerts and monitoring for resource
+utilization, see :ref:`arch-center-monitoring-alerts`.
+
+Plan Your MongoDB Version Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We recommend that you run the latest MongoDB version to take advantage
+of new features and improved security guarantees. You should always
+ensure that you upgrade to the latest MongoDB major version before your
+current version reaches `end of life
+<https://www.mongodb.com/legal/support-policy/lifecycles>`__.
+
+You can't downgrade your MongoDB version using the {+atlas-ui+}. Because
+of this, we recommend that you work directly with {+ps+} or Technical
+Services when planning and executing a major version upgrade to help you
+avoid any issues that might occur during the upgrade process.
+
+Configure Maintenance Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+service+} maintains uptime during scheduled maintenance by applying
+updates in a rolling fashion to one node at a time. Whenever the current
+primary is taken offline for maintenance during this process,
+{+service+} elects a new primary through an automatic :manual:`replica
+set election </core/replica-set-elections/>`. This is the same process
+that occurs during automatic failover in response to an unplanned
+primary node outage. 
+
+We recommend that you :ref:`configure a custom maintenance window
+<configure-maintenance-window>` for your project to avoid
+maintenance-related replica set elections during business-critical
+hours. You can also set protected hours in your maintenance window
+settings to define a daily window of time in which standard updates
+cannot begin. Standard updates do not involve cluster restarts or
+resyncs. 
+
+Automation Examples: {+service+} High Availability
+--------------------------------------------------
+
+The following examples configure the Single Region, 3 Node Replica Set / Shard 
+deployment topology using |service| :ref:`tools for automation <arch-center-automation>`.
+
+These examples also apply other recommended configurations, including:
+
+.. tabs::
+
+   .. tab:: Dev and Test Environments
+      :tabid: devtest
+
+      .. include:: /includes/shared-settings-clusters-devtest.rst
+
+   .. tab:: Staging and Prod Environments
+      :tabid: stagingprod
+
+      .. include:: /includes/shared-settings-clusters-stagingprod.rst
+
+.. tabs::
+
+   .. tab:: CLI
+      :tabid: cli
+
+      .. note::
+
+         Before you
+         can create resources with the {+atlas-cli+}, you must:
+
+         - :atlas:`Create your paying organization 
+           </billing/#configure-a-paying-organization>` and :atlas:`create an API key </configure-api-access/>` for the
+           paying organization.
+         - :atlascli:`Install the {+atlas-cli+} </install-atlas-cli/>` 
+         - :atlascli:`Connect from the {+atlas-cli+} 
+           </connect-atlas-cli/>` using the steps for :guilabel:`Programmatic Use`.
+
+      Create One Deployment Per Project
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. tabs::
+
+         .. tab:: Dev and Test Environments
+            :tabid: devtest
+
+            For your development and testing environments, run the following command for each project. In the following example, change the IDs and
+            names to use your values.
+
+            .. note::
+
+               The following example doesn't enable auto-scaling to help control costs in development and testing environments.
+               For staging and production environments, :ref:`auto-scaling should be enabled <arch-center-scalability>`. See the "Staging and Prod Environments" tab for examples that
+               enable auto-scaling.
+
+            .. include:: /includes/examples/cli/dev-test/cli-example-create-clusters-devtest.rst
+
+         .. tab:: Staging and Prod Environments
+            :tabid: stagingprod
+
+            For your staging and production environments, create the following ``cluster.json`` file for each project. 
+            Change the IDs and names to use your values:
+
+            .. include:: /includes/examples/cli/cli-json-example-create-clusters.rst
+
+            After you create the ``cluster.json`` file, run the
+            following command for each project. The
+            command uses the ``cluster.json`` file to create a cluster.
+
+            .. include:: /includes/examples/cli/staging-prod/cli-example-create-clusters-stagingprod.rst 
+
+      For more configuration options and info about this example, 
+      see the :ref:`atlas-clusters-create` command.
+
+   .. tab:: Terraform
+      :tabid: Terraform
+
+      .. note::
+
+         Before you
+         can create resources with Terraform, you must:
+
+         - :atlas:`Create your paying organization 
+           </billing/#configure-a-paying-organization>` and :atlas:`create an API key </configure-api-access/>` for the
+           paying organization. Store your API key as environment
+           variables by running the following command in the terminal:
+
+           .. code-block::
+
+              export MONGODB_ATLAS_PUBLIC_KEY="<insert your public key here>"
+              export MONGODB_ATLAS_PRIVATE_KEY="<insert your private key here>"
+
+         - `Install Terraform 
+           <https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli>`__ 
+
+      .. important::
+
+         .. include:: /includes/terraform-provider-v2-note.rst
+
+      Create the Projects and Deployments
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. tabs::
+
+         .. tab:: Dev and Test Environments
+            :tabid: devtest
+
+            For your development and testing environments, create the
+            following files for each application and environment 
+            pair. Place the files for each application and environment
+            pair in their own directory. Change the IDs and names to use your values:
+
+            main.tf
+            ```````
+
+            .. include:: /includes/examples/terraform/dev-test/tf-example-main-devtest.rst 
+
+            variables.tf
+            ````````````
+
+            .. include:: /includes/examples/terraform/tf-example-variables.rst
+
+            terraform.tfvars
+            ````````````````
+
+            .. include:: /includes/examples/terraform/dev-test/tf-example-tfvars-devtest.rst
+
+            provider.tf
+            ```````````
+
+            .. include:: /includes/examples/terraform/tf-example-provider.rst
+
+            After you create the files, navigate to each application and environment pair's directory and run the following
+            command to initialize Terraform:
+
+            .. code-block::
+
+               terraform init
+
+            Run the following command to view the Terraform plan:
+
+            .. code-block::
+
+               terraform plan
+            
+            Run the following command to create one project and one deployment for the application and environment pair. The command uses the files and the |service-terraform| to
+            create the projects and clusters:
+
+            .. code-block::
+
+               terraform apply
+
+            When prompted, type ``yes`` and press :kbd:`Enter` to apply
+            the configuration.
+
+         .. tab:: Staging and Prod Environments
+            :tabid: stagingprod
+
+            For your staging and production environments, create the
+            following files for each application and environment 
+            pair. Place the files for each application and environment
+            pair in their own directory. Change the IDs and names to use your values:
+
+            main.tf
+            ```````
+
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-main-stagingprod.rst 
+
+            variables.tf
+            ````````````
+
+            .. include:: /includes/examples/terraform/tf-example-variables.rst
+
+            terraform.tfvars
+            ````````````````
+
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-tfvars-stagingprod.rst
+
+            provider.tf
+            ```````````
+
+            .. include:: /includes/examples/terraform/tf-example-provider.rst
+
+            After you create the files, navigate to each application and environment pair's directory and run the following
+            command to initialize Terraform:
+
+            .. code-block::
+
+               terraform init
+
+            Run the following command to view the Terraform plan:
+
+            .. code-block::
+
+               terraform plan
+            
+            Run the following command to create one project and one deployment for the application and environment pair. The command uses the files and the |service-terraform| to
+            create the projects and clusters:
+
+            .. code-block::
+
+               terraform apply
+
+            When prompted, type ``yes`` and press :kbd:`Enter` to apply
+            the configuration. 
+      
+      For more configuration options and info about this example, 
+      see |service-terraform| and the `MongoDB Terraform Blog Post
+      <https://www.mongodb.com/developer/products/atlas/deploy-mongodb-atlas-terraform-aws/>`__.

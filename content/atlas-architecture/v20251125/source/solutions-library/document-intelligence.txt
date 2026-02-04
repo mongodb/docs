@@ -1,0 +1,333 @@
+.. _arch-center-is-document-intelligence-fsi:
+
+==================================================
+Document Intelligence with Agentic AI and MongoDB
+==================================================
+
+.. meta:: 
+   :keywords: Document Intelligence, agentic AI, MongoDB, Financial Services, MongoDB Atlas Vector Search, VoyageAI, multi-agent orchestration, agentic RAG, Company Credit Rating, Exception Handling in Payment Processing, Investment Research, Client Onboarding (KYC), Loan Origination
+   :description: Power your document intelligence in financial services with MongoDB. Get AI-powered insights, scalability, and security.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Improve the interactivity of banking applications by using MongoDB Atlas
+Vector Search and large language models.
+
+- **Use cases**: `Gen AI <https://www.mongodb.com/solutions/use-cases/artificial-intelligence>`_, 
+  `Intelligent Search <https://www.mongodb.com/solutions/use-cases/intelligent-search>`_,
+  `Content Management <https://www.mongodb.com/use-cases/content-management>`__
+- **Industries**: `Financial Services <https://www.mongodb.com/solutions/industries/financial-services>`_
+- **Products**: `MongoDB Atlas <https://www.mongodb.com/atlas/database>`__, `MongoDB Atlas Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__, `Voyage AI <https://www.mongodb.com/products/platform/ai-search-and-retrieval>`__
+- **Partners**: `Amazon Bedrock <https://aws.amazon.com/bedrock>`_, `LangChain <https://cloud.mongodb.com/langchain>`_
+
+
+Solution Overview
+-----------------
+
+In this solution, you can learn how to leverage document intelligence
+using agentic AI powered by MongoDB. This approach unlocks insights from
+structured, semi-structured, and unstructured data across diverse
+sources like local repositories, cloud containers, and cloud storage
+services.
+
+Financial institutions and FinTech providers manage massive volumes of
+documents and fragmented data from multiple sources. Manual tasks, such
+as collecting, searching, and analyzing this information, slow
+operations and increase the risk of errors.
+
+This solution addresses these challenges using a multi-agent
+orchestration system. It is powered by MongoDB’s flexible document
+model, MongoDB Atlas Vector Search, VoyageAI's ``voyage-context-3``, and
+agentic AI. 
+
+This solution explores five document intelligence use cases in financial services:
+
+1. Company Credit Rating
+#. Exception Handling in Payment Processing
+#. Investment Research
+#. Client Onboarding (KYC)
+#. Loan Origination
+
+The next section explains how to transform static documents into dynamic
+sources of operational and strategic insights.
+
+
+Reference Architectures
+-----------------------
+
+This solution is composed of three main modular components:
+
+.. figure:: /includes/images/industry-solutions/docintel-high-level-arch.svg
+   :width: 750px
+   :alt: Reference architecture for financial services document intelligence with MongoDB.
+
+   Figure 1. Intelligent document processing architecture with MongoDB.
+
+**1. Supervisor Multi-Agent Orchestration** 
+
+A **Supervisor Agent** coordinates a team of specialized agents. Each agent is given its own prompts and specific tools to perform specific tasks:
+
+- **Scanner Agent** discovers and catalogs available documents from multiple sources (Local files, AWS S3, Google Drive).
+- **Evaluator Agent** assesses document relevance based on industry and use case context.
+- **Extractor Agent** uses Vision AI (Claude 3.5 Sonnet v2) to interpret text and visual elements like charts or tables and convert them to markdown.
+- **Processor Agent** breaks content into semantically meaningful chunks, generates embeddings using VoyageAI, and stores them in MongoDB Atlas collections.
+
+**Part 2. Agentic RAG System** 
+
+Once data is ingested, this RAG workflow:
+
+- Enables real-time interaction with a **document assistant agent**.
+- Uses query generation, document grading, and query rewriting loops to automatically refine responses.
+- Uses `voyage-context-3 <https://www.mongodb.com/company/blog/product-release-announcements/voyage-context-3-focused-chunk-level-details-global-document-context>`__ embeddings, allowing document chunks to retain broader context for precise, grounded answers.
+
+.. note::
+
+    Agentic RAG has the following qualities:
+
+    - **Makes intelligent decisions**: Knows when retrieval is necessary vs. direct response
+    - **Self-corrects**: If retrieved documents aren't relevant, rewrites query and tries again
+    - **Maintains context**: Uses MongoDB checkpointing for multi-turn conversations
+    - **Provides transparency**: Tracks workflow steps and grading decisions 
+
+
+**Part 3. Reporting and Insight Generation**
+
+This module uses targeted vector searches and LLM-based content
+generation to automate periodic reports, by doing the following tasks:
+
+- Processing information to generate tailored reports.
+- Compiling relevant findings and contextual data.
+- Exporting structured outputs, such as PDFs.
+- Including fallback mechanisms to ensure reliability, even in low-context scenarios.
+
+
+Data Model Approach
+-------------------
+
+The solution's data model groups its collections by function:
+
+**Core document processing**:
+
+- ``chunks``: stores text segments with ``voyage-context-3`` vectors.
+- ``documents``: stores document metadata, which tracks processing status and source information.
+- ``assessments``: contains document evaluation results like relevance scores and processing decisions.
+- ``workflows``: stores the ingestion workflow tracking, which monitors multi-agent processing state.
+
+The following document is an example from the ``chunks`` collection:
+
+.. code-block:: json
+
+   {   
+      "_id": {
+         "$oid": "68e7d4cd77c8fbfb9abdf878"
+      },
+      "document_id": "doc_ef5b1da6",
+      "document_name": "Payment_Investigation_Ticket.pdf",
+      "chunk_index": 2,
+      "chunk_text": "Contacted cardholder to confirm receipt of temporary credit and advise on investigation timeline. Cardholder confirmed satisfaction with temporary resolution...",
+      "embedding": [
+         0.02789805270731449,
+         0.0045435624197125435,
+         -0.06760358065366745,
+        ...
+      ],
+      "has_visual_references": false,
+      "metadata": {
+         "name": "Payment_Investigation_Ticket.pdf",
+         "path": "@s3@.../document-intelligence/fsi/payment_processing_exception/Payment_Investigation_Ticket.pdf",
+         "processed_at": {
+            "$date": "2025-10-09T15:29:17.741Z"
+         },
+         "chunk_count": 3,
+         "chunk_metadata": {
+            "chunk_index": 2,
+            "total_chunks": 3,
+            "section_start": "Contacted cardholder",
+            "section_end": "ion_ticket.html*\n4/5",
+            "document_id": "doc_ef5b1da6",
+            "document_name": "Payment_Investigation_Ticket.pdf",
+            "contains_images": false
+         }
+      }
+   }   
+   
+The following document is an example from the ``documents`` collection:
+
+.. code-block:: json
+
+   {
+      "_id": {
+         "$oid": "68e7d4cb5fc2bb6e17eaedb8"
+      },
+      "document_id": "doc_ef5b1da6",
+      "document_name": "Payment_Investigation_Ticket.pdf",
+      "document_path": "@s3.../document-intelligence/fsi/payment_processing_exception/Payment_Investigation_Ticket.pdf",
+      "file_extension": "pdf",
+      "file_size_mb": 0.3242454528808594,
+      "source_type": "s3",
+      "source_path": "@s3@fsi/payment_processing_exception",
+      "page_count": 4,
+      "created_at": {
+         "$date": "2025-10-09T15:29:15.041Z"
+      },
+      "updated_at": {
+         "$date": "2025-10-09T15:29:18.267Z"
+      },
+      "status": "completed",
+      "chunk_count": 3,
+      "has_visual_references": true,
+      "metadata": {
+         "markdown_length": 5592,
+         "processing_timestamp": {
+            "$date": "2025-10-09T15:29:15.041Z"
+         }
+      }
+   }
+      
+
+The following document is an example from the ``assessments`` collection:
+
+.. code-block:: json
+
+   {   
+      "_id": {
+         "$oid": "68e7d2b35fc2bb6e17eaedb2"
+      },
+      "document_id": "doc_ef5b1da6",
+      "document_name": "Payment_Investigation_Ticket.pdf",
+      "document_path": "@s3.../document-intelligence/fsi/payment_processing_exception/Payment_Investigation_Ticket.pdf",
+      "file_size_mb": 0.3242454528808594,
+      "assessment": {
+         "main_entity": "Payment Investigation Ticket",
+         "document_category": "Banking Investigation Document",
+         "key_topics": [
+            "merchant chargeback investigation",
+            "payment dispute resolution",
+            "cardholder dispute handling"
+         ],
+         "relevance_score": 95,
+         "reasoning": "This document is highly relevant to both the financial services industry and exception handling in payment processing. It is an official payment investigation ticket from First National Bank's Payment Investigation Department, specifically dealing with a cardholder dispute and merchant non-response case. The document contains formal banking investigation details, dispute resolution tracking, and payment processing exception handling elements.",
+         "should_process": true
+      },
+      "assessed_at": {
+         "$date": "2025-10-09T15:20:19.060Z"
+      },
+      "workflow_id": "fsi_payment_processing_exception_1760023126468"
+   }   
+
+The following document is an example from the ``workflows`` collection:
+
+.. code-block:: json
+   
+   {   
+      "_id": {
+         "$oid": "68e7d25d5fc2bb6e17eaedad"
+      },
+      "workflow_id": "fsi_payment_processing_exception_1760023126468",
+      "endpoint": "/api/ingestion/start",
+      "source_paths": [
+         "@local@/docs/fsi/payment_processing_exception",
+         "@s3@fsi/payment_processing_exception",
+         "@gdrive@fsi/payment_processing_exception"
+      ],
+      "triggered_at": {
+         "$date": "2025-10-09T15:18:53.563Z"
+      }
+   }   
+   
+
+In addition to the core document processing collections, the solution includes other functions and their corresponding collections, such as:
+
+**Prompt interaction and memory**: 
+
+- ``gradings``: includes document relevance grading, such as binary scores from Q&A retrieval assessments.".
+- ``logs_qa``: tracks agentic RAG workflow steps and decisions, including prompt interaction session logs.
+- ``agent_personas``: defines prompts and capabilities per industry, tailored for use-case-specific AI configurations.
+- ``checkpoint_writes_aio``: handles async persistence for conversation state, specifically for LangGraph state writes.
+- ``checkpoints_aio``: manages thread-based dialogue history, functioning as conversation memory.
+
+**Reports**: 
+
+- ``scheduled_reports``: tracks PDF locations and generation history, including generated report metadata.
+- ``report_templates``: defines sections and prompts by use case, serving as report structure templates.
+
+
+This data model approach creates an intuitive design that simplifies
+development, as all data related to a specific task is co-located within
+MongoDB's flexible document structure.
+
+
+Build the Solution
+------------------
+
+For the complete implementation and code, follow the instructions in the ``README`` in `this GitHub repository
+<https://github.com/mongodb-industry-solutions/document-intelligence>`__.
+
+This solution is built by composing three primary architectural patterns. Here are the steps on how each component is implemented:
+
+.. procedure::
+   :style: normal
+   
+   .. step:: Implement the supervisor multi-agent system
+
+      This is the core ingestion pipeline that coordinates multiple specialized AI agents.
+
+      - **Define specialized agents**: First, you define each agent using a LangGraph framework. 
+      - **Implement the supervisor agent**: You then implement a ``supervisor agent`` that manages the overall workflow. This follows the `LangGraph supervisor pattern <https://docs.langchain.com/oss/python/langchain/supervisor>`__.
+
+   .. step:: Build the agentic RAG system
+
+      This system provides a self-correcting Agentic RAG workflow. It
+      features a retrieval agent that intelligently decides whether to
+      retrieve context from MongoDB Atlas Vector Search or respond
+      directly to the user.
+
+      .. figure:: /includes/images/industry-solutions/docintel-agentic-RAG.svg
+         :width: 750px
+         :alt: Reference architecture for financial services document intelligence with MongoDB.
+
+         Figure 2. Agentic RAG architecture with MongoDB (Document Assistant Agent).
+
+      a. **Create the Vector Search Index**: Create a vector search index on your ``chunks`` collection. This allows the application to perform fast semantic search on the document embeddings.
+      b. **Build the self-correcting RAG Graph**: Build a cyclical graph with conditional edges using LangGraph. This graph includes a **retrieval agent**, a **document grader**, and a **query rewriter**. The purpose of the **query rewriter** is to retry if the results aren't relevant.
+      c. **Enable conversational persistence**: Implement MongoDB checkpointing system to provide conversation memory and multi-turn conversations. This automatically saves and loads the conversation state from a dedicated MongoDB collection, giving the agent memory persistence.
+
+
+   .. step:: Create the automated report generator
+
+      This module automates the generation of scheduled PDF reports.
+
+      a. **Store report templates**: Leverage MongoDB’s flexible schema to create a ``report_templates`` collection. This stores the structure, section titles, and specific semantic search prompts for each report type, such as Credit Rating and Investment Research reports.
+      b. **Implement section-specific generation**: Create a script that loops through each section of a template. This script runs a separate Atlas Vector Search query. It uses the prompt for that specific section, and accumulates the content.
+      c. **Schedule and track report outputs**: This script is run by a scheduler. After generating the PDF, the script writes its metadata, such as file path and generation date, to a ``scheduled_reports`` collection in MongoDB for tracking.
+
+
+Key Learnings
+-------------
+
+- **Use MongoDB Atlas as your unified data platform** to store structured metadata, unstructured documents, vector embeddings, and operational state. This eliminates data silos and reduces architectural complexity.
+- **Implement a supervisor multi-agent orchestration pattern** to manage complex, multi-step workflows. This pattern allows you to partition tools across specialized worker agents to ensure focused expertise.
+- **Deploy Agentic RAG with self-correction mechanisms** to improve query accuracy. This enables agents to intelligently decide when to retrieve context, reformulate queries, and grade document relevance.
+- **Implement MongoDB's checkpointers for persistent agent memory** to establish robust conversation and workflow tracking. This ensures persistent conversation state and dialogue history for multi-turn interactions.
+- **Perform semantic search using MongoDB Atlas Vector Search** for targeted content generation, such as automated reporting. This allows queries to retrieve content by meaning, not just keywords, for more accurate output.
+
+
+Authors
+--------
+
+- Peyman Parsi, Field CTO Financial Services, MongoDB
+- Ainhoa Mugica, Consultant, Industry Solutions, MongoDB
+- Julian Boronat, Senior Specialist, Industry Solutions, MongoDB
+- Andrea Alaman Calderon, Senior Specialist, Industry Solutions, MongoDB
+
+
+Learn More
+----------
+
+- Discover how to implement our `Framework for Rapid AI Agent Deployment <https://www.mongodb.com/docs/atlas/architecture/current/solutions-library/manufacturing-agentic-ai-framework/>`__
+- Dive deeper into agent memory with our guide `"What Is Agent Memory? A Guide to Enhancing AI Learning and Recall <https://www.mongodb.com/resources/basics/artificial-intelligence/agent-memory>`__
+- Learn more about voyage-context-3: `Focused Chunk-Level Details with Global Document Context <https://www.mongodb.com/company/blog/product-release-announcements/voyage-context-3-focused-chunk-level-details-global-document-context>`__ 
