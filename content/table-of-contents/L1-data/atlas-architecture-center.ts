@@ -181,6 +181,12 @@ const tocData: TocItem[] = [
                 url: '/docs/atlas/architecture/:version/compliance/gdpr',
                 versions: { excludes: ['v20250829', 'v20250604', 'v20250317', 'v20250228'] },
               },
+              {
+                label: 'HIPAA',
+                contentSite: 'atlas-architecture',
+                url: '/docs/atlas/architecture/:version/compliance/hipaa',
+                versions: { excludes: ['v20251125', 'v20250829', 'v20250604', 'v20250317', 'v20250228'] },
+              }
             ],
           },
           {
