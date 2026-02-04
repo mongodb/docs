@@ -1,0 +1,146 @@
+.. _export-logs-external-sinks:
+
+=================================
+Export Logs to |aws| |s3| Buckets
+=================================
+
+.. meta::
+   :description: Export logs from `mongod`, `mongos`, and audit logs to an AWS S3 bucket from an `M10+` cluster every minute using Atlas.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can configure your ``M10+`` {+service+} clusters to export system logs 
+every minute to an |aws| |s3| bucket.
+
+This integration allows you to:
+
+- Specify which MongoDB log files you want to export to the |s3| bucket.
+  {+service+} supports exporting the following log types:
+
+  - ``mongod``
+  - ``mongos``
+  - ``mongod-audit``
+  - ``mongos-audit``
+
+- Set up to 10 export paths, allowing you to export logs to multiple 
+  |aws| |s3| buckets simultaneously.
+
+- Send logs to an |s3| Multi-Region Access Point (MRAP) by configuring the integration 
+  with the MRAP ARN. You can currently only configure MRAP ARNs using the {+atlas-admin-api+}. 
+  MRAP aliases are not supported.
+
+.. important::
+   
+   Logs can contain sensitive information (including PII). You are responsible for 
+   the storage and treatment of your logs in your |aws| |s3| bucket. To have 
+   {+service+} redact certain information before exporting logs, see :ref:`database-log-redaction`.
+   
+
+Required Access
+---------------
+
+To export logs to an |aws| |s3| bucket, you must have 
+:authrole:`Project Owner` or :authrole:`Organization Owner` access to 
+|service|.
+
+Considerations
+--------------
+
+- Each {+service+} host typically produces 1 GB of logs per day. Exporting logs 
+  incurs a data transfer cost. The exact data transfer cost varies depending on 
+  the destination, region, and cloud provider.          
+- Network issues or retries can cause duplicate log
+  entries in your |aws| |s3| bucket.
+
+Prerequisites
+-------------
+
+You'll need:
+
+- An |aws| |iam| role with `sts:AssumeRole <https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html>`__ that grants |service| access to your |aws| resource with a maximum session duration set to 12 hours.
+- An existing |aws| |s3| bucket.
+- An ``M10+`` |service| cluster running MongoDB 7.0 or later.
+
+
+Procedure
+---------
+
+To export logs to an |aws| |s3| bucket, complete the following steps.
+
+.. procedure:: 
+   :style: normal
+
+   .. include:: /includes/nav/steps-project-integrations.rst
+
+   .. step:: Click :guilabel:`Configure` on the :guilabel:`AWS S3 Log Monitoring` card.
+
+   .. step:: Grant {+service+} access to your |aws| account.
+
+      a. From the :guilabel:`Authorize an AWS IAM Role` dropdown, select your |arn|. 
+         To add an |arn|, see :ref:`set-up-unified-aws-access`.
+
+      #. Click :guilabel:`Next`. 
+
+   .. step:: Connect {+service+} to your |aws| |s3| bucket. 
+
+      a. In the :guilabel:`Bucket Name` field, enter the name of your |s3| bucket 
+         as it appears in your |aws| account.
+
+      #. In the :guilabel:`Prefix` field, enter a directory name to organize the 
+         contents of your |s3| bucket. For example, entering ``logs/`` creates a 
+         ``logs`` directory in your |s3| bucket to store the exported logs. 
+
+      #. Under :guilabel:`Log Type`, select the types of logs you want to export.
+
+         - :guilabel:`MongoDB Logs` (``mongodb.gz``) Diagnostic logs written by 
+           each |mongod| server process. They record server startup and shutdown, 
+           configuration, connections, slow queries, replication, sharding activity, 
+           and other operational events.
+
+         - :guilabel:`MongoDB Audit Logs` (``mongodb-audit-log.gz``) Auditing logs 
+           emitted by |mongod| that track system event actions such as authentication 
+           attempts, authorization checks, role changes, and other security-relevant 
+           operations. These logs are separate from the main MongoDB log. 
+
+         - :guilabel:`MongoDB Router Logs` (``mongos.gz``) Diagnostic logs written 
+           by each |mongos| router process in a sharded cluster. They capture 
+           router-specific behavior such as routing of queries to shards, sharding 
+           metadata refreshes, and general process diagnostics.
+
+         - :guilabel:`MongoDB Router Audit Logs` (``mongos-audit-log.gz``) Auditing logs 
+           emitted by |mongos| router processes, recording the same kinds of audited 
+           system events but from the router's perspective in a sharded deployment.
+
+         To learn more, see :ref:`mongodb-logs`.
+
+      #. (Optional) If you want to encrypt the logs in your |s3| bucket, enter your
+         |aws| Key Management Service (KMS) key ARN in the 
+         :guilabel:`KMS Key` field. To learn more, see :ref:`security-aws-kms`.    
+
+      #. Click :guilabel:`Next`. 
+
+   .. step:: Assign an access policy to your |aws| |iam| role.
+
+      a. Click :icon-lg:`Copy` to copy the access policy generated by {+service+} 
+         and save it locally with the file name: ``AtlasS3LogExportPolicy``.
+
+      #. Click :icon-lg:`Copy` to copy the CLI command generated by {+service+},
+         then run the command in your terminal to attach the access policy to 
+         your |aws| |iam| role.           
+
+      #. Click :guilabel:`Validate` to confirm your configuration and credentials 
+         are correct before enabling the export.
+
+   .. step:: Click :guilabel:`Finish`.
+
+      

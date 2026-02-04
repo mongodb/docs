@@ -925,6 +925,11 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/mongodb-logs',
       },
       {
+        label: 'Export Logs to AWS S3',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/export-logs-external-sinks',
+      },
+      {
         label: 'Push MongoDB Logs to AWS S3',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/push-logs',
