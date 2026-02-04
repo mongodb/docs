@@ -1600,6 +1600,105 @@ locks
 
    Number of times the lock acquisitions encountered deadlocks.
 
+.. _server-status-lockContentionMetrics:
+
+lockContentionMetrics
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   lockContentionMetrics: {
+      "<tag>": {
+         exclusive: {
+            total:       Long("<num>"),
+            contentions: Long("<num>"),
+            waitCycles:  Long("<num>")
+         },
+         shared: {
+            total:       Long("<num>"),
+            contentions: Long("<num>"),
+            waitCycles:  Long("<num>")
+         },
+         // Only present if you specify { lockContentionMetrics: { listAll: 1 } }:
+         mutexes: [
+            {
+               id:         Long("<num>"),
+               registered: ISODate("<Date>"),
+               exclusive: { total, contentions, waitCycles },
+               shared:    { total, contentions, waitCycles }
+            },
+            ...
+         ]
+      },
+      ...
+   }
+
+.. serverstatus:: lockContentionMetrics
+
+   A document that shows how often threads use certain internal
+   server locks and how often these locks cause threads to wait.
+   This document focuses on a small set of important, long-lived locks that
+   coordinate core server activities, such as global server state,
+   replication, and connection management. Contention on these
+   locks has a noticeable impact on performance. Use these metrics
+   to identify when coordination points become bottlenecks, such as
+   when contention and wait time increase alongside slower
+   operations or replication lag.
+
+   By default, ``serverStatus`` does not include ``lockContentionMetrics`` in its output. Use
+   the following syntax to include ``lockContentionMetrics`` in your output:
+
+   .. code-block:: javascript
+    
+      // Aggregated per‑tag metrics only
+      db.runCommand({ serverStatus: 1, lockContentionMetrics: 1 })
+
+      // Aggregated per‑tag metrics plus per‑instance details
+      db.runCommand({ serverStatus: 1, lockContentionMetrics: { listAll: 1 } })
+
+.. serverstatus:: lockContentionMetrics.<tag>.exclusive
+
+   Aggregated statistics for exclusive or write acquisitions of all mutex instances 
+   that use ``<tag>``.
+
+.. serverstatus:: lockContentionMetrics.<tag>.exclusive.total
+
+   Counts how many times this lock runs in write mode, blocking other threads until the write finishes.
+
+.. serverstatus:: lockContentionMetrics.<tag>.exclusive.contentions
+
+   Counts how many write‑mode lock requests wait because another operation holds the lock.
+   
+.. serverstatus:: lockContentionMetrics.<tag>.exclusive.waitCycles
+
+   Total CPU cycles spent waiting for contended write‑mode lock requests on ``<tag>``.
+
+.. serverstatus:: lockContentionMetrics.<tag>.shared 
+
+   Aggregated statistics for shared or read acquisitions of all mutex instances 
+   that use ``<tag>``.
+
+.. serverstatus:: lockContentionMetrics.<tag>.shared.total
+
+   Total number of read‑mode lock acquisitions on ``<tag>``.
+
+.. serverstatus:: lockContentionMetrics.<tag>.shared.contentions
+
+   Number of read‑mode lock requests that encounter contention on ``<tag>``.
+
+.. serverstatus:: lockContentionMetrics.<tag>.shared.waitCycles
+
+   Total CPU cycles spent waiting for contended read‑mode lock requests on ``<tag>``.
+
+.. serverstatus:: lockContentionMetrics.<tag>.mutexes
+
+   List of individual lock instances for ``<tag>``, each with its own:
+   
+   - ID
+   - registration time
+   - per‑instance read/write contention statistics
+   
+   The ``mutexes`` array appears only when you request ``lockContentionMetrics`` with the ``listAll`` option.
 
 .. _server-status-logicalSessions:
 
