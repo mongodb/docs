@@ -4,7 +4,7 @@
 
       .. include:: /includes/wayfinding-description.rst
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/v5.2/fundamentals/indexes/#remove-an-index-using-a-wildcard-character
+   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/current/indexes/#remove-an-index-using-a-wildcard-character
       :id: java-sync
 
    .. wayfinding-option:: https://mongodb.github.io/mongo-java-driver/5.2/apidocs/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoCollection.html#dropIndexes()
@@ -16,7 +16,7 @@
    .. wayfinding-option:: https://mongoc.org/libmongoc/current/mongoc_collection_drop_index.html
       :id: c
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/languages/cpp/cpp-driver/upcoming/work-with-indexes/#remove-all-indexes
+   .. wayfinding-option:: https://www.mongodb.com/docs/languages/cpp/cpp-driver/upcoming/indexes/#remove-all-indexes
       :id: cpp
 
    .. wayfinding-option:: https://pymongo.readthedocs.io/en/stable/api/pymongo/collection.html#pymongo.collection.Collection.drop_indexes

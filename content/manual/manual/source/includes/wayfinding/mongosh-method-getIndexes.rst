@@ -4,7 +4,7 @@
 
       .. include:: /includes/wayfinding-description.rst
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/v5.2/fundamentals/indexes/#remove-an-index-using-a-name-field
+   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/current/indexes/#remove-an-index-using-a-name-field
       :id: java-sync
 
    .. wayfinding-option:: https://mongodb.github.io/mongo-java-driver/5.2/apidocs/mongodb-driver-reactivestreams/com/mongodb/reactivestreams/client/MongoCollection.html#listIndexes()

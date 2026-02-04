@@ -4,7 +4,7 @@
 
       .. include:: /includes/wayfinding-description.rst
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/v5.2/fundamentals/crud/write-operations/modify/#update
+   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/current/fundamentals/crud/write-operations/modify/#update
       :id: java-sync
 
    .. wayfinding-option:: https://www.mongodb.com/docs/languages/java/reactive-streams-driver/current/write/write-update-documents/
@@ -16,7 +16,7 @@
    .. wayfinding-option:: https://mongoc.org/libmongoc/current/mongoc_collection_update_many.html
       :id: c
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/languages/cpp/cpp-driver/v3.11/write/update/#update-many-documents
+   .. wayfinding-option:: https://www.mongodb.com/docs/languages/cpp/cpp-driver/current/write/update/#update-many-documents
       :id: cpp
 
    .. wayfinding-option:: https://www.mongodb.com/docs/languages/python/pymongo-driver/current/write/update/#update-many-documents

@@ -4,7 +4,7 @@
 
       .. include:: /includes/wayfinding-description.rst
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/current/fundamentals/indexes/
+   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/current/indexes/
       :id: java-sync
 
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/csharp/current/fundamentals/indexes/
