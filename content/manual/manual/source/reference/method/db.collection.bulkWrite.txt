@@ -79,7 +79,7 @@ The :method:`~db.collection.bulkWrite()` method has the following form:
 Parameters
 ~~~~~~~~~~
 
-The :method:`~db.collection.bulkWrite()` method takes the following
+The ``bulkWrite()`` method takes the following
 parameters:
 
 .. list-table::
@@ -92,7 +92,7 @@ parameters:
 
    * - ``operations``
      - array
-     - An array of :method:`~db.collection.bulkWrite()` write
+     - An array of ``bulkWrite()`` write
        operations.
 
        Valid operations are:
@@ -118,19 +118,17 @@ parameters:
 
    * - ``ordered``
      - boolean
-     - Optional. A boolean specifying whether the :binary:`~bin.mongod` instance should perform
-       an ordered or unordered operation execution. Defaults to ``true``.
-
-       See :ref:`bulkwrite-write-operations-executionofoperations`
+     - Optional. A boolean specifying whether operations execute serially (``true``,
+       the default) or may execute in any order (``false``). When ``true``, stops
+       on the first error; when ``false``, continues processing remaining operations.
 
 Behavior
 --------
 
-:method:`~db.collection.bulkWrite()` takes an array of write operations and
+``bulkWrite()`` takes an array of write operations and
 executes each of them. By default operations are executed in order.
 See :ref:`bulkwrite-write-operations-executionofoperations` for controlling
 the order of write operation execution.
-
 
 .. _bulkwrite-write-operations:
 
@@ -149,8 +147,6 @@ Inserts a single document into the collection.
    db.collection.bulkWrite( [
       { insertOne : { "document" : <document> } }
    ] )
-
-See :method:`db.collection.insertOne()`.
 
 .. _bulkwrite-write-operations-updateOneMany:
 
@@ -253,10 +249,6 @@ updateOne and updateMany
        update ``filter``. If you specify an index that does not exist,
        the operation errors.
 
-
-For details, see :method:`db.collection.updateOne()` and
-:method:`db.collection.updateMany()`.
-
 .. _bulkwrite-write-operations-replaceOne:
 
 replaceOne
@@ -313,8 +305,6 @@ matching document only.
      - Optional. The :ref:`index <indexes>` to use to support the
        update ``filter``. If you specify an index that does not exist,
        the operation errors.
-
-For details, see to :method:`db.collection.replaceOne()`.
 
 .. _bulkwrite-write-operations-deleteOneMany:
 
@@ -377,9 +367,6 @@ deleteOne and deleteMany
        the operation.
 
 
-For details, see :method:`db.collection.deleteOne()` and
-:method:`db.collection.deleteMany()`.
-
 .. _bulkwrite-write-operations-id:
 
 
@@ -404,63 +391,13 @@ from the original document.
 Execution of Operations
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-By default, :method:`~db.collection.bulkWrite()` runs an ordered list of
-operations:
+The ``ordered`` parameter controls whether operations execute serially or in any order.
 
-- Operations run serially. 
-- If an operation has an error, that operation and
-  any following operations are not run.
-- Operations listed before the error operation are completed.
+With ``ordered : true`` (default), operations execute serially. If an error occurs,
+subsequent operations are not executed.
 
-The ``ordered`` parameter specifies whether
-:method:`~db.collection.bulkWrite()` will execute operations in order or not.
-By default, operations are executed in order.
-
-The following code represents a :method:`~db.collection.bulkWrite()` with
-five operations.
-
-.. code-block:: javascript
-
-   db.collection.bulkWrite(
-      [
-         { insertOne : <document> },
-         { updateOne : <document> },
-         { updateMany : <document> },
-         { replaceOne : <document> },
-         { deleteOne : <document> },
-         { deleteMany : <document> }
-      ]
-   )
-
-In the default ``ordered : true`` state, each operation will
-be executed in order, from the first operation ``insertOne``
-to the last operation ``deleteMany``.
-
-If ``ordered`` is set to false, operations may be reordered by
-:binary:`~bin.mongod` to increase performance.
-Applications should not depend on order of operation execution.
-
-The following code represents an unordered
-:method:`~db.collection.bulkWrite()` with six operations:
-
-.. code-block:: javascript
-
-   db.collection.bulkWrite(
-      [
-         { insertOne : <document> },
-         { updateOne : <document> },
-         { updateMany : <document> },
-         { replaceOne : <document> },
-         { deleteOne : <document> },
-         { deleteMany : <document> }
-      ],
-      { ordered : false }
-   )
-
-With ``ordered : false``, the results of the operation may vary. For example,
-the ``deleteOne`` or ``deleteMany`` may remove more or fewer documents
-depending on whether the run before or after the ``insertOne``, ``updateOne``,
-``updateMany``, or ``replaceOne`` operations.
+With ``ordered : false``, operations may execute in parallel. All operations without
+errors are completed even if some operations fail.
 
 .. include:: /includes/fact-bulkwrite-operation-batches.rst
 
@@ -469,27 +406,22 @@ depending on whether the run before or after the ``insertOne``, ``updateOne``,
 Capped Collections
 ~~~~~~~~~~~~~~~~~~
 
-:method:`~db.collection.bulkWrite()` write operations have restrictions when
-used on a :term:`capped collection`.
+``bulkWrite()`` has restrictions on :term:`capped collections <capped collection>`:
 
-``updateOne`` and ``updateMany`` throw a ``WriteError`` if the
-``update`` criteria increases the size of the document being modified.
+- ``updateOne`` and ``updateMany`` throw a ``WriteError`` if the update increases
+  the document size.
+- ``replaceOne`` throws a ``WriteError`` if the replacement document is larger than
+  the original.
+- ``deleteOne`` and ``deleteMany`` throw a ``WriteError`` on capped collections.
 
-``replaceOne`` throws a ``WriteError`` if the
-``replacement`` document has a larger size than the original
-document.
-
-``deleteOne`` and ``deleteMany`` throw a ``WriteError`` if used on a
-capped collection.
-
-.. |operation| replace:: :method:`db.collection.bulkWrite()`
+.. |operation| replace:: ``bulkWrite()``
 
 .. _bulkWrite-error-handling:
 
 Error Handling
 ~~~~~~~~~~~~~~
 
-:method:`db.collection.bulkWrite()` throws a ``BulkWriteError``
+``bulkWrite()`` throws a ``BulkWriteError``
 exception on errors. See :ref:`bulkwrite-error-handling-txn`.
 
 Excluding :ref:`write concern <write-concern>` errors, ordered operations
@@ -550,10 +482,10 @@ Examples
 Unordered Bulk Write Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To specify an unordered :method:`~db.collection.bulkWrite()`, set
+To specify an unordered ``bulkWrite()``, set
 ``ordered`` to ``false``.
 
-In an unordered :method:`~db.collection.bulkWrite()` list of operations:
+In an unordered ``bulkWrite()`` list of operations:
 
 - Operations can run in parallel (not guaranteed). For details. See
   :ref:`bulk-write-operations-ordered-vs-unordered`.
@@ -572,15 +504,15 @@ In the following example:
    :category: usage example
 
 The second ``insertOne`` operation fails because of the duplicate key
-error. In an unordered :method:`~db.collection.bulkWrite()`, MongoDB completes any
-operation without an error. 
+error. In an unordered ``bulkWrite()``, MongoDB completes any
+operation without an error.
 
 .. _bulkwrite-write-concern-errors-in-sharded-clusters:
 
 Write Concern Errors in Sharded Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. |cmd| replace:: :method:`db.collection.bulkWrite()`
+.. |cmd| replace:: ``bulkWrite()``
 .. include:: /includes/fact-update-writeConcernError-mongos.rst
 
 .. _bulkwrite-example-bulk-write-with-write-concern:
