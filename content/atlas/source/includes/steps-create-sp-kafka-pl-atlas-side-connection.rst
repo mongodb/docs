@@ -22,15 +22,13 @@ with the following key-value pairs:
      - ``SASL_SSL``
 
    * - ``authentication.mechanism``
-     - ``"PLAIN"``
+     - ``"SCRAM-SHA"``
 
    * - ``authentication.password``
-     - The password associated with your `Confluent API key
-       <https://docs.confluent.io/cloud/current/security/authenticate/workload-identities/service-accounts/api-keys/overview.html>`__
+     - The password associated with your SCRAM-SHA-512 authentication
 
    * - ``authentication.username``
-     - The username associated with your `Confluent API key
-       <https://docs.confluent.io/cloud/current/security/authenticate/workload-identities/service-accounts/api-keys/overview.html>`__
+     - The username associated with your SCRAM-SHA-512 authentication
 
    * - ``type``
      - ``"Kafka"``
@@ -59,7 +57,7 @@ The following example command creates a {+kafka+} connection in {+service+}:
        "protocol": "SASL_SSL" 
        }, 
      "authentication": { 
-       "mechanism": "PLAIN", 
+       "mechanism": "SCRAM-SHA", 
        "password": "apiSecretDemo", 
        "username": "apiUserDemo" 
        }, 

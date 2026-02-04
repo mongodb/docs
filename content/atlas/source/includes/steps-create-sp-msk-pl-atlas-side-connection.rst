@@ -23,15 +23,13 @@ with the following key-value pairs:
      - ``SASL_SSL``
 
    * - ``authentication.mechanism``
-     - ``"PLAIN"``
+     - ``"SCRAM-SHA"``
 
    * - ``authentication.password``
-     - The password in your :aws:`AWS Secrets Manager
-       <msk/latest/developerguide/msk-password.html>`
+     - The password for SCRAM-SHA authentication 
 
    * - ``authentication.username``
-     - The username in your :aws:`AWS Secrets Manager
-       <msk/latest/developerguide/msk-password.html>`
+     - The username for SCRAM-SHA authentication
 
    * - ``type``
      - ``"Kafka"``
@@ -59,11 +57,11 @@ The following example command creates a {+kafka+} connection in {+service+}:
      "security": { 
        "protocol": "SASL_SSL" 
        }, 
-     "authentication": { 
-       "mechanism": "PLAIN", 
-       "password": "apiSecretDemo", 
-       "username": "apiUserDemo" 
-       }, 
+     "authentication": {
+       "mechanism": "SCRAM-SHA",
+       "password": "apiSecretDemo",
+       "username": "apiUserDemo"
+       },
      "type": "Kafka", 
      "networking": { 
        "access": { 

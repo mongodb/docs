@@ -11,7 +11,7 @@ project:
    .. tab:: {+atlas-admin-api+}
       :tabid: aws-msk-api
 
-      .. include:: includes/atlas-stream-processing/create-private-link-aws-msk.rst
+      .. include:: /includes/atlas-stream-processing/create-private-link-aws-msk.rst
 
    .. tab:: {+atlas-ui+}
       :tabid: aws-msk-ui
