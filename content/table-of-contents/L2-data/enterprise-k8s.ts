@@ -12,6 +12,11 @@ const tocData: TocItem[] = [
     },
     items: [
       {
+        label: 'Overview',
+        contentSite: 'docs-k8s-operator',
+        url: '/docs/kubernetes-operator/:version',
+      },
+      {
         label: 'Quick Start',
         contentSite: 'docs-k8s-operator',
         url: '/docs/kubernetes-operator/:version/kind-quick-start',
