@@ -8,7 +8,7 @@ const tocData: TocItem[] = [
     group: true,
     versionDropdown: true,
     versions: {
-      includes: kubernetesOperatorVersions.after('v1.28', { inclusive: true }),
+      includes: kubernetesOperatorVersions.after('v1.31', { inclusive: true }),
     },
     items: [
       {
