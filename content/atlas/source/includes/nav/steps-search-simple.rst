@@ -43,5 +43,7 @@
          #. Click the :guilabel:`Indexes` tab for the
             collection.
 
-            The `Atlas Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch%2F%3Ccluster%3E%3Fdatabase%3Dsample_mflix%26collectionName%3Dusers>`__ page displays.
+         #. Click the :guilabel:`Search and Vector Search` link in the banner.
+
+            The `Search & Vector Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch%2F%3Ccluster%3E%3Fdatabase%3Dsample_mflix%26collectionName%3Dusers>`__ page displays.
             

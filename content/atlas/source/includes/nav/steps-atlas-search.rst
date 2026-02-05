@@ -25,7 +25,7 @@
 
          #. If your project has multiple {+clusters+}, select the {+cluster+} 
             you want to use from the :guilabel:`Select cluster` dropdown,
-            then click :guilabel:`Go to Atlas Search`.
+            then click :guilabel:`Go to Search`.
 
             The `Search & Vector Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch%2F%3Ccluster%3E>`__ page displays.
 
@@ -47,5 +47,7 @@
          #. Click the :guilabel:`Indexes` tab for the
             collection.
 
-            The `Atlas Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch%2F%3Ccluster%3E%3Fdatabase%3Dsample_mflix%26collectionName%3Dusers>`__ page displays.
+         #. Click the :guilabel:`Search and Vector Search` link in the banner.
+
+            The `Search & Vector Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch%2F%3Ccluster%3E%3Fdatabase%3Dsample_mflix%26collectionName%3Dusers>`__ page displays.
             
