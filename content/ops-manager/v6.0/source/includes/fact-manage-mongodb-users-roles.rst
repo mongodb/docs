@@ -42,7 +42,7 @@ the same set of MongoDB users and roles.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In a managed project, |mms| allows each deployment to use its own set of MongoDB users and roles. |mms| doesn't need to manage these MongoDB users and roles. To manage these
-users and roles, you must connect direct to the MongoDB
+users and roles, you must connect directly to the MongoDB
 deployment.
 
 |mms| grants managed MongoDB users and roles where you set
