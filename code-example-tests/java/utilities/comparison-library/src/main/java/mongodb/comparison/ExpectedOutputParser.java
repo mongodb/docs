@@ -99,6 +99,11 @@ class ExpectedOutputParser {
             if (hasSingleQuotes(content)) {
                 return FileFormat.JSON; // Treat as JSON that needs quote normalization
             }
+            // Check if content contains ellipsis patterns that need normalization
+            // If so, treat as JSON that needs ellipsis normalization
+            if (content.contains("...") && (content.trim().startsWith("{") || content.trim().startsWith("["))) {
+                return FileFormat.JSON; // Treat as JSON with ellipsis patterns
+            }
             return FileFormat.UNKNOWN;
         }
     }
@@ -893,7 +898,8 @@ class ExpectedOutputParser {
         // Pattern 4: Standalone ellipsis on its own line to indicate omitted fields
         // Converts `...` on its own line to `"...": "..."` for the comparison engine
         // This enables support for patterns like { ok: 1, ... } where ... indicates more fields exist
-        content = content.replaceAll("(?m)^(\\s*)\\.\\.\\.\\s*$", "$1\"...\": \"...\"");
+        // We add a trailing comma to ensure valid JSON when there are more fields after
+        content = content.replaceAll("(?m)^(\\s*)\\.\\.\\.\\s*$", "$1\"...\": \"...\",");
 
         return content;
     }

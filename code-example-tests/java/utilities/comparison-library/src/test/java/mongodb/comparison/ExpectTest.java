@@ -932,5 +932,280 @@ class ExpectTest {
             assertDoesNotThrow(() ->
                     Expect.that(actual).shouldResemble(expected).withSchema(schema));
         }
+
+        @Test
+        @DisplayName("Should validate nested field paths with dot notation")
+        void testNestedFieldPathWithDotNotation() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1")
+                            .append("metadata", new Document("category", "movie")
+                                    .append("rating", "PG-13"))
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "2")
+                            .append("metadata", new Document("category", "movie")
+                                    .append("rating", "PG-13"))
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .withRequiredFields("metadata.category", "metadata.rating")
+                    .withFieldValues(Map.of("metadata.category", "movie"))
+                    .build();
+
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+        }
+
+        @Test
+        @DisplayName("Should validate nested field paths with array index notation")
+        void testNestedFieldPathWithArrayIndex() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1")
+                            .append("stages", List.of(
+                                    new Document("$cursor", new Document("queryPlanner",
+                                            new Document("winningPlan",
+                                                    new Document("stage", "CLUSTERED_IXSCAN"))))
+                            ))
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "2")
+                            .append("stages", List.of(
+                                    new Document("$cursor", new Document("queryPlanner",
+                                            new Document("winningPlan",
+                                                    new Document("stage", "CLUSTERED_IXSCAN"))))
+                            ))
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .withRequiredFields("stages[0].$cursor.queryPlanner.winningPlan.stage")
+                    .withFieldValues(Map.of("stages[0].$cursor.queryPlanner.winningPlan.stage", "CLUSTERED_IXSCAN"))
+                    .build();
+
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+        }
+
+        @Test
+        @DisplayName("Should fail when nested field path is missing")
+        void testNestedFieldPathMissing() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1")
+                            .append("stages", List.of(
+                                    new Document("$cursor", new Document("queryPlanner",
+                                            new Document("otherPlan",  // missing "winningPlan"
+                                                    new Document("stage", "IXSCAN"))))
+                            ))
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "2")
+                            .append("stages", List.of(
+                                    new Document("$cursor", new Document("queryPlanner",
+                                            new Document("winningPlan",
+                                                    new Document("stage", "CLUSTERED_IXSCAN"))))
+                            ))
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .withRequiredFields("stages[0].$cursor.queryPlanner.winningPlan.stage")
+                    .build();
+
+            AssertionError error = assertThrows(AssertionError.class, () ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+
+            assertTrue(error.getMessage().contains("actual[0]"));
+            assertTrue(error.getMessage().contains("missing required field"));
+            assertTrue(error.getMessage().contains("stages[0].$cursor.queryPlanner.winningPlan.stage"));
+        }
+
+        @Test
+        @DisplayName("Should fail when nested field value does not match")
+        void testNestedFieldValueMismatch() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1")
+                            .append("stages", List.of(
+                                    new Document("$cursor", new Document("queryPlanner",
+                                            new Document("winningPlan",
+                                                    new Document("stage", "COLLSCAN"))))  // wrong value
+                            ))
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "2")
+                            .append("stages", List.of(
+                                    new Document("$cursor", new Document("queryPlanner",
+                                            new Document("winningPlan",
+                                                    new Document("stage", "CLUSTERED_IXSCAN"))))
+                            ))
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .withFieldValues(Map.of("stages[0].$cursor.queryPlanner.winningPlan.stage", "CLUSTERED_IXSCAN"))
+                    .build();
+
+            AssertionError error = assertThrows(AssertionError.class, () ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+
+            assertTrue(error.getMessage().contains("actual[0]"));
+            assertTrue(error.getMessage().contains("has value"));
+            assertTrue(error.getMessage().contains("COLLSCAN"));
+        }
+
+        @Test
+        @DisplayName("Should handle deeply nested paths with multiple array indices")
+        void testDeeplyNestedPathWithMultipleArrayIndices() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1")
+                            .append("results", List.of(
+                                    new Document("items", List.of(
+                                            new Document("name", "item1"),
+                                            new Document("name", "item2")
+                                    ))
+                            ))
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "2")
+                            .append("results", List.of(
+                                    new Document("items", List.of(
+                                            new Document("name", "itemA"),
+                                            new Document("name", "item2")  // must match schema value
+                                    ))
+                            ))
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .withRequiredFields("results[0].items[1].name")
+                    .withFieldValues(Map.of("results[0].items[1].name", "item2"))
+                    .build();
+
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+        }
+
+        @Test
+        @DisplayName("Should fail when array index is out of bounds")
+        void testArrayIndexOutOfBounds() {
+            List<Document> actual = List.of(
+                    new Document("_id", "1")
+                            .append("stages", List.of(
+                                    new Document("name", "stage1")
+                            ))
+            );
+
+            List<Document> expected = List.of(
+                    new Document("_id", "2")
+                            .append("stages", List.of(
+                                    new Document("name", "stage1"),
+                                    new Document("name", "stage2")
+                            ))
+            );
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .withRequiredFields("stages[5].name")  // index 5 doesn't exist
+                    .build();
+
+            AssertionError error = assertThrows(AssertionError.class, () ->
+                    Expect.that(actual).shouldResemble(expected).withSchema(schema));
+
+            assertTrue(error.getMessage().contains("missing required field"));
+            assertTrue(error.getMessage().contains("stages[5].name"));
+        }
+
+        @Test
+        @DisplayName("Should load expected from file path for shouldResemble")
+        void testShouldResembleWithFilePath() throws Exception {
+            List<Document> actual = List.of(
+                    new Document("name", "test").append("value", 42)
+            );
+
+            // Use a test resource file
+            String filePath = "src/test/resources/single-document.json";
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .withRequiredFields("name", "value")
+                    .withFieldValues(Map.of("value", 42))
+                    .build();
+
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(filePath).withSchema(schema));
+        }
+
+        @Test
+        @DisplayName("Should load expected from Path object for shouldResemble")
+        void testShouldResembleWithPathObject() {
+            List<Document> actual = List.of(
+                    new Document("name", "test").append("value", 42)
+            );
+
+            // Use a test resource file as Path object
+            java.nio.file.Path filePath = java.nio.file.Path.of("src/test/resources/single-document.json");
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .withRequiredFields("name", "value")
+                    .withFieldValues(Map.of("value", 42))
+                    .build();
+
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(filePath).withSchema(schema));
+        }
+
+        @Test
+        @DisplayName("Should handle expected JSON with ellipsis patterns for omitted fields")
+        void testShouldResembleWithEllipsisPatterns() {
+            // Actual document with full structure
+            List<Document> actual = List.of(
+                    new Document("explainVersion", "1")
+                            .append("stages", List.of(
+                                    new Document("extraField", "ignored")
+                                            .append("$cursor", new Document("extraNested", "also ignored")
+                                                    .append("queryPlanner", new Document("namespace", "test.collection")
+                                                            .append("winningPlan", new Document("isCached", false)
+                                                                    .append("stage", "CLUSTERED_IXSCAN"))))
+                            ))
+            );
+
+            // Expected with ellipsis patterns (simulating file content with ...)
+            String expectedWithEllipsis = """
+                    {
+                      "explainVersion": "1",
+                      "stages": [
+                        {
+                          ...
+                          "$cursor": {
+                            ...
+                            "queryPlanner": {
+                              ...
+                              "namespace": "test.collection",
+                              "winningPlan": {
+                                "isCached": false,
+                                "stage": "CLUSTERED_IXSCAN"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                    """;
+
+            Schema schema = Schema.builder()
+                    .withCount(1)
+                    .withRequiredFields("stages[0].$cursor.queryPlanner.winningPlan.stage")
+                    .withFieldValues(Map.of("stages[0].$cursor.queryPlanner.winningPlan.stage", "CLUSTERED_IXSCAN"))
+                    .build();
+
+            assertDoesNotThrow(() ->
+                    Expect.that(actual).shouldResemble(expectedWithEllipsis).withSchema(schema));
+        }
     }
 }
