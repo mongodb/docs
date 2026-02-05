@@ -235,7 +235,7 @@ printf "%b\n" "\n${BOLD}${BLUE}Total projects to process:${RESET} ${YELLOW}$TOTA
 # Prepare converter dependencies once
 pushd "$CONVERTER_DIR" >/dev/null
 if [[ ! -d node_modules ]]; then
-  pnpm install
+  pnpm install --filter snooty-ast-to-mdx
 fi
 popd >/dev/null
 
