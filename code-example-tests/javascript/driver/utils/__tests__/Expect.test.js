@@ -516,6 +516,7 @@ describe('Expect API', () => {
             .shouldResemble(expected)
             .withSchema({
               count: 2,
+              requiredFields: ['genre', 'year'],
               fieldValues: { genre: 'Action', year: 2020 },
             });
         }).not.toThrow();
@@ -530,6 +531,7 @@ describe('Expect API', () => {
             .shouldResemble(expected)
             .withSchema({
               count: 1,
+              requiredFields: ['year'],
               fieldValues: { year: 2020 },
             });
         }).toThrow(/actual\[0\].year has value 2019, expected 2020/);
@@ -544,6 +546,7 @@ describe('Expect API', () => {
             .shouldResemble(expected)
             .withSchema({
               count: 1,
+              requiredFields: ['year'],
               fieldValues: { year: 2020 },
             });
         }).toThrow(/expected\[0\].year has value 2019, expected 2020/);
@@ -558,11 +561,10 @@ describe('Expect API', () => {
             .shouldResemble(expected)
             .withSchema({
               count: 1,
+              requiredFields: ['year'],
               fieldValues: { year: 2020 },
             });
-        }).toThrow(
-          /actual\[0\] is missing field 'year' required by fieldValues/
-        );
+        }).toThrow(/actual\[0\] is missing required field 'year'/);
       });
     });
 
@@ -602,6 +604,7 @@ describe('Expect API', () => {
             .shouldResemble(expected)
             .withSchema({
               count: 1,
+              requiredFields: ['id', 'metadata'],
               fieldValues: { metadata: { category: 'movie', source: 'imdb' } },
             });
         }).toThrow(/metadata.*has value/);
@@ -890,7 +893,7 @@ describe('Expect API', () => {
             .shouldResemble(expected)
             .withSchema({
               count: 1,
-              requiredFields: ['_id'],
+              requiredFields: ['_id', 'type'],
               fieldValues: { type: 'movie' },
             });
         }).not.toThrow();
@@ -908,7 +911,7 @@ describe('Expect API', () => {
             .shouldResemble(expected)
             .withSchema({
               count: 1,
-              requiredFields: ['created'],
+              requiredFields: ['created', 'status'],
               fieldValues: { status: 'active' },
             });
         }).not.toThrow();
@@ -924,6 +927,7 @@ describe('Expect API', () => {
             .shouldResemble(expected)
             .withSchema({
               count: 1,
+              requiredFields: ['created'],
               fieldValues: { created: date },
             });
         }).not.toThrow();
@@ -986,6 +990,281 @@ describe('Expect API', () => {
               fieldValues: { genre: 'Sci-Fi', year: 2020 },
             });
         }).not.toThrow();
+      });
+    });
+
+    describe('fieldValues must be in requiredFields validation', () => {
+      it('should throw when fieldValues contains field not in requiredFields', () => {
+        const actual = [{ _id: '1', title: 'Movie', year: 2012 }];
+        const expected = [{ _id: '2', title: 'Other', year: 2012 }];
+
+        expect(() => {
+          Expect.that(actual)
+            .shouldResemble(expected)
+            .withSchema({
+              count: 1,
+              requiredFields: ['_id', 'title'],
+              fieldValues: { year: 2012 }, // 'year' is not in requiredFields
+            });
+        }).toThrow(
+          /fieldValues contains field\(s\) \['year'\] that are not in requiredFields/
+        );
+      });
+
+      it('should throw when multiple fieldValues are not in requiredFields', () => {
+        const actual = [
+          { _id: '1', title: 'Movie', year: 2012, genre: 'Action' },
+        ];
+        const expected = [
+          { _id: '2', title: 'Other', year: 2012, genre: 'Action' },
+        ];
+
+        expect(() => {
+          Expect.that(actual)
+            .shouldResemble(expected)
+            .withSchema({
+              count: 1,
+              requiredFields: ['_id'],
+              fieldValues: { year: 2012, genre: 'Action' }, // neither in requiredFields
+            });
+        }).toThrow(
+          /fieldValues contains field\(s\).*that are not in requiredFields/
+        );
+      });
+
+      it('should pass when all fieldValues are in requiredFields', () => {
+        const actual = [{ _id: '1', title: 'Movie', year: 2012 }];
+        const expected = [{ _id: '2', title: 'Other', year: 2012 }];
+
+        expect(() => {
+          Expect.that(actual)
+            .shouldResemble(expected)
+            .withSchema({
+              count: 1,
+              requiredFields: ['_id', 'title', 'year'],
+              fieldValues: { year: 2012 },
+            });
+        }).not.toThrow();
+      });
+
+      it('should pass when fieldValues is empty', () => {
+        const actual = [{ _id: '1', title: 'Movie' }];
+        const expected = [{ _id: '2', title: 'Other' }];
+
+        expect(() => {
+          Expect.that(actual)
+            .shouldResemble(expected)
+            .withSchema({
+              count: 1,
+              requiredFields: ['_id', 'title'],
+              fieldValues: {},
+            });
+        }).not.toThrow();
+      });
+    });
+
+    describe('nested field path support with dot notation', () => {
+      it('should validate nested required fields using dot notation', () => {
+        const actual = [
+          { _id: '1', details: { title: 'Movie A', info: { year: 2012 } } },
+        ];
+        const expected = [
+          { _id: '2', details: { title: 'Movie B', info: { year: 2012 } } },
+        ];
+
+        expect(() => {
+          Expect.that(actual)
+            .shouldResemble(expected)
+            .withSchema({
+              count: 1,
+              requiredFields: ['_id', 'details.title', 'details.info.year'],
+              fieldValues: { 'details.info.year': 2012 },
+            });
+        }).not.toThrow();
+      });
+
+      it('should fail when nested required field is missing', () => {
+        const actual = [{ _id: '1', details: { title: 'Movie A' } }]; // missing details.info.year
+        const expected = [
+          { _id: '2', details: { title: 'Movie B', info: { year: 2012 } } },
+        ];
+
+        expect(() => {
+          Expect.that(actual)
+            .shouldResemble(expected)
+            .withSchema({
+              count: 1,
+              requiredFields: ['_id', 'details.info.year'],
+              fieldValues: { 'details.info.year': 2012 },
+            });
+        }).toThrow(/actual\[0\] is missing required field 'details.info.year'/);
+      });
+
+      it('should validate nested fieldValues using dot notation', () => {
+        const actual = [
+          { _id: '1', queryPlanner: { winningPlan: { stage: 'IXSCAN' } } },
+        ];
+        const expected = [
+          { _id: '2', queryPlanner: { winningPlan: { stage: 'IXSCAN' } } },
+        ];
+
+        expect(() => {
+          Expect.that(actual)
+            .shouldResemble(expected)
+            .withSchema({
+              count: 1,
+              requiredFields: ['_id', 'queryPlanner.winningPlan.stage'],
+              fieldValues: { 'queryPlanner.winningPlan.stage': 'IXSCAN' },
+            });
+        }).not.toThrow();
+      });
+
+      it('should fail when nested fieldValue does not match', () => {
+        const actual = [
+          { _id: '1', queryPlanner: { winningPlan: { stage: 'COLLSCAN' } } },
+        ];
+        const expected = [
+          { _id: '2', queryPlanner: { winningPlan: { stage: 'IXSCAN' } } },
+        ];
+
+        expect(() => {
+          Expect.that(actual)
+            .shouldResemble(expected)
+            .withSchema({
+              count: 1,
+              requiredFields: ['_id', 'queryPlanner.winningPlan.stage'],
+              fieldValues: { 'queryPlanner.winningPlan.stage': 'IXSCAN' },
+            });
+        }).toThrow(
+          /actual\[0\]\.queryPlanner\.winningPlan\.stage has value "COLLSCAN", expected "IXSCAN"/
+        );
+      });
+    });
+
+    describe('array indexing support in field paths', () => {
+      it('should validate fields using array indexing', () => {
+        const actual = [
+          {
+            _id: '1',
+            stages: [{ $cursor: { queryPlanner: { stage: 'IXSCAN' } } }],
+          },
+        ];
+        const expected = [
+          {
+            _id: '2',
+            stages: [{ $cursor: { queryPlanner: { stage: 'IXSCAN' } } }],
+          },
+        ];
+
+        expect(() => {
+          Expect.that(actual)
+            .shouldResemble(expected)
+            .withSchema({
+              count: 1,
+              requiredFields: ['_id', 'stages[0].$cursor.queryPlanner.stage'],
+              fieldValues: { 'stages[0].$cursor.queryPlanner.stage': 'IXSCAN' },
+            });
+        }).not.toThrow();
+      });
+
+      it('should fail when array index is out of bounds', () => {
+        const actual = [{ _id: '1', items: [{ name: 'first' }] }];
+        const expected = [
+          { _id: '2', items: [{ name: 'first' }, { name: 'second' }] },
+        ];
+
+        expect(() => {
+          Expect.that(actual)
+            .shouldResemble(expected)
+            .withSchema({
+              count: 1,
+              requiredFields: ['_id', 'items[1].name'], // index 1 doesn't exist in actual
+            });
+        }).toThrow(/actual\[0\] is missing required field 'items\[1\]\.name'/);
+      });
+
+      it('should validate multiple array indices', () => {
+        const actual = [
+          {
+            _id: '1',
+            matrix: [
+              [1, 2],
+              [3, 4],
+            ],
+          },
+        ];
+        const expected = [
+          {
+            _id: '2',
+            matrix: [
+              [1, 6],
+              [7, 4],
+            ],
+          },
+        ];
+
+        expect(() => {
+          Expect.that(actual)
+            .shouldResemble(expected)
+            .withSchema({
+              count: 1,
+              requiredFields: ['_id', 'matrix[0][0]', 'matrix[1][1]'],
+              fieldValues: { 'matrix[0][0]': 1, 'matrix[1][1]': 4 },
+            });
+        }).not.toThrow();
+      });
+
+      it('should handle combined dot notation and array indexing', () => {
+        const actual = [
+          {
+            _id: '1',
+            results: [{ data: { values: [{ score: 0.95 }] } }],
+          },
+        ];
+        const expected = [
+          {
+            _id: '2',
+            results: [{ data: { values: [{ score: 0.95 }] } }],
+          },
+        ];
+
+        expect(() => {
+          Expect.that(actual)
+            .shouldResemble(expected)
+            .withSchema({
+              count: 1,
+              requiredFields: ['_id', 'results[0].data.values[0].score'],
+              fieldValues: { 'results[0].data.values[0].score': 0.95 },
+            });
+        }).not.toThrow();
+      });
+
+      it('should fail when path navigates through non-object', () => {
+        const actual = [{ _id: '1', value: 'string' }];
+        const expected = [{ _id: '2', value: { nested: 'object' } }];
+
+        expect(() => {
+          Expect.that(actual)
+            .shouldResemble(expected)
+            .withSchema({
+              count: 1,
+              requiredFields: ['_id', 'value.nested'], // 'value' is a string in actual
+            });
+        }).toThrow(/actual\[0\] is missing required field 'value\.nested'/);
+      });
+
+      it('should fail when path navigates through non-array for indexing', () => {
+        const actual = [{ _id: '1', items: { notAnArray: true } }];
+        const expected = [{ _id: '2', items: [{ name: 'item' }] }];
+
+        expect(() => {
+          Expect.that(actual)
+            .shouldResemble(expected)
+            .withSchema({
+              count: 1,
+              requiredFields: ['_id', 'items[0].name'], // 'items' is not an array in actual
+            });
+        }).toThrow(/actual\[0\] is missing required field 'items\[0\]\.name'/);
       });
     });
   });

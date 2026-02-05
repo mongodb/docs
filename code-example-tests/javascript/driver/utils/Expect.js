@@ -283,6 +283,12 @@ class Expect {
       fieldValues: schema.fieldValues || {},
     };
 
+    // Validate that all fieldValues keys are also in requiredFields
+    this._validateFieldValuesInRequiredFields(
+      this._schemaConfig.requiredFields,
+      this._schemaConfig.fieldValues
+    );
+
     // Validate both expected and actual outputs against the schema
     const errors = [];
 
@@ -350,23 +356,48 @@ class Expect {
       }
 
       // Check required fields (presence only, not value)
+      // Supports dot notation for nested fields and array indexing like stages[0].$cursor
       for (const field of requiredFields) {
-        if (!(field in doc)) {
-          errors.push(
-            `${label}[${index}] is missing required field '${field}'`
-          );
+        // Use nested path navigation if dot notation or array indexing is used
+        if (field.includes('.') || field.includes('[')) {
+          const result = this._tryGetNestedValue(doc, field);
+          if (!result.found) {
+            errors.push(
+              `${label}[${index}] is missing required field '${field}'`
+            );
+          }
+        } else {
+          if (!(field in doc)) {
+            errors.push(
+              `${label}[${index}] is missing required field '${field}'`
+            );
+          }
         }
       }
 
       // Check field values
+      // Supports dot notation for nested fields and array indexing like stages[0].$cursor
       for (const [field, expectedValue] of Object.entries(fieldValues)) {
-        if (!(field in doc)) {
+        let actualValue;
+        let fieldExists;
+
+        // Use nested path navigation if dot notation or array indexing is used
+        if (field.includes('.') || field.includes('[')) {
+          const result = this._tryGetNestedValue(doc, field);
+          fieldExists = result.found;
+          actualValue = result.value;
+        } else {
+          fieldExists = field in doc;
+          actualValue = doc[field];
+        }
+
+        if (!fieldExists) {
           errors.push(
             `${label}[${index}] is missing field '${field}' required by fieldValues`
           );
-        } else if (!this._valuesEqual(doc[field], expectedValue)) {
+        } else if (!this._valuesEqual(actualValue, expectedValue)) {
           errors.push(
-            `${label}[${index}].${field} has value ${JSON.stringify(doc[field])}, expected ${JSON.stringify(expectedValue)}`
+            `${label}[${index}].${field} has value ${JSON.stringify(actualValue)}, expected ${JSON.stringify(expectedValue)}`
           );
         }
       }
@@ -480,6 +511,136 @@ class Expect {
     }
 
     return value;
+  }
+
+  /**
+   * Validates that all fields in fieldValues are also present in requiredFields.
+   * Matches the C# SchemaBuilder validation behavior.
+   *
+   * @private
+   * @param {string[]} requiredFields - Array of required field names
+   * @param {Object} fieldValues - Object of field-value pairs to check
+   * @throws {Error} If fieldValues contains fields not in requiredFields
+   */
+  _validateFieldValuesInRequiredFields(requiredFields, fieldValues) {
+    if (!fieldValues || Object.keys(fieldValues).length === 0) {
+      return;
+    }
+
+    const requiredFieldsSet = new Set(requiredFields);
+    const missingFields = Object.keys(fieldValues).filter(
+      (fieldName) => !requiredFieldsSet.has(fieldName)
+    );
+
+    if (missingFields.length > 0) {
+      const fieldList = missingFields.map((f) => `'${f}'`).join(', ');
+      throw new Error(
+        `Schema validation configuration error: fieldValues contains field(s) [${fieldList}] ` +
+          `that are not in requiredFields. All fields in fieldValues must also be listed in requiredFields.`
+      );
+    }
+  }
+
+  /**
+   * Attempts to get a value from a nested structure using dot notation and array indexing.
+   * Supports paths like "queryPlanner.winningPlan.stage" and "stages[0].$cursor.queryPlanner.winningPlan.stage".
+   *
+   * @private
+   * @param {Object} doc - The document to navigate
+   * @param {string} fieldPath - The path to the field (supports dot notation and array indexing)
+   * @returns {{ found: boolean, value: * }} Result with found flag and value if found
+   */
+  _tryGetNestedValue(doc, fieldPath) {
+    const pathParts = this._parseFieldPath(fieldPath);
+    let current = doc;
+
+    for (const part of pathParts) {
+      if (current === null || current === undefined) {
+        return { found: false, value: undefined };
+      }
+
+      // Normalize the current value (handle MongoDB types)
+      const normalizedCurrent = this._normalizeValue(current);
+
+      if (part.isArrayIndex) {
+        // Handle array indexing
+        if (Array.isArray(normalizedCurrent)) {
+          if (
+            part.arrayIndex < 0 ||
+            part.arrayIndex >= normalizedCurrent.length
+          ) {
+            return { found: false, value: undefined };
+          }
+          current = normalizedCurrent[part.arrayIndex];
+        } else {
+          // Not an array, can't index
+          return { found: false, value: undefined };
+        }
+      } else {
+        // Handle object key access
+        if (
+          typeof normalizedCurrent === 'object' &&
+          normalizedCurrent !== null &&
+          !Array.isArray(normalizedCurrent)
+        ) {
+          if (!(part.fieldName in normalizedCurrent)) {
+            return { found: false, value: undefined };
+          }
+          current = normalizedCurrent[part.fieldName];
+        } else {
+          // Current value is not an object, can't navigate further
+          return { found: false, value: undefined };
+        }
+      }
+    }
+
+    return { found: true, value: current };
+  }
+
+  /**
+   * Parses a field path into individual parts, handling both dot notation and array indexing.
+   * For example, "stages[0].$cursor.queryPlanner" becomes:
+   * [{ fieldName: "stages" }, { arrayIndex: 0 }, { fieldName: "$cursor" }, { fieldName: "queryPlanner" }]
+   *
+   * @private
+   * @param {string} fieldPath - The field path to parse
+   * @returns {Array<{ fieldName?: string, arrayIndex?: number, isArrayIndex: boolean }>} Parsed path parts
+   */
+  _parseFieldPath(fieldPath) {
+    const parts = [];
+    const segments = fieldPath.split('.');
+
+    for (const segment of segments) {
+      // Check if segment contains array indexing like "stages[0]" or "items[2]"
+      const bracketIndex = segment.indexOf('[');
+      if (bracketIndex >= 0) {
+        // Extract field name before the bracket (if any)
+        if (bracketIndex > 0) {
+          const fieldName = segment.substring(0, bracketIndex);
+          parts.push({ fieldName, isArrayIndex: false });
+        }
+
+        // Extract all array indices from the segment (handles cases like "arr[0][1]")
+        let remaining = segment.substring(bracketIndex);
+        while (remaining.length > 0 && remaining.startsWith('[')) {
+          const closeBracket = remaining.indexOf(']');
+          if (closeBracket < 0) break;
+
+          const indexStr = remaining.substring(1, closeBracket);
+          const arrayIndex = parseInt(indexStr, 10);
+          if (!isNaN(arrayIndex)) {
+            parts.push({ arrayIndex, isArrayIndex: true });
+          }
+
+          remaining = remaining.substring(closeBracket + 1);
+        }
+      } else {
+        // Simple field name
+        parts.push({ fieldName: segment, isArrayIndex: false });
+      }
+    }
+
+    return parts;
   }
 }
 
