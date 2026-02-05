@@ -1,6 +1,6 @@
 To create a stream processor in the {+atlas-ui+}, go to the
 :guilabel:`Stream Processing` page for your {+service+} project and
-click :guilabel:`Configure` in the pane for your {+spw+}.
+click :guilabel:`Manage` in the pane for your {+spw+}.
 
 You can choose between using the Visual Builder or the |json| editor to
 configure your stream processor:
