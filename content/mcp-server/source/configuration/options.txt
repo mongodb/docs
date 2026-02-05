@@ -47,6 +47,15 @@ Use the following configuration options to configure the MCP Server.
      - Default
      - Description
 
+   * - ``allowRequestOverrides``
+     - ``MDB_MCP_ALLOW_REQUEST_OVERRIDES``
+     - boolean
+     - ``false``
+     - Flag that indicates if users can override MCP Server configurations
+       per-request with request headers and query parameters. For the specific
+       override behavior of each configuration option, see the
+       :ref:`Override Behavior Table <mcp-config-override-behavior-table>` below.
+
    * - ``apiClientId``
      - ``MDB_MCP_API_CLIENT_ID``
      - string
@@ -63,7 +72,7 @@ Use the following configuration options to configure the MCP Server.
      - ``MDB_MCP_CONFIG``
      - string
      - Not set
-     - Specifies the full path to the JSON configuration file. Using the
+     - Full path to the JSON configuration file. Using the 
        ``MDB_MCP_CONFIG`` environment variable is recommended over using the
        ``--config`` command line option.
 
@@ -111,7 +120,7 @@ Use the following configuration options to configure the MCP Server.
      - ``MDB_MCP_LOGGERS``
      - string
      - ``disk mcp``
-     - Specifies where the MCP Server sends the logs.
+     - Path where the MCP Server sends the logs.
 
        Set ``loggers`` to one or more of the following options:
 
@@ -147,7 +156,7 @@ Use the following configuration options to configure the MCP Server.
      - ``MDB_MCP_DISABLED_TOOLS``
      - array
      - Not set
-     - An array of MCP tool names, operation types, or tool
+     - Array of MCP tool names, operation types, or tool
        categories to disable.
 
        For more information, see
@@ -157,7 +166,8 @@ Use the following configuration options to configure the MCP Server.
      - ``MDB_MCP_READ_ONLY``
      - boolean
      - ``false``
-     - To disable cluster write operations, set ``--readOnly`` in the
+     - Flag that determines if write operations are permitted.
+       To disable cluster write operations, set ``--readOnly`` in the
        configuration file or command line, or set the
        ``MDB_MCP_READ_ONLY`` operating system environment variable to
        ``true``. 
@@ -172,8 +182,9 @@ Use the following configuration options to configure the MCP Server.
      - ``MDB_MCP_INDEX_CHECK``
      - boolean
      - ``false``
-     - If ``true``, enforces that query operations must use an
-       index and rejects queries that perform collection scans.
+     - Flag that indicates if indexes are required for queries. If ``true``, 
+       enforces that query operations must use an index and rejects queries
+       that perform collection scans.
 
        For more information, see
        :ref:`mcp-server-configuration-index-check`.
@@ -182,7 +193,8 @@ Use the following configuration options to configure the MCP Server.
      - ``MDB_MCP_TELEMETRY``
      - string
      - ``enabled``
-     - If ``disabled``, MCP Server usage data collection is stopped.
+     - Flag that indicates if usage data is collected by the MCP Server.
+       If ``disabled``, MCP Server usage data collection is stopped.
 
        For more information, see
        :ref:`mcp-server-configuration-telemetry`.
@@ -256,9 +268,10 @@ Use the following configuration options to configure the MCP Server.
      - ``MDB_MCP_AUTHENTICATION_MECHANISM``
      - string
      - ``SCRAM-SHA-256``
-     - SCRAM is the default authentication mechanism for MongoDB. 
-       To connect to your MongoDB
-       deployments with the MongoDB MCP server 
+     - Authentication mechanism to used when connecting to your MongoDB
+       deployments with the MongoDB MCP Server.
+
+       SCRAM is the default authentication mechanism for MongoDB. To connect
        using other authentication methods, see the following pages:
 
        - :ref:`mcp-server-oidc`
@@ -350,18 +363,17 @@ to work with :ref:`MongoDB Vector Search <mcp-vector-search-tools>`.
        For additional vector search configuration options, see
        :ref:`mcp-vector-search-options`.
 
-   * - ``disableEmbeddingsValidation``
-     - ``MDB_MCP_DISABLE_EMBEDDINGS_VALIDATION``
+   * - ``embeddingsValidation``
+     - ``MDB_MCP_EMBEDDINGS_VALIDATION``
      - boolean
-     - ``false``
-     - When set to ``true``, disables validation of embedding
-       dimensions.
+     - ``true``
+     - Flag that indicates if embedding vectors are validated. When set to
+       ``true``, enables validation of embedding dimensions.
 
-       By default, the MCP Server validates that fields with vector search indexes
-       contain valid embedding vectors with the
-       correct dimensions to prevent breaking vector search indexes.
-       Enable this option to allow inserting raw values 
-       into embeddings fields without validation.
+       By default, the MCP Server validates that fields with vector search
+       indexes contain valid embedding vectors with the correct dimensions to
+       prevent breaking vector search indexes. Disable this option to allow
+       inserting raw values into embeddings fields without validation.
 
        .. warning::
 
@@ -392,6 +404,147 @@ to work with :ref:`MongoDB Vector Search <mcp-vector-search-tools>`.
        The MCP server uses this value is as the default when creating vector search
        indexes unless specified otherwise. To learn more, 
        see :ref:`avs-types-vector-search`.
+
+.. _mcp-config-override-behavior-table:
+
+Configuration Option Override Behaviors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table describes the override behavior of each configuration
+option. These override behaviors apply only if the ``allowRequestOverrides``
+configuration option is set to ``true``. If a user attempts to override a
+configuration option that prohibits overrides, the MCP server declines the
+connection.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 20 50
+
+   * - Config Key
+     - Override behavior
+     - Additional condition
+
+   * - ``apiBaseUrl``
+     - Prohibited
+     -
+
+   * - ``apiClientId``
+     - Prohibited
+     - 
+
+   * - ``apiClientSecret``
+     - Prohibited
+     - 
+
+   * - ``allowRequestOverrides``
+     - Prohibited
+     - 
+
+   * - ``connectionString``
+     - Prohibited
+     - 
+
+   * - ``config``
+     - Prohibited
+     - 
+
+   * - ``loggers``
+     - Prohibited
+     - 
+
+   * - ``logPath``
+     - Prohibited
+     - 
+
+   * - ``disabledTools``
+     - Merge
+     - Disables tools in addition to those in the existing configuration.
+
+   * - ``confirmationRequiredTools``
+     - Merge
+     - Requires confirmation for tools in addition to those in the existing
+       configuration.
+
+   * - ``readOnly``
+     - Conditional
+     - Can only override an existing ``false`` configuration to ``true``.
+
+   * - ``indexCheck``
+     - Conditional
+     - Can only override an existing ``false`` configuration to ``true``.
+
+   * - ``telemetry``
+     - Prohibited
+     - 
+
+   * - ``transport``
+     - Prohibited
+     - 
+
+   * - ``httpPort``
+     - Prohibited
+     - 
+
+   * - ``httpHost``
+     - Prohibited
+     - 
+
+   * - ``httpHeaders``
+     - Prohibited
+     -
+
+   * - ``idleTimeoutMs``
+     - Conditional
+     - Can only override with a lower timeout than the existing configuration.
+
+   * - ``notificationTimeoutMs``
+     - Conditional
+     - Can only override with a lower timeout than the existing configuration.
+
+   * - ``maxBytesPerQuery``
+     - Prohibited
+     - 
+
+   * - ``maxDocumentsPerQuery``
+     - Prohibited
+     - 
+
+   * - ``exportsPath``
+     - Prohibited
+     - 
+
+   * - ``exportTimeoutMs``
+     - Conditional
+     - Can only override with a lower timeout than the existing configuration.
+
+   * - ``exportCleanupIntervalMs``
+     - Prohibited
+     - 
+
+   * - ``atlasTemporaryDatabaseUserLifetimeMs``
+     - Conditional
+     - Can only override with a lower lifetime than the existing configuration.
+
+   * - ``voyageApiKey``
+     - Prohibited
+     - 
+
+   * - ``embeddingsValidation``
+     - Conditional
+     - Can only override an existing ``false`` configuration to ``true``.
+
+   * - ``vectorSearchDimensions``
+     - Override
+     - 
+
+   * - ``vectorSearchSimilarityFunction``
+     - Override
+     - 
+
+   * - ``previewFeatures``
+     - Conditional
+     - Can only disable features in the existing configuration, not add
+       additional features.
 
 .. _mcp-positional-arguments:
 
