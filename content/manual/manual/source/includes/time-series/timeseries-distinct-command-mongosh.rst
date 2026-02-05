@@ -5,9 +5,11 @@ method on time series collections. Instead, use a :pipeline:`$group`
 aggregation to group documents by distinct values, as shown in the following 
 example:
 
-.. literalinclude:: /code-examples/tested/python/pymongo/timeseries/limitations.snippet.agg-pipeline-for-distinct.py
-    :language: python
-    :category: syntax example
+.. code-block:: javascript
+
+   db.foo.createIndex({"meta.project":1, "meta.type":1})
+   db.foo.aggregate([{$match: {"meta.project": 10}},
+                     {$group: {_id: "$meta.type"}}])
 
 This works as follows:
 

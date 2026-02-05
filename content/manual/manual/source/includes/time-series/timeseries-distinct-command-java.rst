@@ -5,8 +5,8 @@ method on time series collections. Instead, use a :pipeline:`$group`
 aggregation to group documents by distinct values, as shown in the following 
 example:
 
-.. literalinclude:: /code-examples/tested/python/pymongo/timeseries/limitations.snippet.agg-pipeline-for-distinct.py
-    :language: python
+.. literalinclude:: /code-examples/tested/java/driver-sync/timeseries/Limitations.snippet.agg-pipeline-for-distinct.java
+    :language: java
     :category: syntax example
 
 This works as follows:
