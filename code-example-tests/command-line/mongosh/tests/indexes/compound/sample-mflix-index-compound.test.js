@@ -39,4 +39,13 @@ describeWithSampleData("mongosh sample_mflix simple index tests", () => {
       .shouldMatch("indexes/compound/find-compound-index-year-runtime/output.sh");
   });
 
+  test("Should find document using compound index", async () => {
+    await Expect
+      .outputFromExampleFiles([
+        "indexes/compound/create-compound-index-hashed-field/create-index.js",
+      ])
+      .withDbName(dbName)
+      .shouldMatch("indexes/compound/create-compound-index-hashed-field/output.sh");
+  });
+
 }, dbName);

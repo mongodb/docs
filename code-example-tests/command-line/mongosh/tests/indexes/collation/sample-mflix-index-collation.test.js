@@ -87,4 +87,22 @@ describeWithSampleData("mongosh sample_mflix index collation tests", () => {
       .shouldMatch("indexes/collation/find-compound-index-year-partial/output.sh");
   });
 
+  test("Should create a simple index on movies with fr collation, strength: 2", async () => {
+    await Expect
+      .outputFromExampleFiles([
+        "indexes/collation/create-simple-index-collation-strength/create-index.js",
+      ])
+      .withDbName(dbName)
+      .shouldMatch("indexes/collation/create-simple-index-collation-strength/output.sh");
+  });
+
+  test("Should create a compound index on movies with fr collation, strength: 2", async () => {
+    await Expect
+      .outputFromExampleFiles([
+        "indexes/collation/create-compound-index-collation-strength/create-index.js",
+      ])
+      .withDbName(dbName)
+      .shouldMatch("indexes/collation/create-compound-index-collation-strength/output.sh");
+  });
+
 }, dbName);
