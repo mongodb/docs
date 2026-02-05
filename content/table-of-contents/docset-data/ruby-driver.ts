@@ -278,6 +278,12 @@ const tocData: TocItem[] = [
             contentSite: 'ruby-driver',
             url: '/docs/ruby-driver/:version/logging-and-monitoring/change-streams',
           },
+          {
+            label: 'OpenTelemetry Tracing',
+            contentSite: 'ruby-driver',
+            url: '/docs/ruby-driver/:version/logging-and-monitoring/open-telemetry',
+            versions: { includes: ['upcoming'] },
+          },
         ],
       },
       {

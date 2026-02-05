@@ -1,0 +1,331 @@
+.. _ruby-open-telemetry:
+
+==========================
+Trace with OpenTelemetry
+==========================
+
+.. meta::
+   :description: Learn how to enable and configure OpenTelemetry tracing with the Ruby driver to monitor driver operations and gain observability insights for your application.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you will learn how to use
+OpenTelemetry tracing with the {+driver-short+}. `OpenTelemetry
+<https://opentelemetry.io/>`__ is an open source observability
+framework that provides a standardized way to instrument, generate,
+collect, and export telemetry data.
+
+The {+driver-short+} supports OpenTelemetry tracing to help
+you understand the performance and behavior of your MongoDB
+operations. When you enable tracing, the driver creates spans
+that represent operations such as queries, updates, and
+transactions. These spans include attributes that follow MongoDB
+semantic conventions.
+
+Required Dependencies
+~~~~~~~~~~~~~~~~~~~~~
+
+To use OpenTelemetry tracing, you must install the OpenTelemetry
+Ruby SDK and an exporter. To install these in your application, add
+the following gems to your ``Gemfile``:
+
+.. code-block:: ruby
+
+   gem 'opentelemetry-sdk'
+   gem 'opentelemetry-exporter-otlp'  # or your preferred exporter
+
+If you enable tracing but the OpenTelemetry library is not loaded,
+the driver logs a warning and automatically disables tracing.
+
+Enable OpenTelemetry Tracing
+-----------------------------
+
+You can enable OpenTelemetry tracing by specifying the
+``tracing`` option when you create a client, or by setting an
+environment variable.
+
+.. note::
+
+   If you don't set tracing in the client configuration or by using
+   the environment variable, tracing is disabled by default.
+
+Enable Tracing in Client Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To enable tracing when you create a client, pass the ``tracing``
+option with ``enabled`` set to ``true``, as shown in the following example:
+
+.. literalinclude:: /includes/monitoring-logging/enable-tracing-client.rb
+   :language: ruby
+   :copyable:
+
+Enable Tracing with an Environment Variable
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To enable tracing by using an environment variable, set the
+``OTEL_RUBY_INSTRUMENTATION_MONGODB_ENABLED`` environment variable
+before you create a client, as shown in the following example:
+
+.. literalinclude:: /includes/monitoring-logging/enable-tracing-env.sh
+   :language: bash
+   :copyable:
+
+You can use any of the following values in the environment variable to
+enable tracing:
+
+- ``true`` 
+- ``1``
+- ``yes`` 
+
+After you set the variable, create your client, as shown in the following example:
+
+.. literalinclude:: /includes/monitoring-logging/client-after-env.rb
+   :language: ruby
+   :copyable:
+
+Configuration Options
+---------------------
+
+The ``tracing`` option accepts the following parameters:
+
+.. list-table::
+   :widths: 25 20 55
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``:enabled``
+     - Boolean
+     - | Enables or disables OpenTelemetry tracing.
+       | 
+       | **Default**: ``nil``
+
+   * - ``:query_text_max_length``
+     - Integer
+     - | Specifies the maximum length of query text to
+       | include in span attributes. Set to ``0`` to exclude
+       | query text. The query text appears in the
+       | ``db.query.text`` attribute. 
+       |
+       | **Default**: ``nil``
+
+   * - ``:tracer``
+     - ``OpenTelemetry::Trace::Tracer``
+     - | Specifies a custom OpenTelemetry tracer instance.
+       | 
+       | **Default**: Uses the default tracer from the
+       | global tracer provider
+
+The following example shows how to configure all available tracing
+options:
+
+.. literalinclude:: /includes/monitoring-logging/configure-tracing-options.rb
+   :language: ruby
+   :copyable:
+
+
+Operation Tracing
+-----------------
+
+The {+driver-short+} creates OpenTelemetry spans for both high-level
+operations and low-level commands. The following sections describe
+the spans created and the attributes included.
+
+High-Level Operations
+~~~~~~~~~~~~~~~~~~~~~
+
+High-level operations are the methods you call directly on
+collections and databases. The driver creates spans for the
+following operations:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Operation Type
+     - Operations
+
+   * - **Collection operations**
+     - ``find``, ``insert_one``, ``insert_many``, ``update_one``,
+       ``update_many``, ``delete_one``, ``delete_many``,
+       ``find_one_and_update``, ``find_one_and_delete``,
+       ``find_one_and_replace``, ``replace_one``, ``count_documents``,
+       ``estimated_document_count``, ``distinct``, ``aggregate``
+
+   * - **Index operations**
+     - ``create_index``, ``create_indexes``, ``drop_index``,
+       ``drop_all_indexes``, ``list_indexes``
+
+   * - **Database operations**
+     - ``list_collections``, ``create_collection``, ``drop_collection``,
+       ``list_databases``
+
+Span names for high-level operations use the format
+``{operation_name}.{collection_name}``. For example,
+``find.users``, ``insertOne.orders``, or
+``aggregate.products``.
+
+Low-Level Commands
+~~~~~~~~~~~~~~~~~~
+
+Low-level commands are the actual commands sent to the
+MongoDB server over the wire protocol. The following lists some
+examples of low-level commands for which the driver creates spans:
+
+- ``find``
+- ``insert``
+- ``update``
+- ``delete``
+- ``aggregate``
+- ``create``
+- ``drop``
+
+Span names for low-level commands use the format ``{command_name}``.
+For example, ``find``, ``insert``, or ``update``.
+
+Command spans are nested under their corresponding operation spans.
+
+Span Attributes
+~~~~~~~~~~~~~~~
+
+The driver follows MongoDB semantic conventions and includes
+span attributes that provide context about each operation.
+
+All spans include the following attributes:
+
+- ``db.system``: Always set to ``mongodb``
+- ``db.namespace``: The database name
+- ``db.collection.name``: The collection name (when applicable)
+- ``db.command.name``: The MongoDB command name (command spans
+  only)
+- ``db.query.summary``: A high-level summary of the query
+  structure
+
+Network Attributes
+``````````````````
+
+Command spans include the following network attributes:
+
+- ``server.address``: MongoDB server host
+- ``server.port``: MongoDB server port
+- ``network.transport``: Transport protocol such as ``tcp``
+
+Connection Attributes
+`````````````````````
+
+Command spans include the following connection attributes:
+
+- ``db.mongodb.server_connection_id``: Server-assigned connection ID
+- ``db.mongodb.driver_connection_id``: Driver-assigned connection ID
+
+Session and Transaction Attributes
+``````````````````````````````````
+
+When you use sessions or transactions, spans include the
+following attributes:
+
+- ``db.mongodb.lsid``: Logical session ID (when using
+  sessions)
+- ``db.mongodb.txn_number``: Transaction number (when in a
+  transaction)
+- ``db.mongodb.cursor_id``: Cursor ID (for operations that
+  return cursors)
+
+Query Attributes
+````````````````
+
+When you configure ``query_text_max_length`` with a value greater
+than ``0``, spans include the following attribute:
+
+- ``db.query.text``: The full query text, truncated to the
+  specified maximum length
+
+Error Attributes
+````````````````
+
+When operations fail, the driver records exception details
+with OpenTelemetry's exception recording mechanism and sets
+the span status to ``ERROR``. For MongoDB operation failures,
+the ``db.response.status_code`` attribute contains the error
+code.
+
+Transaction Tracing
+-------------------
+
+The driver creates a special transaction span that
+encompasses all operations within an explicit transaction. The
+following example demonstrates transaction tracing:
+
+.. literalinclude:: /includes/monitoring-logging/transaction-tracing.rb
+   :language: ruby
+   :copyable:
+
+The preceding example produces a span hierarchy similar to the
+following structure:
+
+.. code-block:: none
+
+   transaction
+     └── insertOne.users
+         └── insert (command)
+     └── updateOne.users
+         └── update (command)
+
+.. note::
+
+   Implicit sessions do not create transaction spans.
+
+Error Handling
+--------------
+
+When operations fail, the driver records exceptions in the span by
+using OpenTelemetry's exception recording mechanism. The span status
+is then set to ``ERROR``.
+
+For MongoDB operation failures, the
+``db.response.status_code`` attribute contains the error
+code.
+
+Errors do not prevent the driver from raising the exception
+to your application.
+
+Performance Considerations
+--------------------------
+
+Consider the following performance implications when you use
+OpenTelemetry tracing:
+
+- When you enable tracing, the driver incurs minimal
+  overhead for span creation and attribute collection.
+- Query text capture (``db.query.text``) has additional
+  overhead and you should use it judiciously in production. Setting
+  ``query_text_max_length`` to ``0`` disables query
+  text capture for better performance. 
+- When you disable tracing, there is no performance impact
+  because the feature is completely bypassed.
+
+Example
+-------
+
+The following example shows how to set up OpenTelemetry
+tracing for a MongoDB application:
+
+.. literalinclude:: /includes/monitoring-logging/opentelemetry-example.rb
+   :language: ruby
+   :copyable:
+
+Additional Information
+----------------------
+
+To learn more about OpenTelemetry tracing with Ruby, see the
+`OpenTelemetry Ruby SDK
+<https://opentelemetry.io/docs/languages/ruby/>`__.
