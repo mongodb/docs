@@ -1,5 +1,4 @@
 import type { TocItem } from '../types';
-import kafkaConnectorVersions from '../version-arrays/cloud-docs/kafka-connector';
 
 const tocData: TocItem[] = [
   {
