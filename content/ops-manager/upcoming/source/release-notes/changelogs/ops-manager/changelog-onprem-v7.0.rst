@@ -94,9 +94,6 @@ Improvements
   through the |onprem| UI or API.
 - Addresses `CVE-2025-12383 <https://www.cve.org/CVERecord?id=CVE-2025-12383>`__ 
   by updating the Jersey libraries to 3.1.10.
-- Fixes an issue where |ftdc| logs generated through the :guilabel:`Request Logs` button in the |mms| UI were 
-  corrupted and unusable, causing ``bsondump`` to fail with ``invalid BSONSize`` 
-  errors.
 
 Bug Fixes
 ~~~~~~~~~
@@ -107,6 +104,9 @@ Bug Fixes
   generate unusable files due to |bson| size errors.
 - Fixes an issue that prevented modifying the custom configuration when the 
   ``mms.mail.transport`` setting is present.
+- Fixes an issue where |ftdc| logs generated through the :guilabel:`Request Logs` button in the |mms| UI were 
+  corrupted and unusable, causing ``bsondump`` to fail with ``invalid BSONSize`` 
+  errors.
 
 .. _opsmgr-server-7.0.19:
 
