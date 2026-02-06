@@ -400,7 +400,6 @@ Transactions
 
 .. include:: /includes/extracts/transactions-usage.rst
 
-
 Upsert within Transactions
 ``````````````````````````
 
@@ -429,15 +428,131 @@ more documents, the operation adds an entry on the :term:`oplog`
 (operations log). If the operation fails or does not find any documents
 to update, the operation does not add an entry on the oplog. 
 
+Upsert with Dotted ``_id`` Query
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-upsert-id.rst
+
+.. _update-with-unique-indexes:
+.. _retryable-update-upsert:
+.. _upsert-duplicate-key-error:
+
+Upsert with Duplicate Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Upserts can create duplicate documents, unless there is a
+:ref:`unique index <index-type-unique>` to prevent duplicates.
+
+If all ``db.collection.update()`` operations finish the query phase before any
+client successfully inserts data, **and** there is no unique index on
+the ``name`` field, each ``db.collection.update()`` operation may result in an
+insert, creating multiple documents with ``name: Andy``.
+
+A unique index on the ``name`` field ensures that only one document
+is created. With a unique index in place, the multiple ``db.collection.update()``
+operations now exhibit the following behavior:
+
+- Exactly one ``db.collection.update()`` operation will successfully insert a new
+   document.
+
+- Other ``db.collection.update()`` operations either update the newly-inserted
+   document or fail due to a unique key collision.
+   
+   In order for other ``db.collection.update()`` operations to update the
+   newly-inserted document, **all** of the following conditions must
+   be met:
+
+   - The target collection has a unique index that would cause a
+      duplicate key error.
+
+   - The update operation is not ``updateMany`` or ``multi`` is
+      ``false``.
+
+   - The update match condition is either:
+
+     - A single equality predicate. For example ``{ "fieldA" : "valueA" }``
+
+     - A logical AND of equality predicates. For example ``{ "fieldA" :
+       "valueA", "fieldB" : "valueB" }``
+
+   - The fields in the equality predicate match the fields in the
+      unique index key pattern.
+
+   - The update operation does not modify any fields in the
+      unique index key pattern.
+
+.. seealso::
+
+   :update:`$setOnInsert`
+
+.. _update-arrayFilters:
+
+Array Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In the update document, use the :update:`$[\<identifier\>]` filtered positional
+operator to define an identifier, which you then reference in the array filter
+documents. You cannot have an array filter document for an identifier if the
+identifier is not included in the update document.
+
+The ``<identifier>`` must begin with a lowercase letter and contain only
+alphanumeric characters.
+
+You can include the same identifier multiple times in the update document;
+however, for each distinct identifier (``$[identifier]``) in the update
+document, you must specify **exactly one** corresponding array filter document.
+That is, you cannot specify multiple array filter documents for the same
+identifier. However, you can specify compound conditions on the same identifier
+in a single filter document
+
+.. note::
+
+   ``arrayFilters`` is not available for updates that use an
+   aggregation pipeline.
+
+.. _writeresults-update:
+
+WriteResult
+-----------
+
+Successful Results
+~~~~~~~~~~~~~~~~~~
+
+The :method:`db.collection.update()` method returns a
+:method:`WriteResult` object that contains the status of the operation.
+Upon success, the :method:`WriteResult` object contains the number of
+documents that matched the query condition, the number of documents
+inserted by the update, and the number of documents modified.
+
+.. see:: 
+
+   - :data:`WriteResult.nMatched`
+   - :data:`WriteResult.nUpserted`
+   - :data:`WriteResult.nModified`
+
+Write Concern Errors
+~~~~~~~~~~~~~~~~~~~~
+
+If the :method:`db.collection.update()` method encounters write
+concern errors, the results include the
+:data:`WriteResult.writeConcernError` field.
+
+The following table explains the possible values of
+``WriteResult.writeConcernError.provenance``:
+
+.. include:: /includes/fact-wc-provenance-table.rst
+
+Errors Unrelated to Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the :method:`db.collection.update()` method encounters a non-write
+concern error, the results include the :data:`WriteResult.writeError`
+field.
+
 Examples
 --------
 
-The following tabs showcase a variety of common
-:method:`~db.collection.update()` operations.
-
-.. include:: /includes/fact-update-example-docs-intro.rst
-
-.. include:: /includes/fact-update-example-docs.rst
+.. include:: /includes/sample-data-usage.rst
 
 .. tabs::
 
@@ -464,64 +579,20 @@ The following tabs showcase a variety of common
           an array, use :ref:`dot notation <document-dot-notation>`
           to specify the field.
 
-      .. code-block:: javascript
-
-         db.books.update(
-            { _id: 1 },
-            {
-              $inc: { stock: 5 },
-              $set: {
-                item: "ABC123",
-                "info.publisher": "2222",
-                tags: [ "software" ],
-                "ratings.1": { by: "xyz", rating: 3 }
-              }
-            }
-         )
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/update-operator-expressions.js
+         :language: javascript
+         :category: usage example
 
       In this operation:
 
-      - The ``<query>`` parameter of ``{ _id: 1 }`` specifies which
-        document to update,
+      - The ``<query>`` parameter of ``{ title: "The Godfather" }`` specifies which
+        document to update
 
-      - the :update:`$inc` operator increments the ``stock`` field,
-        and
+      - the :update:`$inc` operator increments the ``numReviews`` field in the
+        ``tomatoes.viewer`` embedded document
 
-      - the :update:`$set` operator replaces the value of the
-
-        - ``item`` field,
-        - ``publisher`` field in the ``info`` embedded document,
-        - ``tags`` field, and
-        - second element in the ``ratings`` array.
-
-      The updated document is the following:
-
-      .. code-block:: javascript
-         :emphasize-lines: 2,4-6
-
-         {
-           "_id" : 1,
-           "item" : "ABC123",
-           "stock" : 5,
-           "info" : { "publisher" : "2222", "pages" : 430 },
-           "tags" : [ "software" ],
-           "ratings" : [ { "by" : "ijk", "rating" : 4 }, { "by" : "xyz", "rating" : 3 } ],
-           "reorder" : false
-         }
-
-      This operation corresponds to the following SQL statement:
-
-      .. code-block:: sql
-
-          UPDATE books
-          SET    stock = stock + 5
-                 item = "ABC123"
-                 publisher = 2222
-                 pages = 430
-                 tags = "software"
-                 rating_authors = "ijk,xyz"
-                 rating_values = "4,3"
-          WHERE  _id = 1
+      - the :update:`$set` operator updates the ``meter`` field in the 
+        ``tomatoes.viewer`` embedded document.
 
       If the ``query`` parameter matches multiple documents,
       the operation only updates one matching document. To
@@ -541,37 +612,13 @@ The following tabs showcase a variety of common
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       The following operation uses the :update:`$push` update
-      operator to append a new object to the ``ratings`` array.
+      operator to append a value to the ``genres`` array.
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/existing-array.js
+         :language: javascript
+         :category: usage example
 
-         db.books.update(
-            { _id: 2 },
-            {
-              $push: { ratings: { "by" : "jkl", "rating" : 2 } }
-            }
-         )
-
-      The updated document is the following:
-
-      .. code-block:: javascript
-         :emphasize-lines: 12
-
-         {
-           "_id" : 2,
-           "item" : "XYZ123",
-           "stock" : 15,
-           "info" : {
-            "publisher" : "5555",
-            "pages" : 150
-           },
-           "tags" : [ ],
-           "ratings" : [
-            { "by" : "xyz", "rating" : 5 },
-            { "by" : "jkl", "rating" : 2 }
-           ],
-           "reorder" : false
-          }
+      After the update, the ``genres`` array includes the new value.
 
       .. seealso::
 
@@ -584,37 +631,13 @@ The following tabs showcase a variety of common
       ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       The following operation uses the :update:`$unset` operator to remove
-      the ``tags`` field from the document with ``{ _id: 1 }``.
+      the ``metacritic`` field from "The Godfather" document.
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/remove-fields.js
+         :language: javascript
+         :category: usage example
 
-         db.books.update( { _id: 1 }, { $unset: { tags: 1 } } )
-
-      The updated document is the following:
-
-      .. code-block:: javascript
-
-         {
-           "_id" : 1,
-           "item" : "TBD",
-           "stock" : 0,
-           "info" : {
-            "publisher" : "1111",
-            "pages" : 430
-           },
-           "ratings" : [ { "by" : "ijk", "rating" : 4 }, { "by" : "lmn", "rating" : 5 } ],
-           "reorder" : false
-          }
-
-      There is not a direct SQL equivalent to :update:`$unset`,
-      however :update:`$unset` is similar to the following SQL
-      command which removes the ``tags`` field from the ``books``
-      table:
-
-      .. code-block:: sql
-
-         ALTER TABLE books
-         DROP COLUMN tags
+      After the update, the ``metacritic`` field is removed.
 
       .. seealso::
 
@@ -631,54 +654,14 @@ The following tabs showcase a variety of common
       that meet the ``<query>`` criteria. The ``multi`` update
       operation may interleave with other read/write operations.
 
-      The following operation sets the ``reorder`` field to ``true``
-      for all documents where ``stock`` is less than or equal to
-      ``10``. If the ``reorder`` field does not exist in the matching
-      document(s), the :update:`$set` operator adds the field
-      with the specified value.
+      The following operation sets the ``test_field`` field to ``true``
+      for documents where the title is either "The Godfather" or "The Matrix".
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/update-multiple.js
+         :language: javascript
+         :category: usage example
 
-         db.books.update(
-            { stock: { $lte: 10 } },
-            { $set: { reorder: true } },
-            { multi: true }
-         )
-
-      The resulting documents in the collection are the following:
-
-      .. code-block:: javascript
-         :emphasize-lines: 11,19
-
-         [
-           {
-             "_id" : 1,
-             "item" : "ABC123",
-             "stock" : 5,
-             "info" : {
-              "publisher" : "2222",
-              "pages" : 430
-             },
-             "ratings" : [ { "by" : "ijk", "rating" : 4 }, { "by" : "xyz", "rating" : 3 } ],
-             "reorder" : true
-            }
-            {
-              "_id" : 2,
-              "item" : "XYZ123",
-              "stock" : 10,
-              "info" : { "publisher" : "2255", "pages" : 150 },
-              "tags" : [ "baking", "cooking" ],
-              "reorder" : true
-            }
-         ]
-
-      This operation corresponds to the following SQL statement:
-
-      .. code-block:: sql
-
-         UPDATE books
-         SET reorder=true
-         WHERE stock <= 10
+      The operation updates both matching documents.
 
       You cannot specify ``multi: true`` when performing a replacement
       and the :ref:`update <update-parameter>` document contains *only*
@@ -748,18 +731,9 @@ with :method:`~db.collection.update()`.
       For example, the following update sets the :ref:`upsert
       <upsert-parameter>` option to ``true``:
 
-      .. code-block:: javascript
-         :emphasize-lines: 8
-
-         db.books.update(
-            { item: "ZZZ135" },  // Query parameter
-            { $set:
-               {
-                  item: "ZZZ135", stock: 5, tags: [ "database" ]  // Replacement document
-               }
-            },
-            { upsert: true }  // Options
-         )
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/upsert-with-replacement.js
+         :language: javascript
+         :category: usage example
 
       If no document matches the ``<query>`` parameter, the update
       operation inserts a document with *only* the replacement
@@ -767,29 +741,7 @@ with :method:`~db.collection.update()`.
       replacement document or query document, the operation creates a
       new unique ``ObjectId`` for the new document's ``_id`` field.
       You can see the ``upsert`` reflected in the :ref:`WriteResult
-      <writeresults-update>` of the operation:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         WriteResult({
-           "nMatched" : 0,
-           "nUpserted" : 1,
-           "nModified" : 0,
-           "_id" : ObjectId("5da78973835b2f1c75347a83")
-          })
-
-      The operation inserts the following document into the ``books``
-      collection (your :ref:`objectid` value will differ):
-
-      .. code-block:: javascript
-
-         {
-           "_id" : ObjectId("5da78973835b2f1c75347a83"),
-           "item" : "ZZZ135",
-           "stock" : 5,
-           "tags" : [ "database" ]
-         }
+      <writeresults-update>` of the operation.
 
    .. tab:: Set
       :tabid: upsert-op-expr
@@ -811,29 +763,12 @@ with :method:`~db.collection.update()`.
       For example, the following update sets the :ref:`upsert
       <upsert-parameter>` option to ``true``:
 
-      .. code-block:: javascript
-
-         db.books.update(
-            { item: "BLP921" },   // Query parameter
-            {                     // Update document
-               $set: { reorder: false },
-               $setOnInsert: { stock: 10 }
-            },
-            { upsert: true }      // Options
-         )
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/upsert-with-set.js
+         :language: javascript
+         :category: usage example
 
       If no documents match the query condition, the operation
-      inserts the following document (your :ref:`objectid` value
-      will differ):
-
-      .. code-block:: javascript
-
-         {
-           "_id" : ObjectId("5da79019835b2f1c75348a0a"),
-           "item" : "BLP921",
-           "reorder" : false,
-           "stock" : 10
-         }
+      inserts the corresponding document.
 
       .. seealso::
 
@@ -853,46 +788,13 @@ with :method:`~db.collection.update()`.
       include the ``_id`` field, MongoDB adds the ``_id`` field with
       an :ref:`objectid` value.
 
-      For example, the following :ref:`upsert: true
-      <upsert-parameter>` operation specifies an aggregation pipeline that uses
+      For example, the following aggregation pipeline inserts a new document in
+      the ``movies`` collection because there is not an existing document that
+      matches the query filter:
 
-      - the :pipeline:`$replaceRoot` stage which can provide
-        somewhat similar behavior to a :update:`$setOnInsert`
-        update operator expression,
-
-      - the :pipeline:`$set` stage which can provide similar
-        behavior to the :update:`$set` update operator expression,
-
-      - the aggregation variable :variable:`NOW`, which resolves to
-        the current datetime and can provide similar behavior to the
-        :update:`$currentDate` update operator expression.
-
-      .. code-block:: javascript
-
-         db.books.update(
-            { item: "MRQ014", ratings: [2, 5, 3] }, // Query parameter
-            [                                       // Aggregation pipeline
-               { $replaceRoot: { newRoot: { $mergeObjects: [ { stock: 0 }, "$$ROOT"  ] } } },
-               { $set: { avgRating: { $avg: "$ratings" }, tags: [ "fiction", "murder" ], lastModified: "$$NOW" } }
-            ],
-            { upsert: true }   // Options
-         )
-
-      If no document matches the ``<query>`` parameter, the
-      operation inserts the following document into the ``books``
-      collection (your :ref:`objectid` value will differ):
-
-      .. code-block:: javascript
-
-         {
-            "_id" : ObjectId("5e2921e0b4c550aad59d1ba9"),
-            "stock" : 0,
-            "item" : "MRQ014",
-            "ratings" : [ 2, 5, 3 ],
-            "avgRating" : 3.3333333333333335,
-            "tags" : [ "fiction", "murder" ],
-            "lastModified" : ISODate("2020-01-23T04:32:32.951Z")
-         }
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/upsert-with-aggregation.js
+         :language: javascript
+         :category: usage example
 
       .. seealso::
 
@@ -905,64 +807,17 @@ with :method:`~db.collection.update()`.
       Using ``upsert`` with ``multi`` (Match)
       ```````````````````````````````````````
 
-      From :binary:`~bin.mongosh`, insert the following
-      documents into a ``books`` collection:
-
-      .. code-block:: javascript
-
-         db.books.insertMany( [
-           {
-             _id: 5,
-             item: "RQM909",
-             stock: 18,
-             info: { publisher: "0000", pages: 170 },
-             reorder: true
-           },
-           {
-             _id: 6,
-             item: "EFG222",
-             stock: 15,
-             info: { publisher: "1111", pages: 72 },
-             reorder: true
-           }
-         ] )
-
       The following operation specifies both the ``multi`` option and
       the ``upsert`` option. If matching documents exist, the
       operation updates all matching documents. If no matching
       documents exist, the operation inserts a new document.
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/upsert-with-multi.js
+         :language: javascript
+         :category: usage example
 
-         db.books.update(
-            { stock: { $gte: 10 } },        // Query parameter
-            {                               // Update document
-              $set: { reorder: false, tags: [ "literature", "translated" ] }
-            },
-            { upsert: true, multi: true }   // Options
-         )
-
-      The operation updates all matching documents and results in the
-      following:
-
-      .. code-block:: javascript
-
-         {
-            "_id" : 5,
-            "item" : "RQM909",
-            "stock" : 18,
-            "info" : { "publisher" : "0000", "pages" : 170 },
-            "reorder" : false,
-            "tags" : [ "literature", "translated" ]
-         }
-         {
-            "_id" : 6,
-            "item" : "EFG222",
-            "stock" : 15,
-            "info" : { "publisher" : "1111", "pages" : 72 },
-            "reorder" : false,
-            "tags" : [ "literature", "translated" ]
-         }
+      Since both movies exist in the collection, the operation updates 
+      both matching documents.
 
       Using ``upsert`` with ``multi`` (No Match)
       ``````````````````````````````````````````
@@ -972,69 +827,12 @@ with :method:`~db.collection.update()`.
       fields from both the ``<query>`` and the ``<update>``
       specifications. For example, consider the following operation:
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/upsert-no-match.js
+         :language: javascript
+         :category: usage example
 
-         db.books.update(
-           { "info.publisher": "Self-Published" },   // Query parameter
-           {                                         // Update document
-             $set: { reorder: false, tags: [ "literature", "hardcover" ], stock: 25 }
-           },
-           { upsert: true, multi: true }             // Options
-         )
-
-      The operation inserts the following document into the ``books``
-      collection (your :ref:`objectid` value will differ):
-
-      .. code-block:: javascript
-
-         {
-           "_id" : ObjectId("5db337934f670d584b6ca8e0"),
-           "info" : { "publisher" : "Self-Published" },
-           "reorder" : false,
-           "stock" : 25,
-           "tags" : [ "literature", "hardcover" ]
-         }
-
-   .. tab:: Dotted ``_id``
-      :tabid: upsert-dotted-id
-
-      Upsert with Dotted ``_id`` Query
-      ````````````````````````````````
-
-      .. include:: /includes/fact-upsert-id.rst
-
-      The ``WriteResult`` of the operation returns the following
-      error:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         WriteResult({
-           "nMatched" : 0,
-           "nUpserted" : 0,
-           "nModified" : 0,
-           "writeError" : {
-             "code" : 111,
-             "errmsg" : "field at '_id' must be exactly specified, field at sub-path '_id.name'found"
-           }
-         })
-
-      .. seealso::
-
-         :method:`WriteResult()`
-
-.. _update-with-unique-indexes:
-.. _retryable-update-upsert:
-.. _upsert-duplicate-key-error:
-
-Upsert with Duplicate Values
-````````````````````````````
-
-.. include:: /includes/extracts/upsert-unique-index-update-method.rst
-
-.. seealso::
-
-   :update:`$setOnInsert`
+      The operation inserts the corresponding document into the ``movies``
+      collection.
 
 .. _update-behavior-agg-pipeline:
 .. _update-example-agg:
@@ -1056,65 +854,17 @@ field values or updating one field using the value of another field(s).
 Modify a Field Using the Values of the Other Fields in the Document
 ```````````````````````````````````````````````````````````````````
 
-Create a ``students`` collection with the following documents:
+The following example creates a ``displayTitle`` field that combines the movie's
+title and year with an aggregation pipeline that performs these operations:
 
-.. code-block:: javascript
+- creates a ``displayTitle`` field by concatenating the ``title`` and ``year`` 
+  fields
 
-   db.students.insertMany( [
-      { "_id" : 1, "student" : "Skye", "points" : 75, "commentsSemester1" : "great at math", "commentsSemester2" : "loses temper", "lastUpdate" : ISODate("2019-01-01T00:00:00Z") },
-      { "_id" : 2, "students" : "Elizabeth", "points" : 60, "commentsSemester1" : "well behaved", "commentsSemester2" : "needs improvement", "lastUpdate" : ISODate("2019-01-01T00:00:00Z") }
-   ] )
+- sets a ``lastModified`` timestamp
 
-Assume that instead of separate ``commentsSemester1`` and ``commentsSemester2`` 
-fields, you want to gather these into a new ``comments`` field. The following
-update operation uses an aggregation pipeline to:
-
-- add the new ``comments`` field and set the ``lastUpdate`` field.
-
-- remove the ``commentsSemester1`` and ``commentsSemester2`` fields for all 
-  documents in the collection.
-
-.. code-block:: javascript
-
-   db.members.update(
-      { },
-      [
-         { $set: { comments: [ "$commentsSemester1", "$commentsSemester2" ], lastUpdate: "$$NOW" } },
-         { $unset: [ "commentsSemester1", "commentsSemester2" ] }
-      ],
-      { multi: true }
-   )
-
-.. note::
-
-   The ``$set`` and ``$unset`` used in the pipeline refers to the
-   aggregation stages :pipeline:`$set` and :pipeline:`$unset`
-   respectively, and not the update operators :update:`$set` and
-   :update:`$unset`.
-
-First Stage
-   The :pipeline:`$set` stage:
-
-   - creates a new array field ``comments`` whose elements are the current
-     content of the ``commentsSemester1`` and ``commentsSemester2`` fields and
-
-   - sets the field ``lastUpdate`` to the value of the aggregation
-     variable :variable:`NOW`. The aggregation variable
-     :variable:`NOW` resolves to the current datetime value and remains
-     the same throughout the pipeline. To access aggregation
-     variables, prefix the variable with double dollar signs ``$$``
-     and enclose in quotes.
-
-Second Stage
-   The :pipeline:`$unset` stage removes the ``commentsSemester1`` and 
-   ``commentsSemester2`` fields.
-
-After the command, the collection contains the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "student" : "Skye", "status" : "Modified", "points" : 75, "lastUpdate" : ISODate("2020-01-23T05:11:45.784Z"), "comments" : [ "great at math", "loses temper" ] }
-   { "_id" : 2, "student" : "Elizabeth", "status" : "Modified", "points" : 60, "lastUpdate" : ISODate("2020-01-23T05:11:45.784Z"), "comments" : [ "well behaved", "needs improvement" ] }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/modify-with-field.js
+   :language: javascript
+   :category: usage example
 
 .. seealso::
 
@@ -1123,84 +873,38 @@ After the command, the collection contains the following documents:
 Perform Conditional Updates Based on Current Field Values
 `````````````````````````````````````````````````````````
 
-Create a ``students3`` collection with the following documents:
+The following example updates movies released in 2015 to calculate a combined
+rating score from IMDB and Tomatoes ratings, and assign a grade based on the
+score.
 
-.. code-block:: javascript
-
-   db.students3.insertMany( [
-      { "_id" : 1, "tests" : [ 95, 92, 90 ], "lastUpdate" : ISODate("2019-01-01T00:00:00Z") },
-      { "_id" : 2, "tests" : [ 94, 88, 90 ], "lastUpdate" : ISODate("2019-01-01T00:00:00Z") },
-      { "_id" : 3, "tests" : [ 70, 75, 82 ], "lastUpdate" : ISODate("2019-01-01T00:00:00Z") }
-   ] )
-
-Using an aggregation pipeline, you can update the documents with the
-calculated grade average and letter grade.
-
-.. code-block:: javascript
-
-   db.students3.update(
-      { },
-      [
-        { $set: { average : { $trunc: [ { $avg: "$tests" }, 0 ] }, lastUpdate: "$$NOW" } },
-        { $set: { grade: { $switch: {
-                              branches: [
-                                  { case: { $gte: [ "$average", 90 ] }, then: "A" },
-                                  { case: { $gte: [ "$average", 80 ] }, then: "B" },
-                                  { case: { $gte: [ "$average", 70 ] }, then: "C" },
-                                  { case: { $gte: [ "$average", 60 ] }, then: "D" }
-                              ],
-                              default: "F"
-        } } } }
-      ],
-      { multi: true }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/conditional-updates.js
+   :language: javascript
+   :category: usage example
 
 .. note::
 
    The ``$set`` used in the pipeline refers to the aggregation stage
    :pipeline:`$set`, and not the update operators :update:`$set`.
 
-First Stage
-   The :pipeline:`$set` stage:
+The :pipeline:`$set` stage:
 
-   - calculates a new field ``average`` based on the average of the
-     ``tests`` field. See :group:`$avg` for more information on the
-     ``$avg`` aggregation operator and :expression:`$trunc` for more
-     information on the  ``$trunc`` truncate aggregation operator.
+- calculates a new field ``combinedScore`` by averaging the IMDB rating 
+  (scaled by 10) and Tomatoes viewer rating (scaled by 10), then 
+  rounding to one decimal place. See :group:`$avg`, 
+  :expression:`$multiply`, and :expression:`$round` for more information.
 
-   - sets the field ``lastUpdate`` to the value of the aggregation
-     variable :variable:`NOW`. The aggregation variable
-     :variable:`NOW` resolves to the current datetime value and remains
-     the same throughout the pipeline. To access aggregation
-     variables, prefix the variable with double dollar signs ``$$``
-     and enclose in quotes.
+- sets the field ``lastUpdate`` to the value of the aggregation
+  variable :variable:`NOW`. 
 
-Second Stage
-   The :pipeline:`$set` stage calculates a new field ``grade`` based on
-   the ``average`` field calculated in the previous stage. See
-   :expression:`$switch` for more information on the ``$switch``
-   aggregation operator.
-
-After the command, the collection contains the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "tests" : [ 95, 92, 90 ], "lastUpdate" : ISODate("2020-01-24T17:29:35.340Z"), "average" : 92, "grade" : "A" }
-   { "_id" : 2, "tests" : [ 94, 88, 90 ], "lastUpdate" : ISODate("2020-01-24T17:29:35.340Z"), "average" : 90, "grade" : "A" }
-   { "_id" : 3, "tests" : [ 70, 75, 82 ], "lastUpdate" : ISODate("2020-01-24T17:29:35.340Z"), "average" : 75, "grade" : "C" }
+- assigns a letter grade based on the ``combinedScore`` using the
+  :expression:`$switch` operator.
 
 .. seealso::
 
    :ref:`updates-agg-pipeline`
 
-.. _update-arrayFilters:
-
 Specify ``arrayFilters`` for Array Update Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include::  /includes/extracts/arrayFilters-details.rst
-
-.. include:: /includes/extracts/arrayFilters-update-aggregation-restriction.rst
 
 Update Elements Match ``arrayFilters`` Criteria
 ```````````````````````````````````````````````
@@ -1208,163 +912,64 @@ Update Elements Match ``arrayFilters`` Criteria
 To update all array elements which match a specified criteria, use the
 :ref:`arrayFilters <update-array-filters>` parameter.
 
-In :binary:`~bin.mongosh`, create a ``students``
-collection with the following documents:
+The following example updates all movies that have ``"English"`` in their 
+``languages`` array. The operation replaces ``"English"`` with ``"EN"``. 
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/arrayfilters-match.js
+   :language: javascript
+   :category: usage example
 
-   db.students.insertMany( [
-      { "_id" : 1, "grades" : [ 95, 92, 90 ] },
-      { "_id" : 2, "grades" : [ 98, 100, 102 ] },
-      { "_id" : 3, "grades" : [ 95, 110, 100 ] }
-   ] )
-
-To update all elements that are greater than or equal to ``100`` in the
-``grades`` array, use the filtered positional operator
-:update:`$[\<identifier\>]` with the ``arrayFilters`` option:
-
-.. code-block:: javascript
-
-   db.students.update(
-      { grades: { $gte: 100 } },
-      { $set: { "grades.$[element]" : 100 } },
-      {
-        multi: true,
-        arrayFilters: [ { "element": { $gte: 100 } } ]
-      }
-   )
-
-After the operation, the collection contains the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "grades" : [ 95, 92, 90 ] }
-   { "_id" : 2, "grades" : [ 98, 100, 100 ] }
-   { "_id" : 3, "grades" : [ 95, 100, 100 ] }
-
-Update Specific Elements of an Array of Documents
-`````````````````````````````````````````````````
+Update Specific Elements of an Array Using Pattern Matching
+```````````````````````````````````````````````````````````
 
 You can also use the :ref:`arrayFilters <update-array-filters>`
-parameter to update specific document fields within an array of
-documents.
+parameter with the filtered positional operator to update specific 
+array elements that match a pattern.
 
-In :binary:`~bin.mongosh`, create a ``students2``
-collection with the following documents:
+The following example uses "The Godfather" movie from the existing collection,
+which has a ``writers`` array. The operation updates only the writers whose
+names contain "screenplay" by appending a suffix.
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/pattern-matching.js
+   :language: javascript
+   :category: usage example
 
-   db.students2.insertMany( [
-     {
-       "_id" : 1,
-       "grades" : [
-          { "grade" : 80, "mean" : 75, "std" : 6 },
-          { "grade" : 85, "mean" : 90, "std" : 4 },
-          { "grade" : 85, "mean" : 85, "std" : 6 }
-       ]
-     },
-     {
-        "_id" : 2,
-        "grades" : [
-           { "grade" : 90, "mean" : 75, "std" : 6 },
-           { "grade" : 87, "mean" : 90, "std" : 3 },
-           { "grade" : 85, "mean" : 85, "std" : 4 }
-        ]
-     }
-   ] )
-
-To modify the value of the ``mean`` field for all elements in the
-``grades`` array where the grade is greater than or equal to ``85``,
-use the filtered positional operator :update:`$[\<identifier\>]` with
-the ``arrayFilters``:
-
-.. code-block:: javascript
-
-   db.students2.update(
-      { },
-      { $set: { "grades.$[elem].mean" : 100 } },
-      {
-        multi: true,
-        arrayFilters: [ { "elem.grade": { $gte: 85 } } ]
-      }
-   )
-
-After the operation, the collection has the following documents:
-
-.. code-block:: javascript
-
-   {
-      "_id" : 1,
-      "grades" : [
-         { "grade" : 80, "mean" : 75, "std" : 6 },
-         { "grade" : 85, "mean" : 100, "std" : 4 },
-         { "grade" : 85, "mean" : 100, "std" : 6 }
-      ]
-   }
-   {
-      "_id" : 2,
-      "grades" : [
-         { "grade" : 90, "mean" : 100, "std" : 6 },
-         { "grade" : 87, "mean" : 100, "std" : 3 },
-         { "grade" : 85, "mean" : 100, "std" : 4 }
-      ]
-   }
+The operation targets "The Godfather" document and updates only array 
+elements matching the filter criteria. After the operation, the writers
+who worked on the screenplay have " - UPDATED" appended.
 
 .. _ex-update-hint:
 
 Specify ``hint`` for Update Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In :binary:`~bin.mongosh`, create a ``newStudents``
-collection with the following documents:
+The ``hint`` option allows you to specify which index MongoDB should use
+for the update operation. This is useful when updating multiple documents
+and you want to ensure a specific index is used for performance. This example 
+uses the existing ``movies`` collection from the sample_mflix database.
 
-.. code-block:: javascript
+First, create an index on the ``year`` field:
 
-   db.newStudents.insertMany( [
-      { "_id" : 1, "student" : "Richard", "grade" : "F", "points" :  0,  "comments1" : null, "comments2" : null },
-      { "_id" : 2, "student" : "Jane", "grade" : "A", "points" : 60,  "comments1" : "well behaved", "comments2" : "fantastic student" },
-      { "_id" : 3, "student" : "Ronan", "grade" : "F", "points" :  0,  "comments1" : null, "comments2" : null },
-      { "_id" : 4, "student" : "Noah", "grade" : "D", "points" : 20,  "comments1" : "needs improvement", "comments2" : null },
-      { "_id" : 5, "student" : "Adam", "grade" : "F", "points" :  0,  "comments1" : null, "comments2" : null },
-      { "_id" : 6, "student" : "Henry", "grade" : "A", "points" : 86,  "comments1" : "fantastic student", "comments2" : "well behaved" }
-   ] )
-
-Create the following index on the collection:
-
-.. code-block:: javascript
-
-   db.newStudents.createIndex( { grade: 1 } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/create-index.js
+   :language: javascript
+   :category: usage example
 
 The following update operation explicitly :ref:`hints <update-hint>` to
-use the index ``{grade: 1 }``:
+use the ``{ year: 1 }`` index to update all movies from 2010-2015:
 
-.. code-block:: javascript
-
-   db.newStudents.update(
-      { points: { $lte: 20 }, grade: "F" },     // Query parameter
-      { $set: { comments1: "failed class" } },  // Update document
-      { multi: true, hint: { grade: 1 } }       // Options
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/hint.js
+   :language: javascript
+   :category: usage example
 
 .. note::
 
    If you specify an index that does not exist, the operation errors.   
 
-The update command returns the following:
-
-.. code-block:: javascript
-
-   WriteResult({ "nMatched" : 3, "nUpserted" : 0, "nModified" : 3 })
-
 To see the index used, run :dbcommand:`explain` on the operation:
 
-.. code-block:: javascript
-
-   db.newStudents.explain().update(
-      { "points": { $lte: 20 }, "grade": "F" },
-      { $set: { "comments1": "failed class" } },
-      { multi: true, hint: { grade: 1 } }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/explain.js
+   :language: javascript
+   :category: usage example
 
 The :method:`db.collection.explain().update() <db.collection.explain>`
 does not modify the documents.
@@ -1378,15 +983,20 @@ Use Variables in ``let``
 
 .. include:: /includes/let-example-introduction.rst
 
-.. include:: /includes/let-example-update-flavors.rst
+The example:
 
-.. code-block:: javascript
+- Defines two variables in the ``let`` option: ``targetTitle`` (set to "The Matrix") 
+  and ``newTitle`` (set to "The Matrix Reloaded")
 
-   db.cakeFlavors.update(
-      { $expr: { $eq: [ "$flavor", "$$targetFlavor" ] } },
-      [ { $set: { flavor: "$$newFlavor" } } ],
-      { let : { targetFlavor: "cherry", newFlavor: "orange" } }
-   )
+- Uses ``$expr`` in the query filter to compare the document's ``title`` field 
+  against the ``$$targetTitle`` variable
+
+- Uses an aggregation pipeline with ``$set`` to update the ``title`` field to 
+  the value of ``$$newTitle``
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/let.js
+   :language: javascript
+   :category: usage example
 
 .. _example-update-write-concern:
 
@@ -1398,16 +1008,12 @@ The following operation to a replica set specifies a :ref:`write concern
 milliseconds. This operation either returns after the write propagates
 to both the primary and one secondary, or times out after 5 seconds.
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/write-concern.js
+   :language: javascript
+   :category: usage example
 
-   db.books.update(
-      { stock: { $lte: 10 } },
-      { $set: { reorder: true } },
-      {
-        multi: true,
-        writeConcern: { w: 2, j: true, wtimeout: 5000 }
-      }
-   )
+The operation successfully completes after the write is acknowledged by the
+primary and at least one secondary, as specified by ``w: 2``.
 
 Write Concern Errors in Sharded Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1422,118 +1028,9 @@ Specify Collation
 
 .. include:: /includes/extracts/collation-option.rst
 
-In :binary:`~bin.mongosh`, create a collection named
-``myColl`` with the following documents:
+This operation updates all movies with titles that start with
+``night`` and uses ``strength: 1`` for case-insensitive comparison:
 
-.. code-block:: javascript
-
-   db.myColl.insertMany( [
-       { _id: 1, category: "café", status: "A" },
-       { _id: 2, category: "cafe", status: "a" },
-       { _id: 3, category: "cafE", status: "a" }
-   ] )
-
-The following operation includes the :ref:`collation <collation>`
-option and sets ``multi`` to ``true`` to update all matching documents:
-
-.. code-block:: javascript
-
-   db.myColl.update(
-      { category: "cafe" },
-      { $set: { status: "Updated" } },
-      {
-        collation: { locale: "fr", strength: 1 },
-        multi: true
-      }
-   )
-
-The :ref:`write result <writeresults-update>` of the operation returns the following document, indicating that all three documents in the
-collection were updated:
-
-.. code-block:: none
-   :copyable: false
-
-   WriteResult({ "nMatched" : 3, "nUpserted" : 0, "nModified" : 3 })
-
-After the operation, the collection contains the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "category" : "café", "status" : "Updated" }
-   { "_id" : 2, "category" : "cafe", "status" : "Updated" }
-   { "_id" : 3, "category" : "cafE", "status" : "Updated" }
-
-.. _writeresults-update:
-
-WriteResult
------------
-
-Successful Results
-~~~~~~~~~~~~~~~~~~
-
-The :method:`db.collection.update()` method returns a
-:method:`WriteResult` object that contains the status of the operation.
-Upon success, the :method:`WriteResult` object contains the number of
-documents that matched the query condition, the number of documents
-inserted by the update, and the number of documents modified:
-
-.. code-block:: javascript
-
-   WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
-
-.. see:: 
-
-   - :data:`WriteResult.nMatched`
-   - :data:`WriteResult.nUpserted`
-   - :data:`WriteResult.nModified`
-
-Write Concern Errors
-~~~~~~~~~~~~~~~~~~~~
-
-If the :method:`db.collection.update()` method encounters write
-concern errors, the results include the
-:data:`WriteResult.writeConcernError` field:
-
-.. code-block:: javascript
-
-   WriteResult({
-      "nMatched" : 1,
-      "nUpserted" : 0,
-      "nModified" : 1,
-      "writeConcernError": {
-        "code" : 64,
-        "errmsg" : "waiting for replication timed out",
-        "errInfo" : {
-          "wtimeout" : true,
-          "writeConcern" : {
-            "w" : "majority",
-            "wtimeout" : 100,
-            "provenance" : "getLastErrorDefaults"
-          }
-      }
-   })
-
-The following table explains the possible values of
-``WriteResult.writeConcernError.provenance``:
-
-.. include:: /includes/fact-wc-provenance-table.rst
-
-
-Errors Unrelated to Write Concern
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-If the :method:`db.collection.update()` method encounters a non-write
-concern error, the results include the :data:`WriteResult.writeError`
-field:
-
-.. code-block:: javascript
-
-   WriteResult({
-      "nMatched" : 0,
-      "nUpserted" : 0,
-      "nModified" : 0,
-      "writeError" : {
-         "code" : 7,
-         "errmsg" : "could not contact primary for replica set shard-a"
-      }
-   })
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.update/collation.js
+   :language: javascript
+   :category: usage example
