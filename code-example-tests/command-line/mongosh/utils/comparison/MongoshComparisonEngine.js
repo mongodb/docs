@@ -7,6 +7,11 @@ const {
 const { ComparisonResult, ErrorMessageBuilder } = require('./errorReporting');
 const { compareWithDetails } = require('./detailedComparison');
 const { analyzeUnorderedMismatch, buildUnorderedArrayErrors } = require('./unorderedArrayAnalysis');
+const {
+  ContentAnalyzer,
+  ContentType,
+  ComparisonStrategy,
+} = require('./ContentAnalyzer');
 const fs = require('fs');
 const path = require('path');
 
@@ -37,14 +42,29 @@ class MongoshComparisonEngine {
     const baseDir = options.baseDir || path.resolve(__dirname, '../../examples');
 
     try {
-      // Determine if expected is a file path
-      const isFilePath = typeof expected === 'string' && this._isFilePath(expected, baseDir);
+      // Detect content types using ContentAnalyzer
+      const expectedType = ContentAnalyzer.detectType(expected, baseDir);
+      const actualType = ContentAnalyzer.detectType(actual);
 
-      if (isFilePath) {
-        return this._compareWithFile(expected, actual, options, baseDir);
-      } else {
-        return this._compareDirectly(expected, actual, options);
-      }
+      // Analyze patterns in expected content
+      const patterns = ContentAnalyzer.analyzePatterns(expected);
+
+      // Select and execute comparison strategy
+      const strategy = ContentAnalyzer.selectStrategy(
+        expectedType,
+        actualType,
+        patterns
+      );
+
+      return this._executeStrategy(
+        strategy,
+        expected,
+        actual,
+        expectedType,
+        actualType,
+        options,
+        baseDir
+      );
     } catch (error) {
       return ComparisonResult.failure(
         'root',
@@ -52,6 +72,57 @@ class MongoshComparisonEngine {
         actual,
         `Comparison error: ${error.message}`
       );
+    }
+  }
+
+  /**
+   * Executes the appropriate comparison strategy.
+   *
+   * @private
+   * @param {string} strategy - The comparison strategy to use
+   * @param {*} expected - Expected value
+   * @param {*} actual - Actual value
+   * @param {string} expectedType - Detected type of expected value
+   * @param {string} actualType - Detected type of actual value
+   * @param {Object} options - Comparison options
+   * @param {string} baseDir - Base directory for file resolution
+   * @returns {ComparisonResult} Comparison result
+   */
+  static _executeStrategy(
+    strategy,
+    expected,
+    actual,
+    expectedType,
+    actualType,
+    options,
+    baseDir
+  ) {
+    switch (strategy) {
+      case ComparisonStrategy.FILE_TO_ANY:
+        return this._compareWithFile(expected, actual, options, baseDir);
+
+      case ComparisonStrategy.PATTERN_TO_PARSED:
+        return this._comparePatternToParsed(expected, actual, options);
+
+      case ComparisonStrategy.MONGOSH_STRING_TO_PARSED:
+        return this._compareMongoshStringToParsed(expected, actual, options);
+
+      case ComparisonStrategy.STRUCTURAL:
+        return this._compareStructural(expected, actual, options);
+
+      case ComparisonStrategy.TEXT_WITH_NORMALIZATION:
+        return this._compareTextWithNormalization(expected, actual, options);
+
+      case ComparisonStrategy.PRIMITIVE:
+        return this._comparePrimitive(expected, actual);
+
+      default:
+        return ComparisonResult.failure(
+          'root',
+          expected,
+          actual,
+          `Unknown comparison strategy: ${strategy}`
+        );
     }
   }
 
@@ -226,6 +297,173 @@ class MongoshComparisonEngine {
         normalizedExpected,
         normalizedActual,
         comparisonOptions
+      );
+    }
+  }
+
+  /**
+   * Compares a pattern string against parsed output.
+   *
+   * @private
+   * @param {string} patternString - Pattern string with ellipsis
+   * @param {*} actual - Actual output
+   * @param {Object} options - Comparison options
+   * @returns {ComparisonResult} Comparison result
+   */
+  static _comparePatternToParsed(patternString, actual, options) {
+    // Parse the pattern string as if it were expected output
+    const parseResult = MongoshOutputParser.parseExpectedOutput(patternString);
+
+    if (!parseResult.success) {
+      return ComparisonResult.failure(
+        'root',
+        patternString,
+        actual,
+        `Failed to parse pattern: ${parseResult.error.message}`
+      );
+    }
+
+    const expectedData = parseResult.data;
+    const hasOmittedFields = parseResult.hasOmittedFields;
+
+    // Parse actual output if it's a string
+    let actualParsed;
+    if (typeof actual === 'string') {
+      const actualResult = MongoshOutputParser.parse(actual);
+      if (!actualResult.success) {
+        return ComparisonResult.failure(
+          'root',
+          expectedData,
+          actual,
+          `Failed to parse actual output: ${actualResult.error.message}`
+        );
+      }
+      actualParsed = actualResult.data;
+    } else {
+      actualParsed = actual;
+    }
+
+    // Perform comparison
+    return this._performComparison(expectedData, actualParsed, options, hasOmittedFields);
+  }
+
+  /**
+   * Compares a mongosh output string against parsed output.
+   *
+   * @private
+   * @param {string} expectedString - Mongosh output string
+   * @param {*} actual - Actual output
+   * @param {Object} options - Comparison options
+   * @returns {ComparisonResult} Comparison result
+   */
+  static _compareMongoshStringToParsed(expectedString, actual, options) {
+    // Parse the expected string
+    const parseResult = MongoshOutputParser.parseExpectedOutput(expectedString);
+
+    if (!parseResult.success) {
+      return ComparisonResult.failure(
+        'root',
+        expectedString,
+        actual,
+        `Failed to parse expected output: ${parseResult.error.message}`
+      );
+    }
+
+    const expectedData = parseResult.data;
+    const hasOmittedFields = parseResult.hasOmittedFields;
+
+    // Perform comparison (actual is already parsed)
+    return this._performComparison(expectedData, actual, options, hasOmittedFields);
+  }
+
+  /**
+   * Compares two structured values (objects or arrays).
+   *
+   * @private
+   * @param {*} expected - Expected value
+   * @param {*} actual - Actual value
+   * @param {Object} options - Comparison options
+   * @returns {ComparisonResult} Comparison result
+   */
+  static _compareStructural(expected, actual, options) {
+    // Parse actual output if it's a string
+    let actualParsed;
+    if (typeof actual === 'string') {
+      const actualResult = MongoshOutputParser.parse(actual);
+      if (!actualResult.success) {
+        return ComparisonResult.failure(
+          'root',
+          expected,
+          actual,
+          `Failed to parse actual output: ${actualResult.error.message}`
+        );
+      }
+      actualParsed = actualResult.data;
+    } else {
+      actualParsed = actual;
+    }
+
+    // Check if expected contains ellipsis patterns
+    const patterns = ContentAnalyzer.analyzePatterns(expected);
+
+    // Perform comparison
+    return this._performComparison(expected, actualParsed, options, patterns.hasEllipsis);
+  }
+
+  /**
+   * Compares two text values with normalization.
+   *
+   * @private
+   * @param {*} expected - Expected value
+   * @param {*} actual - Actual value
+   * @param {Object} options - Comparison options
+   * @returns {ComparisonResult} Comparison result
+   */
+  static _compareTextWithNormalization(expected, actual, options) {
+    // Normalize whitespace and line endings
+    const normalizeText = (text) => {
+      if (typeof text !== 'string') {
+        text = String(text);
+      }
+      return text
+        .trim()
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .replace(/\s+$/gm, ''); // Trim trailing whitespace from each line
+    };
+
+    const normalizedExpected = normalizeText(expected);
+    const normalizedActual = normalizeText(actual);
+
+    if (normalizedExpected === normalizedActual) {
+      return ComparisonResult.success();
+    } else {
+      return ComparisonResult.failure(
+        'root',
+        normalizedExpected,
+        normalizedActual,
+        `Text content does not match.\n\nExpected:\n${normalizedExpected}\n\nActual:\n${normalizedActual}`
+      );
+    }
+  }
+
+  /**
+   * Compares two primitive values.
+   *
+   * @private
+   * @param {*} expected - Expected value
+   * @param {*} actual - Actual value
+   * @returns {ComparisonResult} Comparison result
+   */
+  static _comparePrimitive(expected, actual) {
+    if (expected === actual) {
+      return ComparisonResult.success();
+    } else {
+      return ComparisonResult.failure(
+        'root',
+        expected,
+        actual,
+        `Value mismatch.\n\nExpected: ${JSON.stringify(expected)}\nActual: ${JSON.stringify(actual)}`
       );
     }
   }
