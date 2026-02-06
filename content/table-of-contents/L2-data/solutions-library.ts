@@ -280,6 +280,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: 'Agentic Yield Analytics with MongoDB',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/agentic-yield-analytics',
+          },
+          {
             label: 'Build an IoT Data Hub',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/iot-datahub-smart-manufacturing',
