@@ -665,7 +665,6 @@ const tocData: TocItem[] = [
   {
     label: 'Reference',
     contentSite: 'docs',
-    url: '/docs/:version/reference',
     collapsible: true,
     items: ReferenceData,
   },
