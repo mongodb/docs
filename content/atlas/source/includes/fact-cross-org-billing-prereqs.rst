@@ -1,42 +1,18 @@
-- To link a paying organization to another organization, you must have 
+- A paying organization must have an |service| subscription.
+
+- To link an organization to a paying organization, you must have 
   :authrole:`Organization Billing Admin` or 
   :authrole:`Organization Owner`
   privileges for both organizations.
 
-- A paying organization must have an |service| subscription.
+- For an organization to be linked to a paying organization, it must have
+  the same minimums, uplifts, and SLA for their subscription plan as 
+  the paying organization or have no support plan (|service| Basic).
 
-- A paying organization and all linked organizations must be in good standing
-  and have no failed payments.
+- A paying organization and any linked organizations or any 
+  organizations intended to be linked:
 
-- A paying organization and any linked organizations must be on the same support level.
-
-- A paying organization and any linked organizations
-  must have the same minimums, uplifts, and SLA for their 
-  subscription plan.
-
-- A paying organization and any linked organizations 
-  can't have an active self-serve support plan.
-
-- A paying organization and any linked organizations
-  can't have overlapping monthly commitment deals.
-
-- A paying organization on a prepaid subscription plan and any linked 
-  organizations must be on the same current and future subscription 
-  plans.
-  
-- You can manually link a paying organization with the {+atlas-ui+},
-  or :oas-bump-atlas-op:`programatically link a paying organization
-  <createorganization>` with the Atlas Admin API to a maximum of
-  250 other organizations. To link a paying organization to more than
-  250 other organizations, :ref:`contact support <request-support>`.
-
-- A paying organization can't already be a linked organization.
-
-- A paying organization can be linked to :ref:`a self-serve organization <payment-method>`.
-
-- A paying organization and any linked organizations can't have an active self-serve marketplace subscription plan.
-
-.. note::
-
-   To purchase a subscription that enables cross-organization billing,
-   contact :website:`MongoDB Sales </company/contact>`.
+  - Can't have failed payments.
+  - Can't have an active self-serve support plan.
+  - Can't have an active self-serve marketplace subscription.
+  - Can't have overlapping monthly commitment subscriptions.
