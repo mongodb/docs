@@ -850,6 +850,323 @@ class TestShouldResembleAPI(unittest.TestCase):
             'required_fields': ['name', 'age']
         })
 
+    # ==================== Dot Notation and Nested Array Tests ====================
+
+    def test_dot_notation_required_fields(self):
+        """Should validate required fields using dot notation for nested paths."""
+        actual = [
+            {'queryPlanner': {'winningPlan': {'stage': 'COLLSCAN'}}, 'year': 2012},
+            {'queryPlanner': {'winningPlan': {'stage': 'IXSCAN'}}, 'year': 2012}
+        ]
+        expected = [
+            {'queryPlanner': {'winningPlan': {'stage': 'FETCH'}}, 'year': 2012},
+            {'queryPlanner': {'winningPlan': {'stage': 'FETCH'}}, 'year': 2012}
+        ]
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 2,
+            'required_fields': ['queryPlanner.winningPlan.stage', 'year']
+        })
+
+    def test_dot_notation_required_fields_missing(self):
+        """Should fail when nested required field is missing."""
+        actual = [
+            {'queryPlanner': {'winningPlan': {}}, 'year': 2012}  # Missing 'stage'
+        ]
+        expected = [
+            {'queryPlanner': {'winningPlan': {'stage': 'FETCH'}}, 'year': 2012}
+        ]
+        with self.assertRaises(AssertionError) as cm:
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'count': 1,
+                'required_fields': ['queryPlanner.winningPlan.stage']
+            })
+        self.assertIn("actual", str(cm.exception))
+        self.assertIn("queryPlanner.winningPlan.stage", str(cm.exception))
+
+    def test_dot_notation_field_values(self):
+        """Should validate field values using dot notation for nested paths."""
+        actual = [
+            {'queryPlanner': {'winningPlan': {'stage': 'COLLSCAN'}}}
+        ]
+        expected = [
+            {'queryPlanner': {'winningPlan': {'stage': 'COLLSCAN'}}}
+        ]
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 1,
+            'required_fields': ['queryPlanner.winningPlan.stage'],
+            'field_values': {'queryPlanner.winningPlan.stage': 'COLLSCAN'}
+        })
+
+    def test_dot_notation_field_values_mismatch(self):
+        """Should fail when nested field value does not match."""
+        actual = [
+            {'queryPlanner': {'winningPlan': {'stage': 'IXSCAN'}}}  # Different stage
+        ]
+        expected = [
+            {'queryPlanner': {'winningPlan': {'stage': 'COLLSCAN'}}}
+        ]
+        with self.assertRaises(AssertionError) as cm:
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'count': 1,
+                'required_fields': ['queryPlanner.winningPlan.stage'],
+                'field_values': {'queryPlanner.winningPlan.stage': 'COLLSCAN'}
+            })
+        self.assertIn("actual", str(cm.exception))
+        self.assertIn("queryPlanner.winningPlan.stage", str(cm.exception))
+        self.assertIn("IXSCAN", str(cm.exception))
+        self.assertIn("COLLSCAN", str(cm.exception))
+
+    def test_array_indexing_required_fields(self):
+        """Should validate required fields using array indexing."""
+        actual = [
+            {'stages': [{'name': 'first'}, {'name': 'second'}]}
+        ]
+        expected = [
+            {'stages': [{'name': 'alpha'}, {'name': 'beta'}]}
+        ]
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 1,
+            'required_fields': ['stages[0].name', 'stages[1].name']
+        })
+
+    def test_array_indexing_required_fields_missing(self):
+        """Should fail when array element is missing."""
+        actual = [
+            {'stages': [{'name': 'first'}]}  # Missing stages[1]
+        ]
+        expected = [
+            {'stages': [{'name': 'alpha'}, {'name': 'beta'}]}
+        ]
+        with self.assertRaises(AssertionError) as cm:
+            Expect.that(actual).should_resemble(expected).with_schema({
+                'count': 1,
+                'required_fields': ['stages[0].name', 'stages[1].name']
+            })
+        self.assertIn("actual", str(cm.exception))
+        self.assertIn("stages[1].name", str(cm.exception))
+
+    def test_array_indexing_field_values(self):
+        """Should validate field values using array indexing."""
+        actual = [
+            {'stages': [{'$cursor': {'queryPlanner': {'winningPlan': {'stage': 'IXSCAN'}}}}]}
+        ]
+        expected = [
+            {'stages': [{'$cursor': {'queryPlanner': {'winningPlan': {'stage': 'IXSCAN'}}}}]}
+        ]
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 1,
+            'required_fields': ['stages[0].$cursor.queryPlanner.winningPlan.stage'],
+            'field_values': {'stages[0].$cursor.queryPlanner.winningPlan.stage': 'IXSCAN'}
+        })
+
+    def test_combined_dot_notation_and_array_indexing(self):
+        """Should handle combined dot notation and array indexing paths."""
+        actual = [
+            {
+                'explainVersion': '1',
+                'stages': [
+                    {
+                        '$cursor': {
+                            'queryPlanner': {
+                                'winningPlan': {
+                                    'stage': 'FETCH',
+                                    'inputStage': {'stage': 'IXSCAN'}
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        ]
+        expected = [
+            {
+                'explainVersion': '1',
+                'stages': [
+                    {
+                        '$cursor': {
+                            'queryPlanner': {
+                                'winningPlan': {
+                                    'stage': 'FETCH',
+                                    'inputStage': {'stage': 'IXSCAN'}
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        ]
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 1,
+            'required_fields': [
+                'explainVersion',
+                'stages[0].$cursor.queryPlanner.winningPlan.stage',
+                'stages[0].$cursor.queryPlanner.winningPlan.inputStage.stage'
+            ],
+            'field_values': {
+                'explainVersion': '1',
+                'stages[0].$cursor.queryPlanner.winningPlan.stage': 'FETCH',
+                'stages[0].$cursor.queryPlanner.winningPlan.inputStage.stage': 'IXSCAN'
+            }
+        })
+
+    def test_multi_dimensional_array_indexing(self):
+        """Should handle multi-dimensional array indexing like arr[0][1]."""
+        actual = [
+            {'matrix': [[1, 2, 3], [4, 5, 6]]}
+        ]
+        expected = [
+            {'matrix': [[1, 2, 3], [4, 5, 6]]}
+        ]
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 1,
+            'required_fields': ['matrix[0][0]', 'matrix[1][2]'],
+            'field_values': {'matrix[0][0]': 1, 'matrix[1][2]': 6}
+        })
+
+    def test_simple_field_still_works(self):
+        """Should still work with simple (non-nested) field names."""
+        actual = [{'name': 'Alice', 'age': 30}]
+        expected = [{'name': 'Alice', 'age': 25}]  # Same name, different age
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 1,
+            'required_fields': ['name', 'age'],
+            'field_values': {'name': 'Alice'}  # Validates both actual and expected have name='Alice'
+        })
+
+    def test_mixed_simple_and_nested_fields(self):
+        """Should handle mix of simple and nested field paths."""
+        actual = [
+            {
+                'title': 'Test Movie',
+                'year': 2012,
+                'metadata': {'director': 'John Doe', 'rating': 8.5}
+            }
+        ]
+        expected = [
+            {
+                'title': 'Other Movie',
+                'year': 2012,
+                'metadata': {'director': 'Jane Doe', 'rating': 8.5}
+            }
+        ]
+        Expect.that(actual).should_resemble(expected).with_schema({
+            'count': 1,
+            'required_fields': ['title', 'year', 'metadata.director', 'metadata.rating'],
+            'field_values': {'year': 2012, 'metadata.rating': 8.5}
+        })
+
+
+class TestPathParsing(unittest.TestCase):
+    """Test the internal path parsing functions."""
+
+    def test_parse_simple_field(self):
+        """Should parse simple field name."""
+        from utils.comparison.expect import _parse_field_path
+        parts = _parse_field_path('name')
+        self.assertEqual(len(parts), 1)
+        self.assertEqual(parts[0].field_name, 'name')
+        self.assertFalse(parts[0].is_array_index)
+
+    def test_parse_dot_notation(self):
+        """Should parse dot notation path."""
+        from utils.comparison.expect import _parse_field_path
+        parts = _parse_field_path('queryPlanner.winningPlan.stage')
+        self.assertEqual(len(parts), 3)
+        self.assertEqual(parts[0].field_name, 'queryPlanner')
+        self.assertEqual(parts[1].field_name, 'winningPlan')
+        self.assertEqual(parts[2].field_name, 'stage')
+
+    def test_parse_array_indexing(self):
+        """Should parse array indexing."""
+        from utils.comparison.expect import _parse_field_path
+        parts = _parse_field_path('stages[0]')
+        self.assertEqual(len(parts), 2)
+        self.assertEqual(parts[0].field_name, 'stages')
+        self.assertTrue(parts[1].is_array_index)
+        self.assertEqual(parts[1].array_index, 0)
+
+    def test_parse_combined_path(self):
+        """Should parse combined dot notation and array indexing."""
+        from utils.comparison.expect import _parse_field_path
+        parts = _parse_field_path('stages[0].$cursor.queryPlanner')
+        self.assertEqual(len(parts), 4)
+        self.assertEqual(parts[0].field_name, 'stages')
+        self.assertTrue(parts[1].is_array_index)
+        self.assertEqual(parts[1].array_index, 0)
+        self.assertEqual(parts[2].field_name, '$cursor')
+        self.assertEqual(parts[3].field_name, 'queryPlanner')
+
+    def test_parse_multi_dimensional_array(self):
+        """Should parse multi-dimensional array indexing."""
+        from utils.comparison.expect import _parse_field_path
+        parts = _parse_field_path('matrix[0][1]')
+        self.assertEqual(len(parts), 3)
+        self.assertEqual(parts[0].field_name, 'matrix')
+        self.assertTrue(parts[1].is_array_index)
+        self.assertEqual(parts[1].array_index, 0)
+        self.assertTrue(parts[2].is_array_index)
+        self.assertEqual(parts[2].array_index, 1)
+
+
+class TestNestedValueRetrieval(unittest.TestCase):
+    """Test the internal nested value retrieval function."""
+
+    def test_get_simple_field(self):
+        """Should get simple field value."""
+        from utils.comparison.expect import _try_get_nested_value
+        doc = {'name': 'Alice'}
+        found, value = _try_get_nested_value(doc, 'name')
+        self.assertTrue(found)
+        self.assertEqual(value, 'Alice')
+
+    def test_get_nested_field(self):
+        """Should get nested field value using dot notation."""
+        from utils.comparison.expect import _try_get_nested_value
+        doc = {'queryPlanner': {'winningPlan': {'stage': 'COLLSCAN'}}}
+        found, value = _try_get_nested_value(doc, 'queryPlanner.winningPlan.stage')
+        self.assertTrue(found)
+        self.assertEqual(value, 'COLLSCAN')
+
+    def test_get_array_element(self):
+        """Should get array element value."""
+        from utils.comparison.expect import _try_get_nested_value
+        doc = {'stages': [{'name': 'first'}, {'name': 'second'}]}
+        found, value = _try_get_nested_value(doc, 'stages[0].name')
+        self.assertTrue(found)
+        self.assertEqual(value, 'first')
+
+    def test_get_combined_path(self):
+        """Should get value using combined path."""
+        from utils.comparison.expect import _try_get_nested_value
+        doc = {'stages': [{'$cursor': {'queryPlanner': {'winningPlan': {'stage': 'IXSCAN'}}}}]}
+        found, value = _try_get_nested_value(doc, 'stages[0].$cursor.queryPlanner.winningPlan.stage')
+        self.assertTrue(found)
+        self.assertEqual(value, 'IXSCAN')
+
+    def test_missing_field_returns_false(self):
+        """Should return False for missing field."""
+        from utils.comparison.expect import _try_get_nested_value
+        doc = {'a': {'b': 1}}
+        found, value = _try_get_nested_value(doc, 'a.c.d')
+        self.assertFalse(found)
+        self.assertIsNone(value)
+
+    def test_array_index_out_of_bounds(self):
+        """Should return False for out of bounds array index."""
+        from utils.comparison.expect import _try_get_nested_value
+        doc = {'stages': [{'name': 'first'}]}
+        found, value = _try_get_nested_value(doc, 'stages[5].name')
+        self.assertFalse(found)
+        self.assertIsNone(value)
+
+    def test_multi_dimensional_array(self):
+        """Should handle multi-dimensional arrays."""
+        from utils.comparison.expect import _try_get_nested_value
+        doc = {'matrix': [[1, 2, 3], [4, 5, 6]]}
+        found, value = _try_get_nested_value(doc, 'matrix[1][2]')
+        self.assertTrue(found)
+        self.assertEqual(value, 6)
+
 
 if __name__ == "__main__":
     unittest.main()

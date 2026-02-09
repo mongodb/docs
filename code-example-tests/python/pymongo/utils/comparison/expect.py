@@ -28,7 +28,13 @@ from .comparison import (
     SchemaDefinition,
     ConfigurationError,
 )
-from .parser import resolve_expected_file_path, read_expected_file
+from .parser import (
+    resolve_expected_file_path,
+    read_expected_file,
+    parse_expected_content,
+    is_potential_file_path,
+    try_resolve_and_read_file,
+)
 from .content_analyzer import ContentAnalyzer
 from typing import Optional, List, Dict
 
@@ -311,10 +317,13 @@ class Expect:
             field_values=field_values
         )
 
+        # Resolve expected data (handle file paths)
+        expected_data = _resolve_data_for_schema(self._expected_for_resemble)
+
         # Collect all validation errors from both expected and actual
         errors = []
         errors.extend(_validate_against_schema(
-            self._expected_for_resemble, schema_def, "expected"
+            expected_data, schema_def, "expected"
         ))
         errors.extend(_validate_against_schema(
             self._actual, schema_def, "actual"
@@ -323,6 +332,134 @@ class Expect:
         if errors:
             error_list = '\n'.join(f"  - {e}" for e in errors)
             raise AssertionError(f"Schema validation failed:\n{error_list}")
+
+
+def _resolve_data_for_schema(data: Any) -> Any:
+    """
+    Resolve data for schema validation, handling file paths.
+
+    If the data is a file path string, this function reads and parses
+    the file content using the flexible parser that handles ellipsis markers,
+    comments, and other special formatting. Otherwise, it returns the data as-is.
+
+    Args:
+        data: The data to resolve (may be a file path string or actual data)
+
+    Returns:
+        The resolved data (parsed file content or original data)
+    """
+    if is_potential_file_path(data):
+        content, success = try_resolve_and_read_file(data)
+        if success:
+            try:
+                # Use the flexible parser that handles ellipsis, comments, etc.
+                parsed_value, _ = parse_expected_content(content)
+                return parsed_value
+            except Exception:
+                # If parsing fails, return data as-is
+                pass
+
+    return data
+
+
+class _PathPart:
+    """Represents a single part of a field path (either a field name or array index)."""
+    def __init__(self, is_index: bool, value: Any):
+        self.is_index = is_index
+        self.value = value  # str for field name, int for array index
+
+
+def _parse_field_path(field_path: str) -> List[_PathPart]:
+    """
+    Parse a field path into a list of path parts.
+
+    Supports:
+    - Dot notation: "a.b.c" -> [field("a"), field("b"), field("c")]
+    - Array indexing: "arr[0]" -> [field("arr"), index(0)]
+    - Combined: "stages[0].$cursor.queryPlanner" -> [field("stages"), index(0), field("$cursor"), field("queryPlanner")]
+    - Multi-dimensional arrays: "matrix[0][1]" -> [field("matrix"), index(0), index(1)]
+
+    Args:
+        field_path: The field path string to parse
+
+    Returns:
+        List of _PathPart objects representing the path
+    """
+    parts = []
+    current = ""
+    i = 0
+
+    while i < len(field_path):
+        char = field_path[i]
+
+        if char == '.':
+            # End of current field name
+            if current:
+                parts.append(_PathPart(is_index=False, value=current))
+                current = ""
+            i += 1
+        elif char == '[':
+            # Start of array index
+            if current:
+                parts.append(_PathPart(is_index=False, value=current))
+                current = ""
+            # Find the closing bracket
+            end = field_path.find(']', i)
+            if end == -1:
+                raise ValueError(f"Unclosed bracket in field path: {field_path}")
+            index_str = field_path[i + 1:end]
+            try:
+                index = int(index_str)
+            except ValueError:
+                raise ValueError(f"Invalid array index '{index_str}' in field path: {field_path}")
+            parts.append(_PathPart(is_index=True, value=index))
+            i = end + 1
+        else:
+            current += char
+            i += 1
+
+    # Don't forget the last part
+    if current:
+        parts.append(_PathPart(is_index=False, value=current))
+
+    return parts
+
+
+def _try_get_nested_value(doc: dict, field_path: str) -> tuple:
+    """
+    Try to get a nested value from a document using a field path.
+
+    Supports dot notation and array indexing.
+
+    Args:
+        doc: The document to search
+        field_path: The field path (e.g., "stages[0].$cursor.queryPlanner.winningPlan.stage")
+
+    Returns:
+        Tuple of (success: bool, value: Any)
+        - (True, value) if the field was found
+        - (False, None) if the field was not found
+    """
+    parts = _parse_field_path(field_path)
+    current = doc
+
+    for part in parts:
+        if part.is_index:
+            # Array index access
+            if not isinstance(current, list):
+                return False, None
+            if part.value < 0 or part.value >= len(current):
+                return False, None
+            current = current[part.value]
+        else:
+            # Field name access
+            if not isinstance(current, dict):
+                return False, None
+            if part.value not in current:
+                return False, None
+            current = current[part.value]
+
+    return True, current
 
 
 def _validate_against_schema(
@@ -370,7 +507,8 @@ def _validate_against_schema(
         # Check required fields (presence only)
         if schema.required_fields:
             for field in schema.required_fields:
-                if field not in doc:
+                found, _ = _try_get_nested_value(doc, field)
+                if not found:
                     errors.append(
                         f"{label}[{i}] is missing required field '{field}'"
                     )
@@ -378,13 +516,14 @@ def _validate_against_schema(
         # Check field values
         if schema.field_values:
             for field, expected_value in schema.field_values.items():
-                if field not in doc:
+                found, actual_value = _try_get_nested_value(doc, field)
+                if not found:
                     errors.append(
                         f"{label}[{i}] is missing field '{field}' required by field_values"
                     )
-                elif not _values_equal(doc[field], expected_value):
+                elif not _values_equal(actual_value, expected_value):
                     errors.append(
-                        f"{label}[{i}].{field} has value {doc[field]!r}, expected {expected_value!r}"
+                        f"{label}[{i}].{field} has value {actual_value!r}, expected {expected_value!r}"
                     )
 
     return errors
@@ -479,48 +618,34 @@ def _compare(expected: Any, actual: Any, options: ComparisonOptions) -> Comparis
     strategy = ContentAnalyzer.select_strategy(expected_type, actual_type, options)
 
     if strategy == "document":
-        # Handle file inputs
-        if expected_type == "file":
+        # Handle file inputs (detected as file type or potential file paths)
+        if expected_type == "file" or is_potential_file_path(expected):
             if isinstance(expected, (str, Path)):
-                try:
-                    resolved_path = resolve_expected_file_path(str(expected))
-                    # Read as plain text first
-                    expected_content = Path(resolved_path).read_text(encoding="utf-8")
-
-                    # Try document comparison first, fall back to text comparison on specific errors
+                expected_content, is_file = try_resolve_and_read_file(str(expected))
+                if is_file:
                     try:
-                        result = compare_documents(expected_content, actual, options)
-                        # Check if comparison failed due to type mismatch
-                        if not result.is_match and ("Type mismatch" in result.error or "one is array and the other is not" in result.error):
-                            # Fall back to text comparison for type mismatches
+                        # Try document comparison first, fall back to text comparison on specific errors
+                        try:
+                            result = compare_documents(expected_content, actual, options)
+                            # Check if comparison failed due to type mismatch
+                            if not result.is_match and ("Type mismatch" in result.error or "one is array and the other is not" in result.error):
+                                # Fall back to text comparison for type mismatches
+                                pass
+                            else:
+                                return result
+                        except (ValueError, SyntaxError):
+                            # If document parsing fails, fall back to text comparison
                             pass
+
+                        # Fall back to text comparison
+                        if isinstance(actual, str):
+                            success, error = compare_text_outputs(expected_content, actual)
+                            return ComparisonResult(success, error)
                         else:
-                            return result
-                    except (ValueError, SyntaxError):
-                        # If document parsing fails, fall back to text comparison
-                        pass
+                            return ComparisonResult(False, f"Cannot compare structured expected content with non-string actual output: {type(actual)}")
 
-                    # Fall back to text comparison
-                    if isinstance(actual, str):
-                        success, error = compare_text_outputs(expected_content, actual)
-                        return ComparisonResult(success, error)
-                    else:
-                        return ComparisonResult(False, f"Cannot compare structured expected content with non-string actual output: {type(actual)}")
-
-                except Exception as e:
-                    return ComparisonResult(False, f"Failed to read expected file {expected}: {e}")
-
-        # Handle potential file paths that weren't detected as files
-        if isinstance(expected, str) and not ("\n" in expected or "\r" in expected):
-            # Try to treat as file path first
-            try:
-                resolved_path = resolve_expected_file_path(expected)
-                if resolved_path and Path(resolved_path).is_file():
-                    expected_content = read_expected_file(resolved_path)
-                    return compare_documents(expected_content, actual, options)
-            except:
-                # If file handling fails, continue with string comparison
-                pass
+                    except Exception as e:
+                        return ComparisonResult(False, f"Failed to read expected file {expected}: {e}")
 
         # Handle string inputs - ALWAYS try document comparison first
         if isinstance(expected, str):

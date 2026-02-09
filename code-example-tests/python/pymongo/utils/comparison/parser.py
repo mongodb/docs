@@ -1063,3 +1063,44 @@ def resolve_expected_file_path(relative_path: str) -> str:
         if p.exists():
             return str(p)
     return relative_path
+
+
+def is_potential_file_path(data: Any) -> bool:
+    """
+    Check if data could be a file path (single-line string without newlines).
+
+    This is a heuristic check: strings containing newlines are unlikely to be
+    file paths and are more likely to be multiline content.
+
+    Args:
+        data: The data to check
+
+    Returns:
+        True if data is a string that could be a file path
+    """
+    return isinstance(data, str) and "\n" not in data and "\r" not in data
+
+
+def try_resolve_and_read_file(data: str) -> Tuple[str, bool]:
+    """
+    Attempt to resolve a string as a file path and read its contents.
+
+    Args:
+        data: A string that may be a file path
+
+    Returns:
+        Tuple of (content, success):
+            - If successful: (file_content, True)
+            - If not a valid file: (original_data, False)
+    """
+    from pathlib import Path
+
+    try:
+        resolved_path = resolve_expected_file_path(data)
+        if resolved_path and Path(resolved_path).is_file():
+            content = read_expected_file(resolved_path)
+            return content, True
+    except Exception:
+        pass
+
+    return data, False
