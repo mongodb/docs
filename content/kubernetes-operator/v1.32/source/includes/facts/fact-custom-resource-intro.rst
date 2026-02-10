@@ -1,4 +1,4 @@
-The :github:`MongoDB Enterprise Kubernetes Operator </mongodb/mongodb-enterprise-kubernetes>`
+The :github:`MongoDB Enterprise Kubernetes Operator <mongodb/mongodb-enterprise-kubernetes>`
 creates |k8s| |k8s-statefulsets| from specification files that you write.
 
 The |k8s-op-short| creates MongoDB-specific resources in |k8s| as

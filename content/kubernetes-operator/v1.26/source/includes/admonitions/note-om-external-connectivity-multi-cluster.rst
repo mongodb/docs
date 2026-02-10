@@ -3,7 +3,7 @@ operator cluster in a |multi-cluster|, use one of the following methods:
 
 - Set the :opsmgrkube:`spec.externalConnectivity` to ``true`` and specify
   the |onprem| port in it. Use the :github:`ops-manager-external.yaml
-  </mongodb/mongodb-enterprise-kubernetes/blob/master/samples/ops-manager/ops-manager-external.yaml>`
+  <mongodb/mongodb-enterprise-kubernetes/blob/master/samples/ops-manager/ops-manager-external.yaml>`
   example script, modify it to your needs, and apply the configuration.
   For example, run:
 

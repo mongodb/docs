@@ -16,5 +16,5 @@
       appended to MongoDB database resources containers in the pod.
    
    Use this setting to specify the CPU and RAM allocations for each pod. For
-   examples, see :github:`the samples on GitHub </mongodb/mongodb-enterprise-kubernetes/tree/master/samples/mongodb/podspec>`.
+   examples, see :github:`the samples on GitHub <mongodb/mongodb-enterprise-kubernetes/tree/master/samples/mongodb/podspec>`.
 

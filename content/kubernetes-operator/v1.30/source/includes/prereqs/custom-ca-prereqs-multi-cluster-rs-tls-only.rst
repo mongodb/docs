@@ -15,7 +15,7 @@
       :tabid: via-script
 
       To speed up creating |tls| certificates for member |k8s| clusters,
-      we offer the :github:`setup_tls script </mongodb/mongodb-enterprise-kubernetes/blob/master/tools/multicluster/setup_tls.sh>`. We don't guarantee the script's maintenance. If you choose to use the script,
+      we offer the :github:`setup_tls script <mongodb/mongodb-enterprise-kubernetes/blob/master/tools/multicluster/setup_tls.sh>`. We don't guarantee the script's maintenance. If you choose to use the script,
       test it and adjust it to your needs. The script does the following:
 
       - Creates the ``cert-manager`` namespace in the connected cluster and installs `cert-manager <https://cert-manager.io/docs/>`__ using |helm| in the ``cert-manager`` namespace.
