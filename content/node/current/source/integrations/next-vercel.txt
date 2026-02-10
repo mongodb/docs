@@ -1,0 +1,290 @@
+.. _node-vercel-tutorial:
+
+=================================================
+Tutorial: Deploy a Next.js Application on Vercel
+=================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: Next.js, MongoDB, Vercel, CRUD, tutorial
+   :description: Learn how to build a basic application with Next.js that connects to MongoDB, and deploy your application on Vercel, a platform for hosting web applications.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this tutorial, you learn how to create a Next.js application
+that connects to MongoDB. You also learn how to deploy the
+application on Vercel, a platform that hosts Next.js
+applications.
+
+.. note::
+
+   This tutorial uses the `Next.js Pages Router <https://nextjs.org/docs/pages>`__ instead of the App
+   Router that Next.js introduced in version 13.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before you begin, complete the following steps:
+
+- Complete the `MongoDB Get Started 
+  <https://www.mongodb.com/docs/get-started/>`__ guide to set
+  up a new Atlas account and load sample data into a new
+  free tier MongoDB deployment.
+- Get the :manual:`connection string
+  </reference/connection-string>` for your cluster and save it to use
+  later in this tutorial.
+- Create a Vercel account by visiting the `Vercel website
+  <https://vercel.com/>`__.
+- `Download Node.js <https://nodejs.org/en/download>`__ version 18 or later.
+- Ensure you have `npm and npx installed <https://docs.npmjs.com/downloading-and-installing-node-js-and-npm>`__.
+
+Tutorial
+--------
+
+This tutorial guides you through the following steps:
+
+- Create a Next.js application.
+- Connect MongoDB to Next.js.
+- Query MongoDB from Next.js.
+- Deploy your application on Vercel.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a Next.js Application
+
+      You can create a Next.js application with MongoDB integration by
+      using the **with-mongodb** example template. 
+
+      To create a new Next.js application with MongoDB
+      integration, run the following command in your terminal: 
+
+      .. code-block:: bash
+
+         npx create-next-app --example with-mongodb sample_mflix
+
+      The command uses ``npx create-next-app`` and the
+      ``--example with-mongodb`` parameter to create an
+      application from the MongoDB integration example.
+      ``sample_mflix`` is the name of the application. Use a
+      different name if you prefer.
+
+      After the command completes, navigate to your project
+      directory by running the following command:
+
+      .. code-block:: bash
+
+         cd sample_mflix
+
+      Install the npm dependencies by running the following
+      command:
+
+      .. code-block:: bash
+
+         npm install
+
+      To start your Next.js application, run the following command:
+
+      .. code-block:: bash
+
+         npm run dev
+
+      After the application builds, navigate to
+      ``localhost:3000`` in your browser. The page displays an
+      error message because you have not yet provided your MongoDB
+      connection string. 
+
+   .. step:: Connect MongoDB to Next.js
+
+      The Next.js application directory contains an
+      ``env.local.example`` file. Rename this file to
+      ``env.local`` and open it. The file contains one property:
+      ``MONGODB_URI``.
+
+      Set your MongoDB connection string as the value for the
+      ``MONGODB_URI`` property. Your ``env.local`` file looks
+      similar to the following example:
+
+      .. code-block:: none
+
+         MONGODB_URI=<Your connection string>
+
+      To verify your configuration, restart your Next.js
+      application by running the following command in your
+      terminal:
+
+      .. code-block:: bash
+
+         npm run dev
+
+      When the application builds, navigate to ``localhost:3000``
+      in your browser. You see the **with-mongodb** Next.js
+      application welcome page. 
+
+      .. tip::
+
+         Your connection is successful if you see the message
+         "*You are connected to MongoDB*". If you see the message
+         "*You are NOT connected to MongoDB*", verify your
+         connection string and ensure that your database user and
+         network connection are configured correctly.
+
+   .. step:: Query MongoDB from Next.js
+
+      Next.js supports multiple ways to retrieve data. You can
+      create API endpoints, run server-side rendered functions for
+      a page, or generate static pages by getting data at build
+      time. This tutorial shows examples of all three methods. 
+
+      Example 1: Create a Next.js API Endpoint for MongoDB
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      To create a new API endpoint route, create an ``api``
+      directory in your ``pages`` directory. Each file you create
+      in the ``api`` directory becomes an individual API endpoint.
+
+      Create a new file in the ``api`` directory called
+      ``movies.tsx``. This endpoint returns a list of movies from
+      your MongoDB database. Add the following code to the
+      ``movies.tsx`` file:
+
+      .. literalinclude:: /includes/next-vercel/api-movies-endpoint.tsx
+         :language: typescript
+         :copyable:
+         :linenos:
+
+      The preceding code creates an API endpoint that returns the
+      top 10 movies from the ``sample_mflix`` database sorted by
+      their ``metacritic`` rating in descending order. The
+      ``res.json`` method serves the array of movies in JSON format
+      to the browser. When you navigate to
+      ``localhost:3000/api/movies``, the browser displays a list of movies
+      returned from your database.
+
+      Add more API routes by creating additional files in the
+      ``api`` directory. 
+
+      Example 2: Next.js Pages with MongoDB
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      You can get data directly into your Next.js pages by using the
+      ``getServerSideProps()`` method. This method is available
+      when you use Next.js pages.
+
+      The ``getServerSideProps()`` method forces a Next.js page to
+      use server-side rendering to load. Every time the page loads,
+      the ``getServerSideProps()`` method runs on the backend, gets
+      data, and sends it into the React component through props.
+      The code inside ``getServerSideProps()`` is never sent to the
+      client. 
+
+      Create a new file in the ``pages`` directory called
+      ``movies.tsx``. The following code shows how to use
+      ``getServerSideProps()`` to query MongoDB:
+
+      .. literalinclude:: /includes/next-vercel/server-side-movies-page.tsx
+         :language: typescript
+         :copyable:
+         :linenos:
+
+      The ``Movies`` page component receives the props from the
+      ``getServerSideProps()`` method and uses that data to render
+      the page. The page shows the top movie title, metacritic
+      rating, and plot.
+
+      .. note::
+
+         The ``getServerSideProps()`` method runs every time the
+         page is called. If your data does not change often, use
+         static page generation instead.
+
+      Example 3: Next.js Static Generation with MongoDB
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      You can use static page generation to pre-render pages at build time.
+      This method is useful when your data does not change
+      frequently.
+
+      Create a new file in the ``pages`` directory called
+      ``top.tsx``. The following code shows how to use
+      ``getStaticProps()`` to render the top one-thousand highest
+      rated movies from your MongoDB database:
+
+      .. literalinclude:: /includes/next-vercel/static-generation-top-page.tsx
+         :language: typescript
+         :copyable:
+         :linenos:
+
+      When you navigate to ``localhost:3000/top``, the browser displays
+      a list of movies.
+
+      In development mode, your application calls the ``getStaticProps()`` method
+      every time similar to the ``getServerSideProps()`` method. In
+      production mode, the ``/top`` page pre-renders and loads
+      almost immediately. 
+
+      To run your Next.js application in production mode, build it
+      first. Then, run the ``start`` command to serve the built
+      application. Run the following commands in your terminal:
+
+      .. code-block:: bash
+
+         npm run build
+         npm run start
+
+      When you run the ``npm run start`` command, Next.js
+      serves your application in production mode. The
+      ``getStaticProps()`` method does not run every time you
+      access the ``/top`` route because Next.js serves the page statically. 
+      To see the pre-rendered static page, view the
+      ``.next/server/pages/top.html`` file.
+
+   .. step:: Deploy your application on Vercel
+
+      Deploy your Next.js application with MongoDB on Vercel.
+      Before you deploy, you must commit the application code from the
+      preceding steps to a GitHub repository. To learn
+      how to create a Github account and commit to a repository,
+      see the `GitHub documentation
+      <https://docs.github.com/en/get-started>`__.
+
+      After you commit your code to a repository, navigate to
+      `Vercel <https://vercel.com/>`__ and log in. On your Vercel
+      dashboard, click the **Import Project** button, and then click
+      **Import Git Repository**.
+
+      Enter your GitHub repository URL and click **Continue**. On
+      the next screen, add the variables from your ``env.local``
+      file.
+
+      Click the **Deploy** button. Vercel automatically builds and
+      deploys your Next.js application. When it completes, you
+      will receive a URL where you can access your application. 
+ 
+      .. note::
+
+         Vercel uses dynamic IP addresses, so you must add an exception to
+         access your data from any IP address in your MongoDB Atlas
+         dashboard. To do this, navigate to the Network Access tab,
+         click the ``Add IP Address`` button, and then click the
+         **Allow Access From Anywhere** button.
+
+Additional Resources
+--------------------
+
+For more information about the concepts in this tutorial, see the
+following resources:
+
+- `Next.js Documentation <https://nextjs.org/docs>`__
+- `Vercel Documentation <https://vercel.com/docs>`__
+- `Next.js Dynamic API Routes <https://nextjs.org/docs/api-routes/dynamic-api-routes>`__

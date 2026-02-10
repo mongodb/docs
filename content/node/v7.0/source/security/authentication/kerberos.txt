@@ -1,0 +1,114 @@
+.. _node-authentication-kerberos:
+
+==========================================
+Kerberos (GSSAPI) Authentication Mechanism
+==========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example
+
+Overview
+--------
+
+The Generic Security Services API (GSSAPI) authentication mechanism allows you to
+use your principal name to authenticate to a Kerberos service.
+You can use this mechanism only when authenticating to MongoDB Enterprise Advanced.
+
+Specify Kerberos (GSSAPI) Authentication
+----------------------------------------
+
+.. note::
+   The Node.js driver supports Kerberos on UNIX using the MIT Kerberos library
+   and on Windows using the SSPI API.
+
+The ``GSSAPI`` authentication mechanism uses your user principal to
+authenticate to a Kerberos service.
+
+You can specify this authentication mechanism by performing the
+following actions while specifying options on your
+:manual:`connection string </reference/connection-string/>`:
+
+- Set the ``authMechanism`` parameter to ``GSSAPI``.
+- Set the ``SERVICE_NAME`` value in the ``authMechanismProperties``
+  parameter if using a value other than ``mongodb``.
+- Specify a ``SERVICE_REALM`` value in the ``authMechanismProperties``
+  parameter if a custom service realm is required.
+- Specify a ``CANONICALIZE_HOST_NAME`` value in the ``authMechanismProperties``
+  parameter if canonicalization of the hostname is required. This property accepts
+  the following values:
+
+  - ``none``: (Default) Does not perform hostname canonicalization
+  - ``forward``: Performs a forward DNS lookup to canonicalize the hostname
+  - ``forwardAndReverse``: Performs a forward DNS lookup and then a
+    reverse lookup on that value to canonicalize the hostname
+
+.. important::
+   
+   The ``gssapiServiceName`` parameter is deprecated and may be removed
+   in future versions of the driver. Use
+   ``authMechanismProperties=SERVICE_NAME:<your service name>`` in the
+   connection URI instead.
+   To learn more about the authentication options for a connection string, see the
+   :manual:`Authentication Options </reference/connection-string-options/#authentication-options>`
+   section of the Connection String Options reference in the Server Manual.
+
+The following code example authenticates to Kerberos for UNIX using ``GSSAPI``.
+
+.. important::
+   Always **URI encode** the principal using the ``encodeURIComponent`` method
+   to ensure it is correctly parsed.
+
+.. code-block:: js
+
+   const { MongoClient } = require("mongodb");
+
+   // Replace the placeholder values with the values for your environment in the following lines
+   const clusterUrl = "<cluster_url>";
+   const principal = encodeURIComponent("<Kerberos principal and realm>");
+   const serviceRealm = "<Kerberos service realm>";
+   const canonicalizationSetting = "<canonicalization setting>";
+   const authMechanismProperties = `SERVICE_REALM:${serviceRealm},CANONICALIZE_HOST_NAME:${canonicalizationSetting}`;
+
+   const authMechanism = "GSSAPI";
+
+   // Connection URI
+   const uri = `mongodb+srv://${principal}@${clusterUrl}/?authMechanism=${authMechanism}&authMechanismProperties=${authMechanismProperties}`;
+
+   const client = new MongoClient(uri);
+
+   // Function to connect to the server
+   async function run() {
+     try {
+       // Establish and verify connection
+       await client.db("admin").command({ ping: 1 });
+       console.log("Connected successfully to server");
+     } finally {
+       // Ensures that the client will close when you finish/error
+       await client.close();
+     }
+   }
+   run().catch(console.dir);
+
+.. note::
+   The method refers to the ``GSSAPI`` authentication mechanism instead
+   of ``Kerberos`` because the driver authenticates through
+   `GSSAPI RFC-4652 <https://tools.ietf.org/html/rfc4752>`_, the SASL
+   mechanism.
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed on this
+page, see the following API documentation:
+
+- `MongoClient <{+api+}/classes/MongoClient.html>`__

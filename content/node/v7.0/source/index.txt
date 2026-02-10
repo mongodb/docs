@@ -1,0 +1,232 @@
+======================
+MongoDB Node.js Driver
+======================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :description: Learn how to connect to and interact with data stored in MongoDB by using JavaScript or TypeScript with the Node.js driver.
+   :keywords: node.js, object-relational, object-document
+
+.. _node-driver-landing:
+
+.. toctree::
+  :titlesonly:
+  :maxdepth: 1
+
+  Get Started <get-started>
+  Connect </connect>
+  Databases & Collections </databases-collections>
+  CRUD Operations </crud>
+  Promises </promises>
+  Aggregation </aggregation>
+  Data Formats </data-formats>
+  Indexes </indexes>
+  Run a Database Command </run-command>
+  MongoDB Search </atlas-search>
+  MongoDB Vector Search </atlas-vector-search>
+  Monitoring and Logging </monitoring-and-logging>
+  Security </security>
+  Third-Party Integrations </integrations>
+  Reference </reference>
+  Compatibility <https://www.mongodb.com/docs/drivers/compatibility/>
+  TypeScript </typescript>
+  API Documentation <{+api+}>
+  Issues & Help </issues-and-help>
+  View the Source <https://github.com/mongodb/node-mongodb-native/>
+
+Introduction
+------------
+
+Welcome to the documentation site for the official {+driver-long+}.
+You can add the driver to your application to work with MongoDB
+in JavaScript or TypeScript. For more information about downloading and
+installing the {+driver-short+}, see
+:ref:`Download and Install <node-get-started-download-and-install>` in the
+Get Started guide.
+
+You can connect using the {+driver-short+} for
+deployments hosted in the following environments:
+
+.. include:: /includes/fact-environments.rst
+
+Get Started
+-----------
+
+Learn how to establish a connection to MongoDB Atlas and begin
+working with data in the step-by-step :doc:`Get Started </get-started>` tutorial.
+
+Connect to MongoDB
+------------------
+
+Learn how to create and configure a connection to a MongoDB deployment in the
+:ref:`<node-connect>` section.
+
+Databases and Collections
+-------------------------
+
+Learn how to interact wth MongoDB databases and collections in the
+:ref:`<node-databases-collections>` section.
+
+Read and Write Data
+-------------------
+
+Learn how to find, update, and delete data in the :ref:`CRUD <node-insert>` section.
+
+Transform Your Data with Aggregation
+-------------------------------------
+
+Learn how to use the {+driver-short+} to perform aggregation operations in the
+:ref:`<node-aggregation>` section.
+
+Data Formats
+------------
+
+Learn how to work with BSON and other data formats in the
+:ref:`Data Formats <node-bson>` section.
+
+Optimize Queries with Indexes
+-----------------------------
+
+Learn how to work with common types of indexes in the :ref:`<node-indexes>` section.
+
+Run a Database Command
+----------------------
+
+Learn how to run a database command in the :ref:`<node-run-command>` section.
+
+{+search+}
+---------------
+
+Learn how to run {+search+} queries in the :ref:`<node-atlas-search>` section.
+
+{+vector-search+}
+------------------------
+
+Learn how to run {+vector-search+} queries in the :ref:`<node-atlas-vector-search>` section.
+
+Monitoring and Logging
+----------------------
+
+Learn how to monitor changes to your application and write them to logs in the
+:ref:`Monitoring and Logging <node-monitoring>` section.
+
+Secure Your Data
+----------------
+
+Learn about ways you can authenticate your application and encrypt your data in
+the :ref:`Security <node-authentication>` section. 
+
+Reference
+---------
+
+Find more information about {+driver-short+} versions, compatibility, and third-party tools in the
+:ref:`Reference <node-release-notes>` section.
+
+API Documentation
+-----------------
+
+For detailed information about classes and methods in the MongoDB
+Node.js driver, see the `{+driver-long+} API documentation
+<{+api+}>`__.
+
+Issues & Help
+-------------
+
+Learn how to report bugs, contribute to the driver, and to find help in the
+:doc:`Issues & Help </issues-and-help>` section.
+
+Related Tools and Libraries
+---------------------------
+
+Object Document Mappers
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB and our partners provide several object-document mappers (ODMs) for Node.js that
+let developers work with MongoDB data as objects. One popular ODM is **Mongoose**,
+which helps enforce a semi-rigid schema at the application level and provides features
+to assist with data modeling and manipulation. **Prisma**, another ODM, helps
+ensure data consistency by offering a type-safe database client and an intuitive schema. 
+
+For more information about using ODMs with MongoDB, see the following resources:
+
+- :website:`MongoDB ORMs, ODMs, and Libraries </developer/products/mongodb/mongodb-orms-odms-libraries/>`
+- `Mongoose <https://mongoosejs.com/docs/guide.html>`__ official documentation
+- :ref:`Get Started with Mongoose <node-mongoose-get-started>` tutorial
+- `Prisma <https://www.prisma.io/docs>`__ official documentation
+
+Packages
+~~~~~~~~
+
+You can install the following packages to expand the functionality of the {+driver-short+}:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 1 2
+
+   * - Package
+     - Description
+
+   * - | `bson <https://www.npmjs.com/package/bson>`__
+     - | BSON serialization and deserialization library used by the official
+         {+driver-long+}
+
+   * - `kerberos <https://www.npmjs.com/package/kerberos>`__
+     - C++ extension for Node.js that provides support for Kerberos authentication
+
+   * - | `mongodb-client-encryption <https://www.npmjs.com/package/mongodb-client-encryption>`__
+     - | Library for client-side encryption functionality
+
+   * - | `@mongodb-js/zstd <https://www.npmjs.com/package/@mongodb-js/zstd>`__
+     - | Zstandard compression library for Node.js
+
+For information about each package's version compatibility, see the :github:`Component Support Matrix
+</mongodb/node-mongodb-native#component-support-matrix>` in the {+driver-short+} Github
+repository.
+
+Learn
+-----
+
+Visit the Developer Hub and MongoDB University to learn more about the
+{+driver-short+}.
+
+Developer Hub
+~~~~~~~~~~~~~
+
+The Developer Hub provides tutorials and social engagement for developers.
+
+To learn how to use MongoDB features with the Node.js driver, see the
+`How To's and Articles page <https://www.mongodb.com/developer/search/?s=Node.js>`__.
+
+To ask questions and engage in discussions with fellow developers who
+use the {+driver-short+}, see the MongoDB communities on 
+`Reddit <https://www.reddit.com/r/mongodb/>`__ or 
+`Stack Overflow <https://stackoverflow.com/questions/tagged/mongodb+node.js>`__.
+
+MongoDB University
+~~~~~~~~~~~~~~~~~~
+
+MongoDB University provides free courses to teach everyone how to use MongoDB.
+
+Take the Following Free Online Courses Taught by MongoDB Instructors
+````````````````````````````````````````````````````````````````````
+
+.. list-table::
+
+   * - .. figure:: /includes/figures/Node_Catalog.png
+          :alt: MongoDB University Node.js Course graphic
+     
+     - `Using MongoDB with Node.js <https://learn.mongodb.com/learning-paths/using-mongodb-with-nodejs>`_
+        
+       Learn the essentials of Node.js application development with MongoDB.
+
+   * - .. figure:: /includes/figures/Node_LP_Catalog.png
+          :alt: MongoDB University Node.js Learning Path graphic
+     
+     - `MongoDB Node.js Developer Path <https://learn.mongodb.com/learning-paths/mongodb-nodejs-developer-path>`_
+        
+       Gain a comprehensive understanding of Node.js application development, complex operations, interactions
+       with MongoDB Atlas datasets, and more.

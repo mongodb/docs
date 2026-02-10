@@ -16,10 +16,11 @@ const allVersions = [
   'v6.20',
   'v6.21',
   'v7.0',
+  'v7.1',
 ];
 const namedVersions = new Map<string, string>([
-  ['v7.0', 'current'],
-  ['v7.1', 'upcoming'],
+  ['v7.1', 'current'],
+  ['v7.2', 'upcoming'],
 ]);
 const deprecatedVersions = ['v6.9', 'v6.10', 'v6.11', 'v6.12'];
 

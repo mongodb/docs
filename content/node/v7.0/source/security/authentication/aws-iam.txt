@@ -1,0 +1,179 @@
+.. _node-authentication-aws:
+
+================================
+AWS IAM Authentication Mechanism
+================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: atlas, amazon web services, code example
+
+Overview
+--------
+
+The ``MONGODB-AWS`` authentication mechanism uses Amazon Web Services
+Identity and Access Management (AWS IAM) credentials to authenticate a user to MongoDB.
+You can use this mechanism only when authenticating to MongoDB Atlas.
+
+.. tip:: Configure Atlas for AWS IAM Authentication
+
+   To learn more about configuring MongoDB Atlas for AWS IAM authentication, see
+   :atlas:`Set Up Authentication with AWS IAM </security/aws-iam-authentication/>` in
+   the Atlas documentation.
+
+Specify MONGODB-AWS Authentication
+----------------------------------
+
+The ``MONGODB-AWS`` authentication mechanism uses your Amazon Web Services
+Identity and Access Management (AWS IAM) credentials to authenticate your
+user. If you do not already have the `AWS signature library
+<https://www.npmjs.com/package/aws4>`__, use the following
+``npm`` command to install it:
+
+.. code-block:: bash
+
+   npm install aws4
+
+To connect to a MongoDB instance with ``MONGODB-AWS`` authentication
+enabled, specify the ``MONGODB-AWS`` authentication mechanism.
+
+The driver checks for your credentials in the following sources in order:
+
+1. Custom credential provider (if provided to the ``MongoClient``)
+#. Environment variables available through process.env
+#. SSO credentials from the token cache
+#. Web identity token credentials through the ``AWS_WEB_IDENTITY_TOKEN_FILE``
+#. Shared credentials and config ``.ini`` files
+#. EC2 or ECS Instance Metadata Service. For more information, see `IAM Roles for Tasks
+   <https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html>`_.
+
+.. important::
+
+   The driver only reads the credentials from the first method that it detects
+   in the order as given by the preceding list. For example, if you specify 
+   your AWS credentials in environment variables, the driver ignores any 
+   credentials that you specified in a web identity token file.
+
+.. tabs::
+
+   .. tab:: Environment Variables
+      :tabid: environment variables
+
+      To authenticate to your MongoDB instance using AWS credentials stored in
+      environment variables available through process.env, set the following 
+      variables by using a shell:
+
+      .. code-block:: bash
+
+         export AWS_ACCESS_KEY_ID=<awsKeyId>
+         export AWS_SECRET_ACCESS_KEY=<awsSecretKey>
+         export AWS_SESSION_TOKEN=<awsSessionToken>
+
+      .. note::
+
+         Omit the line containing ``AWS_SESSION_TOKEN`` if you don't need an AWS
+         session token for that role.
+
+      AWS recommends using regional AWS STS endpoints instead of global 
+      endpoints to reduce latency, build-in redundancy, and increase session token validity.
+      To set the AWS region, set `AWS_REGION <https://docs.aws.amazon.com/sdkref/latest/guide/feature-region.html>`__ 
+      and `AWS_STS_REGIONAL_ENDPOINTS <https://docs.aws.amazon.com/sdkref/latest/guide/feature-sts-regionalized-endpoints.html>`__
+      as environment variables, as shown in the following example: 
+
+      .. code-block:: bash
+         
+         export AWS_STS_REGIONAL_ENDPOINTS=regional // Enables regional endpoints
+         export AWS_REGION=us-east-1 // Sets your AWS region
+         
+      If both these environment variables aren't set, the default region is 
+      ``us-east-1``. For a list of available AWS regions, see the
+      `Regional Endpoints <https://docs.aws.amazon.com/general/latest/gr/rande.html#regional-endpoints>`__ 
+      section of the AWS Service Endpoints reference in the AWS documentation. 
+      
+      After you've set the preceding environment variables, specify the ``MONGODB-AWS``
+      authentication mechanism in your connection string as shown in the following example:
+
+      .. literalinclude:: /code-snippets/authentication/aws-env-variable.js
+         :language: javascript
+      
+   .. tab:: Web Identity Token File
+      :tabid: web-identity-token-file
+
+      You can use the OpenID Connect (OIDC) token obtained from a web identity
+      provider to authenticate to Amazon Elastic Kubernetes Service (EKS) or
+      other services.
+
+      To authenticate with your OIDC token you must first install
+      `@aws-sdk/credential-providers
+      <https://www.npmjs.com/package/@aws-sdk/credential-providers>`__. You can
+      install this dependency using the following ``npm`` command:
+
+      .. code-block:: bash
+
+         npm install @aws-sdk/credential-providers
+
+      Next, create a file that contains your OIDC token. Then 
+      set the absolute path to this file in an environment variable by using
+      a shell as shown in the following example:
+
+      .. code-block:: bash
+
+         export AWS_WEB_IDENTITY_TOKEN_FILE=<absolute path to file containing your OIDC token>
+
+      After you've set the preceding environment variable, specify the ``MONGODB-AWS``
+      authentication mechanism in your connection string as shown in the following example:
+
+      .. literalinclude:: /code-snippets/authentication/aws-env-variable.js
+         :language: javascript
+
+Manually Specify AWS Credentials
+--------------------------------
+
+When you install the optional ``aws-sdk/credential-providers`` dependency, the driver
+retrieves credentials in a priority order defined by the AWS SDK. If you have a shared AWS
+credentials file or config file, the driver uses those credentials by default.
+
+.. tip::
+
+   To learn more about how the ``aws-sdk/credential-providers`` dependency retrieves
+   credentials, see the `AWS SDK documentation <https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-credential-providers/#fromnodeproviderchain>`__.
+
+To manually specify the AWS credentials to retrieve, you can set the ``AWS_CREDENTIAL_PROVIDER``
+property to a defined credential provider from the AWS SDK. The following example passes a provider chain
+from the AWS SDK to the AWS authentication mechanism:
+
+.. literalinclude:: /code-snippets/authentication/aws-custom-credentials.js
+   :language: javascript
+   :start-after: // start-custom-credentials
+   :end-before: // end-custom-credentials
+   :dedent:
+
+To use a custom provider, you can pass any asynchronous function that returns your credentials
+to the ``AWS_CREDENTIAL_PROVIDER`` authentication mechanism property. The following example shows how to pass
+a custom provider function that fetches credentials from environment variables to the
+AWS authentication mechanism:
+
+.. literalinclude:: /code-snippets/authentication/aws-custom-credentials.js
+   :language: javascript
+   :start-after: // start-custom-credentials-function
+   :end-before: // end-custom-credentials-function
+   :dedent:
+
+A custom credential provider takes precedence over any other form of authentication.
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed on this
+page, see the following API documentation:
+
+- `MongoClient <{+api+}/classes/MongoClient.html>`__
