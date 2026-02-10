@@ -164,6 +164,16 @@ const tocData: TocItem[] = [
                 url: '/docs/atlas/atlas-stream-processing/sp-agg-tumbling',
               },
               {
+                label: '$sessionWindow',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/atlas-stream-processing/sp-agg-session',
+              },	      
+              {
+                label: '$setStreamMeta',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/atlas-stream-processing/sp-agg-setStreamMeta',
+              },
+              {
                 label: '$emit',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/atlas-stream-processing/sp-agg-emit',
@@ -177,11 +187,6 @@ const tocData: TocItem[] = [
                 label: '$externalFunction',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/atlas-stream-processing/sp-agg-externalFunction',
-              },
-              {
-                label: '$sessionWindow',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/atlas-stream-processing/sp-agg-session',
               },
             ],
           },

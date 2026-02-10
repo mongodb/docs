@@ -1,0 +1,195 @@
+.. _atlas-sp-agg-setStreamMeta:
+
+==============================================================
+``$setStreamMeta`` Aggregation Stage (Stream Processing)
+==============================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, $setStreamMeta stage 
+   :description: Learn how to use the $setStreamMeta stage to set a
+                 stream metadata field
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _atlas-sp-agg-setStreamMeta-def:
+
+Definition
+----------
+
+.. pipeline:: $setStreamMeta
+
+The ``$setStreamMeta`` stage sets metadata fields for incoming
+documents. You can use this metadata to perform selective operations
+on documents based on specific values without altering the content of
+the documents themselves.
+
+.. _atlas-sp-agg-setStreamMeta-syntax:
+
+Syntax
+------
+
+A ``$setStreamMeta`` stage has the following prototype form:
+
+.. code-block:: json
+
+   {
+     $setStreamMeta: {
+       "<metadata-field>": <expression>
+     }
+   }
+
+The ``$setStreamMeta`` stage takes a document with the following
+fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 16 17 17 60
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``<metadata-field>`` 
+     - expression
+     - Required
+     - Metadata field to apply to documents. You must set both the key
+       and value:
+
+       - The key must be a string beginning with ``stream.``.
+       - The value must be an expression.
+
+       If evaluating the expression fails, {+atlas-sp+} sends the
+       document to the :ref:`DLQ <atlas-sp-dlq>`.
+
+       To learn more, see the :ref:`Examples
+       <atlas-sp-agg-setStreamMeta-examples>`.
+
+.. _atlas-sp-agg-setStreamMeta-behavior:
+
+Behavior
+--------
+
+:pipeline:`$setStreamMeta` must come after your :pipeline:`$source`
+stage and before your :ref:`$emit <atlas-sp-agg-emit>` or :ref:`$merge
+<atlas-sp-agg-merge>` stage.
+
+.. _atlas-sp-agg-setStreamMeta-examples:
+
+Examples
+--------
+
+A streaming data source generates a document for each order made with
+an e-commerce platform. The documents take the following form:
+
+.. code-block:: json
+
+  {
+    orderId: 1,
+    productId: "A",
+    qty: 2
+  }
+
+An {+service+} database contains a ``products`` collection with
+documents of the following form:
+
+.. code-block:: json
+
+   [
+     {_id: "A", name: "Laptop", category: "tech"},
+     {_id: "B", name: "Shirt", category: "clothing"}
+   ]
+   
+The following aggregation has six stages:
+
+1. The :pipeline:`$source` stage ingests order documents from the
+   e-commerce platform, exposing each record as it is ingeste to the
+   subsequent aggregation stages.
+
+2. The :ref:`$lookup <atlas-sp-agg-lookup>` stage joins the incoming
+   order documents to a ``products`` collection in the ``shop``
+   database on the ``_id`` field. The resulting array field is called
+   ``product``.
+
+3. The :pipeline:`$unwind` stage turns the single-element array value
+   of ``product`` into a document.
+
+4. The :pipeline:`$setStreamMeta` stage sets a metadata field called
+   ``stream.coll`` equal to the value of ``product.category``.
+
+5. The :pipeline:`$unset` stage removes the ``product`` field,
+   returning the source document to its original form.
+
+6. The :ref:`$merge <atlas-sp-agg-merge>` stage merges the document into a
+   collection dynamically determined by the value of ``stream.coll``.
+
+.. code-block:: json
+   :copyable: true
+
+   {
+     $source: {
+       documents: [
+	 {
+	   orderId: 1,
+	   productId: "A",
+	   qty: 2
+	 },
+	 {
+	   orderId: 2,
+	   productId: "B",
+	   qty: 1
+	 },
+	 {
+	   orderId: 3,
+	   productId: "A",
+	   qty: 5
+	 }
+       ]
+     }
+   },
+   {
+     $lookup: {
+       from: {
+         connectionName: "atlas",
+	 db: "shop",
+	 coll: "products"
+       },
+       localField: "productId",
+       foreignField: "_id",
+       as: "product"
+     }
+   },
+   {
+     $unwind: "$product"
+   },
+   {
+     $setStreamMeta: {
+       "stream.coll": "$product.category"
+     }
+   },
+   {
+     $unset: [
+       "product"
+     ]
+   },
+   {
+     $merge: {
+       into: {
+	 connectionName: "atlas",
+	 db: "shop",
+	 coll: {
+	   $meta: "stream.coll"
+	 }
+       }
+     }
+   }
