@@ -298,7 +298,7 @@ const tocData: TocItem[] = [
     group: true,
     items: [
       {
-        label: 'Driver Compatibility Tables',
+        label: 'Client Library Compatibility Tables',
         contentSite: 'drivers',
         url: '/docs/drivers/compatibility',
       },

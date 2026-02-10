@@ -2,7 +2,7 @@
 MongoDB Ecosystem Documentation
 ===============================
 
-This repository contains documentation for the MongoDB drivers ecosystem site: https://www.mongodb.com/docs/drivers/
+This repository contains documentation for the MongoDB client libraries ecosystem site: https://www.mongodb.com/docs/drivers/
 
 Contribute to this Documentation
 --------------------------------
