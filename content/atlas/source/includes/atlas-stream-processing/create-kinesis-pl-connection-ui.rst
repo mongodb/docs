@@ -30,12 +30,6 @@
 
       .. include:: /includes/atlas-stream-processing/unified-aws-access.rst
 
-   .. include:: /includes/nav/steps-project-access-manager
-
-   .. step:: Create an API key.
-
-      .. include:: /includes/atlas-stream-processing/create-api-key.rst
-
    .. include:: /includes/nav/steps-stream-processing.rst  
 
    .. step:: Go to the :guilabel:`Connection Registry`.  
