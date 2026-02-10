@@ -375,59 +375,19 @@ If a single document fails to update in an update command with the
 ``multi`` parameter set to ``true``, no further documents
 update as part of that command. 
 
-For example, create a ``members`` collection with the following documents: 
+For example, the ``sample_mflix.movies`` collection contains movies with 
+``imdb.rating`` fields. Create a :ref:`document validator
+<schema-validation-overview>` on the ``movies`` collection with a rule
+that the ``imdb.rating`` value must be less than or equal to ``10``: 
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/validator.js
+   :language: javascript
+   :category: usage example
 
-   db.members.insertMany( [
-      { "_id" : 1, "member" : "Taylor", "status" : "pending", "points" : 1},
-      { "_id" : 2, "member" : "Alexis", "status" : "enrolled", "points" : 59},
-      { "_id" : 3, "member" : "Elizabeth", "status" : "enrolled", "points" : 34}
-   ] )
-
-The following operation creates a :ref:`document validator
-<schema-validation-overview>` on the ``members`` collection with a rule
-that the ``points`` value can not equal ``60``. 
-
-.. code-block:: javascript
-
-   db.runCommand( { 
-      collMod: "members",
-      validator: { points: { $ne: 60 } } 
-   } )
-
-This update command increases the ``points`` field of every document
-by ``1``.
-
-.. code-block:: javascript
-
-   db.runCommand( 
-    { 
-       update: "members",
-       updates: [
-        {
-            q: {}, 
-            u: { $inc: { points: 1 } },
-            multi: true
-        }
-       ]
-    }
-   )
-
-After running the command, the collection contains the following 
-documents: 
-
-.. code-block:: javascript
-   :copyable: false
-
-   { _id: 1, member: 'Taylor', status: 'A', points: 2 }
-   { _id: 2, member: 'Alexis', status: 'D', points: 59 }
-   { _id: 3, member: 'Elizabeth', status: 'C', points: 34 }
-
-The update command updated the ``points`` value of the first document 
-but failed to update the second document because of the validator rule 
-that the ``points`` value can not equal ``60``. The third document did
-not update because no further documents update following a write error. 
+If any movie already has a rating of ``10``, incrementing it would violate 
+the validator rule (rating > 10). When this happens, the update stops and 
+no further documents are updated, even if thousands of documents matched 
+the query.
 
 .. note::
 
@@ -631,60 +591,31 @@ Write Concerns and Transactions
 Examples
 --------
 
+.. include:: /includes/sample-data-usage.rst
+
 Update Specific Fields of One Document
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Use :ref:`update operators <update-operators>` to update only the
 specified fields of a document.
 
-For example, create a ``members`` collection with the following documents:
-
-.. code-block:: javascript
-
-   db.members.insertMany([
-      { _id: 1, member: "abc123", status: "Pending", points: 0, misc1: "note to self: confirm status", misc2: "Need to activate" },
-      { _id: 2, member: "xyz123", status: "D", points: 59, misc1: "reminder: ping me at 100pts", misc2: "Some random comment" },
-   ])
+For example, documents in the ``movies`` collection from the ``sample_mflix`` database 
+contain fields such as ``title``, ``year``, and ``num_mflix_comments``.
 
 The following command uses the :update:`$set` and :update:`$inc`
-update operators to update the ``status`` and the ``points`` fields of a
-document where the ``member`` equals ``"abc123"``:
+update operators to update the ``year`` and the ``num_mflix_comments`` fields of a
+document where the ``title`` equals ``"The Godfather"``:
 
-.. code-block:: javascript
 
-   db.runCommand(
-      {
-         update: "members",
-         updates: [
-            {
-              q: { member: "abc123" }, u: { $set: { status: "A" }, $inc: { points: 1 } }
-            }
-         ],
-         ordered: false,
-         writeConcern: { w: "majority", wtimeout: 5000 }
-      }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/update-1.js
+   :language: javascript
+   :category: usage example
 
 Because ``<update>`` document does not specify the optional ``multi``
 field, the update only modifies one document, even if more than one
 document matches the ``q`` match condition.
 
-The returned document shows that the command found and updated a single
-document. The command returns:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "n" : 1, "nModified" : 1, "ok" : 1, <additional fields if run on a replica set/sharded cluster> }
-
 See :ref:`update-command-output` for details.
-
-After the command, the collection contains the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "member" : "abc123", "status" : "A", "points" : 1, "misc1" : "note to self: confirm status", "misc2" : "Need to activate" }
-   { "_id" : 2, "member" : "xyz123", "status" : "D", "points" : 59, "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" }
 
 Update Specific Fields of Multiple Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -693,50 +624,25 @@ Use :ref:`update operators <update-operators>` to update only the
 specified fields of a document, and include the ``multi`` field set to
 ``true`` in the update statement.
 
-For example, a ``members`` collection contains the following documents:
+For example, documents in the ``movies`` collection from the ``sample_mflix`` database 
+contain fields such as ``year`` and ``num_mflix_comments``.
 
-.. code-block:: javascript
+The following command uses the :update:`$inc` update operator to increment
+the ``num_mflix_comments`` field for all movies released in 1924:
 
-   { "_id" : 1, "member" : "abc123", "status" : "A", "points" : 1, "misc1" : "note to self: confirm status", "misc2" : "Need to activate" }
-   { "_id" : 2, "member" : "xyz123", "status" : "D", "points" : 59, "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/update-specific-fields.js
+   :language: javascript
+   :category: usage example
 
-The following command uses the :update:`$set` and :update:`$inc`
-update operators to modify the ``status`` and the ``points`` fields
-respectively of all documents in the collection:
+Because the ``multi`` field is set to ``true``, the update modifies all 6
+documents that match the query specified in the ``q`` field and returns the
+following output:
 
-.. code-block:: javascript
-
-   db.runCommand(
-      {
-         update: "members",
-         updates: [
-            { q: { }, u: { $set: { status: "A" }, $inc: { points: 1 } }, multi: true }
-         ],
-         ordered: false,
-         writeConcern: { w: "majority", wtimeout: 5000 }
-      }
-   )
-
-The update modifies all documents that match the query specified in the
-``q`` field, namely the empty query which matches all documents in the
-collection.
-
-The returned document shows that the command found and updated multiple
-documents.  For a replica set, the command returns:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "n" : 2, "nModified" : 2, "ok" : 1,  <additional fields if run on a replica set/sharded cluster> }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/update-specific-fields-output.sh
+   :language: javascript
+   :category: example return object
 
 See :ref:`update-command-output` for details.
-
-After the command, the collection contains the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "member" : "abc123", "status" : "A", "points" : 2, "misc1" : "note to self: confirm status", "misc2" : "Need to activate" }
-   { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60, "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" }
 
 .. _update-command-example-agg:
 
@@ -758,67 +664,20 @@ Example 1
 The following examples uses the aggregation pipeline to modify a field
 using the values of the other fields in the document.
 
-A ``members`` collection contains the following documents:
+Documents in the ``users`` collection from the ``sample_mflix`` database 
+contain fields such as ``name`` and ``email``.
 
-.. code-block:: javascript
+The following update operation uses an aggregation pipeline to add new fields
+to a specific user's document:
 
-   { "_id" : 1, "member" : "abc123", "status" : "A", "points" : 2, "misc1" : "note to self: confirm status", "misc2" : "Need to activate" }
-   { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60, "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" }
-
-Assume that instead of separate ``misc1`` and ``misc2`` fields, you
-want to gather these into a new ``comments`` field. The following
-update operation uses an aggregation pipeline to add the new
-``comments`` field and remove the ``misc1`` and ``misc2`` fields for
-all documents in the collection.
-
-- First, set the ``status`` field to ``"Modified"`` and add a new
-  field ``comments`` that contains the current contents of two other
-  fields ``misc1`` and ``misc2`` fields.
-
-- Second, remove the ``misc1`` and ``misc2`` fields.
-
-.. code-block:: javascript
-
-   db.runCommand(
-      {
-         update: "members",
-         updates: [
-            { 
-              q: { },  
-              u: [ 
-                 { $set: { status: "Modified", comments: [ "$misc1", "$misc2" ] } },
-                 { $unset: [ "misc1", "misc2" ] }
-              ], 
-              multi: true
-            }
-         ],
-         ordered: false,
-         writeConcern: { w: "majority", wtimeout: 5000 }
-      }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/update-with-aggregation-1.js
+   :language: javascript
+   :category: usage example
 
 .. note::
 
-   The ``$set`` and ``$unset`` used in the pipeline refers to the
-   aggregation stages :pipeline:`$set` and :pipeline:`$unset`
-   respectively, and not the update operators :update:`$set` and :update:`$unset`.
-
-The returned document shows that the command found and updated multiple
-documents.  The command returns:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "n" : 2, "nModified" : 2, "ok" : 1, <additional fields if run on a replica set/sharded cluster> }
-
-See :ref:`update-command-output` for details.
-
-After the command, the collection contains the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "member" : "abc123", "status" : "Modified", "points" : 2, "comments" : [ "note to self: confirm status", "Need to activate" ] }
-   { "_id" : 2, "member" : "xyz123", "status" : "Modified", "points" : 60, "comments" : [ "reminder: ping me at 100pts", "Some random comment" ] }
+   The ``$set`` operation used in the pipeline refers to the aggregation stage
+   :pipeline:`$set` and not the update operator :update:`$set`.
 
 Example 2
 `````````
@@ -827,140 +686,70 @@ The aggregation pipeline allows the update to perform conditional
 updates based on the current field values as well as use current field
 values to calculate a separate field value.
 
-.. code-block:: javascript
+Documents in the ``movies`` collection from the ``sample_mflix`` database 
+have a ``year`` field.
 
-   db.students.insertMany( [
-      { "_id" : 1, "tests" : [ 95, 92, 90 ] },
-      { "_id" : 2, "tests" : [ 94, 88, 90 ] },
-      { "_id" : 3, "tests" : [ 70, 75, 82 ] }
-   ] );
+The following example uses an aggregation pipeline to calculate the age of
+"The Great Train Robbery" and assign an era classification based on when
+it was released.
 
-Using an aggregation pipeline, you can update the documents with the
-calculated grade average and letter grade.
-
-.. code-block:: javascript
-
-   db.runCommand(
-      {
-         update: "students",
-         updates: [
-            { 
-              q: { },  
-              u: [ 
-                    { $set: { average : { $avg: "$tests" } } },
-                    { $set: { grade: { $switch: { 
-                                          branches: [
-                                              { case: { $gte: [ "$average", 90 ] }, then: "A" },
-                                              { case: { $gte: [ "$average", 80 ] }, then: "B" },
-                                              { case: { $gte: [ "$average", 70 ] }, then: "C" },                                                   
-                                              { case: { $gte: [ "$average", 60 ] }, then: "D" }
-                                          ],
-                                          default: "F" 
-                    } } } } 
-              ], 
-              multi: true
-            }
-         ],
-         ordered: false,
-         writeConcern: { w: "majority", wtimeout: 5000 }
-      }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/update-with-aggregation-2.js
+   :language: javascript
+   :category: usage example
 
 .. note::
 
    The ``$set`` used in the pipeline refers to the aggregation stage
    :pipeline:`$set`, and not the update operators :update:`$set`.
 
-
 First Stage
-   The :pipeline:`$set` stage calculates a new field ``average`` based
-   on the average of the ``tests`` field. See :group:`$avg` for
-   more information on the ``$avg`` aggregation operator.
+   The :pipeline:`$set` stage calculates a new field ``age`` based
+   on the difference between 2026 and the movie's release year. See :expression:`$subtract`
+   for more information.
 
 Second Stage
-   The :pipeline:`$set` stage calculates a new field ``grade`` based on
-   the ``average`` field calculated in the previous stage. See
+   The :pipeline:`$set` stage calculates a new field ``era`` based on
+   the ``year`` field using conditional logic. See
    :expression:`$switch` for more information on the ``$switch``
    aggregation operator.
-
-The returned document shows that the command found and updated multiple
-documents.  The command returns:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "n" : 3, "nModified" : 3, "ok" : 1, <additional fields if run on a replica set/sharded cluster> }
-
-After the command, the collection contains the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "tests" : [ 95, 92, 90 ], "average" : 92.33333333333333, "grade" : "A" }
-   { "_id" : 2, "tests" : [ 94, 88, 90 ], "average" : 90.66666666666667, "grade" : "A" }
-   { "_id" : 3, "tests" : [ 70, 75, 82 ], "average" : 75.66666666666667, "grade" : "C" }
 
 Bulk Update
 ~~~~~~~~~~~
 
-The following example performs multiple update operations on the
-``members`` collection:
+The following example performs multiple update operations in a single
+command to both update existing documents and insert new documents. The operation: 
 
-.. code-block:: javascript
+- marks highly-rated Horror movies from 2015 as ``featured``
+- categorizes short Drama and Romance movies from 2012 as ``melodrama``
+- upserts a new Science Fiction movie from 2024 if it doesn't exist
 
-   db.runCommand(
-      {
-         update: "members",
-         updates: [
-            { q: { status: "P" }, u: { $set: { status: "D" } }, multi: true },
-            { q: { _id: 5 }, u: { _id: 5, name: "abc123", status: "A" }, upsert: true }
-         ],
-         ordered: false,
-         writeConcern: { w: "majority", wtimeout: 5000 }
-      }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/bulk-update.js
+   :language: javascript
+   :category: usage example
 
-The returned document shows that the command modified ``10`` documents
-and inserted a document with the ``_id`` value ``5``. See
-:ref:`update-command-output` for details.
+The returned document shows that the command modified existing documents
+and inserted a new document via upsert. See :ref:`update-command-output` for details.
 
-.. code-block:: javascript
-
-   {
-      "ok" : 1,
-      "nModified" : 10,
-      "n" : 11,
-      "upserted" : [
-         {
-            "index" : 1,
-            "_id" : 5
-         }
-      ]
-   }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/bulk-update-output.sh
+   :language: javascript
+   :category: example return object
 
 Specify Collation
 ~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/extracts/collation-description.rst
 
-A collection ``myColl`` has the following documents:
+Documents in the ``movies`` collection from the ``sample_mflix`` database 
+have fields such as ``title`` and ``year``.
 
-.. code-block:: javascript
+The following operation uses collation to perform a case-insensitive search.
+The query searches for ``"the godfather"`` in lowercase, but with
+``strength: 1`` collation, the query matches ``"The Godfather"`` regardless of
+capitalization:
 
-   { _id: 1, category: "café", status: "A" }
-   { _id: 2, category: "cafe", status: "a" }
-   { _id: 3, category: "cafE", status: "a" }
-
-The following operation includes the :ref:`collation <collation>`
-option:
-
-.. code-block:: javascript
-
-   db.runCommand({
-      update: "myColl",
-      updates: [
-        { q: { category: "cafe", status: "a" }, u: { $set: { status: "Updated" } }, collation: { locale: "fr", strength: 1 } }
-      ]
-   })
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/specify-collation.js
+   :language: javascript
+   :category: usage example
 
 .. _update-command-arrayFilters:
 
@@ -972,163 +761,67 @@ Specify ``arrayFilters`` for Array Update Operations
 Update Elements Match ``arrayFilters`` Criteria
 ```````````````````````````````````````````````
 
-Create a collection ``students``  with the following
-documents:
+Documents in the ``movies`` collection from the ``sample_mflix`` database 
+have a ``languages`` array field.
 
-.. code-block:: javascript
+The following example updates all movies that have ``"English"`` in their 
+``languages`` array. The operation replaces ``"English"`` with ``"EN"``. 
 
-   db.students.insertMany( [
-      { "_id" : 1, "grades" : [ 95, 92, 90 ] },
-      { "_id" : 2, "grades" : [ 98, 100, 102 ] },
-      { "_id" : 3, "grades" : [ 95, 110, 100 ] }
-   ] );
-
-To modify all elements that are greater than or equal to ``100`` in the
-``grades`` array, use the filtered positional operator
-:update:`$[\<identifier\>]` with the ``arrayFilters`` option:
-
-.. code-block:: javascript
-
-   db.runCommand( {
-      update: "students",
-      updates: [
-        { q: { grades: { $gte: 100 } }, u: { $set: { "grades.$[element]" : 100 } }, arrayFilters: [ { "element": { $gte: 100 } } ], multi: true}
-      ]
-   } )
-
-After the operation, the collection contains the following documents:
-
-.. code-block:: javascript
-   :emphasize-lines: 2-3
-
-   { "_id" : 1, "grades" : [ 95, 92, 90 ] }
-   { "_id" : 2, "grades" : [ 98, 100, 100 ] }
-   { "_id" : 3, "grades" : [ 95, 100, 100 ] }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/array-filters.js
+   :language: javascript
+   :category: usage example
 
 Update Specific Elements of an Array of Documents
 `````````````````````````````````````````````````
 
-Create a collection ``students2`` with the following documents:
+Documents in the ``movies`` collection from the ``sample_mflix`` database 
+have a ``cast`` array that lists actor names.
 
-.. code-block:: javascript
+The following example updates all movies that have ``"Al Pacino"`` in their 
+``cast`` array, replacing ``"Al Pacino"`` with ``"REDACTED"``. The 
+``arrayFilters`` option specifies which array elements to update:
 
-   db.students2.insertMany( [
-      {
-         "_id" : 1,
-         "grades" : [
-            { "grade" : 80, "mean" : 75, "std" : 6 },
-            { "grade" : 85, "mean" : 90, "std" : 4 },
-            { "grade" : 85, "mean" : 85, "std" : 6 }
-         ]
-      },
-      {
-         "_id" : 2,
-         "grades" : [
-            { "grade" : 90, "mean" : 75, "std" : 6 },
-            { "grade" : 87, "mean" : 90, "std" : 3 },
-            { "grade" : 85, "mean" : 85, "std" : 4 }
-         ]
-      }
-   ] )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/update-specific-elements.js
+   :language: javascript
+   :category: usage example
 
-To modify the value of the ``mean`` field for all elements in the
-``grades`` array where the grade is greater than or equal to ``85``,
-use the filtered positional operator :update:`$[\<identifier\>]` with
-the ``arrayFilters``:
+The operation updates all 40 movies that have ``"Al Pacino"`` in the ``cast`` 
+array, replacing his name with ``"REDACTED"``.
 
-.. code-block:: javascript
-
-   db.runCommand({
-      update: "students2",
-      updates: [
-        { q: { }, u: { $set: { "grades.$[elem].mean" : 100 } }, arrayFilters: [ { "elem.grade": { $gte: 85 } } ], multi: true }
-      ]
-   })
-
-After the operation, the collection has the following documents:
-
-.. code-block:: javascript
-   :emphasize-lines: 5-6,12-14
-
-   {
-      "_id" : 1,
-      "grades" : [
-         { "grade" : 80, "mean" : 75, "std" : 6 },
-         { "grade" : 85, "mean" : 100, "std" : 4 },
-         { "grade" : 85, "mean" : 100, "std" : 6 }
-      ]
-   }
-   {
-      "_id" : 2,
-      "grades" : [
-         { "grade" : 90, "mean" : 100, "std" : 6 },
-         { "grade" : 87, "mean" : 100, "std" : 3 },
-         { "grade" : 85, "mean" : 100, "std" : 4 }
-      ]
-   }
 
 .. _ex-update-command-hint:
 
 Specify ``hint`` for Update Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Create a sample ``members`` collection with the following documents:
-
-.. code-block:: javascript
-
-   db.members.insertMany([
-      { "_id" : 1, "member" : "abc123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
-      { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" },
-      { "_id" : 3, "member" : "lmn123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
-      { "_id" : 4, "member" : "pqr123", "status" : "D", "points" : 20,  "misc1" : "Deactivated", "misc2" : null },
-      { "_id" : 5, "member" : "ijk123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
-      { "_id" : 6, "member" : "cde123", "status" : "A", "points" : 86,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" }
-   ])
+Documents in the ``movies`` collection from the ``sample_mflix`` database have 
+fields such as ``year`` and ``num_mflix_comments``.
 
 Create the following indexes on the collection:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/create-index.js
+   :language: javascript
+   :category: usage example
 
-   db.members.createIndex( { status: 1 } )
-   db.members.createIndex( { points: 1 } )
-
-The following update operation explicitly hints to use the index ``{
-status: 1 }``:
+The following update operation increments the ``num_mflix_comments`` field for
+"The Great Train Robbery" and explicitly hints to use the index ``{ year: 1 }``:
 
 .. note::
    
    If you specify an index that does not exist, the operation errors.
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/update-with-hint.js
+   :language: javascript
+   :category: usage example
 
-   db.runCommand({
-      update: "members",
-      updates: [
-        { q: { "points": { $lte: 20 }, "status": "P" }, u: { $set: { "misc1": "Need to activate" } }, hint: { status: 1 }, multi: true }
-      ]
-   })
 
-The update command returns the following:
+To see the index used, you can run :dbcommand:`explain` on an update operation.
+For example, the following explains an update that increments ``num_mflix_comments``
+for movies with 5 or fewer comments released in 2000 or later:
 
-.. code-block:: javascript
-
-   { "n" : 3, "nModified" : 3, "ok" : 1 }
-
-To see the index used, run :dbcommand:`explain` on the operation:
-
-.. code-block:: javascript
-
-   db.runCommand(
-      {
-        explain: {
-          update: "members",
-          updates: [ 
-            { q: { "points": { $lte: 20 }, "status": "P" }, u: { $set: { "misc1": "Need to activate" } }, hint: { status: 1 }, multi: true }
-          ]
-        },
-        verbosity: "queryPlanner"
-      }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/explain.js
+   :language: javascript
+   :category: usage example
 
 The :dbcommand:`explain` does not modify the documents.
 
@@ -1148,33 +841,23 @@ array.
    To filter results using a variable, you must access the variable
    within the :query:`$expr` operator.
 
-.. include:: /includes/let-example-update-flavors.rst
+Documents in the ``movies`` collection from the ``sample_mflix`` database 
+have fields such as ``title`` and ``year``.
 
-.. code-block:: javascript
+The following example uses the ``let`` option to define variables for finding
+and adding a new field to a movie.
 
-   db.runCommand( {
-      update: db.cakeFlavors.getName(),
-      updates: [
-         { q: { $expr: { $eq: [ "$flavor", "$$targetFlavor" ] } },
-           u: [ { $set: { flavor: "$$newFlavor" } } ] }
-      ],
-      let : { targetFlavor: "cherry", newFlavor: "orange" }
-   } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/let-option.js
+   :language: javascript
+   :category: usage example
 
-The next example defines ``targetFlavor`` and ``newFlavor`` variables in
-``c`` and uses the variables to change the cake flavor from chocolate to
-vanilla:
+The next example defines ``movieTitle`` and ``franchiseName`` variables in
+``c`` and uses the variables to add a ``franchise`` field. 
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/update/let-option-2.js
+   :language: javascript
+   :category: usage example
 
-   db.runCommand( {
-      update: db.cakeFlavors.getName(),
-      updates: [
-         { q: { $expr: { $eq: [ "$flavor", "$$targetFlavor" ] } },
-           u: [ { $set: { flavor: "$$newFlavor" } } ],
-           c: { targetFlavor: "chocolate", newFlavor: "vanilla" } }
-       ]
-   } )
 
 .. _update-command-output:
 
@@ -1288,73 +971,35 @@ In addition to the aforementioned update specific return fields, the
 See :ref:`db.runCommand Response <command-response>` for details on
 these fields.
 
-
-The following is an example document returned for a successful
-:dbcommand:`update` command that performed an upsert:
-
-.. code-block:: javascript
-
-   {
-      "ok" : 1,
-      "nModified" : 0,
-      "n" : 1,
-      "upserted" : [
-         {
-            "index" : 0,
-            "_id" : ObjectId("52ccb2118908ccd753d65882")
-         }
-      ]
-   }
-
-The following is an example document returned for a bulk update
-involving three update statements, where one update statement was
-successful and two other update statements encountered errors:
-
-.. code-block:: javascript
-
-   {
-      "ok" : 1,
-      "nModified" : 1,
-      "n" : 1,
-      "writeErrors" : [
-         {
-            "index" : 1,
-            "code" : 16837,
-            "errmsg" : "The _id field cannot be changed from {_id: 1.0} to {_id: 5.0}."
-         },
-         {
-            "index" : 2,
-            "code" : 16837,
-            "errmsg" : "The _id field cannot be changed from {_id: 2.0} to {_id: 6.0}."
-         },
-      ]
-   }
-
 .. _ex-update-command-sort:
 
 Update Operation with a Sort
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/restaurants-update-sort-example.rst
+Documents in the ``movies`` collection from the ``sample_mflix`` database
+have fields such as ``year``, ``title``, and ``num_mflix_comments``.
+
+The following example finds all movies from 1972 and updates the one with
+the most comments.
 
 .. code-block:: javascript   
    :emphasize-lines: 14
 
    db.runCommand( {
-      update: "restaurantsSort",
+      update: "movies",
       updates: [ {
-         // Find the restaurants with a rating of 4
-         q: { rating: 4 },
+         // Find movies from 1972
+         q: { year: 1972 },
 
-         // Replace the found restaurant with Clean Eats
-         u: { name: "Clean Eats", rating: 4, violations: 2 },
+         // Add a classic_status field to the found movie
+         u: { $set: { classic_status: "Most Discussed 1972 Film" } },
 
-         // Only update one restaurant
+         // Only update one movie
          multi: false,
 
-         // Sort restaurants found by the most violations with a descending sort
-         sort: { violations: -1 }
+         // Sort movies by comment count in descending order
+         sort: { num_mflix_comments: -1 }
       } ]
    } )
 
-.. include:: /includes/restaurants-update-sort-example-description-and-output.rst
+The operation updates only the 1972 movie with the most comments.
