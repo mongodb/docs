@@ -9,20 +9,25 @@ import ComponentFactory from '../component-factory';
 import { useHeadingContext } from '@/context/heading-context';
 
 export type SectionProps = {
-  children?: React.ReactNode;
   nodeChildren?: ASTNode[];
+  // New props for the MDX version
+  children?: React.ReactNode;
+  headingText?: string;
 };
 
-const Section = ({ children, nodeChildren = [], ...rest }: SectionProps) => {
+const Section = ({ children, nodeChildren = [], headingText: precomputedHeadingText, ...rest }: SectionProps) => {
   // Get depth from context (automatically incremented by parent sections)
   const { sectionDepth: currentDepth } = useHeadingContext();
 
-  let headingText = '';
-  // TODO: make this work with children as well (support for MDX)
-  const headingNode = findKeyValuePair(nodeChildren, 'type', 'heading') as HeadingNode | undefined;
+  // Use pre-computed heading text from MDX conversion if available, otherwise compute at runtime
+  let headingText = precomputedHeadingText ?? '';
 
-  if (headingNode && isHeadingNode(headingNode)) {
-    headingText = getPlaintext(headingNode.children);
+  if (!headingText) {
+    const headingNode = findKeyValuePair(nodeChildren, 'type', 'heading') as HeadingNode | undefined;
+
+    if (headingNode && isHeadingNode(headingNode)) {
+      headingText = getPlaintext(headingNode.children);
+    }
   }
 
   // Provide incremented depth to children via context

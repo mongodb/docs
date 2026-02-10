@@ -98,7 +98,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Rubric: ({ children }) => <span>{children}</span>,
     Replacement: ({ children }) => <span>{children}</span>,
     SearchResults: ({ children }) => <span>{children}</span>,
-    Section: ({ children }) => <Section>{children}</Section>,
+    Section: ({ children, ...props }) => <Section {...props}>{children}</Section>,
     See: ({ children }) => <span>{children}</span>,
     SeeAlso: ({ children }) => <span>{children}</span>,
     SharedInclude: ({ children }) => <span>{children}</span>,

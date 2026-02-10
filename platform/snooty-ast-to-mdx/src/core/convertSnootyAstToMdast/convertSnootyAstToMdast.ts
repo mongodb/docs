@@ -173,6 +173,7 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
       const titleNode = (node.children ?? []).find((c) => c.type === 'title' || c.type === 'heading');
       const rest = (node.children ?? []).filter((c) => c !== titleNode);
       const sectionChildren: MdastNode[] = [];
+      const sectionAttributes: MdastNode[] = [];
 
       if (titleNode) {
         const attributes = toJsxAttributes(node.options);
@@ -182,6 +183,12 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
           attributes: attributes,
           children: convertChildren({ nodes: titleNode.children, depth, ctx }),
         });
+
+        // Pre-compute heading text for HeadingContextProvider (avoids runtime traversal in component)
+        const headingText = extractInlineDisplayText(titleNode.children ?? []);
+        if (headingText) {
+          sectionAttributes.push({ type: 'mdxJsxAttribute', name: 'headingText', value: headingText });
+        }
       }
 
       rest.forEach((child) => {
@@ -193,7 +200,7 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
       return {
         type: 'mdxJsxFlowElement',
         name: 'Section',
-        attributes: [],
+        attributes: sectionAttributes,
         children: sectionChildren,
       };
     }
