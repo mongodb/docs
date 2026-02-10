@@ -51,7 +51,7 @@
   to {+atlas-sp+} metrics, including those exported to Datadog.
 - Adds ``lifetime cache hit/miss`` statistics to the 
   :ref:`stats.operatorStats <atlas-sp-manage-processor-stats>` of the
-  :ref`atlas-sp-agg-cachedlookup` stage.
+  :ref:`atlas-sp-agg-cachedlookup` stage.
 
 .. _atlas-sp-20250821:
 
@@ -89,7 +89,8 @@
 ---------------------
 
 - Adds support for Cross Atlas Project for ``$source`` and ``$merge``.
-  To learn more, see `Atlas Connection <https://www.mongodb.com/docs/atlas/atlas-stream-processing/atlas-connection/>`__.
+  To learn more, see the :ref:`Replicate Change Stream Events Across Atlas Clusters <atlas-sp-agg-merge-replicate-events>` 
+  section in the ``$merge`` (Stream Processing) reference. 
 
 .. _atlas-sp-20250731:
 
