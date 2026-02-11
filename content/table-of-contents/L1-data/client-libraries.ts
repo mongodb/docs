@@ -181,6 +181,11 @@ const tocData: TocItem[] = [
             items: NodeDriverData,
           },
           {
+            label: 'Angular Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/node-frameworks/angular/',
+          },
+          {
             label: 'React Integration',
             contentSite: 'drivers',
             url: '/docs/drivers/node-frameworks/react/',
