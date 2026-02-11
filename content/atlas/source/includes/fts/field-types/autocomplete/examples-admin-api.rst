@@ -1,6 +1,3 @@
-Try an Example for the |fts-field-type| Type  
---------------------------------------------
-
 .. include:: /includes/fts/field-types/try-an-example.rst
 
 .. include:: /includes/fts/field-types/configure-and-run.rst

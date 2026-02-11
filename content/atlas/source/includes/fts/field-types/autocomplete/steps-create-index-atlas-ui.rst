@@ -1,6 +1,3 @@
-Define the Index for the |fts-field-type| Type  
-----------------------------------------------
-
 Choose your preferred configuration method in the {+atlas-ui+} and then
 select the database and collection. 
 

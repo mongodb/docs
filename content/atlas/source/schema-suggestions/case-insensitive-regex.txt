@@ -2,9 +2,9 @@
 
 .. _regex-to-search:
 
-=====================================
-Use |fts| for Full-Text Regex Queries
-=====================================
+==================================
+Use |fts| Instead of Regex Queries
+==================================
 
 .. meta::
    :description: Improve performance of case-insensitive regex queries by using MongoDB Search with the $search aggregation pipeline stage instead of inefficient regex matching.
@@ -14,165 +14,532 @@ Use |fts| for Full-Text Regex Queries
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
-If your queries rely on inefficient regex matching, create and run a
-:ref:`{+fts+} query <searching-ref>` with the :pipeline:`$search` 
-aggregation pipeline stage to improve the performance of text queries 
-which have more options for customizing your query parameters.
+.. |arrow| unicode:: U+27A4
 
-.. _case-insensitive-regex-anti-pattern:
+If your queries rely on regex matching, you can improve the performance 
+and efficiency of your query by creating a :ref:`{+fts+} index 
+<searching-ref>` and running a :pipeline:`$search` aggregation pipeline 
+stage. :query:`$regex` is inefficient because it cannot always make use 
+of indexes whereas :ref:`{+fts+} indexes <fts-manage-indexes>` 
+significantly improve the performance of your queries and  offer more 
+options for customizing query parameters. 
 
-Avoid Inefficient Regex Matching
---------------------------------
+This page describes some common |fts| index and query configurations for 
+:query:`$regex` use cases.
 
-If you frequently run case-insensitive regex queries (utilizing the
-``i`` option), we recommend using :ref:`{+fts+} queries
-<searching-ref>` that use the :pipeline:`$search`
-aggregation pipeline stage. 
+Examples
+--------
 
-You can specify :manual:`collation </reference/collation/>` on an
-index to define language-specific rules for string comparison, such as
-rules for lettercase and accent marks. However, :manual:`collation
-</reference/collation/>` can cause some functionality loss compared to
-:ref:`{+fts+} queries <searching-ref>`. In non {+fts+}
-environments, case-insensitive indexes do not improve performance for
-regex queries. The :query:`$regex` query operator is not
-collation-aware, and cannot use case-insensitive indexes effectively.
-:ref:`{+fts+} indexes <fts-manage-indexes>` significantly improve
-the performance of case-sensitive queries and offer more options for
-customizing query parameters.
+The examples use an ``sample_mflix.movies`` namespace. To run the 
+sample queries, :ref:`add <sample-data>` this collection to your cluster 
+or use the pre-configured snapshots in the |fts| Playground. The sample 
+queries demonstrate how to use :pipeline:`$search` instead of 
+:query:`$regex` for the following use cases: 
 
-Example
--------
+.. _prefix-autocomplete-query:
 
-Consider an ``employees`` collection with the following documents. This
-collection has no indexes besides the default ``_id`` index:
+.. collapsible::
+   :heading: Prefix Queries
+   :expanded: false
 
-.. code-block:: javascript
-
-   // employees collection
-
-   {
-     "_id": 1,
-     "first_name": "Hannah",
-     "last_name": "Simmons",
-     "dept": "Engineering"
-   },
-   {
-     "_id": 2,
-     "first_name": "Michael",
-     "last_name": "Hughes",
-     "dept": "Security"
-   },
-   {
-     "_id": 3,
-     "first_name": "Wendy",
-     "last_name": "Crawford",
-     "dept": "Human Resources"
-   },
-   {
-     "_id": 4,
-     "first_name": "MICHAEL",
-     "last_name": "FLORES",
-     "dept": "Sales"
-   }
-
-If your application frequently queries the ``first_name`` field, you may
-want to run case-insensitive regex queries to more easily find matching
-names. Case-insensitive regex also matches against differing data
-formats, as in the example above where you have ``first_names`` of both
-"Michael" and "MICHAEL". However, we recommend 
-:ref:`{+fts+} queries <searching-ref>` that use the 
-:pipeline:`$search` aggregation pipeline stage.
-
-If a user searches for the string "michael", the application may run
-the following query:
-
-.. code-block:: javascript
-
-   db.employees.find( { first_name: { $regex: /michael/i } } )
-
-Since this query specifies the
-:manual:`$regex </reference/operator/query/regex/>` option ``i``, it is
-case-insensitive. The query returns the following documents:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "_id" : 2, "first_name" : "Michael", "last_name" : "Hughes", "dept" : "Security" }
-   { "_id" : 4, "first_name" : "MICHAEL", "last_name" : "FLORES", "dept" : "Sales" }
-
-Although this query does return the expected documents, case-insensitive
-regex queries with no index support are not very performant. To improve
-performance, :ref:`create a {+fts+} index <ref-create-index>`:
-
-.. code-block:: json
-  
-   {
-     "mappings": {
-       "dynamic": true
-     }
-   }
-
-:manual:`Collation </reference/collation/>` can cause some 
-functionality loss. When the ``strength`` field of an index's 
-``collation`` document is ``1`` or ``2``, the index is 
-case-insensitive. For a detailed description of the collation document 
-and the different ``strength`` values, see :manual:`Collation Document
-</reference/collation/#collation-document>`.
-
-For the application to use the case-insensitive index, you must also 
-specify the *same* collation document from the index in the regex 
-query. While you can remove the ``$regex`` operator from the previous 
-:method:`~db.collection.find()` method and use the newly 
-created index, we recommend that you use an :ref:`{+fts+} query 
-<searching-ref>` that uses the :pipeline:`$search` 
-aggregation pipeline stage.
-
-.. list-table::
-   :widths: 50 50
-   :header-rows: 1
-
-   * - Case-insensitive Query
-     - |fts| Query
+   If your application frequently queries for string values that start with 
+   a set of characters or prefix, it might use the :query:`$regex` option 
+   ``^``, which searches from the start of the string value, and ``i``, which 
+   makes it case-insensitive. 
    
-   * - .. code-block:: javascript
+   Instead, we recommend :ref:`{+fts+} queries <searching-ref>` that 
+   use the :pipeline:`$search` aggregation pipeline stage. The following 
+   queries search for movie titles that start with the prefix ``back``.
 
-          db.employees.find( { first_name: "michael" } ).collation( { locale: 'en', strength: 2 } )
+   |arrow| Try this in the :asp:`{+fts+} Playground </6985774298f54d153aada5b1>`.
 
-     - .. code-block:: json
-      
-          db.employees.aggregate([
-            {
-              $search: {
-                "index": "default",
-                "text": {
-                  "path": "first_name",
-                  "query": "michael"
-                }
+   .. list-table:: 
+      :widths: 50 50
+      :header-rows: 1
+
+      * - ``$regex`` Queries
+        - ``$search`` Query 
+        
+      * - .. io-code-block:: 
+             :copyable: true 
+             
+             .. input:: 
+                :language: javascript
+
+                db.movies.find( { title: { $regex: /^back/i } }, { title: 1, _id: 0 } )  // Query 1
+                db.movies.find( { title: { $regex: "^back", $options: "i" } }, { title: 1, _id: 0 } )  // Query 2
+
+             .. output:: 
+                :language: javascript
+                :visible: false 
+
+                [
+                  { title: 'Back to the Future' },
+                  { title: 'Back to School' },
+                  { title: 'Back to the Future Part II' },
+                  { title: 'Back to the USSR - takaisin Ryssiin' },
+                  { title: 'Back to the Future Part III' },
+                  { title: 'Backdraft' },
+                  { title: 'Backbeat' },
+                  { title: 'Backstage' },
+                  { title: 'Backdoor' },
+                  { title: 'Backstage' },
+                  { title: 'Back Soon' },
+                  { title: 'Backlight' },
+                  { title: 'Back to Stay' },
+                  { title: 'Back Issues: The Hustler Magazine Story' }
+                ]
+ 
+        - .. io-code-block:: 
+             :copyable: true 
+             
+             .. input:: 
+                :language: javascript 
+
+                db.movies.aggregate([
+                  {
+                    "$search": {
+                      "index": "default",
+                      "text": {
+                        "query": "back",
+                        "path": "title",
+                        "matchCriteria": "all"
+                      }
+                    }
+                  },
+                  {
+                    "$project": {
+                      "_id": 0,
+                      "title": 1,
+                      "score": { $meta: "searchScore" }
+                    }
+                  }
+                ])
+        
+             .. output:: 
+                :language: javascript 
+                :visible: false
+
+                [
+                  { title: 'Backdraft', score: 3.8287878036499023 },
+                  { title: 'Backbeat', score: 3.8287878036499023 },
+                  { title: 'Backstage', score: 3.8287878036499023 },
+                  { title: 'Backdoor', score: 3.8287878036499023 },
+                  { title: 'Backstage', score: 3.8287878036499023 },
+                  { title: 'The Backwoods', score: 3.8287878036499023 },
+                  { title: 'The Backwoods', score: 3.8287878036499023 },
+                  { title: 'The Way Back', score: 3.8287878036499023 },
+                  { title: '3 Backyards', score: 3.8287878036499023 },
+                  { title: 'Backlight', score: 3.8287878036499023 },
+                  { title: 'The Way Way Back', score: 3.8287878036499023 },
+                  { title: 'Back to the Future', score: 3.455096483230591 },
+                  { title: 'Back to School', score: 3.455096483230591 },
+                  { title: 'The Cat Came Back', score: 3.455096483230591 },
+                  { title: "Jack's Back", score: 3.455096483230591 },
+                  { title: 'The Dark Backward', score: 3.455096483230591 },
+                  { title: 'T-Rex: Back to the Cretaceous', score: 3.455096483230591 },
+                  { title: 'The Dark Backward', score: 3.455096483230591 },
+                  { title: 'No Turning Back', score: 3.455096483230591 },
+                  { title: "The Devil's Backbone", score: 3.455096483230591 }
+                ]
+                Type "it" for more
+
+   To run this :pipeline:`$search` query, :ref:`create a {+fts+} 
+   index <ref-create-index>` similar to the following:
+
+   .. code-block:: json
+    
+      {
+        "mappings": {
+          "dynamic": false,
+          "fields": {
+            "title": [
+              {
+                "type": "string",
+                "analyzer": "autocomplete-search",
+                "searchAnalyzer": "lucene.standard"
               }
+            ]
+          }
+        },
+        "analyzers": [
+          {
+            "name": "autocomplete-search",
+            "tokenizer": {
+              "type": "standard"
+            },
+            "tokenFilters": [
+              {
+                "type": "lowercase"
+              },
+              {
+                "type": "edgeGram",
+                "minGram": 4,
+                "maxGram": 10
+              }
+            ]
+          }
+        ]
+      }
+
+   This index definition indexes the ``title`` field in the ``movies`` 
+   collection as the ``string`` type that uses the 
+   ``autocomplete-search`` custom analyzer for indexed fields and the 
+   ``lucene.standard`` analyzer for queries. The custom analyzer named 
+   ``autocomplete-search`` as the ``analyzer`` for  indexed fields and the ``lucene.standard`` 
+   as the ``searchAnalyzer`` for queries. The custom analyzer named 
+   
+   - ``lowercase`` token filter to transform all characters to lower 
+     case to support case-insensitive queries
+   - ``edgeGram`` token filter to create tokens of between ``4`` and 
+     ``10`` characters in length
+
+   .. note:: 
+
+      This custom analyzer only supports words up to ten characters in 
+      length. If you expect words and queries longer than ten characters, 
+      increase the ``maxGram`` value. We don't recommend setting a 
+      ``maxGram`` value higher than fifteen because higher values 
+      increase the size of the index and might impact performance and 
+      availability.
+
+.. _contains-autocomplete-query:
+
+.. collapsible::
+   :heading: Substring "Contains" Queries
+   :expanded: false
+
+   If your application frequently queries for strings that are present
+   anywhere in the field, you might run :query:`$regex` queries, which 
+   check every document and return all matches in no particular order.
+
+   Instead, we recommend :ref:`{+fts+} queries <searching-ref>` that 
+   use the :pipeline:`$search` aggregation pipeline stage. The following 
+   queries search for movie titles that contain the term ``park``
+   anywhere in the ``title`` field.
+
+   |arrow| Try this in the :asp:`{+fts+} Playground </6985772498f54d153aada5af>`.
+
+   .. list-table:: 
+      :widths: 50 50 
+      :header-rows: 1 
+
+      * - ``$regex`` Query 
+        - ``$search`` Query  
+
+      * - .. io-code-block:: 
+             :copyable: true 
+             
+             .. input:: 
+                :language: javascript
+
+                db.movies.find({ title: { $regex: "park", $options: "i" } }, { title: 1, _id: 0 })  
+
+             .. output:: 
+                :language: javascript
+                :visible: false 
+
+                [
+                  { title: 'Barefoot in the Park' },
+                  { title: 'The Panic in Needle Park' },
+                  { title: 'Gorky Park' },
+                  { title: 'The Park Is Mine' },
+                  { title: 'Jurassic Park' },
+                  { title: 'Mrs. Parker and the Vicious Circle' },
+                  { title: 'The Lost World: Jurassic Park' },
+                  { title: 'Dog Park' },
+                  { title: 'South Park: Bigger Longer & Uncut' },
+                  { title: 'Jurassic Park III' },
+                  { title: 'Mansfield Park' },
+                  { title: 'Jurassic Park III' },
+                  { title: 'Gosford Park' },
+                  { title: 'The Rosa Parks Story' },
+                  { title: 'The Delicate Art of Parking' },
+                  { title: 'Wicker Park' },
+                  { title: 'Chestnut: Hero of Central Park' },
+                  { title: 'Trailer Park Boys: The Movie' },
+                  { title: 'Ellie Parker' },
+                  { title: 'Paranoid Park' }
+                ]
+
+        - .. io-code-block:: 
+             :copyable: true 
+             
+             .. input:: 
+                :language: javascript
+
+                db.movies.aggregate([  
+                  {  
+                    "$search": {  
+                      "index": "default",  
+                      "wildcard": {  
+                        "query": "park*",  
+                        "path": "title",
+                        "allowAnalyzedField": true 
+                      }  
+                    }  
+                  },  
+                  {  
+                    "$project": {  
+                      "_id": 0,  
+                      "title": 1,  
+                      "score": { "$meta": "searchScore" }  
+                    }  
+                  }  
+                ])  
+
+             .. output:: 
+                :language: javascript
+                :visible: false 
+
+                [
+                  { title: 'Barefoot in the Park', score: 1 },
+                  { title: 'The Panic in Needle Park', score: 1 },
+                  { title: 'Gorky Park', score: 1 },
+                  { title: 'The Park Is Mine', score: 1 },
+                  { title: 'Jurassic Park', score: 1 },
+                  { title: 'Mrs. Parker and the Vicious Circle', score: 1 },
+                  { title: 'The Lost World: Jurassic Park', score: 1 },
+                  { title: 'Dog Park', score: 1 },
+                  { title: 'South Park: Bigger Longer & Uncut', score: 1 },
+                  { title: 'Jurassic Park III', score: 1 },
+                  { title: 'Mansfield Park', score: 1 },
+                  { title: 'Jurassic Park III', score: 1 },
+                  { title: 'Gosford Park', score: 1 },
+                  { title: 'The Rosa Parks Story', score: 1 },
+                  { title: 'Wicker Park', score: 1 },
+                  { title: 'The Delicate Art of Parking', score: 1 },
+                  { title: 'Chestnut: Hero of Central Park', score: 1 },
+                  { title: 'Trailer Park Boys: The Movie', score: 1 },
+                  { title: 'Ellie Parker', score: 1 },
+                  { title: 'Paranoid Park', score: 1 }
+                ]
+                Type "it" for more
+
+   To run this :pipeline:`$search` query, :ref:`create a {+fts+} 
+   index <ref-create-index>` with the following definition:
+
+   .. code-block:: javascript 
+
+      {
+        "mappings": {
+          "dynamic": false,
+          "fields": {
+            "title": {
+              "type": "string",
+              "analyzer": "contains",
+              "searchAnalyzer": "lucene.standard"
             }
-          ])
+          }
+        },
+        "analyzers": [
+          {
+            "name": "contains",
+            "tokenizer": {
+              "type": "standard"
+            },
+            "tokenFilters": [
+              {  
+                "type": "lowercase" 
+              },
+              {
+                "type": "reverse"
+              },
+              {
+                "type": "edgeGram",
+                "minGram": 4,
+                "maxGram": 15
+              },
+              {
+                "type": "reverse"
+              }
+            ]
+          }
+        ]
+      }
 
-.. important::
+   This index definition indexes the ``title`` field in the ``movies`` collection 
+   as the ``string`` type using a custom analyzer named ``contains`` that applies 
+   the following: 
 
-   Do not use the :manual:`$regex </reference/operator/query/regex/>`
-   operator when using a case-insensitive index for your query. The
-   ``$regex`` implementation is not collation-aware and cannot utilize
-   case-insensitive indexes. Instead, we recommend 
-   :ref:`{+fts+} queries <searching-ref>` that use the 
-   :pipeline:`$search` aggregation pipeline stage.
+   - ``standard`` tokenizer to split the words by whitespace or punctuation.
+   - ``lowercase`` token filter to transform the letters to lowercase to support 
+     case-insensitive queries.
+   - ``reverse`` token filter (twice) to reverse the words to support efficient 
+     unanchored queries.
+   - ``edgeGram`` token filter to create tokens of between four and fifteen 
+     characters in length.
+
+   .. note:: 
+
+      This custom analyzer only supports words up to fifteen characters in 
+      length. If you have words longer than fifteen characters, increase the 
+      ``maxGram`` value. It is not recommended to set a ``maxGram`` value higher 
+      than fifteen because higher values increase the size of the index and might 
+      impact performance and availability.
+
+.. _suffix-autocomplete-query:
+
+.. collapsible::
+   :heading: Suffix Queries
+   :expanded: false
+
+   If your application frequently queries string fields values that end 
+   with a set of characters or suffix, you might run regex queries 
+   with the :manual:`$regex </reference/operator/query/regex/>` option 
+   ``$``, which searches for the end of the string value, and the option 
+   ``i``, which makes it case-insensitive. 
+
+   Instead, we recommend :ref:`{+fts+} queries <searching-ref>` that 
+   use the :pipeline:`$search` aggregation pipeline stage. The following 
+   queries search for movie titles that end with the term ``ring``.
+
+   |arrow| Try this in the :asp:`{+fts+} Playground </698576ffe4aeb64e292c3a1e>`.
+
+   .. list-table:: 
+      :widths: 50 50 
+      :header-rows: 1
+
+      * - ``$regex`` Queries 
+        - ``$search`` Query
+
+      * - .. io-code-block:: 
+             :copyable: true 
+             
+             .. input:: 
+                :language: javascript
+
+                db.movies.find( { title: { $regex: "ring$" } }, { title: 1, _id: 0 } ) // Case-sensitive Query 1 
+                db.movies.find( { title: { $regex: /ring$/ } }, { title: 1, _id: 0 } ) // Case-sensitive Query 2
+                db.movies.find( { title: { $regex: /ring$/i } }, { title: 1, _id: 0 } ) // Case-insensitive Query 1
+                db.movies.find( { title: { $regex: "ring$", $options: "i" } }, { title: 1, _id: 0 } ) // Case-insensitive Query 2
+
+             .. output:: 
+                :language: javascript
+                :visible: false 
+
+                [
+                  { title: 'It Happens Every Spring' },
+                  { title: 'Larks on a String' },
+                  { title: 'Release the Prisoners to Spring' },
+                  { title: 'Manon of the Spring' },
+                  { title: 'Floundering' },
+                  { title: 'Autumn Spring' },
+                  { title: 'The Gathering' },
+                  { title: 'Blue Spring' },
+                  { title: 'Blue Spring' },
+                  { title: 'Girl with a Pearl Earring' },
+                  { title: 'Spring, Summer, Fall, Winter... and Spring' },
+                  { title: 'Breaking and Entering' },
+                  { title: 'Hunting and Gathering' },
+                  { title: 'Blood Tea and Red String' },
+                  { title: 'Warm Spring' },
+                  { title: 'The Conjuring' },
+                  { title: 'Thanks for Sharing' },
+                  { title: 'Leaving on the 15th Spring' }
+                ]
+
+        - .. io-code-block:: 
+             :copyable: true 
+             
+             .. input:: 
+                :language: javascript
+
+                db.movies.aggregate([
+                  {
+                    "$search": {
+                      "index": "default",
+                      "autocomplete": {
+                        "query": "ring",
+                        "path": "title",
+                      }
+                    }
+                  },
+                  {
+                    "$project": {
+                      "_id": 0,
+                      "title": 1,
+                      "score": { $meta: "searchScore" }
+                    }
+                  }
+                ])
+
+             .. output:: 
+                :language: javascript
+                :visible: false 
+
+                [
+                  { title: 'It Happens Every Spring', score: 4.683838844299316 },
+                  { title: 'Larks on a String', score: 4.683838844299316 },
+                  {
+                    title: 'Release the Prisoners to Spring',
+                    score: 4.683838844299316
+                  },
+                  { title: 'Manon of the Spring', score: 4.683838844299316 },
+                  { title: 'Floundering', score: 4.683838844299316 },
+                  {
+                    title: 'The Lord of the Rings: The Fellowship of the Ring',
+                    score: 4.683838844299316
+                  },
+                  { title: 'Autumn Spring', score: 4.683838844299316 },
+                  { title: 'The Gathering', score: 4.683838844299316 },
+                  { title: 'The Ring', score: 4.683838844299316 },
+                  { title: 'Tom and Jerry: The Magic Ring', score: 4.683838844299316 },
+                  { title: 'Blue Spring', score: 4.683838844299316 },
+                  { title: 'Blue Spring', score: 4.683838844299316 },
+                  { title: 'Girl with a Pearl Earring', score: 4.683838844299316 },
+                  {
+                    title: 'Spring, Summer, Fall, Winter... and Spring',
+                    score: 4.683838844299316
+                  },
+                  { title: 'Curse of the Ring', score: 4.683838844299316 },
+                  { title: 'Breaking and Entering', score: 4.683838844299316 },
+                  { title: 'Closing the Ring', score: 4.683838844299316 },
+                  { title: 'Hunting and Gathering', score: 4.683838844299316 },
+                  { title: 'Blood Tea and Red String', score: 4.683838844299316 },
+                  { title: 'Warm Spring', score: 4.683838844299316 }
+                ]
+                Type "it" for more
+
+   To run this :pipeline:`$search` query, :ref:`create a {+fts+} 
+   index <ref-create-index>` similar to the following:
+
+   .. code-block:: json
+
+      {
+        "mappings": {
+          "dynamic": false,
+          "fields": {
+            "title": [
+              {
+                "type": "autocomplete",
+                "minGrams": 4,
+                "maxGrams": 10,
+                "analyzer": "lucene.keyword",
+                "tokenization": "rightEdgeGram"
+              }
+            ]
+          }
+        }
+      }
+  
+   This index definition indexes the ``title`` field using the: 
+  
+   - The ``autocomplete`` type with the ``rightEdgeGram`` tokenization 
+     strategy to split the text into substrings or "grams" of between 
+     4 (minimum) and 10 (maximum) characters in length, which supports 
+     partial searches starting from the end of the string. 
+   - The ``lucene.keyword`` analyzer to ensure matches only at the end 
+     of the text, and not at the end of intermediary words. To find 
+     suffix matches on intermediary words, use ``lucene.standard``.
 
 Learn More
 ----------
 
 - To learn more about |fts| queries, see :ref:`searching-ref`.
-
-- To learn more about case-insensitive indexes with illustrative
-  examples, see
-  :manual:`Case Insensitive Indexes </core/index-case-insensitive/>`.
 
 - To learn more about regex queries in MongoDB, see
   :manual:`$regex </reference/operator/query/regex/>`.

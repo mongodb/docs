@@ -1,6 +1,3 @@
-Configure |fts-field-type| Field Properties    
--------------------------------------------
-
 The |fts| |fts-field-type| type takes the following parameters: 
 
 .. list-table::
@@ -46,6 +43,16 @@ The |fts| |fts-field-type| type takes the following parameters:
        value limits the character length of indexed tokens. When you 
        search for terms longer than the ``maxGrams`` value, |fts| 
        truncates the tokens to the ``maxGrams`` length.
+
+       .. note:: 
+
+          We recommend setting the ``maxGrams`` value to be less than 
+          or equal to ``15`` to optimize performance. A higher value 
+          increases the size of the index and can impact performance. 
+          If you require more than ``15`` characters for autocompletion, 
+          we recommend configuring :ref:`custom analyzer 
+          <regex-to-search>` to avoid truncating queries. 
+
      - ``15``
 
    * - ``minGrams``
