@@ -1,4 +1,4 @@
-*Available in MongoDB Enterprise only*
+*Available in {+atlas+} and MongoDB Enterprise only*
 
 A :binary:`~bin.mongod` or :binary:`~bin.mongos` running with 
 :parameter:`redactClientLogData` redacts any message accompanying a given log
