@@ -132,6 +132,12 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: 'Queryable Encryption',
+        contentSite: 'django',
+        url: '/docs/languages/python/django-mongodb/:version/queryable-encryption',
+        versions: { excludes: ['v5.2'] },
+      },
+      {
         label: 'Third-Party Integrations',
         contentSite: 'django',
         collapsible: true,
