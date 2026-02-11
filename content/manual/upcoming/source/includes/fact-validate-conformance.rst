@@ -6,7 +6,6 @@ operation. Any issues are returned as a warning.
 ``checkBSONConformance``:
 
 - Default is ``false``.
-- Is enabled when ``full`` is set to ``true``.
 - Cannot be used with:
 
   - ``repair`` set to ``true``.
