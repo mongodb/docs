@@ -3,7 +3,8 @@
 - Have the |azure| account and Key Vault credentials, and the key
   identifier for the encryption key in your |akv|.  
 
-  - For the account, you must have the client ID, tenant ID, and secret.
+  - For the account, you must have the client ID, tenant ID, and 
+    secret. To learn about a secretless option, see :ref:`security-azure-kms-secretless`.
   - For the Key Vault, you must have the subscription ID, Resource Group
     Name, and Key Vault name. 
     

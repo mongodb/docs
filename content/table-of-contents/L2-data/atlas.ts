@@ -271,6 +271,11 @@ const tocData: TocItem[] = [
                         contentSite: 'cloud-docs',
                         url: '/docs/atlas/security/azure-kms-over-private-endpoint',
                       },
+                      {
+                        label: 'Configure Secretless Access',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/security/azure-kms-secretless',
+                      },
                     ],
                   },
                   {

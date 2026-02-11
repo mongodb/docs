@@ -13,35 +13,12 @@
 
       - **Service Principal (Recommended)**: Use an |service|-managed
         service principal specific to your project to authenticate to
-        |akv| (secretless authentication). To learn more, see 
-        :ref:`security-azure-kms-secretless`.
-      - **Static Credentials**: Provide customer-managed credentials 
-        (covered here).
+        |akv| (secretless authentication covered here).
+      - **Static Credentials**: Provide customer-managed credentials. 
+        To learn more, see :ref:`security-azure-kms-public-network` or 
+        :ref:`security-azure-kms-pvt-endpoint`.
       
-   .. step:: Enter your :guilabel:`Account Credentials`.
-      
-      .. list-table::
-         :widths: 20 80
-         :stub-columns: 1
-      
-         * - Client ID
-           - Enter the :guilabel:`Client ID` (or
-             :guilabel:`Application ID`) of the Azure application. Ensure 
-             that you have assigned the :guilabel:`Active Directory Application` 
-             the necessary access. To learn more, see :ref:`azure-ear-required-access`.
-      
-         * - Tenant ID
-           - Enter the :guilabel:`Tenant ID` (or :guilabel:`Directory ID`)
-             of the Active Directory tenant. 
-      
-         * - Secret
-           - Enter one of the application's non-expired Client Secrets 
-             associated with the Active Directory tenant. 
-      
-         * - Azure Environment
-           - Select the Azure cloud your Active Directory tenant lives in.
-      
-   .. step:: Enter the :guilabel:`Key Vault Credentials`.
+   .. step:: Enter the :guilabel:`Key Vault Configuration`.
       
       .. list-table::
          :widths: 20 80
@@ -61,7 +38,7 @@
 
       .. note:: 
 
-         You can't modify the |akv| credentials here after you
+         You can't modify the |akv| configuration here after you
          :ref:`enable and set up private endpoint connections 
          <azure-kms-enable-pvt-endpoint>` to your |akv|. 
 
@@ -79,13 +56,7 @@
       
              .. code-block:: text
       
-                https://{keyvault-name}.vault.azure.net/{object-type}/{object-name}
-
-             .. note::
-                
-                You may append ``/{object-version}``. However, we 
-                recommend you omit the version to enable automatic 
-                resolution to the latest version.
+                https://{keyvault-name}.vault.azure.net/{object-type}/{object-name}/{object-version}
 
    .. step:: (Optional) Configure private endpoint connections to your |akv|.
 
