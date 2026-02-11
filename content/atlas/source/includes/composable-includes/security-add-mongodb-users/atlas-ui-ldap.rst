@@ -49,9 +49,7 @@ connecting to your {+database-deployments+} with X.509 users, see
 Required Access
 ---------------
 
-To add database users, you must have
-:authrole:`Organization Owner`, :authrole:`Project Owner`, or 
-:authrole:`Project Database Access Admin` access to |service|.
+.. include:: /includes/composable-includes/security-add-mongodb-users/required-access.rst
 
 Add Database Users
 ------------------
