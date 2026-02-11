@@ -233,7 +233,7 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
         return convertDirectiveInclude({ node, ctx, depth: depth });
       }
       if (directiveName === 'list-table') {
-        return convertDirectiveListTable({ node });
+        return convertDirectiveListTable({ node, ctx, depth, convertChildren });
       }
 
       // Generic fallback for any Snooty directive (ex: ...tab -> <Tab>)
@@ -375,7 +375,8 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
         return convertChildren({ nodes: node.children, depth, ctx });
       }
       return {
-        type: 'footnoteDefinition',
+        type: 'mdxJsxTextElement',
+        name: 'Footnote',
         identifier,
         label: node.name ?? undefined,
         children: convertChildren({ nodes: node.children, depth, ctx }),
@@ -386,7 +387,8 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
       const identifier = String(node.id ?? '');
       if (!identifier) return null;
       return {
-        type: 'footnoteReference',
+        type: 'mdxJsxTextElement',
+        name: 'FootnoteReference',
         identifier,
         label: node.refname ?? undefined,
       };

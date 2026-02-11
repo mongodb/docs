@@ -77,3 +77,7 @@ export interface LiteralNode extends SnootyNode {
 
 export const isLiteralNode = (n?: SnootyNode): n is LiteralNode =>
   !!n && n.type === 'literal' && typeof n.value === 'string';
+
+export interface ConvertChildrenFn {
+  (args: { nodes?: SnootyNode[]; ctx: ConversionContext; depth: number }): MdastNode[];
+}
