@@ -1,0 +1,103 @@
+---
+title: "Deploy a sharded cluster with the |k8s-op-short|."
+level: 4
+stepnum: 1
+ref: open-sc-resource
+content: |
+  If you haven't deployed a sharded cluster, follow the instructions to
+  :ref:`deploy one <deploy-sharded-cluster>`.
+
+  You must enable |tls| for the sharded cluster by configuring the 
+  following settings:
+
+  .. include:: /includes/list-tables/resource-keys-external-access-sharded.rst
+---
+ref: create-external-services-sharded
+stepnum: 2
+inherit:
+  file: steps-create-external-services.yaml
+  ref: create-external-services
+replacement:
+  podType: "the ``mongos`` Pods"
+  k8sResource: "sharded cluster"
+  annotations: ":setting:`spec.externalAccess.externalService.annotations`"
+  overrides: ":setting:`spec.externalAccess.externalService.spec`"
+---
+title: "Add Subject Alternate Names to your |tls| certificates."
+level: 4
+stepnum: 3
+ref: add-san-to-cert-sharded
+content: |
+
+  Add each external |dns| name to the certificate |san-dns|.
+
+  Each MongoDB host uses the following |san-dns|\s:
+
+  .. code-block:: sh
+      :copyable: false
+
+      <my-sharded-cluster>-<shard>-<pod-index>.<external-domain>
+      <my-sharded-cluster>-config-<pod-index>.<external-domain>
+      <my-sharded-cluster>-mongos-<pod-index>.<external-domain>
+  
+  The |mongos| instance uses the following |san-dns|:
+
+  .. code-block:: sh
+     :copyable: false
+     
+     <my-sharded-cluster>-mongos-<pod-index>-svc-external.<external-domain>
+
+  Configure the :setting:`spec.security.tls.additionalCertificateDomains` setting similar
+  to the following example. Each |tls| certificate that you use must include the 
+  corresponding |san-dns| for the shard, config server, or ``mongos`` instance.  
+  The |k8s-op-short| validates your configuration. 
+
+  .. literalinclude:: /includes/code-examples/yaml-files/example-sharded-cluster.yaml
+      :language: yaml
+      :start-after: START-exposed-sharded-tls-full
+      :end-before: END-exposed-sharded-tls-full
+      :linenos:
+      :lineno-start: 1
+      :copyable: false
+---
+stepnum: 4
+level: 4
+ref: verify-external-services-sc
+title: Verify the external services.
+content: |
+  In your sharded cluster, run the following command to verify that 
+  the |k8s-op-short| created the external services for your deployment.
+
+  .. code-block:: sh
+
+     $ kubectl get services
+
+  The command returns a list of services similar to the following output.
+  For each ``mongos`` instance in the cluster, the |k8s-op-short| creates an external service 
+  named ``<pod-name>-<pod-idx>-svc-external``. This service is configured according to the values 
+  and overrides you provide in the :ref:`external service specification 
+  <spec-external-access-external-service>`.
+
+  .. code-block:: sh
+     :copyable: false
+
+     NAME                                              TYPE         CLUSTER-IP     EXTERNAL-IP       PORT(S)           AGE
+     <my-sharded-cluster>-mongos-0-svc-external    LoadBalancer   10.102.27.116  <lb-ip-or-fqdn>   27017:27017/TCP    8m30s
+     <my-sharded-cluster>-mongos-1-svc-external    LoadBalancer   10.102.27.116  <lb-ip-or-fqdn>   27017:27017/TCP    8m30s
+  
+  Depending on your cluster configuration or cloud provider, the IP address of the 
+  LoadBalancer service is an externally accessible IP address or |fqdn|. You can use 
+  the IP address or |fqdn| to route traffic from your external domain. This example 
+  has two ``mongos`` instances, therefore the |k8s-op-short| creates two external services.
+---
+stepnum: 5
+ref: test-connection-sc
+inherit:
+  file: steps-create-external-services.yaml
+  ref: test-connection-external-services
+replacement:
+  k8sResource: sharded cluster
+  podType: "addresses for the ``mongos`` instances"
+  addressExample: "external |fqdn| of ``<my-sharded-cluster>-mongos-0-svc-external.<external-domain>`` and ``<my-sharded-cluster>-mongos-1-svc-external.<external-domain>``
+  addressCommand: mongodb://<my-sharded-cluster>-mongos-0-svc-external.<external-domain>,<my-sharded-cluster>-mongos-1-svc-external.<external-domain>"
+...

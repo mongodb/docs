@@ -1,0 +1,1 @@
+The number of concurrent reconciliation processes the |k8s-op-short| can perform.

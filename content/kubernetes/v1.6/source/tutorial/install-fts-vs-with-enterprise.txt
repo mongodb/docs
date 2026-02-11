@@ -1,0 +1,323 @@
+:noprevnext:
+
+.. _k8s-fts-vs-install-enterprise:
+
+========================================================================
+Install and Use Search With MongoDB Enterprise Edition
+========================================================================
+
+.. meta::
+   :description: Install MongoDB Search and Vector Search using the MongoDB Controllers for Kubernetes Operator to run with the MongoDB Enterprise Edition in your Kubernetes cluster.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use the |k8s-op-short| to deploy |text-search| and 
+|vector-search| resources to run with MongoDB enterprise v8.2.0 
+or higher on a |k8s| cluster. This procedure demonstrates how to deploy
+and configure the ``mongot`` process to run with a new or existing
+replica set in your |k8s| cluster. The deployment uses |tls|
+certificates to ensure secure communication between MongoDB nodes and
+the ``mongot`` search process.
+
+Prerequisites 
+-------------
+
+To deploy |text-search| and |vector-search|, you must have the
+following: 
+
+- A running |k8s| cluster with ``kubeconfig`` available locally. 
+- |k8s| command-line tool, ``kubectl``, configured to communicate with
+  your cluster.
+- |helm|, the package manager for |k8s|, to install the |k8s-op-short|.
+- Bash v5.1 or higher for running the commands in this tutorial. 
+- |mms-full| or |cloud| project and |api| credentials. 
+
+Procedure 
+---------
+
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Required. Set the environment variables. 
+
+      Set the environment variables for use in the subsequent steps in
+      this procedure. Copy the following commands, update the values for
+      your environment, and then run them to load the variables:   
+
+      .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/env_variables.sh
+         :language: yaml 
+         :copyable: true 
+         :linenos:
+
+      .. collapsible::
+         :heading: Optional
+         :sub_heading: Validate that the environment variables have been set.
+         :expanded: false
+
+         To verify that all necessary environment variables are set,
+         run the following the following code in your terminal:
+
+         .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0040_validate_env.sh
+            :language: yaml 
+            :copyable: true 
+            :linenos:
+
+   .. step:: Conditional. Add the MongoDB Helm repository. 
+
+      |helm| automates the deployment and management of MongoDB
+      instances on |k8s|. If you have already added the Helm
+      repository that contains the Helm chart for installing the
+      |k8s-op-short| operator, skip this step. Otherwise, add the
+      Helm repository.
+      
+      To add, copy, paste, and run the following command:  
+
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0090_helm_add_mogodb_repo.sh 
+            :language: shell 
+            :linenos:
+
+         .. output:: /includes/code-examples/outputs/test_kind_search_enterprise_snippets/02_0090_helm_add_mogodb_repo.out
+            :language: shell 
+            :linenos:
+            :visible: false    
+
+   .. step:: Conditional. Install the |k8s-op|. 
+
+      The |k8s-op-short| watches ``MongoDB``, ``MongoDBOpsManager``, and
+      MongoDBSearch custom resources and manages the lifecycle of
+      your MongoDB deployments. If you already installed the |k8s-op|,
+      skip this step. Otherwise, install the |k8s-op| from the Helm
+      repository you added in the previous step. 
+
+      To install the |k8s-op| in the ``mongodb`` namespace, copy, paste,
+      and run the following: 
+
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0100_install_operator.sh
+            :language: shell 
+            :linenos:
+
+         .. output:: /includes/code-examples/outputs/test_kind_search_enterprise_snippets/02_0100_install_operator.out
+            :language: shell 
+            :linenos:
+            :visible: false 
+
+   .. step:: Conditional. Install the ``cert-manager``.
+
+      The ``cert-manager`` is required for managing |tls| certificates.
+      If you already have ``cert-manager`` installed in your cluster,
+      skip this step. Otherwise, install ``cert-manager`` using |helm|.
+
+      To install ``cert-manager`` in the ``cert-manager`` namespace,
+      run the following command in your terminal:
+
+      .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0301_install_cert_manager.sh
+         :language: shell
+         :copyable: true
+         :linenos:
+
+   .. step:: Required. Prepare certificate issuer and CA infrastructure.
+
+      Create the certificate authority infrastructure that will issue |tls|
+      certificates for ``MongoDB`` and ``MongoDBSearch`` resources. The
+      commands perform the following actions: 
+      
+      - Create a self-signed ``ClusterIssuer``.
+      - Generate a CA certificate.
+      - Publish a cluster-wide CA issuer that all namespaces can use. 
+      - Expose the CA bundle through a ``ConfigMap`` so MongoDB
+        resources can use it. 
+
+      .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0302_configure_tls_prerequisites.sh
+         :language: shell
+         :copyable: true
+         :linenos:
+
+   .. step:: Required. Issue TLS certificates.
+
+      Issue |tls| certificates for both the ``MongoDB`` server
+      (``${MDB_RESOURCE_NAME}-server-tls``) and the ``MongoDBSearch``
+      service (``${MDB_RESOURCE_NAME}-search-tls``). The MongoDB server
+      certificate includes all necessary DNS names for the pod and
+      service communication. Both certificates support server and client
+      authentication. 
+
+      .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0304_generate_tls_certificates.sh
+         :language: shell
+         :copyable: true
+         :linenos:
+
+   .. step:: Conditional. Create and deploy the MongoDB Enterprise resource. 
+
+      If you have already deployed MongoDB Enterprise, skip to the next
+      step. Otherwise, deploy the MongoDB Enterprise resource. 
+      
+      To deploy the MongoDB Enterprise, complete the following steps:
+    
+      a. Create the ConfigMap and secret for the |mms-full| project if
+         you are using |mms-full|.
+
+         To store the configuration and credentials for integration with
+         |mms-full|, copy, paste, and run the following commands:
+
+         .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0300_create_ops_manager_resources.sh 
+            :language: shell 
+            :copyable: true 
+            :linenos:
+
+      #. Create a ``MongoDB`` custom resource named ``mdb-rs``. 
+         
+         The resource defines CPU and memory resources for the ``mongod``
+         and ``mongodb-agent`` containers and instructs the
+         |k8s-op-short| to configure a MongoDB replica set with 3
+         members:
+
+         To deploy MongoDB Enterprise, copy, paste, and run the
+         following in the namespace: 
+
+         .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0305_create_mongodb_database_resource.sh 
+            :language: shell 
+            :copyable: true 
+            :linenos:
+
+      #. Wait for the ``MongoDB`` resource deployment to complete.
+
+         When you apply the ``MongoDB`` custom resource, the
+         |k8s| operator begins deploying the MongoDB nodes (pods). This
+         step pauses the execution until the ``mdbc-rs`` resource's
+         status phase is ``Running``, which indicates that the
+         MongoDB Community replica set is operational.
+
+         .. io-code-block:: 
+            :copyable: true 
+         
+            .. input:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0310_wait_for_database_resource.sh
+               :language: shell 
+               :linenos:
+
+            .. output:: 
+               :language: shell 
+               :linenos:
+               :visible: false 
+
+               Waiting for MongoDB resource to reach Running phase...
+               mongodb.mongodb.mongodb.com/mdbc-rs condition met
+
+               MongoDB resource
+               NAME      PHASE     VERSION
+               mdbc-rs   Running   8.2
+
+               Pods running in cluster minikube
+               NAME                                           READY   STATUS    RESTARTS   AGE
+               mdbc-rs-0                                      2/2     Running   0          2m30s
+               mdbc-rs-1                                      2/2     Running   0          82s
+               mdbc-rs-2                                      2/2     Running   0          38s
+               mongodb-kubernetes-operator-5776c8b4df-cppnf   1/1     Running   0          7m37s
+
+   .. step:: Required. Create and load the MongoDB user secrets. 
+
+      MongoDB requires authentication for secure access. In this step,
+      you create three |k8s| secrets: 
+      
+      - ``mdb-admin-user-password``: Credentials for the MongoDB administrator.
+      - ``mdb-user-password``: Credentials for the user authorized to perform search queries.
+      - ``mdbc-rs-search-sync-source-password``: Credentials for a
+        dedicated search user used internally by the ``mongot`` process
+        to synchronize data and manage indexes.  
+       
+      |k8s-op-short| mounts these secrets into the MongoDB pods. 
+
+      To create the secrets, copy, paste, and run the following in the
+      namespace where you deployed MongoDB Server and plan to deploy
+      |text-search| and |vector-search|:
+
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0315_create_mongodb_users.sh 
+            :language: shell 
+            :linenos:
+
+         .. output:: 
+            :linenos:
+            :visible: false 
+
+            secret/mdb-admin-user-password created
+            secret/mdbc-rs-search-sync-source-password created
+            secret/mdb-user-password created
+
+   .. step:: Required. Create and deploy the resource for |text-search| and |vector-search|.
+
+      You can deploy one instance of the search node without any load
+      balancing. To deploy, complete the following steps: 
+
+      a. Create a MongoDBSearch custom resource named ``mdbc-rs``.
+
+         This resource specifies the CPU and memory resource
+         requirements for the search nodes. To learn more about the
+         settings in this custom resource, see :ref:`k8s-fts-vs-settings`.
+
+         .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0320_create_mongodb_search_resource.sh
+            :language: shell 
+            :copyable: true 
+            :linenos:
+
+      #. Wait for the MongoDBSearch resource deployment to
+         complete.
+
+         When you apply the MongoDBSearch custom resource, the
+         |k8s| operator begins deploying the search nodes (pods). This
+         step pauses the execution until the ``mdbc-rs`` resource's
+         status phase is ``Running``, which indicates that the
+         MongoDB Community replica set is operational.
+
+         .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0325_wait_for_search_resource.sh
+            :language: shell 
+            :copyable: true 
+            :linenos:
+
+   .. step:: Optional. Verify the MongoDB Enterprise resource status. 
+
+      Ensure that the ``MongoDB`` resource deployment with
+      MongoDBSearch was successful.
+
+      .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0330_wait_for_database_resource.sh
+         :language: javascript 
+         :copyable: true 
+         :linenos:
+
+   .. step:: Optional. View all the running pods in your namespace. 
+
+      View all the running pods in your namespace pods for the MongoDB
+      replica set members, the |k8s-op|, and the Search nodes.
+
+      .. io-code-block:: 
+         :copyable: true 
+    
+         .. input:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0335_show_running_pods.sh
+            :language: shell 
+            :linenos:
+
+         .. output:: /includes/code-examples/outputs/test_kind_search_enterprise_snippets/02_0335_show_running_pods.out
+            :language: shell 
+            :linenos:
+            :visible: false 
+
+Next Steps 
+----------
+
+Now that you've successfully deployed |text-search| and |vector-search|
+to use with MongoDB Enterprise Edition, you can add data in your MongoDB
+cluster, create |text-search| and |vector-search| indexes, and run
+queries against your data. To learn more, see :ref:`k8s-fts-vs-settings`. 

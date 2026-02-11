@@ -1,0 +1,709 @@
+.. _meko-op-install-settings-helm:
+
+===================================
+|k8s-op| Helm Installation Settings
+===================================
+
+.. meta::
+   :description: Configure MongoDB Controllers for Kubernetes Operator settings using Helm, including image names, versions, and resource specifications for various deployment environments.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecols
+
+To provide optional settings, pass them to Helm using the ``--set`` argument.
+Use the following files that list value settings for your deployment type:
+
+- Vanilla |k8s|: `values.yaml <https://raw.githubusercontent.com/mongodb/helm-charts/main/charts/mongodb-kubernetes/values.yaml>`__
+- OpenShift: `values-openshift.yaml <https://raw.githubusercontent.com/mongodb/helm-charts/main/charts/mongodb-kubernetes/values-openshift.yaml>`__
+
+To learn about optional |k8s-op-short| installation settings,
+see :ref:`Operator Helm Installation Settings <meko-op-install-settings-helm>`.
+
+Run the command as in the following example and the options that you
+specified will be passed to your configuration:
+
+.. code-block:: sh
+
+   helm upgrade mongodb-kubernetes-operator mongodb/mongodb-kubernetes \
+     --set registry.pullPolicy='IfNotPresent'
+
+.. _agent-name-helm:
+
+agent.name
+----------
+
+Name of the {+mdbagent+} image. This setting gets appended to :ref:`agentRepo` and
+sets the :ref:`agent-image-repo` environment variable to the full |url| 
+from which the |k8s-statefulset| downloads
+the {+mdbagent+} image for database deployments. To learn more, see :ref:`k8s-container-images`.
+
+The default value is **mongodb-agent**.
+
+.. code-block:: yaml
+
+   agent:
+     name: mongodb-agent
+
+appDb.name
+----------
+
+Name of the {+appdb+} image.
+
+The default value is **mongodb-kubernetes-appdb**.
+
+.. code-block:: yaml
+
+   appDb:
+      name: mongodb-kubernetes-appdb
+      version: {+appdb-agent-version+}
+
+.. _registry-appdb-version:
+
+appDb.version
+-------------
+
+.. include:: /includes/op-setting-descs/appdb-agent-version.rst
+
+.. code-block:: yaml
+
+   appDb:
+      name: mongodb-kubernetes-appdb
+      version: {+appdb-agent-version+}
+
+database.name
+-------------
+
+Name of the {+mdb-ent-db+} image.
+
+The default value is **mongodb-enterprise-database**.
+
+.. code-block:: yaml
+
+   database:
+      name: mongodb-enterprise-database
+      version: {+version+}
+
+.. _helm-database-version:
+
+database.version
+----------------
+
+.. include:: /includes/op-setting-descs/database-version.rst
+
+.. code-block:: yaml
+
+   database:
+      name: mongodb-enterprise-database
+      version: {+version+}
+
+initAppDb.name
+--------------
+
+Name of the ``initContainer`` image that contains the Application
+Database start-up scripts and the readiness probe.
+
+The default value is **mongodb-kubernetes-init-appdb**.
+
+.. code-block:: yaml
+
+   database:
+      name: mongodb-kubernetes-init-appdb
+      version: {+version+}
+
+initAppDb.version
+-----------------
+
+.. include:: /includes/op-setting-descs/init-appdb-version.rst
+
+.. code-block:: yaml
+
+   database:
+      name: mongodb-kubernetes-init-appdb
+      version: {+version+}
+
+initDatabase.name
+-----------------
+
+Name of the ``initContainer`` image that contains the {+mdbagent+}
+start-up scripts and the readiness probe.
+
+The default value is **mongodb-kubernetes-init-database**.
+
+.. code-block:: yaml
+
+   database:
+      name: mongodb-kubernetes-init-database
+      version: {+version+}
+
+initDatabase.version
+--------------------
+
+.. include:: /includes/op-setting-descs/init-database-version.rst
+
+.. code-block:: yaml
+
+   database:
+      name: mongodb-kubernetes-init-database
+      version: {+version+}
+
+initOpsManager.name
+-------------------
+
+Version of the ``initContainer`` image that contains the |onprem| 
+start-up scripts and the readiness probe.
+
+The default value is **mongodb-kubernetes-init-ops-manager**.
+
+.. code-block:: yaml
+
+   database:
+      name: mongodb-kubernetes-init-ops-manager
+      version: {+version+}
+
+initOpsManager.version
+----------------------
+
+.. include:: /includes/op-setting-descs/init-ops-manager-version.rst
+
+.. code-block:: yaml
+
+   database:
+      name: mongodb-kubernetes-init-ops-manager
+      version: {+version+}
+
+managedSecurityContext
+----------------------
+
+.. include:: /includes/op-setting-descs/managed-security-context.rst
+
+.. tabs::
+
+   .. tab:: Kubernetes
+      :tabid: k8s
+   
+      The default value is **false**.
+
+      .. code-block:: yaml
+
+         # Set this to true if your cluster is managing SecurityContext for you.
+         # If running OpenShift (Cloud, Minishift, etc.), set this to true.
+         managedSecurityContext: false
+
+   .. tab:: OpenShift
+      :tabid: os
+   
+      The default value is **true**.
+
+      .. code-block:: yaml
+
+         # Set this to true if your cluster is managing SecurityContext for you.
+         # If running OpenShift (Cloud, Minishift, etc.), set this to true.
+         managedSecurityContext: true
+
+.. _old-suffix-helm:
+
+mongodb.appdbAssumeOldFormat
+----------------------------
+
+The default value is ``false``, which automatically updates the image suffix.
+
+.. code-block:: yaml
+
+   mongodb:
+      appdbAssumeOldFormat: false
+
+.. _mongodb-image-type:
+
+mongodb.imageType
+-----------------
+
+The suffix of the :term:`application database` image. 
+
+The default is ``ubi8``. We recommend using only ``ubi`` images for consistency, but if you need to, you can change this setting to ``ubuntu2204``.
+
+.. code-block:: yaml
+
+   mongodb:
+      imageType: ubi8
+
+
+multiCluster.clusterClientTimeout
+---------------------------------
+
+.. include:: /includes/op-setting-descs/multi-cluster-client-timeout.rst
+
+.. code-block:: yaml
+
+   multiCluster:
+      clusterClientTimeout: 10
+
+namespace
+---------
+
+.. include:: /includes/op-setting-descs/namespace.rst
+
+.. code-block:: yaml
+
+   # Name of the Namespace to use
+   namespace: mongodb
+
+needsCAInfrastructure
+---------------------
+
+Determines whether |k8s| creates a |k8s-cr| that allows the |k8s-op-short|
+to sign |tls| certificates using
+the :k8sdocs:`certificates.k8s.io </tasks/tls/managing-tls-in-a-cluster/>` API.
+
+.. code-block:: yaml
+
+   needsCAInfrastructure: true
+
+The default value is **true**.
+
+operator.deployment_name
+------------------------
+
+Name of the |k8s-op-short| container.
+
+The default value is **mongodb-kubernetes-operator**.
+
+.. code-block:: yaml
+
+   operator:
+      deployment_name: mongodb-kubernetes-operator
+
+operator.env
+------------
+
+.. include:: /includes/op-setting-descs/operator-env.rst
+
+.. code-block:: yaml
+
+   operator:
+      # Execution environment for the operator, dev or prod.
+      # Use dev for more verbose logging
+      env: prod
+
+.. _mdb-max-concurrent-reconciles-helm:
+
+operator.maxConcurrentReconciles
+--------------------------------
+
+The maximum number of concurrent reconciliatios the |k8s-op-short| can perform.
+It sets |max-concurrent-reconciles|.
+To learn more, see the |k8s-op-short| 
+:ref:`Deploy Multiple MongoDB Replica Sets. <deploy_recommended-number-sets>`
+
+
+.. example::
+
+   .. code-block:: yaml
+
+      operator:
+        # Control how many reconciles can be performed in parallel.
+        # Increasing the number of concurrent reconciliations decreases the time needed to reconcile all watched resources,
+        # but it might result in request load spikes and increased load on the Ops Manager API, and the Kubernetes API server generally. 
+        maxConcurrentReconciles: 10
+
+.. _mdb-default-architecture-helm:
+
+operator.mdbDefaultArchitecture
+-------------------------------
+
+Determines the container architecture used by all your deployments:
+
+- The default non-static containers that download the MongoDB binary at runtime, or
+-  :ref:`static-containers` that are immutable at runtime.
+
+The default is ``non-static``.
+
+To enable static containers, set to ``static``.
+
+.. note::
+   
+   This setting applies to all your deployments, including existing deployments.
+   To enable static containers for a single deployment, 
+   use :setting:`metadata.annotations.mongodb.com/v1.architecture` in 
+   the :ref:`MongoDB resource <k8s-specification>` instead.
+
+.. code-block:: yaml
+
+   operator.mdbDefaultArchitecture: static
+
+operator.name
+-------------
+
+Name that |k8s| assigns to |k8s-op-short| objects, such as Deployments,
+ServiceAccounts, Roles, and Pods.
+
+This value also corresponds to the name of the container registry where
+the |k8s-op-short| is located.
+
+The default value is **mongodb-kubernetes-operator**.
+
+.. code-block:: yaml
+
+   operator:
+      name: mongodb-kubernetes-operator
+
+.. _helm-operator-pod-security-context:
+
+operator.podSecurityContext
+----------------------------
+Sets the security context of the |k8s-op-short| pod. You can learn more about pod 
+security contexts in the `Kubernetes documentation <https://kubernetes.io/docs/tasks/configure-pod-container/security-context/>`__.
+
+.. code-block:: yaml
+
+   operator:
+      podSecurityContext:
+         runAsUser: 2000
+         runAsNonRoot: true
+
+.. note::
+
+   If ``managedSecurityContext`` is set to ``true``, the ``operator.podSecurityContext`` is not used.
+
+.. _helm-operator-security-context:
+
+operator.securityContext
+----------------------------
+Sets the security context of the |k8s-op-short| container. You can learn more about container 
+security contexts in the `Kubernetes documentation <https://kubernetes.io/docs/tasks/configure-pod-container/security-context/>`__.
+
+.. code-block:: yaml
+
+   operator:
+      securityContext: {} # Defaults to empty object
+
+.. note::
+
+   If ``managedSecurityContext`` is set to ``true``, the ``operator.securityContext`` is not used.
+
+.. _helm-meko-telemetry:
+
+operator.telemetry
+------------------
+
+Enables the |k8s-op-short| to :ref:`collect and send telemetry <meko-telemetry>`.
+The default for the following settings is ``true``. 
+
+.. include:: /includes/example-telemetry-helm.rst
+
+.. _helm-vault-secret-enabled:
+
+operator.vaultSecretBackend.enabled
+------------------------------------
+
+Determines whether the |k8s-op-short| stores secrets in |hashicorp-vault|.
+To learn more, see :ref:`k8s-set-secret-storage-tool`.
+If you are using |tls| with |vault-short|, you must also specify
+:ref:`operator.vaultSecretBackend.tlsSecretRef <helm-vault-secret-ref>`.
+
+The default value is **false**.
+
+.. code-block:: yaml
+
+   operator:
+      # Set the following setting to "true" so that the MongoDB Kubernetes Operator stores secrets in Vault.
+      vaultSecretBackend: false
+
+.. _helm-vault-secret-ref:
+
+operator.vaultSecretBackend.tlsSecretRef
+----------------------------------------
+
+Required if you are using |tls| with |vault-short|. The TLS secret used in
+your |vault-short| configuration that contains a ``ca.crt`` entry.
+The content of the ``ca.crt`` entry must match the certificate of
+the |certauth| used to generate the |vault-short| TLS certificates.
+The |k8s-op-short| stores this TLS secret in its |secret-store|.
+To learn more, see :ref:`Configure Secret Storage <k8s-set-secret-storage-tool>`.
+Requires that :ref:`operator.vaultSecretBackend.enabled <helm-vault-secret-enabled>`
+is set to ``true``.
+
+.. code-block:: yaml
+
+   operator:
+      vaultSecretBackend: true
+         tlsSecretRef: "vault-tls-secret"
+
+operator.version
+----------------
+
+Version of the |k8s-op-short| that you want to deploy.
+
+The default value is **{+version+}**.
+
+.. code-block:: yaml
+
+   operator:
+      version: {+version+}
+
+.. _helm-watch-namespace:
+
+operator.watchNamespace
+-----------------------
+
+.. include:: /includes/op-setting-descs/watch-namespace.rst
+
+.. include:: /includes/code-examples/yaml-files/example-watch-one-namespace-helm.rst
+
+.. include:: /includes/code-examples/yaml-files/example-watch-two-namespaces-helm.rst
+
+.. include:: /includes/code-examples/yaml-files/example-watch-namespaces-env-helm.rst
+
+.. include:: /includes/code-examples/yaml-files/example-watch-namespaces-staging-only-helm.rst
+
+operator.watchedResources
+-------------------------
+
+.. include:: /includes/op-setting-descs/operator-watchedresources.rst
+
+.. code-block:: yaml
+
+   operator:
+      watchedResources:
+         - mongodbusers
+         - mongodb 
+         - opsmanagers
+
+opsManager.name
+---------------
+
+Name of the |onprem| image.
+
+The default value is **mongodb-enterprise-ops-manager**.
+
+.. code-block:: yaml
+
+   opsManager:
+      name: mongodb-enterprise-ops-manager
+
+.. _agentRepo:
+
+registry.agent
+--------------
+
+|url| for the |quay| container registry for MongoDB images. The :ref:`agent-name-helm` 
+gets appended and
+sets the :ref:`agent-image-repo` environment variable to the full |url| 
+from which the |k8s-statefulset| downloads
+the {+mdbagent+} image for database deployments. To learn more, see :ref:`k8s-container-images`.
+
+The default value is **quay.io/mongodb**.
+
+.. code-block:: yaml
+
+   registry:
+   agent: quay.io/mongodb/
+
+registry.appDb
+--------------
+
+.. include:: /includes/op-setting-descs/appdb-image-repository.rst
+
+.. tabs::
+
+   .. tab:: Kubernetes
+      :tabid: k8s
+   
+      The default value is **quay.io/mongodb**.
+
+      .. code-block:: yaml
+
+         registry:
+            appDb: quay.io/mongodb
+
+   .. tab:: OpenShift
+      :tabid: os
+   
+      The default value is **registry.connect.redhat.com/mongodb**.
+
+      .. code-block:: yaml
+
+         registry:
+            appDb: registry.connect.redhat.com/mongodb
+
+.. _imagePullSecrets:
+
+registry.imagePullSecrets
+-------------------------
+
+.. include:: /includes/op-setting-descs/registry-imagepullsecrets.rst
+
+.. code-block:: yaml
+
+   registry:
+   # Specify the secret in the ``imagePullSecrets`` setting. If you
+   # use the MongoDB Kubernetes Operator to deploy MongoDB resources
+   # into multiple namespaces, create the secret only in the namespace
+   # where you installed the Operator. The Operator synchronizes
+   # the secret across all watched namespaces.
+      imagePullSecrets: <openshift-pull-secret>
+
+registry.initAppDb
+------------------
+
+.. include:: /includes/op-setting-descs/init-appdb-image-repository.rst
+
+.. tabs::
+
+   .. tab:: Kubernetes
+      :tabid: k8s
+   
+      The default value is **quay.io/mongodb**.
+
+      .. code-block:: yaml
+
+         registry:
+            initAppDb: quay.io/mongodb
+
+   .. tab:: OpenShift
+      :tabid: os
+   
+      The default value is **registry.connect.redhat.com/mongodb**.
+
+      .. code-block:: yaml
+
+         registry:
+            initAppDb: registry.connect.redhat.com/mongodb
+
+registry.initOpsManager
+-----------------------
+
+.. include:: /includes/op-setting-descs/init-ops-manager-image-repository.rst
+
+.. tabs::
+
+   .. tab:: Kubernetes
+      :tabid: k8s
+   
+      The default value is **quay.io/mongodb**.
+
+      .. code-block:: yaml
+
+         registry:
+            initOpsManager: quay.io/mongodb
+
+   .. tab:: OpenShift
+      :tabid: os
+   
+      The default value is **registry.connect.redhat.com/mongodb**.
+
+      .. code-block:: yaml
+
+         registry:
+            initOpsManager: registry.connect.redhat.com/mongodb
+
+registry.operator
+-----------------
+
+.. include:: /includes/op-setting-descs/registry-operator.rst
+
+.. tabs::
+
+   .. tab:: Kubernetes
+      :tabid: k8s
+   
+      The default value is **quay.io/mongodb**.
+
+      .. code-block:: yaml
+
+         registry:
+            operator: quay.io/mongodb
+
+   .. tab:: OpenShift
+      :tabid: os
+   
+      The default value is **registry.connect.redhat.com/mongodb**.
+
+      .. code-block:: yaml
+
+         registry:
+            operator: registry.connect.redhat.com/mongodb
+
+registry.opsManager
+-------------------
+
+.. include:: /includes/op-setting-descs/ops-manager-image-repository.rst
+
+.. tabs::
+
+   .. tab:: Kubernetes
+      :tabid: k8s
+   
+      The default value is **quay.io/mongodb**.
+
+      .. code-block:: yaml
+
+         registry:
+            opsManager: quay.io/mongodb
+
+   .. tab:: OpenShift
+      :tabid: os
+   
+      The default value is **registry.connect.redhat.com/mongodb**.
+
+      .. code-block:: yaml
+
+         registry:
+            opsManager: registry.connect.redhat.com/mongodb
+
+.. _k8s-op-resources-setting:
+
+operator.resources.requests
+---------------------------
+
+Specifications for the `CPU and memory consumption limits <https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits>`__ of the |k8s-op-short|.
+
+.. example::
+
+    .. code-block:: yaml
+
+       # operator cpu requests and limits
+       resources:
+         requests:
+           cpu: 500m
+           memory: 200Mi
+
+operator.resources.limits
+---------------------------
+
+Specifications for the `CPU and memory consumption limits <https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits>`__ of the |k8s-op-short|.
+
+.. example::
+
+    .. code-block:: yaml
+
+       # operator cpu requests and limits
+       resources:
+         limits:
+           cpu: 1100m
+           memory: 1Gi
+
+.. _webhook-install-cluster-role:
+
+webhook.installClusterRole
+--------------------------
+
+Flag allows you to configure user :k8sdocs:`validating admission
+webhooks </reference/access-authn-authz/admission-controllers/#validatingadmissionwebhook>` 
+for |k8s| :k8sdocs:`cluster roles
+</reference/access-authn-authz/rbac/#default-roles-and-role-bindings>` .
+
+
+Set this flag to ``false`` if your deployment doesn't allow |k8s| cluster
+roles.
+
+The default value is **true**.
+
+.. code-block:: yaml
+
+   webhook:
+     installClusterRole: false

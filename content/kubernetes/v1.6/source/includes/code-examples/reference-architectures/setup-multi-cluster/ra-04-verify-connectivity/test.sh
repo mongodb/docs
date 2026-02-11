@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+set -eou pipefail
+
+script_name=$(readlink -f "${BASH_SOURCE[0]}")
+script_dir=$(dirname "${script_name}")
+
+source scripts/code_snippets/sample_test_runner.sh
+
+pushd "${script_dir}"
+
+prepare_snippets
+
+run ra-04_0045_create_connectivity_test_namespaces.sh
+
+run ra-04_0050_check_cluster_connectivity_create_sts_0.sh
+run ra-04_0050_check_cluster_connectivity_create_sts_1.sh
+run ra-04_0050_check_cluster_connectivity_create_sts_2.sh
+
+run ra-04_0060_check_cluster_connectivity_wait_for_sts.sh
+run ra-04_0070_check_cluster_connectivity_create_pod_service_0.sh
+run ra-04_0070_check_cluster_connectivity_create_pod_service_1.sh
+run ra-04_0070_check_cluster_connectivity_create_pod_service_2.sh
+run ra-04_0080_check_cluster_connectivity_create_round_robin_service_0.sh
+run ra-04_0080_check_cluster_connectivity_create_round_robin_service_1.sh
+run ra-04_0080_check_cluster_connectivity_create_round_robin_service_2.sh
+run_for_output ra-04_0090_check_cluster_connectivity_verify_pod_0_0_from_cluster_1.sh
+run_for_output ra-04_0090_check_cluster_connectivity_verify_pod_1_0_from_cluster_0.sh
+run_for_output ra-04_0090_check_cluster_connectivity_verify_pod_1_0_from_cluster_2.sh
+run_for_output ra-04_0090_check_cluster_connectivity_verify_pod_2_0_from_cluster_0.sh
+run ra-04_0100_check_cluster_connectivity_cleanup.sh
+
+popd

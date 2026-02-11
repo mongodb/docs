@@ -983,3 +983,50 @@ file:
 To learn how to define environment variables, see 
 :k8sdocs:`Define Environment Variables for a Container 
 </tasks/inject-data-application/define-environment-variable-container>`.
+
+.. _k8s-handle-agent-api-key-updates:
+
+Handle |onprem| Agent API Key Updates
+----------------------------------------------------------
+
+If the MongoDB :opsmgr:`Agent API key </reference/glossary/#std-term-agent-api-key>` is
+deleted or updated from the |onprem| dashboard, the agents deployed with your MongoDB
+resources can no longer authenticate to |onprem|. As a result, |onprem| might report the
+replica set as down. Use the following procedure to manually ensure agents restart with
+the updated API key:
+
+.. procedure::
+
+   .. step:: Delete the project secret
+
+      Delete the secret named ``<project-id>-group-secret`` in your MongoDB
+      deployment namespace.
+
+   .. step:: Recreate the secret
+
+      Wait for the secret to automatically recreate or create it manually with
+      the following command:
+
+      .. code-block:: sh
+
+         kubectl create secret generic <project-id>-group-secret \
+            --from-literal=agentApiKey=<new-agent-key> \
+            -n <mongodb-namespace>
+
+   .. step:: Verify the secret
+
+      Verify that the new ``<project-id>-group-secret`` exists and has the
+      correct data.
+
+   .. step:: Restart the MongoDB Pods
+
+      Restart the MongoDB StatefulSet Pods to ensure agents start with the
+      updated API key:
+
+      .. code-block:: sh
+
+         kubectl rollout restart statefulset <mongodb-sts> -n <mongodb-namespace>
+
+   .. step:: Confirm health in |onprem|
+
+      Verify that |onprem| reports the health of replica set members correctly.

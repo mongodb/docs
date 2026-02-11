@@ -1,0 +1,167 @@
+---
+stepnum: 1
+level: 4
+ref: select-resource-easy
+title: Create or identify a persistent |k8s-custom-resource|.
+content: |
+
+  Use an existing database resource or create a new one with persistent
+  storage. Wait until the persistent volume enters the ``Running``
+  state.
+
+  .. example::
+
+     A database resource with persistent storage would include:
+
+     .. code-block:: yaml
+        :linenos:
+        :emphasize-lines: 11-14
+
+        apiVersion: mongodb.com/v1
+        kind: MongoDB
+        metadata:
+          name: <my-replica-set>
+        spec:
+          members: 3
+          version: "8.0.0"
+          project: my-project
+          credentials: my-credentials
+          type: ReplicaSet
+          podSpec:
+            persistence:
+              single:
+                storage: "1Gi"
+
+---
+stepnum: 2
+level: 4
+ref: insert-data-easy
+title: Insert data into the database that the resource serves.
+content: |
+
+  a. Start |mongo| in the |k8s| cluster.
+
+     .. code-block:: sh
+
+        $kubectl exec -it <my-replica-set>-0 \
+                 /var/lib/mongodb-mms-automation/mongodb-linux-x86_64-8.0.0/bin/mongo
+
+  b. Insert data into the ``test`` database.
+
+     .. code-block:: javascript
+        :copyable: false
+
+        <my-replica-set>:PRIMARY> use test
+
+        switched to db test
+
+        <my-replica-set>:PRIMARY> db.tmp.insertOne({"foo":"bar"})
+
+        {
+          "acknowledged" : true,
+          "insertedId" : ObjectId("61128cb4a783c3c57ae5142d")
+        }
+
+---
+stepnum: 3
+level: 4
+ref: update-crd-easy
+title: Update the database resource with a new storage value.
+content: |
+
+  .. important::
+     
+     You can only increase disk size for existing storage resources, not decrease. 
+     Decreasing the storage size causes an error in the reconcile stage. 
+
+  a. Update the disk size. Open your preferred text editor and make
+     changes similar to this example:
+
+     .. example::
+
+        To update the disk size of the replica set to 2 GB, change the
+        ``storage`` value in the database resource specification:
+
+        .. code-block:: yaml
+           :linenos:
+           :emphasize-lines: 14
+
+           apiVersion: mongodb.com/v1
+           kind: MongoDB
+           metadata:
+             name: <my-replica-set>
+           spec:
+             members: 3
+             version: "8.0.0"
+             project: my-project
+             credentials: my-credentials
+             type: ReplicaSet
+             podSpec:
+               persistence:
+                 single:
+                   storage: "2Gi"
+
+  b. Update the MongoDB custom resource with the new volume size.
+
+     .. code-block:: sh
+
+        kubectl apply -f my-updated-replica-set-vol.yaml
+
+  c. Wait until this StatefulSet achieves the ``Running`` state.
+
+---
+stepnum: 4
+level: 4
+ref: validate-pv-resize-easy
+title: Validate that the |k8s-pvc| has been resized.
+content: |
+
+  If you reuse |k8s-pvs|, you can find the data that you inserted in **Step
+  2** on the databases stored in |k8s-pvs|:
+
+  .. code-block:: sh
+
+     $ kubectl describe mongodb/<my-replica-set> -n mongodb
+
+  The following output indicates that your PVC resize request is being processed.
+
+  .. code-block:: sh
+  
+     status:
+       clusterStatusList: {}
+       lastTransition: "2024-08-21T11:03:52+02:00"
+       message: StatefulSet not ready
+       observedGeneration: 2
+       phase: Pending
+       pvc:
+         - phase: PVC Resize - STS has been orphaned
+           statefulsetName: multi-replica-set-pvc-resize-0
+       resourcesNotReady:
+         - kind: StatefulSet
+           message: 'Not all the Pods are ready (wanted: 2, updated: 1, ready: 1, current:2)'
+           name: multi-replica-set-pvc-resize-0
+       version: ""
+
+---
+stepnum: 5
+level: 4
+ref: validate-pv-change-easy
+title: Validate data exists on the updated |k8s-pvc|.
+content: |
+
+  If you reuse |k8s-pvs|, you can find the data that you inserted in **Step
+  2** on the databases stored in |k8s-pvs|:
+
+  .. code-block:: sh
+
+     $ kubectl exec -it <my-replica-set>-1 \
+               /var/lib/mongodb-mms-automation/mongodb-linux-x86_64-8.0.0/bin/mongo
+
+  .. code-block:: javascript
+     :copyable: false
+
+     <my-replica-set>:PRIMARY> use test
+     switched to db test
+
+     <my-replica-set>:PRIMARY> db.tmp.count()
+     1

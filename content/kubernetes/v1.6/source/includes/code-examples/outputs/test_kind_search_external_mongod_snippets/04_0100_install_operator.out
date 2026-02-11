@@ -1,0 +1,570 @@
+Release "mongodb-kubernetes" does not exist. Installing it now.
+NAME: mongodb-kubernetes
+LAST DEPLOYED: Wed Dec 17 11:23:53 2025
+NAMESPACE: mongodb
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+USER-SUPPLIED VALUES:
+{}
+
+COMPUTED VALUES:
+agent:
+  name: mongodb-agent
+  version: 108.0.12.8846-1
+community:
+  agent:
+    name: mongodb-agent
+    version: 108.0.2.8729-1
+  mongodb:
+    imageType: ubi8
+    name: mongodb-community-server
+    repo: quay.io/mongodb
+  registry:
+    agent: quay.io/mongodb
+  resource:
+    members: 3
+    name: mongodb-replica-set
+    tls:
+      caCertificateSecretRef: tls-ca-key-pair
+      certManager:
+        certDuration: 8760h
+        renewCertBefore: 720h
+      certificateKeySecretRef: tls-certificate
+      enabled: false
+      sampleX509User: false
+      useCertManager: true
+      useX509: false
+    version: 4.4.0
+database:
+  name: mongodb-kubernetes-database
+  version: 1.6.1
+initAppDb:
+  name: mongodb-kubernetes-init-appdb
+  version: 1.6.1
+initDatabase:
+  name: mongodb-kubernetes-init-database
+  version: 1.6.1
+initOpsManager:
+  name: mongodb-kubernetes-init-ops-manager
+  version: 1.6.1
+managedSecurityContext: false
+mongodb:
+  appdbAssumeOldFormat: false
+  name: mongodb-enterprise-server
+  repo: quay.io/mongodb
+multiCluster:
+  clusterClientTimeout: 10
+  clusters: []
+  kubeConfigSecretName: mongodb-enterprise-operator-multi-cluster-kubeconfig
+  performFailOver: true
+operator:
+  additionalArguments: []
+  affinity: {}
+  baseName: mongodb-kubernetes
+  createOperatorServiceAccount: true
+  createResourcesServiceAccountsAndRoles: true
+  deployment_name: mongodb-kubernetes-operator
+  enableClusterMongoDBRoles: true
+  enablePVCResize: true
+  env: prod
+  maxConcurrentReconciles: 1
+  mdbDefaultArchitecture: non-static
+  name: mongodb-kubernetes-operator
+  nodeSelector: {}
+  operator_image_name: mongodb-kubernetes
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 2000
+  replicas: 1
+  resources:
+    limits:
+      cpu: 1100m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 200Mi
+  securityContext: {}
+  telemetry:
+    collection:
+      clusters: {}
+      deployments: {}
+      frequency: 1h
+      operators: {}
+    send:
+      frequency: 168h
+  tolerations: []
+  vaultSecretBackend:
+    enabled: false
+    tlsSecretRef: ""
+  version: 1.6.1
+  watchedResources:
+  - mongodb
+  - opsmanagers
+  - mongodbusers
+  - mongodbcommunity
+  - mongodbsearch
+  webhook:
+    installClusterRole: true
+    registerConfiguration: true
+opsManager:
+  name: mongodb-enterprise-ops-manager-ubi
+readinessProbe:
+  name: mongodb-kubernetes-readinessprobe
+  version: 1.0.23
+registry:
+  agent: quay.io/mongodb
+  database: quay.io/mongodb
+  imagePullSecrets: null
+  initAppDb: quay.io/mongodb
+  initDatabase: quay.io/mongodb
+  initOpsManager: quay.io/mongodb
+  operator: quay.io/mongodb
+  opsManager: quay.io/mongodb
+  pullPolicy: Always
+  readinessProbe: quay.io/mongodb
+  versionUpgradeHook: quay.io/mongodb
+search:
+  name: mongodb-search
+  repo: quay.io/mongodb
+  version: 0.55.0
+versionUpgradeHook:
+  name: mongodb-kubernetes-operator-version-upgrade-post-start-hook
+  version: 1.0.10
+
+HOOKS:
+MANIFEST:
+---
+# Source: mongodb-kubernetes/templates/database-roles.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mongodb-kubernetes-appdb
+  namespace: mongodb
+---
+# Source: mongodb-kubernetes/templates/database-roles.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mongodb-kubernetes-database-pods
+  namespace: mongodb
+---
+# Source: mongodb-kubernetes/templates/database-roles.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mongodb-kubernetes-ops-manager
+  namespace: mongodb
+---
+# Source: mongodb-kubernetes/templates/operator-sa.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: mongodb-kubernetes-operator
+  namespace: mongodb
+---
+# Source: mongodb-kubernetes/templates/operator-roles-clustermongodbroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-kubernetes-operator-mongodb-cluster-mongodb-role
+rules:
+  - apiGroups:
+      - mongodb.com
+    verbs:
+      - '*'
+    resources:
+      - clustermongodbroles
+---
+# Source: mongodb-kubernetes/templates/operator-roles-telemetry.yaml
+# Additional ClusterRole for clusterVersionDetection
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-kubernetes-operator-cluster-telemetry
+rules:
+  # Non-resource URL permissions
+  - nonResourceURLs:
+      - "/version"
+    verbs:
+      - get
+  # Cluster-scoped resource permissions
+  - apiGroups:
+      - ''
+    resources:
+      - namespaces
+    resourceNames:
+      - kube-system
+    verbs:
+      - get
+  - apiGroups:
+      - ''
+    resources:
+      - nodes
+    verbs:
+      - list
+---
+# Source: mongodb-kubernetes/templates/operator-roles-webhook.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-kubernetes-operator-mongodb-webhook-cr
+rules:
+  - apiGroups:
+      - "admissionregistration.k8s.io"
+    resources:
+      - validatingwebhookconfigurations
+    verbs:
+      - get
+      - create
+      - update
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - delete
+---
+# Source: mongodb-kubernetes/templates/operator-roles-clustermongodbroles.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-kubernetes-operator-mongodb-cluster-mongodb-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: mongodb-kubernetes-operator-mongodb-cluster-mongodb-role
+subjects:
+  - kind: ServiceAccount
+    name: mongodb-kubernetes-operator
+    namespace: mongodb
+---
+# Source: mongodb-kubernetes/templates/operator-roles-telemetry.yaml
+# ClusterRoleBinding for clusterVersionDetection
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-kubernetes-operator-mongodb-cluster-telemetry-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: mongodb-kubernetes-operator-cluster-telemetry
+subjects:
+  - kind: ServiceAccount
+    name: mongodb-kubernetes-operator
+    namespace: mongodb
+---
+# Source: mongodb-kubernetes/templates/operator-roles-webhook.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-kubernetes-operator-mongodb-webhook-crb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: mongodb-kubernetes-operator-mongodb-webhook-cr
+subjects:
+  - kind: ServiceAccount
+    name: mongodb-kubernetes-operator
+    namespace: mongodb
+---
+# Source: mongodb-kubernetes/templates/database-roles.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-kubernetes-appdb
+  namespace: mongodb
+rules:
+  - apiGroups:
+      - ''
+    resources:
+      - secrets
+    verbs:
+      - get
+  - apiGroups:
+      - ''
+    resources:
+      - pods
+    verbs:
+      - patch
+      - delete
+      - get
+---
+# Source: mongodb-kubernetes/templates/operator-roles-base.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-kubernetes-operator
+  namespace: mongodb
+rules:
+  - apiGroups:
+      - ''
+    resources:
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - delete
+  - apiGroups:
+      - ''
+    resources:
+      - secrets
+      - configmaps
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - delete
+      - watch
+  - apiGroups:
+      - apps
+    resources:
+      - statefulsets
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+      - delete
+      - update
+  - apiGroups:
+      - ''
+    resources:
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+      - delete
+      - deletecollection
+  - apiGroups:
+      - mongodbcommunity.mongodb.com
+    resources:
+      - mongodbcommunity
+      - mongodbcommunity/status
+      - mongodbcommunity/spec
+      - mongodbcommunity/finalizers
+    verbs:
+      - '*'
+  - apiGroups:
+      - mongodb.com
+    verbs:
+      - '*'
+    resources:
+      - mongodb
+      - mongodb/finalizers
+      - mongodbusers
+      - mongodbusers/finalizers
+      - opsmanagers
+      - opsmanagers/finalizers
+      - mongodbmulticluster
+      - mongodbmulticluster/finalizers
+      - mongodbsearch
+      - mongodbsearch/finalizers
+      - mongodb/status
+      - mongodbusers/status
+      - opsmanagers/status
+      - mongodbmulticluster/status
+      - mongodbsearch/status
+---
+# Source: mongodb-kubernetes/templates/operator-roles-pvc-resize.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-kubernetes-operator-pvc-resize
+  namespace: mongodb
+rules:
+  - apiGroups:
+      - ''
+    resources:
+      - persistentvolumeclaims
+    verbs:
+      - get
+      - delete
+      - list
+      - watch
+      - patch
+      - update
+---
+# Source: mongodb-kubernetes/templates/database-roles.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-kubernetes-appdb
+  namespace: mongodb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: mongodb-kubernetes-appdb
+subjects:
+  - kind: ServiceAccount
+    name: mongodb-kubernetes-appdb
+    namespace: mongodb
+---
+# Source: mongodb-kubernetes/templates/operator-roles-base.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-kubernetes-operator
+  namespace: mongodb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: mongodb-kubernetes-operator
+subjects:
+  - kind: ServiceAccount
+    name: mongodb-kubernetes-operator
+    namespace: mongodb
+---
+# Source: mongodb-kubernetes/templates/operator-roles-pvc-resize.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mongodb-kubernetes-operator-pvc-resize-binding
+  namespace: mongodb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: mongodb-kubernetes-operator-pvc-resize
+subjects:
+  - kind: ServiceAccount
+    name: mongodb-kubernetes-operator
+    namespace: mongodb
+---
+# Source: mongodb-kubernetes/templates/operator.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-kubernetes-operator
+  namespace: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: controller
+      app.kubernetes.io/name: mongodb-kubernetes-operator
+      app.kubernetes.io/instance: mongodb-kubernetes-operator
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: controller
+        app.kubernetes.io/name: mongodb-kubernetes-operator
+        app.kubernetes.io/instance: mongodb-kubernetes-operator
+    spec:
+      serviceAccountName: mongodb-kubernetes-operator
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 2000
+      containers:
+        - name: mongodb-kubernetes-operator
+          image: "quay.io/mongodb/mongodb-kubernetes:1.6.1"
+          imagePullPolicy: Always
+          args:
+            - -watch-resource=mongodb
+            - -watch-resource=opsmanagers
+            - -watch-resource=mongodbusers
+            - -watch-resource=mongodbcommunity
+            - -watch-resource=mongodbsearch
+            - -watch-resource=clustermongodbroles
+          command:
+            - /usr/local/bin/mongodb-kubernetes-operator
+          resources:
+            limits:
+              cpu: 1100m
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 200Mi
+          env:
+            - name: OPERATOR_ENV
+              value: prod
+            - name: MDB_DEFAULT_ARCHITECTURE
+              value: non-static
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: MDB_OPERATOR_TELEMETRY_COLLECTION_FREQUENCY
+              value: "1h"
+            - name: MDB_OPERATOR_TELEMETRY_SEND_FREQUENCY
+              value: "168h"
+            - name: CLUSTER_CLIENT_TIMEOUT
+              value: "10"
+            - name: IMAGE_PULL_POLICY
+              value: Always
+            # Database
+            - name: MONGODB_ENTERPRISE_DATABASE_IMAGE
+              value: quay.io/mongodb/mongodb-kubernetes-database
+            - name: INIT_DATABASE_IMAGE_REPOSITORY
+              value: quay.io/mongodb/mongodb-kubernetes-init-database
+            - name: INIT_DATABASE_VERSION
+              value: "1.6.1"
+            - name: DATABASE_VERSION
+              value: "1.6.1"
+            # Ops Manager
+            - name: OPS_MANAGER_IMAGE_REPOSITORY
+              value: quay.io/mongodb/mongodb-enterprise-ops-manager-ubi
+            - name: INIT_OPS_MANAGER_IMAGE_REPOSITORY
+              value: quay.io/mongodb/mongodb-kubernetes-init-ops-manager
+            - name: INIT_OPS_MANAGER_VERSION
+              value: "1.6.1"
+            # AppDB
+            - name: INIT_APPDB_IMAGE_REPOSITORY
+              value: quay.io/mongodb/mongodb-kubernetes-init-appdb
+            - name: INIT_APPDB_VERSION
+              value: "1.6.1"
+            - name: OPS_MANAGER_IMAGE_PULL_POLICY
+              value: Always
+            - name: AGENT_IMAGE
+              value: "quay.io/mongodb/mongodb-agent:108.0.12.8846-1"
+            - name: MDB_AGENT_IMAGE_REPOSITORY
+              value: "quay.io/mongodb/mongodb-agent"
+            - name: MONGODB_IMAGE
+              value: mongodb-enterprise-server
+            - name: MONGODB_REPO_URL
+              value: quay.io/mongodb
+            - name: PERFORM_FAILOVER
+              value: 'true'
+            - name: MDB_MAX_CONCURRENT_RECONCILES
+              value: "1"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: mongodb-kubernetes-operator
+            # Community Env Vars Start
+            - name: MDB_COMMUNITY_AGENT_IMAGE
+              value: "quay.io/mongodb/mongodb-agent:108.0.2.8729-1"
+            - name: VERSION_UPGRADE_HOOK_IMAGE
+              value: "quay.io/mongodb/mongodb-kubernetes-operator-version-upgrade-post-start-hook:1.0.10"
+            - name: READINESS_PROBE_IMAGE
+              value: "quay.io/mongodb/mongodb-kubernetes-readinessprobe:1.0.23"
+            - name: MDB_COMMUNITY_IMAGE
+              value: "mongodb-community-server"
+            - name: MDB_COMMUNITY_REPO_URL
+              value: "quay.io/mongodb"
+            - name: MDB_COMMUNITY_IMAGE_TYPE
+              value: "ubi8"
+            # Community Env Vars End
+            - name: MDB_SEARCH_REPO_URL
+              value: "quay.io/mongodb"
+            - name: MDB_SEARCH_NAME
+              value: "mongodb-search"
+            - name: MDB_SEARCH_VERSION
+              value: "0.55.0"
+

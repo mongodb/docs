@@ -66,23 +66,25 @@ To perform a forced reconfiguration of the {+appdb+}\'s nodes:
    settings to reconfigure the {+appdb+}\'s deployment on healthy
    |k8s| clusters to allow the replica set to form a majority of healthy nodes.
 
-2. Remove failed |k8s| clusters from the :opsmgrkube:`spec.applicationDatabase.clusterSpecList`,
-   or scale failed |k8s| member clusters down. This way, the replica set
-   doesn't count the {+appdb+}\'s nodes hosted on those clusters
-   as voting members of the replica set. For example, having two healthy
-   nodes in ``cluster 1`` and a failed ``cluster 2`` containing 3 nodes,
-   you have two healthy nodes from a total of five replica set members
-   (2/5 healthy). Adding one node to ``cluster 1`` results in having 3/6
-   ratio of healthy nodes to the number of members in the replica set.
-   To form a replica set majority, you have the following options:
+2. Scale failed |k8s| member clusters down to zero nodes and then remove
+   those clusters from the :opsmgrkube:`spec.applicationDatabase.clusterSpecList`.
+   Removing an entry without scaling it down first isn't supported. This
+   ensures the replica set doesn't count the {+appdb+}\'s nodes hosted on
+   those clusters as voting members of the replica set. For example, having
+   two healthy nodes in ``cluster 1`` and a failed ``cluster 2`` containing
+   3 nodes, you have two healthy nodes from a total of five replica set
+   members (2/5 healthy). Adding one node to ``cluster 1`` results in
+   having 3/6 ratio of healthy nodes to the number of members in the
+   replica set. To form a replica set majority, you have the following
+   options:
 
    - Add at least two new replica set nodes to ``cluster 1``, or a new
      healthy |k8s| cluster. This achieves a majority (4/7), with four nodes
      in a seven-member replica set.
-   - Scale down a failed |k8s| cluster to zero nodes, or remove the
-     cluster from the :opsmgrkube:`spec.applicationDatabase.clusterSpecList`
-     entirely, and add at least one node to ``cluster 1`` to have 3/3
-     healthy nodes in the replica set's StatefulSet.
+   - Scale down a failed |k8s| cluster to zero nodes, remove the cluster
+     from the :opsmgrkube:`spec.applicationDatabase.clusterSpecList`, and
+     add at least one node to ``cluster 1`` to have 3/3 healthy nodes in the
+     replica set's StatefulSet.
 
 3. Add the annotation ``"mongodb.com/v1.forceReconfigure": "true"`` at
    the top level of the ``MongoDBOpsManager`` custom resource and ensure
