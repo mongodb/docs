@@ -43,7 +43,8 @@ This workload has the following query patterns:
 - ``find`` command with filter 
   ``{ userId: , firstName: , lastName: }``
 - ``find`` command with filter 
-  ``{ $or: [{ userId: , firstName: , lastName:, date: { $gte:  }, ] }``
+  ``{ $or: [ { userId: , firstName: , lastName: , date: { $gte:  } }, ... , { 
+  userId: , date: } ] }``
 - ``findAndModify`` command with filter 
   ``{ userId: , firstName: , lastName: , date:  }`` to 
   update the body and date field.
