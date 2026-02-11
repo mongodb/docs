@@ -46,6 +46,9 @@ the :term:`oplog` of |mongod| is above or below the threshold.
 is interrupted by the |fts| ``mongot`` process due to high disk 
 utilization.
 
+:alert:`Atlas Search: Mongot is approaching replication stop threshold` 
+occurs if disk usage on a search node is greater than or equal to 85%.
+
 :alert:`Atlas Search: Max Number of Lucene Docs
 <Atlas Search: Max Number of Lucene Docs is>` runs automatically by default.
 This alert occurs if the upper bound number of Lucene docs used to store
@@ -53,15 +56,33 @@ This alert occurs if the upper bound number of Lucene docs used to store
 
 :alert:`Atlas Search: Mongot stopped replication
 <Atlas Search: Mongot stopped replication>` runs automatically by default. 
-This alert occurs only on dedicated Search Nodes if the replication is
-interrupted by the |fts| ``mongot`` process due to high disk utilization.
-The pause replication threshold is 90% and the resume replication threshold
-is 85% disk utilization.
 
-The ``mongot`` process falls off the oplog if replication is paused for a
-long time. |service| rebuilds the index if the ``mongot`` process falls
-off the oplog. However, you can prevent the ``mongot`` from falling off
-the oplog if you upscale your search instances or delete |fts| indexes.
+This alert occurs only on dedicated Search Nodes when replication is
+interrupted by the |fts| ``mongot`` process due to high disk 
+utilization. Replication pauses when disk utilization reaches 90% and 
+resumes automatically when disk utilization falls below 85%.
+
+When replication is paused, Search Nodes might continue serving queries,
+but replicated data can become stale. For example, if ``mongot`` is 
+already running, synonym mappings might remain loaded but may not 
+reflect recent updates. If |service| provisions a new Search Node while 
+replication is paused, the new mongot process might not have synonym 
+mappings available.
+
+Paused replication can also delay or prevent fast search node 
+provisioning, which relies on |service| replicating a recent copy of 
+your index when scaling Search Nodes.
+
+If replication is paused for an extended period the ``mongot`` process 
+can fall off the oplog. If ``mongot`` falls off the oplog, |service| 
+rebuilds the index.
+
+To prevent ``mongot`` from falling off the oplog: 
+
+- Upscale your Search Nodes to reduce disk utilization. 
+- Delete unused |fts| indexes.
+- Add additional Search Nodes.
+- Shard your cluster to better distribute data and reduce disk pressure.
 
 :alert:`Atlas Search: Number of Error Queries
 <Atlas Search: Number of Error Queries is>` occurs if the number of 
