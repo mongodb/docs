@@ -1,0 +1,417 @@
+.. _django-qe:
+
+==========================================================
+Tutorial: {+qe+} with {+django-odm+}
+==========================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial 
+
+.. meta:: 
+   :description: Learn how to use Queryable Encryption in a Django application to automatically encrypt sensitive patient medical information, then decrypt and query the data.
+   :keywords: integrations, queryable encryption, field level encryption, security, automatic
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this tutorial, you can learn how to use **{+qe+} (QE)** in a
+{+framework+} application.
+
+MongoDB's {+qe+} feature helps protect sensitive data by
+automatically encrypting it while still allowing your application
+to interact with the encrypted data. In this tutorial, you can
+learn how to use {+qe+} with {+django-odm+} by enabling encryption
+in your application settings and choosing model fields to encrypt.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before you begin this tutorial, complete the following prerequisite
+tasks:
+
+- Create a MongoDB Atlas account and configure a cluster. Ensure that
+  your cluster runs on {+mdb-server+} version 7.0 or later. To learn more,
+  see the `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=nodejs>`__ guide.
+- Download the Automatic Encryption Shared Library. To view instructions,
+  see the :manual:`Install and Configure a Query Analysis Component 
+  </core/queryable-encryption/install-library/?encryption-component=crypt_shared#procedure>`
+  guide. These instructions show how to navigate to the MongoDB Download Center
+  and fill out the form required to download the library.
+- Install `Python 3.10 <https://www.python.org/downloads/>`__ or later.
+
+Tutorial
+--------
+
+In this tutorial, you create a {+qe+} application that uses {+django-odm+}.
+The application handles medical records securely: it encrypts, decrypts,
+and queries sensitive medical information.
+
+.. tip:: Complete Application
+
+   To view the complete sample application for this tutorial,
+   see the :github:`django_qe </mongodb/docs/tree/main/content/django-mongodb/current/source/includes/qe/django_qe>`
+   folder on GitHub.
+
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to install the project dependencies,
+configure your environment, and create the application structure.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Install {+django-odm+} with the QE dependencies.
+
+      Select the tab corresponding to your operating system and run the
+      following commands to activate a virtual environment, install
+      {+django-odm+}, and install the {+qe+} dependencies:
+
+      .. tabs::
+
+          .. tab:: macOS / Linux
+             :tabid: mac-linux-venv
+
+             .. code-block:: bash
+
+                python -m venv venv
+                source venv/bin/activate
+                pip install 'django-mongodb-backend[encryption]'
+
+          .. tab:: Windows
+             :tabid: windows-venv
+
+             .. code-block:: bash
+
+                python -m venv venv
+                . venv\Scripts\activate
+                pip install 'django-mongodb-backend[encryption]'
+
+      The ``pip install 'django-mongodb-backend[encryption]'`` command
+      installs {+django-odm+}, the latest PyMongo version, and the
+      required {+language+} dependencies.
+
+      .. note:: Available in v6.0.1
+
+         {+qe+} requires {+django-odm+} v6.0.1 or later. The
+         preceding command installs the required version.
+
+   .. step:: Create your project directory.
+
+      From your shell, run the following command to create a 
+      new {+framework+} project called ``django_qe`` based on a custom template:
+      
+      .. code-block:: bash
+
+         django-admin startproject django_qe --template https://github.com/mongodb-labs/django-mongodb-project/archive/refs/heads/{+django-version+}.x.zip
+
+      This command creates a ``django_qe`` project directory and adds the
+      initial file scaffolding.
+
+   .. step:: Create your application files.
+
+      From your ``django_qe`` directory, run the following command to create an 
+      application called ``medical_records``:
+      
+      .. code-block:: bash
+
+         python manage.py startapp medical_records
+
+      This command creates a ``medical_records`` application directory in
+      your project and adds default app files, including files for your
+      models and settings.
+
+   .. step:: Include your app in your project.
+
+      Navigate to the ``settings.py`` file in your ``django_qe`` directory
+      and edit your ``INSTALLED_APPS`` setting to resemble the following code:
+
+      .. literalinclude:: /includes/qe/django_qe/django_qe/settings.py
+         :start-after: start-installed-apps
+         :end-before: end-installed-apps
+         :language: python
+         :emphasize-lines: 2
+         :copyable:
+
+      This setting ensures that your ``medical_records`` app is enabled
+      in your project.
+
+Connect and Enable Encryption
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up your project, follow the steps in this section to
+connect to MongoDB and create models that store encrypted data.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Connect to MongoDB.
+
+      In your ``django_qe`` directory, navigate to the ``settings.py``
+      file. Replace the ``DATABASES`` setting with the following code:
+
+      .. code-block:: python
+
+         DATABASES = {
+             'default': {
+                 'ENGINE': 'django_mongodb_backend',
+                 'HOST': '<connection string>',
+                 'NAME': 'db',
+             },
+         }
+
+      Replace the ``<connection string>`` placeholder with the connection string that
+      connects to your cluster.
+
+      This code configures your {+framework+} application to connect to MongoDB
+      and access a database named ``db`` by default. This configuration applies
+      to your non-encrypted models.
+
+   .. step:: Configure {+qe+}.
+
+      In your ``settings.py`` file, you can specify the ``encrypted`` key in
+      your ``DATABASES`` setting to enable {+qe+} and set your Key Management System
+      (KMS) provider. {+django-odm+} supports the AWS, Azure, GCP, KMIP, and local KMS
+      providers.
+
+      .. warning:: Local CMK Storage
+
+         If you store your Customer Master Key (CMK) locally, do not use this application
+         in production. Without a remote KMS, you risk unauthorized access to the encryption key or loss
+         of the key needed to decrypt your data.
+
+      .. tip:: Key Management Systems
+
+         To learn more about KMS, see the :wikipedia:`Key Management <w/index.php?title=Key_management&oldid=1320428824>`
+         Wikipedia entry.
+
+      Select the tab corresponding to your KMS and modify your ``DATABASES`` setting to resemble
+      the following example:
+
+      .. tabs::
+
+         .. tab:: Local
+            :tabid: kms-local
+
+            .. literalinclude:: /includes/qe/local-kms.py
+               :language: python
+               :copyable:
+            
+            Replace the following placeholder values:
+
+            - ``<connection string>``: The same connection string you specified in the
+              ``default`` key
+            - ``<Automatic Encryption Shared Library path>``: The full path to
+              your Automatic Encryption Shared Library
+
+         .. tab:: AWS
+            :tabid: kms-aws
+
+            .. literalinclude:: /includes/qe/aws-kms.py
+               :language: python
+               :copyable:
+
+            Replace the following placeholder values:
+
+            - ``<connection string>``: The same connection string you specified in the
+              ``default`` key
+            - ``<AWS Access Key ID>``: Your AWS access key ID
+            - ``<AWS Secret Access Key>``: Your AWS secret access key
+            - ``<Automatic Encryption Shared Library path>``: The full path to
+              your Automatic Encryption Shared Library
+            - ``<AWS Key ARN>``: The Amazon Resource Name to the AWS customer.
+            - ``<AWS Key Region>``: Your AWS region, such as ``'us-east-1'``
+
+         .. tab:: Azure
+            :tabid: kms-azure
+
+            .. literalinclude:: /includes/qe/azure-kms.py
+               :language: python
+               :copyable:
+
+            Replace the following placeholder values:
+
+            - ``<connection string>``: The same connection string you specified in the
+              ``default`` key
+            - ``<Azure Tenant ID>``: Your Azure Active Directory tenant ID
+            - ``<Azure Client ID>``: Your Azure application client ID
+            - ``<Azure Client Secret>``: Your Azure application client secret
+            - ``<Automatic Encryption Shared Library path>``: The full path to
+              your Automatic Encryption Shared Library
+            - ``<Azure Key Vault Endpoint>``: Your Azure Key Vault endpoint URL.
+            - ``<Azure Key Name>``: The name of your key in Azure Key Vault
+            - ``<Azure Key Version>``: (Optional) The version of the key to use
+
+         .. tab:: GCP
+            :tabid: kms-gcp
+
+            .. literalinclude:: /includes/qe/gcp-kms.py
+               :language: python
+               :copyable:
+
+            Replace the following placeholder values:
+
+            - ``<connection string>``: The same connection string you specified in the
+              ``default`` key
+            - ``<GCP Service Account Email>``: Your Google Cloud service account email
+            - ``<GCP Service Account Private Key>``: Your Google Cloud service account private key
+            - ``<Automatic Encryption Shared Library path>``: The full path to
+              your Automatic Encryption Shared Library
+            - ``<GCP Project ID>``: Your Google Cloud project ID
+            - ``<GCP Key Ring Location>``: The location of your key ring, such as ``'global'``
+            - ``<GCP Key Ring Name>``: The name of your key ring
+            - ``<GCP Key Name>``: The name of your key
+
+         .. tab:: KMIP
+            :tabid: kms-kmip
+
+            .. literalinclude:: /includes/qe/kmip-kms.py
+               :language: python
+               :copyable:
+
+            Replace the following placeholder values:
+
+            - ``<connection string>``: The same connection string you specified in the
+              ``default`` key.
+            - ``<KMIP Server Endpoint>``: Your KMIP server endpoint with its port, such as ``'example.com:443'``.
+            - ``<Automatic Encryption Shared Library path>``: The full path to
+              your Automatic Encryption Shared Library. 
+            - ``<KMIP Key Identifier>``: (Optional) The KMIP Unique Identifier to a 96-byte KMIP Secret
+              Data managed object. If you omit this value, {+django-odm+} creates a random 96-byte object.
+
+      This code connects to the encrypted ``medical_records`` database,
+      stores your data keys in the ``medical_records.__keyVault`` collection, and
+      configures your KMS provider.
+
+   .. step:: Route operations to the encrypted database.
+
+      In your ``medical_records`` directory, create a file named ``routers.py``
+      and paste the following code into it:
+
+      .. literalinclude:: /includes/qe/django_qe/medical_records/routers.py
+         :language: python
+         :copyable:
+
+      This file routes database operations on all models in your
+      ``medical_records`` application to the encrypted ``medical_records``
+      database.
+
+      Then, add your custom router by navigating to your ``settings.py`` file
+      and replacing the ``DATABASE_ROUTERS`` setting with the following code:
+
+      .. literalinclude:: /includes/qe/django_qe/django_qe/settings.py
+         :start-after: start-routers
+         :end-before: end-routers
+         :language: python
+         :copyable:
+
+   .. step:: Create models that store encrypted fields.
+
+     In your ``medical_records`` directory, navigate to the ``models.py``
+     file and paste the following code:
+
+     .. literalinclude:: /includes/qe/django_qe/medical_records/models.py
+        :language: python
+        :copyable:
+     
+     This code creates a ``Patient`` model, which corresponds to 
+     the ``patients`` collection in your ``medical_records`` database.
+     It also creates two embedded models, ``PatientRecord`` and
+     ``Billing``, to represent nested fields in the collection.
+
+     The code configures the following encrypted fields:
+
+     - ``patient_record.ssn``: Encrypted and configured for equality queries
+     - ``patient_record.billing.cc_type``: Encrypted, but not queryable
+     - ``patient_record.billing.cc_number``: Encrypted, but not queryable
+
+Perform Encrypted Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After configuring your application and database connection, follow the steps
+in this section to insert and query encrypted documents.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Run migrations on the encrypted database.
+
+      Run the following commands from your ``django_qe`` directory to
+      create migrations for your models and apply them to the database:
+
+      .. code-block:: bash
+
+         python manage.py makemigrations medical_records
+         python manage.py migrate --database encrypted
+
+   .. step:: Start a Python shell.
+
+      Run the following command to enter the Python shell:
+
+      .. code-block:: bash
+
+         python manage.py shell
+
+      Then, run the following command in the shell to import the
+      required models:
+    
+      .. code-block:: python
+
+         from medical_records.models import Patient, PatientRecord, Billing
+
+   .. step:: Insert encrypted data.
+
+      From your shell, run the following commands to create a ``Patient``
+      instance and insert a corresponding encrypted document into the
+      database: 
+
+      .. code-block:: python
+
+         billing = Billing(cc_type="Visa", cc_number="4111111111111111")
+         record = PatientRecord(ssn="987-65-4320", billing=billing, bill_amount=1500)
+         patient = Patient.objects.create(
+            name="John Doe",
+            patient_id=12345678,
+            patient_record=record
+         )
+
+      If you navigate to your ``medical_records.patients`` collection on `MongoDB Atlas
+      <https://account.mongodb.com/account/login>`__, you can see that the document's
+      ``patient_record.ssn`` and ``patient_record.billing`` fields are encrypted.
+        
+   .. step:: Query encrypted data.
+
+      Run the following command to perform an equality query on the encrypted
+      ``patient_record.ssn`` field:
+
+      .. code-block:: python
+
+         Patient.objects.get(patient_record__ssn="987-65-4320")
+
+      If successful, the command return the following patient data:
+
+      .. code-block:: bash
+         :copyable: false
+
+         <Patient: John Doe (12345678)>
+
+Next Steps
+----------
+
+Congratulations on completing the {+qe+} tutorial! You now have a sample
+{+framework+} application that uses {+qe+} to automatically
+encrypt and decrypt document fields. Your application encrypts sensitive data
+on the server side and queries the data on the client side.
+
+To learn more about {+qe+} and {+django-odm+}, visit the following resources:
+
+- View more driver {+qe+} tutorials in the :manual:`{+mdb-server+} manual
+  </core/queryable-encryption/tutorials/>`.
+- Learn more about {+qe+} with {+django-odm+} in the `API documentation <{+api+}/howto/queryable-encryption>`__
