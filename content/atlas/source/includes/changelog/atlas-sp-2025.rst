@@ -16,14 +16,6 @@
   model. To learn more, see :ref:`stream processor pricing
   <atlas-sp-processor-billing>`.
 
-.. _atlas-sp-20250908:
-
-8 September 2025 Release
-------------------------
-
-- Adds support to :ref:`create a stream processor pipeline
-  <streams-manage-create>` in the {+atlas-ui+}. 
-
 .. _atlas-sp-20251029:
 
 29 October 2025 Release
@@ -33,6 +25,22 @@
   more, see :ref:`Stream Processing Tiers <atlas-sp-architecture-tiers>`.
 - Adds new stream processor tiers: ``SP2``, ``SP5``, and ``SP50``.
 
+.. _atlas-sp-20251001:
+
+1 October 2025 Release
+----------------------------------
+
+- Adds support for OIDC with JWT Authentication for {+kafka+}
+  connections.
+  
+.. _atlas-sp-20250908:
+
+8 September 2025 Release
+------------------------
+
+- Adds support to :ref:`create a stream processor pipeline
+  <streams-manage-create>` in the {+atlas-ui+}.
+  
 .. _atlas-sp-20250901:
 
 1 September 2025 Release
