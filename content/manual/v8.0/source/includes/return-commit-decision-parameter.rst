@@ -7,6 +7,6 @@ The parameter was introduced in MongDB 5.0 with a default value of
 
 When ``coordinateCommitReturnImmediatelyAfterPersistingDecision`` is
 ``false``, the :ref:`shard <shards-concepts>` transaction coordinator
-waits for all members to acknowledge a :ref:`multi-document transaction
+waits for all members to acknowledge a :ref:`transaction
 <transactions-atomicity>` commit before returning the commit decision to
 the client.
