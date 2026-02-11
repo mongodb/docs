@@ -32,8 +32,16 @@ In addition, see:
       
    .. step:: Select the category and the condition or metric that triggers the alert.
 
-      In the :guilabel:`Category` section, select the target component. In the :guilabel:`Condition/Metric`, select the condition. To learn more about alert conditions, see
-      :doc:`/reference/alert-conditions`.
+      a. In the :guilabel:`Category` section, select the target 
+         component.
+      
+      #. In the :guilabel:`Condition/Metric` drop-down menu, select the 
+         condition. To learn more about alert conditions, see
+         :doc:`/reference/alert-conditions`.
+
+      #. (Optional) In the :guilabel:`Severity` drop-down menu, select 
+         a severity level for the alert that overrides the system 
+         default severity level.
       
    .. step:: Apply the alert only to specific targets. (Optional)
       
