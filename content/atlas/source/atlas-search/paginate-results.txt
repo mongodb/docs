@@ -67,28 +67,44 @@ a. :ref:`Create an index <ref-create-index>` on the fields you want to query.
 Considerations 
 --------------
 
-A tie occurs when you sort on a field for which multiple documents
-have identical values. MongoDB doesn't guarantee ordering of tied
-query results, which can lead to duplication and inconsistency when
-you use ``searchAfter`` and ``searchBefore``. Apply the following
-principles to reduce relevance score ties:
+- A tie occurs when you sort on a field for which multiple documents
+  have identical values. MongoDB doesn't guarantee ordering of tied query
+  results, which can lead to duplication and inconsistency when you use
+  ``searchAfter`` and ``searchBefore``. Apply the following principles to
+  reduce relevance score ties:
 
-- Sort your query by a unique field to prevent relevance score ties. For
-  an example, see :ref:`fts-sort-score-unique-field`. 
-- If you want to primarily sort by a non-unique field, add a secondary
-  sort clause on a unique field to serve as a tiebreaker. 
+  - Sort your query by a unique field to prevent relevance score ties. For
+    an example, see :ref:`fts-sort-score-unique-field`. 
+  - If you want to primarily sort by a non-unique field, add a secondary
+    sort clause on a unique field to serve as a tiebreaker. 
 
-Updating or deleting documents between queries might cause
-inconsistencies in result order. Apply the following principles
-to support deterministic search behavior: 
+- Updating or deleting documents between queries might cause
+  inconsistencies in result order. Apply the following principles
+  to support deterministic search behavior: 
 
-- Sort your query results by an immutable field, such as ``_id``. |fts|
-  reflects the updates you make to your collection between initial and
-  subsequent queries. If you sort by a mutable field such as
-  ``updated_time`` and you update your collection between your first and
-  second queries, |fts| might order the same documents differently.
+  - Sort your query results by an immutable field, such as ``_id``. |fts|
+    reflects the updates you make to your collection between initial and
+    subsequent queries. If you sort by a mutable field such as
+    ``updated_time`` and you update your collection between your first and
+    second queries, |fts| might order the same documents differently.
 
-- .. include:: /includes/fts/facts/fact-search-score-for-search-nodes.rst
+  - .. include:: /includes/fts/facts/fact-search-score-for-search-nodes.rst
+
+- To count search results during pagination, use the :ref:`count
+  <count-ref>` option in your initial :pipeline:`$search` query or in a
+  separate :pipeline:`$searchMeta` query. This method is more efficient
+  than using the :pipeline:`$count` stage after your :pipeline:`$search`
+  stage. 
+
+  The :ref:`count <count-ref>` option returns the total number of
+  documents that match your search criteria, so you don't need to use
+  the ``count`` option in later queries if you are generating paginated
+  results. To keep counting separate from your main ``$search`` query,
+  use a :pipeline:`$searchMeta` stage with the ``count`` option.
+  
+  Counting search results can affect performance. Use the :ref:`count
+  <count-ref>` option only when needed, for example, when retrieving
+  search results for the first page.
 
 .. _paginate-results-search-sequence-token:
 
@@ -100,7 +116,7 @@ of reference in your :pipeline:`$search` query. You can retrieve the
 reference point by using the :expression:`$meta` keyword
 ``searchSequenceToken`` in the :pipeline:`$project` stage after your
 :pipeline:`$search` stage.
-
+  
 .. _search-sequence-token-syntax:
 
 Syntax 
@@ -117,7 +133,7 @@ Syntax
        "index": "<index-name>",
        "<operator-name>"|"<collector-name>": {
          <operator-specification>|<collector-specification>
-       }
+       },
        "sort": {
          "score": {
            "$meta": "searchScore"
@@ -172,10 +188,10 @@ in your application. For a demonstration of this, see the :ref:`example
 .. code-block:: json
    :copyable: true
    :caption: searchAfter Syntax
-   :emphasize-lines: 7
+   :emphasize-lines: 7, 16
    :linenos: 
 
-   {
+   [{
      "$search": {
        "index": "<index-name>",
        "<operator-name>"|"<collector-name>": {
@@ -193,7 +209,7 @@ in your application. For a demonstration of this, see the :ref:`example
        "paginationToken" : { "$meta" : "searchSequenceToken" }
      },
      ...
-   }
+   }]
 
 .. _search-after-output:
 
@@ -225,9 +241,8 @@ the token. The semantics (search fields and values) of the subsequent
 :pipeline:`$search` query in which you use the token must be identical
 to the query for which ``searchSequenceToken`` generated the token. 
 
-You can build a "Previous Page" function in your application using the
-``searchBefore`` option. To build a "Previous Page" function, combine
-the following:
+You can use the ``searchBefore`` option to build a "Previous Page"
+function in your application. To do this, combine the following:
 
 - :pipeline:`$search` stage with ``searchBefore`` option
 - :pipeline:`$limit` stage 
@@ -245,10 +260,10 @@ For a demonstration of this, see the ``searchBefore`` query :ref:`examples
 .. code-block:: json
    :copyable: true
    :caption: searchBefore Syntax
-   :emphasize-lines: 7
+   :emphasize-lines: 7, 16
    :linenos: 
 
-   {
+   [{
      "$search": {
        "index": "<index-name>",
        "<operator-name>"|"<collector-name>": {
@@ -266,7 +281,7 @@ For a demonstration of this, see the ``searchBefore`` query :ref:`examples
        "paginationToken" : { "$meta" : "searchSequenceToken" }
      },
      ...
-   }
+   }]
 
 .. _search-before-output:
 
@@ -285,22 +300,21 @@ another query with the same semantics.
 Examples 
 --------
 
-The following examples use the :ref:`sample-mflix.movies <sample-mflix>`
-collection, which has a |fts| index named ``default`` with dynamic
-mappings. If you load the collection and create the index, you can run
-the following queries against the collection.
+The following examples use the :method:`db.collection.aggregate` method
+to run :pipeline:`$search` queries against the :ref:`sample_mflix
+<sample-mflix>` database. The first example query demonstrates how to
+retrieve a point of reference, which you use in the subsequent example
+queries to retrieve additional results for pages after or before the
+reference point.
 
-The queries demonstrate how to retrieve a point of reference, which you
-then use in the subsequent queries to retrieve additional results for
-the same term before and after the specified point of reference. 
+To run these example queries in {+mongosh+}:
 
-This examples demonstrate how to do the following tasks:
-
-1. :ref:`sequential-pagination-tutorial-por-query`
-2. :ref:`sequential-pagination-tutorial-after-query`
-3. :ref:`sequential-pagination-tutorial-before-query`
-4. :ref:`sequential-pagination-tutorial-skip-query`
-5. :ref:`sequential-pagination-tutorial-facet-query`
+1. Load the :ref:`sample_mflix.movies <mflix-movies>` collection 
+#. Create the ``pagination-tutorial`` index with dynamic mappings. To
+   learn how to create an index, see
+   :ref:`ref-create-index-programmatically`
+#. Connect to your cluster using {+mongosh+} and switch to the
+   ``sample_mflix`` database
 
 .. note:: 
 
@@ -328,6 +342,10 @@ This examples demonstrate how to do the following tasks:
       .. output:: /includes/fts/sequential-pagination/point-of-ref-mongosh-query-results.json
          :language: json
          :visible: false
+
+   .. note:: Count Search Results
+
+      .. include:: /includes/fts/sequential-pagination/count-search-results.rst
 
 .. _sequential-pagination-tutorial-after-query:
 
