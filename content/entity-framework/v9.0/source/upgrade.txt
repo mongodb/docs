@@ -1,0 +1,169 @@
+.. _entity-framework-upgrade-provider:
+
+========================
+Upgrade Provider Version
+========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: breaking change, update, version
+
+Overview
+--------
+
+In this section, you can identify essential changes you must make to your
+application when you upgrade your provider to a new version.
+
+Before you upgrade, perform the following actions:
+
+- Ensure the new version is compatible with the {+mdb-server+} version
+  your application connects to and the {+language-dotnet+} version your
+  application runs on. See the :driver:`Compatibility </compatibility/?driver-language=csharp&csharp-driver-framework=entity-framework>` page
+  for this information.
+- Address any breaking changes between the current version of the provider
+  your application is using and your planned upgrade version in the
+  :ref:`Breaking Changes <entity-framework-breaking-changes>` section.
+
+.. _entity-framework-breaking-changes:
+
+Breaking Changes
+----------------
+
+A breaking change is a modification of a convention or a behavior starting in
+a specific version of the provider. This type of change might prevent your application from
+working properly if not addressed before upgrading the provider.
+
+The breaking changes in this section are categorized by the provider version that
+introduced them. When upgrading provider versions, address all the breaking
+changes between the current and upgrade versions. For example, if you
+are upgrading the provider from v8.0 to v8.5, address all breaking changes from
+the version after v8.0, including any listed under v8.5.
+
+.. _entity-framework-breaking-changes-v9.0:
+
+Version 9.0.0 Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Version 9.0.0 of the {+provider-short+} includes the same breaking changes as
+version 8.3.0 of the {+provider-short+}.
+
+For more information about the breaking changes in version 9.0.0 and how to
+address them, see the :ref:`entity-framework-breaking-changes-v8.3` section.
+
+.. _entity-framework-breaking-changes-v8.3:
+
+Version 8.30.0 Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Version 8.3.0 of the {+provider-short+} introduces a breaking change that
+corrects the handling of nullable properties configured with an alternative BSON
+representation. In previous versions, configurations set by the
+``[BsonRepresentation]`` attribute or the ``HasBsonRepresentation()`` fluent API
+were not applied. 
+
+You can take action to address this discrepency in one of two ways:
+
+- If using the alternative BSON representation is not critical, remove the
+  configuration from your application before it starts.
+
+- Alternatively, you can update the affected elments to the new representation.
+  As part of your upgrade process, use the ``updateMany`` method for each
+  affected MongoDB collection to rewrite any affected nullable properties or
+  elements into the desired BSON representation using the ``$convert``
+  operation.
+
+  For example, you can convert a ``dateOfBirth`` element in a collection named
+  ``people`` from a BSON ``date`` into BSON ``int`` as shown in the following
+  code:
+
+  .. code-block:: csharp
+
+      db.people.updateMany(
+        { dateOfBirth: {$type: "date" } },
+        [
+          { $set: { 
+              dateOfBirth: 
+                { $convert: 
+                  { input: "$dateOfBirth", 
+                    to: "int", 
+                    onNull: null 
+                  } 
+                } 
+            } 
+          }
+        ]
+      )
+
+.. _entity-framework-breaking-changes-v8.2:
+
+Version 8.2.0 Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Version 8.2.0 of the {+provider-short+} does not directly introduce any breaking
+changes. However, the underlying {+csharp-driver-short+} introduces many
+potentially breaking changes in the v3.0 release, which might affect your
+application. To learn more about the breaking changes in v3.0 of the
+{+csharp-driver-short+}, see the `Upgrade to Version 3.0 guide
+<{+driver-docs-root+}/upgrade/v3/>`__ 
+in the {+csharp-driver-short+} documentation.
+
+
+.. _entity-framework-breaking-changes-v8.1:
+
+Version 8.1.0 Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Updated the {+provider-short+} to run all changes as MongoDB transactions. If your
+  application uses {+mdb-server+} earlier than v5.0, or does not run in a
+  replica set, you must make the following changes to your application:
+
+  - If your application is configured for a {+mdb-server+} version earlier than v5.0, you
+    must upgrade to {+mdb-server+} v5.0 or later.
+  - If your application runs on a standalone server, you must reconfigure your
+    standalone server to a single-instance replica set. To learn more about how
+    to reconfigure your standalone server, see
+    :manual:`Convert a Standalone Self-Managed mongod to a Replica Set </tutorial/convert-standalone-to-replica-set>` in the
+    {+mdb-server+} manual.
+  - If your application runs in a container environment, switch to a
+    single-instance replica set container if one is available.
+
+  To avoid snapshot issues during transactions, call the ``EnsureCreated()`` or
+  ``EnsureCreatedAsync()`` method during your application start-up, rather than
+  creating the collection or database
+  implicitly.
+
+  .. note::
+
+     Calling the ``EnsureCreated()`` or ``EnsureCreatedAsync()`` method throws
+     an error if your application is running on a
+     :atlas:`shared cluster </reference/free-shared-limitations/>`.
+     Applications running on free and shared clusters should not call these
+     methods. 
+
+  If you don't want to ensure :wikipedia:`optimistic concurrency
+  <Optimistic_concurrency_control>` with transactions, you can
+  disable automatic transactions by setting ``Database.AutoTransactionBehavior =
+  AutoTrasactionBehavior.Never`` on your ``DbContext`` subclass during your
+  application setup.
+
+- Changed the default GUID storage format from ``CSharpLegacy`` binary format
+  to ``Standard`` format. If your database contains existing GUIDs that are not
+  in ``Standard`` format, we recommend converting them to ``Standard`` format.
+
+- The ``CamelCaseElementNameConvention`` converts the casing of owned entities
+  based on their property name instead of their class name. If your application
+  uses the ``CamelCaseElementNameConvention``, the casing of your data might change.
+
+For more information about the breaking changes in this version, see the
+:github:`Breaking Changes
+<mongodb/mongo-efcore-provider/blob/main/BREAKING-CHANGES.md>` section
+of the provider repository on GitHub.

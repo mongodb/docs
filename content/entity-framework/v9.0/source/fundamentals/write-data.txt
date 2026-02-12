@@ -1,0 +1,187 @@
+.. _entity-framework-write-data:
+
+=====================
+Write Data to MongoDB
+=====================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: EF, EF Core, code example, write
+   :description: Perform write operations in MongoDB using Entity Framework Core, including inserting, updating, and deleting data with `SaveChanges()` or `SaveChangesAsync()`.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+{+framework-core+} allows you to work with data in your application without
+explicitly running database commands. You can insert, update, or delete data
+within your application and persist those changes to MongoDB by using the
+``SaveChanges()`` or ``SaveChangesAsync()`` method.
+
+When you call the ``SaveChanges()`` or ``SaveChangesAsync()`` method, the {+provider-short+} automatically detects
+any changes made to your data and runs the necessary commands to update the
+database by using the MongoDB Query API.
+
+In this guide, you can see examples of how to perform common write operations on
+an application configured to use the {+provider-short+}.
+
+.. tip::
+
+   To learn how to configure an application to use the {+provider-short+}, see
+   :ref:`entity-framework-configure`.
+
+Transactional Write Operations
+-------------------------------
+
+The ``SaveChanges()`` and ``SaveChangesAsync()`` methods are transactional by
+default. This means that if an error occurs during an operation, the provider
+rolls back any changes made to the database. Because of this, your application
+must be connected to a transaction-capable deployment of MongoDB server, such as
+a replica set.
+
+You can disable automatic transactions in the ``SaveChanges()`` and
+``SaveChangesAsync()`` methods by setting the ``AutoTransactionBehavior`` property to
+``AutoTransaction.Never`` on your ``DbContext`` subclass during application
+setup. However, we do not recommend disabling this feature. Doing so causes
+any concurrency changes or operation failures during the save operation
+to leave the database in an inconsistent state.
+
+The following example shows how to disable automatic transactions in the
+``SaveChanges()`` and ``SaveChangesAsync()`` methods:
+
+.. code-block:: csharp
+
+   dbContext.Database.AutoTransactionBehavior = AutoTransactionBehavior.Never;
+
+.. warning::
+
+   Disabling automatic transactions can lead to data inconsistencies. We
+   recommend that you do not disable this feature.
+
+Insert
+------
+
+You can use the ``Add()`` method to insert a single entity into your collection, 
+or you can use the ``AddRange()`` method to insert multiple entities at once. 
+
+.. _entity-framework-insert-one:
+
+Insert One Entity
+~~~~~~~~~~~~~~~~~
+
+The ``Add()`` method accepts a single entity of the same type that you
+specified on the ``DbSet`` instance that you are modifying.
+
+The following code uses the ``Add()`` method to add a new ``Planet`` object to
+the ``DbSet`` called ``Planets``. It then calls the ``SaveChanges()`` method to
+insert that entity into the MongoDB collection.
+
+.. literalinclude:: /includes/code-examples/quick-reference.cs
+   :start-after: // start-insert-one
+   :end-before: // end-insert-one
+   :language: csharp
+   :dedent:
+
+
+.. _entity-framework-insert-multiple:
+
+Insert Multiple Entities
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``AddRange()`` method accepts an array of entities that you want to add to the ``DbSet``. 
+
+The following code uses the ``AddRange()`` method to add an array of ``Planet``
+objects to the ``DbSet`` called ``Planets``. It then calls the ``SaveChanges()``
+method to insert those entities into the MongoDB collection.
+
+.. literalinclude:: /includes/code-examples/quick-reference.cs
+   :start-after: // start-insert-many
+   :end-before: // end-insert-many
+   :language: csharp
+   :dedent:
+
+.. _entity-framework-update:
+
+Update
+------
+
+To update an entity, first retrieve the entity that you want to update. Then
+make the changes to that entity. The provider tracks any changes made to the entity, such as setting
+properties or adding and removing items from fields with list values. To save the update to
+MongoDB, call the ``SaveChanges()`` method. The {+provider-short+} compares the updated entity with a
+snapshot of the entity before the change and automatically updates the collection
+by using the MongoDB Query API.
+
+The following code retrieves an entity in which the ``name`` value is
+``"Mercury"``, then updates the ``name`` field. The code then calls the ``SaveChanges()``
+method to persist that change to the collection.
+
+.. literalinclude:: /includes/code-examples/quick-reference.cs
+   :start-after: // start-update-one
+   :end-before: // end-update-one
+   :language: csharp
+   :dedent:
+
+Delete
+------
+
+You can use the ``Remove()`` method to delete a single entity from your
+collection, or the ``RemoveRange()`` method to delete multiple entities at
+once.
+
+.. _entity-framework-delete-one:
+
+Delete One Entity
+~~~~~~~~~~~~~~~~~
+
+The ``Remove()`` method accepts a single entity of the same type that you
+specified on the ``DbSet`` instance that you are modifying.
+
+The following code removes a ``Planet`` entity in which the ``name`` value is
+``"Pluto"``. It then calls the ``SaveChanges()`` method to delete that entity from
+the MongoDB collection.
+
+.. literalinclude:: /includes/code-examples/quick-reference.cs
+   :start-after: // start-delete-one
+   :end-before: // end-delete-one
+   :language: csharp
+   :dedent:
+
+.. _entity-framework-delete-multiple:
+
+Delete Multiple Entities
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``RemoveRange()`` method accepts an array of entities to remove from the
+``DbSet``. 
+
+The following code finds two ``Planet`` entities and adds them to an array. It
+then uses the ``RemoveRange()`` method to remove both entities from the
+``DbSet``. Finally, it uses the ``SaveChanges()`` method to remove those
+entities from the MongoDB collection.
+
+.. literalinclude:: /includes/code-examples/quick-reference.cs
+   :start-after: // start-delete-many
+   :end-before: // end-delete-many
+   :language: csharp
+   :dedent:
+
+Additional Information
+----------------------
+
+To learn more about the methods discussed in this guide, see the following {+language-dotnet+} API
+documentation links:
+
+- `SaveChanges() <https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext.saveChanges>`__
+- `Add() <https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext.add>`__
+- `AddRange() <https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext.addRange>`__
+- `Remove() <https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext.remove>`__
+- `RemoveRange() <https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontext.removeRange>`__
