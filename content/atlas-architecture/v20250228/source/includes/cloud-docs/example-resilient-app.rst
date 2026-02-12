@@ -50,7 +50,7 @@ http://localhost:3000:
          const express = require('express');
          const bodyParser = require('body-parser');
 
-         // Use the latest drivers by installing & importing them
+         // Use the latest client libraries by installing & importing them
          const MongoClient = require('mongodb').MongoClient;
 
          const app = express();

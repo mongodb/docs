@@ -26,7 +26,7 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
-        label: 'Drivers',
+        label: 'Client Libraries',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/driver-connection',
       },

@@ -6,7 +6,7 @@ this page to reduce data operation latency:
 
 - Specify an operation time limit with the :manual:`maxTimeMS 
   </tutorial/terminate-running-operations/#maxtimems>` method. For instructions 
-  on how to set ``maxTimeMS``, refer to your specific :driver:`Driver 
+  on how to set ``maxTimeMS``, refer to your specific :driver:`Client Library 
   Documentation <>`.
 
 - Handle errors for duplicate keys and timeouts.
@@ -50,7 +50,7 @@ http://localhost:3000:
          const express = require('express');
          const bodyParser = require('body-parser');
 
-         // Use the latest drivers by installing & importing them
+         // Use the latest client libraries by installing & importing them
          const MongoClient = require('mongodb').MongoClient;
 
          const app = express();
