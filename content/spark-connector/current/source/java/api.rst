@@ -5,40 +5,25 @@ Dependency Management
 
 .. include:: /includes/scala-java-dependencies.rst
 
-Beginning in version 3.2.0, Apache Spark supports both Scala 2.12 and 2.13.
-Spark 3.1.3 and previous versions support only Scala 2.12.
-To provide support for both Scala versions, version {+current-version+} of the Spark 
-Connector produces two artifacts:
-
-- ``org.mongodb.spark:{+artifact-id-2-12+}:{+current-version+}`` is 
-  compiled against Scala 2.12, and supports Spark 3.1.x and above.  
-- ``org.mongodb.spark:{+artifact-id-2-13+}:{+current-version+}`` is 
-  compiled against Scala 2.13, and supports Spark 3.2.x and above.
-
-.. important::
-   
-   Use the Spark Connector artifact that's compatible with your
-   versions of Scala and Spark.  
-
-The following excerpt from a Maven ``pom.xml`` file shows how to include dependencies 
-compatible with Scala 2.12:
+The following example shows how to include these dependencies in
+a Maven ``pom.xml`` file:
 
 .. code-block:: xml
    
    <dependencies>
      <dependency>
        <groupId>org.mongodb.spark</groupId>
-       <artifactId>{+artifact-id-2-12+}</artifactId>
+       <artifactId>{+artifact-id+}</artifactId>
        <version>{+current-version+}</version>
      </dependency>
      <dependency>
        <groupId>org.apache.spark</groupId>
-       <artifactId>spark-core_2.12</artifactId>
+       <artifactId>spark-core_2.13</artifactId>
        <version>{+spark-core-version+}</version>
      </dependency>
      <dependency>
        <groupId>org.apache.spark</groupId>
-       <artifactId>spark-sql_2.12</artifactId>
+       <artifactId>spark-sql_2.13</artifactId>
        <version>{+spark-sql-version+}</version>
      </dependency>
    </dependencies>
