@@ -1,19 +1,7 @@
 .. procedure::
    :style: normal
       
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-      
-   .. step:: Open the :guilabel:`Create New Cluster` Dialog.
-
-      - If you already have one or more {+database-deployments+}, click
-        :guilabel:`Create` to display the 
-        :guilabel:`Create New Cluster` dialog box.
-      - If this is your first {+database-deployment+}:
-        
-        a. Click :guilabel:`Build a Database`.
-        #. Click :guilabel:`advanced configuration options` at the top of
-           the screen to display the
-           :guilabel:`Create New Cluster` dialog box.
+   .. include:: /includes/nav/steps-create-new-cluster.rst
       
    .. step:: Open Advanced Configuration.
       

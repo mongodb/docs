@@ -210,6 +210,11 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/tutorial/create-new-cluster',
       },
       {
+        label: 'AI Cluster Assistant',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/ai-cluster-assistant',
+      },
+      {
         label: 'Create a Global Cluster',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/tutorial/create-global-cluster',
