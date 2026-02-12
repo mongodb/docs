@@ -2,7 +2,7 @@
 
    *Type*: string
 
-   *Default*: https://email.us-east-1.amazonaws.com
+   *Default*: ``https://email.us-east-1.amazonaws.com``
 
    
    Sets the `sending API endpoint
@@ -11,4 +11,7 @@
    
    Corresponds to :setting:`aws.ses.endpoint`.
    
-
+   .. note::
+   
+      If you use |aws| |ses| in a region other than US East (N. Virginia),
+      you must set this value to the appropriate endpoint for your region.
