@@ -3845,6 +3845,11 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/operator/aggregation/subtract',
           },
           {
+            label: '$subtype',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/operator/aggregation/subtype',
+          },
+          {
             label: '$switch',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/switch',
