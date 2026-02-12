@@ -21,7 +21,13 @@ Install and use With MongoDB Community Edition
 You can use the |k8s-op-short| and deploy the ``mongot`` process
 resources to run with MongoDB Community Edition v8.2.0 or higher on a
 |k8s| cluster. The ``mongot`` process supports both |text-search| and
-|vector-search|. The following procedure demonstrates how to deploy and
+|vector-search|. Optionally, you can enable and configure |vector-search| 
+to automatically generate vector embeddings for text data in your 
+collections and queries using a supported |voyage| embedding model. 
+
+.. include:: /includes/admonitions/important-mdb-search-auto-embed-preview.rst
+
+The following procedure demonstrates how to deploy and
 configure |text-search| and |vector-search| to run with a new or
 existing replica set in your |k8s| cluster. The deployment uses |tls|
 certificates to ensure secure communication between MongoDB nodes and
@@ -41,6 +47,8 @@ following:
   management solution for |tls| certificate provisioning.
 - Bash v5.1 or higher for running the commands in this tutorial. 
 
+.. include:: /includes/facts/fact-mdb-search-auto-embed.rst
+
 Procedure 
 ---------
 
@@ -57,6 +65,27 @@ Procedure
          :language: yaml 
          :copyable: true 
          :linenos: 
+
+      .. note:: 
+
+         If you have the |api| keys to enable |vector-search| to automatically 
+         generate embeddings, replace the following placeholder values in the 
+         environment variables: 
+
+         .. list-table:: 
+            :stub-columns: 1 
+
+            * - ``AUTO_EMBEDDING_API_QUERY_KEY``
+              - |api| key for generating embeddings for the query text. 
+            * - ``AUTO_EMBEDDING_API_INDEXING_KEY``
+              - |api| key for generating embeddings for text data in your 
+                collection at index-time.
+            * - ``PROVIDER_ENDPOINT``
+              - Embedding model provider's endpoint. Value defaults to 
+                ``https://ai.mongodb.com/v1/embeddings`` for keys created 
+                from the Atlas UI. Replace with 
+                ``https://api.voyageai.com/v1/embeddings`` if you created 
+                the |api| keys directly from |voyage|.
 
       .. collapsible::
          :heading: Optional
@@ -291,7 +320,9 @@ Procedure
    .. step:: Required. Create and deploy the resource for |text-search| and |vector-search|.
 
       You can deploy one instance of the search node without any load
-      balancing. To deploy, complete the following steps: 
+      balancing. 
+      
+      To deploy, complete the following steps: 
 
       a. Create a MongoDBSearch custom resource named ``mdbc-rs``.
 
@@ -299,10 +330,29 @@ Procedure
          requirements for the search nodes. To learn more about the
          settings in this custom resource, see :ref:`k8s-fts-vs-settings`.
 
-         .. literalinclude:: /includes/code-examples/search/01-search-community-deploy/code_snippets/01_0320_create_mongodb_search_resource.sh
-            :language: shell 
-            :copyable: true 
-            :linenos:
+         .. _k8s-fts-vs-community-crd:
+
+         .. tabs:: 
+
+            .. tab:: With Automated Embedding 
+               :tabid: with-auto-embed
+
+               .. literalinclude:: /includes/code-examples/search/01-search-community-deploy/code_snippets/01_0322_create_auto_embed_mongodb_search_resource.sh
+                  :language: shell 
+                  :copyable: true 
+                  :linenos:
+
+               .. note:: 
+
+                  Since the |k8s-op-short| only deploys single instance of MongoDB Search, that instance is automatically configured as the embedding materialized View writer.
+
+            .. tab:: Without Automated Embedding 
+               :tabid: without-auto-embed
+
+               .. literalinclude:: /includes/code-examples/search/01-search-community-deploy/code_snippets/01_0320_create_mongodb_search_resource.sh
+                  :language: shell 
+                  :copyable: true 
+                  :linenos:
 
       #. Wait for the MongoDBSearch resource deployment to
          complete.
