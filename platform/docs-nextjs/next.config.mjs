@@ -10,6 +10,7 @@ const withPWA = withPWAInit({
   workboxOptions: {
     disableDevLogs: true,
   },
+  disable: process.env.BUILD_STATIC_PAGES === 'true',
 });
 
 const nextConfig = {
@@ -65,4 +66,21 @@ const nextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+const staticExportConfig = {
+  output: 'export',
+  trailingSlash: true,
+  // Only files with extension .offline.tsx / .offline.ts are built for static export.
+  // See: https://github.com/vercel/next.js/discussions/51891#discussioncomment-6297178
+  pageExtensions: ['offline.tsx', 'offline.ts'],
+  compiler: {
+    emotion: true,
+  },
+  experimental: {
+    optimizePackageImports: ['@leafygreen-ui/emotion'],
+  },
+  images: {
+    unoptimized: true,
+  },
+};
+
+export default process.env.BUILD_STATIC_PAGES === 'true' ? staticExportConfig : withPWA(nextConfig);
