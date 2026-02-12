@@ -22,12 +22,6 @@
 
        .. include:: /includes/fact-restore-doesnt-include-selected-time.rst
 
-       :gold:`IMPORTANT:` In FCV 4.0, you cannot perform a 
-       :abbr:`PIT(Point in Time)` restore that covers any time prior to
-       the latest backup resync. For the conditions that cause a
-       resync, see :ref:`resync-backup`. This note does not apply to
-       FCV 4.2 or later.
-
      - Select a :guilabel:`Date` and :guilabel:`Time`.
 
    * - :guilabel:`Oplog Timestamp`

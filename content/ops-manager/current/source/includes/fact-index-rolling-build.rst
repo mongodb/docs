@@ -31,12 +31,6 @@ building indexes on :manual:`replica sets </reference/glossary/#std-term-replica
 availability, |mms| removes one node from the cluster at a time
 starting with a :manual:`secondary </reference/glossary/#std-term-secondary>`.
 
-After you build an index in a rolling fashion, if your MongoDB database
-runs with an |fcv-link|
-less than ``4.2``, :doc:`resync the head database 
-</tutorial/resync-backup>` to ensure that the head database takes the 
-new index into account.
-
 |mms| automatically cancels rolling index builds 
 that don't succeed on all nodes. When a rolling index build completes 
 on some nodes, but fails on others, |mms| cancels the build
