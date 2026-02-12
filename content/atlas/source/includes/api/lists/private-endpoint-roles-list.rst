@@ -1,2 +1,0 @@
-- :authrole:`Organization Owner`
-- :authrole:`Project Owner`
