@@ -244,6 +244,12 @@
          .. important::
          
             .. include:: /includes/fact-online-archive-index-sufficiency-warning.rst
+
+         .. note:: 
+
+            MongoDB stores time-series data in bucket documents. Each bucket represents many logical measurements from your time-series collection. MongoDB column-compresses each bucket before writing it to WiredTiger pages. WiredTiger then  :wtdocs-v5.0:`block-compresses </compression.html>` the pages for additional compression efficiency.
+            
+            MongoDB :ref:`Online Archive <online-archive-overview>` only operates on full bucket documents, never adding or removing individual measurements from each document. This prevents fragmentation and maintains column compression efficiency for each bucket. 
       
    .. step:: Specify how many days you want to store data in the online archive and a time window when you want |service| to run the archiving job.
       
