@@ -167,7 +167,7 @@ const tocData: TocItem[] = [
                 label: '$sessionWindow',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/atlas-stream-processing/sp-agg-session',
-              },	      
+              },
               {
                 label: '$setStreamMeta',
                 contentSite: 'cloud-docs',

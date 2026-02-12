@@ -1,0 +1,148 @@
+.. _mcp-server-configuration-memory-overflow:
+
+==================================
+MongoDB MCP Server Memory Overflow
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. meta::
+   :keywords: MCP Server configuration, MCP, Model Context Protocol, AI, natural language, MCP Server, AI agents, Claude, Windsurf, Cursor, Visual Studio Code, Memory Overflow
+   :description: How to configure the MongoDB MCP Server to guard against memory overflow
+
+.. facet::
+   :name: genre
+   :values: reference
+
+When the MongoDB MCP server runs tools like ``find`` and ``aggregate``, it must
+temporarily hold query results in memory before it returns them to the client.
+These operations can consume more memory than is available and risk an
+out-of-memory crash or server performance degradation if they:
+
+- Fetch too many documents.
+- Fetch very large documents.
+- Run on a server handling multiple concurrent tool calls.
+
+To mitigate these issues, the MCP server uses:
+
+- Hard, configurable caps on the memory used and returned by a query or
+  aggregation.
+- A dedicated cursor iterator that tracks document count and memory usage
+  as it reads from MongoDB and stops reading before it crosses the configured
+  limits.
+
+Together, these protections are designed to prevent a single tool call from
+exhausting server memory and encourage patterns that return only data
+the LLM can realistically use within its context window.
+
+Configurations
+--------------
+
+The MCP server provides configuration points that control how much data a 
+single tool call is allowed to retrieve and hold in memory. These fall into 
+two groups:
+
+- Server limits: Apply to all tool calls handled by the server.
+- Tool call limits: Set per tool call by the client or agent.
+
+.. _mcp-server-server-memory-limits:
+
+Server Limits 
+~~~~~~~~~~~~~
+
+Server limits are configured on the MCP server are used as the upper bound on
+memory use for all ``find`` and ``aggregate`` calls. The following table
+describes the server configurations available to limit memory use:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 25 10 40
+
+   * - CLI Option Name
+     - OS Environment Variable Name
+     - Default
+     - Description
+
+   * - ``maxBytesPerQuery``
+     - ``MDB_MCP_MAX_BYTES_PER_QUERY``
+     - ``16777216``
+     - Maximum size in bytes for results from a find or aggregate tool call.
+       ``MDB_MCP_MAX_BYTES_PER_QUERY`` serves as an upper bound for the 
+       ``responseBytesLimit`` parameter of ``find`` and ``aggregate``.
+
+   * - ``maxDocumentsPerQuery``
+     - ``MDB_MCP_MAX_DOCUMENTS_PER_QUERY``
+     - ``100``
+     - Maximum number of documents that can be returned by a find or
+       aggregate tool call. For the find tool, the effective limit will be the
+       smaller of this value and the :ref:`tool's limit <mcp-server-tool-call-memory-limits>`.
+
+.. _mcp-server-tool-call-memory-limits:
+
+Tool Call Limits
+~~~~~~~~~~~~~~~~
+
+Individual tool calls can also control the amount of data requested. The
+following table describes the tool call parameters available to limit
+memory use:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 25 10 40
+
+   * - Parameter
+     - Tool
+     - Default
+     - Description
+
+   * - ``limit``
+     - ``find``
+     - ``10``
+     - Maximum number of documents that the ``find`` call can return.
+
+       ``find.limit`` is combined with the 
+       :ref:`server-wide limit <mcp-server-server-memory-limits>`
+       ``maxDocumentsPerQuery`` such that the effective document limit
+       for the ``find`` response is the smaller of the two values.
+
+   * - ``responseBytesLimit``
+     - ``find`` and ``aggregate``
+     - ``1 MB``
+     - Maximum payload that the find or aggregate tool call can return.
+
+       ``responseBytesLimit`` is combined with the
+       :ref:`server-wide limit <mcp-server-server-memory-limits>`
+       ``maxBytesPerQuery`` such that the effective limit for the tool
+       call response is the smaller of the two values.
+
+Memory Overflow Behavior
+------------------------
+
+If any of the configured limits are reached while the cursor reads documents
+from MongoDB, the MongoDB MCP server stops fetching additional documents and
+returns the partial result set collected.
+
+Reaching the configured memory or document limits before all documents are 
+fetched can result in receiving fewer documents than you requested. You may 
+need to:
+
+- Issue follow-up calls with adjusted parameters.
+- Reduce the volume of data returned to the LLM. For example, by using
+  aggregation stages.
+
+Learn More
+----------
+
+- :ref:`mcp-server-configuration-options`
+- :ref:`mcp-server-configuration-methods`
+- :ref:`mcp-server-configuration-enable-or-disable-features`
+- :ref:`mcp-server-configuration-export-data`
+- :ref:`mcp-server-configuration-standalone-service`
+- :ref:`mcp-server-configuration-memory-overflow`
+- :ref:`mcp-server-configuration-troubleshooting`

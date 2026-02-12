@@ -58,6 +58,11 @@ const tocData: TocItem[] = [
             url: '/docs/mcp-server/configuration/standalone-service',
           },
           {
+            label: 'Memory Overflow',
+            contentSite: 'mcp-server',
+            url: '/docs/mcp-server/configuration/memory-overflow',
+          },
+          {
             label: 'Troubleshooting',
             contentSite: 'mcp-server',
             url: '/docs/mcp-server/configuration/troubleshooting',
