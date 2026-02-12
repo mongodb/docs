@@ -1,7 +1,6 @@
 
 * :authrole:`GROUP_AUTOMATION_ADMIN <Project Automation Admin>`
 * :authrole:`GROUP_BACKUP_ADMIN <Project Backup Admin>`
-* ``GROUP_BILLING_ADMIN``
 * :authrole:`GROUP_DATA_ACCESS_ADMIN <Project Data Access Admin>`
 * :authrole:`GROUP_DATA_ACCESS_READ_ONLY <Project Data Access Read Only>`
 * :authrole:`GROUP_DATA_ACCESS_READ_WRITE <Project Data Access Read/Write>`
