@@ -54,7 +54,6 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-clusters-autoScalingConfiguration` - Returns the internal configuration of AutoScaling for sharded clusters.
 * :ref:`atlas-api-clusters-createCluster` - Creates one cluster in the specified project.
 * :ref:`atlas-api-clusters-deleteCluster` - Removes one cluster from the specified project.
 * :ref:`atlas-api-clusters-getCluster` - Returns the details for one cluster in the specified project.
@@ -78,7 +77,6 @@ Related Commands
 .. toctree::
    :titlesonly:
 
-   autoScalingConfiguration </command/atlas-api-clusters-autoScalingConfiguration>
    createCluster </command/atlas-api-clusters-createCluster>
    deleteCluster </command/atlas-api-clusters-deleteCluster>
    getCluster </command/atlas-api-clusters-getCluster>

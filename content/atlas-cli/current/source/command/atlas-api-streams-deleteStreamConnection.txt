@@ -12,7 +12,7 @@ atlas api streams deleteStreamConnection
    :depth: 1
    :class: singlecol
 
-Delete one connection of the specified stream instance.
+Delete one connection of the specified stream workspace.
 
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
@@ -47,7 +47,7 @@ Options
    * - --connectionName
      - string
      - true
-     - Human-readable label that identifies the stream connection.
+     - Label that identifies the stream connection.
    * - --envelope
      - envelope
      - false
@@ -77,7 +77,7 @@ Options
    * - --tenantName
      - string
      - true
-     - Human-readable label that identifies the stream instance.
+     - Label that identifies the stream workspace.
    * - --version
      - string
      - false

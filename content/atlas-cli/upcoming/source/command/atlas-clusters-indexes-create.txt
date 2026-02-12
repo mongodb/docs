@@ -14,6 +14,8 @@ atlas clusters indexes create
 
 Create a rolling index for the specified cluster for your project.
 
+Warning: Building an index in a rolling fashion reduces the resiliency of your cluster and increases index build times. We only recommend using rolling index builds when regular index builds do not meet your needs.
+
 To use this command, you must authenticate with a user account, a service account, or an API key with the Project Data Access Admin role.
 
 Syntax

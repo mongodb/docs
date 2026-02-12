@@ -12,7 +12,7 @@ atlas api streams listStreamWorkspaces
    :depth: 1
    :class: singlecol
 
-Returns all stream instances for the specified project.
+Returns all stream workspaces for the specified project.
 
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.

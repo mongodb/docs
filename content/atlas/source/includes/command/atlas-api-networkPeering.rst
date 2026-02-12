@@ -58,7 +58,6 @@ Related Commands
 * :ref:`atlas-api-networkPeering-createGroupPeer` - Creates one new network peering connection in the specified project.
 * :ref:`atlas-api-networkPeering-deleteGroupContainer` - Removes one network peering container in the specified project.
 * :ref:`atlas-api-networkPeering-deleteGroupPeer` - Removes one network peering connection in the specified project.
-* :ref:`atlas-api-networkPeering-disablePeering` - Disables Connect via Peering Only mode for the specified project.
 * :ref:`atlas-api-networkPeering-getGroupContainer` - Returns details about one network peering container in one specified project.
 * :ref:`atlas-api-networkPeering-getGroupPeer` - Returns details about one specified network peering connection in the specified project.
 * :ref:`atlas-api-networkPeering-listGroupContainerAll` - Returns details about all network peering containers in the specified project.
@@ -66,7 +65,6 @@ Related Commands
 * :ref:`atlas-api-networkPeering-listGroupPeers` - Returns details about all network peering connections in the specified project.
 * :ref:`atlas-api-networkPeering-updateGroupContainer` - Updates the network details and labels of one specified network peering container in the specified project.
 * :ref:`atlas-api-networkPeering-updateGroupPeer` - Updates one specified network peering connection in the specified project.
-* :ref:`atlas-api-networkPeering-verifyPrivateIpMode` - Verifies if someone set the specified project to Connect via Peering Only mode.
 
 
 .. toctree::
@@ -76,7 +74,6 @@ Related Commands
    createGroupPeer </command/atlas-api-networkPeering-createGroupPeer>
    deleteGroupContainer </command/atlas-api-networkPeering-deleteGroupContainer>
    deleteGroupPeer </command/atlas-api-networkPeering-deleteGroupPeer>
-   disablePeering </command/atlas-api-networkPeering-disablePeering>
    getGroupContainer </command/atlas-api-networkPeering-getGroupContainer>
    getGroupPeer </command/atlas-api-networkPeering-getGroupPeer>
    listGroupContainerAll </command/atlas-api-networkPeering-listGroupContainerAll>
@@ -84,4 +81,3 @@ Related Commands
    listGroupPeers </command/atlas-api-networkPeering-listGroupPeers>
    updateGroupContainer </command/atlas-api-networkPeering-updateGroupContainer>
    updateGroupPeer </command/atlas-api-networkPeering-updateGroupPeer>
-   verifyPrivateIpMode </command/atlas-api-networkPeering-verifyPrivateIpMode>

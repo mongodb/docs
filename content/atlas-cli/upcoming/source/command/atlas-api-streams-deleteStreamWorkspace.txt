@@ -12,7 +12,7 @@ atlas api streams deleteStreamWorkspace
    :depth: 1
    :class: singlecol
 
-Delete one stream instance in the specified project.
+Delete one stream workspace in the specified project.
 
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
@@ -73,7 +73,7 @@ Options
    * - --tenantName
      - string
      - true
-     - Human-readable label that identifies the stream instance to delete.
+     - Label that identifies the stream workspace to delete.
    * - --version
      - string
      - false

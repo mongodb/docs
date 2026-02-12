@@ -12,7 +12,7 @@ atlas api streams getStreamWorkspace
    :depth: 1
    :class: singlecol
 
-Returns the details of one stream instance within the specified project.
+Returns the details of one stream workspace within the specified project.
 
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
@@ -61,7 +61,7 @@ Options
    * - --includeConnections
      -
      - false
-     - Flag to indicate whether connections information should be included in the stream instance.
+     - Flag to indicate whether connections information should be included in the stream workspace.
    * - -o, --output
      - string
      - false
@@ -73,7 +73,7 @@ Options
    * - --tenantName
      - string
      - true
-     - Human-readable label that identifies the stream instance to return.
+     - Label that identifies the stream workspace to return.
    * - --version
      - string
      - false

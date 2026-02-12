@@ -55,7 +55,6 @@ Related Commands
 ----------------
 
 * :ref:`atlas-api-teams-addGroupTeams` - Adds one or more teams to the specified project.
-* :ref:`atlas-api-teams-addTeamUsers` - Adds one or more MongoDB Cloud users from the specified organization to the specified team.
 * :ref:`atlas-api-teams-createOrgTeam` - Creates one team in the specified organization.
 * :ref:`atlas-api-teams-deleteOrgTeam` - Removes one team specified using its unique 24-hexadecimal digit identifier from the organization specified using its unique 24-hexadecimal digit identifier.
 * :ref:`atlas-api-teams-getGroupTeam` - Returns one team to which the authenticated user has access in the project specified using its unique 24-hexadecimal digit identifier.
@@ -64,7 +63,6 @@ Related Commands
 * :ref:`atlas-api-teams-listGroupTeams` - Returns all teams to which the authenticated user has access in the project specified using its unique 24-hexadecimal digit identifier.
 * :ref:`atlas-api-teams-listOrgTeams` - Returns all teams that belong to the specified organization.
 * :ref:`atlas-api-teams-removeGroupTeam` - Removes one team specified using its unique 24-hexadecimal digit identifier from the project specified using its unique 24-hexadecimal digit identifier.
-* :ref:`atlas-api-teams-removeUserFromTeam` - Removes one MongoDB Cloud user from the specified team.
 * :ref:`atlas-api-teams-renameOrgTeam` - Renames one team in the specified organization.
 * :ref:`atlas-api-teams-updateGroupTeam` - Updates the project roles assigned to the specified team.
 
@@ -73,7 +71,6 @@ Related Commands
    :titlesonly:
 
    addGroupTeams </command/atlas-api-teams-addGroupTeams>
-   addTeamUsers </command/atlas-api-teams-addTeamUsers>
    createOrgTeam </command/atlas-api-teams-createOrgTeam>
    deleteOrgTeam </command/atlas-api-teams-deleteOrgTeam>
    getGroupTeam </command/atlas-api-teams-getGroupTeam>
@@ -82,6 +79,5 @@ Related Commands
    listGroupTeams </command/atlas-api-teams-listGroupTeams>
    listOrgTeams </command/atlas-api-teams-listOrgTeams>
    removeGroupTeam </command/atlas-api-teams-removeGroupTeam>
-   removeUserFromTeam </command/atlas-api-teams-removeUserFromTeam>
    renameOrgTeam </command/atlas-api-teams-renameOrgTeam>
    updateGroupTeam </command/atlas-api-teams-updateGroupTeam>

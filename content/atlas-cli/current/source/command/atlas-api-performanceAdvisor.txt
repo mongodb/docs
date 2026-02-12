@@ -57,7 +57,6 @@ Related Commands
 * :ref:`atlas-api-performanceAdvisor-disableManagedSlowMs` - Disables the slow operation threshold that MongoDB Cloud calculated for the specified project.
 * :ref:`atlas-api-performanceAdvisor-enableManagedSlowMs` - Enables MongoDB Cloud to use its slow operation threshold for the specified project.
 * :ref:`atlas-api-performanceAdvisor-getManagedSlowMs` - Get whether the Managed Slow MS feature is enabled.
-
 * :ref:`atlas-api-performanceAdvisor-listClusterSuggestedIndexes` - Returns the indexes that the Performance Advisor suggests.
 * :ref:`atlas-api-performanceAdvisor-listDropIndexSuggestions` - Returns the indexes that the Performance Advisor suggests to drop.
 * :ref:`atlas-api-performanceAdvisor-listPerformanceAdvisorNamespaces` - Returns up to 20 namespaces for collections experiencing slow queries on the specified host.
@@ -65,13 +64,13 @@ Related Commands
 * :ref:`atlas-api-performanceAdvisor-listSlowQueryLogs` - Returns log lines for slow queries that the Performance Advisor and Query Profiler identified.
 * :ref:`atlas-api-performanceAdvisor-listSuggestedIndexes` - Returns the indexes that the Performance Advisor suggests.
 
+
 .. toctree::
    :titlesonly:
 
    disableManagedSlowMs </command/atlas-api-performanceAdvisor-disableManagedSlowMs>
    enableManagedSlowMs </command/atlas-api-performanceAdvisor-enableManagedSlowMs>
    getManagedSlowMs </command/atlas-api-performanceAdvisor-getManagedSlowMs>
-
    listClusterSuggestedIndexes </command/atlas-api-performanceAdvisor-listClusterSuggestedIndexes>
    listDropIndexSuggestions </command/atlas-api-performanceAdvisor-listDropIndexSuggestions>
    listPerformanceAdvisorNamespaces </command/atlas-api-performanceAdvisor-listPerformanceAdvisorNamespaces>

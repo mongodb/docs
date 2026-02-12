@@ -54,12 +54,18 @@ Inherited Options
 Related Commands
 ----------------
 
+* :ref:`atlas-api-queryShapeInsights-getClusterQueryShape` - Returns the details for a single query shape.
 * :ref:`atlas-api-queryShapeInsights-getQueryShapeDetails` - Returns the metadata and statistics summary for a given query shape hash.
+* :ref:`atlas-api-queryShapeInsights-listClusterQueryShapes` - Returns a list of query shapes for one cluster.
 * :ref:`atlas-api-queryShapeInsights-listQueryShapeSummaries` - Returns a list of query shape statistics summaries for a given cluster.
+* :ref:`atlas-api-queryShapeInsights-updateClusterQueryShape` - Updates the rejection status of a query shape.
 
 
 .. toctree::
    :titlesonly:
 
+   getClusterQueryShape </command/atlas-api-queryShapeInsights-getClusterQueryShape>
    getQueryShapeDetails </command/atlas-api-queryShapeInsights-getQueryShapeDetails>
+   listClusterQueryShapes </command/atlas-api-queryShapeInsights-listClusterQueryShapes>
    listQueryShapeSummaries </command/atlas-api-queryShapeInsights-listQueryShapeSummaries>
+   updateClusterQueryShape </command/atlas-api-queryShapeInsights-updateClusterQueryShape>

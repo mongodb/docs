@@ -12,7 +12,7 @@ atlas api streams withStreamSampleConnections
    :depth: 1
    :class: singlecol
 
-Creates one stream instance in the specified project with sample connections.
+Creates one stream workspace in the specified project with sample connections.
 
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.

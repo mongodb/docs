@@ -12,7 +12,7 @@ atlas api streams getStreamConnection
    :depth: 1
    :class: singlecol
 
-Returns the details of one stream connection within the specified stream instance.
+Returns the details of one stream connection within the specified stream workspace.
 
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
@@ -47,7 +47,7 @@ Options
    * - --connectionName
      - string
      - true
-     - Human-readable label that identifies the stream connection to return.
+     - Label that identifies the stream connection to return.
    * - --envelope
      - envelope
      - false
@@ -73,7 +73,7 @@ Options
    * - --tenantName
      - string
      - true
-     - Human-readable label that identifies the stream instance to return.
+     - Label that identifies the stream workspace to return.
    * - --version
      - string
      - false

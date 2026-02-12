@@ -59,11 +59,8 @@ Related Commands
 * :ref:`atlas-api-mongoDbCloudUsers-addOrgRole` - Adds one organization-level role to the MongoDB Cloud user.
 * :ref:`atlas-api-mongoDbCloudUsers-addOrgTeamUser` - Adds one MongoDB Cloud user to one team.
 * :ref:`atlas-api-mongoDbCloudUsers-createOrgUser` - Invites one new or existing MongoDB Cloud user to join the organization.
-* :ref:`atlas-api-mongoDbCloudUsers-createUser` - Creates one MongoDB Cloud user account.
 * :ref:`atlas-api-mongoDbCloudUsers-getGroupUser` - Returns information about the specified MongoDB Cloud user within the context of the specified project.
 * :ref:`atlas-api-mongoDbCloudUsers-getOrgUser` - Returns information about the specified MongoDB Cloud user within the context of the specified organization.
-* :ref:`atlas-api-mongoDbCloudUsers-getUser` - Returns the details for one MongoDB Cloud user account with the specified unique identifier for the user.
-* :ref:`atlas-api-mongoDbCloudUsers-getUserByName` - Returns the details for one MongoDB Cloud user account with the specified username.
 * :ref:`atlas-api-mongoDbCloudUsers-listGroupUsers` - Returns details about the pending and active MongoDB Cloud users associated with the specified project.
 * :ref:`atlas-api-mongoDbCloudUsers-listOrgUsers` - Returns details about the pending and active MongoDB Cloud users associated with the specified organization.
 * :ref:`atlas-api-mongoDbCloudUsers-listTeamUsers` - Returns details about the pending and active MongoDB Cloud users associated with the specified team in the organization.
@@ -83,11 +80,8 @@ Related Commands
    addOrgRole </command/atlas-api-mongoDbCloudUsers-addOrgRole>
    addOrgTeamUser </command/atlas-api-mongoDbCloudUsers-addOrgTeamUser>
    createOrgUser </command/atlas-api-mongoDbCloudUsers-createOrgUser>
-   createUser </command/atlas-api-mongoDbCloudUsers-createUser>
    getGroupUser </command/atlas-api-mongoDbCloudUsers-getGroupUser>
    getOrgUser </command/atlas-api-mongoDbCloudUsers-getOrgUser>
-   getUser </command/atlas-api-mongoDbCloudUsers-getUser>
-   getUserByName </command/atlas-api-mongoDbCloudUsers-getUserByName>
    listGroupUsers </command/atlas-api-mongoDbCloudUsers-listGroupUsers>
    listOrgUsers </command/atlas-api-mongoDbCloudUsers-listOrgUsers>
    listTeamUsers </command/atlas-api-mongoDbCloudUsers-listTeamUsers>

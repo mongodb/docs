@@ -81,7 +81,7 @@ Options
    * - --tenantName
      - string
      - true
-     - Human-readable label that identifies the stream instance.
+     - Label that identifies the stream workspace.
    * - --version
      - string
      - false

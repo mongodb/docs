@@ -71,6 +71,7 @@ Arguments
        ``https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-listclusters``,
        the operationId is ``listClusters``.
 
+
 Subcommand options
 ----------------------
 
@@ -137,6 +138,7 @@ In addition, the following options are available for all Atlas Administration AP
      - false
      - Help for the current command.
 
+
 Options
 -------
 
@@ -173,6 +175,7 @@ Related Commands
 ----------------
 
 * :ref:`atlas-api-accessTracking` - Returns access logs for authentication attempts made to Atlas database deployments.
+* :ref:`atlas-api-aiModels` - Returns, adds, edits, and removes API Keys and Rate Limits for your AI Models.
 * :ref:`atlas-api-alertConfigurations` - Returns and edits the conditions that trigger alerts and how MongoDB Cloud notifies users.
 * :ref:`atlas-api-alerts` - Returns and acknowledges alerts that MongoDB Cloud triggers based on the alert conditions that you define.
 * :ref:`atlas-api-atlasSearch` - Returns, adds, edits, and removes Atlas Search indexes for the specified cluster.
@@ -196,7 +199,6 @@ Related Commands
 * :ref:`atlas-api-globalClusters` - Returns, adds, and removes Global Cluster managed namespaces and custom zone mappings.
 * :ref:`atlas-api-invoices` - Returns invoices.
 * :ref:`atlas-api-ldapConfiguration` - Returns, edits, verifies, and removes LDAP configurations.
-* :ref:`atlas-api-legacyBackup` - Manages Legacy Backup snapshots, restore jobs, schedules and checkpoints.
 * :ref:`atlas-api-maintenanceWindows` - Returns, edits, and removes maintenance windows.
 * :ref:`atlas-api-mongoDbCloudUsers` - Returns, adds, and edits MongoDB Cloud users.
 * :ref:`atlas-api-monitoringAndLogs` - Returns database deployment monitoring and logging data.
@@ -208,24 +210,23 @@ Related Commands
 * :ref:`atlas-api-programmaticApiKeys` - Returns, adds, edits, and removes access tokens to use the MongoDB Cloud API.
 * :ref:`atlas-api-projectIpAccessList` - Returns, adds, edits, and removes network access limits to database deployments in Atlas.
 * :ref:`atlas-api-projects` - Returns, adds, and edits collections of clusters and users in MongoDB Cloud.
-* :ref:`atlas-api-pushBasedLogExport` - You can continually push logs from mongod, mongos, and audit logs to an AWS S3 bucket.
+* :ref:`atlas-api-pushBasedLogExport` - You can continually export mongod, mongos, and audit logs to an AWS S3 bucket.
 * :ref:`atlas-api-queryShapeInsights` -
 * :ref:`atlas-api-resourcePolicies` - Configure and manage Atlas Resource Policies within your organization.
 * :ref:`atlas-api-rollingIndex` - Creates one index to a database deployment in a rolling manner.
 * :ref:`atlas-api-root` - Returns details that describe the MongoDB Cloud build and the access token that requests this resource.
-
 * :ref:`atlas-api-serviceAccounts` - Endpoints for managing Service Accounts and secrets.
-* :ref:`atlas-api-sharedTierRestoreJobs` - Returns and adds restore jobs for shared-tier database deployments.
-* :ref:`atlas-api-sharedTierSnapshots` - Returns and requests to download shared-tier database deployment snapshots.
-* :ref:`atlas-api-streams` - Returns, adds, edits, and removes Streams Instances.
+* :ref:`atlas-api-streams` - Returns, adds, edits, and removes Streams Workspaces.
 * :ref:`atlas-api-teams` - Returns, adds, edits, or removes teams.
 * :ref:`atlas-api-thirdPartyIntegrations` - Returns, adds, edits, and removes third-party service integration configurations.
 * :ref:`atlas-api-x509Authentication` - Returns, edits, and removes user-managed X.509 configurations.
+
 
 .. toctree::
    :titlesonly:
 
    accessTracking </command/atlas-api-accessTracking>
+   aiModels </command/atlas-api-aiModels>
    alertConfigurations </command/atlas-api-alertConfigurations>
    alerts </command/atlas-api-alerts>
    atlasSearch </command/atlas-api-atlasSearch>
@@ -249,7 +250,6 @@ Related Commands
    globalClusters </command/atlas-api-globalClusters>
    invoices </command/atlas-api-invoices>
    ldapConfiguration </command/atlas-api-ldapConfiguration>
-   legacyBackup </command/atlas-api-legacyBackup>
    maintenanceWindows </command/atlas-api-maintenanceWindows>
    mongoDbCloudUsers </command/atlas-api-mongoDbCloudUsers>
    monitoringAndLogs </command/atlas-api-monitoringAndLogs>
@@ -266,10 +266,7 @@ Related Commands
    resourcePolicies </command/atlas-api-resourcePolicies>
    rollingIndex </command/atlas-api-rollingIndex>
    root </command/atlas-api-root>
-
    serviceAccounts </command/atlas-api-serviceAccounts>
-   sharedTierRestoreJobs </command/atlas-api-sharedTierRestoreJobs>
-   sharedTierSnapshots </command/atlas-api-sharedTierSnapshots>
    streams </command/atlas-api-streams>
    teams </command/atlas-api-teams>
    thirdPartyIntegrations </command/atlas-api-thirdPartyIntegrations>

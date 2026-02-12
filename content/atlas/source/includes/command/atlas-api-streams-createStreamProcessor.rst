@@ -12,7 +12,7 @@ atlas api streams createStreamProcessor
    :depth: 1
    :class: singlecol
 
-Create one Stream Processor within the specified stream instance.
+Create one Stream Processor within the specified stream workspace.
 
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
@@ -77,7 +77,7 @@ Options
    * - --tenantName
      - string
      - true
-     - Human-readable label that identifies the stream instance.
+     - Label that identifies the stream workspace.
    * - --version
      - string
      - false

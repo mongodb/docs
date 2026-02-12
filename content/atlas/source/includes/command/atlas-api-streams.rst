@@ -12,7 +12,7 @@ atlas api streams
    :depth: 1
    :class: singlecol
 
-Returns, adds, edits, and removes Streams Instances.
+Returns, adds, edits, and removes Streams Workspaces.
 
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
@@ -56,34 +56,34 @@ Related Commands
 
 * :ref:`atlas-api-streams-acceptVpcPeeringConnection` - Requests the acceptance of an incoming VPC Peering connection.
 * :ref:`atlas-api-streams-createPrivateLinkConnection` - Creates one Private Link in the specified project.
-* :ref:`atlas-api-streams-createStreamConnection` - Creates one connection for a stream instance in the specified project.
-* :ref:`atlas-api-streams-createStreamProcessor` - Create one Stream Processor within the specified stream instance.
-* :ref:`atlas-api-streams-createStreamWorkspace` - Creates one stream instance in the specified project.
+* :ref:`atlas-api-streams-createStreamConnection` - Creates one connection for a stream workspace in the specified project.
+* :ref:`atlas-api-streams-createStreamProcessor` - Create one Stream Processor within the specified stream workspace.
+* :ref:`atlas-api-streams-createStreamWorkspace` - Creates one stream workspace in the specified project.
 * :ref:`atlas-api-streams-deletePrivateLinkConnection` - Deletes one Private Link in the specified project.
-* :ref:`atlas-api-streams-deleteStreamConnection` - Delete one connection of the specified stream instance.
-* :ref:`atlas-api-streams-deleteStreamProcessor` - Delete a Stream Processor within the specified stream instance.
-* :ref:`atlas-api-streams-deleteStreamWorkspace` - Delete one stream instance in the specified project.
+* :ref:`atlas-api-streams-deleteStreamConnection` - Delete one connection of the specified stream workspace.
+* :ref:`atlas-api-streams-deleteStreamProcessor` - Delete a Stream Processor within the specified stream workspace.
+* :ref:`atlas-api-streams-deleteStreamWorkspace` - Delete one stream workspace in the specified project.
 * :ref:`atlas-api-streams-deleteVpcPeeringConnection` - Deletes an incoming VPC Peering connection.
-* :ref:`atlas-api-streams-downloadAuditLogs` - Downloads the audit logs for the specified Atlas Streams Processing instance.
+* :ref:`atlas-api-streams-downloadAuditLogs` - Downloads the audit logs for the specified Atlas Streams Processing workspace.
 * :ref:`atlas-api-streams-getAccountDetails` - Returns the Account ID, and the VPC ID for the group and region specified.
 * :ref:`atlas-api-streams-getPrivateLinkConnection` - Returns the details of one Private Link connection within the project.
-* :ref:`atlas-api-streams-getStreamConnection` - Returns the details of one stream connection within the specified stream instance.
-* :ref:`atlas-api-streams-getStreamProcessor` - Get one Stream Processor within the specified stream instance.
-* :ref:`atlas-api-streams-getStreamProcessors` - Returns all Stream Processors within the specified stream instance.
-* :ref:`atlas-api-streams-getStreamWorkspace` - Returns the details of one stream instance within the specified project.
+* :ref:`atlas-api-streams-getStreamConnection` - Returns the details of one stream connection within the specified stream workspace.
+* :ref:`atlas-api-streams-getStreamProcessor` - Get one Stream Processor within the specified stream workspace.
+* :ref:`atlas-api-streams-getStreamProcessors` - Returns all Stream Processors within the specified stream workspace.
+* :ref:`atlas-api-streams-getStreamWorkspace` - Returns the details of one stream workspace within the specified project.
 * :ref:`atlas-api-streams-listActivePeeringConnections` - Returns a list of active incoming VPC Peering Connections.
 * :ref:`atlas-api-streams-listPrivateLinkConnections` - Returns all Private Link connections for the specified project.
 * :ref:`atlas-api-streams-listStreamConnections` - Returns all connections of the stream instance for the specified project.
-* :ref:`atlas-api-streams-listStreamWorkspaces` - Returns all stream instances for the specified project.
+* :ref:`atlas-api-streams-listStreamWorkspaces` - Returns all stream workspaces for the specified project.
 * :ref:`atlas-api-streams-listVpcPeeringConnections` - Returns a list of incoming VPC Peering Connections.
 * :ref:`atlas-api-streams-rejectVpcPeeringConnection` - Requests the rejection of an incoming VPC Peering connection.
-* :ref:`atlas-api-streams-startStreamProcessor` - Start a Stream Processor within the specified stream instance.
-* :ref:`atlas-api-streams-startStreamProcessorWith` - Start a Stream Processor within the specified stream instance.
-* :ref:`atlas-api-streams-stopStreamProcessor` - Stop a Stream Processor within the specified stream instance.
-* :ref:`atlas-api-streams-updateStreamConnection` - Update one connection for the specified stream instance in the specified project.
-* :ref:`atlas-api-streams-updateStreamProcessor` - Modify one existing Stream Processor within the specified stream instance.
-* :ref:`atlas-api-streams-updateStreamWorkspace` - Update one stream instance in the specified project.
-* :ref:`atlas-api-streams-withStreamSampleConnections` - Creates one stream instance in the specified project with sample connections.
+* :ref:`atlas-api-streams-startStreamProcessor` - Start a Stream Processor within the specified stream workspace.
+* :ref:`atlas-api-streams-startStreamProcessorWith` - Start a Stream Processor within the specified stream workspace.
+* :ref:`atlas-api-streams-stopStreamProcessor` - Stop a Stream Processor within the specified stream workspace.
+* :ref:`atlas-api-streams-updateStreamConnection` - Update one connection for the specified stream workspace in the specified project.
+* :ref:`atlas-api-streams-updateStreamProcessor` - Modify one existing Stream Processor within the specified stream workspace.
+* :ref:`atlas-api-streams-updateStreamWorkspace` - Update one stream workspace in the specified project.
+* :ref:`atlas-api-streams-withStreamSampleConnections` - Creates one stream workspace in the specified project with sample connections.
 
 
 .. toctree::

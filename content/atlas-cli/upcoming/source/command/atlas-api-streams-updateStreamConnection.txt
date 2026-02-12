@@ -12,7 +12,7 @@ atlas api streams updateStreamConnection
    :depth: 1
    :class: singlecol
 
-Update one connection for the specified stream instance in the specified project.
+Update one connection for the specified stream workspace in the specified project.
 
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
@@ -47,7 +47,7 @@ Options
    * - --connectionName
      - string
      - true
-     - Human-readable label that identifies the stream connection.
+     - Label that identifies the stream connection.
    * - --envelope
      - envelope
      - false
@@ -81,7 +81,7 @@ Options
    * - --tenantName
      - string
      - true
-     - Human-readable label that identifies the stream instance.
+     - Label that identifies the stream workspace.
    * - --version
      - string
      - false
