@@ -27,6 +27,29 @@ main(int argc, char *argv[]) {
     }
 
     {
+        // start-array-builder
+        bson_t parent = BSON_INITIALIZER;
+        bson_array_builder_t *bab;
+
+        // Creates an array field using the array builder
+        BSON_APPEND_ARRAY_BUILDER_BEGIN(&parent, "numbers", &bab);
+        bson_array_builder_append_int32(bab, 9);
+        bson_array_builder_append_int32(bab, 8);
+        bson_array_builder_append_int32(bab, 7);
+        bson_append_array_builder_end(&parent, bab);
+
+        // Adds other fields to the document
+        BSON_APPEND_UTF8(&parent, "name", "Example Document");
+        
+        char *str = bson_as_relaxed_extended_json(&parent, NULL);
+        printf("Document with array: %s\n", str);
+        bson_free(str);
+
+        bson_destroy(&parent);
+        // end-array-builder
+    }
+
+    {
         bson_t *doc = BCON_NEW( "address", "{",
             "street", BCON_UTF8("Pizza St"),
             "zipcode", BCON_UTF8("10003"), "}",
