@@ -1,0 +1,463 @@
+.. _voyage-gcp-model-garden:
+
+=========================================================
+Deploy {+voyageai+} Models Using {+gcp+} Model Garden
+=========================================================
+
+.. meta::
+   :description: Deploy Voyage AI embedding models from Google Cloud Model Garden to Vertex AI endpoints with managed deployment and infrastructure.
+   :keywords: Voyage AI, Google Cloud, GCP, Model Garden, Vertex AI, model deployment, embedding models, online inference
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can explore and deploy {+voyage-full+} models from the `{+gcp+} Model Garden
+<https://console.cloud.google.com/vertex-ai/model-garden>`__.
+
+Model Garden manages licenses for {+voyage-full+} models and provides 
+deployment options using either on-demand hardware or your existing Compute 
+Engine reservations. 
+
+{+voyage-full+} models are self-deployed partner models, 
+meaning you pay for both the model usage and the Vertex AI infrastructure 
+consumed. Vertex AI handles deployment and provides endpoint management features.
+
+Available Models
+----------------
+
+To see which models you can deploy, search for "Voyage" in the
+`{+gcp+} Model Garden
+<https://console.cloud.google.com/vertex-ai/model-garden>`__.
+
+To learn more about {+voyageai+} models, see :ref:`voyage-models`.
+
+Pricing
+-------
+
+Pricing for {+voyage-full+} models in the {+gcp+} Model Garden includes:
+
+- **Model Usage fee**: A cost for using the {+voyageai+} model container,
+  billed at an hourly rate. The usage fee depends on the specific model
+  and the hardware configuration you choose for deployment. For detailed
+  pricing information, see the pricing section on the model's listing page
+  in the {+gcp+} Marketplace.
+- **{+gcp+} underlying instance in your region**: The cost of the underlying {+gcp+}
+  GPU instance, such as NVIDIA L4, A100, or H100) that is specific to a region,
+  is billed monthly and priced per vCPU. To learn more,
+  see `Google Cloud Compute Engine pricing <https://cloud.google.com/compute/all-pricing>`__.
+
+All billing charges appear as the use of Vertex AI on your {+gcp+} bill.
+
+To view pricing for a specific {+voyageai+} model:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Go to `Model Garden <https://console.cloud.google.com/vertex-ai/model-garden>`__.
+
+   .. step:: Search for the model.
+   
+      Search for the model in the :guilabel:`Model Garden` search box.
+
+   .. step:: Click the model.
+   
+      Click the model you want to view to open its details page.
+
+   .. step:: Navigate to the pricing section.
+   
+      In the :guilabel:`Overview` tab, scroll to the :guilabel:`Pricing` section.
+
+   .. step:: View detailed pricing.
+
+      Click the link that leads to the model's {+gcp+} Marketplace listing.
+      The :guilabel:`Pricing` tab in the listing entry displays detailed pricing information.
+
+Quotas
+------
+
+When you deploy {+voyageai+} models, you consume Vertex AI resources that are subject to quotas.
+You can view and manage your quotas in the :guilabel:`Quotas` section of the Google Cloud Console's IAM page. For more information, see `View the
+quotas for your project <https://docs.cloud.google.com/docs/quotas/view-manage#view_project_quotas>`__. In the same page, you can right-click any
+current quota, click :guilabel:`Edit quota`, and submit a request to increase your quota if needed.
+
+Prerequisites
+-------------
+
+To get started using the {+voyage-full+} models through {+gcp+} Vertex AI, 
+you must:
+
+- Set up a {+gcp+} project and a development environment. For instructions, see 
+  `Set up your project and development environment 
+  <https://cloud.google.com/vertex-ai/docs/start/cloud-environment>`__.
+- Enable the Vertex AI API. For instructions, see `Setup 
+  <https://cloud.google.com/vertex-ai/docs/featurestore/setup>`__.
+
+Hardware Configuration
+----------------------
+
+Each model in the Model Garden lists its recommended hardware configuration. 
+Consult the {+gcp+} Model Garden for Vertex AI for each Voyage model's recommended 
+hardware specifications.
+
+For example, for the voyage-4 model, use the following recommended instances that
+the Vertex AI Model Garden suggests for deployment.
+These recommendations may change and we recommend that you consult the official 
+{+gcp+} Model Garden page for a particular {+voyageai+} model to see its 
+recommended hardware.
+
+- **A2 instances**, such as ``a2-highgpu-1g`` or ``a2-ultragpu-1g``, with 
+  A100 GPUs are the default choice.
+- **A3 instances**, such as ``a3-highgpu-1g``,  with H100 GPUs are recommended 
+  for higher performance needs.
+
+Supported Regions
+-----------------
+
+The Model Garden lists supported regions for each {+voyageai+} model.
+If you need support in another region for any of the models,
+contact `MongoDB support <https://www.mongodb.com/services/support>`__.
+
+Best Practices and Limitations
+------------------------------
+
+- **Endpoint Type**: All {+voyageai+} models require a dedicated public endpoint type. 
+  For more information, see `Choose an endpoint type 
+  <https://cloud.google.com/vertex-ai/docs/predictions/choose-endpoint-type>`__.
+
+- **Understand input_type: Query vs. Document**: The ``input_type`` parameter 
+  optimizes embeddings for retrieval tasks. Use ``"query"`` for search queries 
+  and ``"document"`` for content being searched. This optimization improves retrieval 
+  accuracy. To learn more about the ``input_type`` parameter, see the 
+  :ref:`voyage-api-overview`.
+
+- **Use Different Output Dimensions**: Voyage 4 models support multiple output 
+  dimensions: 256, 512, 1024 (default), and 2048. Smaller dimensions reduce storage 
+  and computation costs, while larger dimensions may provide better accuracy. Choose 
+  the dimension that best balances your accuracy requirements with resource constraints.
+
+Locate the {+voyageai+} Models
+------------------------------
+
+To find {+voyage-full+} models in the Model Garden:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Go to Model Garden.
+
+      Go to the `Model Garden console 
+      <https://console.cloud.google.com/vertex-ai/model-garden>`__.
+
+   .. step:: Search for Voyage models.
+
+      In the :guilabel:`Search Models` field, enter "Voyage" to display the list 
+      of {+voyage-full+} models.
+
+      .. note::
+
+         The {+gcp+} Marketplace has two search boxes: one for the entire 
+         Marketplace and one within the Vertex AI Model Garden site. 
+         To locate {+voyage-full+} models, use the search box on
+         the Vertex AI Model Garden site.
+
+      Alternatively, you can navigate to {+voyageai+} models through
+      :guilabel:`Model Garden` > :guilabel:`Model Collections` > :guilabel:`Partner Models`,
+      and then select any of the :guilabel:`{+voyageai+}` models listed there.
+      
+      You can also scroll down to :guilabel:`Task-specific solutions` to find
+      {+voyageai+} models that you can use as-is or customize to your needs.
+
+Deploy a {+voyageai+} Model in Vertex AI
+----------------------------------------
+
+To make predictions using a {+voyage-full+} model, you must deploy it to
+a private dedicated endpoint for online inferences. Deployment associates
+physical resources with a model for low-latency and high-throughput online
+predictions. You can deploy  multiple models to one endpoint, or the same
+model to multiple endpoints.
+
+When you deploy a model, consider the following options:
+
+- Endpoint location
+- Model container
+- Compute resources required to run the model
+
+Once you deploy a model, you can't change these settings. If you need to modify
+any deployment configuration, you must undeploy the model and redeploy it with
+the new settings.
+
+{+voyageai+} models require a dedicated public endpoint. For more information,
+see `Create a public endpoint <https://docs.cloud.google.com/vertex-ai/docs/predictions/create-public-endpoint>`__ 
+in the {+gcp+} Vertex AI documentation.
+
+To deploy a model in the Google Cloud Vertex AI using the console:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Locate the model.
+
+      Go the `Model Garden console 
+      <https://console.cloud.google.com/vertex-ai/model-garden>`__ and search 
+      for "Voyage" in the :guilabel:`Search Models` field to display the list 
+      of {+voyage-full+} models.
+
+   .. step:: Click the model you want to deploy to open its details page.
+
+   .. step:: Enable the model and accept the agreement.
+
+      Click :guilabel:`Enable`. The `MongoDB Marketplace End User Agreement 
+      <https://www.mongodb.com/legal/marketplace-end-user-agreement-for-mongodb-models>`__ 
+      opens. Review and accept the agreement to enable the model and get the 
+      necessary commercial use licenses.
+
+   .. step:: Review deployment options.
+
+      After you accept the agreement, the model page displays the following options:
+
+      - :guilabel:`Deploy a model`: Saves the model to the Model Registry and deploys 
+        it to an endpoint in {+gcp+}. Continue with the following steps to deploy 
+        using the console.
+      - :guilabel:`Create an Open Notebook for {+voyage+} Embedding Models Family`:
+        Lets you fine-tune and customize your model in a collaborative environment, 
+        and mix and match models for optimal cost and performance. See 
+        `Vertex AI Notebook Samples for {+voyageai+} 
+        <https://github.com/GoogleCloudPlatform/vertex-ai-samples>`__.
+      - :guilabel:`View Code`: Displays code samples for deploying and using the model. 
+        To deploy programmatically using code, see :ref:`voyage-deploy-using-code`.
+
+   .. step:: Review model details.
+
+      Review the model's regions, hardware requirements, considerations, 
+      use cases, and pricing information.
+
+   .. step:: Click :guilabel:`Deploy model`.
+
+      Click the :guilabel:`Deploy model` button to start the deployment process.
+
+   .. step:: Fill out the deployment form.
+
+      A form opens that allows you to review and edit the deployment options. Vertex AI provides default settings that are optimized for the model,
+      but you can customize them as needed. For example, you can select the machine type, GPU type, and number of replicas. The following example
+      shows default settings for the voyage-4 model, but these may change, so review the settings carefully before deploying.
+
+      .. list-table::
+         :widths: 30 70
+         :header-rows: 1
+
+         * - Field
+           - Description
+
+         * - :guilabel:`Resource ID`
+           - Select from the dropdown menu (preselected).
+
+         * - :guilabel:`Model Name`
+           - Select from the dropdown menu (preselected).
+
+         * - :guilabel:`Region`
+           - Select your desired region, such as ``us-central1``.
+
+         * - :guilabel:`Endpoint name`
+           - Provide a name for your endpoint, such as 
+             ``mongodb_voyage-4_latest-mg-one-click-deploy``.
+
+         * - :guilabel:`Serving spec`
+           - Select the machine type, such as ``g2-standard-4``.
+
+         * - :guilabel:`Accelerator type`
+           - Select the GPU type, such as ``NVIDIA_L4``.
+
+         * - :guilabel:`Accelerator count`
+           - Specify the number of GPUs, such as ``1``.
+
+         * - :guilabel:`Replica count`
+           - Specify the minimum and maximum number of replicas, 
+             such as ``1 - 1``.
+
+         * - :guilabel:`Reservation type`
+           - Select reservation type, such as ``No reservation``.
+
+         * - :guilabel:`VM provisioning model`
+           - Select provisioning model, such as ``Standard``.
+
+         * - :guilabel:`Endpoint access`
+           - Select :guilabel:`Public (Dedicated endpoint)`.
+
+   .. step:: Review settings.
+
+      Vertex AI optimizes the settings that appear, which are 
+      applied by default. To customize your settings, click 
+      :guilabel:`Edit settings`. For example, you can select a more powerful
+      machine type or GPU.
+
+   .. step:: Check quotas.
+
+      The configuration screen shows you the quotas you have available. 
+      Use the link to :guilabel:`Quotas` for managing quotas if needed.
+
+   .. step:: Deploy the model.
+
+      Click :guilabel:`Deploy` to start the deployment process.
+
+   .. step:: Wait for completion.
+
+      You will receive a notification when deployment completes. After 
+      deployment completes, you can click :guilabel:`{+gcp+} Vertex AI`, :guilabel:`Deploy`, :guilabel:`Endpoints` list to find your deployment.
+
+.. _voyage-deploy-using-code:
+
+Deploy Using Code
+-----------------
+
+If you selected :guilabel:`View Code` from the model details page, you can 
+deploy a model programmatically using the Vertex AI SDK. This approach provides 
+full control over deployment configuration through code.
+
+For more information about the Google Cloud Vertex AI SDK, see the `Vertex AI SDK for Python 
+<https://cloud.google.com/python/docs/reference/aiplatform/latest>`__ 
+documentation.
+
+.. note::
+
+   The code examples in this section are for the voyage-4 model and are subject 
+   to change. For the most current code examples, consult the :guilabel:`View Code` 
+   tab on the model's page in the Model Garden. For other {+voyageai+} models, 
+   the code is similar, but check that model's page in the Model Garden for 
+   model-specific details.
+
+To deploy a model using code:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Initialize the model.
+
+      First, initialize the model from Model Garden and view deployment options:
+
+      .. code-block:: python
+         :copyable: true
+
+         from vertexai import model_garden
+
+         MODEL_NAME = "mongodb/voyage-4@latest"
+         model = model_garden.OpenModel(MODEL_NAME)
+
+         deploy_options = model.list_deploy_options(concise=True)
+         print(deploy_options)
+
+   .. step:: Deploy to an endpoint.
+
+      Choose whether to deploy a new model or use an existing endpoint:
+
+      .. code-block:: python
+         :copyable: true
+
+         # Choose whether to deploy a new model or use an existing endpoint:
+         deployment_option = "deploy_new"  # ["deploy_new", "use_existing"]
+
+         # If using existing endpoint, provide the endpoint ID:
+         ENDPOINT_ID = ""  # {type:"string"}
+
+         if deployment_option == "deploy_new":
+             print("Deploying new model...")
+             endpoint = model.deploy(
+                 machine_type="a3-highgpu-1g",
+                 accelerator_type="NVIDIA_H100_80GB",
+                 accelerator_count=1,
+                 accept_eula=True,
+                 use_dedicated_endpoint=True,
+             )
+             print(f"Endpoint deployed: {endpoint.display_name}")
+             print(f"Endpoint resource name: {endpoint.resource_name}")
+         else:
+             if not ENDPOINT_ID:
+                 raise ValueError("Please provide an ENDPOINT_ID when using existing endpoint")
+
+             from google.cloud import aiplatform
+
+             print(f"Connecting to existing endpoint: {ENDPOINT_ID}")
+             endpoint = aiplatform.Endpoint(
+                 endpoint_name=f"projects/{PROJECT_ID}/locations/{LOCATION}/endpoints/{ENDPOINT_ID}"
+             )
+             print(f"Using endpoint: {endpoint.display_name}")
+             print(f"Endpoint resource name: {endpoint.resource_name}")
+
+      .. important::
+
+         Set ``use_dedicated_endpoint`` to ``True`` as {+voyageai+} models require 
+         a dedicated public endpoint.
+
+      Vertex AI deploys the model to a managed endpoint that you can access to 
+      make online inferences or batch inferences through the {+gcp+} console or the 
+      Vertex AI API.
+
+      For more information, see `Deploy a model to an endpoint 
+      <https://cloud.google.com/vertex-ai/docs/general/deployment>`__ in the 
+      {+gcp+} Vertex AI documentation.
+
+   .. step:: Make predictions.
+
+      After deployment, you can make predictions using the Vertex AI endpoint.
+
+      For all endpoint parameters and prediction options, see the 
+      :ref:`voyage-api-overview`.
+
+      .. code-block:: python
+         :copyable: true
+
+         import json
+
+         # Multiple texts to embed
+         texts = [
+             "Machine learning enables computers to learn from data.",
+             "Natural language processing helps computers understand human language.",
+             "Computer vision allows machines to interpret visual information.",
+             "Deep learning uses neural networks with multiple layers."
+         ]
+
+         # Prepare the batch request and make invoke call
+         body = {
+             "input": texts,
+             "output_dimension": 1024,
+             "input_type": "document"
+         }
+
+         response = endpoint.invoke(
+             request_path="/embeddings",
+             body=json.dumps(body).encode("utf-8"),
+             headers={"Content-Type": "application/json"}
+         )
+
+         # Extract embeddings
+         result = response.json()
+         embeddings = [item["embedding"] for item in result["data"]]
+
+         print(f"Number of texts embedded: {len(embeddings)}")
+         print(f"Embedding dimension: {len(embeddings[0])}")
+         print(f"\nFirst embedding (first 5 values): {embeddings[0][:5]}")
+         print(f"Second embedding (first 5 values): {embeddings[1][:5]}")
+
+Undeploy a Model and Delete the Endpoint
+----------------------------------------
+
+To remove a deployed model and its endpoint:
+
+1. Undeploy the model from the endpoint.
+2. Optionally delete the endpoint itself.
+
+For detailed instructions, see `Undeploy a model and delete the endpoint 
+<https://docs.cloud.google.com/vertex-ai/docs/predictions/undeploy-model>`__ 
+in the {+gcp+} Vertex AI documentation.
+
+.. important::
+
+   You can delete the endpoint only after all models have been undeployed 
+   from it. Undeploying models and deleting the endpoint stops all inference 
+   services and billing for that endpoint.
