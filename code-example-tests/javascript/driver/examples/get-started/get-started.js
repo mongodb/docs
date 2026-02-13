@@ -24,8 +24,9 @@ export async function runGetStarted() {
     // Queries for a movie that has a title value of 'Back to the Future'
     const query = { title: 'Back to the Future' };
     const movie = await movies.findOne(query);
-
-    console.log(movie);
+    // :uncomment-start:
+    //console.log(movie);
+    // :uncomment-end:
     return movie; // :remove:
   } finally {
     await client.close();

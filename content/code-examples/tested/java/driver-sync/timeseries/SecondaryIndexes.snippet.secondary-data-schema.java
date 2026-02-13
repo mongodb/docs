@@ -1,0 +1,6 @@
+.append("metadata", new Document()
+        .append("sensorId", 5578)
+        .append("type", "omni")
+        .append("location", new Document()
+                .append("type", "Point")
+                .append("coordinates", Arrays.asList(-77.40711, 39.03335))))

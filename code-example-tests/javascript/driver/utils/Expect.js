@@ -1,4 +1,9 @@
 const { ComparisonEngine } = require('./comparison/comparisonEngine');
+const { readAndParseFile } = require('./comparison/fileParser');
+const {
+  ContentAnalyzer,
+  ContentType,
+} = require('./comparison/ContentAnalyzer');
 const path = require('path');
 
 /**
@@ -289,12 +294,17 @@ class Expect {
       this._schemaConfig.fieldValues
     );
 
+    // Resolve expected output if it's a file path
+    const resolvedExpected = this._resolveExpectedOutput(
+      this._expectedOutputForResemble
+    );
+
     // Validate both expected and actual outputs against the schema
     const errors = [];
 
     // Validate expected output
     const expectedErrors = this._validateAgainstSchema(
-      this._expectedOutputForResemble,
+      resolvedExpected,
       this._schemaConfig.count,
       this._schemaConfig.requiredFields,
       this._schemaConfig.fieldValues,
@@ -404,6 +414,37 @@ class Expect {
     });
 
     return errors;
+  }
+
+  /**
+   * Resolves expected output, loading from file if it's a file path.
+   * Uses the same file path detection as shouldMatch().
+   *
+   * @private
+   * @param {*} expectedOutput - The expected output (may be a file path string)
+   * @returns {*} The resolved expected output data
+   * @throws {Error} If file cannot be read or parsed
+   */
+  _resolveExpectedOutput(expectedOutput) {
+    // If it's not a string, return as-is
+    if (typeof expectedOutput !== 'string') {
+      return expectedOutput;
+    }
+
+    // Check if it's a file path using ContentAnalyzer
+    const baseDir = path.resolve(__dirname, '../examples');
+    const contentType = ContentAnalyzer.detectType(expectedOutput, baseDir);
+
+    if (contentType === ContentType.FILE) {
+      const parseResult = readAndParseFile(expectedOutput, baseDir);
+      if (!parseResult.success) {
+        throw parseResult.error;
+      }
+      return parseResult.data;
+    }
+
+    // Not a file path, return as-is
+    return expectedOutput;
   }
 
   /**

@@ -1,0 +1,19 @@
+{
+  "explainVersion": "1",
+  "stages": [
+    {
+      "$cursor": {
+        "queryPlanner": {
+          "namespace": "timeseries.system.buckets.sensorData",
+          ...
+          "winningPlan": {
+            "isCached": false,
+            "stage": "CLUSTERED_IXSCAN",
+            ...
+          },
+        }
+      }
+    }
+  ]
+}
+

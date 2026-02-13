@@ -16,10 +16,13 @@ describe('Aggregation pipeline filter tutorial tests', () => {
   afterEach(async () => {
     const uri = process.env.CONNECTION_STRING;
     const client = new MongoClient(uri);
-    const db = client.db('agg_tutorials_db');
-
-    await db.dropDatabase();
-    await client.close();
+    try {
+      await client.connect();
+      const db = client.db('agg_tutorials_db');
+      await db.dropDatabase();
+    } finally {
+      await client.close();
+    }
   });
 
   it('Should return a basic document when executing the template app', async () => {

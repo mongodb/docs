@@ -1,9 +1,8 @@
 import { loadMigrateSampleData } from '../../examples/time-series/migrate-with-aggregation/load-sample-data.js';
 import {
-  runMigrationAggregation,
-  queryNewTsCollection,
   runAverageAggregation,
   runRollingAveragePipeline,
+  cleanup as cleanupAggregationOperators,
 } from '../../examples/time-series/aggregation-operators.js';
 
 import { MongoClient } from 'mongodb';
@@ -25,6 +24,7 @@ describe('Aggregation operators tests', () => {
       await db.dropDatabase();
       await client.close();
     }
+    await cleanupAggregationOperators();
   });
 
   afterEach(async () => {

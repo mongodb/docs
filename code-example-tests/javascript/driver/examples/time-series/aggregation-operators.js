@@ -64,9 +64,11 @@ export async function runRollingAveragePipeline() {
   } catch (error) {
     console.error('Error running aggregation:', error);
     throw error;
-  } finally {
-    await client.close();
   }
+}
+
+export async function cleanup() {
+  await client?.close();
 }
 
 export async function loadSampleData() {
