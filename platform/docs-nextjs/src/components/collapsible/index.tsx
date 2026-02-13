@@ -20,19 +20,39 @@ import { collapsibleStyle, headerContainerStyle, headerStyle, iconStyle, innerCo
 export interface CollapsibleProps {
   nodeChildren: ASTNode[];
   options?: CollapsibleOptions;
+  // New props for the MDX version
+  children: React.ReactNode;
+  childrenHashIds?: string[];
+  id?: string;
+  heading?: string;
+  expanded?: boolean;
+  sub_heading?: string;
 }
 
-const Collapsible = ({ options = {}, nodeChildren, ...rest }: CollapsibleProps) => {
+const Collapsible = ({
+  children,
+  options = {},
+  nodeChildren,
+  childrenHashIds: precomputedChildrenHashIds,
+  ...rest
+}: CollapsibleProps) => {
   // Get depth from context (automatically incremented by parent sections)
   const { sectionDepth } = useHeadingContext();
-  const { id, heading, expanded, sub_heading: subHeading } = options;
+  const id = rest.id ?? options.id;
+  const heading = rest.heading ?? options.heading;
+  const expanded = rest.expanded ?? options.expanded;
+  const subHeading = rest.sub_heading ?? options.sub_heading;
   const hash = useHash();
 
   // get a list of all ids in collapsible content
   // in order to set collapsible open, if any are found in url hash
+  // Use pre-computed IDs from MDX conversion if available, otherwise compute at runtime
   const childrenHashIds = useMemo(() => {
+    if (rest.id) {
+      return precomputedChildrenHashIds ?? [];
+    }
     return findAllNestedAttribute(nodeChildren, 'id');
-  }, [nodeChildren]);
+  }, [precomputedChildrenHashIds, nodeChildren]);
 
   const [open, setOpen] = useState(() => {
     return expanded ?? true;
@@ -102,9 +122,7 @@ const Collapsible = ({ options = {}, nodeChildren, ...rest }: CollapsibleProps) 
           </IconButton>
         </Box>
         <Box className={cx(innerContentStyle)}>
-          {nodeChildren.map((c, i) => (
-            <ComponentFactory nodeData={c} key={i} {...rest}></ComponentFactory>
-          ))}
+          {children ?? nodeChildren.map((c, i) => <ComponentFactory nodeData={c} key={i} {...rest}></ComponentFactory>)}
         </Box>
       </Box>
     </HeadingContextProvider>

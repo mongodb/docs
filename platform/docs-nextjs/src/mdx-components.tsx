@@ -3,6 +3,7 @@ import { Image } from '@/mdx-components/Image';
 import { Include } from '@/mdx-components/Include';
 import { Reference } from '@/mdx-components/Reference';
 import Admonition from '@/components/admonition';
+import Collapsible from '@/components/collapsible';
 import Heading from '@/components/heading';
 import Section from '@/components/section';
 import Banner from '@/components/banner/banner';
@@ -51,7 +52,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Code: ({ children }) => <span>{children}</span>,
     Contents: ({ children }) => <span>{children}</span>,
     Facet: ({ children }) => <span>{children}</span>,
-    Collapsible: ({ children }) => <span>{children}</span>,
+    Collapsible: ({ children, ...props }) => <Collapsible {...props}>{children}</Collapsible>,
     CommunityDriver: ({ children }) => <span>{children}</span>,
     ComposableTutorial: ({ children }) => <span>{children}</span>,
     IOCodeBlock: ({ children }) => <span>{children}</span>,
@@ -127,6 +128,7 @@ export const components = (injectedProps?: InjectedProps) =>
     VersionChanged: ({ children }) => <span>{children}</span>,
     UseSampleData: ({ children }) => <span>{children}</span>,
     Wayfinding: ({ children }) => <span>{children}</span>,
+    Warning: ({ children }) => <span>{children}</span>,
     Table: ({ children }) => <span>{children}</span>,
     TableHeaderCell: ({ children }) => <span>{children}</span>,
     TableCell: ({ children }) => <span>{children}</span>,

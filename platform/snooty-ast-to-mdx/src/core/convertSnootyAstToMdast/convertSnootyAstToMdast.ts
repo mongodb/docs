@@ -10,6 +10,22 @@ import { parseSnootyArgument } from './parseSnootyArgument';
 
 const HIDDEN_NODES = ['toctree', 'index', 'seealso'];
 
+/** Collect all values of a given attribute from nested nodes (mirrors findAllNestedAttribute from docs-nextjs) */
+const findAllNestedAttribute = (nodes: SnootyNode[], attribute: string): string[] => {
+  const results: string[] = [];
+  const searchNode = (node: SnootyNode) => {
+    if (attribute in node) {
+      const value = node[attribute];
+      if (typeof value === 'string') results.push(value);
+    }
+    if (node.children) {
+      node.children.forEach(searchNode);
+    }
+  };
+  nodes.forEach(searchNode);
+  return results;
+};
+
 interface ConvertChildrenArgs {
   nodes?: SnootyNode[];
   ctx: ConversionContext;
@@ -234,6 +250,26 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
       }
       if (directiveName === 'list-table') {
         return convertDirectiveListTable({ node, ctx, depth, convertChildren });
+      }
+      if (directiveName === 'collapsible') {
+        const attributes: MdastNode[] = toJsxAttributes(node.options);
+
+        // Pre-compute child IDs for hash matching (avoids runtime traversal in component)
+        const childrenHashIds = findAllNestedAttribute(node.children ?? [], 'id');
+        if (childrenHashIds.length > 0) {
+          attributes.push({
+            type: 'mdxJsxAttribute',
+            name: 'childrenHashIds',
+            value: { type: 'mdxJsxAttributeValueExpression', value: JSON.stringify(childrenHashIds) },
+          });
+        }
+
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'Collapsible',
+          attributes,
+          children: convertChildren({ nodes: node.children, depth, ctx }),
+        };
       }
 
       // Generic fallback for any Snooty directive (ex: ...tab -> <Tab>)
