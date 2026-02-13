@@ -3,7 +3,4 @@
   does not require spawning a new process. ``mongocryptd`` is still supported.
 - Install :manual:`MongoDB Enterprise Edition </installation/#mongodb-enterprise-edition-installation-tutorials>`.
 - Install a :ref:`MongoDB Driver Compatible with CSFLE <csfle-driver-compatibility>`.
-- Start a
-  :manual:`MongoDB instance </tutorial/manage-mongodb-processes/#start-mongod-processes>`
-  or
-  :atlas:`Atlas Cluster </getting-started>`.
+- .. include:: /includes/see-get-started.rst
