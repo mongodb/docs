@@ -2,8 +2,6 @@ package compare
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -83,44 +81,14 @@ func detectStringContentType(s string) ContentType {
 
 // isFilePath checks if a string is a valid file path
 func isFilePath(s string) bool {
-	// Check if file exists
-	if _, err := os.Stat(s); err == nil {
-		return true
+	// Empty strings or whitespace-only strings are not file paths
+	if len(strings.TrimSpace(s)) == 0 {
+		return false
 	}
 
-	// Check if it looks like a file path (has extension or path separators)
-	if strings.Contains(s, string(filepath.Separator)) || strings.Contains(s, ".txt") || strings.Contains(s, ".json") {
-		// Try to resolve it relative to the driver directory
-		if filepath.IsAbs(s) {
-			return false
-		}
-
-		// Walk up from current working directory to find 'driver' directory
-		wd, err := os.Getwd()
-		if err != nil {
-			return false
-		}
-
-		for {
-			if wd == "/" || wd == "." {
-				break
-			}
-			base := filepath.Base(wd)
-			if base == "driver" {
-				candidate := filepath.Join(wd, s)
-				if _, err := os.Stat(candidate); err == nil {
-					return true
-				}
-			}
-			parent := filepath.Dir(wd)
-			if parent == wd {
-				break
-			}
-			wd = parent
-		}
-	}
-
-	return false
+	// Use the shared resolveFilePath utility to check if the path can be resolved
+	_, err := resolveFilePath(s)
+	return err == nil
 }
 
 // looksLikeJSON checks if a string appears to be JSON

@@ -830,3 +830,310 @@ func TestShouldResembleWithStructs(t *testing.T) {
 			})
 	})
 }
+
+// TestParseFieldPath tests parsing of field paths with dot notation and array indexing
+func TestParseFieldPath(t *testing.T) {
+	t.Run("Simple field name", func(t *testing.T) {
+		parts := ParseFieldPath("fieldName")
+		if len(parts) != 1 {
+			t.Fatalf("Expected 1 part, got %d", len(parts))
+		}
+		if parts[0].IsArrayIndex || parts[0].FieldName != "fieldName" {
+			t.Errorf("Expected field name 'fieldName', got %+v", parts[0])
+		}
+	})
+
+	t.Run("Dot notation path", func(t *testing.T) {
+		parts := ParseFieldPath("queryPlanner.winningPlan.stage")
+		if len(parts) != 3 {
+			t.Fatalf("Expected 3 parts, got %d", len(parts))
+		}
+		if parts[0].FieldName != "queryPlanner" {
+			t.Errorf("Expected 'queryPlanner', got '%s'", parts[0].FieldName)
+		}
+		if parts[1].FieldName != "winningPlan" {
+			t.Errorf("Expected 'winningPlan', got '%s'", parts[1].FieldName)
+		}
+		if parts[2].FieldName != "stage" {
+			t.Errorf("Expected 'stage', got '%s'", parts[2].FieldName)
+		}
+	})
+
+	t.Run("Array indexing", func(t *testing.T) {
+		parts := ParseFieldPath("stages[0]")
+		if len(parts) != 2 {
+			t.Fatalf("Expected 2 parts, got %d", len(parts))
+		}
+		if parts[0].FieldName != "stages" {
+			t.Errorf("Expected 'stages', got '%s'", parts[0].FieldName)
+		}
+		if !parts[1].IsArrayIndex || parts[1].ArrayIndex != 0 {
+			t.Errorf("Expected array index 0, got %+v", parts[1])
+		}
+	})
+
+	t.Run("Complex path with array and dot notation", func(t *testing.T) {
+		parts := ParseFieldPath("stages[0].$cursor.queryPlanner.winningPlan.stage")
+		if len(parts) != 6 {
+			t.Fatalf("Expected 6 parts, got %d", len(parts))
+		}
+		if parts[0].FieldName != "stages" {
+			t.Errorf("Expected 'stages', got '%s'", parts[0].FieldName)
+		}
+		if !parts[1].IsArrayIndex || parts[1].ArrayIndex != 0 {
+			t.Errorf("Expected array index 0, got %+v", parts[1])
+		}
+		if parts[2].FieldName != "$cursor" {
+			t.Errorf("Expected '$cursor', got '%s'", parts[2].FieldName)
+		}
+		if parts[3].FieldName != "queryPlanner" {
+			t.Errorf("Expected 'queryPlanner', got '%s'", parts[3].FieldName)
+		}
+		if parts[4].FieldName != "winningPlan" {
+			t.Errorf("Expected 'winningPlan', got '%s'", parts[4].FieldName)
+		}
+		if parts[5].FieldName != "stage" {
+			t.Errorf("Expected 'stage', got '%s'", parts[5].FieldName)
+		}
+	})
+
+	t.Run("Multiple array indices", func(t *testing.T) {
+		parts := ParseFieldPath("matrix[0][1]")
+		if len(parts) != 3 {
+			t.Fatalf("Expected 3 parts, got %d", len(parts))
+		}
+		if parts[0].FieldName != "matrix" {
+			t.Errorf("Expected 'matrix', got '%s'", parts[0].FieldName)
+		}
+		if !parts[1].IsArrayIndex || parts[1].ArrayIndex != 0 {
+			t.Errorf("Expected array index 0, got %+v", parts[1])
+		}
+		if !parts[2].IsArrayIndex || parts[2].ArrayIndex != 1 {
+			t.Errorf("Expected array index 1, got %+v", parts[2])
+		}
+	})
+}
+
+// TestTryGetNestedValue tests retrieving values using dot notation and array indexing
+func TestTryGetNestedValue(t *testing.T) {
+	t.Run("Simple field access", func(t *testing.T) {
+		doc := map[string]interface{}{"name": "test"}
+		val, exists := TryGetNestedValue(doc, "name")
+		if !exists || val != "test" {
+			t.Errorf("Expected 'test', got %v, exists=%v", val, exists)
+		}
+	})
+
+	t.Run("Nested field access with dot notation", func(t *testing.T) {
+		doc := map[string]interface{}{
+			"queryPlanner": map[string]interface{}{
+				"winningPlan": map[string]interface{}{
+					"stage": "IXSCAN",
+				},
+			},
+		}
+		val, exists := TryGetNestedValue(doc, "queryPlanner.winningPlan.stage")
+		if !exists || val != "IXSCAN" {
+			t.Errorf("Expected 'IXSCAN', got %v, exists=%v", val, exists)
+		}
+	})
+
+	t.Run("Array indexing", func(t *testing.T) {
+		doc := map[string]interface{}{
+			"stages": []interface{}{
+				map[string]interface{}{"name": "first"},
+				map[string]interface{}{"name": "second"},
+			},
+		}
+		val, exists := TryGetNestedValue(doc, "stages[0].name")
+		if !exists || val != "first" {
+			t.Errorf("Expected 'first', got %v, exists=%v", val, exists)
+		}
+		val, exists = TryGetNestedValue(doc, "stages[1].name")
+		if !exists || val != "second" {
+			t.Errorf("Expected 'second', got %v, exists=%v", val, exists)
+		}
+	})
+
+	t.Run("Complex path like explain output", func(t *testing.T) {
+		doc := map[string]interface{}{
+			"stages": []interface{}{
+				map[string]interface{}{
+					"$cursor": map[string]interface{}{
+						"queryPlanner": map[string]interface{}{
+							"winningPlan": map[string]interface{}{
+								"stage": "CLUSTERED_IXSCAN",
+							},
+						},
+					},
+				},
+			},
+		}
+		val, exists := TryGetNestedValue(doc, "stages[0].$cursor.queryPlanner.winningPlan.stage")
+		if !exists || val != "CLUSTERED_IXSCAN" {
+			t.Errorf("Expected 'CLUSTERED_IXSCAN', got %v, exists=%v", val, exists)
+		}
+	})
+
+	t.Run("Missing field returns false", func(t *testing.T) {
+		doc := map[string]interface{}{"name": "test"}
+		_, exists := TryGetNestedValue(doc, "missing")
+		if exists {
+			t.Error("Expected exists=false for missing field")
+		}
+	})
+
+	t.Run("Missing nested field returns false", func(t *testing.T) {
+		doc := map[string]interface{}{
+			"queryPlanner": map[string]interface{}{},
+		}
+		_, exists := TryGetNestedValue(doc, "queryPlanner.winningPlan.stage")
+		if exists {
+			t.Error("Expected exists=false for missing nested field")
+		}
+	})
+
+	t.Run("Array index out of bounds returns false", func(t *testing.T) {
+		doc := map[string]interface{}{
+			"stages": []interface{}{
+				map[string]interface{}{"name": "first"},
+			},
+		}
+		_, exists := TryGetNestedValue(doc, "stages[5].name")
+		if exists {
+			t.Error("Expected exists=false for out of bounds array index")
+		}
+	})
+}
+
+// TestShouldResembleWithNestedPaths tests ShouldResemble with dot notation and array indexing
+// This mirrors the C# SecondaryIndexesTest use case
+func TestShouldResembleWithNestedPaths(t *testing.T) {
+	tempDir := t.TempDir()
+
+	t.Run("Validates nested path with array indexing", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "explain_output.txt")
+		// Expected file with nested structure (like SecondaryIndexExplainOutput.txt)
+		createTestFile(t, testFile, `{"explainVersion":"1","stages":[{"$cursor":{"queryPlanner":{"namespace":"timeseries.system.buckets.sensorData","winningPlan":{"isCached":false,"stage":"CLUSTERED_IXSCAN"}}}}]}`)
+
+		actual := []map[string]interface{}{
+			{
+				"explainVersion": "1",
+				"stages": []interface{}{
+					map[string]interface{}{
+						"$cursor": map[string]interface{}{
+							"queryPlanner": map[string]interface{}{
+								"namespace": "timeseries.system.buckets.sensorData",
+								"winningPlan": map[string]interface{}{
+									"isCached": false,
+									"stage":    "CLUSTERED_IXSCAN",
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		ExpectThat(t, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{
+				Count:          1,
+				RequiredFields: []string{"stages[0].$cursor.queryPlanner.winningPlan.stage"},
+				FieldValues: map[string]interface{}{
+					"stages[0].$cursor.queryPlanner.winningPlan.stage": "CLUSTERED_IXSCAN",
+				},
+			})
+	})
+
+	t.Run("Fails when nested field value doesn't match", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "explain_mismatch.txt")
+		createTestFile(t, testFile, `{"stages":[{"$cursor":{"queryPlanner":{"winningPlan":{"stage":"IXSCAN"}}}}]}`)
+
+		actual := []map[string]interface{}{
+			{
+				"stages": []interface{}{
+					map[string]interface{}{
+						"$cursor": map[string]interface{}{
+							"queryPlanner": map[string]interface{}{
+								"winningPlan": map[string]interface{}{
+									"stage": "COLLSCAN", // Different value
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		mockT := &mockTestingT{t: t, shouldFail: true}
+		ExpectThat(mockT, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{
+				Count: 1,
+				FieldValues: map[string]interface{}{
+					"stages[0].$cursor.queryPlanner.winningPlan.stage": "IXSCAN",
+				},
+			})
+
+		if !mockT.failed {
+			t.Error("Expected test to fail when nested field value doesn't match")
+		}
+	})
+
+	t.Run("Fails when nested required field is missing", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "explain_missing.txt")
+		createTestFile(t, testFile, `{"stages":[{"$cursor":{"queryPlanner":{}}}]}`)
+
+		actual := []map[string]interface{}{
+			{
+				"stages": []interface{}{
+					map[string]interface{}{
+						"$cursor": map[string]interface{}{
+							"queryPlanner": map[string]interface{}{
+								// winningPlan is missing
+							},
+						},
+					},
+				},
+			},
+		}
+
+		mockT := &mockTestingT{t: t, shouldFail: true}
+		ExpectThat(mockT, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{
+				Count:          1,
+				RequiredFields: []string{"stages[0].$cursor.queryPlanner.winningPlan.stage"},
+			})
+
+		if !mockT.failed {
+			t.Error("Expected test to fail when nested required field is missing")
+		}
+	})
+
+	t.Run("Validates simple dot notation without array index", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "nested_simple.txt")
+		createTestFile(t, testFile, `{"queryPlanner":{"winningPlan":{"stage":"IXSCAN"}}}`)
+
+		actual := []map[string]interface{}{
+			{
+				"queryPlanner": map[string]interface{}{
+					"winningPlan": map[string]interface{}{
+						"stage": "IXSCAN",
+					},
+				},
+			},
+		}
+
+		ExpectThat(t, actual).
+			ShouldResemble(testFile).
+			WithSchema(Schema{
+				Count:          1,
+				RequiredFields: []string{"queryPlanner.winningPlan.stage"},
+				FieldValues: map[string]interface{}{
+					"queryPlanner.winningPlan.stage": "IXSCAN",
+				},
+			})
+	})
+}

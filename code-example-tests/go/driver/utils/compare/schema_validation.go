@@ -4,7 +4,150 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
+	"strings"
 )
+
+// PathPart represents a single part of a field path - either a field name or an array index.
+type PathPart struct {
+	FieldName    string
+	ArrayIndex   int
+	IsArrayIndex bool
+}
+
+// NewFieldNamePart creates a PathPart for a field name.
+func NewFieldNamePart(fieldName string) PathPart {
+	return PathPart{
+		FieldName:    fieldName,
+		ArrayIndex:   -1,
+		IsArrayIndex: false,
+	}
+}
+
+// NewArrayIndexPart creates a PathPart for an array index.
+func NewArrayIndexPart(index int) PathPart {
+	return PathPart{
+		FieldName:    "",
+		ArrayIndex:   index,
+		IsArrayIndex: true,
+	}
+}
+
+// ParseFieldPath parses a field path into individual parts, handling both dot notation and array indexing.
+// For example, "stages[0].$cursor.queryPlanner" becomes:
+// [FieldName("stages"), ArrayIndex(0), FieldName("$cursor"), FieldName("queryPlanner")]
+func ParseFieldPath(fieldPath string) []PathPart {
+	var parts []PathPart
+	segments := strings.Split(fieldPath, ".")
+
+	for _, segment := range segments {
+		// Check if segment contains array indexing like "stages[0]" or "items[2]"
+		bracketIndex := strings.Index(segment, "[")
+		if bracketIndex >= 0 {
+			// Extract field name before the bracket (if any)
+			if bracketIndex > 0 {
+				fieldName := segment[:bracketIndex]
+				parts = append(parts, NewFieldNamePart(fieldName))
+			}
+
+			// Extract all array indices from the segment (handles cases like "arr[0][1]")
+			remaining := segment[bracketIndex:]
+			for len(remaining) > 0 && strings.HasPrefix(remaining, "[") {
+				closeBracket := strings.Index(remaining, "]")
+				if closeBracket < 0 {
+					break
+				}
+
+				indexStr := remaining[1:closeBracket]
+				if arrayIndex, err := strconv.Atoi(indexStr); err == nil {
+					parts = append(parts, NewArrayIndexPart(arrayIndex))
+				}
+
+				remaining = remaining[closeBracket+1:]
+			}
+		} else {
+			// Simple field name
+			parts = append(parts, NewFieldNamePart(segment))
+		}
+	}
+
+	return parts
+}
+
+// TryGetNestedValue attempts to get a value from a nested structure using dot notation and array indexing.
+// Supports paths like "queryPlanner.winningPlan.stage" and "stages[0].$cursor.queryPlanner.winningPlan.stage".
+// Returns the value and true if the path exists, nil and false otherwise.
+func TryGetNestedValue(doc map[string]interface{}, fieldPath string) (interface{}, bool) {
+	pathParts := ParseFieldPath(fieldPath)
+	var current interface{} = doc
+
+	for _, part := range pathParts {
+		if current == nil {
+			return nil, false
+		}
+
+		// Normalize the current value to handle various types
+		normalizedCurrent := normalizeValue(current)
+
+		if part.IsArrayIndex {
+			// Handle array indexing
+			switch arr := normalizedCurrent.(type) {
+			case []interface{}:
+				if part.ArrayIndex < 0 || part.ArrayIndex >= len(arr) {
+					return nil, false
+				}
+				current = arr[part.ArrayIndex]
+			case []map[string]interface{}:
+				if part.ArrayIndex < 0 || part.ArrayIndex >= len(arr) {
+					return nil, false
+				}
+				current = arr[part.ArrayIndex]
+			default:
+				// Check if it's a slice using reflection
+				v := reflect.ValueOf(normalizedCurrent)
+				if v.Kind() == reflect.Slice {
+					if part.ArrayIndex < 0 || part.ArrayIndex >= v.Len() {
+						return nil, false
+					}
+					current = v.Index(part.ArrayIndex).Interface()
+				} else {
+					// Not an array/slice, can't index
+					return nil, false
+				}
+			}
+		} else {
+			// Handle dictionary key access
+			switch m := normalizedCurrent.(type) {
+			case map[string]interface{}:
+				val, exists := m[part.FieldName]
+				if !exists {
+					return nil, false
+				}
+				current = val
+			default:
+				// Try reflection for other map types
+				v := reflect.ValueOf(normalizedCurrent)
+				if v.Kind() == reflect.Map {
+					keyVal := v.MapIndex(reflect.ValueOf(part.FieldName))
+					if !keyVal.IsValid() {
+						return nil, false
+					}
+					current = keyVal.Interface()
+				} else {
+					// Current value is not a map, can't navigate further
+					return nil, false
+				}
+			}
+		}
+	}
+
+	return current, true
+}
+
+// hasNestedPath checks if a field path contains dot notation or array indexing.
+func hasNestedPath(fieldPath string) bool {
+	return strings.Contains(fieldPath, ".") || strings.Contains(fieldPath, "[")
+}
 
 // validateWithSchema validates that both expected and actual outputs match the given schema.
 // It checks:
@@ -70,6 +213,7 @@ func validateWithSchema(expected, actual interface{}, schema *Schema) Result {
 }
 
 // validateDocumentsAgainstSchema validates that all documents match the schema requirements.
+// Only validates nested fields when dot notation or array indexing is used in field paths.
 func validateDocumentsAgainstSchema(docs []map[string]interface{}, schema *Schema, source string) []Error {
 	var errors []Error
 
@@ -78,23 +222,48 @@ func validateDocumentsAgainstSchema(docs []map[string]interface{}, schema *Schem
 
 		// Check required fields
 		for _, field := range schema.RequiredFields {
-			if _, exists := doc[field]; !exists {
-				errors = append(errors, Error{
-					Path:    docPath,
-					Message: fmt.Sprintf("Missing required field %q", field),
-				})
+			// Only use nested path navigation if dot notation or array indexing is used
+			if hasNestedPath(field) {
+				if _, exists := TryGetNestedValue(doc, field); !exists {
+					errors = append(errors, Error{
+						Path:    docPath,
+						Message: fmt.Sprintf("Missing required field %q", field),
+					})
+				}
+			} else {
+				if _, exists := doc[field]; !exists {
+					errors = append(errors, Error{
+						Path:    docPath,
+						Message: fmt.Sprintf("Missing required field %q", field),
+					})
+				}
 			}
 		}
 
 		// Check field values
 		for field, expectedValue := range schema.FieldValues {
-			actualValue, exists := doc[field]
-			if !exists {
-				errors = append(errors, Error{
-					Path:    docPath,
-					Message: fmt.Sprintf("Missing field %q", field),
-				})
-				continue
+			var actualValue interface{}
+			var exists bool
+
+			// Only use nested path navigation if dot notation or array indexing is used
+			if hasNestedPath(field) {
+				actualValue, exists = TryGetNestedValue(doc, field)
+				if !exists {
+					errors = append(errors, Error{
+						Path:    docPath,
+						Message: fmt.Sprintf("Missing field %q which is required by fieldValues", field),
+					})
+					continue
+				}
+			} else {
+				actualValue, exists = doc[field]
+				if !exists {
+					errors = append(errors, Error{
+						Path:    docPath,
+						Message: fmt.Sprintf("Missing field %q", field),
+					})
+					continue
+				}
 			}
 
 			// Normalize values for comparison

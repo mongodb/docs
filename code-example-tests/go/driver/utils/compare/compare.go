@@ -2,8 +2,6 @@ package compare
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"reflect"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -15,56 +13,14 @@ func compareDocumentsGeneric(expectedFilePath string, actualResults interface{},
 		options = &Options{}
 	}
 
-	// First, check if the provided path is absolute or exists as given
-	finalPath := ""
-	if filepath.IsAbs(expectedFilePath) {
-		if _, err := os.Stat(expectedFilePath); err == nil {
-			finalPath = expectedFilePath
-		}
-	} else {
-		if _, err := os.Stat(expectedFilePath); err == nil {
-			finalPath = expectedFilePath
-		}
-	}
-
-	// If not found, walk up from the current working directory until we find the 'driver' directory
-	if finalPath == "" {
-		wd, err := os.Getwd()
-		if err != nil {
-			return Result{
-				IsMatch: false,
-				Errors: []Error{{
-					Path:    "file",
-					Message: fmt.Sprintf("Failed to get working directory: %v", err),
-				}},
-			}
-		}
-		driverDir := "driver"
-		for {
-			if wd == "/" || wd == "." {
-				break
-			}
-			base := filepath.Base(wd)
-			if base == driverDir {
-				candidate := filepath.Join(wd, expectedFilePath)
-				if _, statErr := os.Stat(candidate); statErr == nil {
-					finalPath = candidate
-					break
-				}
-			}
-			parent := filepath.Dir(wd)
-			if parent == wd {
-				break
-			}
-			wd = parent
-		}
-	}
-	if finalPath == "" {
+	// Resolve the file path using the shared utility
+	finalPath, err := resolveFilePath(expectedFilePath)
+	if err != nil {
 		return Result{
 			IsMatch: false,
 			Errors: []Error{{
 				Path:    "file",
-				Message: fmt.Sprintf("Failed to read expected output: Failed to find expected output file: %s from any driver directory", expectedFilePath),
+				Message: fmt.Sprintf("Failed to read expected output: %v", err),
 			}},
 		}
 	}
