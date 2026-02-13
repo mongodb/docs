@@ -40,6 +40,16 @@
 
               mongodb://<db_username>:<db_password>@replica-shard-00-00.AA000.example.net:27017,replica-shard-00-01.AA000.example.net:27017,replica-shard-00-02.AA000.example.net:27017/?tls=true&replicaSet=atlas-example-shard-0&authSource=admin&appName=replica
 
+           .. note::
+
+              If you are unable to expose all replica set members 
+              publicly, you can append the ``directConnection=true`` parameter to your connection string
+              to connect only through the primary node. 
+              Note that the :ref:`directConnection <replica-set-option>` option parameter is case-sensitive.
+               
+              When using ``directConnection=true``, the migration incurs additional risk of failure
+              if the primary node becomes unavailable at any point during the migration process.
+        
          - A sharded {+cluster+} :ref:`standard connection string <connections-standard-connection-string-format>`
            for a cluster name ``sharded`` and with a configuration of two shards,
            looks like the following example:
@@ -47,7 +57,7 @@
            .. code-block:: none
 
               mongodb://<db_username>:<db_password>@sharded-config-00-00.AA000.example.net:27016,sharded-config-00-01.AA000.example.net:27016,sharded-config-00-02.AA000.example.net:27016,sharded-shard-00-00.AA000.example.net:27016,sharded-shard-00-01.AA000.example.net:27016,sharded-shard-00-02.AA000.example.net:27016/?tls=true&authSource=admin&appName=sharded
-
+         
          If the source {+cluster+} uses ``TLS/SSL`` and isn't using a public
          Certificate Authority (CA), you will need the source {+cluster+}
          :abbr:`CA (Certificate Authority)` file.
