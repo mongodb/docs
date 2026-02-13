@@ -16,7 +16,7 @@ The following table shows compatibility between the PHP driver and PHP:
      - PHP 7.3
      - PHP 7.2
 
-   * - ext + lib 2.1
+   * - ext + lib 2.1 to 2.2
      - ✓
      - ✓
      - ✓

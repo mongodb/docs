@@ -13,7 +13,7 @@ The following table shows compatibility between the PHP driver and {+mdb-server+
      - MongoDB 4.4
      - MongoDB 4.2
 
-   * - ext + lib 1.20 to 2.1
+   * - ext + lib 1.20 to 2.2
      - ✓
      - ✓
      - ✓

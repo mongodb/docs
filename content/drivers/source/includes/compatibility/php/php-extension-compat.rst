@@ -10,6 +10,9 @@ for each PHP library version:
    * - PHP Library Version
      - Minimum PHP Extension Version
 
+   * - 2.2
+     - 2.2
+
    * - 2.1
      - 2.1
 
