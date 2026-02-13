@@ -702,6 +702,11 @@ const tocData: TocItem[] = [
             ],
           },
           {
+            label: 'Spring Data CSFLE',
+            contentSite: 'java',
+            url: '/docs/drivers/java/sync/:version/integrations/spring-csfle',
+          },
+          {
             label: 'Quarkus with Panache and MongoDB',
             contentSite: 'java',
             url: '/docs/drivers/java/sync/:version/integrations/panache',
