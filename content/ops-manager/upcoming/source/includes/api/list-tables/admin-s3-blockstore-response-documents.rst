@@ -77,6 +77,11 @@
 
        To learn more about :guilabel:`Load Factor`, see :ref:`Edit One Existing Blockstore <edit-blockstore>`.
 
+   * - objectLockEnabled
+     - boolean
+     - Flag that indicates whether object lock is enabled to prevent 
+       the objects in an S3 bucket from being deleted.
+
    * - pathStyleAccessEnabled
      - boolean
      - Flag that indicates the style of this endpoint.
