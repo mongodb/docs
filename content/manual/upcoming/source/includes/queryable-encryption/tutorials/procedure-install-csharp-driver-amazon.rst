@@ -65,5 +65,4 @@
    
    .. step:: Start a MongoDB Atlas Cluster or Enterprise instance.
 
-      Start an :atlas:`Atlas Cluster </getting-started>` or a :ref:`MongoDB
-      Enterprise instance <manage-mongodb-processes>`.
+      .. include:: /includes/see-get-started.rst
