@@ -17,6 +17,7 @@ const eslintConfig = [
       'node_modules/**/*',
       'dist/**/*',
       'build/**/*',
+      'out/**/*',
       '**/toc-data/data.copied.ts',
       'public/**/*',
     ],

@@ -7,6 +7,8 @@ find . -name "node_modules" -type d -prune -exec rm -rf {} \;
 find . -name "dist" -type d -prune -exec rm -rf {} \;
 # Remove nested build directories
 find . -name "build" -type d -prune -exec rm -rf {} \;
+# Remove nested out directories
+find . -name "out" -type d -prune -exec rm -rf {} \;
 # Remove nested .next directories
 find . -name ".next" -type d -prune -exec rm -rf {} \;
 # Remove nested .netlify directories
