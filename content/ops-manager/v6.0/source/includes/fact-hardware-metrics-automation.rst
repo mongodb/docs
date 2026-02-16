@@ -1,5 +1,4 @@
 .. note::
 
-   |mms| can only collect hardware metrics if you have enabled an
-   automation agent. A monitoring agent can only collect database 
-   metrics.
+   |mms| collects hardware metrics only if automation manages the process. 
+   A monitoring agent can only collect database metrics.
