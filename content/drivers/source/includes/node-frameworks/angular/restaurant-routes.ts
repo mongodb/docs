@@ -6,7 +6,7 @@ const router = express.Router();
 
 // Gets a list of all the restaurants
 router.get("/", async (req: Request, res: Response) => {
-  let collection = await db.collection("restaurants");
+  let collection = db.collection("restaurants");
   let results = await collection.find({}).toArray();
   res.send(results).status(200);
 });
@@ -14,7 +14,7 @@ router.get("/", async (req: Request, res: Response) => {
 // Lists restaurants that match the query filter
 router.get("/browse", async (req: Request, res: Response) => {
   try {
-    let collection = await db.collection("restaurants");
+    let collection = db.collection("restaurants");
     let query = {
       borough: "Queens",
       name: { $regex: "Moon", $options: "i" },
