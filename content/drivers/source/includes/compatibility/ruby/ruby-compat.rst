@@ -6,6 +6,7 @@ The following table shows compatibility between the Ruby driver and Ruby:
    :class: compatibility-large no-padding
 
    * - Ruby Driver
+     - Ruby 4.0
      - Ruby 3.3
      - Ruby 3.2
      - Ruby 3.1
@@ -15,7 +16,19 @@ The following table shows compatibility between the Ruby driver and Ruby:
      - JRuby 9.3
      - JRuby 9.2
 
-   * - 2.21.1
+   * - 2.23.0
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     -
+     - ✓
+     - ✓
+     -
+
+   * - 2.21.1 to 2.22.0
+     -
      - ✓
      - ✓
      - ✓
@@ -27,6 +40,7 @@ The following table shows compatibility between the Ruby driver and Ruby:
 
    * - 2.20 to 2.21.0
      -
+     -
      - ✓
      - ✓
      - ✓
@@ -36,6 +50,7 @@ The following table shows compatibility between the Ruby driver and Ruby:
      -
 
    * - 2.19
+     -
      -
      - ✓
      - ✓
