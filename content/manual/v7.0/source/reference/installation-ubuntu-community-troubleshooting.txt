@@ -15,24 +15,29 @@ Troubleshooting
 .. |arrow| unicode:: U+27A4
 .. |distro-name| replace:: Ubuntu
 
-Errors when retrieving the public key
--------------------------------------
+Public Key Retrieval Errors
+---------------------------
 
-During the :guilabel:`Import the public key used by the package management system`
-step of the :ref:`install-community-ubuntu-pkg` procedure, you may
-encounter a ``"gpg: no valid OpenPGP data found."`` error.
+Occurs during the :guilabel:`Import the public key used by the package management system`
+step of :ref:`install-community-ubuntu-pkg`.
 
-Ensure you are copying the command exactly as documented. The operation
-should respond with ``OK``.
+.. code-block:: text
+   :copyable: false
 
-To check that the MongoDB public GPG key exists on your system,
-run the following command in the terminal:
+   gpg: no valid OpenPGP data found.
+
+Solution
+~~~~~~~~
+
+Copy the command exactly as documented. The operation should respond with ``OK``.
+
+Verify that the MongoDB public GPG key exists on your system:
 
 .. code-block:: text
 
    sudo apt-key list
 
-The output should include an entry that resembles the following:
+Expected output resembles the following:
 
 .. code-block:: text
    :copyable: false
@@ -44,12 +49,11 @@ The output should include an entry that resembles the following:
    uid           [ unknown] MongoDB {+pgp-version+} Release Signing Key <packaging@mongodb.com> 
 
 
-Errors when running ``sudo apt update``
----------------------------------------
+``sudo apt update`` Errors
+--------------------------
 
-You may encounter one or more errors that resemble the following 
-when running ``sudo apt-get update`` as part of the 
-:ref:`install-community-ubuntu-pkg` procedure:
+Occurs after running ``sudo apt update`` as part of the
+:ref:`install-community-ubuntu-pkg` procedure. Often caused by a missing MongoDB Public GPG key.
 
 .. code-block:: text
    :copyable: false
@@ -61,25 +65,20 @@ when running ``sudo apt-get update`` as part of the
    N: Updating from such a repository can't be done securely, and is therefore disabled by default.
    N: See apt-secure(8) manpage for repository creation and user configuration details.
 
-These errors indicate that the MongoDB Public GPG key was not
-added in step
-:guilabel:`Import the public key used by the package management system`
-of the :ref:`install-community-ubuntu-pkg` procedure. 
+Solution
+~~~~~~~~
 
-Repeating the 
-:guilabel:`Import the public key used by the package management system`
-step of the
-:ref:`install-community-ubuntu-pkg` procedure typically resolves this
-issue. Ensure you are copying the command and key exactly as documented. 
+Repeat the :guilabel:`Import the public key used by the package management system`
+step in :ref:`install-community-ubuntu-pkg`. Copy the command and key exactly
+as documented.
 
-You can validate that the MongoDB public GPG key exists on your system
-by running the following command in the terminal:
+Verify the key:
 
 .. code-block:: text
 
    sudo apt-key list
 
-The output should include an entry that resembles the following:
+Expected output:
 
 .. code-block:: text
    :copyable: false
@@ -89,13 +88,13 @@ The output should include an entry that resembles the following:
          {+pgp-fingerprint-fmt+}
    uid           [ unknown] MongoDB {+pgp-version+} Release Signing Key <packaging@mongodb.com>
 
-Errors when running ``sudo apt install -y {+package-name-org+}``
-----------------------------------------------------------------
+``sudo apt install -y {+package-name-org+}`` Errors
+---------------------------------------------------
 
-You may encounter an error that resembles the following when running
-``sudo apt install -y {+package-name-org+}``
+Occurs after running ``sudo apt install -y {+package-name-org+}`` 
 in step :guilabel:`Create a list file for MongoDB` of the
-:ref:`install-community-ubuntu-pkg` procedure:
+:ref:`install-community-ubuntu-pkg` procedure. Often caused by a missing or 
+misconfigured ``/etc/apt/sources.list.d/mongodb-org-{+pgp-version+}.list`` file.
 
 .. code-block:: text
    :copyable: false
@@ -105,32 +104,33 @@ in step :guilabel:`Create a list file for MongoDB` of the
    Reading state information... Done
    E: Unable to locate package {+package-name-org+}
 
-This error indicates that the 
-``/etc/apt/sources.list.d/mongodb-org-{+pgp-version+}.list``
-may be configured incorrectly or is missing.
+Solution
+~~~~~~~~
 
-To review the contents of the ``mongodb-org-{+pgp-version+}.list`` file,
-run the following command in the terminal or shell:
+1. Check the file contents:
 
-.. code-block:: text
+   .. code-block:: text
 
-   cat /etc/apt/sources.list.d/mongodb-org-{+pgp-version+}.list
+      cat /etc/apt/sources.list.d/mongodb-org-{+pgp-version+}.list
 
-If the file contents do not exactly match the documentation for
-your Ubuntu version in the step linked above, remove the file and
-repeat the :guilabel:`Create a list file for MongoDB` step. 
-If the file does not exist, create it as part of that step. 
+2. If contents don't match the documentation for your Ubuntu version, remove
+   the file and repeat :guilabel:`Create a list file for MongoDB` step.
 
-Once you have validated that the ``mongodb-org-{+pgp-version+}.list``
-file exists and has the correct contents, run
-``sudo apt update`` to update the ``apt`` repositories and 
-retry ``sudo apt install -y {+package-name-org+}``.
+3. If the file doesn't exist, create it during that step.
 
-Unable to install package due to ``dpkg-deb: error``
-----------------------------------------------------
+4. Update repositories and retry installation:
 
-You may encounter an error that resembles the following when 
-installing the ``mongodb-org`` package:
+   .. code-block:: text
+
+      sudo apt update
+      sudo apt install -y {+package-name-org+}
+
+``dpkg-deb: error`` Package Conflicts
+-------------------------------------
+
+Occurs during ``sudo apt install -y {+package-name-org+}`` step of the
+:ref:`install-community-ubuntu-pkg` procedure. Often caused by a conflicting 
+|distro-name| ``mongodb`` package already installed.
 
 .. code-block:: text
    :copyable: false
@@ -138,19 +138,14 @@ installing the ``mongodb-org`` package:
    dpkg: error processing archive /var/cache/apt/archives/mongodb-org-server_{+version+}.0_amd64.deb (--unpack):
    trying to overwrite '/usr/bin/mongod', which is also in package mongodb-server-core 1:3.6.3-0ubuntu1
 
-This error indicates that the system already had the |distro-name|
-``mongodb`` package installed prior to installing the official
-MongoDB Inc. ``{+package-name-org+}`` packages. To confirm wheter the 
-host has the |distro-name| ``mongodb`` package installed, run the 
-following command in a terminal or shell:
+Solution
+~~~~~~~~
+
+Check for conflict:
 
 .. code-block:: text
 
    sudo apt list --installed | grep mongo
-
-If your output resembles the following, you **must** uninstall
-the |distro-name| ``mongodb`` package before retrying the
-:ref:`install-community-ubuntu-pkg` procedure:
 
 .. code-block:: text
    :copyable: false
@@ -160,9 +155,7 @@ the |distro-name| ``mongodb`` package before retrying the
    mongodb-server/bionic,bionic,now 1:3.6.3-0ubuntu1 all [installed,automatic]
    mongodb-server-core/bionic,now 1:3.6.3-0ubuntu1 amd64 [installed,automatic]
 
-Run the following commands in a terminal or shell to fully remove the
-|distro-name| ``mongodb`` package before retrying the installation
-procedure:
+If output shows |distro-name| packages like this, remove them:
 
 .. code-block:: text
 
@@ -172,41 +165,47 @@ procedure:
 
 .. note::
    
-   ``sudo apt purge mongodb`` removes any default configuration files
-   installed by the |distro-name| ``mongodb`` package. If you have
-   modified these configuration files *and* want to keep those
-   modifications, copy the files to another directory such as 
-   ``/home/your-user-name``.
+   ``sudo apt purge mongodb`` removes default configuration files. To preserve 
+   modified configuration files, copy them to another directory (e.g., 
+   ``/home/your-user-name``) before purging.
 
-If your output includes a mix of ``{+package-name-org+}`` and
-``mongodb`` binaries, you may need to first ``apt remove``, ``apt
-purge``, and ``apt autoremove`` the ``{+package-name-org+}`` package
-before attempting to remove and purge the |distro-name| ``mongodb``
-package. After clearing  all MongoDB-related packages, retry the
-installation procedure.
+For mixed packages:
 
-``mongod`` reports errors related to opening a socket
------------------------------------------------------
+If output shows both ``{+package-name-org+}`` and ``mongodb`` packages, remove
+``{+package-name-org+}`` first, then remove ``mongodb`` packages. After
+clearing all MongoDB-related packages, retry :ref:`install-community-ubuntu-pkg`.
 
-You may encounter the ``Socket is already in use`` or
-``Failed to unlink socket file`` errors when starting a 
-:binary:`mongod <bin.mongod>`. These errors generally indicate
-another process using the configured port for the 
-:binary:`mongod <bin.mongod>` process, typically another 
-:binary:`mongod <bin.mongod>` running on the system.
+``mongod`` Socket Errors
+------------------------
 
-The following example uses the ``ss`` utility to list all open 
-TCP (``-t``) or UDP (``-u``) sockets in the ``LISTEN`` (``-l``) state 
-and the process using each socket (``-p``)
-without resolving any service names or hostnames (``-n``).
+Occurs when starting a :binary:`mongod <bin.mongod>`. Often caused by another 
+process (typically another :binary:`mongod <bin.mongod>`) using the
+configured port.
+
+.. code-block:: text
+   :copyable: false
+
+   Socket is already in use
+
+.. code-block:: text
+   :copyable: false
+
+   Failed to unlink socket file
+
+Solution
+~~~~~~~~
+
+Identify the process:
+
+The following example uses ``ss`` to list all open TCP (``-t``) and UDP (``-u``)
+sockets in the ``LISTEN`` (``-l``) state and the process using each socket 
+(``-p``) without resolving any service names or hostnames (``-n``):
 
 .. code-block:: text
 
    sudo ss -tulpn
 
-The following partial output shows a ``mongod`` process 
-listening on the ``27017`` port. Attempting to run another ``mongod`` 
-process on that same port will result in socket errors.
+Example output showing ``mongod`` on port ``27017``:
 
 .. code-block:: text
    :copyable: false
@@ -220,21 +219,20 @@ process on that same port will result in socket errors.
    tcp          LISTEN           127.0.0.1:27017     users:(("mongod",pid=10027,fd=11))
    tcp          LISTEN                 ::]:22        users:(("sshd",pid=819,fd=4))
 
+You can either:
 
-If the system has a :binary:`mongod <bin.mongod>` or other system 
-process running on your desired port, you must either shut the 
-existing process down *or* select a new port for the new
-:binary:`mongod <bin.mongod>` process. You can specify the 
-:setting:`net.port` :ref:`configuration file <configuration-file>` 
-option to change the port that the :binary:`mongod <bin.mongod>` 
-listens on.
+- Shut down the existing process
+- Select a new port for the conflicting :binary:`mongod <bin.mongod>` process:
+   1. Modify :setting:`net.port` in the :ref:`configuration file <configuration-file>`
+   2. Use :option:`--port <mongod --port>` on the command line
 
-``mongod`` reports errors related to the data directory
--------------------------------------------------------
+Data Directory Errors
+---------------------
 
-Users may encounter errors that resemble the following in the
-:binary:`mongod <bin.mongod>` 
-:ref:`process log <monitoring-standard-loggging>`:
+Occurs in the :binary:`mongod <bin.mongod>` 
+:ref:`process log <monitoring-standard-loggging>`. Often caused by a data 
+directory that doesn't exist or isn't accessible to the
+:binary:`mongod <bin.mongod>`.
 
 .. code-block:: text
    :copyable: false
@@ -243,65 +241,48 @@ Users may encounter errors that resemble the following in the
 
    Attempted to create lock file on a read-only directory: ...
 
-Generally, these errors indicate that the MongoDB data directory
-either doesn't exist, or isn't accessible to the
-:binary:`mongod <bin.mongod>`.
+When starting as a service (``sudo systemctl start mongod`` or ``sudo 
+service mongod start``), this may mean:
 
-The data directory must exist
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- :setting:`~storage.dbPath` in ``/etc/mongod.conf`` points to a directory
+  without ``rwx`` permissions for ``mongodb`` user or group
+- :setting:`~storage.dbPath` points to a nonexistent directory
 
-The data directory is specified with the :setting:`storage.dbPath`
-setting in the :ref:`configuration file <configuration-file>`, or
-with the :option:`--dbpath <mongod --dbpath>` option to
-:binary:`mongod <bin.mongod>` on the command line.
+When starting from the terminal, this may mean:
 
-- If you installed MongoDB through the ``apt`` package manager, the default
-  ``/etc/mongod.conf`` :ref:`configuration file <configuration-file>`
-  sets :setting:`storage.dbPath` to ``/var/lib/mongodb``.
+- :setting:`~storage.dbPath` or :option:`--dbpath <mongod --dbpath>` points to
+  a directory without ``rwx`` permissions for the user or their group
+- The Directory doesn't exist
 
-- If you are running :binary:`mongod <bin.mongod>` on the command
-  line, and omitting the :option:`--dbpath <mongod --dbpath>` option
-  entirely, MongoDB uses a default ``--dbpath`` of ``/data/db``.
+Solution
+~~~~~~~~
 
-Whether you are using one of the data directory paths above, or
-providing your own path in the configuration file or on the command
-line, make sure that the data directory exists on your filesystem
-prior to starting the :binary:`mongod <bin.mongod>`. You can create
-directories on Ubuntu with the ``mkdir`` command.
+Depending on the cause, either create the data directory or set appropriate
+permissions and ownership.
 
-The data directory must be accessible
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Create the directory:
 
-The data directory must be configured with the appropriate
-permissions and ownership settings to allow the
-:binary:`mongod <bin.mongod>` to read, write, and
-navigate the directory contents (``rwx`` user or group permissions).
+  Specify the data directory with :setting:`storage.dbPath` in the
+  :ref:`configuration file <configuration-file>` or
+  :option:`--dbpath <mongod --dbpath>` on the command line.
 
-Use ``chown``, and ``chmod`` to modify permissions and set
-``user:group`` ownership as appropriate prior to starting the
-:binary:`mongod <bin.mongod>`.
+- Set default paths:
 
-Starting ``mongod`` using the data directory
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  - ``apt`` package manager installation: The default ``/etc/mongod.conf``
+    :ref:`configuration file <configuration-file>` sets :setting:`storage.dbPath`
+    to ``/var/lib/mongodb``
+  - :binary:`mongod <bin.mongod>` on the command line without
+    :option:`--dbpath <mongod --dbpath>`: ``/data/db``
 
-Users starting the ``mongod`` as a service (e.g. using either ``sudo
-systemctl start mongod`` or ``sudo service mongod start``) typically
-only see these errors if they modified the default
-:setting:`~storage.dbPath` value in the ``/etc/mongod.conf`` to:
+  Ensure that the data directory exists or create the directory  using ``mkdir``
+  before starting :binary:`mongod <bin.mongod>`.
 
-* A directory that does not allow the ``mongodb`` user or ``mongodb`` 
-  group to read, write, or execute (``rwx``) the directory and its 
-  contents, *or*
+- Set directory permissions:
 
-* A directory that does not exist.
+  Set appropriate permissions and ownership:
 
-Users starting the :binary:`mongod <bin.mongod>` without using the
-service definition (e.g. using the terminal to launch ``mongod``) 
-typically see these errors if:
+  - The :binary:`mongod <bin.mongod>` needs ``rwx`` (read, write, execute)
+    permissions
+  - Use ``chown`` and ``chmod`` to configure ``user:group`` ownership and
+    permissions prior to starting the :binary:`mongod <bin.mongod>`
 
-* The directory specified to :setting:`~storage.dbPath` or 
-  :option:`--dbpath <mongod --dbpath>` does not allow the user or a 
-  group to which the user belongs to read, write, and execute 
-  (``rwx``) the directory or its contents, *or*
-
-* The specified data directory does not exist.
