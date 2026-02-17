@@ -1,0 +1,3 @@
+- Set the directory owner to the user account that runs the MCP Server.
+- Configure read and write permissions for the owner only.
+- Deny access to all other users and processes.
