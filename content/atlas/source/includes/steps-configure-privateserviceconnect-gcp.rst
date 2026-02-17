@@ -3,7 +3,7 @@
       
    .. include:: /includes/nav/steps-network-access.rst
       
-   .. step:: Click the :guilabel:`Private Endpoint` tab and then the following tab.
+   .. step:: Click the :guilabel:`Private Endpoint` tab and then click :guilabel:`Add Private Endpoint`.
 
    .. step:: Choose a cloud provider.
       
@@ -41,23 +41,29 @@
                 value on the :guilabel:`VPC Networks` page on your |gcp|
                 dashboard.
 
-      #. Enter a unique name for your private endpoint in the
-         :guilabel:`Private Service Connect Endpoint Prefix` field. 
-         This will be the prefix for all endpoints created and the name 
-         of the endpoint group. Click :guilabel:`Next`.
+            * - :guilabel:`Private Service Connect Endpoint Name`
+              - A unique name for your private endpoint. This name is used
+                to identify the endpoint on your |gcp| platform.
 
-      #. Create the forwarding rules in your |gcp| |vpc| by downloading 
-         the shell script and running it using the gcloud CLI. This 
-         will output a |json| file containing a list of IP addresses 
-         and endpoint names that you will need in the next step. Click 
-         :guilabel:`Next`.
+      #. Run the provided |gcp| command **to reserve an IP address** in your VPC.
+         This single IP address is used by the private endpoint to connect to
+         |service|. 
 
-      #. Click :guilabel:`Upload JSON File` to select and upload the 
-         outputted JSON file.
-            
+      #. Click :guilabel:`Next`.
+  
       #. Click :guilabel:`Create Private Endpoint`.
 
+      #. Enter the IP address you reserved in your |gcp| VPC
+         when prompted.
+
+      #. Run the provided |gcp| command to create the required forwarding rule
+         in your VPC.
+      
+      #. Click :guilabel:`Done`.
+
    .. include:: /includes/nav/steps-network-access.rst 
+
+   .. _gcp-private-endpoints-verify:
       
    .. step:: Verify that the private endpoint is available.
       

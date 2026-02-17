@@ -21,45 +21,16 @@
   See :ref:`atlas_regionalized-pl` for an exception for
   multi-region and global sharded clusters.
 
-- |service| creates 50 service attachments, each with a
-  subnet mask value of 27. You can change the number of
-  service attachments and the subnet masks that |service|
-  creates by setting the following limits with the
-  :oas-bump-atlas-op:`Set One Project Limit <setgrouplimit>`
-  {+atlas-admin-api+} endpoint:
-
-  - Set the
-    ``atlas.project.deployment.privateServiceConnectionsPerRegionGroup``
-    limit to change the number of service attachments.
-  - Set the
-    ``atlas.project.deployment.privateServiceConnectionsSubnetMask``
-    limit to change the subnet mask for each service
-    attachment.
-
-  To learn more, see :oas-bump-atlas-op:`Set One Project Limit
-  <setgrouplimit>`.
-
-- You can have up to 50 nodes when you create |service| projects
+- You can have up to 150 nodes when you create |service| projects
   that use {+gcp-psc+} in a **single region**. If you need
   to change the number of nodes, perform one of the following
   actions:
 
-  - Remove existing private endpoints and then change the
-    limit using the :oas-bump-atlas-op:`Set One Project Limit
-    <setgrouplimit>` {+atlas-admin-api+} endpoint.
   - Contact :ref:`MongoDB Support <request-support>`.
   - Use additional projects or regions to connect to nodes
     beyond this limit.
 
-- Each private endpoint in |gcp| reserves an IP address
-  within your |gcp| |vpc| and forwards traffic from the
-  endpoints' IP addresses to the
-  :gcp:`service attachments </vpc/docs/private-service-connect#service-attachments>`.
-  You must create an equal number of private endpoints to the
-  number of service attachments. The number of service
-  attachments defaults to 50.
-
-  Addressable targets include:
+- Addressable targets include:
 
   - Each |mongod| instance in a replica set deployment
     (sharded clusters excluded).
@@ -72,7 +43,7 @@
   doesn't count these nodes in the total count of addressable targets.
 
 - To request a one-time increase to use {+gcp-psc+} with up to
-  100 nodes per |service| project, contact
+  200 nodes per |service| project, contact
   :ref:`MongoDB Support <request-support>`.
 
 - You can have up to 40 nodes when you create |service| projects
@@ -116,4 +87,4 @@
      preference to :manual:`secondaryPreferred </core/read-preference/#mongodb-readmode-secondaryPreferred>`.
 
   2. Ensure at least one secondary node is in the same
-     region as the endpoint.
+     region as the endpoint. 

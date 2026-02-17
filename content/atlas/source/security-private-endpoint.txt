@@ -106,6 +106,9 @@ Learn About Private Endpoints in |service|
       
       .. include:: /includes/fact-private-endpoint-connections-aws.rst
 
+      You can also set up private endpoints for your Online Archive. To 
+      learn more, see :ref:`oa-config-private-endpoint`.
+
    .. selected-content::
       :selections: azure
 
@@ -155,6 +158,9 @@ Learn About Private Endpoints in |service|
 
       .. include:: /includes/fact-private-endpoint-connections-azure.rst
 
+      You can also set up private endpoints for your Online Archive. To 
+      learn more, see :ref:`oa-config-private-endpoint`.
+
    .. selected-content::
       :selections: gcp
 
@@ -189,21 +195,15 @@ Learn About Private Endpoints in |service|
              Private Service Connect.
 
       When you enable {+gcp-psc+} in |gcp|, |service|
-      creates a private endpoint service using :gcp:`service attachments 
+      creates a private endpoint service using a :gcp:`service attachment 
       </vpc/docs/private-service-connect#service-attachments>`
-      and load balancers.
+      and a load balancer. 
 
       Next, you create resources that establish a one-way 
       connection from your |vpc| to the private endpoint service 
       in |service| using a private endpoint. The private endpoint 
-      service routes traffic to the load balancers for the 
+      service routes traffic to the load balancer for the 
       {+clusters+} in the |service| |vpc|.
-
-      To ensure the availability of resources for both current 
-      and future {+clusters+}, |service| performs the following 
-      actions when you enable this feature:
-
-      .. include:: /includes/gcp-psc-connection-workflow.rst
 
       .. tabs::
 
@@ -214,7 +214,7 @@ Learn About Private Endpoints in |service|
             establishes connections when you have one {+cluster+}
             in one region.
 
-            .. figure:: /images/google-psc-diagram.svg
+            .. figure:: /images/google-psc-diagram-new.svg
                :width: 720px
                :alt: Image showing how {+gcp-psc+} establishes connections from your application VPC to resources in the |service| VPC when you have one cluster in one region.
 
@@ -225,7 +225,7 @@ Learn About Private Endpoints in |service|
             establishes connections when you have two 
             {+clusters+} in one region.
 
-            .. figure:: /images/google-psc-diagram-two-clusters.svg
+            .. figure:: /images/google-psc-diagram-two-clusters-new.svg
                :width: 720px
                :alt: Image showing how {+gcp-psc+} establishes connections from your application VPC to resources in the |service| VPC when you have two clusters in one region.
 
@@ -236,10 +236,79 @@ Learn About Private Endpoints in |service|
             establishes connections when you have one {+cluster+}
             in multiple regions.
 
-            .. figure:: /images/google-psc-diagram-multiple-regions.svg
+            .. figure:: /images/google-psc-diagram-multiple-regions-new.svg
                :width: 720px
                :alt: Image showing how {+gcp-psc+} establishes connections from your application VPC to resources in the |service| VPC when you have one cluster in multiple regions.
-         
+      
+      Legacy Private Endpoints Support
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. note::
+
+         Port Mapping Architecture is the preferred architecture for new private 
+         endpoints in |gcp|.
+
+      Legacy private endpoints without port mapping are still supported for existing 
+      |gcp| clusters with private endpoints created before the release of {+gcp-psc+} port mapping, 
+      but you cannot create additional legacy endpoint services. However, you can 
+      continue to use existing legacy endpoints with full functionality, 
+      including adding and removing IP addresses from the access list, 
+      and connecting to clusters using the legacy private endpoint connection string.
+
+      Limatations and Considerations
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      - For multi-region deployments, you cannot combine legacy and port mapped 
+        endpoint services. You must create a port mapped endpoint service in each 
+        region in order for port mapped connection strings to work correctly. 
+        This limitation does not apply if you have a regionalized private endpoint.
+
+      - For multi-cloud clusters, if both legacy endpoint and port mapped endpoint services exist for a given region, 
+        you must delete the legacy endpoint service before you can connect to the port mapped endpoint service.
+
+      Converting Legacy Private Endpoints to use Port Mapping Architecture
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      You can :ref:`create new private endpoints <private-endpoints-create>` for a given region using {+gcp-psc+} port mapping
+      before deleting the legacy private endpoints for clusters in that region. 
+      After you create a new private endpoint and use the newly generated 
+      connection string in your application, :ref:`confirm that the new 
+      private endpoint is working <gcp-private-endpoints-verify>` before deleting the legacy private endpoint.
+
+      .. note::
+
+         Connection strings for legacy private endpoints differ from port mapping connection strings. 
+         Specifically, legacy private endpoint connection strings include 
+         a ``pl-[index]`` pattern, whereas new connection strings include a ``psc-[index]`` pattern.
+
+         **Multi-Cloud Considerations**
+         If you have a multi-cloud cluster connection strings must use the ``pl-[index]`` 
+         pattern, even if you have port mapped private endpoints in the |gcp| region.
+         For example, if you have a GCP-only cluster in Region A with port-mapping uses clusterName-psc-0.
+         However, after adding an AWS node and converting to a multi-cloud architecture, you must update 
+         the connection string to use the ``clusterName-pl-0`` pattern.
+
+
+      Example API Request to Create a {+gcp-psc+} Port Mapping Private Endpoint
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. code-block:: Shell
+
+         curl -4 -i --digest -u "<public-key>:<private-key>" \
+           --request POST \
+           --header "Content-Type: application/json" \
+           --header "Accept: application/vnd.atlas.2025-03-12+json" \
+           --data '{"providerName": "GCP", "region": "CENTRAL_US", "portMappingEnabled": true}' \
+           "https://mongodb.com/api/atlas/v2/groups/<group-id>/privateEndpoint/endpointService"
+
+      .. note:: 
+
+         To learn more about recommended configurations for multi-region setups, 
+         see :ref:`arch-center-paradigms-multi-region`.
+
+      To ensure the availability of resources for both current 
+      and future {+clusters+}, |service| performs the following 
+      actions when you enable this feature:
 
       Connections to |service| clusters using private endpoints 
       offer the following advantages over other network access 
@@ -258,8 +327,6 @@ Learn About Private Endpoints in |service|
           connect to |service| directly from your on-premises data center
           without adding public IP addresses to the |service| access list.
 
-   You can also set up private endpoints for your Online Archive. To 
-   learn more, see :ref:`oa-config-private-endpoint`.
 
    To set up a private endpoint, you must have
    :authrole:`Organization Owner`, :authrole:`Project Owner`, or
@@ -374,9 +441,11 @@ Learn About Private Endpoints in |service|
       :selections: gcp
 
       |service| services are accessed through 
-      {+gcp-psc+} endpoints on ports 27015 through 27017. The 
+      {+gcp-psc+} endpoints on ports 1024-65535. The 
       ports can change under specific circumstances, including 
-      (but not limited to) cluster changes.
+      (but not limited to) cluster changes. You may have to 
+      update your firewall rules to allow egress traffic to the 
+      new ports.
 
       .. important::
          MongoDB strongly recommends using the DNS seedlist 
@@ -406,8 +475,8 @@ Learn About Private Endpoints in |service|
 
       .. include:: /includes/gcp-psc-connection-strings.rst
 
-   (Optional) Optimize Connection to Sharded {+Clusters+} Behind a Private Endpoint 
-   ```````````````````````````````````````````````````````````````````````````````````
+   (Optional) Optimize Connection to Sharded {+Clusters+} Behind a Private Endpoint for AWS
+   `````````````````````````````````````````````````````````````````````````````````````````
 
    .. include:: /includes/fact-optimized-connection-strings-intro.rst
 

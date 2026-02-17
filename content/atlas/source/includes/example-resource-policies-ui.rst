@@ -290,10 +290,16 @@ following details for your cloud provider and replace them in the example:
 - ``PRIVATE_ENDPOINT_RESOURCE_ID``: The full resource ID path of the |azure| private endpoint.
 - ``PRIVATE_ENDPOINT_IP_ADDRESS``: The IP address assigned to the private endpoint.
 
-**Google Cloud:** ``gcp:<GCP_PROJECT_ID>:<VPC_NAME>``
+**Google Cloud:** ``gcp:<GCP_PROJECT_ID>:<PRIVATE_ENDPOINT_GROUP_NAME>``
 
 - ``GCP_PROJECT_ID``: The ID of your |gcp| project.
-- ``VPC_NAME``: The name of the |vpc| in |gcp| associated with the connection.
+- ``PRIVATE_ENDPOINT_GROUP_NAME``: The name of the private endpoint group in |gcp| associated with the connection.
+
+**Google Cloud Port-based Routing:** ``gcp:<GCP_PROJECT_ID>:<PRIVATE_ENDPOINT_NAME>:<PRIVATE_ENDPOINT_IP_ADDRESS>``
+
+- ``GCP_PROJECT_ID``: The ID of your |gcp| project.
+- ``PRIVATE_ENDPOINT_NAME``: The name of the private endpoint in |gcp| associated with the connection.
+- ``PRIVATE_ENDPOINT_IP_ADDRESS``: The IP address assigned to the private endpoint.
 
 .. code-block::
    :copyable: true

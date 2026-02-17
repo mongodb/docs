@@ -22,7 +22,7 @@ and resembles the following:
 .. code-block:: none
     :copyable: false
 
-    mongodb+srv://abc-pl-1.xxxxx.mongodb.net/
+    mongodb+srv://cluster1-psc-0.4uyx2d.mongodb.net
     
 Then, suppose you configure a private endpoint for a new region in your
 cluster and subsequently add cluster nodes to that region. Your cluster
@@ -32,7 +32,7 @@ index of ``0``:
 .. code-block:: none
     :copyable: false
 
-    mongodb+srv://abc-pl-0.xxxxx.mongodb.net/
+    mongodb+srv://cluster1-psc-1.4uyx2d.mongodb.net
 
 To avoid potential connectivity issues after your client's next restart,
 confirm that you are using the zero-indexed private endpoint connection string
