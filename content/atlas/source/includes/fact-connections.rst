@@ -1,2 +1,2 @@
 Monitor connections to determine whether the current connection 
-limits are sufficient. If necessary, upgrade the cluster tier.
+limits are sufficient. If necessary, scale the cluster tier.

@@ -68,8 +68,8 @@ The following limitations apply to |fts| on ``M0`` and Flex
 - .. include:: /includes/search-shared/fact-fts-shared-tier-limitations.rst
   
 - When you reach the maximum number of indexes allowed for the {+cluster+} 
-  tier, you can upgrade your {+cluster+} tier to create additional indexes. 
-  If you upgrade your {+cluster+} tier, the indexes are rebuilt on the new 
+  tier, you can scale your {+cluster+} tier to create additional indexes. 
+  If you scale your {+cluster+} tier, the indexes are rebuilt on the new 
   {+cluster+} tier, which triggers an 
   :ref:`initial sync <troubleshoot-initial-sync>`.
 
